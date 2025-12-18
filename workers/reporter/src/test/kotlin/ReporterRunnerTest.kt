@@ -107,6 +107,7 @@ import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
+import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 
 private const val RUN_ID = 20230522093727L
@@ -634,7 +635,7 @@ class ReporterRunnerTest : WordSpec({
 
             mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
-            val ruleViolation = RuleViolation("RULE", null, null, emptySet(), OrtSeverity.ERROR, "message", "howToFix")
+            val ruleViolation = RuleViolation("RULE", null, null, enumSetOf(), OrtSeverity.ERROR, "message", "howToFix")
 
             val result = runner.run(
                 ortResult = OrtTestData.result.copy(
@@ -671,7 +672,7 @@ class ReporterRunnerTest : WordSpec({
                         startTime = Clock.System.now().toJavaInstant(),
                         endTime = Clock.System.now().toJavaInstant(),
                         violations = listOf(
-                            RuleViolation("RULE", null, null, emptySet(), OrtSeverity.ERROR, "message", "howToFix")
+                            RuleViolation("RULE", null, null, enumSetOf(), OrtSeverity.ERROR, "message", "howToFix")
                         )
                     )
                 ),

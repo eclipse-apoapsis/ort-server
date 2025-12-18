@@ -60,6 +60,7 @@ import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.fromYaml
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
+import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -102,7 +103,7 @@ class EvaluatorRunnerTest : WordSpec({
                 rule = "TEST_RULE",
                 pkg = null,
                 license = null,
-                licenseSources = emptySet(),
+                licenseSources = enumSetOf(),
                 severity = Severity.ERROR,
                 message = "This is an example RuleViolation for test cases.",
                 howToFix = ""
