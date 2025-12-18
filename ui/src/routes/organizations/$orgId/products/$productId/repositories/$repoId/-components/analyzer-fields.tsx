@@ -176,8 +176,8 @@ export const AnalyzerFields = ({
                 </FormControl>
                 <FormDescription>
                   The optional path to a repository configuration file. If this
-                  is not defined, the repository configuration is read from the
-                  root of the analyzed project repository, ie. "./.ort.yml".
+                  is not defined, the repository configuration is read from
+                  ".ort.yml" in the root of the analyzed project repository.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
