@@ -27,6 +27,8 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 
+import org.eclipse.apoapsis.ortserver.utils.system.CustomHttpHeaders
+
 import org.koin.ktor.ext.inject
 
 fun Application.configureHTTP() {
@@ -39,6 +41,7 @@ fun Application.configureHTTP() {
     install(CORS) {
         allowedHosts.split(',').forEach(::allowHost)
         allowCredentials = true
+        allowHeader(CustomHttpHeaders.ClientType)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Delete)
