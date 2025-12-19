@@ -54,7 +54,12 @@ export const CopyToClipboard = ({ copyText }: CopyToClipboardProps) => {
     <TooltipProvider delayDuration={0}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant='ghost' size='sm' onClick={handleCopyClick}>
+          <Button
+            variant='ghost'
+            size='sm'
+            type='button'
+            onClick={handleCopyClick}
+          >
             <span className='fg-slate-300'>
               {isCopied ? <Check color='gray' /> : <Copy color='gray' />}
             </span>
