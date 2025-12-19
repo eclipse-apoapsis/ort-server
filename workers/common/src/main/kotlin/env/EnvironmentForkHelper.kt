@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.auth.credentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFromConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
+import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -101,6 +102,9 @@ object EnvironmentForkHelper {
 
         val netrcManager = NetRcManager.create(credentialResolver(authInfo))
         authenticator.updateAuthenticationListener(netrcManager)
+
+        logger.info("Enabling ORT stack traces for the AnalyzerRunner forked process.")
+        enableOrtStackTraces()
     }
 
     /**
