@@ -19,12 +19,16 @@
 
 package org.eclipse.apoapsis.ortserver.core.plugins
 
+import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 
 import java.util.UUID
+
+import org.eclipse.apoapsis.ortserver.utils.system.CustomHttpHeaders
 
 import org.slf4j.event.Level
 
@@ -42,5 +46,17 @@ fun Application.configureMonitoring() {
         mdc("organizationId") { it.parameters["organizationId"] }
         mdc("productId") { it.parameters["productId"] }
         mdc("repositoryId") { it.parameters["repositoryId"] }
+
+        format { call ->
+            val clientType = call.request.headers[CustomHttpHeaders.ClientType]
+                ?: call.request.headers[HttpHeaders.UserAgent]
+                ?: "unknown"
+
+            val status = call.response.status()?.value ?: "unknown"
+            val method = call.request.httpMethod.value
+            val path = call.request.path()
+
+            "clientType=$clientType $method $path: $status"
+        }
     }
 }
