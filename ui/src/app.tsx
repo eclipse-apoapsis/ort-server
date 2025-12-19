@@ -40,6 +40,9 @@ import { routeTree } from '@/routeTree.gen';
 client.setConfig({
   baseURL: config.API_URL,
   auth: () => authRef.current?.user?.access_token,
+  headers: {
+    'X-Client-Type': 'ort-server-ui',
+  },
 });
 
 export interface RouterContext {
