@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
-import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
 /**
  * An interface to define common properties of all roles in the authorization system.
@@ -31,14 +31,14 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 sealed interface Role {
     companion object {
         /**
-         * Return a [List] of all roles defined for the given hierarchy [level]. For an invalid level, return an empty
-         * list.
+         * Return a [List] of all roles defined for the given hierarchy [level]. For an undefined level, return an
+         * empty list.
          */
-        fun rolesForLevel(level: Int): List<Role> =
+        fun rolesForLevel(level: HierarchyLevel): List<Role> =
             when (level) {
-                CompoundHierarchyId.ORGANIZATION_LEVEL -> OrganizationRole.entries
-                CompoundHierarchyId.PRODUCT_LEVEL -> ProductRole.entries
-                CompoundHierarchyId.REPOSITORY_LEVEL -> RepositoryRole.entries
+                HierarchyLevel.ORGANIZATION -> OrganizationRole.entries
+                HierarchyLevel.PRODUCT -> ProductRole.entries
+                HierarchyLevel.REPOSITORY -> RepositoryRole.entries
                 else -> emptyList()
             }
 
@@ -46,18 +46,15 @@ sealed interface Role {
          * Return the role with the given [name] defined for the given hierarchy [level], or null if no such role
          * exists.
          */
-        fun getRoleByNameAndLevel(level: Int, name: String): Role? =
+        fun getRoleByNameAndLevel(level: HierarchyLevel, name: String): Role? =
             rolesForLevel(level).find { it.name == name }
     }
 
     /** The name of this role. */
     val name: String
 
-    /**
-     * The level in the hierarchy this role is defined for. The value corresponds to the constants defined by the
-     * [org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId] companion object.
-     */
-    val level: Int
+    /** The level in the hierarchy this role is defined for. */
+    val level: HierarchyLevel
 
     /** A set with permissions that are granted by this role on the organization level. */
     val organizationPermissions: Set<OrganizationPermission>

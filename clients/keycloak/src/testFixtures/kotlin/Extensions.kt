@@ -23,55 +23,17 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak.test
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
-import kotlinx.serialization.json.Json
-
-import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
-import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
-import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User
 
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.ClientScopeRepresentation
 import org.keycloak.representations.idm.CredentialRepresentation
-import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
-
-/**
- * Create a [GroupRepresentation] from this [Group]. [Client roles][clientRoles] can be provided as a map from client
- * ids to lists of [role names][RoleName].
- */
-fun Group.toGroupRepresentation(clientRoles: Map<String, List<RoleName>>? = null): GroupRepresentation =
-    GroupRepresentation().also { group ->
-        group.id = id.value
-        group.name = name.value
-
-        if (!clientRoles.isNullOrEmpty()) {
-            group.clientRoles = clientRoles.mapValues { (_, roles) -> roles.map { it.value } }
-        }
-    }
-
-/**
- * Create a [RoleRepresentation] from this [Role]. [Composite client roles][compositeClientRoles] can be provided as a
- * map from client ids to lists of [role names][RoleName].
- */
-fun Role.toRoleRepresentation(compositeClientRoles: Map<String, List<RoleName>>? = null): RoleRepresentation =
-    RoleRepresentation().also { role ->
-        role.id = id.value
-        role.name = name.value
-        role.description = description
-
-        if (!compositeClientRoles.isNullOrEmpty()) {
-            role.isComposite = true
-            role.composites = RoleRepresentation.Composites().apply {
-                client = compositeClientRoles.mapValues { (_, roles) -> roles.map { it.value } }
-            }
-        }
-    }
 
 /**
  * Create a [UserRepresentation] from this [User] with an optional [password]. [Client roles][clientRoles] can be
@@ -144,12 +106,6 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
     }
 
 /**
- * Create a [KeycloakClient] for the [testRealm] and this [KeycloakContainer].
- */
-fun KeycloakContainer.createKeycloakClientForTestRealm() =
-    DefaultKeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), Json { ignoreUnknownKeys = true })
-
-/**
  * Create a map containing JWT configuration properties for the [testRealm] and this [KeycloakContainer]. The map can be
  * used to configure a Ktor test application.
  */
@@ -161,19 +117,6 @@ fun KeycloakContainer.createJwtConfigMapForTestRealm() =
         "jwt.audience" to TEST_SUBJECT_CLIENT,
         "jwt.roleCacheLifetimeSeconds" to "0"
     )
-
-/**
- * Add the provided [role] in the [TEST_SUBJECT_CLIENT] to the provided [username].
- */
-fun Keycloak.addUserRole(username: String, role: String) {
-    realm(TEST_REALM).apply {
-        val client = clients().findByClientId(TEST_SUBJECT_CLIENT).single()
-        val user = users().search(username).single()
-
-        val roleRepresentation = clients().get(client.id).roles().get(role).toRepresentation()
-        users().get(user.id).roles().clientLevel(client.id).add(listOf(roleRepresentation))
-    }
-}
 
 /**
  * Create an audience mapper that adds the provided [audience] to the access token.

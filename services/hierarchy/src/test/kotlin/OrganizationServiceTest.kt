@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductReposit
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
@@ -87,7 +88,7 @@ class OrganizationServiceTest : WordSpec({
                 coEvery {
                     filterHierarchyIds(userId, OrganizationRole.READER)
                 } returns HierarchyFilter(
-                    transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to orgHierarchyIds),
+                    transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to orgHierarchyIds),
                     nonTransitiveIncludes = emptyMap()
                 )
             }
@@ -121,7 +122,7 @@ class OrganizationServiceTest : WordSpec({
                     filterHierarchyIds(userId, ProductRole.READER, OrganizationId(org1Id))
                 } returns HierarchyFilter(
                     transitiveIncludes = mapOf(
-                        CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1HierarchyId, prod2HierarchyId)
+                        HierarchyLevel.PRODUCT to listOf(prod1HierarchyId, prod2HierarchyId)
                     ),
                     nonTransitiveIncludes = emptyMap()
                 )

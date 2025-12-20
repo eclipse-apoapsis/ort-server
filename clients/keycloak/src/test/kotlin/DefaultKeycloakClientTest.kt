@@ -30,10 +30,9 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainAll
-import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
@@ -48,17 +47,18 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT_SECRET
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CONFIDENTIAL_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.testRealmAdmin
 
 import org.keycloak.admin.client.Keycloak
 
-class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
+class DefaultKeycloakClientTest : WordSpec() {
     // For performance reasons, the test realm is created only once per spec. Therefore, all tests that modify data must
     // not modify the predefined test data and clean up after themselves to ensure that tests are isolated.
     private val keycloak = install(KeycloakTestExtension(clientTestRealm)) {
         setUpConfidentialClientRoles()
     }
 
-    override val client = keycloak.createTestClient()
+    val client = keycloak.createTestClient()
 
     init {
         "create" should {
@@ -68,10 +68,10 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
                 val invalidClient = DefaultKeycloakClient.create(incorrectConfig, createJson())
 
                 val exception = shouldThrow<KeycloakClientException> {
-                    invalidClient.getRoles()
+                    invalidClient.getUsers()
                 }
 
-                exception.message shouldStartWith "Failed to load roles"
+                exception.message shouldStartWith "Failed to load users"
             }
 
             "support the client credentials grant type" {
@@ -83,9 +83,9 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
                 val confidentialClient = DefaultKeycloakClient.create(config, createJson())
 
                 // Test an arbitrary API call
-                val groups = confidentialClient.getGroups()
+                val users = confidentialClient.getUsers()
 
-                groups shouldNot beEmpty()
+                users shouldNot beEmpty()
             }
 
             "correctly configure the timeout" {
@@ -129,7 +129,7 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
 
                     val client = DefaultKeycloakClient.create(config, json)
                     shouldThrow<KeycloakClientException> {
-                        client.getUser(UserId("u1"))
+                        client.getUser(UserName("user1"))
                     }
                 } finally {
                     server.stop()
@@ -137,35 +137,117 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
             }
         }
 
-        "getGroups" should {
-            "return right number of groups with chunk size smaller than total number of groups" {
-                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
-                    secret = TEST_CLIENT_SECRET,
-                    user = "",
-                    clientId = TEST_CONFIDENTIAL_CLIENT,
-                    dataGetChunkSize = 2
-                )
-                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
+        "getUsers" should {
+            "return the correct realm users" {
+                val users = client.getUsers()
 
-                val groups = confidentialClient.getGroups()
+                users shouldContainExactlyInAnyOrder setOf(testRealmAdmin, adminUser, visitorUser)
+            }
+        }
 
-                groups shouldHaveSize 3
-                groups.map { it.name.value } shouldContainAll
-                    listOf("Organization-A", "Organization-B", "Organization-C")
+        "getUserByName" should {
+            "return the correct realm user" {
+                client.getUser(adminUser.username) shouldBe adminUser
             }
 
-            "return filtered groups list" {
-                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
-                    secret = TEST_CLIENT_SECRET,
-                    user = "",
-                    clientId = TEST_CONFIDENTIAL_CLIENT
+            "throw an exception if the user does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.getUser(UserName("1"))
+                }
+            }
+        }
+
+        "createUser" should {
+            "successfully add a new realm user without credentials" {
+                client.createUser(UserName("test_user"))
+                val user = client.getUser(UserName("test_user"))
+
+                user.username shouldBe UserName("test_user")
+
+                client.deleteUser(user.id)
+            }
+
+            "successfully add a new realm user with credentials" {
+                client.createUser(username = UserName("test_user"), password = "test123", temporary = true)
+                val user = client.getUser(UserName("test_user"))
+
+                user.username shouldBe UserName("test_user")
+
+                client.deleteUser(user.id)
+            }
+
+            "throw an exception if a user with the username already exists" {
+                shouldThrow<KeycloakClientException> {
+                    client.createUser(adminUser.username)
+                }
+            }
+        }
+
+        "updateUser" should {
+            "update only the firstname of the user" {
+                client.createUser(UserName("test_user"), firstName = "firstName")
+                val user = client.getUser(UserName("test_user"))
+
+                val updatedUser = user.copy(firstName = "updatedFirstName")
+                client.updateUser(id = user.id, firstName = updatedUser.firstName)
+                val updatedKeycloakUser = client.getUser(user.username)
+
+                updatedKeycloakUser shouldBe updatedUser
+
+                client.deleteUser(user.id)
+            }
+
+            "successfully update the given realm user" {
+                client.createUser(
+                    UserName("test_user"),
+                    firstName = "firstName",
+                    lastName = "lastName",
+                    email = "email@example.com"
                 )
-                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
+                val user = client.getUser(UserName("test_user"))
 
-                val groups = confidentialClient.getGroups(groupNameFilter = "B")
+                val updatedUser = user.copy(
+                    firstName = "updatedFirstName",
+                    lastName = "updatedLastName",
+                    email = "updated_email@example.com"
+                )
+                client.updateUser(
+                    user.id,
+                    updatedUser.username,
+                    updatedUser.firstName,
+                    updatedUser.lastName,
+                    updatedUser.email
+                )
 
-                groups.shouldBeSingleton {
-                    it.name.value shouldBe "Organization-B"
+                val updatedKeycloakUser = client.getUser(user.username)
+
+                updatedKeycloakUser shouldBe updatedUser
+
+                client.deleteUser(user.id)
+            }
+
+            "throw an exception if a user cannot be updated" {
+                shouldThrow<KeycloakClientException> {
+                    client.updateUser(visitorUser.id, email = adminUser.email)
+                }
+            }
+        }
+
+        "deleteUser" should {
+            "successfully delete the given realm user" {
+                client.createUser(UserName("test_user"))
+                val user = client.getUser(UserName("test_user"))
+
+                client.deleteUser(user.id)
+
+                shouldThrow<KeycloakClientException> {
+                    client.getUser(user.username)
+                }
+            }
+
+            "throw an exception if the user does not exist" {
+                shouldThrow<KeycloakClientException> {
+                    client.deleteUser(UserId("1"))
                 }
             }
         }

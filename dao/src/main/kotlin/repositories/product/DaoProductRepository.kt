@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
@@ -92,20 +93,20 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
  * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
  */
 private fun SqlExpressionBuilder.generateHierarchyCondition(
-    level: Int,
+    level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,
     filter: HierarchyFilter
 ): Op<Boolean> =
     when (level) {
-        CompoundHierarchyId.PRODUCT_LEVEL ->
+        HierarchyLevel.PRODUCT ->
             ProductsTable.id inList (
-                ids.extractIds(CompoundHierarchyId.PRODUCT_LEVEL) +
-                    filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL].orEmpty()
-                        .extractIds(CompoundHierarchyId.PRODUCT_LEVEL)
+                ids.extractIds(HierarchyLevel.PRODUCT) +
+                    filter.nonTransitiveIncludes[HierarchyLevel.PRODUCT].orEmpty()
+                        .extractIds(HierarchyLevel.PRODUCT)
             )
 
-        CompoundHierarchyId.ORGANIZATION_LEVEL ->
-            ProductsTable.organizationId inList ids.extractIds(CompoundHierarchyId.ORGANIZATION_LEVEL)
+        HierarchyLevel.ORGANIZATION ->
+            ProductsTable.organizationId inList ids.extractIds(HierarchyLevel.ORGANIZATION)
 
         else -> Op.FALSE
     }
