@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -376,7 +377,7 @@ fun Route.organizations() = route("organizations") {
                 val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
                 val users = authorizationService.listUsers(orgId)
-                    .mapToApi(userService) { it.assignedAt.level == CompoundHierarchyId.ORGANIZATION_LEVEL }
+                    .mapToApi(userService) { it.assignedAt.level == HierarchyLevel.ORGANIZATION }
                 call.respond(
                     PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
                 )

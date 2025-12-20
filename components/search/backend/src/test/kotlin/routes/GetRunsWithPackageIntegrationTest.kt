@@ -36,6 +36,7 @@ import io.mockk.coEvery
 
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -132,7 +133,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 )
             } returns HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                    HierarchyLevel.ORGANIZATION to listOf(
                         CompoundHierarchyId.forOrganization(OrganizationId(run.organizationId))
                     )
                 ),
@@ -177,7 +178,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 )
             } returns HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.PRODUCT_LEVEL to listOf(
+                    HierarchyLevel.PRODUCT to listOf(
                         CompoundHierarchyId.forProduct(
                             OrganizationId(run.organizationId),
                             ProductId(run.productId)
@@ -224,7 +225,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 )
             } returns HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                    HierarchyLevel.REPOSITORY to listOf(
                         CompoundHierarchyId.forRepository(
                             OrganizationId(run.organizationId),
                             ProductId(run.productId),
@@ -270,7 +271,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 hierarchyAuthorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
             } returns HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                    HierarchyLevel.REPOSITORY to listOf(
                         CompoundHierarchyId.forRepository(
                             OrganizationId(allowed.organizationId),
                             ProductId(allowed.productId),

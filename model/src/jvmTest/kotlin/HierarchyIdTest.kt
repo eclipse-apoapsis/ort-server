@@ -17,27 +17,19 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.model
 
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
-}
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactly
 
-group = "org.eclipse.apoapsis.ortserver.components.authorization.keycloak"
-
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation(libs.kotlinxSerializationJson)
-            }
+class HierarchyIdTest : WordSpec({
+    "HierarchyLevel.DEFINED_LEVELS" should {
+        "contain the expected levels" {
+            HierarchyLevel.DEFINED_LEVELS.toList() shouldContainExactly listOf(
+                HierarchyLevel.ORGANIZATION,
+                HierarchyLevel.PRODUCT,
+                HierarchyLevel.REPOSITORY
+            )
         }
     }
-}
+})
