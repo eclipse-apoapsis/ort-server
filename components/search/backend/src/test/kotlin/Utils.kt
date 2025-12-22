@@ -19,24 +19,20 @@
 
 package ort.eclipse.apoapsis.ortserver.components.search
 
+import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.PackageCurationProviderConfigDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProviderDao
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithVulnerability
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
-
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.transactions.transaction
 
 fun createRunWithPackage(
     fixtures: Fixtures,
@@ -64,7 +60,6 @@ fun createRunWithPackage(
  * Returns the RunWithPackage with the curated PURL in the purl field (for PURL search testing).
  */
 fun createRunWithCuratedPurl(
-    db: Database,
     fixtures: Fixtures,
     repoId: Long,
     pkgId: Identifier,
@@ -73,48 +68,17 @@ fun createRunWithCuratedPurl(
     val pkg = fixtures.generatePackage(pkgId)
     val ortRun = fixtures.createAnalyzerRunWithPackages(packages = setOf(pkg), repositoryId = repoId)
 
-    transaction(db) {
-        // Create the curation data with the curated PURL
-        val curationData = PackageCurationDataDao.getOrPut(
-            PackageCurationData(purl = curatedPurl)
-        )
+    val curation = PackageCuration(
+        id = pkgId,
+        data = PackageCurationData(purl = curatedPurl)
+    )
 
-        // Find the identifier DAO for the package
-        val identifierDao = IdentifierDao.find {
-            (IdentifiersTable.type eq pkgId.type) and
-                (IdentifiersTable.namespace eq pkgId.namespace) and
-                (IdentifiersTable.name eq pkgId.name) and
-                (IdentifiersTable.version eq pkgId.version)
-        }.first()
+    val resolvedPackageCurations = ResolvedPackageCurations(
+        provider = PackageCurationProviderConfig(name = "TestProvider"),
+        curations = listOf(curation)
+    )
 
-        // Create the package curation
-        val packageCuration = PackageCurationDao.new {
-            identifier = identifierDao
-            packageCurationData = curationData
-        }
-
-        // Create the resolved configuration for this ORT run
-        val resolvedConfig = ResolvedConfigurationDao.getOrPut(ortRun.id)
-
-        // Create the curation provider config
-        val providerConfig = PackageCurationProviderConfigDao.getOrPut(
-            PackageCurationProviderConfig(name = "TestProvider")
-        )
-
-        // Create the resolved package curation provider
-        val resolvedProvider = ResolvedPackageCurationProviderDao.new {
-            resolvedConfiguration = resolvedConfig
-            packageCurationProviderConfig = providerConfig
-            rank = 0
-        }
-
-        // Create the resolved package curation
-        ResolvedPackageCurationDao.new {
-            resolvedPackageCurationProvider = resolvedProvider
-            this.packageCuration = packageCuration
-            rank = 0
-        }
-    }
+    fixtures.resolvedConfigurationRepository.addPackageCurations(ortRun.id, listOf(resolvedPackageCurations))
 
     return RunWithPackage(
         organizationId = ortRun.organizationId,
@@ -158,4 +122,173 @@ fun Identifier.toCoordinates(): String = "$type:$namespace:$name:$version"
 
 fun Identifier.toPurl(): String = "pkg:$type/$namespace/$name@$version"
 
+fun Identifier.toApiIdentifier(): ApiIdentifier = ApiIdentifier(type, namespace, name, version)
+
 fun Package.toPurl(): String = purl
+
+/**
+ * Create an ORT run with a vulnerability associated with the given package identifier.
+ * Returns a RunWithVulnerability with the packageId populated (for returnPurl=false testing).
+ */
+fun createRunWithVulnerability(
+    fixtures: Fixtures,
+    repoId: Long,
+    pkgId: Identifier,
+    vulnerabilityExternalId: String
+): RunWithVulnerability {
+    val pkg = fixtures.generatePackage(pkgId)
+
+    // Create an analyzer run with the package (so there's a package for purl lookups)
+    val ortRun = fixtures.createAnalyzerRunWithPackages(packages = setOf(pkg), repositoryId = repoId)
+
+    // Create an advisor run with the vulnerability
+    val advisorJob = fixtures.createAdvisorJob(ortRunId = ortRun.id)
+    val vulnerability = Vulnerability(
+        externalId = vulnerabilityExternalId,
+        summary = "Test vulnerability",
+        description = "Description for $vulnerabilityExternalId",
+        references = emptyList()
+    )
+    val advisorResult = AdvisorResult(
+        advisorName = "TestAdvisor",
+        capabilities = listOf("VULNERABILITIES"),
+        startTime = Clock.System.now(),
+        endTime = Clock.System.now(),
+        issues = emptyList(),
+        defects = emptyList(),
+        vulnerabilities = listOf(vulnerability)
+    )
+    fixtures.createAdvisorRun(
+        advisorJobId = advisorJob.id,
+        results = mapOf(pkgId to listOf(advisorResult))
+    )
+
+    return RunWithVulnerability(
+        organizationId = ortRun.organizationId,
+        productId = ortRun.productId,
+        repositoryId = ortRun.repositoryId,
+        ortRunId = ortRun.id,
+        ortRunIndex = ortRun.index,
+        revision = ortRun.revision,
+        createdAt = ortRun.createdAt,
+        externalId = vulnerabilityExternalId,
+        packageId = pkgId.toApiIdentifier(),
+        purl = null
+    )
+}
+
+/**
+ * Create an ORT run with a vulnerability and add a PURL curation for the package.
+ * Returns a RunWithVulnerability with the curated PURL in the purl field (for returnPurl=true testing).
+ */
+fun createRunWithVulnerabilityAndCuratedPurl(
+    fixtures: Fixtures,
+    repoId: Long,
+    pkgId: Identifier,
+    vulnerabilityExternalId: String,
+    curatedPurl: String
+): RunWithVulnerability {
+    val pkg = fixtures.generatePackage(pkgId)
+
+    // Create an analyzer run with the package
+    val ortRun = fixtures.createAnalyzerRunWithPackages(packages = setOf(pkg), repositoryId = repoId)
+
+    // Create an advisor run with the vulnerability
+    val advisorJob = fixtures.createAdvisorJob(ortRunId = ortRun.id)
+    val vulnerability = Vulnerability(
+        externalId = vulnerabilityExternalId,
+        summary = "Test vulnerability",
+        description = "Description for $vulnerabilityExternalId",
+        references = emptyList()
+    )
+    val advisorResult = AdvisorResult(
+        advisorName = "TestAdvisor",
+        capabilities = listOf("VULNERABILITIES"),
+        startTime = Clock.System.now(),
+        endTime = Clock.System.now(),
+        issues = emptyList(),
+        defects = emptyList(),
+        vulnerabilities = listOf(vulnerability)
+    )
+    fixtures.createAdvisorRun(
+        advisorJobId = advisorJob.id,
+        results = mapOf(pkgId to listOf(advisorResult))
+    )
+
+    // Add PURL curation
+    val curation = PackageCuration(
+        id = pkgId,
+        data = PackageCurationData(purl = curatedPurl)
+    )
+
+    val resolvedPackageCurations = ResolvedPackageCurations(
+        provider = PackageCurationProviderConfig(name = "TestProvider"),
+        curations = listOf(curation)
+    )
+
+    fixtures.resolvedConfigurationRepository.addPackageCurations(ortRun.id, listOf(resolvedPackageCurations))
+
+    return RunWithVulnerability(
+        organizationId = ortRun.organizationId,
+        productId = ortRun.productId,
+        repositoryId = ortRun.repositoryId,
+        ortRunId = ortRun.id,
+        ortRunIndex = ortRun.index,
+        revision = ortRun.revision,
+        createdAt = ortRun.createdAt,
+        externalId = vulnerabilityExternalId,
+        packageId = null,
+        purl = curatedPurl
+    )
+}
+
+/**
+ * Create an ORT run with a vulnerability for PURL search testing (without curation).
+ * Returns a RunWithVulnerability with the original PURL in the purl field.
+ */
+fun createRunWithVulnerabilityForPurlSearch(
+    fixtures: Fixtures,
+    repoId: Long,
+    pkgId: Identifier,
+    vulnerabilityExternalId: String
+): RunWithVulnerability {
+    val pkg = fixtures.generatePackage(pkgId)
+
+    // Create an analyzer run with the package
+    val ortRun = fixtures.createAnalyzerRunWithPackages(packages = setOf(pkg), repositoryId = repoId)
+
+    // Create an advisor run with the vulnerability
+    val advisorJob = fixtures.createAdvisorJob(ortRunId = ortRun.id)
+    val vulnerability = Vulnerability(
+        externalId = vulnerabilityExternalId,
+        summary = "Test vulnerability",
+        description = "Description for $vulnerabilityExternalId",
+        references = emptyList()
+    )
+    val advisorResult = AdvisorResult(
+        advisorName = "TestAdvisor",
+        capabilities = listOf("VULNERABILITIES"),
+        startTime = Clock.System.now(),
+        endTime = Clock.System.now(),
+        issues = emptyList(),
+        defects = emptyList(),
+        vulnerabilities = listOf(vulnerability)
+    )
+    fixtures.createAdvisorRun(
+        advisorJobId = advisorJob.id,
+        results = mapOf(pkgId to listOf(advisorResult))
+    )
+
+    return RunWithVulnerability(
+        organizationId = ortRun.organizationId,
+        productId = ortRun.productId,
+        repositoryId = ortRun.repositoryId,
+        ortRunId = ortRun.id,
+        ortRunIndex = ortRun.index,
+        revision = ortRun.revision,
+        createdAt = ortRun.createdAt,
+        externalId = vulnerabilityExternalId,
+        packageId = null,
+        purl = pkgId.toPurl()
+    )
+}

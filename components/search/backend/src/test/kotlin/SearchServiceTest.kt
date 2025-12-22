@@ -265,7 +265,6 @@ class SearchServiceTest : WordSpec({
             val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
             val curatedPurl = "pkg:maven/org.example/library-corrected@1.0.0"
             val run = createRunWithCuratedPurl(
-                db = db,
                 fixtures = fixtures,
                 repoId = repositoryId,
                 pkgId = pkgId,
@@ -282,7 +281,6 @@ class SearchServiceTest : WordSpec({
             val originalPurl = pkgId.toPurl()
             val curatedPurl = "pkg:maven/org.example/library-corrected@1.0.0"
             createRunWithCuratedPurl(
-                db = db,
                 fixtures = fixtures,
                 repoId = repositoryId,
                 pkgId = pkgId,
@@ -318,6 +316,322 @@ class SearchServiceTest : WordSpec({
                 it.packageId shouldBe expectedId
                 it.purl shouldBe null
             }
+        }
+    }
+
+    "findOrtRunsByVulnerability" should {
+        "support global search" {
+            val pkgId = Identifier("maven", "org.example", "vulnerable-lib", "1.0.0")
+            val vulnId = "CVE-2021-44228"
+            val run = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                userId = userId
+            )
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "support search inside an organization" {
+            val pkgId = Identifier("maven", "org.example", "org-scoped", "1.0.0")
+            val vulnId = "CVE-2021-org-scoped"
+            val run = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val otherOrg = dbExtension.fixtures.createOrganization(name = "vuln-other-org")
+            val otherProd = dbExtension.fixtures.createProduct(name = "vuln-other-prod", organizationId = otherOrg.id)
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = otherProd.id,
+                url = "https://example.com/vuln-other-repo.git"
+            )
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = otherRepo.id,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val filter = HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                        CompoundHierarchyId.forOrganization(OrganizationId(run.organizationId))
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+            coEvery {
+                authorizationService.filterHierarchyIds(any(), any(), any(), any(), OrganizationId(run.organizationId))
+            } returns filter
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                userId = userId,
+                scope = OrganizationId(run.organizationId)
+            )
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "support search inside a product" {
+            val pkgId = Identifier("maven", "org.example", "prod-scoped", "1.0.0")
+            val vulnId = "CVE-2021-prod-scoped"
+            val run = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val otherProd = dbExtension.fixtures.createProduct(
+                name = "vuln-other-prod-2",
+                organizationId = run.organizationId
+            )
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = otherProd.id,
+                url = "https://example.com/vuln-prod-scoped.git"
+            )
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = otherRepo.id,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val filter = HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.PRODUCT_LEVEL to listOf(
+                        CompoundHierarchyId.forProduct(
+                            OrganizationId(run.organizationId),
+                            ProductId(run.productId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+            coEvery {
+                authorizationService.filterHierarchyIds(any(), any(), any(), any(), ProductId(run.productId))
+            } returns filter
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                userId = userId,
+                scope = ProductId(run.productId)
+            )
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "support search inside a repository" {
+            val pkgId = Identifier("maven", "org.example", "repo-scoped", "1.0.0")
+            val vulnId = "CVE-2021-repo-scoped"
+            val run = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = run.productId,
+                url = "https://example.com/vuln-repo-scoped.git"
+            )
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = otherRepo.id,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val filter = HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                        CompoundHierarchyId.forRepository(
+                            OrganizationId(run.organizationId),
+                            ProductId(run.productId),
+                            RepositoryId(run.repositoryId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+            coEvery {
+                authorizationService.filterHierarchyIds(any(), any(), any(), any(), RepositoryId(run.repositoryId))
+            } returns filter
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                userId = userId,
+                scope = RepositoryId(run.repositoryId)
+            )
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "return empty when vulnerability is not present in the given scope" {
+            val pkgId = Identifier("maven", "org.example", "no-vuln", "1.0.0")
+            val vulnId = "CVE-2021-existing"
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = "CVE-2021-nonexistent",
+                userId = userId
+            )
+
+            result should beEmpty()
+        }
+
+        "return only runs from repositories included in the hierarchy filter" {
+            val pkgId = Identifier("maven", "org.example", "filter-test", "1.0.0")
+            val vulnId = "CVE-2021-filter-test"
+            val run1 = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = run1.productId,
+                url = "https://example.com/vuln-filter-test.git"
+            )
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = otherRepo.id,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val filter = HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                        CompoundHierarchyId.forRepository(
+                            OrganizationId(run1.organizationId),
+                            ProductId(run1.productId),
+                            RepositoryId(run1.repositoryId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+            coEvery {
+                authorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
+            } returns filter
+
+            val result = searchService.findOrtRunsByVulnerability(externalId = vulnId, userId = userId)
+
+            result shouldContainExactly listOf(run1)
+        }
+
+        "return packageId field and null purl when returnPurl is false" {
+            val pkgId = Identifier("maven", "org.example", "purl-false-test", "1.0.0")
+            val vulnId = "CVE-2021-purl-false"
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                returnPurl = false,
+                userId = userId
+            )
+
+            result.shouldBeSingleton {
+                it.packageId shouldBe pkgId.toApiIdentifier()
+                it.purl shouldBe null
+                it.externalId shouldBe vulnId
+            }
+        }
+
+        "return purl field and null packageId when returnPurl is true" {
+            val pkgId = Identifier("maven", "org.example", "purl-true-test", "1.0.0")
+            val vulnId = "CVE-2021-purl-true"
+            createRunWithVulnerabilityForPurlSearch(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                returnPurl = true,
+                userId = userId
+            )
+
+            result.shouldBeSingleton {
+                it.purl shouldBe pkgId.toPurl()
+                it.packageId shouldBe null
+                it.externalId shouldBe vulnId
+            }
+        }
+
+        "return curated purl when returnPurl is true and curation exists" {
+            val pkgId = Identifier("maven", "org.example", "curated-purl-test", "1.0.0")
+            val vulnId = "CVE-2021-curated-purl"
+            val curatedPurl = "pkg:maven/org.example/corrected-lib@1.0.0"
+            val run = createRunWithVulnerabilityAndCuratedPurl(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = vulnId,
+                curatedPurl = curatedPurl
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = vulnId,
+                returnPurl = true,
+                userId = userId
+            )
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "support regex pattern matching for externalId" {
+            val pkgId1 = Identifier("maven", "org.example", "regex-test-1", "1.0.0")
+            val pkgId2 = Identifier("maven", "org.example", "regex-test-2", "1.0.0")
+            val run1 = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId1,
+                vulnerabilityExternalId = "CVE-2021-10001"
+            )
+            val run2 = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId2,
+                vulnerabilityExternalId = "CVE-2021-10002"
+            )
+            createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = Identifier("maven", "org.example", "regex-test-3", "1.0.0"),
+                vulnerabilityExternalId = "CVE-2022-99999"
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = "CVE-2021-1000.*",
+                userId = userId
+            )
+
+            result shouldContainExactlyInAnyOrder listOf(run1, run2)
         }
     }
 })
