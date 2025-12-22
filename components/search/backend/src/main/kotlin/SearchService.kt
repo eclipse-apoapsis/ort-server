@@ -19,10 +19,18 @@
 
 package org.eclipse.apoapsis.ortserver.components.search.backend
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
+import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithVulnerability
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsVulnerabilitiesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsIdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.VulnerabilitiesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
@@ -101,6 +109,38 @@ class SearchService(
             }
         }
     }
+
+    /**
+     * Search for ORT runs containing the given vulnerability external ID, with optional scoping.
+     *
+     * @param externalId The vulnerability external ID regex to search for (e.g., CVE-2021-44228).
+     * @param returnPurl When true, return the effective PURL; when false, return the package identifier.
+     * @param userId The user ID performing the search.
+     * @param scope Optional scope to limit the search. Can be an [OrganizationId], [ProductId], or [RepositoryId].
+     *              If null, performs a global search (requires superuser permission).
+     */
+    suspend fun findOrtRunsByVulnerability(
+        externalId: String,
+        userId: String,
+        scope: HierarchyId? = null,
+        returnPurl: Boolean = false
+    ): List<RunWithVulnerability> {
+        val hierarchyFilter = authorizationService.filterHierarchyIds(
+            userId = userId,
+            repositoryPermissions = setOf(RepositoryPermission.READ),
+            containedIn = scope
+        )
+
+        return db.blockingQuery {
+            val query = createVulnerabilityBaseQuery()
+
+            if (returnPurl) {
+                findVulnerabilitiesWithPurl(externalId, query, hierarchyFilter)
+            } else {
+                findVulnerabilitiesWithIdentifier(externalId, query, hierarchyFilter)
+            }
+        }
+    }
 }
 
 /**
@@ -176,6 +216,98 @@ private fun findByPurl(
             ortRunIndex = ortRun.index,
             revision = ortRun.revision,
             createdAt = ortRun.createdAt,
+            packageId = null,
+            purl = row[effectivePurl]
+        )
+    }
+}
+
+private fun createVulnerabilityBaseQuery() = OrtRunsTable
+    .innerJoin(AdvisorJobsTable, { OrtRunsTable.id }, { ortRunId })
+    .innerJoin(AdvisorRunsTable, { AdvisorJobsTable.id }, { advisorJobId })
+    .innerJoin(AdvisorRunsIdentifiersTable, { AdvisorRunsTable.id }, { advisorRunId })
+    .innerJoin(IdentifiersTable, { AdvisorRunsIdentifiersTable.identifierId }, { IdentifiersTable.id })
+    .innerJoin(AdvisorResultsTable, { AdvisorRunsIdentifiersTable.id }, { advisorRunIdentifierId })
+    .innerJoin(AdvisorResultsVulnerabilitiesTable, { AdvisorResultsTable.id }, { advisorResultId })
+    .innerJoin(
+        VulnerabilitiesTable,
+        { AdvisorResultsVulnerabilitiesTable.vulnerabilityId },
+        { VulnerabilitiesTable.id }
+    )
+    .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
+    .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
+
+/**
+ * Search for vulnerabilities and return package identifiers.
+ */
+private fun findVulnerabilitiesWithIdentifier(
+    externalId: String,
+    query: Join,
+    hierarchyFilter: HierarchyFilter
+): List<RunWithVulnerability> {
+    val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyRegex(externalId)
+
+    val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids, filter ->
+        generateHierarchyCondition(level, ids, filter)
+    }
+
+    return query.select(
+        OrtRunsTable.columns + IdentifiersTable.columns + VulnerabilitiesTable.externalId
+    ).where(whereClause).map { row ->
+        val ortRun = OrtRunDao.wrapRow(row).mapToModel()
+        val packageId = Identifier(
+            type = row[IdentifiersTable.type],
+            namespace = row[IdentifiersTable.namespace],
+            name = row[IdentifiersTable.name],
+            version = row[IdentifiersTable.version]
+        )
+        RunWithVulnerability(
+            organizationId = ortRun.organizationId,
+            productId = ortRun.productId,
+            repositoryId = ortRun.repositoryId,
+            ortRunId = ortRun.id,
+            ortRunIndex = ortRun.index,
+            revision = ortRun.revision,
+            createdAt = ortRun.createdAt,
+            externalId = row[VulnerabilitiesTable.externalId],
+            packageId = packageId,
+            purl = null
+        )
+    }
+}
+
+/**
+ * Search for vulnerabilities and return effective PURLs with curation resolution.
+ */
+private fun findVulnerabilitiesWithPurl(
+    externalId: String,
+    query: Join,
+    hierarchyFilter: HierarchyFilter
+): List<RunWithVulnerability> {
+    // Join with PackagesTable to get the PURL
+    val queryWithPackages = query
+        .innerJoin(PackagesTable, { IdentifiersTable.id }, { identifierId })
+
+    val effectivePurl = createEffectivePurlExpression()
+    val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyRegex(externalId)
+
+    val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids, filter ->
+        generateHierarchyCondition(level, ids, filter)
+    }
+
+    return queryWithPackages.select(
+        OrtRunsTable.columns + VulnerabilitiesTable.externalId + effectivePurl
+    ).where(whereClause).map { row ->
+        val ortRun = OrtRunDao.wrapRow(row).mapToModel()
+        RunWithVulnerability(
+            organizationId = ortRun.organizationId,
+            productId = ortRun.productId,
+            repositoryId = ortRun.repositoryId,
+            ortRunId = ortRun.id,
+            ortRunIndex = ortRun.index,
+            revision = ortRun.revision,
+            createdAt = ortRun.createdAt,
+            externalId = row[VulnerabilitiesTable.externalId],
             packageId = null,
             purl = row[effectivePurl]
         )
