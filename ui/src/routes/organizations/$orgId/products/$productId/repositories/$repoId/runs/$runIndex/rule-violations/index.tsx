@@ -41,6 +41,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
@@ -102,10 +103,12 @@ const RuleViolationCard = ({
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='font-semibold'>
-          <BreakableString text={id || 'No ID available'} />
+        <div className='flex items-center'>
+          <div className='font-semibold'>
+            <BreakableString text={id || 'No ID available'} />
+          </div>
+          <CopyToClipboard copyText={id || ''} />
         </div>
-
         <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
           {ruleViolation.rule}
         </Badge>

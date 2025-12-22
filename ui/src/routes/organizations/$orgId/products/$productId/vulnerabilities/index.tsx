@@ -39,6 +39,7 @@ import {
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -98,8 +99,11 @@ const VulnerabilityCard = ({
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='font-semibold'>
-          <BreakableString text={id} />
+        <div className='flex items-center'>
+          <div className='font-semibold'>
+            <BreakableString text={id} />
+          </div>
+          <CopyToClipboard copyText={id} />
         </div>
         <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
           {vulnerability.vulnerability.externalId}

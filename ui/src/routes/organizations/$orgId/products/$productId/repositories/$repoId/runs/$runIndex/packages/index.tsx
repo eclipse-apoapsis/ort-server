@@ -38,6 +38,7 @@ import {
   getRunPackagesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
@@ -105,8 +106,11 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='font-semibold'>
-          <BreakableString text={id} />
+        <div className='flex items-center'>
+          <div className='font-semibold'>
+            <BreakableString text={id} />
+          </div>
+          <CopyToClipboard copyText={id} />
         </div>
         <a
           href={pkg.homepageUrl}
