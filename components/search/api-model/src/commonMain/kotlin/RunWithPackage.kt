@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.components.search.apimodel
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
+
 @Serializable
 data class RunWithPackage(
     val organizationId: Long,
@@ -31,6 +33,6 @@ data class RunWithPackage(
     val ortRunIndex: Long,
     val revision: String?,
     val createdAt: Instant,
-    val packageId: String?,
+    val packageId: Identifier?,
     val purl: String?
 )

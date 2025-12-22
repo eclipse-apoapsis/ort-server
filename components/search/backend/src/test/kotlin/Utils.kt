@@ -28,7 +28,6 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
@@ -50,7 +49,7 @@ fun createRunWithPackage(
         ortRunIndex = ortRun.index,
         revision = ortRun.revision,
         createdAt = ortRun.createdAt,
-        packageId = pkgId.toCoordinates(),
+        packageId = pkgId.toApiIdentifier(),
         purl = null
     )
 }
@@ -123,8 +122,6 @@ fun Identifier.toCoordinates(): String = "$type:$namespace:$name:$version"
 fun Identifier.toPurl(): String = "pkg:$type/$namespace/$name@$version"
 
 fun Identifier.toApiIdentifier(): ApiIdentifier = ApiIdentifier(type, namespace, name, version)
-
-fun Package.toPurl(): String = purl
 
 /**
  * Create an ORT run with a vulnerability associated with the given package identifier.
