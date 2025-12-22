@@ -122,6 +122,13 @@ rootProject.children.single { it.name == "components" }.children.forEach { compo
     component.children.forEach { it.name = "${component.name}-${it.name}" }
 }
 
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
