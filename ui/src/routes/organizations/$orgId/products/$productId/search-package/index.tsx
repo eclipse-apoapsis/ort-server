@@ -54,6 +54,7 @@ import {
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
+import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 const columnHelper = createColumnHelper<RunWithPackage>();
@@ -62,6 +63,7 @@ function SearchPackageComponent() {
   const params = Route.useParams();
   const search = Route.useSearch();
   const [identifier, setIdentifier] = useState('');
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const columns = [
     columnHelper.accessor('createdAt', {
@@ -129,6 +131,10 @@ function SearchPackageComponent() {
     columnHelper.accessor('packageId', {
       header: 'Matching Package',
       cell: function CellComponent({ row }) {
+        const id =
+          packageIdType === 'PURL'
+            ? row.original.purl
+            : identifierToString(row.original.packageId);
         return (
           <Link
             className='font-semibold text-blue-400 hover:underline'
@@ -140,13 +146,11 @@ function SearchPackageComponent() {
               runIndex: row.original.ortRunIndex.toString(),
             }}
             search={{
-              pkgId: identifierToString(row.original.packageId) ?? undefined,
+              pkgId: id ?? undefined,
               marked: '0',
             }}
           >
-            <BreakableString
-              text={identifierToString(row.original.packageId) ?? ''}
-            />
+            <BreakableString text={id ?? ''} />
           </Link>
         );
       },
@@ -176,7 +180,9 @@ function SearchPackageComponent() {
   } = useQuery({
     ...getRunsWithPackageOptions({
       query: {
-        identifier: identifier,
+        ...(packageIdType === 'PURL'
+          ? { purl: identifier }
+          : { identifier: identifier }),
         productId: Number.parseInt(params.productId),
       },
     }),
