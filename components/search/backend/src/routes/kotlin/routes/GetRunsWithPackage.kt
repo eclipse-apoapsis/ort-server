@@ -25,6 +25,7 @@ import io.ktor.server.routing.Route
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
@@ -50,15 +51,15 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
             }
             queryParameter<Long?>("organizationId") {
                 description = "Optional organization ID to filter the search. " +
-                    "Cannot be combined with productId or repositoryId."
+                    "Cannot be combined with 'productId' or 'repositoryId'."
             }
             queryParameter<Long?>("productId") {
                 description = "Optional product ID to filter the search. " +
-                    "Cannot be combined with organizationId or repositoryId."
+                    "Cannot be combined with 'organizationId' or 'repositoryId'."
             }
             queryParameter<Long?>("repositoryId") {
                 description = "Optional repository ID to filter the search. " +
-                    "Cannot be combined with organizationId or productId."
+                    "Cannot be combined with 'organizationId' or 'productId'."
             }
         }
 
@@ -76,7 +77,12 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                                 ortRunIndex = 42L,
                                 revision = "a1b2c3d4",
                                 createdAt = Clock.System.now(),
-                                packageId = "Maven:foo:bar:1.0.0",
+                                packageId = Identifier(
+                                    type = "Maven",
+                                    namespace = "foo",
+                                    name = "bar",
+                                    version = "1.0.0"
+                                ),
                                 purl = null
                             )
                         )

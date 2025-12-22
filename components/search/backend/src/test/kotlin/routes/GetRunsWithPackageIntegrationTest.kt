@@ -46,6 +46,7 @@ import ort.eclipse.apoapsis.ortserver.components.search.SearchIntegrationTest
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithCuratedPurl
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackageForPurlSearch
+import ort.eclipse.apoapsis.ortserver.components.search.toApiIdentifier
 import ort.eclipse.apoapsis.ortserver.components.search.toCoordinates
 import ort.eclipse.apoapsis.ortserver.components.search.toPurl
 
@@ -63,11 +64,16 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
         "return BadRequest if multiple scope parameters are provided" {
             val fixtures = dbExtension.fixtures
-            val run = createRunWithPackage(fixtures = fixtures, repoId = fixtures.repository.id)
+            val packageIdentifier = identifierFor("bad-request")
+            val run = createRunWithPackage(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
 
             searchTestApplication { client ->
                 val withTwoScopes = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                     parameter("organizationId", run.organizationId.toString())
                     parameter("productId", run.productId.toString())
                 }
@@ -75,7 +81,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 withTwoScopes shouldHaveStatus HttpStatusCode.BadRequest
 
                 val withAllScopes = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                     parameter("organizationId", run.organizationId.toString())
                     parameter("productId", run.productId.toString())
                     parameter("repositoryId", run.repositoryId.toString())
@@ -96,7 +102,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                 }
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -141,7 +147,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                     parameter("organizationId", run.organizationId.toString())
                 }
 
@@ -189,7 +195,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                     parameter("productId", run.productId.toString())
                 }
 
@@ -237,7 +243,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                     parameter("repositoryId", run.repositoryId.toString())
                 }
 
@@ -283,7 +289,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", allowed.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                 }
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -322,7 +328,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run1.packageId)
+                    parameter("identifier", packageIdentifier.toCoordinates())
                 }
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -461,7 +467,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 val body = response.body<List<RunWithPackage>>()
                 body.shouldBeSingleton {
                     it.purl.shouldBeNull()
-                    it.packageId shouldBe packageIdentifier.toCoordinates()
+                    it.packageId shouldBe packageIdentifier.toApiIdentifier()
                 }
             }
         }

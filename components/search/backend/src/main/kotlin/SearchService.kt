@@ -104,8 +104,8 @@ class SearchService(
                 .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
 
             when {
-                identifier != null -> findByIdentifier(query, identifier, hierarchyFilter)
-                else -> findByPurl(query, checkNotNull(purl), hierarchyFilter)
+                identifier != null -> findByIdentifier(identifier, query, hierarchyFilter)
+                else -> findByPurl(checkNotNull(purl), query, hierarchyFilter)
             }
         }
     }
@@ -147,8 +147,8 @@ class SearchService(
  * Find runs by ORT package identifier without curation resolution (for performance reasons).
  */
 private fun findByIdentifier(
-    query: Join,
     identifier: String,
+    query: Join,
     hierarchyFilter: HierarchyFilter
 ): List<RunWithPackage> {
     val concatenatedIdentifier = concat(
@@ -169,12 +169,12 @@ private fun findByIdentifier(
 
     return query.select(OrtRunsTable.columns + IdentifiersTable.columns).where(whereClause).map { row ->
         val ortRun = OrtRunDao.wrapRow(row).mapToModel()
-        val packageId = listOf(
-            row[IdentifiersTable.type],
-            row[IdentifiersTable.namespace],
-            row[IdentifiersTable.name],
-            row[IdentifiersTable.version]
-        ).joinToString(":")
+        val packageId = Identifier(
+            type = row[IdentifiersTable.type],
+            namespace = row[IdentifiersTable.namespace],
+            name = row[IdentifiersTable.name],
+            version = row[IdentifiersTable.version]
+        )
 
         RunWithPackage(
             organizationId = ortRun.organizationId,
@@ -194,8 +194,8 @@ private fun findByIdentifier(
  * Find runs by PURL using curated PURL resolution.
  */
 private fun findByPurl(
-    query: Join,
     purl: String,
+    query: Join,
     hierarchyFilter: HierarchyFilter
 ): List<RunWithPackage> {
     val effectivePurl = createEffectivePurlExpression()

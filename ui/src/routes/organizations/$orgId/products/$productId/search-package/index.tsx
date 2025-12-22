@@ -48,6 +48,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
@@ -138,9 +139,14 @@ function SearchPackageComponent() {
               repoId: row.original.repositoryId.toString(),
               runIndex: row.original.ortRunIndex.toString(),
             }}
-            search={{ pkgId: row.original.packageId ?? undefined, marked: '0' }}
+            search={{
+              pkgId: identifierToString(row.original.packageId) ?? undefined,
+              marked: '0',
+            }}
           >
-            <BreakableString text={row.original.packageId ?? ''} />
+            <BreakableString
+              text={identifierToString(row.original.packageId) ?? ''}
+            />
           </Link>
         );
       },

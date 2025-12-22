@@ -67,24 +67,28 @@ class SearchServiceTest : WordSpec({
 
     "findOrtRunsByPackage" should {
         "support global search" {
-            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
-            val expectedId = run.packageId
+            val pkgId = Identifier("test", "ns", "name", "ver")
+            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
 
-            val result = searchService.findOrtRunsByPackage(identifier = expectedId, purl = null, userId = userId)
+            val result = searchService.findOrtRunsByPackage(
+                identifier = pkgId.toCoordinates(),
+                purl = null,
+                userId = userId
+            )
 
             result shouldContainExactly listOf(run)
         }
 
         "support search inside an organization" {
-            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
-            val expectedId = run.packageId
+            val pkgId = Identifier("test", "ns", "name", "ver")
+            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
             val otherOrg = dbExtension.fixtures.createOrganization(name = "other-org")
             val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = otherOrg.id)
             val otherRepo = dbExtension.fixtures.createRepository(
                 productId = otherProd.id,
                 url = "https://example.com/other-repo.git"
             )
-            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id)
+            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = pkgId)
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
@@ -99,7 +103,7 @@ class SearchServiceTest : WordSpec({
             } returns filter
 
             val result = searchService.findOrtRunsByPackage(
-                identifier = expectedId,
+                identifier = pkgId.toCoordinates(),
                 purl = null,
                 userId = userId,
                 scope = OrganizationId(run.organizationId)
@@ -109,14 +113,14 @@ class SearchServiceTest : WordSpec({
         }
 
         "support search inside a product" {
-            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
-            val expectedId = run.packageId
+            val pkgId = Identifier("test", "ns", "name", "ver")
+            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
             val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = run.organizationId)
             val otherRepo = dbExtension.fixtures.createRepository(
                 productId = otherProd.id,
                 url = "https://example.com/other-repo.git"
             )
-            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id)
+            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = pkgId)
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
@@ -134,7 +138,7 @@ class SearchServiceTest : WordSpec({
             } returns filter
 
             val result = searchService.findOrtRunsByPackage(
-                identifier = expectedId,
+                identifier = pkgId.toCoordinates(),
                 purl = null,
                 userId = userId,
                 scope = ProductId(run.productId)
@@ -143,13 +147,13 @@ class SearchServiceTest : WordSpec({
         }
 
         "support search inside a repository" {
-            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
-            val expectedId = run.packageId
+            val pkgId = Identifier("test", "ns", "name", "ver")
+            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
             val otherRepo = dbExtension.fixtures.createRepository(
                 productId = run.productId,
                 url = "https://example.com/other-repo.git"
             )
-            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id)
+            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = pkgId)
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
@@ -168,7 +172,7 @@ class SearchServiceTest : WordSpec({
             } returns filter
 
             val result = searchService.findOrtRunsByPackage(
-                identifier = expectedId,
+                identifier = pkgId.toCoordinates(),
                 purl = null,
                 userId = userId,
                 scope = RepositoryId(run.repositoryId)
@@ -177,9 +181,9 @@ class SearchServiceTest : WordSpec({
         }
 
         "find all runs for a package from multiple repositories/products/organizations" {
-            val run1 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
-            val run2 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
-            val expectedId = run1.packageId
+            val pkgId = Identifier("test", "ns", "name", "ver")
+            val run1 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
+            val run2 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
 
             val otherOrg = dbExtension.fixtures.createOrganization(name = "other-org")
             val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = otherOrg.id)
@@ -187,17 +191,13 @@ class SearchServiceTest : WordSpec({
                 productId = otherProd.id,
                 url = "https://example.com/other-repo.git"
             )
-            val run3 = createRunWithPackage(
-                fixtures = fixtures, repoId = otherRepo.id,
-                pkgId = Identifier(
-                    type = "test",
-                    namespace = "ns",
-                    name = "name",
-                    version = "ver"
-                )
-            )
+            val run3 = createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = pkgId)
 
-            val result = searchService.findOrtRunsByPackage(identifier = expectedId, purl = null, userId = userId)
+            val result = searchService.findOrtRunsByPackage(
+                identifier = pkgId.toCoordinates(),
+                purl = null,
+                userId = userId
+            )
 
             result shouldContainExactlyInAnyOrder(listOf(run1, run2, run3))
         }
@@ -217,18 +217,18 @@ class SearchServiceTest : WordSpec({
         }
 
         "return only runs from repositories included in the hierarchy filter" {
-            val packageIdentifier = Identifier(
+            val pkgId = Identifier(
                 type = "maven",
                 namespace = "filtered",
                 name = "package",
                 version = "1.0.0"
             )
-            val run1 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = packageIdentifier)
+            val run1 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
             val otherRepo = dbExtension.fixtures.createRepository(
                 productId = run1.productId,
                 url = "https://example.com/filtered.git"
             )
-            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = packageIdentifier)
+            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = pkgId)
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
@@ -246,7 +246,11 @@ class SearchServiceTest : WordSpec({
                 authorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
             } returns filter
 
-            val result = searchService.findOrtRunsByPackage(identifier = run1.packageId, purl = null, userId = userId)
+            val result = searchService.findOrtRunsByPackage(
+                identifier = pkgId.toCoordinates(),
+                purl = null,
+                userId = userId
+            )
 
             result shouldContainExactly listOf(run1)
         }
@@ -308,12 +312,15 @@ class SearchServiceTest : WordSpec({
         "return packageId field and null purl for identifier search" {
             val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
             createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
-            val expectedId = pkgId.toCoordinates()
 
-            val result = searchService.findOrtRunsByPackage(identifier = expectedId, purl = null, userId = userId)
+            val result = searchService.findOrtRunsByPackage(
+                identifier = pkgId.toCoordinates(),
+                purl = null,
+                userId = userId
+            )
 
             result.shouldBeSingleton {
-                it.packageId shouldBe expectedId
+                it.packageId shouldBe pkgId.toApiIdentifier()
                 it.purl shouldBe null
             }
         }
