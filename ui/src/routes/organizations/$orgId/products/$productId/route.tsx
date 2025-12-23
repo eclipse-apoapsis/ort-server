@@ -72,6 +72,11 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/search-package',
           icon: () => <Search className='h-4 w-4' />,
         },
+        {
+          title: 'Vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/search-vulnerability',
+          icon: () => <Search className='h-4 w-4' />,
+        },
       ],
     },
     {
