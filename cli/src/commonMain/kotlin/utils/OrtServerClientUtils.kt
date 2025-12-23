@@ -24,6 +24,7 @@ import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.header
 
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
@@ -35,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
 import org.eclipse.apoapsis.ortserver.client.createDefaultHttpClient
 import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
+import org.eclipse.apoapsis.ortserver.utils.system.CustomHttpHeaders
 
 /**
  * Create an authenticated ORT Server client using the stored authentication. Returns null if the user is not
@@ -53,6 +55,7 @@ fun createUnauthenticatedOrtServerClient(baseUrl: String) = OrtServerClient(crea
 private fun createHttpClient(url: String) = createOrtHttpClient(JSON) {
     defaultRequest {
         url(url)
+        header(CustomHttpHeaders.ClientType, "ort-server-cli")
     }
 }
 
