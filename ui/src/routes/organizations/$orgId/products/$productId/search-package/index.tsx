@@ -18,7 +18,7 @@
  */
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -26,7 +26,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import z from 'zod';
 
 import {
@@ -51,6 +51,7 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { toast } from '@/lib/toast';
 import {
+  packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -62,7 +63,8 @@ const columnHelper = createColumnHelper<RunWithPackage>();
 function SearchPackageComponent() {
   const params = Route.useParams();
   const search = Route.useSearch();
-  const [identifier, setIdentifier] = useState('');
+  const navigate = useNavigate();
+  const identifier = search.pkgId ?? '';
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const columns = [
@@ -227,9 +229,13 @@ function SearchPackageComponent() {
       <RegexForm
         className='mx-12'
         description='You can also use a regular expression in search.'
-        initialValue=''
+        initialValue={identifier}
         onRegexChange={(regex) => {
-          setIdentifier(regex);
+          navigate({
+            to: Route.to,
+            params,
+            search: { ...search, pkgId: regex || undefined, page: 1 },
+          });
         }}
       />
       <CardContent>
@@ -272,6 +278,7 @@ export const Route = createFileRoute(
   validateSearch: z.object({
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
+    ...packageIdentifierSearchParameterSchema.shape,
   }),
   component: SearchPackageComponent,
   pendingComponent: LoadingIndicator,
