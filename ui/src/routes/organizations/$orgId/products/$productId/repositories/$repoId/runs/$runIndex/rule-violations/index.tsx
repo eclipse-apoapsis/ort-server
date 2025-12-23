@@ -109,7 +109,10 @@ const RuleViolationCard = ({
           </div>
           <CopyToClipboard copyText={id || ''} />
         </div>
-        <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
+        <Badge
+          className='bg-blue-300 whitespace-nowrap text-black'
+          variant='small'
+        >
           {ruleViolation.rule}
         </Badge>
       </div>

@@ -107,7 +107,10 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
         <div className='font-semibold'>
           <BreakableString text={id || 'No ID available'} />
         </div>
-        <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
+        <Badge
+          className='bg-blue-300 whitespace-nowrap text-black'
+          variant='small'
+        >
           {getIssueCategory(issue.message)}
         </Badge>
       </div>
