@@ -324,6 +324,32 @@ class SearchServiceTest : WordSpec({
                 it.purl shouldBe null
             }
         }
+
+        "support case-insensitive identifier search" {
+            val pkgId = Identifier("Maven", "Org.Example", "Library", "1.0.0")
+            val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
+
+            val result = searchService.findOrtRunsByPackage(
+                identifier = "maven:org.example:library:1.0.0",
+                purl = null,
+                userId = userId
+            )
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "support case-insensitive PURL search" {
+            val pkgId = Identifier("Maven", "Org.Example", "Library", "1.0.0")
+            val run = createRunWithPackageForPurlSearch(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
+
+            val result = searchService.findOrtRunsByPackage(
+                identifier = null,
+                purl = "pkg:maven/org.example/library@1.0.0",
+                userId = userId
+            )
+
+            result shouldContainExactly listOf(run)
+        }
     }
 
     "findOrtRunsByVulnerability" should {
@@ -639,6 +665,23 @@ class SearchServiceTest : WordSpec({
             )
 
             result shouldContainExactlyInAnyOrder listOf(run1, run2)
+        }
+
+        "support case-insensitive externalId search" {
+            val pkgId = Identifier("maven", "org.example", "case-insensitive", "1.0.0")
+            val run = createRunWithVulnerability(
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                vulnerabilityExternalId = "CVE-2021-CASE"
+            )
+
+            val result = searchService.findOrtRunsByVulnerability(
+                externalId = "cve-2021-case",
+                userId = userId
+            )
+
+            result shouldContainExactly listOf(run)
         }
     }
 })
