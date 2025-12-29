@@ -18,7 +18,7 @@
  */
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
   ExpandedState,
@@ -64,6 +64,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   getResolvedBackgroundColor,
   getRuleViolationSeverityBackgroundColor,
 } from '@/helpers/get-status-class';
@@ -94,6 +99,7 @@ const RuleViolationCard = ({
 }: {
   ruleViolation: RuleViolation;
 }) => {
+  const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
     packageIdType === 'PURL' && ruleViolation.purl
@@ -104,9 +110,32 @@ const RuleViolationCard = ({
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center'>
-          <div className='font-semibold'>
-            <BreakableString text={id || 'No ID available'} />
-          </div>
+          {ruleViolation.purl ? (
+            <Tooltip>
+              <TooltipTrigger>
+                <Link
+                  className='font-semibold text-blue-400 hover:underline'
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+                  params={{
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                    runIndex: params.runIndex,
+                  }}
+                  search={{ pkgId: id, marked: '0' }}
+                >
+                  <BreakableString text={id} />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                Inspect the package details in packages table
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <div className='font-semibold'>
+              <BreakableString text={id || 'No ID available'} />
+            </div>
+          )}
           <CopyToClipboard copyText={id || ''} />
         </div>
         <Badge
