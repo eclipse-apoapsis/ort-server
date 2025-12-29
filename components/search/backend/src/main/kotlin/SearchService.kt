@@ -46,7 +46,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Res
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
@@ -161,7 +161,7 @@ private fun findByIdentifier(
         IdentifiersTable.version
     )
 
-    val identifierCondition = concatenatedIdentifier.applyRegex(identifier)
+    val identifierCondition = concatenatedIdentifier.applyIRegex(identifier)
 
     val whereClause = hierarchyFilter.apply(identifierCondition) { level, ids, filter ->
         generateHierarchyCondition(level, ids, filter)
@@ -199,7 +199,7 @@ private fun findByPurl(
     hierarchyFilter: HierarchyFilter
 ): List<RunWithPackage> {
     val effectivePurl = createEffectivePurlExpression()
-    val purlCondition = effectivePurl.applyRegex(purl)
+    val purlCondition = effectivePurl.applyIRegex(purl)
 
     val whereClause = hierarchyFilter.apply(purlCondition) { level, ids, filter ->
         generateHierarchyCondition(level, ids, filter)
@@ -245,7 +245,7 @@ private fun findVulnerabilitiesWithIdentifier(
     query: Join,
     hierarchyFilter: HierarchyFilter
 ): List<RunWithVulnerability> {
-    val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyRegex(externalId)
+    val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyIRegex(externalId)
 
     val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids, filter ->
         generateHierarchyCondition(level, ids, filter)
@@ -289,7 +289,7 @@ private fun findVulnerabilitiesWithPurl(
         .innerJoin(PackagesTable, { IdentifiersTable.id }, { identifierId })
 
     val effectivePurl = createEffectivePurlExpression()
-    val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyRegex(externalId)
+    val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyIRegex(externalId)
 
     val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids, filter ->
         generateHierarchyCondition(level, ids, filter)
