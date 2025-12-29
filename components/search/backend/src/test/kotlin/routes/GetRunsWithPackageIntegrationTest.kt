@@ -471,6 +471,58 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 }
             }
         }
+
+        "support case-insensitive identifier search" {
+            val fixtures = dbExtension.fixtures
+            val packageIdentifier = Identifier(
+                type = "Maven",
+                namespace = "Org.Example",
+                name = "CaseSensitive",
+                version = "1.0.0"
+            )
+            val run = createRunWithPackage(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("identifier", "maven:org.example:casesensitive:1.0.0")
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body shouldContainExactly listOf(run)
+            }
+        }
+
+        "support case-insensitive PURL search" {
+            val fixtures = dbExtension.fixtures
+            val packageIdentifier = Identifier(
+                type = "Maven",
+                namespace = "Org.Example",
+                name = "CasePurl",
+                version = "1.0.0"
+            )
+            val run = createRunWithPackageForPurlSearch(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("purl", "pkg:maven/org.example/casepurl@1.0.0")
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body shouldContainExactly listOf(run)
+            }
+        }
     }
 })
 
