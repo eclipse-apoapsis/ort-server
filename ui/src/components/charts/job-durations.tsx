@@ -229,7 +229,7 @@ export const JobDurations = ({
               content={
                 <ChartTooltipContent
                   hideLabel
-                  className='w-[180px]'
+                  className='w-[230px]'
                   payload={[]}
                   coordinate={{ x: 0, y: 0 }}
                   active={false}
