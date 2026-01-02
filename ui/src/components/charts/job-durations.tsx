@@ -226,6 +226,7 @@ export const JobDurations = ({
               reversed
             />
             <ChartTooltip
+              wrapperStyle={{ zIndex: 1000 }}
               content={
                 <ChartTooltipContent
                   hideLabel
