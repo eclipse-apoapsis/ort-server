@@ -82,6 +82,7 @@ export function convertDurationToHms(durationMs: number): string {
 type DurationChartData = {
   runId: number;
   finishedDurations: number;
+  jobsDurationTotal: number;
   createdAt: string;
   finishedAt: string | null | undefined;
   infrastructure: number | null;
@@ -121,6 +122,14 @@ export function getDurationChartData(
       (evaluatorDuration ?? 0) +
       (reporterDuration ?? 0);
 
+    // Sum of all individual job durations (for display when infrastructure is hidden).
+    const jobsDurationTotal =
+      (analyzerDuration ?? 0) +
+      (advisorDuration ?? 0) +
+      (scannerDuration ?? 0) +
+      (evaluatorDuration ?? 0) +
+      (reporterDuration ?? 0);
+
     // As a safety measure to prevent illogical results showing, negative values
     // for the intrastructure durations are filtered out.
     const infrastructureDuration =
@@ -142,6 +151,7 @@ export function getDurationChartData(
     return {
       runId: run.index,
       finishedDurations: finishedDurations,
+      jobsDurationTotal: jobsDurationTotal,
       createdAt: run.createdAt,
       finishedAt: run.finishedAt,
       infrastructure: infrastructureDuration,
