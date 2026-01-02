@@ -129,7 +129,7 @@ export const JobDurations = ({
     refetchInterval: pollInterval,
   });
 
-  const chartData = getDurationChartData(runs, true);
+  const chartData = getDurationChartData(runs, showInfrastructure);
 
   // Determine legend order based on whether infrastructure is shown.
   const legendOrder = showInfrastructure
@@ -257,12 +257,19 @@ export const JobDurations = ({
                         {index === item.payload.finishedDurations - 1 && (
                           <div className='flex w-full flex-col items-center justify-between'>
                             <div className='flex w-full items-center justify-between'>
-                              Total run duration:
+                              Total{showInfrastructure ? ' run' : ' jobs'}{' '}
+                              duration:
                               <div className='text-muted-foreground mt-0.5 flex flex-col font-mono text-xs'>
-                                <RunDuration
-                                  createdAt={item.payload.createdAt}
-                                  finishedAt={item.payload.finishedAt}
-                                />
+                                {showInfrastructure ? (
+                                  <RunDuration
+                                    createdAt={item.payload.createdAt}
+                                    finishedAt={item.payload.finishedAt}
+                                  />
+                                ) : (
+                                  convertDurationToHms(
+                                    item.payload.jobsDurationTotal
+                                  )
+                                )}
                               </div>
                             </div>
                             <div className='text-muted-foreground mt-0.5 text-xs'>
