@@ -116,25 +116,18 @@ export function getDurationChartData(
         : null;
 
     // The Advisor and Scanner jobs run in parallel, so take the longer of the two for calculations.
-    const finishedJobsDuration =
-      (analyzerDuration ?? 0) +
-      Math.max(advisorDuration ?? 0, scannerDuration ?? 0) +
-      (evaluatorDuration ?? 0) +
-      (reporterDuration ?? 0);
-
-    // Sum of all individual job durations (for display when infrastructure is hidden).
+    // This represents the total time spent in jobs (used for display when infrastructure is hidden).
     const jobsDurationTotal =
       (analyzerDuration ?? 0) +
-      (advisorDuration ?? 0) +
-      (scannerDuration ?? 0) +
+      Math.max(advisorDuration ?? 0, scannerDuration ?? 0) +
       (evaluatorDuration ?? 0) +
       (reporterDuration ?? 0);
 
     // As a safety measure to prevent illogical results showing, negative values
     // for the intrastructure durations are filtered out.
     const infrastructureDuration =
-      runDuration && showInfra && runDuration - finishedJobsDuration > 0
-        ? runDuration - finishedJobsDuration
+      runDuration && showInfra && runDuration - jobsDurationTotal > 0
+        ? runDuration - jobsDurationTotal
         : null;
 
     // Calculate how many durations are non-null. This is needed for proper indexing in the tooltip,
