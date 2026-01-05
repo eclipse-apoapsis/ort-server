@@ -50,7 +50,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
                 rule = ruleViolation.rule
                 identifierId = getIdentifierDaoOrNull(ruleViolation)
                 license = ruleViolation.license
-                licenseSources = ruleViolation.licenseSources.joinToString(",")
+                licenseSources = ruleViolation.licenseSources.takeIf { it.isNotEmpty() }?.joinToString(",")
                 severity = ruleViolation.severity
                 message = ruleViolation.message
                 howToFix = ruleViolation.howToFix
@@ -63,7 +63,10 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
                 RuleViolationsTable.rule eq ruleViolation.rule and
                         (RuleViolationsTable.identifierId eq identifierDao?.id) and
                         (RuleViolationsTable.license eq ruleViolation.license) and
-                        (RuleViolationsTable.licenseSources eq ruleViolation.licenseSources.joinToString(",")) and
+                        (
+                            RuleViolationsTable.licenseSources eq
+                                ruleViolation.licenseSources.takeIf { it.isNotEmpty() }?.joinToString(",")
+                        ) and
                         (RuleViolationsTable.severity eq ruleViolation.severity)
             }.find { it.message == ruleViolation.message && it.howToFix == ruleViolation.howToFix }
         }
@@ -89,7 +92,9 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
         rule = rule,
         id = identifierId?.mapToModel(),
         license = license,
-        licenseSources = licenseSources?.split(',')?.toSet().orEmpty(),
+        // Empty string need to be ignored because they could temporarily be written to the database, see:
+        // https://github.com/eclipse-apoapsis/ort-server/issues/4229
+        licenseSources = licenseSources?.split(',')?.filterTo(mutableSetOf()) { it.isNotEmpty() }.orEmpty(),
         severity = severity,
         message = message,
         howToFix = howToFix,
