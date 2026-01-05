@@ -19,20 +19,28 @@
 
 import { useEffect, useState } from 'react';
 
-import { calculateDuration } from '@/helpers/calculate-duration';
+import {
+  calculateDuration,
+  convertDurationToHms,
+} from '@/helpers/calculate-duration';
 
 type RunDurationProps = {
-  createdAt: string;
+  createdAt?: string;
   finishedAt?: string;
+  duration?: number;
 };
 
-export const RunDuration = ({ createdAt, finishedAt }: RunDurationProps) => {
+export const RunDuration = ({
+  createdAt,
+  finishedAt,
+  duration,
+}: RunDurationProps) => {
   const [currentTime, setCurrentTime] = useState<string>(
     new Date().toISOString()
   );
 
   useEffect(() => {
-    if (!finishedAt) {
+    if (!finishedAt && !duration) {
       const intervalId = setInterval(() => {
         setCurrentTime(new Date().toISOString());
       }, 1000); // Update every second
@@ -40,16 +48,20 @@ export const RunDuration = ({ createdAt, finishedAt }: RunDurationProps) => {
       // Cleanup interval on component unmount
       return () => clearInterval(intervalId);
     }
-  }, [finishedAt]);
+  }, [finishedAt, duration]);
+
+  const displayDuration =
+    duration !== undefined
+      ? convertDurationToHms(duration)
+      : calculateDuration(createdAt!, finishedAt ?? currentTime)
+          .formattedDuration;
 
   return (
     <div>
       {finishedAt ? (
-        calculateDuration(createdAt, finishedAt).formattedDuration
+        displayDuration
       ) : (
-        <div className='animate-pulse italic'>
-          {calculateDuration(createdAt, currentTime).formattedDuration}
-        </div>
+        <div className='animate-pulse italic'>{displayDuration}</div>
       )}
     </div>
   );

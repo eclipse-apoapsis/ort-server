@@ -261,16 +261,19 @@ export const JobDurations = ({
                               Total{showInfrastructure ? ' run' : ' jobs'}{' '}
                               duration:
                               <div className='text-muted-foreground mt-0.5 flex flex-col font-mono text-xs'>
-                                {showInfrastructure ? (
-                                  <RunDuration
-                                    createdAt={item.payload.createdAt}
-                                    finishedAt={item.payload.finishedAt}
-                                  />
-                                ) : (
-                                  convertDurationToHms(
-                                    item.payload.jobsDurationTotal
-                                  )
-                                )}
+                                <RunDuration
+                                  createdAt={
+                                    showInfrastructure
+                                      ? item.payload.createdAt
+                                      : undefined
+                                  }
+                                  finishedAt={item.payload.finishedAt}
+                                  duration={
+                                    showInfrastructure
+                                      ? undefined
+                                      : item.payload.jobsDurationTotal
+                                  }
+                                />
                               </div>
                             </div>
                             <div className='text-muted-foreground mt-0.5 text-xs'>
