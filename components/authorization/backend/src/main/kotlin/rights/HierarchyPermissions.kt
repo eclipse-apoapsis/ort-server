@@ -190,13 +190,35 @@ private class StandardHierarchyPermissions(
         }
     }
 
+    /**
+     * Sets of [CompoundHierarchyId]s for which the permissions required by [checker] are implicitly granted due to role
+     * assignments on lower levels of the hierarchy, grouped by their hierarchy level.
+     */
     private val implicits: IdsByLevel
+
+    /**
+     * A map assigning [CompoundHierarchyId]s with [implicitly][implicits] granted permissions to the
+     * [CompoundHierarchyId]s on lower levels of the hierarchy whose role assignments caused these implicit permissions.
+     */
     private val causing: Map<CompoundHierarchyId, CompoundHierarchyId>
 
     init {
-        val implicitIncludes = computeImplicitIncludes(assignmentsSet, assignmentsByLevel, checker)
-        implicits = implicitIncludes.first
-        causing = implicitIncludes.second
+        val implicitIds = mutableSetOf<CompoundHierarchyId>()
+        val causingIds = mutableMapOf<CompoundHierarchyId, CompoundHierarchyId>()
+
+        listOf(HierarchyLevel.PRODUCT, HierarchyLevel.REPOSITORY).forEach { level ->
+            assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
+                .forEach { (id, _) ->
+                    val parents = id.parents()
+                    if (parents.none { it in assignmentsSet }) {
+                        implicitIds += parents
+                        parents.forEach { causingIds[it] = id }
+                    }
+                }
+        }
+
+        implicits = implicitIds.byLevel()
+        causing = causingIds
     }
 
     override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
@@ -221,37 +243,6 @@ private tailrec fun findAssignment(
     null -> null
     in assignments -> id
     else -> findAssignment(assignments, id.parent)
-}
-
-/**
- * Find the IDs of all hierarchy elements from [assignmentsByLevel] that are granted implicit permissions due to role
- * assignments on lower levels in the hierarchy. The given [assignmentsSet] has already been populated with explicit
- * role assignments. Use the given [checker] function to determine whether permissions are granted. Return a [Map]
- * with the found IDs grouped by their hierarchy level and a [Map] that assigns the found IDs to the IDs of the
- * elements that caused the implicit permissions.
- */
-private fun computeImplicitIncludes(
-    assignmentsSet: Set<CompoundHierarchyId>,
-    assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
-    checker: PermissionChecker
-): Pair<IdsByLevel, Map<CompoundHierarchyId, CompoundHierarchyId>> {
-    val implicitIds = mutableSetOf<CompoundHierarchyId>()
-    val causingIds = mutableMapOf<CompoundHierarchyId, CompoundHierarchyId>()
-
-    listOf(HierarchyLevel.PRODUCT, HierarchyLevel.REPOSITORY).forEach { level ->
-        assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
-            .forEach { (id, _) ->
-                val parents = id.parents()
-                if (parents.none { it in assignmentsSet }) {
-                    implicitIds += parents
-                    parents.forEach { parentId ->
-                        causingIds[parentId] = id
-                    }
-                }
-            }
-    }
-
-    return implicitIds.byLevel() to causingIds
 }
 
 /**
