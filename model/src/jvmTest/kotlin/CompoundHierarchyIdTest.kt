@@ -89,6 +89,38 @@ class CompoundHierarchyIdTest : WordSpec({
         }
     }
 
+    "parents" should {
+        "return an empty list for an organization" {
+            val compoundId = CompoundHierarchyId.forOrganization(OrganizationId(1))
+
+            compoundId.parents shouldBe emptyList()
+        }
+
+        "return a list with the organization ID for a product" {
+            val orgId = OrganizationId(1)
+            val prodId = ProductId(2)
+            val compoundId = CompoundHierarchyId.forProduct(orgId, prodId)
+
+            compoundId.parents shouldBe listOf(CompoundHierarchyId.forOrganization(orgId))
+        }
+
+        "return a list with the product and organization IDs for a repository" {
+            val orgId = OrganizationId(1)
+            val prodId = ProductId(2)
+            val repoId = RepositoryId(3)
+            val compoundId = CompoundHierarchyId.forRepository(orgId, prodId, repoId)
+
+            compoundId.parents shouldBe listOf(
+                CompoundHierarchyId.forProduct(orgId, prodId),
+                CompoundHierarchyId.forOrganization(orgId)
+            )
+        }
+
+        "return an empty list for the wildcard instance" {
+            CompoundHierarchyId.WILDCARD.parents shouldBe emptyList()
+        }
+    }
+
     "level" should {
         "return the correct level for an organization" {
             val compoundId = CompoundHierarchyId.forOrganization(OrganizationId(1))
