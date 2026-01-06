@@ -183,7 +183,7 @@ private class StandardHierarchyPermissions(
         for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
             assignmentsByLevel[level].orEmpty().forEach { (id, role) ->
                 val isPresent = checker(role)
-                val isPresentOnParent = findAssignment(this, id.parent) != null
+                val isPresentOnParent = findIdOrParent(id.parent) != null
 
                 // If this assignment does not change the status from a higher level, it can be skipped.
                 if (isPresent && !isPresentOnParent) add(id)
@@ -223,7 +223,7 @@ private class StandardHierarchyPermissions(
     }
 
     override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
-        findAssignment(directGrants, compoundHierarchyId) ?: causesForImplicitGrants[compoundHierarchyId]
+        directGrants.findIdOrParent(compoundHierarchyId) ?: causesForImplicitGrants[compoundHierarchyId]
 
     override fun includes(): IdsByLevel = directGrants.groupBy { it.level }
 
@@ -233,15 +233,12 @@ private class StandardHierarchyPermissions(
 }
 
 /**
- * Return the [CompoundHierarchyId] of the closest permission check result for the given [id] by traversing up the
- * hierarchy if necessary. If no assignment is found for the given [id] or any of its parents, assume that the
- * permissions are not present and return *null*.
+ * Check if this set contains the provided [id] or any of its [parents][CompoundHierarchyId.parents], returning the
+ * closest match found or `null` if none is found.
  */
-private tailrec fun findAssignment(
-    assignments: Set<CompoundHierarchyId>,
-    id: CompoundHierarchyId?
-): CompoundHierarchyId? = when (id) {
-    null -> null
-    in assignments -> id
-    else -> findAssignment(assignments, id.parent)
-}
+private tailrec fun Set<CompoundHierarchyId>.findIdOrParent(id: CompoundHierarchyId?): CompoundHierarchyId? =
+    when (id) {
+        null -> null
+        in this -> id
+        else -> findIdOrParent(id.parent)
+    }
