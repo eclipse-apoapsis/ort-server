@@ -175,10 +175,10 @@ private class StandardHierarchyPermissions(
     checker: PermissionChecker
 ) : HierarchyPermissions {
     /**
-     * A map with information about available permissions on different levels in the hierarchy based on the given
+     * A set with information about available permissions on different levels in the hierarchy based on the given
      * [assignmentsByLevel] and [permission checker][checker].
      */
-    private val assignmentsMap = buildMap {
+    private val assignmentsSet = buildSet {
         for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
             val levelAssignments = assignmentsByLevel[level].orEmpty()
             levelAssignments.forEach { (id, role) ->
@@ -186,9 +186,7 @@ private class StandardHierarchyPermissions(
                 val isPresentOnParent = findAssignment(this, id.parent) != null
 
                 // If this assignment does not change the status from a higher level, it can be skipped.
-                if (isPresent && !isPresentOnParent) {
-                    put(id, true)
-                }
+                if (isPresent && !isPresentOnParent) add(id)
             }
         }
     }
@@ -197,18 +195,15 @@ private class StandardHierarchyPermissions(
     private val causing: Map<CompoundHierarchyId, CompoundHierarchyId>
 
     init {
-        val implicitIncludes = computeImplicitIncludes(assignmentsMap, assignmentsByLevel, checker)
+        val implicitIncludes = computeImplicitIncludes(assignmentsSet, assignmentsByLevel, checker)
         implicits = implicitIncludes.first
         causing = implicitIncludes.second
     }
 
     override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
-        findAssignment(assignmentsMap, compoundHierarchyId) ?: causing[compoundHierarchyId]
+        findAssignment(assignmentsSet, compoundHierarchyId) ?: causing[compoundHierarchyId]
 
-    override fun includes(): IdsByLevel =
-        assignmentsMap.filter { e -> e.value }
-            .keys
-            .byLevel()
+    override fun includes(): IdsByLevel = assignmentsSet.byLevel()
 
     override fun implicitIncludes(): IdsByLevel = implicits
 
@@ -221,23 +216,23 @@ private class StandardHierarchyPermissions(
  * permissions are not present and return *null*.
  */
 private tailrec fun findAssignment(
-    assignments: Map<CompoundHierarchyId, Boolean>,
+    assignments: Set<CompoundHierarchyId>,
     id: CompoundHierarchyId?
-): CompoundHierarchyId? = when {
-    id == null -> null
-    assignments[id] == true -> id
+): CompoundHierarchyId? = when (id) {
+    null -> null
+    in assignments -> id
     else -> findAssignment(assignments, id.parent)
 }
 
 /**
  * Find the IDs of all hierarchy elements from [assignmentsByLevel] that are granted implicit permissions due to role
- * assignments on lower levels in the hierarchy. The given [assignmentsMap] has already been populated with explicit
+ * assignments on lower levels in the hierarchy. The given [assignmentsSet] has already been populated with explicit
  * role assignments. Use the given [checker] function to determine whether permissions are granted. Return a [Map]
  * with the found IDs grouped by their hierarchy level and a [Map] that assigns the found IDs to the IDs of the
  * elements that caused the implicit permissions.
  */
 private fun computeImplicitIncludes(
-    assignmentsMap: Map<CompoundHierarchyId, Boolean>,
+    assignmentsSet: Set<CompoundHierarchyId>,
     assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
 ): Pair<IdsByLevel, Map<CompoundHierarchyId, CompoundHierarchyId>> {
@@ -248,7 +243,7 @@ private fun computeImplicitIncludes(
         assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
             .forEach { (id, _) ->
                 val parents = id.parents()
-                if (parents.none { it in assignmentsMap }) {
+                if (parents.none { it in assignmentsSet }) {
                     implicitIds += parents
                     parents.forEach { parentId ->
                         causingIds[parentId] = id
