@@ -69,7 +69,7 @@ typealias IdsByLevel = Map<HierarchyLevel, List<CompoundHierarchyId>>
  * controlled by a [PermissionChecker]. The functions of this class can then be used to find out on which hierarchy
  * elements these permissions are granted.
  */
-interface HierarchyPermissions {
+sealed interface HierarchyPermissions {
     companion object {
         /**
          * Create a new [HierarchyPermissions] instance for the given collection of role [roleAssignments] that
@@ -82,8 +82,8 @@ interface HierarchyPermissions {
             val assignmentsByLevel = roleAssignments.groupBy { it.first.level }
 
             return assignmentsByLevel[HierarchyLevel.WILDCARD]?.singleOrNull()
-                ?.takeIf { it.second == OrganizationRole.ADMIN }?.let { superuserInstance }
-                ?: createStandardInstance(assignmentsByLevel, checker)
+                ?.takeIf { it.second == OrganizationRole.ADMIN }?.let { SuperuserPermissions }
+                ?: StandardHierarchyPermissions(assignmentsByLevel, checker)
         }
 
         /**
@@ -153,11 +153,8 @@ interface HierarchyPermissions {
     fun isSuperuser(): Boolean
 }
 
-/**
- * A special instance of [HierarchyPermissions] that is returned by [HierarchyPermissions.create] when an assignment
- * of superuser permissions is detected. This instance grants all permissions and returns corresponding filters.
- */
-private val superuserInstance = object : HierarchyPermissions {
+/** An implementation of [HierarchyPermissions] for superusers which grants all permissions. */
+private object SuperuserPermissions : HierarchyPermissions {
     override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId =
         CompoundHierarchyId.WILDCARD
 
@@ -170,29 +167,34 @@ private val superuserInstance = object : HierarchyPermissions {
 }
 
 /**
- * Create an instance of [HierarchyPermissions] for standard users based on the given [Map] with
- * [assignmentsByLevel] and the [checker] function.
+ * An implementation of [HierarchyPermissions] for standard users based on the given [assignmentsByLevel] and
+ * [permission checker][checker].
  */
-private fun createStandardInstance(
+private class StandardHierarchyPermissions(
     assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
-): HierarchyPermissions {
-    val assignmentsMap = constructAssignmentsMap(assignmentsByLevel, checker)
-    val (implicits, causing) = computeImplicitIncludes(assignmentsMap, assignmentsByLevel, checker)
+) : HierarchyPermissions {
+    private val assignmentsMap = constructAssignmentsMap(assignmentsByLevel, checker)
+    private val implicits: IdsByLevel
+    private val causing: Map<CompoundHierarchyId, CompoundHierarchyId>
 
-    return object : HierarchyPermissions {
-        override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
-            findAssignment(assignmentsMap, compoundHierarchyId) ?: causing[compoundHierarchyId]
-
-        override fun includes(): IdsByLevel =
-            assignmentsMap.filter { e -> e.value }
-                .keys
-                .byLevel()
-
-        override fun implicitIncludes(): IdsByLevel = implicits
-
-        override fun isSuperuser(): Boolean = false
+    init {
+        val implicitIncludes = computeImplicitIncludes(assignmentsMap, assignmentsByLevel, checker)
+        implicits = implicitIncludes.first
+        causing = implicitIncludes.second
     }
+
+    override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
+        findAssignment(assignmentsMap, compoundHierarchyId) ?: causing[compoundHierarchyId]
+
+    override fun includes(): IdsByLevel =
+        assignmentsMap.filter { e -> e.value }
+            .keys
+            .byLevel()
+
+    override fun implicitIncludes(): IdsByLevel = implicits
+
+    override fun isSuperuser(): Boolean = false
 }
 
 /**
