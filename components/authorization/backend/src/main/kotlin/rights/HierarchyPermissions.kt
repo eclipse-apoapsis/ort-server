@@ -217,14 +217,14 @@ private class StandardHierarchyPermissions(
                 }
         }
 
-        implicits = implicitIds.byLevel()
+        implicits = implicitIds.groupBy { it.level }
         causing = causingIds
     }
 
     override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
         findAssignment(assignmentsSet, compoundHierarchyId) ?: causing[compoundHierarchyId]
 
-    override fun includes(): IdsByLevel = assignmentsSet.byLevel()
+    override fun includes(): IdsByLevel = assignmentsSet.groupBy { it.level }
 
     override fun implicitIncludes(): IdsByLevel = implicits
 
@@ -244,9 +244,3 @@ private tailrec fun findAssignment(
     in assignments -> id
     else -> findAssignment(assignments, id.parent)
 }
-
-/**
- * Group the IDs contained in this [Collection] by their hierarchy level.
- */
-private fun Collection<CompoundHierarchyId>.byLevel(): IdsByLevel =
-    this.groupBy { it.level }
