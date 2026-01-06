@@ -55,15 +55,16 @@ typealias IdsByLevel = Map<HierarchyLevel, List<CompoundHierarchyId>>
  *
  * This class controls the effect of role assignments to users and how permissions are inherited through the hierarchy.
  * It implements the following rules:
- * - Role assignments on higher levels in the hierarchy inherit downwards to lower levels. So, if a user is granted
- *   the `WRITER` role on an organization, they automatically have `WRITER` permissions on all products and
+ * - Role assignments on higher levels in the hierarchy inherit downwards to lower levels. For example, if a user is
+ *   granted the `WRITER` role on an organization, they automatically have `WRITER` permissions on all products and
  *   repositories within that organization.
  * - Role assignments on lower levels in the hierarchy can widen the permissions inherited from higher levels, but not
  *   restrict them. For example, a `WRITER` role assignment for a user on product level could be turned into an `ADMIN`
  *   role assignment on repository level. However, a `READER` role assignment on repository level would be ignored if
- *   the user already has `WRITER` permissions on the parent product.
- * - Role assignments on lower levels of the hierarchy can trigger implicit permissions on higher levels. So, if a user
- *   has access to a repository, they implicitly have at least `READER` access to the parent product and organization.
+ *   the user already has a `WRITER` role assignment on the parent product.
+ * - Role assignments on lower levels of the hierarchy can trigger implicit permissions on higher levels. For example,
+ *   if a user has access to a repository, they implicitly have at least `READER` access to the parent product and
+ *   organization.
  *
  * An instance of this class is created for a given set of role assignments and for a specific set of permissions
  * controlled by a [PermissionChecker]. The functions of this class can then be used to find out on which hierarchy
@@ -167,18 +168,18 @@ private object SuperuserPermissions : HierarchyPermissions {
 }
 
 /**
- * An implementation of [HierarchyPermissions] for standard users based on the given [assignmentsByLevel] and
- * [permission checker][checker].
+ * An implementation of [HierarchyPermissions] for standard users based on the given
+ * [role assignments][assignmentsByLevel] and [permission checker][checker].
  */
 private class StandardHierarchyPermissions(
     assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
 ) : HierarchyPermissions {
     /**
-     * A set with information about available permissions on different levels in the hierarchy based on the given
-     * [assignmentsByLevel] and [permission checker][checker].
+     * A set of [CompoundHierarchyId]s for which the permissions required by [checker] are directly granted due to role
+     * assignments.
      */
-    private val assignmentsSet = buildSet {
+    private val directGrants = buildSet {
         for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
             assignmentsByLevel[level].orEmpty().forEach { (id, role) ->
                 val isPresent = checker(role)
@@ -194,13 +195,13 @@ private class StandardHierarchyPermissions(
      * Sets of [CompoundHierarchyId]s for which the permissions required by [checker] are implicitly granted due to role
      * assignments on lower levels of the hierarchy, grouped by their hierarchy level.
      */
-    private val implicits: IdsByLevel
+    private val implicitGrants: IdsByLevel
 
     /**
-     * A map assigning [CompoundHierarchyId]s with [implicitly][implicits] granted permissions to the
+     * A map assigning [CompoundHierarchyId]s with [implicitly][implicitGrants] granted permissions to the
      * [CompoundHierarchyId]s on lower levels of the hierarchy whose role assignments caused these implicit permissions.
      */
-    private val causing: Map<CompoundHierarchyId, CompoundHierarchyId>
+    private val causesForImplicitGrants: Map<CompoundHierarchyId, CompoundHierarchyId>
 
     init {
         val implicitIds = mutableSetOf<CompoundHierarchyId>()
@@ -210,23 +211,23 @@ private class StandardHierarchyPermissions(
             assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
                 .forEach { (id, _) ->
                     val parents = id.parents
-                    if (parents.none { it in assignmentsSet }) {
+                    if (parents.none { it in directGrants }) {
                         implicitIds += parents
                         parents.forEach { causingIds[it] = id }
                     }
                 }
         }
 
-        implicits = implicitIds.groupBy { it.level }
-        causing = causingIds
+        implicitGrants = implicitIds.groupBy { it.level }
+        causesForImplicitGrants = causingIds
     }
 
     override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
-        findAssignment(assignmentsSet, compoundHierarchyId) ?: causing[compoundHierarchyId]
+        findAssignment(directGrants, compoundHierarchyId) ?: causesForImplicitGrants[compoundHierarchyId]
 
-    override fun includes(): IdsByLevel = assignmentsSet.groupBy { it.level }
+    override fun includes(): IdsByLevel = directGrants.groupBy { it.level }
 
-    override fun implicitIncludes(): IdsByLevel = implicits
+    override fun implicitIncludes(): IdsByLevel = implicitGrants
 
     override fun isSuperuser(): Boolean = false
 }
