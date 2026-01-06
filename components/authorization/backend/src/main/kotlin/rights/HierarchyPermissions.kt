@@ -180,8 +180,7 @@ private class StandardHierarchyPermissions(
      */
     private val assignmentsSet = buildSet {
         for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
-            val levelAssignments = assignmentsByLevel[level].orEmpty()
-            levelAssignments.forEach { (id, role) ->
+            assignmentsByLevel[level].orEmpty().forEach { (id, role) ->
                 val isPresent = checker(role)
                 val isPresentOnParent = findAssignment(this, id.parent) != null
 
