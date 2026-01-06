@@ -203,16 +203,11 @@ private fun createStandardInstance(
 private tailrec fun findAssignment(
     assignments: Map<CompoundHierarchyId, Boolean>,
     id: CompoundHierarchyId?
-): CompoundHierarchyId? =
-    if (id == null) {
-        null
-    } else {
-        if (assignments[id] == true) {
-            id
-        } else {
-            findAssignment(assignments, id.parent)
-        }
-    }
+): CompoundHierarchyId? = when {
+    id == null -> null
+    assignments[id] == true -> id
+    else -> findAssignment(assignments, id.parent)
+}
 
 /**
  * Construct the [Map] with information about available permissions on different levels in the hierarchy based on
