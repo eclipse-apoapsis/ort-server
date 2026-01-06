@@ -209,7 +209,7 @@ private class StandardHierarchyPermissions(
         listOf(HierarchyLevel.PRODUCT, HierarchyLevel.REPOSITORY).forEach { level ->
             assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
                 .forEach { (id, _) ->
-                    val parents = id.parents()
+                    val parents = id.parents
                     if (parents.none { it in assignmentsSet }) {
                         implicitIds += parents
                         parents.forEach { causingIds[it] = id }
@@ -250,20 +250,3 @@ private tailrec fun findAssignment(
  */
 private fun Collection<CompoundHierarchyId>.byLevel(): IdsByLevel =
     this.groupBy { it.level }
-
-/**
- * Return a list with the IDs of all parents of this [CompoundHierarchyId].
- */
-private fun CompoundHierarchyId.parents(): List<CompoundHierarchyId> {
-    val parents = mutableListOf<CompoundHierarchyId>()
-
-    tailrec fun findParents(id: CompoundHierarchyId?) {
-        if (id != null) {
-            parents += id
-            findParents(id.parent)
-        }
-    }
-
-    findParents(parent)
-    return parents
-}
