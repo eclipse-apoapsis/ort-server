@@ -174,7 +174,25 @@ private class StandardHierarchyPermissions(
     assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
 ) : HierarchyPermissions {
-    private val assignmentsMap = constructAssignmentsMap(assignmentsByLevel, checker)
+    /**
+     * A map with information about available permissions on different levels in the hierarchy based on the given
+     * [assignmentsByLevel] and [permission checker][checker].
+     */
+    private val assignmentsMap = buildMap {
+        for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
+            val levelAssignments = assignmentsByLevel[level].orEmpty()
+            levelAssignments.forEach { (id, role) ->
+                val isPresent = checker(role)
+                val isPresentOnParent = findAssignment(this, id.parent) != null
+
+                // If this assignment does not change the status from a higher level, it can be skipped.
+                if (isPresent && !isPresentOnParent) {
+                    put(id, true)
+                }
+            }
+        }
+    }
+
     private val implicits: IdsByLevel
     private val causing: Map<CompoundHierarchyId, CompoundHierarchyId>
 
@@ -209,28 +227,6 @@ private tailrec fun findAssignment(
     id == null -> null
     assignments[id] == true -> id
     else -> findAssignment(assignments, id.parent)
-}
-
-/**
- * Construct the [Map] with information about available permissions on different levels in the hierarchy based on
- * the given [assignmentsByLevel] and the [checker] function.
- */
-private fun constructAssignmentsMap(
-    assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
-    checker: PermissionChecker
-): Map<CompoundHierarchyId, Boolean> = buildMap {
-    for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
-        val levelAssignments = assignmentsByLevel[level].orEmpty()
-        levelAssignments.forEach { (id, role) ->
-            val isPresent = checker(role)
-            val isPresentOnParent = findAssignment(this, id.parent) != null
-
-            // If this assignment does not change the status from a higher level, it can be skipped.
-            if (isPresent && !isPresentOnParent) {
-                put(id, true)
-            }
-        }
-    }
 }
 
 /**
