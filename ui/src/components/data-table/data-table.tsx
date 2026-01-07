@@ -23,6 +23,7 @@ import React from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Table } from '@/components/ui/table';
+import { useTableSizing } from '@/hooks/use-table-sizing';
 import { cn } from '@/lib/utils';
 import { DataTableBody } from './data-table-body';
 import { DataTableHeader } from './data-table-header';
@@ -53,15 +54,17 @@ export function DataTable<TData>({
   setSortingOptions,
   ...props
 }: DataTableProps<TData>) {
+  const containerRef = useTableSizing(table);
   const pagination = table.getState().pagination;
   const totalPages = table.getPageCount();
 
   return (
     <div
+      ref={containerRef}
       className={cn('w-full space-y-2.5 overflow-auto', className)}
       {...props}
     >
-      <Table>
+      <Table style={{ tableLayout: 'fixed' }}>
         <DataTableHeader
           headers={table.getLeafHeaders()}
           setSortingOptions={setSortingOptions}
