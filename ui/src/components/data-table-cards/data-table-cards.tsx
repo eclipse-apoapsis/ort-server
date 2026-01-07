@@ -25,6 +25,7 @@ import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-c
 import { DataTableBody } from '@/components/data-table/data-table-body';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Table } from '@/components/ui/table';
+import { useTableSizing } from '@/hooks/use-table-sizing';
 import { cn } from '@/lib/utils';
 
 interface DataTableCardsProps<
@@ -49,11 +50,13 @@ export function DataTableCards<TData>({
   setSortingOptions,
   ...props
 }: DataTableCardsProps<TData>) {
+  const containerRef = useTableSizing(table);
   const pagination = table.getState().pagination;
   const totalPages = table.getPageCount();
 
   return (
     <div
+      ref={containerRef}
       className={cn('w-full space-y-2.5 overflow-auto', className)}
       {...props}
     >
@@ -61,7 +64,7 @@ export function DataTableCards<TData>({
         table={table}
         setSortingOptions={setSortingOptions}
       />
-      <Table>
+      <Table style={{ tableLayout: 'fixed' }}>
         <DataTableBody
           rows={table.getRowModel().rows}
           renderSubComponent={renderSubComponent}
