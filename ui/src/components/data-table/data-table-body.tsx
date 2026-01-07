@@ -48,8 +48,8 @@ export function DataTableBody<TData>({
                 <TableCell
                   key={cell.id}
                   style={{
-                    minWidth: cell.column.columnDef.size,
-                    maxWidth: cell.column.columnDef.size,
+                    width: cell.column.getSize(),
+                    minWidth: cell.column.columnDef.minSize,
                   }}
                 >
                   {cell.getIsPlaceholder()

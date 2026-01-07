@@ -91,7 +91,10 @@ export function DataTableHeader<TData>({
           return (
             <TableHead
               key={header.id}
-              style={{ minWidth: column.columnDef.size }}
+              style={{
+                width: header.getSize(),
+                minWidth: column.columnDef.minSize,
+              }}
               colSpan={header.colSpan}
             >
               {header.isPlaceholder ? null : (
