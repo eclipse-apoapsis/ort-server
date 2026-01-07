@@ -26,6 +26,10 @@ declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     filter?: Filter<TValue>;
+    /** Column takes this percentage of total table width (e.g., 30 = 30%) */
+    widthPercentage?: number;
+    /** Column expands to fill remaining available space */
+    isGrow?: boolean;
   }
 
   // Define the different filter variants
