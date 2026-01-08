@@ -594,7 +594,7 @@ services:
         tag: "ui"
 
   logstash:
-    image: grafana/logstash-output-loki
+    image: grafana/logstash-output-loki:3.6.3
     ports:
       - "12201:12201/udp"
     volumes:
@@ -606,7 +606,7 @@ services:
     command: logstash -f /usr/share/logstash/pipeline/ --config.reload.automatic
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.3
     ports:
       - "3200:3000"
     restart: unless-stopped
@@ -624,7 +624,7 @@ services:
         tag: "grafana"
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.6.3
     ports:
       - "3100:3100"
     volumes:
