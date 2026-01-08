@@ -111,27 +111,25 @@ class GitConfigFileProvider internal constructor(
     private fun updateWorkingTree(requestedRevision: String): String {
         synchronized(this) {
             try {
-                val revision = if (!git.getWorkingTree(configDir).isValid()) {
-                    val initRevision = requestedRevision.ifBlank { git.getDefaultBranchName(gitUrl) }
-                    val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
+                val revisionToCheckout = requestedRevision.ifBlank { git.getDefaultBranchName(gitUrl) }
+                val workingTree = git.getWorkingTree(configDir)
+
+                if (!workingTree.isValid()) {
+                    val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, revisionToCheckout)
 
                     measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
                         logger.debug("Initialized Git working tree in $it.")
                     }
-
-                    initRevision
-                } else {
-                    requestedRevision
                 }
 
-                val workingTree = git.getWorkingTree(configDir)
-
                 // Check if the requested revision was already checked out.
-                if (revision == workingTree.getRevision()) return revision
+                if (workingTree.getRevision() == revisionToCheckout) return revisionToCheckout
 
                 // Update the working tree to the requested revision.
-                measureTime { git.updateWorkingTree(workingTree, revision, recursive = true).getOrThrow() }.also {
-                    logger.debug("Updated Git working tree to revision '$revision' in $it.")
+                measureTime {
+                    git.updateWorkingTree(workingTree, revisionToCheckout, recursive = true).getOrThrow()
+                }.also {
+                    logger.debug("Updated Git working tree to revision '$revisionToCheckout' in $it.")
                 }
 
                 return workingTree.getRevision()
