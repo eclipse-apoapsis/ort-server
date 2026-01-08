@@ -315,6 +315,9 @@ services:
     - type: bind
       source: ./scripts/compose/config
       target: /mnt/config
+    - type: bind
+      source: ./scripts/compose/secrets.properties
+      target: /mnt/secrets.properties
     - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
