@@ -23,12 +23,20 @@ ARG BASE_REGISTRY=""
 ARG BASE_IMAGE_TAG="latest"
 
 # Build-Stage for Python executing scancode-license-data to get the license texts in a directory
-FROM --platform=linux/amd64 python:3.13-slim AS scancode-license-data-build
+FROM --platform=linux/amd64 python:3.14-slim AS scancode-license-data-build
 
 # Keep in sync with Scanner.Dockerfile
 ARG SCANCODE_VERSION=32.4.1
 
-RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    curl \
+    libgomp1 \
+    libxml2-dev \
+    libxslt1-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
