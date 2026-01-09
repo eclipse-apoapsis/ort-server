@@ -22,6 +22,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Sha1Component } from '@/components/sha1-component';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { AdvisorJobDetails } from './-components/advisor-job-details';
@@ -59,9 +60,12 @@ const ConfigComponent = () => {
             <div className='flex items-center gap-1 text-sm'>
               <Label className='font-semibold'>Configuration context:</Label>
               {ortRun.jobConfigContext && <div>{ortRun.jobConfigContext}</div>}
-              {ortRun.resolvedJobConfigContext && (
-                <div>({ortRun.resolvedJobConfigContext})</div>
-              )}
+              {ortRun.resolvedJobConfigContext &&
+                ortRun.jobConfigContext !== ortRun.resolvedJobConfigContext && (
+                  <div>
+                    <Sha1Component sha1={ortRun.resolvedJobConfigContext} />
+                  </div>
+                )}
             </div>
           )}
           {Object.keys(ortRun.labels).length > 0 && (
