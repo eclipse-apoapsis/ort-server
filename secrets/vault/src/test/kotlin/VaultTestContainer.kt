@@ -51,6 +51,9 @@ class VaultTestContainer {
         /** The root path under which secrets are stored in the vault. */
         const val PATH = "ort/server/secrets/"
 
+        /** The live time of tokens in seconds. This is used to test token renewal. */
+        const val TOKEN_TTL_SECONDS = 3
+
         /** The root token used by the vault service. */
         private const val VAULT_TOKEN = "onetobindthemall"
 
@@ -108,7 +111,7 @@ class VaultTestContainer {
                     """
                         {
                             "token_policies": "$ROLE_NAME",
-                            "token_ttl": "2h"
+                            "token_ttl": "${TOKEN_TTL_SECONDS}s"
                         }
                     """.trimIndent()
                 )

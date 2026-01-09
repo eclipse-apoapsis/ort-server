@@ -27,6 +27,10 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.client.plugins.ClientRequestException
 
+import kotlin.time.Duration.Companion.seconds
+
+import kotlinx.coroutines.delay
+
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -139,6 +143,18 @@ class VaultSecretsProviderTest : WordSpec() {
                 val result = provider.createPath(RepositoryId(1), "newSecret")
 
                 result shouldBe Path("repository_1_newSecret")
+            }
+        }
+
+        "the internal HTTP client" should {
+            "handle token renewal correctly" {
+                val provider = vault.createProvider()
+                val password = provider.readSecret(Path("password"))
+
+                // Wait until the token expires.
+                delay(VaultTestContainer.TOKEN_TTL_SECONDS.seconds)
+
+                provider.readSecret(Path("password")) shouldBe password
             }
         }
     }
