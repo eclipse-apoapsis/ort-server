@@ -27,6 +27,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
+import { Sha1Component } from '@/components/sha1-component';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -185,8 +186,9 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
         <div className='flex gap-2 text-sm'>
           <Label className='font-semibold'>Revision:</Label> {ortRun.revision}
           {ortRun.resolvedRevision &&
-            ortRun.revision !== ortRun.resolvedRevision &&
-            ` (${ortRun.resolvedRevision})`}
+            ortRun.revision !== ortRun.resolvedRevision && (
+              <Sha1Component sha1={ortRun.resolvedRevision} />
+            )}
         </div>
       </div>
       <div className='flex flex-col'>
