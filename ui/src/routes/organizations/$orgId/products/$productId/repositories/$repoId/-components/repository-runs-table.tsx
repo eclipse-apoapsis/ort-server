@@ -44,8 +44,15 @@ import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
+import { Sha1Component } from '@/components/sha1-component';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,9 +80,96 @@ const pollInterval = config.pollInterval;
 
 const columnHelper = createColumnHelper<OrtRunSummary>();
 
+const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
+  const hasLabels = summary.labels && Object.keys(summary.labels).length > 0;
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center justify-between'>
+        <Badge className={`border ${getStatusBackgroundColor(summary.status)}`}>
+          {summary.status}
+        </Badge>
+        <div className='flex gap-1'>
+          <div className='text-muted-foreground'>Created at</div>
+          <TimestampWithUTC timestamp={summary.createdAt} />
+          <div className='text-muted-foreground'>by</div>
+          {summary.userDisplayName?.username ? (
+            <Tooltip>
+              <TooltipTrigger>
+                {summary.userDisplayName.fullName ||
+                  summary.userDisplayName.username}
+              </TooltipTrigger>
+              <TooltipContent>
+                {summary.userDisplayName.username}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <span>{summary.userDisplayName?.fullName}</span>
+          )}
+        </div>
+      </div>
+      <div className='flex items-center justify-between'>
+        <OrtRunJobStatus
+          jobs={summary.jobs}
+          orgId={summary.organizationId.toString()}
+          productId={summary.productId.toString()}
+          repoId={summary.repositoryId.toString()}
+          runIndex={summary.index.toString()}
+        />
+        <div className='flex gap-1 text-sm'>
+          <div className='text-muted-foreground'>Revision</div>{' '}
+          {summary.revision}
+          {summary.resolvedRevision &&
+            summary.revision !== summary.resolvedRevision && (
+              <Sha1Component sha1={summary.resolvedRevision} />
+            )}
+        </div>
+      </div>
+      <div className='flex items-center justify-start'>
+        <RunDuration
+          createdAt={summary.createdAt}
+          finishedAt={summary.finishedAt ?? undefined}
+        />
+      </div>
+      <Accordion type='multiple' className='rounded-sm'>
+        <AccordionItem value='configuration'>
+          <AccordionTrigger className='justify-end gap-2'>
+            <div className='text-sm'>Configuration</div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className='flex flex-col gap-1'>
+              <div className='flex gap-2 text-sm'>
+                <div className='text-muted-foreground'>Context:</div>{' '}
+                {summary.jobConfigContext}
+                {summary.resolvedJobConfigContext &&
+                  summary.jobConfigContext !==
+                    summary.resolvedJobConfigContext && (
+                    <Sha1Component sha1={summary.resolvedJobConfigContext} />
+                  )}
+              </div>
+              {hasLabels && (
+                <div className='flex flex-wrap gap-2'>
+                  {Object.entries(summary.labels!).map(([key, value]) => (
+                    <Badge
+                      key={key}
+                      className='bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                    >
+                      {key}: {value}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  );
+};
+
 const columns = [
   columnHelper.accessor('index', {
     header: 'Index',
+    size: 50,
     cell: ({ row }) => (
       <Link
         className='font-semibold text-blue-400 hover:underline'
@@ -92,77 +186,20 @@ const columns = [
         {row.original.index}
       </Link>
     ),
-    size: 50,
-    enableColumnFilter: false,
-  }),
-  columnHelper.accessor('createdAt', {
-    header: 'Created',
-    size: 100,
-    cell: ({ row }) => (
-      <div>
-        <TimestampWithUTC timestamp={row.original.createdAt} />
-        {row.original.userDisplayName && (
-          <div>
-            {row.original.userDisplayName.username ? (
-              <Tooltip>
-                <TooltipTrigger>
-                  {row.original.userDisplayName.fullName}
-                </TooltipTrigger>
-                <TooltipContent>
-                  {row.original.userDisplayName.username}
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <span>{row.original.userDisplayName.fullName}</span>
-            )}
-          </div>
-        )}
-      </div>
-    ),
-    enableColumnFilter: false,
-  }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: ({ row }) => (
-      <Badge
-        className={`border ${getStatusBackgroundColor(row.original.status)}`}
-      >
-        {row.original.status}
-      </Badge>
-    ),
     enableColumnFilter: false,
   }),
   columnHelper.display({
-    id: 'jobStatuses',
-    header: () => <div>Jobs</div>,
-    size: 70,
-    cell: ({ row }) => (
-      <OrtRunJobStatus
-        jobs={row.original.jobs}
-        orgId={row.original.organizationId.toString()}
-        productId={row.original.productId.toString()}
-        repoId={row.original.repositoryId.toString()}
-        runIndex={row.original.index.toString()}
-      />
-    ),
-    enableColumnFilter: false,
-  }),
-  // TODO: Write this with an accessor as soon as I know how to do it.
-  columnHelper.display({
-    id: 'duration',
-    header: 'Duration',
-    size: 70,
-    cell: ({ row }) => (
-      <RunDuration
-        createdAt={row.original.createdAt}
-        finishedAt={row.original.finishedAt ?? undefined}
-      />
-    ),
+    id: 'card',
+    header: 'Run Details',
+    cell: ({ row }) => <SummaryCard summary={row.original} />,
+    meta: {
+      isGrow: true,
+    },
     enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'actions',
-    header: () => <div>Actions</div>,
+    header: 'Actions',
     size: 70,
     cell: function Row({ row }) {
       const queryClient = useQueryClient();
@@ -211,10 +248,10 @@ const columns = [
       }
 
       return (
-        <div className='flex gap-2'>
+        <div className='flex flex-col items-center gap-2'>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant='outline' asChild size='sm'>
+              <Button variant='outline' asChild size='sm' className='w-10'>
                 <Link
                   to={
                     '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
@@ -234,7 +271,7 @@ const columns = [
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant='outline' asChild size='sm'>
+              <Button variant='outline' asChild size='sm' className='w-10'>
                 <Link
                   to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
                   params={{
