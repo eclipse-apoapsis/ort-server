@@ -137,6 +137,12 @@ data class CompoundHierarchyId private constructor(
             else -> null
         }
 
+    /**
+     * A list of all parent [CompoundHierarchyId]s of this instance, starting from the direct parent up to the highest
+     * level.
+     */
+    val parents: List<CompoundHierarchyId> get() = generateSequence(parent) { it.parent }.toList()
+
     /** The level in the hierarchy this ID belongs to. */
     val level: HierarchyLevel
         get() = when {
