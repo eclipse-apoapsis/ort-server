@@ -31,6 +31,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -181,6 +182,83 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
                 delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
                 }
+            }
+        }
+    }
+
+    "PUT /admin/users/{username}/superuser" should {
+        "make a user a superuser" {
+            integrationTestApplication {
+                val response = superuserClient.put("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                val usersResponse = superuserClient.get("/api/v1/admin/users")
+                usersResponse shouldHaveStatus HttpStatusCode.OK
+                usersResponse.body<List<UserWithSuperuserStatus>>()
+                    .find { it.user.username == TEST_USER.username.value }
+                    .shouldNotBeNull().isSuperuser shouldBe true
+            }
+        }
+
+        "respond with NotFound if the user doesn't exist" {
+            integrationTestApplication {
+                val response = superuserClient.put("/api/v1/admin/users/non-existing-user/superuser")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "require superuser role" {
+            requestShouldRequireSuperuser(HttpStatusCode.NoContent) {
+                put("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
+            }
+        }
+    }
+
+    "DELETE /admin/users/{username}/superuser" should {
+        "remove superuser status from a user" {
+            integrationTestApplication {
+                // First make the user a superuser.
+                superuserClient.put("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
+
+                val response = superuserClient.delete("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                val usersResponse = superuserClient.get("/api/v1/admin/users")
+                usersResponse shouldHaveStatus HttpStatusCode.OK
+                usersResponse.body<List<UserWithSuperuserStatus>>()
+                    .find { it.user.username == TEST_USER.username.value }
+                    .shouldNotBeNull().isSuperuser shouldBe false
+            }
+        }
+
+        "respond with NotFound if the user doesn't exist" {
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/admin/users/non-existing-user/superuser")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "respond with BadRequest if a superuser tries to remove their own superuser status" {
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/admin/users/${SUPERUSER.username.value}/superuser")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val usersResponse = superuserClient.get("/api/v1/admin/users")
+                usersResponse shouldHaveStatus HttpStatusCode.OK
+                usersResponse.body<List<UserWithSuperuserStatus>>()
+                    .find { it.user.username == SUPERUSER.username.value }
+                    .shouldNotBeNull().isSuperuser shouldBe true
+            }
+        }
+
+        "require superuser role" {
+            requestShouldRequireSuperuser(HttpStatusCode.BadRequest) {
+                delete("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
             }
         }
     }
