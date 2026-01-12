@@ -29,13 +29,15 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ShieldCheck, UserPlus } from 'lucide-react';
+import { ShieldCheck, ShieldMinus, ShieldPlus, UserPlus } from 'lucide-react';
 
 import { UserWithSuperuserStatus } from '@/api';
 import {
+  deleteSuperuserMutation,
   deleteUserMutation,
   getUsersOptions,
   getUsersQueryKey,
+  putSuperuserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -82,14 +84,62 @@ const columns = [
   }),
   columnHelper.accessor('isSuperuser', {
     header: 'Superuser',
-    cell: ({ row }) => <>{row.original.isSuperuser ? <ShieldCheck className='h-4 w-4' /> : null}</>,
+    cell: ({ row }) => (
+      <>
+        {row.original.isSuperuser ? <ShieldCheck className='h-4 w-4' /> : null}
+      </>
+    ),
   }),
   columnHelper.display({
     id: 'actions',
     header: () => <div className='text-right'>Actions</div>,
-    size: 70,
+    size: 80,
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
+
+      const { mutateAsync: putSuperuser } = useMutation({
+        ...putSuperuserMutation(),
+        onSuccess() {
+          toast.info('Add superuser role', {
+            description: `Superuser role added successfully to user "${row.original.user.username}".`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: getUsersQueryKey(),
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      });
+
+      const { mutateAsync: deleteSuperuser } = useMutation({
+        ...deleteSuperuserMutation(),
+        onSuccess() {
+          toast.info('Remove superuser role', {
+            description: `Superuser role removed successfully from user "${row.original.user.username}".`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: getUsersQueryKey(),
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      });
 
       const { mutateAsync: delUser } = useMutation({
         ...deleteUserMutation(),
@@ -114,7 +164,47 @@ const columns = [
       });
 
       return (
-        <div>
+        <div className='flex gap-2'>
+          {row.original.isSuperuser ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size='sm'
+                  variant='outline'
+                  className='h-8 px-2'
+                  onClick={() =>
+                    deleteSuperuser({
+                      path: { username: row.original.user.username },
+                    })
+                  }
+                >
+                  <span className='sr-only'>Remove superuser</span>
+                  <ShieldMinus className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Remove superuser role</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size='sm'
+                  variant='outline'
+                  className='h-8 px-2'
+                  onClick={() =>
+                    putSuperuser({
+                      path: { username: row.original.user.username },
+                    })
+                  }
+                >
+                  <span className='sr-only'>Make superuser</span>
+                  <ShieldPlus className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add superuser role</TooltipContent>
+            </Tooltip>
+          )}
+
           <DeleteDialog
             thingName={'user'}
             thingId={row.original.user.username}
