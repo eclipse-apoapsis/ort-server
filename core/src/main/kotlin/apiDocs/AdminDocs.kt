@@ -144,6 +144,55 @@ val deleteUser: RouteConfig.() -> Unit = {
     }
 }
 
+val putSuperuser: RouteConfig.() -> Unit = {
+    operationId = "putSuperuser"
+    summary = "Make a user a superuser."
+    tags = listOf("Admin")
+
+    request {
+        pathParameter<String>("username") {
+            description = "The username of the user to make a superuser."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The user does not exist."
+        }
+    }
+}
+
+val deleteSuperuser: RouteConfig.() -> Unit = {
+    operationId = "deleteSuperuser"
+    summary = "Revoke superuser status from a user."
+    description = "Revoke the superuser status from a user. Note that a user cannot revoke their own superuser status."
+    tags = listOf("Admin")
+
+    request {
+        pathParameter<String>("username") {
+            description = "The username of the user to revoke superuser status from."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "A superuser cannot remove their own superuser status."
+        }
+    }
+}
+
 val getSection: RouteConfig.() -> Unit = {
     operationId = "getSection"
     summary = "Get a dynamic UI text section by ID."

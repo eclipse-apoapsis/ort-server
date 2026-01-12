@@ -37,17 +37,21 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSuperuser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putSuperuser
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.koin.ktor.ext.inject
 
@@ -94,6 +98,37 @@ fun Route.admin() = route("admin") {
             userService.deleteUser(username)
 
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        route("{username}/superuser") {
+            put(putSuperuser, requireSuperuser()) {
+                val username = call.requireParameter("username")
+
+                runCatching { userService.getUserById(username) }
+                    .getOrElse { return@put call.respond(HttpStatusCode.NotFound) }
+
+                authorizationService.assignRole(username, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD)
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            delete(deleteSuperuser, requireSuperuser()) {
+                val username = call.requireParameter("username")
+
+                runCatching { userService.getUserById(username) }
+                    .getOrElse { return@delete call.respond(HttpStatusCode.NotFound) }
+
+                if (requirePrincipal().username == username) {
+                    return@delete call.respondError(
+                        HttpStatusCode.BadRequest,
+                        "A superuser cannot remove their own superuser status."
+                    )
+                }
+
+                authorizationService.removeAssignment(username, CompoundHierarchyId.WILDCARD)
+
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 
