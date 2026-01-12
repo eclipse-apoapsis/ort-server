@@ -22,7 +22,7 @@ echo "Using Keycloak script: $KEYCLOAK_SCRIPT."
 # 4. Export the configuration:
 #    `KC_HTTP_PORT=8081 /opt/keycloak/bin/kc.sh export --dir /opt/keycloak_init --users realm_file
 $KEYCLOAK_SCRIPT build
-$KEYCLOAK_SCRIPT import --file /opt/keycloak_init/master-realm.json
+$KEYCLOAK_SCRIPT import --file /opt/keycloak_init/master-realm.json --spi-connections-jpa--quarkus--migration-strategy=update
 
 # Start KeyCloak
 $KEYCLOAK_SCRIPT "$@"
