@@ -29,7 +29,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { UserPlus } from 'lucide-react';
+import { ShieldCheck, UserPlus } from 'lucide-react';
 
 import { UserWithSuperuserStatus } from '@/api';
 import {
@@ -79,6 +79,10 @@ const columns = [
   columnHelper.accessor('user.email', {
     header: 'Email address',
     cell: ({ row }) => <>{row.original.user.email}</>,
+  }),
+  columnHelper.accessor('isSuperuser', {
+    header: 'Superuser',
+    cell: ({ row }) => <>{row.original.isSuperuser ? <ShieldCheck className='h-4 w-4' /> : null}</>,
   }),
   columnHelper.display({
     id: 'actions',
