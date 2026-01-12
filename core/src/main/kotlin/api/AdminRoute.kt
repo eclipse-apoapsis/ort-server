@@ -30,18 +30,22 @@ import io.ktor.server.routing.route
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -52,10 +56,22 @@ fun Route.admin() = route("admin") {
      * For CRUD operations for users.
      */
     route("users") {
+        val authorizationService by inject<AuthorizationService>()
         val userService by inject<UserService>()
 
         get(getUsers, requireSuperuser()) {
-            val users = userService.getUsers().map { user -> user.mapToApi() }
+            val superusers = authorizationService.listUsersWithRole(
+                OrganizationRole.ADMIN,
+                CompoundHierarchyId.WILDCARD
+            )
+
+            val users = userService.getUsers().map { user ->
+                UserWithSuperuserStatus(
+                    user = user.mapToApi(),
+                    isSuperuser = user.username in superusers
+                )
+            }
+
             call.respond(users)
         }
 

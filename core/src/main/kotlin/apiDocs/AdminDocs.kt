@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 val runPermissionsSync: RouteConfig.() -> Unit = {
@@ -59,20 +60,26 @@ val getUsers: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Successfully retrieved the users."
-            jsonBody<List<User>> {
+            jsonBody<List<UserWithSuperuserStatus>> {
                 example("Get all users of the server") {
                     value = listOf(
-                        User(
-                            username = "user1",
-                            firstName = "First1",
-                            lastName = "Last1",
-                            email = "user1@mail.com"
+                        UserWithSuperuserStatus(
+                            user = User(
+                                username = "user1",
+                                firstName = "First1",
+                                lastName = "Last1",
+                                email = "user1@mail.com"
+                            ),
+                            isSuperuser = true
                         ),
-                        User(
-                            username = "user2",
-                            firstName = "First2",
-                            lastName = "Last2",
-                            email = "user2@mail.com"
+                        UserWithSuperuserStatus(
+                            user = User(
+                                username = "user2",
+                                firstName = "First2",
+                                lastName = "Last2",
+                                email = "user2@mail.com"
+                            ),
+                            isSuperuser = false
                         )
                     )
                 }

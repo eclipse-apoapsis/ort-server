@@ -67,6 +67,18 @@ data class UserWithGroups(
     val groups: List<UserGroup>
 )
 
+/**
+ * Response object for a user containing superuser status.
+ */
+@Serializable
+data class UserWithSuperuserStatus(
+    /** User object */
+    val user: User,
+
+    /** Whether the user is a superuser */
+    val isSuperuser: Boolean
+)
+
 @Serializable
 data class PostUser(
     val username: String,

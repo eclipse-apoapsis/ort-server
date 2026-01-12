@@ -31,7 +31,7 @@ import {
 } from '@tanstack/react-table';
 import { UserPlus } from 'lucide-react';
 
-import { User } from '@/api';
+import { UserWithSuperuserStatus } from '@/api';
 import {
   deleteUserMutation,
   getUsersOptions,
@@ -61,24 +61,24 @@ import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<UserWithSuperuserStatus>();
 
 const columns = [
-  columnHelper.accessor('username', {
+  columnHelper.accessor('user.username', {
     header: 'Username',
-    cell: ({ row }) => <>{row.original.username}</>,
+    cell: ({ row }) => <>{row.original.user.username}</>,
   }),
-  columnHelper.accessor('firstName', {
+  columnHelper.accessor('user.firstName', {
     header: 'First name',
-    cell: ({ row }) => <>{row.original.firstName}</>,
+    cell: ({ row }) => <>{row.original.user.firstName}</>,
   }),
-  columnHelper.accessor('lastName', {
+  columnHelper.accessor('user.lastName', {
     header: 'Last name',
-    cell: ({ row }) => <>{row.original.lastName}</>,
+    cell: ({ row }) => <>{row.original.user.lastName}</>,
   }),
-  columnHelper.accessor('email', {
+  columnHelper.accessor('user.email', {
     header: 'Email address',
-    cell: ({ row }) => <>{row.original.email}</>,
+    cell: ({ row }) => <>{row.original.user.email}</>,
   }),
   columnHelper.display({
     id: 'actions',
@@ -91,7 +91,7 @@ const columns = [
         ...deleteUserMutation(),
         onSuccess() {
           toast.info('Delete User', {
-            description: `User "${row.original.username}" deleted successfully.`,
+            description: `User "${row.original.user.username}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
             queryKey: getUsersQueryKey(),
@@ -113,10 +113,10 @@ const columns = [
         <div>
           <DeleteDialog
             thingName={'user'}
-            thingId={row.original.username}
+            thingId={row.original.user.username}
             uiComponent={<DeleteIconButton />}
             onDelete={() =>
-              delUser({ query: { username: row.original.username } })
+              delUser({ query: { username: row.original.user.username } })
             }
           />
         </div>

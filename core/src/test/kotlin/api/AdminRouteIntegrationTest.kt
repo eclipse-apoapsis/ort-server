@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -61,13 +62,25 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/admin/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                val users = Json.decodeFromString<Set<User>>(response.bodyAsText())
+                val users = Json.decodeFromString<Set<UserWithSuperuserStatus>>(response.bodyAsText())
                 users.shouldNotBeNull()
-                users shouldContain User(
-                    username = SUPERUSER.username.value,
-                    firstName = SUPERUSER.firstName,
-                    lastName = SUPERUSER.lastName,
-                    email = SUPERUSER.email
+                users shouldContain UserWithSuperuserStatus(
+                    user = User(
+                        username = SUPERUSER.username.value,
+                        firstName = SUPERUSER.firstName,
+                        lastName = SUPERUSER.lastName,
+                        email = SUPERUSER.email
+                    ),
+                    isSuperuser = true
+                )
+                users shouldContain UserWithSuperuserStatus(
+                    user = User(
+                        username = TEST_USER.username.value,
+                        firstName = TEST_USER.firstName,
+                        lastName = TEST_USER.lastName,
+                        email = TEST_USER.email
+                    ),
+                    isSuperuser = false
                 )
             }
         }
