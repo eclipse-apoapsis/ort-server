@@ -73,7 +73,6 @@ function SearchPackageComponent() {
       cell: ({ row }) => (
         <TimestampWithUTC timestamp={row.original.createdAt} />
       ),
-      size: 95,
     }),
     columnHelper.accessor('repositoryId', {
       header: 'Repository',
@@ -105,11 +104,10 @@ function SearchPackageComponent() {
     }),
     columnHelper.accessor('revision', {
       header: 'Revision',
-      size: 100,
     }),
     columnHelper.accessor('ortRunIndex', {
       header: 'Run Index',
-      size: 50,
+      maxSize: 100,
       cell: function CellComponent({ row }) {
         return (
           <div>
