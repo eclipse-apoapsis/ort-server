@@ -18,7 +18,7 @@
  */
 
 import { Table } from '@tanstack/react-table';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const DEFAULT_MIN_SIZE = 40;
 
@@ -150,17 +150,27 @@ function calculateColumnSizing(
  */
 export function useTableSizing<TData>(table: Table<TData>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef(table);
+  const lastWidthRef = useRef<number>(0);
+  const [columnSizing, setColumnSizing] = useState<Record<string, number>>({});
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
 
-    const calculateAndApplySizing = () => {
-      const totalWidth = containerRef.current?.clientWidth;
+    const calculateSizing = () => {
+      const currentTable = tableRef.current;
+      const container = containerRef.current;
+      const totalWidth = container?.clientWidth;
       if (!totalWidth) return;
 
-      const headers = table.getLeafHeaders();
+      // Skip if width hasn't changed significantly (within 1px)
+      if (Math.abs(totalWidth - lastWidthRef.current) < 1) {
+        return;
+      }
+      lastWidthRef.current = totalWidth;
 
-      // Collect column info for processing
+      const headers = currentTable.getLeafHeaders();
+
       const columns: ColumnInfo[] = headers.map((header) => {
         const columnDef = header.column.columnDef;
         const meta = columnDef.meta;
@@ -177,23 +187,22 @@ export function useTableSizing<TData>(table: Table<TData>) {
         };
       });
 
-      const sizing = calculateColumnSizing(columns, totalWidth);
-      table.setColumnSizing(sizing);
+      const newSizing = calculateColumnSizing(columns, totalWidth);
+      setColumnSizing(newSizing);
     };
 
-    // ResizeObserver handles both initial load and resize events
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) {
-        calculateAndApplySizing();
+        calculateSizing();
       }
     });
 
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [table]);
+  }, []);
 
-  return containerRef;
+  return { containerRef, columnSizing };
 }
 
 //

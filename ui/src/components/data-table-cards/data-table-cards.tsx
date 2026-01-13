@@ -50,7 +50,7 @@ export function DataTableCards<TData>({
   setSortingOptions,
   ...props
 }: DataTableCardsProps<TData>) {
-  const containerRef = useTableSizing(table);
+  const { containerRef, columnSizing } = useTableSizing(table);
   const pagination = table.getState().pagination;
   const totalPages = table.getPageCount();
 
@@ -68,6 +68,7 @@ export function DataTableCards<TData>({
         <DataTableBody
           rows={table.getRowModel().rows}
           renderSubComponent={renderSubComponent}
+          columnSizing={columnSizing}
         />
       </Table>
       {table.getRowModel().rows?.length > 0 && (

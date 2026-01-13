@@ -36,11 +36,13 @@ interface DataTableHeaderProps<TData> {
     id: string;
     desc: boolean | undefined;
   }) => LinkOptions;
+  columnSizing?: Record<string, number>;
 }
 
 export function DataTableHeader<TData>({
   headers,
   setSortingOptions,
+  columnSizing,
 }: DataTableHeaderProps<TData>) {
   return (
     <TableHeader>
@@ -92,7 +94,7 @@ export function DataTableHeader<TData>({
             <TableHead
               key={header.id}
               style={{
-                width: header.getSize(),
+                width: columnSizing?.[header.id] ?? header.getSize(),
                 minWidth: column.columnDef.minSize,
               }}
               colSpan={header.colSpan}
