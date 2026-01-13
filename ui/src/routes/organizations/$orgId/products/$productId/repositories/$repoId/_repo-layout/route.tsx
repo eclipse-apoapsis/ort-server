@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { BookLock, Eye, ServerCog, Settings, User } from 'lucide-react';
+import { BookLock, Eye, Search, ServerCog, Settings, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -33,6 +33,21 @@ const RepoLayout = () => {
           title: 'Overview',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs',
           icon: () => <Eye className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Search',
+      items: [
+        {
+          title: 'Packages',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/search-package',
+          icon: () => <Search className='h-4 w-4' />,
+        },
+        {
+          title: 'Vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/search-vulnerability',
+          icon: () => <Search className='h-4 w-4' />,
         },
       ],
     },
