@@ -25,11 +25,13 @@ import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 interface DataTableBodyProps<TData> {
   rows: Row<TData>[];
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  columnSizing?: Record<string, number>;
 }
 
 export function DataTableBody<TData>({
   rows,
   renderSubComponent,
+  columnSizing,
 }: DataTableBodyProps<TData>) {
   return (
     <TableBody>
@@ -48,7 +50,8 @@ export function DataTableBody<TData>({
                 <TableCell
                   key={cell.id}
                   style={{
-                    width: cell.column.getSize(),
+                    width:
+                      columnSizing?.[cell.column.id] ?? cell.column.getSize(),
                     minWidth: cell.column.columnDef.minSize,
                   }}
                 >

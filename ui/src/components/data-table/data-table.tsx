@@ -54,7 +54,7 @@ export function DataTable<TData>({
   setSortingOptions,
   ...props
 }: DataTableProps<TData>) {
-  const containerRef = useTableSizing(table);
+  const { containerRef, columnSizing } = useTableSizing(table);
   const pagination = table.getState().pagination;
   const totalPages = table.getPageCount();
 
@@ -68,10 +68,12 @@ export function DataTable<TData>({
         <DataTableHeader
           headers={table.getLeafHeaders()}
           setSortingOptions={setSortingOptions}
+          columnSizing={columnSizing}
         />
         <DataTableBody
           rows={table.getRowModel().rows}
           renderSubComponent={renderSubComponent}
+          columnSizing={columnSizing}
         />
       </Table>
       {table.getRowModel().rows?.length > 0 && (
