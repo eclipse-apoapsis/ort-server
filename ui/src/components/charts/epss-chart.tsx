@@ -105,13 +105,9 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
               />
               <ChartTooltip
                 cursor={false}
-                content={
+                content={(props) => (
                   <ChartTooltipContent
-                    label=''
-                    payload={[]}
-                    coordinate={{ x: 0, y: 0 }}
-                    active={false}
-                    accessibilityLayer={false}
+                    {...props}
                     hideLabel
                     formatter={(value, name) => (
                       <div className='flex w-full items-baseline justify-between gap-4'>
@@ -134,7 +130,7 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
                       </div>
                     )}
                   />
-                }
+                )}
               />
               <Bar
                 dataKey='score'
@@ -194,14 +190,11 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
               />
               <ChartTooltip
                 cursor={false}
-                content={
+                content={(props) => (
                   <ChartTooltipContent
+                    {...props}
                     className='w-[170px]'
                     hideLabel
-                    payload={[]}
-                    coordinate={{ x: 0, y: 0 }}
-                    active={false}
-                    accessibilityLayer={false}
                     formatter={(value, name) => (
                       <div className='flex w-full items-baseline justify-between gap-4'>
                         <div className='flex items-baseline gap-2'>
@@ -223,7 +216,7 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
                       </div>
                     )}
                   />
-                }
+                )}
               />
               <Bar dataKey='percentile' fill='var(--color-score)' radius={5} />
             </BarChart>

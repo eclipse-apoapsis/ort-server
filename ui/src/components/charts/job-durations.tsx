@@ -227,14 +227,11 @@ export const JobDurations = ({
             />
             <ChartTooltip
               wrapperStyle={{ zIndex: 1000 }}
-              content={
+              content={(props) => (
                 <ChartTooltipContent
+                  {...props}
                   hideLabel
                   className='w-[230px]'
-                  payload={[]}
-                  coordinate={{ x: 0, y: 0 }}
-                  active={false}
-                  accessibilityLayer={false}
                   formatter={(value, name, item, index) => {
                     return (
                       <>
@@ -285,7 +282,7 @@ export const JobDurations = ({
                     );
                   }}
                 />
-              }
+              )}
             />
             <ChartLegend content={<ChartLegendContent order={legendOrder} />} />
             {showInfrastructure && (
