@@ -269,6 +269,19 @@ class EnvironmentConfigLoaderTest : StringSpec({
         config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
     }
 
+    "Services can be resolved if no secrets are referenced in the repository configuration" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val passSecret = helper.createSecret("testPassword1", repository = repository)
+
+        val repoService = createTestService(1, userSecret, passSecret)
+        helper.withRepositoryService(repoService)
+
+        val config = parseConfig(".ort.env.no-services.yml", helper).resolve(helper)
+
+        config.shouldContainDefinition<MavenDefinition>(repoService) { it.id == "repo1" }
+    }
+
     "Services with unknown secrets in the hierarchy cause exceptions in strict mode" {
         val helper = TestHelper()
         val unknownUserSecret = createSecret("unknownUser")
