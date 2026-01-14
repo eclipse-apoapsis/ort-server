@@ -286,11 +286,14 @@ class EnvironmentServiceTest : WordSpec({
             """.trimIndent()
             )
 
-            val service = mockk<InfrastructureServiceService>()
-            val configLoader = EnvironmentConfigLoader(mockk(), mockk(), EnvironmentDefinitionFactory())
+            val infrastructureServiceService = mockk<InfrastructureServiceService>()
+            val secretService = mockk<SecretService> {
+                coEvery { listForHierarchy(repositoryHierarchy) } returns emptyList()
+            }
+            val configLoader = EnvironmentConfigLoader(secretService, mockk(), EnvironmentDefinitionFactory())
             val environmentService = EnvironmentService(
-                service,
-                mockk(),
+                infrastructureServiceService,
+                secretService,
                 emptyList(),
                 configLoader,
                 createMockAdminConfigService()

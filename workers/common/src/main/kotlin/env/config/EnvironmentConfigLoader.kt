@@ -210,11 +210,7 @@ class EnvironmentConfigLoader(
             allSecretsNames += service.passwordSecret
         }
 
-        val resolvedSecrets = if (allSecretsNames.isNotEmpty()) {
-            secretService.listForHierarchy(hierarchy).associateBy(Secret::name)
-        } else {
-            emptyMap()
-        }
+        val resolvedSecrets = secretService.listForHierarchy(hierarchy).associateBy(Secret::name)
 
         allSecretsNames -= resolvedSecrets.keys
 
