@@ -253,7 +253,6 @@ function SearchPackageComponent() {
       </CardHeader>
       <RegexForm
         className='mx-12'
-        description='You can also use a regular expression in search.'
         initialValue={identifier}
         onRegexChange={(regex) => {
           navigate({
