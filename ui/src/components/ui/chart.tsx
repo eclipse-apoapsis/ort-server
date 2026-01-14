@@ -16,7 +16,6 @@ import {
   ValueType,
 } from 'recharts/types/component/DefaultTooltipContent';
 import type { Props as LegendProps } from 'recharts/types/component/Legend';
-import { TooltipContentProps } from 'recharts/types/component/Tooltip';
 
 import { cn } from '@/lib/utils';
 
@@ -54,12 +53,14 @@ function ChartContainer({
   className,
   children,
   config,
+  initialDimension = { width: 320, height: 200 },
   ...props
 }: React.ComponentProps<'div'> & {
   config: ChartConfig;
   children: React.ComponentProps<
     typeof RechartsPrimitive.ResponsiveContainer
   >['children'];
+  initialDimension?: { width: number; height: number };
 }) {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`;
@@ -76,7 +77,9 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer>
+        <RechartsPrimitive.ResponsiveContainer
+          initialDimension={initialDimension}
+        >
           {children}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
@@ -119,7 +122,10 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
-type CustomTooltipProps = TooltipContentProps<ValueType, NameType> & {
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: readonly Payload<ValueType, NameType>[];
+  label?: React.ReactNode;
   className?: string;
   hideLabel?: boolean;
   hideIndicator?: boolean;
@@ -127,15 +133,17 @@ type CustomTooltipProps = TooltipContentProps<ValueType, NameType> & {
   nameKey?: string;
   labelKey?: string;
   labelFormatter?: (
-    label: TooltipContentProps<number, string>['label'],
-    payload: TooltipContentProps<number, string>['payload']
+    label: React.ReactNode,
+    payload: readonly Payload<ValueType, NameType>[]
   ) => React.ReactNode;
   formatter?: (
     value: number | string,
     name: string,
-    item: Payload<number | string, string>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    item: Payload<any, any>,
     index: number,
-    payload: ReadonlyArray<Payload<number | string, string>>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: any
   ) => React.ReactNode;
   labelClassName?: string;
   color?: string;
@@ -212,18 +220,23 @@ function ChartTooltipContent({
         {payload.map((item, index) => {
           const key = `${nameKey || item.name || item.dataKey || 'value'}`;
           const itemConfig = getPayloadConfigFromPayload(config, item, key);
-          const indicatorColor = color || item.payload.fill || item.color;
+          const indicatorColor = color || item.payload?.fill || item.color;
+
+          const value =
+            typeof item.value === 'number' || typeof item.value === 'string'
+              ? item.value
+              : undefined;
 
           return (
             <div
-              key={item.dataKey}
+              key={String(item.dataKey)}
               className={cn(
                 '[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
                 indicator === 'dot' && 'items-center'
               )}
             >
-              {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+              {formatter && value !== undefined && item.name ? (
+                formatter(value, String(item.name), item, index, item.payload)
               ) : (
                 <>
                   {itemConfig?.icon ? (
