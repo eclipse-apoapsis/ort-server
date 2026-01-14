@@ -38,7 +38,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # Stage 2: Serve the app with nginx.
-FROM nginx:1.29-alpine@sha256:c083c3799197cfff91fe5c3c558db3d2eea65ccbbfd419fa42a64d2c39a24027
+FROM nginx:1.29-alpine@sha256:550ada9a27f714caaed3abe4212849cf998d43cf0daccdd38154afcbe0695c4b
 
 # Copy the build output to the nginx html directory.
 COPY --from=build /app/dist /usr/share/nginx/html
