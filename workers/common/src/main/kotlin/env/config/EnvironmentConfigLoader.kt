@@ -426,10 +426,7 @@ private fun parseService(
                     passwordSecret,
                     service.credentialsTypes
                 )
-            } ?: throw EnvironmentConfigException(
-                "The following secret cannot be resolved for " +
-                    "'${service.name}': ${service.passwordSecret}"
-            )
+            }
         } ?: throw EnvironmentConfigException(
             "The following secret cannot be resolved for " +
                 "'${service.name}': ${service.usernameSecret}"
