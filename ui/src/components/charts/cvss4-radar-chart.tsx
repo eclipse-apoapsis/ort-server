@@ -146,16 +146,11 @@ export const Cvss4RadarChart = ({ cvssScore }: Cvss4RadarChartProps) => {
               stroke='var(--chart-1)'
               strokeWidth={2}
               dot={(props) => {
-                const { payload } = props;
-                return payload.payload.dot ? (
-                  <circle cx={payload.x} cy={payload.y} r='6' fill='orange' />
+                const { cx, cy, payload } = props;
+                return payload?.dot ? (
+                  <circle cx={cx} cy={cy} r='6' fill='orange' />
                 ) : (
-                  <circle
-                    cx={payload.x}
-                    cy={payload.y}
-                    r='4'
-                    fill='var(--chart-1)'
-                  />
+                  <circle cx={cx} cy={cy} r='4' fill='var(--chart-1)' />
                 );
               }}
             />
