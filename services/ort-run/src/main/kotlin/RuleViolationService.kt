@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -35,6 +36,8 @@ import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.not
 
 import org.ossreviewtoolkit.model.config.RuleViolationResolution
 
@@ -147,6 +150,52 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
             .innerJoin(EvaluatorJobsTable)
             .select(RuleViolationsTable.severity, countAlias)
             .where { EvaluatorJobsTable.ortRunId inList ortRunIds.asList() }
+            .groupBy(RuleViolationsTable.severity)
+            .map { row ->
+                severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])
+            }
+
+        CountByCategory(severityToCountMap)
+    }
+
+    /** Count unresolved rule violations found in provided ORT runs. */
+    suspend fun countUnresolvedForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
+        val resolvedViolationIdsSubquery = ResolvedRuleViolationsTable
+            .select(ResolvedRuleViolationsTable.ruleViolationId)
+            .where { ResolvedRuleViolationsTable.ortRunId inList ortRunIds.asList() }
+
+        RuleViolationsTable
+            .innerJoin(EvaluatorRunsRuleViolationsTable)
+            .innerJoin(EvaluatorRunsTable)
+            .innerJoin(EvaluatorJobsTable)
+            .select(RuleViolationsTable.id)
+            .where {
+                (EvaluatorJobsTable.ortRunId inList ortRunIds.asList()) and
+                    not(RuleViolationsTable.id inSubQuery resolvedViolationIdsSubquery)
+            }
+            .withDistinct()
+            .count()
+    }
+
+    /** Count unresolved rule violations by severity for provided ORT runs. */
+    suspend fun countUnresolvedBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
+        val countAlias = Count(RuleViolationsTable.id, true)
+
+        val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
+
+        val resolvedViolationIdsSubquery = ResolvedRuleViolationsTable
+            .select(ResolvedRuleViolationsTable.ruleViolationId)
+            .where { ResolvedRuleViolationsTable.ortRunId inList ortRunIds.asList() }
+
+        RuleViolationsTable
+            .innerJoin(EvaluatorRunsRuleViolationsTable)
+            .innerJoin(EvaluatorRunsTable)
+            .innerJoin(EvaluatorJobsTable)
+            .select(RuleViolationsTable.severity, countAlias)
+            .where {
+                (EvaluatorJobsTable.ortRunId inList ortRunIds.asList()) and
+                    not(RuleViolationsTable.id inSubQuery resolvedViolationIdsSubquery)
+            }
             .groupBy(RuleViolationsTable.severity)
             .map { row ->
                 severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])

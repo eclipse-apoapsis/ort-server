@@ -37,13 +37,13 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
-import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 
 import org.jetbrains.exposed.sql.Database
@@ -138,19 +138,23 @@ class RuleViolationServiceTest : WordSpec() {
             }
 
             "return filtered rule violations" {
-                val ortRun = createRuleViolationEntries()
+                val ruleViolations = generateRuleViolations()
+                val ortRun = createRuleViolationEntries(ruleViolations = ruleViolations)
+
+                val resolution = RuleViolationResolution(
+                    message = "Message-1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "This is resolved"
+                )
+
+                // Match violations to resolutions by pattern and store
+                val violationToResolutions = ruleViolations.associateWith { violation ->
+                    listOf(resolution).filter { it.message.toRegex().containsMatchIn(violation.message) }
+                }.filterValues { it.isNotEmpty() }
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
                     ortRun.id,
-                    Resolutions(
-                        ruleViolations = listOf(
-                            RuleViolationResolution(
-                                message = "Message-1",
-                                reason = "CANT_FIX_EXCEPTION",
-                                comment = "This is resolved"
-                            )
-                        )
-                    )
+                    ResolvedItemsResult(ruleViolations = violationToResolutions)
                 )
 
                 val resultsResolved = service.listForOrtRunId(
@@ -372,6 +376,166 @@ class RuleViolationServiceTest : WordSpec() {
 
                 severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
                 severitiesToCounts.map.values.sum() shouldBe 0
+            }
+        }
+
+        "countUnresolvedForOrtRunIds" should {
+            "return all violations when none are resolved" {
+                val ortRun = createRuleViolationEntries()
+
+                service.countUnresolvedForOrtRunIds(ortRun.id) shouldBe 3
+            }
+
+            "return count of unresolved violations when some are resolved" {
+                val repositoryId = fixtures.createRepository().id
+                val violations = generateRuleViolations()
+                val ortRun = createRuleViolationEntries(repositoryId, violations)
+
+                // Total violations = 3
+                service.countForOrtRunIds(ortRun.id) shouldBe 3
+
+                // Resolve one violation
+                val resolution = RuleViolationResolution(
+                    message = "Message-1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "This is resolved"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(violations[0] to listOf(resolution))
+                    )
+                )
+
+                // Unresolved should be 2 (total 3 - resolved 1)
+                service.countUnresolvedForOrtRunIds(ortRun.id) shouldBe 2
+            }
+
+            "return zero when all violations are resolved" {
+                val repositoryId = fixtures.createRepository().id
+                val violations = generateRuleViolations()
+                val ortRun = createRuleViolationEntries(repositoryId, violations)
+
+                val resolution1 = RuleViolationResolution(
+                    message = "Message-1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Resolved"
+                )
+                val resolution2 = RuleViolationResolution(
+                    message = "Message-2",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Resolved"
+                )
+                val resolution3 = RuleViolationResolution(
+                    message = "Message-3",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Resolved"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(
+                            violations[0] to listOf(resolution1),
+                            violations[1] to listOf(resolution2),
+                            violations[2] to listOf(resolution3)
+                        )
+                    )
+                )
+
+                service.countUnresolvedForOrtRunIds(ortRun.id) shouldBe 0
+            }
+
+            "return count of unresolved violations found in ORT runs" {
+                val repositoryId = fixtures.createRepository().id
+
+                val violations1 = generateRuleViolations()
+                val violations2 = listOf(
+                    RuleViolation(
+                        "Rule-4",
+                        Identifier("Maven", "org.example", "lib", "1.0"),
+                        "License-4",
+                        setOf("CONCLUDED"),
+                        Severity.ERROR,
+                        "Message-4",
+                        "How_to_fix-4"
+                    )
+                )
+
+                val ortRun1 = createRuleViolationEntries(repositoryId, violations1)
+                val ortRun2 = createRuleViolationEntries(repositoryId, violations2)
+
+                // Resolve one violation in ortRun1
+                val resolution = RuleViolationResolution(
+                    message = "Message-1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Resolved"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun1.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(violations1[0] to listOf(resolution))
+                    )
+                )
+
+                // Total unresolved across both runs should be 3 (2 from ortRun1 + 1 from ortRun2)
+                service.countUnresolvedForOrtRunIds(ortRun1.id, ortRun2.id) shouldBe 3
+            }
+        }
+
+        "countUnresolvedBySeverityForOrtRunIds" should {
+            "return counts by severity for unresolved violations" {
+                val repositoryId = fixtures.createRepository().id
+                val violations = generateRuleViolations()
+                val ortRun = createRuleViolationEntries(repositoryId, violations)
+
+                // Resolve the ERROR violation (Message-2)
+                val resolution = RuleViolationResolution(
+                    message = "Message-2",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Resolved"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(violations[1] to listOf(resolution))
+                    )
+                )
+
+                val severitiesToCounts = service.countUnresolvedBySeverityForOrtRunIds(ortRun.id)
+
+                severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
+                severitiesToCounts.getCount(Severity.ERROR) shouldBe 0
+                severitiesToCounts.getCount(Severity.WARNING) shouldBe 1
+                severitiesToCounts.getCount(Severity.HINT) shouldBe 1
+            }
+
+            "return sum that equals countUnresolvedForOrtRunIds" {
+                val repositoryId = fixtures.createRepository().id
+                val violations = generateRuleViolations()
+                val ortRun = createRuleViolationEntries(repositoryId, violations)
+
+                // Resolve the WARNING violation
+                val resolution = RuleViolationResolution(
+                    message = "Message-1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Resolved"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(violations[0] to listOf(resolution))
+                    )
+                )
+
+                val severitiesToCounts = service.countUnresolvedBySeverityForOrtRunIds(ortRun.id)
+                val unresolvedCount = service.countUnresolvedForOrtRunIds(ortRun.id)
+
+                severitiesToCounts.map.values.sum() shouldBe unresolvedCount
             }
         }
     }
