@@ -68,7 +68,11 @@ const columnHelper = createColumnHelper<UserWithSuperuserStatus>();
 const columns = [
   columnHelper.accessor('user.username', {
     header: 'Username',
-    cell: ({ row }) => <>{row.original.user.username}</>,
+    cell: ({ row }) => (
+      <div className='overflow-hidden text-ellipsis'>
+        {row.original.user.username}
+      </div>
+    ),
   }),
   columnHelper.accessor('user.firstName', {
     header: 'First name',
@@ -80,7 +84,11 @@ const columns = [
   }),
   columnHelper.accessor('user.email', {
     header: 'Email address',
-    cell: ({ row }) => <>{row.original.user.email}</>,
+    cell: ({ row }) => (
+      <div className='overflow-hidden text-ellipsis'>
+        {row.original.user.email}
+      </div>
+    ),
   }),
   columnHelper.accessor('isSuperuser', {
     header: 'Superuser',
