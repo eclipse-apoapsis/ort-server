@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.test
 
 import io.kotest.core.test.TestCase
-import io.kotest.engine.runBlocking
+
+import kotlinx.coroutines.runBlocking
 
 import org.eclipse.apoapsis.ortserver.dao.connect
 
@@ -47,6 +48,8 @@ class DatabaseMigrationTestExtension(
 
     fun testAppliedMigration(test: suspend () -> Unit) {
         migrateToVersion(targetVersion)
+
+        @Suppress("ForbiddenMethodCall")
         runBlocking { test() }
     }
 

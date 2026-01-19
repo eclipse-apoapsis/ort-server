@@ -24,7 +24,6 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
-import io.kotest.engine.runBlocking
 import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 
 import io.ktor.client.HttpClient
@@ -42,6 +41,7 @@ import java.util.regex.Pattern
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.vault.VaultContainer

@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
-import io.kotest.engine.runBlocking
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
@@ -27,12 +26,15 @@ import io.kotest.matchers.should
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
+import kotlinx.coroutines.runBlocking
+
 /** Verify that this [HttpResponse] has the provided [body]. */
 inline infix fun <reified T> HttpResponse.shouldHaveBody(body: T) = this should haveBody(body)
 
 /** Verify that a [HttpResponse] has the [expected body][expected]. */
 inline fun <reified T> haveBody(expected: T) = object : Matcher<HttpResponse> {
     override fun test(value: HttpResponse): MatcherResult {
+        @Suppress("ForbiddenMethodCall")
         val body = runBlocking { value.body<T>() }
         return MatcherResult(
             body == expected,
