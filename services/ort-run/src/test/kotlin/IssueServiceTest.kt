@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
@@ -56,6 +57,7 @@ import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
 
+@Suppress("LargeClass")
 class IssueServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
@@ -485,6 +487,267 @@ class IssueServiceTest : WordSpec() {
             }
         }
 
+        "countUnresolvedForOrtRunIds" should {
+            "return all issues when none are resolved" {
+                val ortRun = createOrtRunWithIssues()
+
+                service.countUnresolvedForOrtRunIds(ortRun.id) shouldBe 4
+            }
+
+            "return count of unresolved issues when some are resolved" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "timeout while scanning package",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/main/kotlin",
+                        identifier = Identifier("Maven", "com.example", "scanner-test", "2.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(2.seconds),
+                        source = "Scanner",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/test/kotlin",
+                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                // Total issues = 3
+                service.countForOrtRunIds(ortRun.id) shouldBe 3
+
+                // Resolve one issue
+                val resolutionToApply = IssueResolution(
+                    message = "dependency not found.*",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "This is a known issue"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        issues = mapOf(issues[0] to listOf(resolutionToApply))
+                    )
+                )
+
+                // Unresolved should be 2 (total 3 - resolved 1)
+                service.countUnresolvedForOrtRunIds(ortRun.id) shouldBe 2
+            }
+
+            "return zero when all issues are resolved" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "timeout error",
+                        severity = Severity.WARNING,
+                        affectedPath = "src",
+                        identifier = Identifier("Maven", "com.example", "test", "1.0.0")
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                val resolution1 = IssueResolution(
+                    message = "dependency not found.*",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Known issue"
+                )
+                val resolution2 = IssueResolution(
+                    message = "timeout error",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Known issue"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        issues = mapOf(
+                            issues[0] to listOf(resolution1),
+                            issues[1] to listOf(resolution2)
+                        )
+                    )
+                )
+
+                service.countUnresolvedForOrtRunIds(ortRun.id) shouldBe 0
+            }
+
+            "return count of unresolved issues found in ORT runs" {
+                val repositoryId = fixtures.createRepository().id
+
+                val issues1 = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "issue 1",
+                        severity = Severity.ERROR,
+                        affectedPath = "path"
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "issue 2",
+                        severity = Severity.WARNING,
+                        affectedPath = "path"
+                    )
+                )
+
+                val issues2 = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Scanner",
+                        message = "issue 3",
+                        severity = Severity.ERROR,
+                        affectedPath = "path"
+                    )
+                )
+
+                val ortRun1 = createOrtRunWithIssues(repositoryId, issues1)
+                val ortRun2 = createOrtRunWithIssues(repositoryId, issues2)
+
+                // Resolve one issue in ortRun1
+                val resolution = IssueResolution(
+                    message = "issue 1",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Known issue"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun1.id,
+                    ResolvedItemsResult(
+                        issues = mapOf(issues1[0] to listOf(resolution))
+                    )
+                )
+
+                // Total unresolved across both runs should be 2 (1 from ortRun1 + 1 from ortRun2)
+                service.countUnresolvedForOrtRunIds(ortRun1.id, ortRun2.id) shouldBe 2
+            }
+        }
+
+        "countUnresolvedBySeverityForOrtRunIds" should {
+            "return counts by severity for unresolved issues" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "timeout while scanning package",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/main/kotlin",
+                        identifier = Identifier("Maven", "com.example", "scanner-test", "2.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(2.seconds),
+                        source = "Scanner",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/test/kotlin",
+                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                // Resolve the ERROR issue
+                val resolution = IssueResolution(
+                    message = "dependency not found.*",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Known issue"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        issues = mapOf(issues[0] to listOf(resolution))
+                    )
+                )
+
+                val severitiesToCounts = service.countUnresolvedBySeverityForOrtRunIds(ortRun.id)
+
+                severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
+                severitiesToCounts.getCount(Severity.ERROR) shouldBe 0
+                severitiesToCounts.getCount(Severity.WARNING) shouldBe 2
+                severitiesToCounts.getCount(Severity.HINT) shouldBe 0
+            }
+
+            "return sum that equals countUnresolvedForOrtRunIds" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "error issue",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts"
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "warning issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src"
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(2.seconds),
+                        source = "Scanner",
+                        message = "another warning",
+                        severity = Severity.WARNING,
+                        affectedPath = "test"
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                // Resolve one warning issue
+                val resolution = IssueResolution(
+                    message = "warning issue",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Known issue"
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        issues = mapOf(issues[1] to listOf(resolution))
+                    )
+                )
+
+                val severitiesToCounts = service.countUnresolvedBySeverityForOrtRunIds(ortRun.id)
+                val unresolvedCount = service.countUnresolvedForOrtRunIds(ortRun.id)
+
+                severitiesToCounts.map.values.sum() shouldBe unresolvedCount
+            }
+        }
+
         "List<Issue>.sort" should {
             "sort issues by timestamp in ascending order" {
                 val issues = generateIssues()
@@ -666,7 +929,17 @@ class IssueServiceTest : WordSpec() {
             dependencyGraphs = emptyMap()
         )
 
-        fixtures.resolvedConfigurationRepository.addResolutions(ortRun.id, resolutions)
+        // Match issues to resolutions by pattern and create ResolvedItemsResult
+        val issueToResolutions = issues.associateWith { issue ->
+            resolutions.issues.filter { resolution ->
+                resolution.message.toRegex().containsMatchIn(issue.message)
+            }
+        }.filterValues { it.isNotEmpty() }
+
+        fixtures.resolvedConfigurationRepository.addResolutions(
+            ortRun.id,
+            ResolvedItemsResult(issues = issueToResolutions)
+        )
 
         return ortRun
     }

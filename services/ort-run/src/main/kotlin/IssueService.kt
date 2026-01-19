@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -44,7 +45,9 @@ import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.innerJoin
+import org.jetbrains.exposed.sql.not
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
@@ -120,6 +123,46 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
             .innerJoin(IssuesTable)
             .select(IssuesTable.severity, countAlias)
             .where { OrtRunsIssuesTable.ortRunId inList ortRunIds.asList() }
+            .groupBy(IssuesTable.severity)
+            .map { row ->
+                severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
+            }
+
+        CountByCategory(severityToCountMap)
+    }
+
+    /** Count unresolved issues found in provided ORT runs. */
+    suspend fun countUnresolvedForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
+        val resolvedIssueIdsSubquery = ResolvedIssuesTable
+            .select(ResolvedIssuesTable.ortRunIssueId)
+            .where { ResolvedIssuesTable.ortRunId inList ortRunIds.asList() }
+
+        OrtRunsIssuesTable
+            .select(OrtRunsIssuesTable.id)
+            .where {
+                (OrtRunsIssuesTable.ortRunId inList ortRunIds.asList()) and
+                    not(OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery)
+            }
+            .count()
+    }
+
+    /** Count unresolved issues by severity for provided ORT runs. */
+    suspend fun countUnresolvedBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
+        val countAlias = Count(OrtRunsIssuesTable.id, true)
+
+        val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
+
+        val resolvedIssueIdsSubquery = ResolvedIssuesTable
+            .select(ResolvedIssuesTable.ortRunIssueId)
+            .where { ResolvedIssuesTable.ortRunId inList ortRunIds.asList() }
+
+        OrtRunsIssuesTable
+            .innerJoin(IssuesTable)
+            .select(IssuesTable.severity, countAlias)
+            .where {
+                (OrtRunsIssuesTable.ortRunId inList ortRunIds.asList()) and
+                    not(OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery)
+            }
             .groupBy(IssuesTable.severity)
             .map { row ->
                 severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
