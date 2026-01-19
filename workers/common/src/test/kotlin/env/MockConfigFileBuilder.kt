@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import io.kotest.engine.runBlocking
-
 import io.mockk.MockKAnswerScope
 import io.mockk.coEvery
 import io.mockk.every
@@ -34,6 +32,7 @@ import java.util.EnumSet
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
