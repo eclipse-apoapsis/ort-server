@@ -81,6 +81,7 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -91,6 +92,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -1534,6 +1538,40 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     productId = prodId2
                 ).id
 
+                // Define issue, vulnerability, and rule violation objects to be used in the test
+                val analyzerIssue = Issue(
+                    timestamp = Clock.System.now(),
+                    source = "Analyzer",
+                    message = "Issue",
+                    severity = Severity.WARNING,
+                    affectedPath = "path"
+                )
+
+                val advisorVulnerability = Vulnerability(
+                    externalId = "CVE-2020-2346",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "MEDIUM",
+                            score = 5.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
+                val evaluatorRuleViolation = RuleViolation(
+                    "rule1",
+                    null,
+                    null,
+                    emptySet(),
+                    Severity.HINT,
+                    "message",
+                    "how-to-fix"
+                )
+
                 val pkg = Package(
                     identifier = Identifier("Maven", "com.example", "example", "1.0"),
                     purl = "pkg:maven/com.example/example@1.0",
@@ -1590,17 +1628,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = evJobId,
                     startTime = Clock.System.now(),
                     endTime = Clock.System.now(),
-                    violations = listOf(
-                        RuleViolation(
-                            "rule1",
-                            null,
-                            null,
-                            emptySet(),
-                            Severity.HINT,
-                            "message",
-                            "how-to-fix"
-                        )
-                    )
+                    violations = listOf(evaluatorRuleViolation)
                 )
                 dbExtension.fixtures.evaluatorJobRepository.update(
                     evJobId,
@@ -1613,15 +1641,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 dbExtension.fixtures.createAnalyzerRun(
                     anJob2Id,
                     packages = setOf(pkg),
-                    issues = listOf(
-                        Issue(
-                            timestamp = Clock.System.now(),
-                            source = "Analyzer",
-                            message = "Issue",
-                            severity = Severity.WARNING,
-                            affectedPath = "path"
-                        )
-                    )
+                    issues = listOf(analyzerIssue)
                 )
                 dbExtension.fixtures.analyzerJobRepository.update(
                     anJob2Id,
@@ -1641,27 +1661,46 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                                         endTime = Clock.System.now(),
                                         issues = emptyList(),
                                         defects = emptyList(),
-                                        vulnerabilities = listOf(
-                                            Vulnerability(
-                                                externalId = "CVE-2020-2346",
-                                                summary = "A vulnerability",
-                                                description = "A description",
-                                                references = listOf(
-                                                    VulnerabilityReference(
-                                                        url = "https://example.com",
-                                                        scoringSystem = "CVSS",
-                                                        severity = "MEDIUM",
-                                                        score = 5.1f,
-                                                        vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                                    )
-                                                )
-                                            )
-                                        )
+                                        vulnerabilities = listOf(advisorVulnerability)
                                     )
                                 )
                     )
                 )
                 dbExtension.fixtures.advisorJobRepository.update(advJobId, status = JobStatus.FINISHED.asPresent2())
+
+                // Add resolutions to mark all items as resolved
+                val issueResolution = IssueResolution(
+                    message = "Issue",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Cannot fix this issue"
+                )
+                val vulnerabilityResolution = VulnerabilityResolution(
+                    externalId = "CVE-2020-2346",
+                    reason = "INEFFECTIVE_VULNERABILITY",
+                    comment = "Ineffective in our context"
+                )
+                val ruleViolationResolution = RuleViolationResolution(
+                    message = "rule1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Exception applies"
+                )
+
+                // Resolve items from repo2RunId (issue and vulnerability)
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    repo2RunId,
+                    ResolvedItemsResult(
+                        issues = mapOf(analyzerIssue to listOf(issueResolution)),
+                        vulnerabilities = mapOf(advisorVulnerability to listOf(vulnerabilityResolution))
+                    )
+                )
+
+                // Resolve items from repo1RunId (rule violation)
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    repo1RunId,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(evaluatorRuleViolation to listOf(ruleViolationResolution))
+                    )
+                )
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
 
@@ -1670,8 +1709,18 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val statistics = response.body<OrtRunStatistics>()
 
                 with(statistics) {
-                    issuesCount shouldBe 1
+                    // All items are now resolved (from repo2RunId)
+                    // 1 total each, but 0 unresolved
+                    issuesCount shouldBe 0
                     issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                    issuesCountTotal shouldBe 1
+                    issuesCountTotalBySeverity?.shouldContainExactly(
                         mapOf(
                             ApiSeverity.HINT to 0,
                             ApiSeverity.WARNING to 1,
@@ -1684,8 +1733,18 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             EcosystemStats("Maven", 1)
                         )
                     )
-                    vulnerabilitiesCount shouldBe 1
+                    vulnerabilitiesCount shouldBe 0
                     vulnerabilitiesCountByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 0,
+                            VulnerabilityRating.MEDIUM to 0,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 0
+                        )
+                    )
+                    vulnerabilitiesCountTotal shouldBe 1
+                    vulnerabilitiesCountTotalByRating?.shouldContainExactly(
                         mapOf(
                             VulnerabilityRating.NONE to 0,
                             VulnerabilityRating.LOW to 0,
@@ -1694,8 +1753,16 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             VulnerabilityRating.CRITICAL to 0
                         )
                     )
-                    ruleViolationsCount shouldBe 1
+                    ruleViolationsCount shouldBe 0
                     ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                    ruleViolationsCountTotal shouldBe 1
+                    ruleViolationsCountTotalBySeverity?.shouldContainExactly(
                         mapOf(
                             ApiSeverity.HINT to 1,
                             ApiSeverity.WARNING to 0,
@@ -1719,12 +1786,18 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 with(statistics) {
                     issuesCount should beNull()
                     issuesCountBySeverity should beNull()
+                    issuesCountTotal should beNull()
+                    issuesCountTotalBySeverity should beNull()
                     packagesCount should beNull()
                     ecosystems should beNull()
                     vulnerabilitiesCount should beNull()
                     vulnerabilitiesCountByRating should beNull()
+                    vulnerabilitiesCountTotal should beNull()
+                    vulnerabilitiesCountTotalByRating should beNull()
                     ruleViolationsCount should beNull()
                     ruleViolationsCountBySeverity should beNull()
+                    ruleViolationsCountTotal should beNull()
+                    ruleViolationsCountTotalBySeverity should beNull()
                 }
             }
         }

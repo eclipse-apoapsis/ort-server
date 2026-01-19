@@ -368,6 +368,14 @@ val getProductVulnerabilities: RouteConfig.() -> Unit = {
 val getProductRunStatistics: RouteConfig.() -> Unit = {
     operationId = "getProductRunStatistics"
     summary = "Get statistics about ORT runs across the repositories of a product"
+    description = """
+        Returns aggregated statistics for issues, vulnerabilities, and rule violations found in the ORT runs
+        across all repositories of a product. Statistics distinguish between unresolved and total counts:
+        - Unresolved counts (issuesCount, vulnerabilitiesCount, ruleViolationsCount) exclude items that have been
+          marked as resolved via resolutions configured in the repository configuration.
+        - Total counts (issuesCountTotal, vulnerabilitiesCountTotal, ruleViolationsCountTotal) include all items
+          regardless of their resolved status.
+    """.trimIndent()
     tags = listOf("Products")
 
     request {
@@ -381,8 +389,14 @@ val getProductRunStatistics: RouteConfig.() -> Unit = {
             jsonBody<OrtRunStatistics> {
                 example("Get run statistics across repositories of a product") {
                     value = OrtRunStatistics(
-                        issuesCount = 131,
+                        issuesCount = 120,
                         issuesCountBySeverity = mapOf(
+                            Severity.HINT to 35,
+                            Severity.WARNING to 0,
+                            Severity.ERROR to 85
+                        ),
+                        issuesCountTotal = 131,
+                        issuesCountTotalBySeverity = mapOf(
                             Severity.HINT to 40,
                             Severity.WARNING to 0,
                             Severity.ERROR to 91
@@ -393,16 +407,30 @@ val getProductRunStatistics: RouteConfig.() -> Unit = {
                             EcosystemStats("NPM", 326),
                             EcosystemStats("PyPI", 49)
                         ),
-                        vulnerabilitiesCount = 163,
+                        vulnerabilitiesCount = 152,
                         vulnerabilitiesCountByRating = mapOf(
+                            VulnerabilityRating.NONE to 10,
+                            VulnerabilityRating.LOW to 1,
+                            VulnerabilityRating.MEDIUM to 45,
+                            VulnerabilityRating.HIGH to 78,
+                            VulnerabilityRating.CRITICAL to 18
+                        ),
+                        vulnerabilitiesCountTotal = 163,
+                        vulnerabilitiesCountTotalByRating = mapOf(
                             VulnerabilityRating.NONE to 11,
                             VulnerabilityRating.LOW to 1,
                             VulnerabilityRating.MEDIUM to 47,
                             VulnerabilityRating.HIGH to 83,
                             VulnerabilityRating.CRITICAL to 21
                         ),
-                        ruleViolationsCount = 104,
+                        ruleViolationsCount = 98,
                         ruleViolationsCountBySeverity = mapOf(
+                            Severity.HINT to 0,
+                            Severity.WARNING to 6,
+                            Severity.ERROR to 92
+                        ),
+                        ruleViolationsCountTotal = 104,
+                        ruleViolationsCountTotalBySeverity = mapOf(
                             Severity.HINT to 0,
                             Severity.WARNING to 6,
                             Severity.ERROR to 98

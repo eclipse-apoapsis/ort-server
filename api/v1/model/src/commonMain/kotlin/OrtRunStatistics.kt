@@ -26,11 +26,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OrtRunStatistics(
-    /** The number of issues found in the run(s), or null if no valid jobs have completed yet. */
+    /** The number of unresolved issues found in the run(s), or null if no valid jobs have completed yet. */
     val issuesCount: Long? = null,
 
-    /** Counts of issues by severity, or null if no valid jobs have finished successfully yet. */
+    /** Counts of unresolved issues by severity, or null if no valid jobs have finished successfully yet. */
     val issuesCountBySeverity: Map<Severity, Long>? = null,
+
+    /** The total number of issues found in the run(s), or null if no valid jobs have completed yet. */
+    val issuesCountTotal: Long? = null,
+
+    /** Total counts of issues by severity, or null if no valid jobs have finished successfully yet. */
+    val issuesCountTotalBySeverity: Map<Severity, Long>? = null,
 
     /** The number of packages found in the run(s), or null if no valid jobs have finished successfully yet. */
     val packagesCount: Long? = null,
@@ -38,15 +44,35 @@ data class OrtRunStatistics(
     /** Counts of packages by ecosystem, or null if no valid jobs have finished successfully yet. */
     val ecosystems: List<EcosystemStats>? = null,
 
-    /** The number of vulnerabilities found in the run(s), or null if no valid jobs have finished successfully yet. */
+    /** The number of unresolved vulnerabilities found in the run(s),
+     * or null if no valid jobs have finished successfully yet.
+     * */
     val vulnerabilitiesCount: Long? = null,
 
-    /** Counts of vulnerabilities by rating, or null if no valid jobs have finished successfully yet. */
+    /** Counts of unresolved vulnerabilities by rating, or null if no valid jobs have finished successfully yet. */
     val vulnerabilitiesCountByRating: Map<VulnerabilityRating, Long>? = null,
 
-    /** The number of rule violations found in the run(s), or null if no valid jobs have finished successfully yet. */
+    /** The total number of vulnerabilities found in the run(s),
+     * or null if no valid jobs have finished successfully yet.
+     * */
+    val vulnerabilitiesCountTotal: Long? = null,
+
+    /** Total counts of vulnerabilities by rating, or null if no valid jobs have finished successfully yet. */
+    val vulnerabilitiesCountTotalByRating: Map<VulnerabilityRating, Long>? = null,
+
+    /** The number of unresolved rule violations found in the run(s),
+     * or null if no valid jobs have finished successfully yet.
+     * */
     val ruleViolationsCount: Long? = null,
 
-    /** Counts of rule violations by severity, or null if no valid jobs have finished successfully yet. */
-    val ruleViolationsCountBySeverity: Map<Severity, Long>? = null
+    /** Counts of unresolved rule violations by severity, or null if no valid jobs have finished successfully yet. */
+    val ruleViolationsCountBySeverity: Map<Severity, Long>? = null,
+
+    /** The total number of rule violations found in the run(s),
+     * or null if no valid jobs have finished successfully yet.
+     * */
+    val ruleViolationsCountTotal: Long? = null,
+
+    /** Total counts of rule violations by severity, or null if no valid jobs have finished successfully yet. */
+    val ruleViolationsCountTotalBySeverity: Map<Severity, Long>? = null
 )

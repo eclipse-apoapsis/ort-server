@@ -283,12 +283,27 @@ fun Route.organizations() = route("organizations") {
                     }.toLongArray()
 
                     val issuesCount = if (latestRunsWithAnalyzerJobInFinalState.isNotEmpty()) {
-                        issueService.countForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
+                        issueService.countUnresolvedForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
                     } else {
                         null
                     }
 
                     val issuesBySeverity = if (latestRunsWithAnalyzerJobInFinalState.isNotEmpty()) {
+                        issueService
+                            .countUnresolvedBySeverityForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
+                            .map
+                            .mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    val issuesCountTotal = if (latestRunsWithAnalyzerJobInFinalState.isNotEmpty()) {
+                        issueService.countForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
+                    } else {
+                        null
+                    }
+
+                    val issuesBySeverityTotal = if (latestRunsWithAnalyzerJobInFinalState.isNotEmpty()) {
                         issueService
                             .countBySeverityForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
                             .map
@@ -319,12 +334,27 @@ fun Route.organizations() = route("organizations") {
                     }.toLongArray()
 
                     val vulnerabilitiesCount = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
-                        vulnerabilityService.countForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
+                        vulnerabilityService.countUnresolvedForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
                     } else {
                         null
                     }
 
                     val vulnerabilitiesByRating = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
+                        vulnerabilityService
+                            .countUnresolvedByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
+                            .map
+                            .mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    val vulnerabilitiesCountTotal = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
+                        vulnerabilityService.countForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
+                    } else {
+                        null
+                    }
+
+                    val vulnerabilitiesByRatingTotal = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
                         vulnerabilityService
                             .countByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
                             .map
@@ -338,12 +368,27 @@ fun Route.organizations() = route("organizations") {
                     }.toLongArray()
 
                     val ruleViolationsCount = if (latestRunsWithSuccessfulEvaluatorJob.isNotEmpty()) {
-                        ruleViolationService.countForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
+                        ruleViolationService.countUnresolvedForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
                     } else {
                         null
                     }
 
                     val ruleViolationsBySeverity = if (latestRunsWithSuccessfulEvaluatorJob.isNotEmpty()) {
+                        ruleViolationService
+                            .countUnresolvedBySeverityForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
+                            .map
+                            .mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    val ruleViolationsCountTotal = if (latestRunsWithSuccessfulEvaluatorJob.isNotEmpty()) {
+                        ruleViolationService.countForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
+                    } else {
+                        null
+                    }
+
+                    val ruleViolationsBySeverityTotal = if (latestRunsWithSuccessfulEvaluatorJob.isNotEmpty()) {
                         ruleViolationService
                             .countBySeverityForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
                             .map
@@ -357,12 +402,18 @@ fun Route.organizations() = route("organizations") {
                         OrtRunStatistics(
                             issuesCount = issuesCount,
                             issuesCountBySeverity = issuesBySeverity,
+                            issuesCountTotal = issuesCountTotal,
+                            issuesCountTotalBySeverity = issuesBySeverityTotal,
                             packagesCount = packagesCount,
                             ecosystems = ecosystems,
                             vulnerabilitiesCount = vulnerabilitiesCount,
                             vulnerabilitiesCountByRating = vulnerabilitiesByRating,
+                            vulnerabilitiesCountTotal = vulnerabilitiesCountTotal,
+                            vulnerabilitiesCountTotalByRating = vulnerabilitiesByRatingTotal,
                             ruleViolationsCount = ruleViolationsCount,
-                            ruleViolationsCountBySeverity = ruleViolationsBySeverity
+                            ruleViolationsCountBySeverity = ruleViolationsBySeverity,
+                            ruleViolationsCountTotal = ruleViolationsCountTotal,
+                            ruleViolationsCountTotalBySeverity = ruleViolationsBySeverityTotal
                         )
                     )
                 }
