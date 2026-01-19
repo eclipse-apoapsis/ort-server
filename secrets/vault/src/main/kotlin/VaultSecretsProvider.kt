@@ -142,7 +142,8 @@ class VaultSecretsProvider(
             }
 
             install(HttpRequestRetry) {
-                maxRetries = 3
+                retryOnServerErrors(maxRetries = 3)
+                exponentialDelay()
             }
 
             expectSuccess = true
