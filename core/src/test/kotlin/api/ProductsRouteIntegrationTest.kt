@@ -98,6 +98,7 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -108,6 +109,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -1167,26 +1171,25 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val commonPackage = generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
 
+                // Define the vulnerability object separately so it can be used in resolved items
+                val criticalVulnerability = Vulnerability(
+                    externalId = "CVE-2023-5234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "CRITICAL",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
                 val commonVulnerability = Identifier("Maven", "com.example", "example", "1.0") to
                     listOf(
-                        generateAdvisorResult(
-                            listOf(
-                                Vulnerability(
-                                    externalId = "CVE-2023-5234",
-                                    summary = "A vulnerability",
-                                    description = "A description",
-                                    references = listOf(
-                                        VulnerabilityReference(
-                                            url = "https://example.com",
-                                            scoringSystem = "CVSS",
-                                            severity = "CRITICAL",
-                                            score = 1.1f,
-                                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                        )
-                                    )
-                                )
-                            )
-                        )
+                        generateAdvisorResult(listOf(criticalVulnerability))
                     )
 
                 val commonRuleViolation = RuleViolation(
@@ -1369,6 +1372,39 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     status = JobStatus.FINISHED_WITH_ISSUES.asPresent2()
                 )
 
+                // Add resolutions to mark some items as resolved
+                val issueResolution = IssueResolution(
+                    message = "Issue 1",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Cannot fix this issue"
+                )
+                val vulnerabilityResolution = VulnerabilityResolution(
+                    externalId = "CVE-2023-5234",
+                    reason = "INEFFECTIVE_VULNERABILITY",
+                    comment = "Ineffective in our context"
+                )
+                val ruleViolationResolution = RuleViolationResolution(
+                    message = "rule",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Exception applies"
+                )
+
+                // Mark items from the second repository as resolved
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    repo2RunId,
+                    ResolvedItemsResult(
+                        issues = mapOf(
+                            commonIssue to listOf(issueResolution)
+                        ),
+                        vulnerabilities = mapOf(
+                            criticalVulnerability to listOf(vulnerabilityResolution)
+                        ),
+                        ruleViolations = mapOf(
+                            commonRuleViolation to listOf(ruleViolationResolution)
+                        )
+                    )
+                )
+
                 val response = superuserClient.get("/api/v1/products/$prodId/statistics/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -1376,8 +1412,21 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val statistics = response.body<OrtRunStatistics>()
 
                 with(statistics) {
-                    issuesCount shouldBe 4
+                    // Original counts (before resolving): 4 issues, 3 vulnerabilities, 3 rule violations
+                    // After resolving 1 of each from repo2:
+                    // - Issues: 3 unresolved (1 ERROR, 2 WARNING)
+                    // - Vulnerabilities: 2 unresolved (1 LOW, 1 MEDIUM)
+                    // - Rule violations: 2 unresolved (1 HINT, 1 ERROR)
+                    issuesCount shouldBe 3
                     issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 2,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    issuesCountTotal shouldBe 4
+                    issuesCountTotalBySeverity?.shouldContainExactly(
                         mapOf(
                             ApiSeverity.HINT to 0,
                             ApiSeverity.WARNING to 2,
@@ -1392,8 +1441,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             EcosystemStats("PyPI", 1)
                         )
                     )
-                    vulnerabilitiesCount shouldBe 3
+                    vulnerabilitiesCount shouldBe 2
                     vulnerabilitiesCountByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 1,
+                            VulnerabilityRating.MEDIUM to 1,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 0
+                        )
+                    )
+                    vulnerabilitiesCountTotal shouldBe 3
+                    vulnerabilitiesCountTotalByRating?.shouldContainExactly(
                         mapOf(
                             VulnerabilityRating.NONE to 0,
                             VulnerabilityRating.LOW to 1,
@@ -1402,8 +1461,16 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             VulnerabilityRating.CRITICAL to 1
                         )
                     )
-                    ruleViolationsCount shouldBe 3
+                    ruleViolationsCount shouldBe 2
                     ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 1,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    ruleViolationsCountTotal shouldBe 3
+                    ruleViolationsCountTotalBySeverity?.shouldContainExactly(
                         mapOf(
                             ApiSeverity.HINT to 1,
                             ApiSeverity.WARNING to 0,
@@ -1426,12 +1493,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 with(statistics) {
                     issuesCount should beNull()
                     issuesCountBySeverity should beNull()
+                    issuesCountTotal should beNull()
+                    issuesCountTotalBySeverity should beNull()
                     packagesCount should beNull()
                     ecosystems should beNull()
                     vulnerabilitiesCount should beNull()
                     vulnerabilitiesCountByRating should beNull()
+                    vulnerabilitiesCountTotal should beNull()
+                    vulnerabilitiesCountTotalByRating should beNull()
                     ruleViolationsCount should beNull()
                     ruleViolationsCountBySeverity should beNull()
+                    ruleViolationsCountTotal should beNull()
+                    ruleViolationsCountTotalBySeverity should beNull()
                 }
             }
         }

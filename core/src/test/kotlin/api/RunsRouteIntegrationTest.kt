@@ -112,6 +112,7 @@ import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -128,7 +129,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
-import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -722,9 +724,19 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     reason = "INEFFECTIVE_VULNERABILITY",
                     comment = "This is ineffective because of some reasons."
                 )
+
+                // Match the vulnerability to its resolution
+                val matchingVulnerability = Vulnerability(
+                    externalId = "CVE-2021-1234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = emptyList()
+                )
                 dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
                     ortRun.id,
-                    Resolutions(vulnerabilities = listOf(vulnerabilityResolution))
+                    ResolvedItemsResult(
+                        vulnerabilities = mapOf(matchingVulnerability to listOf(vulnerabilityResolution))
+                    )
                 )
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=true")
@@ -788,9 +800,19 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     reason = "INEFFECTIVE_VULNERABILITY",
                     comment = "This is ineffective because of some reasons."
                 )
+
+                // Match the vulnerability to its resolution
+                val matchingVulnerability = Vulnerability(
+                    externalId = "CVE-2021-1234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = emptyList()
+                )
                 dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
                     ortRun.id,
-                    Resolutions(vulnerabilities = listOf(vulnerabilityResolution))
+                    ResolvedItemsResult(
+                        vulnerabilities = mapOf(matchingVulnerability to listOf(vulnerabilityResolution))
+                    )
                 )
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=false")
@@ -1867,6 +1889,87 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val now = Clock.System.now()
 
+                // Define issues, vulnerabilities, and rule violations to be used in the test
+                val analyzerIssue1 = Issue(
+                    timestamp = now.minus(1.hours).toDatabasePrecision(),
+                    source = "Maven",
+                    message = "Issue 1",
+                    severity = Severity.ERROR,
+                    affectedPath = "path",
+                    identifier = Identifier("Maven", "com.example", "example", "1.0")
+                )
+
+                val advisorIssue1 = Issue(
+                    timestamp = now.minus(1.hours).toDatabasePrecision(),
+                    source = "Advisor",
+                    message = "Issue 1",
+                    severity = Severity.ERROR,
+                    affectedPath = "path"
+                )
+
+                val advisorIssue2 = Issue(
+                    timestamp = now.toDatabasePrecision(),
+                    source = "Advisor",
+                    message = "Issue 2",
+                    severity = Severity.WARNING,
+                    affectedPath = "path"
+                )
+
+                val advisorVulnerability = Vulnerability(
+                    externalId = "CVE-2021-1234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "MEDIUM",
+                            score = 5.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
+                val evaluatorRuleViolation1 = RuleViolation(
+                    "z-Rule-1",
+                    Identifier("Maven", "com.example", "example", "1.0"),
+                    "License-1",
+                    setOf("CONCLUDED"),
+                    Severity.WARNING,
+                    "Message-1",
+                    "How_to_fix-1"
+                )
+
+                val evaluatorRuleViolation2 = RuleViolation(
+                    "b-Rule-2",
+                    Identifier("Maven", "com.example", "example", "1.0"),
+                    "License-2",
+                    setOf("DETECTED"),
+                    Severity.ERROR,
+                    "Message-2",
+                    "How_to_fix-2"
+                )
+
+                val evaluatorRuleViolation3 = RuleViolation(
+                    "1-Rule-3",
+                    Identifier("NPM", "com.example", "example2", "1.0"),
+                    "License-3",
+                    setOf("CONCLUDED"),
+                    Severity.WARNING,
+                    "Message-3",
+                    "How_to_fix-3"
+                )
+
+                val evaluatorRuleViolation4 = RuleViolation(
+                    "a-Rule-4",
+                    null,
+                    "License-4",
+                    setOf("CONCLUDED"),
+                    Severity.WARNING,
+                    "Message-4",
+                    "How_to_fix-4"
+                )
+
                 val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
                     ortRunId = ortRun.id,
                     configuration = AnalyzerJobConfiguration()
@@ -1971,14 +2074,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     ),
                     issues = listOf(
-                        Issue(
-                            timestamp = now.minus(1.hours).toDatabasePrecision(),
-                            source = "Maven",
-                            message = "Issue 1",
-                            severity = Severity.ERROR,
-                            affectedPath = "path",
-                            identifier = Identifier("Maven", "com.example", "example", "1.0")
-                        )
+                        analyzerIssue1
                     ),
                     dependencyGraphs = emptyMap()
                 )
@@ -2019,37 +2115,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                                 startTime = now.toDatabasePrecision(),
                                 endTime = now.toDatabasePrecision(),
                                 issues = listOf(
-                                    Issue(
-                                        timestamp = now.minus(1.hours).toDatabasePrecision(),
-                                        source = "Advisor",
-                                        message = "Issue 1",
-                                        severity = Severity.ERROR,
-                                        affectedPath = "path"
-                                    ),
-                                    Issue(
-                                        timestamp = now.toDatabasePrecision(),
-                                        source = "Advisor",
-                                        message = "Issue 2",
-                                        severity = Severity.WARNING,
-                                        affectedPath = "path"
-                                    )
+                                    advisorIssue1,
+                                    advisorIssue2
                                 ),
                                 defects = emptyList(),
                                 vulnerabilities = listOf(
-                                    Vulnerability(
-                                        externalId = "CVE-2021-1234",
-                                        summary = "A vulnerability",
-                                        description = "A description",
-                                        references = listOf(
-                                            VulnerabilityReference(
-                                                url = "https://example.com",
-                                                scoringSystem = "CVSS",
-                                                severity = "MEDIUM",
-                                                score = 5.1f,
-                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                            )
-                                        )
-                                    )
+                                    advisorVulnerability
                                 )
                             )
                         )
@@ -2073,45 +2144,13 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = now.toDatabasePrecision(),
                     violations = listOf(
                         // 4th record after sort by "rule"
-                        RuleViolation(
-                            "z-Rule-1",
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            "License-1",
-                            setOf("CONCLUDED"),
-                            Severity.WARNING,
-                            "Message-1",
-                            "How_to_fix-1"
-                        ),
+                        evaluatorRuleViolation1,
                         // 3rd record after sort by "rule"
-                        RuleViolation(
-                            "b-Rule-2",
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            "License-2",
-                            setOf("DETECTED"),
-                            Severity.ERROR,
-                            "Message-2",
-                            "How_to_fix-2"
-                        ),
+                        evaluatorRuleViolation2,
                         // 1st record after sort by "rule"
-                        RuleViolation(
-                            "1-Rule-3",
-                            Identifier("NPM", "com.example", "example2", "1.0"),
-                            "License-3",
-                            setOf("CONCLUDED"),
-                            Severity.WARNING,
-                            "Message-3",
-                            "How_to_fix-3"
-                        ),
+                        evaluatorRuleViolation3,
                         // 2nd record after sort by "rule", without package identifier
-                        RuleViolation(
-                            "a-Rule-4",
-                            null,
-                            "License-4",
-                            setOf("CONCLUDED"),
-                            Severity.WARNING,
-                            "Message-4",
-                            "How_to_fix-4"
-                        )
+                        evaluatorRuleViolation4
                     )
                 )
 
@@ -2121,6 +2160,39 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
                 )
 
+                // Add resolutions to mark some items as resolved
+                val issueResolution = IssueResolution(
+                    message = "Issue 1",
+                    reason = "CANT_FIX_ISSUE",
+                    comment = "Cannot fix this issue"
+                )
+                val vulnerabilityResolution = VulnerabilityResolution(
+                    externalId = "CVE-2021-1234",
+                    reason = "INEFFECTIVE_VULNERABILITY",
+                    comment = "Ineffective in our context"
+                )
+                val ruleViolationResolution = RuleViolationResolution(
+                    message = "z-Rule-1",
+                    reason = "CANT_FIX_EXCEPTION",
+                    comment = "Exception applies"
+                )
+
+                // Mark specific items as resolved
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        issues = mapOf(
+                            advisorIssue1 to listOf(issueResolution)
+                        ),
+                        vulnerabilities = mapOf(
+                            advisorVulnerability to listOf(vulnerabilityResolution)
+                        ),
+                        ruleViolations = mapOf(
+                            evaluatorRuleViolation1 to listOf(ruleViolationResolution)
+                        )
+                    )
+                )
+
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/statistics")
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -2128,8 +2200,19 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val statistics = response.body<OrtRunStatistics>()
 
                 with(statistics) {
-                    issuesCount shouldBe 3
+                    // 3 total issues: 2 from advisor (1 ERROR, 1 WARNING) + 1 from analyzer (1 ERROR)
+                    // 1 resolved: advisorIssue1 (ERROR)
+                    // 2 unresolved: advisorIssue2 (WARNING) + analyzerIssue1 (ERROR)
+                    issuesCount shouldBe 2
                     issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 1,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    issuesCountTotal shouldBe 3
+                    issuesCountTotalBySeverity?.shouldContainExactly(
                         mapOf(
                             ApiSeverity.HINT to 0,
                             ApiSeverity.WARNING to 1,
@@ -2143,8 +2226,19 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             EcosystemStats("Maven", 1)
                         )
                     )
-                    vulnerabilitiesCount shouldBe 1
+                    // 1 total vulnerability (MEDIUM), but resolved
+                    vulnerabilitiesCount shouldBe 0
                     vulnerabilitiesCountByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 0,
+                            VulnerabilityRating.MEDIUM to 0,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 0
+                        )
+                    )
+                    vulnerabilitiesCountTotal shouldBe 1
+                    vulnerabilitiesCountTotalByRating?.shouldContainExactly(
                         mapOf(
                             VulnerabilityRating.NONE to 0,
                             VulnerabilityRating.LOW to 0,
@@ -2153,8 +2247,19 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             VulnerabilityRating.CRITICAL to 0
                         )
                     )
-                    ruleViolationsCount shouldBe 4
+                    // 4 total rule violations: 3 WARNING + 1 ERROR
+                    // 1 resolved: evaluatorRuleViolation1 (WARNING)
+                    // 3 unresolved: 2 WARNING + 1 ERROR
+                    ruleViolationsCount shouldBe 3
                     ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 2,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    ruleViolationsCountTotal shouldBe 4
+                    ruleViolationsCountTotalBySeverity?.shouldContainExactly(
                         mapOf(
                             ApiSeverity.HINT to 0,
                             ApiSeverity.WARNING to 3,
@@ -2185,12 +2290,18 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 with(statistics) {
                     issuesCount should beNull()
                     issuesCountBySeverity should beNull()
+                    issuesCountTotal should beNull()
+                    issuesCountTotalBySeverity should beNull()
                     packagesCount should beNull()
                     ecosystems should beNull()
                     vulnerabilitiesCount should beNull()
                     vulnerabilitiesCountByRating should beNull()
+                    vulnerabilitiesCountTotal should beNull()
+                    vulnerabilitiesCountTotalByRating should beNull()
                     ruleViolationsCount should beNull()
                     ruleViolationsCountBySeverity should beNull()
+                    ruleViolationsCountTotal should beNull()
+                    ruleViolationsCountTotalBySeverity should beNull()
                 }
             }
         }
