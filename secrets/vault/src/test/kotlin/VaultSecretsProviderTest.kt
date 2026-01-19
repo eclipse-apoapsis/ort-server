@@ -25,7 +25,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import io.ktor.client.plugins.SendCountExceedException
+import io.ktor.client.plugins.ClientRequestException
 
 import kotlin.time.Duration.Companion.seconds
 
@@ -69,7 +69,7 @@ class VaultSecretsProviderTest : WordSpec() {
             "throw an exception for a failed request" {
                 val provider = vault.createProvider("/secret/data/forbidden/path")
 
-                shouldThrow<SendCountExceedException> {
+                shouldThrow<ClientRequestException> {
                     provider.readSecret(Path("password"))
                 }
             }

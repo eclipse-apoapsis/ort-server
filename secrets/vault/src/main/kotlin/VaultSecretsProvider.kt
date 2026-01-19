@@ -186,7 +186,7 @@ class VaultSecretsProvider(
                         token
                     }
 
-                    request.header(TOKEN_HEADER, updatedToken)
+                    request.headers[TOKEN_HEADER] = requireNotNull(updatedToken)
                     execute(request)
                 } else {
                     call
