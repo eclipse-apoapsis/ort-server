@@ -37,7 +37,7 @@ class OrtServerClient(
     /**
      * The configured HTTP client for the interaction with the API.
      */
-    client: HttpClient,
+    client: HttpClient
 ) {
     companion object {
         /**

@@ -130,7 +130,7 @@ data class LogFileCriteria(
         source: LogSource,
         levels: Set<LogLevel>,
         startTime: Instant,
-        endTime: Instant,
+        endTime: Instant
     ): Boolean =
         ortRunId == this.ortRunId &&
                 source == this.source &&

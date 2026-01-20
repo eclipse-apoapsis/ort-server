@@ -293,7 +293,7 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                     "sourceName" to sourceName,
                     "sourcePath" to sourcePath,
                     "sourceProtocolVersion" to sourceProtocolVersion,
-                    "authMode" to authMode.name,
+                    "authMode" to authMode.name
                 )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.NUGET_TYPE, properties)

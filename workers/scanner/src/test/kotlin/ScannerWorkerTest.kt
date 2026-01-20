@@ -299,7 +299,7 @@ class ScannerWorkerTest : StringSpec({
             every { scanResults } returns setOf(scanResult1, scanResult2)
             every { getAllScanResults() } returns mapOf(
                 ortIdentifier1 to listOf(scanResult1),
-                ortIdentifier2 to listOf(scanResult2, scanResult3),
+                ortIdentifier2 to listOf(scanResult2, scanResult3)
             )
         }
         val issuesMap = mapOf<Provenance, Set<OrtIssue>>(

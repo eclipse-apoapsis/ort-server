@@ -420,7 +420,7 @@ fun Package.mapToOrt() =
         isMetadataOnly = isMetadataOnly,
         isModified = isModified,
         sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToOrt() },
-        labels = labels,
+        labels = labels
     )
 
 fun PackageConfiguration.mapToOrt() =

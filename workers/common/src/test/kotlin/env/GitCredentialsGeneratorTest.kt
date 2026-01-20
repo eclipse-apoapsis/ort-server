@@ -129,7 +129,7 @@ class GitCredentialsGeneratorTest : StringSpec({
         val lines = mockBuilder.generatedLinesFor(homeFileName = ".git-credentials")
 
         lines shouldContainExactly listOf(
-            "https://${testSecretRef(secUser)}:${testSecretRef(secPass)}@repo.example.org/orga/repo.git",
+            "https://${testSecretRef(secUser)}:${testSecretRef(secPass)}@repo.example.org/orga/repo.git"
         )
     }
 

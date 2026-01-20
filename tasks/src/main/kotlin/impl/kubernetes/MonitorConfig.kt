@@ -82,7 +82,7 @@ data class MonitorConfig(
     val recentlyProcessedInterval: Duration,
 
     /** The configuration of the timeouts for the single workers. */
-    val timeoutConfig: TimeoutConfig,
+    val timeoutConfig: TimeoutConfig
 ) {
     companion object {
         /** The prefix for all configuration properties. */

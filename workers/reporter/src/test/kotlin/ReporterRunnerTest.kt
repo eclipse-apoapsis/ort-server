@@ -209,7 +209,7 @@ class ReporterRunnerTest : WordSpec({
             val runner = createRunner(storage, reporterConfig)
 
             val config = ReporterJobConfiguration(
-                formats = listOf(reportType),
+                formats = listOf(reportType)
             )
             val result = runner.run(OrtResult.EMPTY, config, null, mockContext())
 
@@ -827,7 +827,7 @@ class ReporterRunnerTest : WordSpec({
 
             val groupName1 = "themeAssets"
             val themeDirectories = listOf(
-                ReporterAsset("data"),
+                ReporterAsset("data")
             )
             val groupName2 = "imageAssets"
             val imageDirectories = listOf(

@@ -48,5 +48,5 @@ enum class ConfigKey(val default: String) {
     HOME_ICON_URL_DARK("https://example.com/icon-dark.png"),
 
     /** The name of the ORT Server instance. */
-    MAIN_PRODUCT_NAME("ORT Server"),
+    MAIN_PRODUCT_NAME("ORT Server")
 }

@@ -299,7 +299,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
                         "https://repos.example.com/artifactory/api/npm/repo1",
                         usernameSecret,
                         passwordSecret
-                    ),
+                    )
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 

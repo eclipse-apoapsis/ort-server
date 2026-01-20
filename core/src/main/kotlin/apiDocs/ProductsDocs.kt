@@ -177,7 +177,7 @@ val getProductRepositories: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 2,
-                            sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING)),
+                            sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
                         )
                     )
                 }
@@ -199,7 +199,7 @@ val postRepository: RouteConfig.() -> Unit = {
             example("Create repository") {
                 value = PostRepository(
                     type = RepositoryType.GIT,
-                    url = "https://example.com/namspace/repo.git",
+                    url = "https://example.com/namspace/repo.git"
                 )
             }
         }

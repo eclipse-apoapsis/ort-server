@@ -51,7 +51,7 @@ internal class JobHandler(
     private val notifier: FailedJobNotifier,
 
     /** The configuration. */
-    private val config: MonitorConfig,
+    private val config: MonitorConfig
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(JobHandler::class.java)

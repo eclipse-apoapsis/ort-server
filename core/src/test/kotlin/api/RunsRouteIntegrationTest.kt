@@ -1121,7 +1121,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                                 spdxExpression = "Expression",
                                 mappedLicenses = mapOf(
                                     "License 1" to "LicenseRef-mapped-1",
-                                    "License 2" to "LicenseRef-mapped-2",
+                                    "License 2" to "LicenseRef-mapped-2"
                                 ),
                                 unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
                             ),
@@ -1433,7 +1433,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                                 spdxExpression = "Expression",
                                 mappedLicenses = mapOf(
                                     "License 1" to "LicenseRef-mapped-1",
-                                    "License 2" to "LicenseRef-mapped-2",
+                                    "License 2" to "LicenseRef-mapped-2"
                                 ),
                                 unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
                             ),
@@ -1451,7 +1451,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             ),
                             "ExampleDescription",
                             "https://example.com",
-                            emptySet(),
+                            emptySet()
                         )
                     ),
                     packages = emptySet(),
@@ -1902,7 +1902,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 spdxExpression = null,
                                 mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet(),
+                                unmappedLicenses = emptySet()
                             ),
                             description = "An example package",
                             homepageUrl = "https://example.com",
@@ -1977,8 +1977,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             message = "Issue 1",
                             severity = Severity.ERROR,
                             affectedPath = "path",
-                            identifier = Identifier("Maven", "com.example", "example", "1.0"),
-                        ),
+                            identifier = Identifier("Maven", "com.example", "example", "1.0")
+                        )
                     ),
                     dependencyGraphs = emptyMap()
                 )

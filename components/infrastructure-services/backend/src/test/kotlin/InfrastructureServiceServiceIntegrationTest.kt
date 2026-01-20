@@ -94,7 +94,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
         organization: Organization? = null,
         product: Product? = null,
         repository: Repository? = null,
-        credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE),
+        credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
     ): InfrastructureService =
         InfrastructureService(
             name,
@@ -129,7 +129,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             description = infrastructureService.description,
             usernameSecretRef = infrastructureService.usernameSecret,
             passwordSecretRef = infrastructureService.passwordSecret,
-            credentialsTypes = infrastructureService.credentialsTypes,
+            credentialsTypes = infrastructureService.credentialsTypes
         )
 
     fun createInfrastructureServiceDeclaration(
@@ -138,7 +138,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
         description: String = SERVICE_DESC,
         usernameSecret: Secret = orgUserSecret,
         passwordSecret: Secret = orgPassSecret,
-        credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE),
+        credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
     ): InfrastructureServiceDeclaration =
         InfrastructureServiceDeclaration(
             name,

@@ -52,5 +52,5 @@ data class ScannerJob(
     /**
      * The job status.
      */
-    val status: JobStatus,
+    val status: JobStatus
 )

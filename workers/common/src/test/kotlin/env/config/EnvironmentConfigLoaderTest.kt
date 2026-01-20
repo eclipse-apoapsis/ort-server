@@ -333,7 +333,7 @@ class EnvironmentConfigLoaderTest : StringSpec({
         val config = parseConfig(".ort.env.variables-non-strict.yml", helper).resolve(helper)
 
         config.environmentVariables shouldContainExactlyInAnyOrder listOf(
-            SecretVariableDefinition("variable1", secret1),
+            SecretVariableDefinition("variable1", secret1)
         )
     }
 

@@ -36,7 +36,7 @@ private const val CONTEXT_FILE_NAME = "context.yml"
  */
 @Serializable
 internal data class ContextData(
-    val run: RunData? = null,
+    val run: RunData? = null
 )
 
 /**

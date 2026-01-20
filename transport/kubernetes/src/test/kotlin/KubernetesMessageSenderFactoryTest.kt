@@ -75,7 +75,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.mountSecrets" to SECRET_MOUNTS,
             "$keyPrefix.mountPvcs" to PVC_MOUNTS,
             "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
-            "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT,
+            "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT
         )
         val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
 

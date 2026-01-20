@@ -134,7 +134,7 @@ class ProductService(
         RepositoriesTable
             .innerJoin(OrtRunsTable)
             .select(
-                RepositoriesTable.id,
+                RepositoriesTable.id
             )
             .where {
                 (RepositoriesTable.productId eq productId) and

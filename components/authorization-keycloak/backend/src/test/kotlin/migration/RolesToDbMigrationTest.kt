@@ -225,7 +225,7 @@ class RolesToDbMigrationTest : StringSpec() {
         "exceptions when querying Keycloak group members should be ignored" {
             val user = "some-user"
             val groupsWithUsers = mapOf(
-                OrganizationRole.WRITER.groupName(dbExtension.fixtures.organization.id) to listOf(user),
+                OrganizationRole.WRITER.groupName(dbExtension.fixtures.organization.id) to listOf(user)
             )
 
             val keycloakClient = createKeycloakClientForGroups(groupsWithUsers)

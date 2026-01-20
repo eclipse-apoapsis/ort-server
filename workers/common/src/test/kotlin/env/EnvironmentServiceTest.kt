@@ -209,7 +209,7 @@ class EnvironmentServiceTest : WordSpec({
         "associate all infrastructure services from the config file with the current ORT run" {
             val services = listOf(
                 createInfrastructureService(),
-                createInfrastructureService("https://service.example.com/service"),
+                createInfrastructureService("https://service.example.com/service")
             )
 
             val expectedDynamicServices = services.map { it.toInfrastructureServiceDeclaration() }
@@ -239,7 +239,7 @@ class EnvironmentServiceTest : WordSpec({
         "setup the authenticator with the services from the config file" {
             val services = listOf(
                 createInfrastructureService(),
-                createInfrastructureService("https://service.example.com/service"),
+                createInfrastructureService("https://service.example.com/service")
             )
             val context = mockContext()
 

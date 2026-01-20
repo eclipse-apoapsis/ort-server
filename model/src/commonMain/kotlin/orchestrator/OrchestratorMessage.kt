@@ -210,7 +210,7 @@ data class CreateOrtRun(val ortRun: OrtRun) : OrchestratorMessage()
 @Serializable
 data class WorkerError(
     /** The name of the endpoint where the error has happened. */
-    val endpointName: String,
+    val endpointName: String
 ) : OrchestratorMessage()
 
 /**

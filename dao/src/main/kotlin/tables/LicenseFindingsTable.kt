@@ -54,7 +54,7 @@ class LicenseFindingDao(id: EntityID<Long>) : LongEntity(id) {
         location = TextLocation(
             path = path,
             startLine = startLine,
-            endLine = endLine,
+            endLine = endLine
         ),
         score = score
     )

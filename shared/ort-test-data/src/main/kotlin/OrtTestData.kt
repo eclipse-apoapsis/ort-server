@@ -617,7 +617,7 @@ object OrtTestData {
                 license = SpdxSingleLicenseExpression.parse("LicenseRef-detected1-concluded"),
                 licenseSources = enumSetOf(LicenseSource.CONCLUDED, LicenseSource.DECLARED)
             )
-        ),
+        )
     )
 
     val result = OrtResult(

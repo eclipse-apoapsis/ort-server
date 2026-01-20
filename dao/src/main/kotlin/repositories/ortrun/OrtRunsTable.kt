@@ -151,7 +151,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         resolvedJobConfigContext = resolvedJobConfigContext,
         traceId = traceId,
         environmentConfigPath = environmentConfigPath,
-        userDisplayName = userDisplayName?.mapToModel(),
+        userDisplayName = userDisplayName?.mapToModel()
     )
 
     /**
@@ -184,7 +184,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
             jobConfigContext = jobConfigContext,
             resolvedJobConfigContext = resolvedJobConfigContext,
             environmentConfigPath = environmentConfigPath,
-            userDisplayName = userDisplayName?.mapToModel(),
+            userDisplayName = userDisplayName?.mapToModel()
         )
     }
 }

@@ -52,5 +52,5 @@ data class AdvisorJob(
     /**
      * The job status.
      */
-    val status: JobStatus,
+    val status: JobStatus
 )

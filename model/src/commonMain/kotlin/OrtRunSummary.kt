@@ -114,7 +114,7 @@ data class OrtRunSummary(
     /**
      * The display name of the user that triggered this run.
      */
-    val userDisplayName: UserDisplayName? = null,
+    val userDisplayName: UserDisplayName? = null
 )
 
 /**

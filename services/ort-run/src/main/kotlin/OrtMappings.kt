@@ -296,7 +296,7 @@ fun OrtExcludes.mapToModel() = Excludes(
 fun OrtIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 
 fun OrtIncludes.mapToModel() = Includes(
-    paths = paths.map(OrtPathInclude::mapToModel),
+    paths = paths.map(OrtPathInclude::mapToModel)
 )
 
 fun OrtIssueResolution.mapToModel() = IssueResolution(message = message, reason = reason.name, comment = comment)

@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory
  */
 class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
-    private val configDir: File,
+    private val configDir: File
 ) : ConfigFileProvider {
     companion object {
         /**

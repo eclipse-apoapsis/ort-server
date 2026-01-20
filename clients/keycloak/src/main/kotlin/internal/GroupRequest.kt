@@ -25,5 +25,5 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 
 @Serializable
 internal data class GroupRequest(
-    val name: GroupName,
+    val name: GroupName
 )

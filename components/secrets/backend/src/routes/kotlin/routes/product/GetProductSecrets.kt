@@ -69,7 +69,7 @@ internal fun Route.getProductSecrets(secretService: SecretService) =
                                 limit = 20,
                                 offset = 0,
                                 totalCount = 2,
-                                sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                                sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                             )
                         )
                     }

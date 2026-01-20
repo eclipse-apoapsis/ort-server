@@ -60,14 +60,14 @@ class NotifierRunner(
         val sendMailConfiguration = notifierConfig.mail?.takeUnless { notifierConfig.disableMailNotifications }?.let {
             it.copy(
                 username = workerContext.configManager.getSecret(Path(it.username)),
-                password = workerContext.configManager.getSecret(Path(it.password)),
+                password = workerContext.configManager.getSecret(Path(it.password))
             )
         }?.mapToOrt()
 
         val jiraConfiguration = notifierConfig.jira?.takeUnless { notifierConfig.disableJiraNotifications }?.let {
             it.copy(
                 username = workerContext.configManager.getSecret(Path(it.username)),
-                password = workerContext.configManager.getSecret(Path(it.password)),
+                password = workerContext.configManager.getSecret(Path(it.password))
             )
         }?.mapToOrt()
 

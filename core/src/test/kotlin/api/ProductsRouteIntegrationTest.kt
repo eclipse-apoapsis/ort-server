@@ -1286,8 +1286,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             source = "Advisor",
                             message = "Issue 1",
                             severity = Severity.WARNING,
-                            affectedPath = "path",
-                        ),
+                            affectedPath = "path"
+                        )
                     ).asPresent2()
                 )
 
@@ -1308,7 +1308,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             message = "Issue",
                             severity = Severity.WARNING,
                             affectedPath = "path"
-                        ),
+                        )
                     )
                 )
                 dbExtension.fixtures.analyzerJobRepository.update(
@@ -2035,7 +2035,7 @@ private fun generatePackage(identifier: Identifier) = Package(
     processedDeclaredLicense = ProcessedDeclaredLicense(
         spdxExpression = null,
         mappedLicenses = emptyMap(),
-        unmappedLicenses = emptySet(),
+        unmappedLicenses = emptySet()
     ),
     description = "An example package",
     homepageUrl = "https://example.com",
