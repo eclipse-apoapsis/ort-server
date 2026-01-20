@@ -126,5 +126,35 @@ class PostOrganizationSecretIntegrationTest : SecretsIntegrationTest({
                 provider.readSecret(Path("organization_${orgId}_${secret.name}"))?.value.shouldBeNull()
             }
         }
+
+        "respond with 'Bad Request' if the secret's name is empty" {
+            secretsTestApplication { client ->
+                install(StatusPages) {
+                    // TODO: This should use the same config as in core.
+                    exception<RequestValidationException> { call, e ->
+                        call.respondError(
+                            HttpStatusCode.BadRequest,
+                            message = "Request validation has failed.",
+                            cause = e.message
+                        )
+                    }
+                }
+
+                val secret = PostSecret("", "value", "description")
+
+                val response = client.post("/organizations/$orgId/secrets") {
+                    setBody(secret)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for PostSecret"
+
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path("organization_${orgId}_${secret.name}"))?.value.shouldBeNull()
+            }
+        }
     }
 })
