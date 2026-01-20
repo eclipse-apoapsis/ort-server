@@ -124,8 +124,8 @@ internal class ReporterWorker(
                 reporterRunnerResult.resolvedPackageConfigurations?.let {
                     ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)
                 }
-                reporterRunnerResult.resolvedResolutions?.let {
-                    ortRunService.storeResolvedResolutions(ortRun.id, it)
+                reporterRunnerResult.resolvedItems?.let {
+                    ortRunService.storeResolvedItems(ortRun.id, it)
                 }
                 reporterRunnerResult.issues.takeUnless { it.isEmpty() }?.let {
                     ortRunService.storeIssues(ortRun.id, it)
