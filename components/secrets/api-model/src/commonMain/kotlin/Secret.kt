@@ -52,9 +52,9 @@ data class PostSecret(
     val description: String?
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
-                "spaces. Leading and trailing whitespaces are not allowed."
+        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]+(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name must not be empty and may only contain letters, " +
+                "numbers, hyphen marks and spaces. Leading and trailing whitespaces are not allowed."
     }
 
     fun validate() =
