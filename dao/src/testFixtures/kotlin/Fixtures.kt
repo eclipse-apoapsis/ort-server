@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.test
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
@@ -41,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Dao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.dao.tables.VulnerabilityResolutionDefinitionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -51,9 +53,11 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
@@ -68,6 +72,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 
 import org.jetbrains.exposed.sql.Database
 
@@ -75,6 +85,7 @@ import org.jetbrains.exposed.sql.Database
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
  * instances.
  */
+@Suppress("TooManyFunctions")
 class Fixtures(private val db: Database) {
     val advisorJobRepository = DaoAdvisorJobRepository(db)
     val advisorRunRepository = DaoAdvisorRunRepository(db)
@@ -322,6 +333,25 @@ class Fixtures(private val db: Database) {
         results = results
     )
 
+    fun createRepositoryConfiguration(
+        runId: Long = ortRun.id,
+        vulnerabilityResolutions: List<VulnerabilityResolution> = emptyList()
+    ) = repositoryConfigurationRepository.create(
+        ortRunId = runId,
+        analyzerConfig = null,
+        excludes = Excludes(emptyList(), emptyList()),
+        includes = Includes(emptyList()),
+        resolutions = Resolutions(
+            issues = emptyList(),
+            ruleViolations = emptyList(),
+            vulnerabilities = vulnerabilityResolutions
+        ),
+        curations = Curations(emptyList(), emptyList()),
+        packageConfigurations = emptyList(),
+        licenseChoices = LicenseChoices(emptyList(), emptyList()),
+        provenanceSnippetChoices = emptyList()
+    )
+
     fun generatePackage(
         identifier: Identifier,
         authors: Set<String> = emptySet(),
@@ -371,4 +401,20 @@ class Fixtures(private val db: Database) {
         isMetadataOnly = false,
         isModified = false
     )
+
+    suspend fun createVulnerabilityResolutionDefinition(
+        hierarchyId: RepositoryId = RepositoryId(repository.id),
+        contextRunId: Long = ortRun.id,
+        idMatchers: List<String>,
+        reason: VulnerabilityResolutionReason,
+        comment: String = "Comment."
+    ) = db.dbQuery {
+        VulnerabilityResolutionDefinitionsTable.insert(
+            hierarchyId,
+            contextRunId,
+            idMatchers,
+            reason,
+            comment
+        )
+    }
 }

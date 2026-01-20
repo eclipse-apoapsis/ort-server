@@ -79,7 +79,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as Api
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy as ApiSubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName as ApiUserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfoCurationData as ApiVcsInfoCurationData
@@ -94,6 +93,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AppliedVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -129,7 +129,6 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.model.User
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
@@ -396,7 +395,9 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         resolvedJobConfigContext = resolvedJobConfigContext,
         environmentConfigPath = environmentConfigPath,
         traceId = traceId,
-        userDisplayName = userDisplayName?.mapToApi()
+        userDisplayName = userDisplayName?.mapToApi(),
+        outdated = outdated,
+        outdatedMessage = outdatedMessage
     )
 
 fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
@@ -417,7 +418,9 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
         environmentConfigPath = environmentConfigPath,
-        userDisplayName = userDisplayName?.mapToApi()
+        userDisplayName = userDisplayName?.mapToApi(),
+        outdated = outdated,
+        outdatedMessage = outdatedMessage
     )
 
 fun OrtRunSummary.mapToApi() =
@@ -598,12 +601,21 @@ fun AdvisorDetails.mapToApi() = ApiAdvisorDetails(
     capabilities = capabilities.map { ApiAdvisorCapability.valueOf(it.name) }.toSet()
 )
 
+fun AppliedVulnerabilityResolution.mapToApi() =
+    ApiVulnerabilityResolution(
+        externalId = resolution.externalId,
+        reason = resolution.reason,
+        comment = resolution.comment,
+        definition = definition?.mapToApi()
+    )
+
 fun VulnerabilityWithDetails.mapToApi() =
     ApiVulnerabilityWithDetails(
         vulnerability = vulnerability.mapToApi(),
         identifier = identifier.mapToApi(),
         rating = rating.mapToApi(),
         resolutions = resolutions.map { it.mapToApi() },
+        newMatchingResolutionDefinitions = newMatchingResolutionDefinitions.map { it.mapToApi() },
         advisor = advisor.mapToApi(),
         purl = purl
     )
@@ -856,8 +868,6 @@ fun Project.mapToApi() = ApiProject(
     homepageUrl = homepageUrl,
     scopeNames = scopeNames
 )
-
-fun UserDisplayName.mapToApi() = ApiUserDisplayName(username = username, fullName = fullName)
 
 fun ContentManagementSection.mapToApi() = ApiContentManagementSection(
     id = id,

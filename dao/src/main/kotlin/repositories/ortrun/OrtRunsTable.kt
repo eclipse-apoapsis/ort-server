@@ -83,6 +83,8 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val traceId = text("trace_id").nullable()
     val environmentConfigPath = text("environment_config_path").nullable()
     val userDisplayName = reference("user_id", UserDisplayNamesTable.id).nullable()
+    val outdated = bool("outdated").default(false)
+    val outdatedMessage = text("outdated_message").nullable()
 
     /** Get the id of the analyzer run for the given ORT run [id]. Returns `null` if no run is found. */
     fun getAnalyzerRunIdById(id: Long): Long? =
@@ -117,6 +119,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
     var environmentConfigPath by OrtRunsTable.environmentConfigPath
     var userDisplayName by UserDisplayNameDao optionalReferencedOn OrtRunsTable.userDisplayName
+    var outdated by OrtRunsTable.outdated
+    var outdatedMessage by OrtRunsTable.outdatedMessage
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
@@ -152,6 +156,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         traceId = traceId,
         environmentConfigPath = environmentConfigPath,
         userDisplayName = userDisplayName?.mapToModel(),
+        outdated = outdated,
+        outdatedMessage = outdatedMessage
     )
 
     /**
