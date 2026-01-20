@@ -69,6 +69,12 @@ formatting:
     active: false
   SpacingBetweenDeclarationsWithAnnotations:
     active: false
+  TrailingCommaOnCallSite:
+    active: true
+    useTrailingCommaOnCallSite: false
+  TrailingCommaOnDeclarationSite:
+    active: true
+    useTrailingCommaOnDeclarationSite: false
 
 naming:
   InvalidPackageDeclaration:
