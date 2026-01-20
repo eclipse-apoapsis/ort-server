@@ -144,21 +144,22 @@ object OrtTestData {
         )
     )
 
-    const val projectRepositoryUrl = "git@example.org/project.git"
-    const val projectProcessedRepositoryUrl = "https://example.org/project.git"
-    const val projectRevision = "project123"
+    const val PROJECT_REPOSITORY_URL = "git@example.org/project.git"
+    const val PROJECT_PROCESSED_REPOSITORY_URL = "https://example.org/project.git"
+    const val PROJECT_REVISION = "project123"
 
     val pkgIdentifier = Identifier("Maven:com.example:package:1.0")
-    const val pkgBinaryArtifactUrl = "https://example.org/binary.zip"
-    const val pkgCuratedBinaryArtifactUrl = "https://example.org/binary-curated.zip"
-    const val pkgSourceArtifactUrl = "https://example.org/source.zip"
-    const val pkgCuratedSourceArtifactUrl = "https://example.org/source-curated.zip"
-    const val pkgRepositoryUrl = "git@example.org/package.git"
-    const val pkgProcessedRepositoryUrl = "https://example.org/package.git"
-    const val pkgCuratedRepositoryUrl = "https://example.org/package-curated.git"
-    const val pkgRevision = "package123"
-    const val pkgCuratedRevision = "package123-curated"
-    const val pkgCuratedPath = "path"
+
+    const val PKG_BINARY_ARTIFACT_URL = "https://example.org/binary.zip"
+    const val PKG_CURATED_BINARY_ARTIFACT_URL = "https://example.org/binary-curated.zip"
+    const val PKG_SOURCE_ARTIFACT_URL = "https://example.org/source.zip"
+    const val PKG_CURATED_SOURCE_ARTIFACT_URL = "https://example.org/source-curated.zip"
+    const val PKG_REPOSITORY_URL = "git@example.org/package.git"
+    const val PKG_PROCESSED_REPOSITORY_URL = "https://example.org/package.git"
+    const val PKG_CURATED_REPOSITORY_URL = "https://example.org/package-curated.git"
+    const val PKG_REVISION = "package123"
+    const val PKG_CURATED_REVISION = "package123-curated"
+    const val PKG_CURATED_PATH = "path"
 
     val pkgCuration = PackageCuration(
         id = pkgIdentifier,
@@ -171,18 +172,18 @@ object OrtTestData {
             description = "description",
             homepageUrl = "https://example.org/package-curated",
             binaryArtifact = RemoteArtifact(
-                url = pkgCuratedBinaryArtifactUrl,
+                url = PKG_CURATED_BINARY_ARTIFACT_URL,
                 hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
             ),
             sourceArtifact = RemoteArtifact(
-                url = pkgCuratedSourceArtifactUrl,
+                url = PKG_CURATED_SOURCE_ARTIFACT_URL,
                 hash = Hash.Companion.create("0123456789abcdef0123456789abcdef01234567")
             ),
             vcs = VcsInfoCurationData(
                 type = VcsType.GIT,
-                url = pkgCuratedRepositoryUrl,
-                revision = pkgCuratedRevision,
-                path = pkgCuratedPath
+                url = PKG_CURATED_REPOSITORY_URL,
+                revision = PKG_CURATED_REVISION,
+                path = PKG_CURATED_PATH
             ),
             isMetadataOnly = false,
             isModified = false,
@@ -220,8 +221,8 @@ object OrtTestData {
     val repository = Repository(
         vcs = VcsInfo(
             type = VcsType.GIT,
-            url = projectProcessedRepositoryUrl,
-            revision = projectRevision,
+            url = PROJECT_PROCESSED_REPOSITORY_URL,
+            revision = PROJECT_REVISION,
             path = ""
         ),
         nestedRepositories = emptyMap(),
@@ -267,7 +268,7 @@ object OrtTestData {
             packageConfigurations = listOf(
                 PackageConfiguration(
                     id = pkgIdentifier,
-                    sourceArtifactUrl = pkgCuratedSourceArtifactUrl,
+                    sourceArtifactUrl = PKG_CURATED_SOURCE_ARTIFACT_URL,
                     pathExcludes = listOf(pathExclude),
                     licenseFindingCurations = listOf(licenseFindingCuration)
                 )
@@ -328,14 +329,14 @@ object OrtTestData {
         ),
         vcs = VcsInfo(
             type = VcsType.GIT,
-            url = projectRepositoryUrl,
+            url = PROJECT_REPOSITORY_URL,
             revision = "",
             path = ""
         ),
         vcsProcessed = VcsInfo(
             type = VcsType.GIT,
-            url = projectProcessedRepositoryUrl,
-            revision = projectRevision,
+            url = PROJECT_PROCESSED_REPOSITORY_URL,
+            revision = PROJECT_REVISION,
             path = ""
         ),
         description = "description",
@@ -369,14 +370,14 @@ object OrtTestData {
         description = "Example description",
         homepageUrl = "https://example.org/package",
         binaryArtifact = RemoteArtifact(
-            url = pkgBinaryArtifactUrl,
+            url = PKG_BINARY_ARTIFACT_URL,
             hash = Hash(
                 value = "123456",
                 algorithm = HashAlgorithm.UNKNOWN
             )
         ),
         sourceArtifact = RemoteArtifact(
-            url = pkgSourceArtifactUrl,
+            url = PKG_SOURCE_ARTIFACT_URL,
             hash = Hash(
                 value = "654321",
                 algorithm = HashAlgorithm.UNKNOWN
@@ -384,14 +385,14 @@ object OrtTestData {
         ),
         vcs = VcsInfo(
             type = VcsType.GIT,
-            url = pkgRepositoryUrl,
-            revision = pkgRevision,
+            url = PKG_REPOSITORY_URL,
+            revision = PKG_REVISION,
             path = ""
         ),
         vcsProcessed = VcsInfo(
             type = VcsType.GIT,
-            url = pkgProcessedRepositoryUrl,
-            revision = pkgRevision,
+            url = PKG_PROCESSED_REPOSITORY_URL,
+            revision = PKG_REVISION,
             path = ""
         ),
         isMetadataOnly = true,
@@ -566,7 +567,7 @@ object OrtTestData {
         packageConfigurations = listOf(
             PackageConfiguration(
                 id = pkgIdentifier,
-                sourceArtifactUrl = pkgCuratedSourceArtifactUrl,
+                sourceArtifactUrl = PKG_CURATED_SOURCE_ARTIFACT_URL,
                 pathExcludes = listOf(pathExclude),
                 licenseFindingCurations = listOf(licenseFindingCuration)
             )

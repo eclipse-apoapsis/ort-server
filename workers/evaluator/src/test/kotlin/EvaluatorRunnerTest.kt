@@ -154,7 +154,7 @@ class EvaluatorRunnerTest : WordSpec({
             result.packageConfigurations should containExactly(
                 PackageConfiguration(
                     id = OrtTestData.pkgIdentifier,
-                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    sourceArtifactUrl = OrtTestData.PKG_CURATED_SOURCE_ARTIFACT_URL,
                     pathExcludes = listOf(OrtTestData.pathExclude),
                     licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
                 )
@@ -212,7 +212,7 @@ class EvaluatorRunnerTest : WordSpec({
             result.packageConfigurations should containExactly(
                 PackageConfiguration(
                     id = OrtTestData.pkgIdentifier,
-                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    sourceArtifactUrl = OrtTestData.PKG_CURATED_SOURCE_ARTIFACT_URL,
                     pathExcludes = emptyList(),
                     licenseFindingCurations = listOf(
                         LicenseFindingCuration(
