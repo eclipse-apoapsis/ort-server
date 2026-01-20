@@ -127,6 +127,39 @@ class PostOrganizationInfrastructureServiceIntegrationTest : InfrastructureServi
             }
         }
 
+        "respond with 'Bad Request' if the infrastructure service's name is empty" {
+            infrastructureServicesTestApplication { client ->
+                install(StatusPages) {
+                    // TODO: This should use the same config as in core.
+                    exception<RequestValidationException> { call, e ->
+                        call.respondError(
+                            HttpStatusCode.BadRequest,
+                            message = "Request validation has failed.",
+                            cause = e.message
+                        )
+                    }
+                }
+
+                val createInfrastructureService = PostInfrastructureService(
+                    "",
+                    "https://repo.example.org/test",
+                    "test description",
+                    orgUserSecret,
+                    orgPassSecret
+                )
+
+                val response = client.post("/organizations/$orgId/infrastructure-services") {
+                    setBody(createInfrastructureService)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for PostInfrastructureService"
+            }
+        }
+
         "respond with 'Conflict' if service with same name and orgId already exists" {
             infrastructureServicesTestApplication { client ->
                 install(StatusPages) {
