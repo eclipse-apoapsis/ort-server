@@ -19,7 +19,7 @@
 # Gradle plugins
 buildConfigPlugin = "6.0.7"
 dependencyAnalysisPlugin = "3.5.1"
-detektPlugin = "1.23.8"
+detektPlugin = "2.0.0-alpha.1"
 gitSemverPlugin = "0.18.0"
 jibPlugin = "3.5.2"
 kotlinPlugin = "2.2.21"
@@ -77,7 +77,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
 [libraries]
 # These are Maven coordinates for Gradle plugins, which is necessary to use them in precompiled plugin scripts.
 plugin-dependencyAnalysis = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dependencyAnalysisPlugin" }
-plugin-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detektPlugin" }
+plugin-detekt = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detektPlugin" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinPlugin" }
 plugin-mavenPublish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublishPlugin" }
 
