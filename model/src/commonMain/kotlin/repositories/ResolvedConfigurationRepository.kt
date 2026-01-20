@@ -21,9 +21,9 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 /**
  * A repository for [ResolvedConfiguration]s.
@@ -52,8 +52,12 @@ interface ResolvedConfigurationRepository {
     fun addPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>)
 
     /**
-     * Add the provided [resolutions] to the [ResolvedConfiguration] of the [OrtRun] identified by [ortRunId]. If there
-     * is no [ResolvedConfiguration] for the [OrtRun] it is created.
+     * Add the provided [resolvedItems] to the [ResolvedConfiguration] of the [OrtRun] identified by [ortRunId].
+     * This stores both:
+     * 1. The unique resolutions (issues, rule violations, vulnerabilities) to the resolved configuration
+     * 2. The mappings between items and their matching resolutions for efficient statistics queries
+     *
+     * If there is no [ResolvedConfiguration] for the [OrtRun] it is created.
      */
-    fun addResolutions(ortRunId: Long, resolutions: Resolutions)
+    fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult)
 }
