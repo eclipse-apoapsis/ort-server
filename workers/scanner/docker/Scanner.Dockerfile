@@ -59,7 +59,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ARG ASKALONO_VERSION=0.5.0
 ARG LICENSEE_VERSION=9.18.0
 ARG RUBY_VERSION=3.4.4
-ARG SCANCODE_VERSION=32.4.1
+ARG SCANCODE_VERSION=32.5.0
 
 # Install Askalono
 RUN curl -LOs https://github.com/amzn/askalono/releases/download/$ASKALONO_VERSION/askalono-Linux.zip && \
