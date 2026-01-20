@@ -1135,7 +1135,7 @@ class OrtRunServiceTest : WordSpec({
             val configurations = listOf(
                 OrtPackageConfiguration(
                     id = OrtTestData.pkgIdentifier,
-                    sourceArtifactUrl = OrtTestData.pkgCuratedSourceArtifactUrl,
+                    sourceArtifactUrl = OrtTestData.PKG_CURATED_SOURCE_ARTIFACT_URL,
                     pathExcludes = listOf(OrtTestData.pathExclude),
                     licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
                 ),
@@ -1143,8 +1143,8 @@ class OrtRunServiceTest : WordSpec({
                     id = OrtTestData.pkgIdentifier,
                     vcs = VcsMatcher(
                         type = VcsType.GIT,
-                        url = OrtTestData.pkgCuratedRepositoryUrl,
-                        revision = OrtTestData.pkgCuratedRevision
+                        url = OrtTestData.PKG_CURATED_REPOSITORY_URL,
+                        revision = OrtTestData.PKG_CURATED_REVISION
                     ),
                     pathExcludes = listOf(OrtTestData.pathExclude),
                     licenseFindingCurations = listOf(OrtTestData.licenseFindingCuration)
