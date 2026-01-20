@@ -61,8 +61,6 @@ ktlint:
     active: false
   MaximumLineLength:
     active: false
-  NoUnusedImports:
-    active: false
   NoWildcardImports:
     active: false
   ParameterListWrapping:
@@ -103,8 +101,6 @@ style:
     active: true
   ThrowsCount:
     max: 5
-  UnusedImport:
-    active: true
   WildcardImport:
     excludeImports:
       - org.eclipse.apoapsis.ortserver.core.plugins.*
