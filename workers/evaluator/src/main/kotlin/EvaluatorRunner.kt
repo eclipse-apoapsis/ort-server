@@ -21,10 +21,12 @@ package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.evaluator.Evaluator
@@ -42,7 +44,6 @@ import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
-import org.ossreviewtoolkit.utils.config.ConfigurationResolver
 import org.ossreviewtoolkit.utils.config.setPackageConfigurations
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -146,7 +147,7 @@ class EvaluatorRunner(
 
         val evaluatorRun = evaluator.run(script)
 
-        val resolutions = ConfigurationResolver.resolveResolutions(
+        val resolvedItems = resolveResolutionsWithMappings(
             issues = resolvedOrtResult.getIssues().values.flatten(),
             ruleViolations = evaluatorRun.violations,
             vulnerabilities = resolvedOrtResult.getVulnerabilities().values.flatten(),
@@ -156,7 +157,7 @@ class EvaluatorRunner(
         return EvaluatorRunnerResult(
             evaluatorRun,
             resolvedOrtResult.resolvedConfiguration.packageConfigurations.orEmpty(),
-            resolutions
+            resolvedItems
         )
     }
 }
@@ -164,5 +165,5 @@ class EvaluatorRunner(
 data class EvaluatorRunnerResult(
     val evaluatorRun: EvaluatorRun,
     val packageConfigurations: List<PackageConfiguration>,
-    val resolutions: Resolutions
+    val resolvedItems: ResolvedItemsResult
 )

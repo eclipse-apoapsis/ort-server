@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
@@ -63,7 +64,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactor
 
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
@@ -117,7 +117,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { startEvaluatorJob(any()) } returns evaluatorJob
             every { storeEvaluatorRun(any()) } returns mockk()
             every { storeResolvedPackageConfigurations(any(), any()) } just runs
-            every { storeResolvedResolutions(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val configManager = mockk<ConfigManager> {
@@ -144,10 +144,11 @@ class EvaluatorWorkerTest : StringSpec({
             endTime = JavaInstant.parse("2025-06-18T07:42:17Z"),
             violations = emptyList()
         )
+        val resolvedItems = ResolvedItemsResult.EMPTY
         val evaluatorResult = EvaluatorRunnerResult(
             evaluatorRun = ortEvaluatorRun,
             packageConfigurations = listOf(mockk()),
-            resolutions = mockk()
+            resolvedItems = resolvedItems
         )
         val runner = mockk<EvaluatorRunner>()
         coEvery { runner.run(any(), any(), any()) } returns evaluatorResult
@@ -167,6 +168,7 @@ class EvaluatorWorkerTest : StringSpec({
 
             coVerify(exactly = 1) {
                 ortRunService.storeEvaluatorRun(evaluatorRun)
+                ortRunService.storeResolvedItems(ORT_RUN_ID, resolvedItems)
             }
         }
     }
@@ -226,7 +228,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { startEvaluatorJob(any()) } returns evaluatorJob
             every { storeEvaluatorRun(any()) } returns mockk()
             every { storeResolvedPackageConfigurations(any(), any()) } just runs
-            every { storeResolvedResolutions(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val configManager = mockk<ConfigManager> {
@@ -248,7 +250,7 @@ class EvaluatorWorkerTest : StringSpec({
 
         val runner = spyk(EvaluatorRunner(mockk(), mockk()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
-            OrtTestData.evaluatorRun, emptyList(), Resolutions()
+            OrtTestData.evaluatorRun, emptyList(), ResolvedItemsResult.EMPTY
         )
         val worker = EvaluatorWorker(
             mockk(),
@@ -294,7 +296,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { startEvaluatorJob(any()) } returns evaluatorJob
             every { storeEvaluatorRun(any()) } returns mockk()
             every { storeResolvedPackageConfigurations(any(), any()) } just runs
-            every { storeResolvedResolutions(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val configManager = mockk<ConfigManager> {
@@ -316,7 +318,7 @@ class EvaluatorWorkerTest : StringSpec({
 
         val runner = spyk(EvaluatorRunner(mockk(), mockk()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
-            OrtTestData.evaluatorRun, emptyList(), Resolutions()
+            OrtTestData.evaluatorRun, emptyList(), ResolvedItemsResult.EMPTY
         )
         val worker = EvaluatorWorker(
             mockk(),
