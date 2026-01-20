@@ -51,5 +51,5 @@ data class Repository(
     /**
     * The description of the repository.
     * */
-    val description: String? = null,
+    val description: String? = null
 )

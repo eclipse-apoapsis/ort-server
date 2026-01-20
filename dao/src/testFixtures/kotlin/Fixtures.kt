@@ -211,7 +211,7 @@ class Fixtures(private val db: Database) {
 
         val analyzerJob = createAnalyzerJob(
             ortRunId = ortRun.id,
-            configuration = AnalyzerJobConfiguration(),
+            configuration = AnalyzerJobConfiguration()
         )
 
         createAnalyzerRun(

@@ -192,7 +192,7 @@ class UserWithGroupsHelperTest : WordSpec({
                 0,
                 listOf(
                     SortProperty("group", SortDirection.ASCENDING),
-                    SortProperty("username", SortDirection.ASCENDING),
+                    SortProperty("username", SortDirection.ASCENDING)
                 )
             )
 

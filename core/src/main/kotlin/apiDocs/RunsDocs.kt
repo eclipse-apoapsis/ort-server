@@ -232,7 +232,7 @@ val getRunIssues: RouteConfig.() -> Unit = {
                                 message = "An issue",
                                 severity = Severity.ERROR,
                                 source = "source",
-                                timestamp = CREATED_AT,
+                                timestamp = CREATED_AT
                             )
                         ),
                         PagingData(
@@ -645,7 +645,7 @@ val getRuns: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 1,
-                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING)),
+                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING))
                         ),
                         OrtRunFilters(
                             status = FilterOperatorAndValue(

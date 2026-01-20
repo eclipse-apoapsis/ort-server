@@ -43,5 +43,5 @@ enum class ComparisonOperator {
 }
 
 data class FilterParameter(
-    val value: String,
+    val value: String
 )

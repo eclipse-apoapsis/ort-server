@@ -269,7 +269,7 @@ private fun createArtifactProvenance(artifactProvenance: RemoteArtifact) =
                     algorithm = artifactProvenance.hash.algorithm
                 )
             )
-        ),
+        )
     )
 
 private fun createRepositoryProvenance(vcsInfo: VcsInfo) =

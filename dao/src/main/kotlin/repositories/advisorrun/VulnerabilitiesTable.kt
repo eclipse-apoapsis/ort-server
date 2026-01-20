@@ -47,7 +47,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByVulnerability(vulnerability: Vulnerability): VulnerabilityDao? =
             VulnerabilitiesTable
                 .select(
-                    VulnerabilitiesTable.id,
+                    VulnerabilitiesTable.id
                 )
                 .where {
                     (VulnerabilitiesTable.externalId eq vulnerability.externalId) and

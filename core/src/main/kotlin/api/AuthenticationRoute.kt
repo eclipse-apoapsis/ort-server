@@ -50,7 +50,7 @@ fun Route.authentication() = route("auth") {
 
             val oidcConfig = OidcConfig(
                 accessTokenUrl = accessTokenUrl,
-                clientId = applicationConfig.property("jwt.audience").getString(),
+                clientId = applicationConfig.property("jwt.audience").getString()
             )
 
             call.respond(HttpStatusCode.OK, oidcConfig.mapToApi())

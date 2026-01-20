@@ -97,6 +97,6 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
         licenseSources = licenseSources?.split(',')?.filterTo(mutableSetOf()) { it.isNotEmpty() }.orEmpty(),
         severity = severity,
         message = message,
-        howToFix = howToFix,
+        howToFix = howToFix
     )
 }

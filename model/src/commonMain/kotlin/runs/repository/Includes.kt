@@ -24,5 +24,5 @@ package org.eclipse.apoapsis.ortserver.model.runs.repository
  */
 data class Includes(
     /** A list of [PathInclude] objects defining patterns and reasons for including specific paths. */
-    val paths: List<PathInclude> = emptyList(),
+    val paths: List<PathInclude> = emptyList()
 )

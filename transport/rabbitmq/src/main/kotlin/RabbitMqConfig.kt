@@ -38,7 +38,7 @@ class RabbitMqConfig(
     val username: String,
 
     /** The password that is used to connect to RabbitMQ. */
-    val password: String,
+    val password: String
 ) {
     companion object {
         /**
@@ -67,7 +67,7 @@ class RabbitMqConfig(
                 serverUri = configManager.getString(SERVER_URI_PROPERTY),
                 queueName = configManager.getString(QUEUE_NAME_PROPERTY),
                 username = configManager.getSecret(USERNAME_PROPERTY),
-                password = configManager.getSecret(PASSWORD_PROPERTY),
+                password = configManager.getSecret(PASSWORD_PROPERTY)
             )
     }
 

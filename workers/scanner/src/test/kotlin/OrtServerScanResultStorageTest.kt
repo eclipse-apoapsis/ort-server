@@ -97,7 +97,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val scanResult = createScanResult(
                     "ScanCode",
                     createIssue("source1"),
-                    provenance,
+                    provenance
                 )
                 scanResultStorage.write(scanResult)
 
@@ -113,7 +113,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val scanResult = createScanResult(
                     "ScanCode",
                     createIssue("source1"),
-                    provenance,
+                    provenance
                 )
                 scanResultStorage.write(scanResult)
 

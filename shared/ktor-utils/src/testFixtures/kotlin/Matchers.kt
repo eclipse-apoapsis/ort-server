@@ -37,7 +37,7 @@ inline fun <reified T> haveBody(expected: T) = object : Matcher<HttpResponse> {
         return MatcherResult(
             body == expected,
             { "Response should have body $expected but had body $body." },
-            { "Response should not have body $expected." },
+            { "Response should not have body $expected." }
         )
     }
 }

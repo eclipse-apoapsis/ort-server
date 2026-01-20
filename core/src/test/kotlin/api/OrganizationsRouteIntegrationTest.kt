@@ -189,7 +189,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 2,
-                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -210,7 +210,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 0,
-                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                     )
                 )
             }
@@ -230,7 +230,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = 1,
                         offset = 0,
                         totalCount = 2,
-                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING)),
+                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
             }
@@ -250,7 +250,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 1,
-                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING)),
+                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )
             }
@@ -272,7 +272,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 2,
-                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)), // default sort
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)) // default sort
                     )
                 )
             }
@@ -294,7 +294,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 2,
-                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)), // default sort
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)) // default sort
                     )
                 )
             }
@@ -1319,7 +1319,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             rating = VulnerabilityRating.HIGH,
                             ortRunIds = listOf(run1Id, run2Id),
                             repositoriesCount = 2
-                        ),
+                        )
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -1490,7 +1490,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             rating = VulnerabilityRating.MEDIUM,
                             ortRunIds = listOf(run1Id, run2Id),
                             repositoriesCount = 2
-                        ),
+                        )
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -1543,7 +1543,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     processedDeclaredLicense = ProcessedDeclaredLicense(
                         spdxExpression = null,
                         mappedLicenses = emptyMap(),
-                        unmappedLicenses = emptySet(),
+                        unmappedLicenses = emptySet()
                     ),
                     description = "An example package",
                     homepageUrl = "https://example.com",
@@ -1620,7 +1620,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             message = "Issue",
                             severity = Severity.WARNING,
                             affectedPath = "path"
-                        ),
+                        )
                     )
                 )
                 dbExtension.fixtures.analyzerJobRepository.update(
@@ -1658,7 +1658,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                                             )
                                         )
                                     )
-                                ),
+                                )
                     )
                 )
                 dbExtension.fixtures.advisorJobRepository.update(advJobId, status = JobStatus.FINISHED.asPresent2())

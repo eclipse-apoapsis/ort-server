@@ -40,7 +40,7 @@ data class SecretVariableDefinition(
     override val name: String,
 
     /** The secret defining the value of the variable. */
-    val valueSecret: Secret,
+    val valueSecret: Secret
 ) : EnvironmentVariableDefinition
 
 /**

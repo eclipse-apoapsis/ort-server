@@ -37,5 +37,5 @@ data class PackageCurationData(
     val isModified: Boolean?,
     val declaredLicenseMapping: Map<String, String>,
     val sourceCodeOrigins: List<SourceCodeOrigin>?,
-    val labels: Map<String, String>,
+    val labels: Map<String, String>
 )

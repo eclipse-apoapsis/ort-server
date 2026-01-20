@@ -36,7 +36,7 @@ data class User(
     val lastName: String? = null,
 
     /** The mail address of the user. */
-    val email: String? = null,
+    val email: String? = null
 )
 
 /**

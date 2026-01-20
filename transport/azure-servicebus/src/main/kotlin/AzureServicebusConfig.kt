@@ -50,7 +50,7 @@ class AzureServicebusConfig(
         fun createConfig(configManager: ConfigManager) =
             AzureServicebusConfig(
                 namespace = configManager.getString(NAMESPACE_PROPERTY),
-                queueName = configManager.getString(QUEUE_NAME_PROPERTY),
+                queueName = configManager.getString(QUEUE_NAME_PROPERTY)
             )
     }
 }

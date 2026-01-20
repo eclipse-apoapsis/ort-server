@@ -50,7 +50,7 @@ class AdminConfig(
     private val ruleSets: Map<String, RuleSet> = emptyMap(),
 
     /** The global mirror for Maven Central. */
-    val mavenCentralMirror: MavenCentralMirror? = null,
+    val mavenCentralMirror: MavenCentralMirror? = null
 
 ) {
     companion object {

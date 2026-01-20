@@ -351,7 +351,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     issues = emptyList(),
                     jobConfigContext = null,
                     resolvedJobConfigContext = null,
-                    traceId = "trace-id",
+                    traceId = "trace-id"
                 )
                 coEvery { setupAuthentication(any(), any()) } just runs
             }

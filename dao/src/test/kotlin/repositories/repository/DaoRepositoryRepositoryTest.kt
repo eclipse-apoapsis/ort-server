@@ -130,7 +130,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         repositoryRepository.list(urlFilter = FilterParameter("repository.git$")) shouldBe ListQueryResult(
             data = listOf(
                 Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
-                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description)
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 2
@@ -185,7 +185,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         result shouldBe ListQueryResult(
             data = listOf(
                 Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
-                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description)
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 2
@@ -216,7 +216,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         result shouldBe ListQueryResult(
             data = listOf(
                 Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
-                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description)
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 2
@@ -250,7 +250,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         result shouldBe ListQueryResult(
             data = listOf(
                 Repository(repo1.id, organization1.id, repo1.productId, repo1.type, repo1.url, repo1.description),
-                Repository(repo2.id, organization2.id, repo2.productId, repo2.type, repo2.url, repo2.description),
+                Repository(repo2.id, organization2.id, repo2.productId, repo2.type, repo2.url, repo2.description)
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 2
@@ -349,7 +349,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
             organizationId = orgId,
             productId = productId,
             type = updateType.value,
-            url = updateUrl.value,
+            url = updateUrl.value
         )
     }
 

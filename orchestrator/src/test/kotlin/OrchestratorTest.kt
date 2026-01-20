@@ -102,7 +102,7 @@ import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 class OrchestratorTest : WordSpec() {
     private val msgHeader = MessageHeader(
         traceId = "traceId",
-        ortRunId = RUN_ID,
+        ortRunId = RUN_ID
     )
 
     private val msgHeaderWithProperties = msgHeader.copy(

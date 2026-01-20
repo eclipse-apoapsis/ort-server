@@ -52,5 +52,5 @@ data class EvaluatorJob(
     /**
      * The job status.
      */
-    val status: JobStatus,
+    val status: JobStatus
 )

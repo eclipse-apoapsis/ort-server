@@ -160,7 +160,7 @@ class DaoProductRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod1Id, prod2Id)),
-            nonTransitiveIncludes = emptyMap(),
+            nonTransitiveIncludes = emptyMap()
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -187,7 +187,7 @@ class DaoProductRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org1Id, org2Id)),
-            nonTransitiveIncludes = emptyMap(),
+            nonTransitiveIncludes = emptyMap()
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -216,7 +216,7 @@ class DaoProductRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod1Id)),
-            nonTransitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod2Id)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod2Id))
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -245,7 +245,7 @@ class DaoProductRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(HierarchyLevel.REPOSITORY to listOf(repoId)),
-            nonTransitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prodId)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prodId))
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -375,14 +375,14 @@ class DaoProductRepositoryTest : StringSpec({
             createdProduct.id,
             orgId,
             updateName.value,
-            updateDescription.value,
+            updateDescription.value
         )
 
         productRepository.get(createdProduct.id) shouldBe Product(
             createdProduct.id,
             orgId,
             updateName.value,
-            updateDescription.value,
+            updateDescription.value
         )
     }
 

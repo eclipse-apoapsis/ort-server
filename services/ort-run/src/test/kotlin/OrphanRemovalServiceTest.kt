@@ -696,7 +696,7 @@ class OrphanRemovalServiceTest : WordSpec() {
         binaryArtifactId: Long = createRemoteArtifactsTableEntry().value,
         sourceArtifactId: Long = createRemoteArtifactsTableEntry().value,
         vcsInfoCurationDataId: Long = createVcsInfoCurationDataTableEntry().value,
-        hasAuthors: Boolean = false,
+        hasAuthors: Boolean = false
     ) = PackageCurationDataTable.insert {
         it[this.binaryArtifactId] = binaryArtifactId
         it[this.sourceArtifactId] = sourceArtifactId
@@ -832,7 +832,7 @@ class OrphanRemovalServiceTest : WordSpec() {
         scanSummaryId: Long,
         path: String = "path/" + Random.Default.nextInt(0, 10000),
         startLine: Int = Random.Default.nextInt(0, 10000),
-        endLine: Int = Random.Default.nextInt(0, 10000),
+        endLine: Int = Random.Default.nextInt(0, 10000)
     ) = SnippetFindingsTable.insert {
         it[this.scanSummaryId] = scanSummaryId
         it[this.path] = path

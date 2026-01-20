@@ -131,10 +131,10 @@ class PackageServiceTest : WordSpec() {
                                 spdxExpression = "LicenseRef-license",
                                 mappedLicenses = mapOf(
                                     "License 1" to "LicenseRef-mapped-1",
-                                    "License 2" to "LicenseRef-mapped-2",
+                                    "License 2" to "LicenseRef-mapped-2"
                                 ),
                                 unmappedLicenses = setOf("License 3", "License 4")
-                            ),
+                            )
                         )
                     )
                 ).id
@@ -153,7 +153,7 @@ class PackageServiceTest : WordSpec() {
                         spdxExpression shouldBe "LicenseRef-license"
                         mappedLicenses shouldBe mapOf(
                             "License 1" to "LicenseRef-mapped-1",
-                            "License 2" to "LicenseRef-mapped-2",
+                            "License 2" to "LicenseRef-mapped-2"
                         )
                         unmappedLicenses shouldHaveSize 2
                         unmappedLicenses shouldBe setOf("License 3", "License 4")
@@ -708,7 +708,7 @@ class PackageServiceTest : WordSpec() {
 
         val analyzerJob = fixtures.createAnalyzerJob(
             ortRunId = ortRun.id,
-            configuration = AnalyzerJobConfiguration(),
+            configuration = AnalyzerJobConfiguration()
         )
 
         fixtures.createAnalyzerRun(

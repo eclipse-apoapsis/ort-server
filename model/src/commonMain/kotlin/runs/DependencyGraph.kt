@@ -26,5 +26,5 @@ data class DependencyGraph(
     val packages: List<Identifier>,
     val nodes: List<DependencyGraphNode>,
     val edges: Set<DependencyGraphEdge>,
-    val scopes: Map<String, List<DependencyGraphRoot>>,
+    val scopes: Map<String, List<DependencyGraphRoot>>
 )

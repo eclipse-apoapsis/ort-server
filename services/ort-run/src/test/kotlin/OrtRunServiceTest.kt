@@ -201,7 +201,7 @@ class OrtRunServiceTest : WordSpec({
         val reports = listOf(
             Report("abc123", "https://example.com/report/abc123", Clock.System.now()),
             Report("def456", "https://example.com/report/def456", Clock.System.now()),
-            Report("ghi789", "https://example.com/report/ghi789", Clock.System.now()),
+            Report("ghi789", "https://example.com/report/ghi789", Clock.System.now())
         )
 
         fixtures.reporterRunRepository.create(
@@ -1488,7 +1488,7 @@ private fun createScanResults(): Set<ScanResult> {
                             startLine = 6,
                             endLine = 6
                         )
-                    ),
+                    )
                 ),
                 copyrightFindings = setOf(
                     CopyrightFinding(
@@ -1506,7 +1506,7 @@ private fun createScanResults(): Set<ScanResult> {
                             startLine = 1,
                             endLine = 1
                         )
-                    ),
+                    )
                 ),
                 snippetFindings = setOf(
                     SnippetFinding(

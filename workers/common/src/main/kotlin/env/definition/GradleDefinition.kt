@@ -30,5 +30,5 @@ import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureServi
 class GradleDefinition(
     service: ResolvedInfrastructureService,
 
-    credentialsTypes: Set<CredentialsType>?,
+    credentialsTypes: Set<CredentialsType>?
 ) : EnvironmentServiceDefinition(service, credentialsTypes)

@@ -124,11 +124,11 @@ internal val fullJobConfigurations = JobConfigurations(
         skipExcluded = true
     ),
     evaluator = EvaluatorJobConfiguration(
-        packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
+        packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig"))
     ),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp")),
     notifier = NotifierJobConfiguration(
-        recipientAddresses = listOf("mail@example.com", "info@example.com"),
+        recipientAddresses = listOf("mail@example.com", "info@example.com")
     ),
     ruleSet = "default"
 )
@@ -366,7 +366,7 @@ val getRepositoryRuns: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 2,
-                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING)),
+                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING))
                         )
                     )
                 }
@@ -399,7 +399,7 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
                     jobConfigs = fullJobConfigurations,
                     labels = mapOf("label key" to "label value"),
                     path = "optional VCS sub-path",
-                    jobConfigContext = "optional context",
+                    jobConfigContext = "optional context"
                 )
             }
         }

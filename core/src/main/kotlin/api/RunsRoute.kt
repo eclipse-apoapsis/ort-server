@@ -487,7 +487,7 @@ private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
  */
 private fun ApplicationCall.issueFilters() =
     IssueFilter(
-        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
 /**

@@ -222,7 +222,7 @@ class AdminConfigService(
                 JiraRestClientConfiguration(
                     serverUrl = getString("url"),
                     username = getString("username"),
-                    password = getString("password"),
+                    password = getString("password")
                 )
             }
 

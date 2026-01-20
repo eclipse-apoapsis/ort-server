@@ -216,7 +216,7 @@ private val packageCurations1 = ResolvedPackageCurations(
                 comment = "comment1",
                 labels = mapOf("key1" to "value1", "key2" to "value2"),
                 sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
-            ),
+            )
         ),
         PackageCuration(
             id = identifier2,

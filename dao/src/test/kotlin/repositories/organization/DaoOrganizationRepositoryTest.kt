@@ -161,7 +161,7 @@ class DaoOrganizationRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org1Id, org2Id)),
-            nonTransitiveIncludes = emptyMap(),
+            nonTransitiveIncludes = emptyMap()
         )
         val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -181,7 +181,7 @@ class DaoOrganizationRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org1Id)),
-            nonTransitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org2Id)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org2Id))
         )
         val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
 

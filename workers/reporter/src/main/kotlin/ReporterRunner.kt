@@ -204,7 +204,7 @@ class ReporterRunner(
         resolvedOrtResult: OrtResult,
         copyrightGarbage: CopyrightGarbage,
         licenseClassifications: LicenseClassifications,
-        howToFixTextProvider: HowToFixTextProvider,
+        howToFixTextProvider: HowToFixTextProvider
     ): Pair<List<Pair<String, Map<String, File>>>, List<Issue>> =
         withContext(Dispatchers.IO) {
             val outputDir = context.createTempDir()
@@ -450,7 +450,7 @@ private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
         timestamp = Clock.System.now(),
         source = "Reporter",
         message = "Could not create report for '$format': '${e.message}'",
-        severity = Severity.ERROR,
+        severity = Severity.ERROR
     )
 }
 

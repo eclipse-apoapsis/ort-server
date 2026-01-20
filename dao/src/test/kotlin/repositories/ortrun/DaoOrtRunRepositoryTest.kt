@@ -697,7 +697,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 issues = listOf(issue2, issue3).asPresent()
             )
             val expectedResult = ortRun.copy(
-                issues = listOf(issue1, issue2, issue3),
+                issues = listOf(issue1, issue2, issue3)
             )
             updateResult shouldBe expectedResult
             ortRunRepository.get(ortRun.id) shouldBe expectedResult

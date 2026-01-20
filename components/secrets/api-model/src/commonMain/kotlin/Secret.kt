@@ -72,5 +72,5 @@ data class PostSecret(
 @Serializable
 data class PatchSecret(
     val value: OptionalValue<String> = OptionalValue.Absent,
-    val description: OptionalValue<String> = OptionalValue.Absent,
+    val description: OptionalValue<String> = OptionalValue.Absent
 )
