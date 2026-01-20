@@ -17,8 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import io.gitlab.arturbosch.detekt.Detekt
-
 plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-conventions")
@@ -38,8 +36,4 @@ kotlin {
             }
         }
     }
-}
-
-tasks.named<Detekt>("detekt") {
-    dependsOn("detektMetadataMain")
 }

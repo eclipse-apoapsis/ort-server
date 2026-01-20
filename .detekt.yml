@@ -15,9 +15,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-# Configuration of detekt rule sets, see https://arturbosch.github.io/detekt/comments.html.
+# Configuration of detekt rule sets, see https://detekt.dev/docs/intro.
 # This file only lists the differences to the default configuration at
-# https://github.com/arturbosch/detekt/blob/master/detekt-cli/src/main/resources/default-detekt-config.yml.
+# https://github.com/detekt/detekt/blob/main/detekt-core/src/main/resources/default-detekt-config.yml.
 
 comments:
   AbsentOrWrongFileLicense:
@@ -28,17 +28,17 @@ comments:
 
 complexity:
   CyclomaticComplexMethod:
-    threshold: 33
+    allowedComplexity: 33
   LongMethod:
-    threshold: 158
+    allowedLines: 158
   LongParameterList:
-    constructorThreshold: 11
-    functionThreshold: 11
+    allowedConstructorParameters: 11
+    allowedFunctionParameters: 11
   NestedBlockDepth:
-    threshold: 10
+    allowedDepth: 10
   TooManyFunctions:
-    thresholdInClasses: 19
-    thresholdInObjects: 14
+    allowedFunctionsPerClass: 19
+    allowedFunctionsPerObject: 14
 
 coroutines:
   InjectDispatcher:
@@ -46,7 +46,7 @@ coroutines:
 
 # Formatting rules are implemented via the ktlint plugin. As ktlint does not allow exceptions, we need to disable
 # respective rules completely.
-formatting:
+ktlint:
   AnnotationOnSeparateLine:
     active: false
   ChainWrapping:
@@ -99,21 +99,19 @@ style:
     active: false
   ReturnCount:
     active: false
-  SpacingBetweenPackageAndImports:
+  SpacingAfterPackageDeclaration:
     active: true
   ThrowsCount:
     max: 5
-  UnusedImports:
+  UnusedImport:
     active: true
   WildcardImport:
-    excludes: ''
     excludeImports:
       - org.eclipse.apoapsis.ortserver.core.plugins.*
 
 ORT:
   OrtImportOrder:
     active: true
-    autoCorrect: true
   OrtPackageNaming:
     # TODO: Implement package naming check for ort-server.
     active: false

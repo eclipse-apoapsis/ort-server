@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -29,11 +29,11 @@ plugins {
     id("ort-server-base-conventions")
 
     // Apply third-party plugins.
-    id("io.gitlab.arturbosch.detekt")
+    id("dev.detekt")
 }
 
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${libs.versions.detektPlugin.get()}")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:${libs.versions.detektPlugin.get()}")
     detektPlugins("org.ossreviewtoolkit:detekt-rules:$detektRulesVersion")
 }
 
@@ -50,7 +50,7 @@ detekt {
         "src/testFixtures/kotlin"
     )
 
-    basePath = rootDir.path
+    basePath = rootDir
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -70,9 +70,8 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.withType<Detekt>().configureEach {
-    autoCorrect = true
     exclude {
-        "/build/generated/" in it.file.absolutePath
+        "/build/generated/" in it.file.absoluteFile.invariantSeparatorsPath
     }
 }
 
