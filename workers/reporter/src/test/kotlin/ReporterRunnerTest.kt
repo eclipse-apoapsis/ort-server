@@ -650,8 +650,6 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.resolvedResolutions should beNull()
-
             reporterInputSlot.isCaptured shouldBe true
             DefaultResolutionProvider(reporterInputSlot.captured.ortResult.repository.config.resolutions).apply {
                 isResolved(OrtTestData.issue) shouldBe true
@@ -680,8 +678,40 @@ class ReporterRunnerTest : WordSpec({
                 evaluatorConfig = null,
                 mockContext()
             )
+        }
 
-            result.resolvedResolutions shouldBe OrtTestData.result.repository.config.resolutions
+        "not return resolvedItems when evaluator ran" {
+            val runner = createRunner(config = testReportConfig)
+
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
+
+            val result = runner.run(
+                ortResult = OrtTestData.result,
+                config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
+                evaluatorConfig = EvaluatorJobConfiguration(),
+                mockContext()
+            )
+
+            result.resolvedItems should beNull()
+        }
+
+        "return resolvedItems when evaluator did not run" {
+            val runner = createRunner(config = testReportConfig)
+
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
+
+            val result = runner.run(
+                ortResult = OrtTestData.result,
+                config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
+                evaluatorConfig = null,
+                mockContext()
+            )
+
+            result.resolvedItems shouldNot beNull()
+            // resolvedItems should have been computed when evaluator didn't run
+            result.resolvedItems!!.issues.isEmpty() shouldBe false
         }
 
         "download asset files" {

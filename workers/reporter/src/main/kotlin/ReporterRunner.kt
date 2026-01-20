@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.config.ReporterAsset
@@ -47,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.OrtResult
@@ -120,6 +122,7 @@ class ReporterRunner(
         )
 
         var resolvedOrtResult = ortResult
+        var resolvedItems: ResolvedItemsResult? = null
 
         if (evaluatorConfig == null) {
             // Resolve package configurations if not already done by the evaluator.
@@ -152,6 +155,14 @@ class ReporterRunner(
             val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
 
             resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
+
+            // Compute resolved items mappings when evaluator didn't run.
+            resolvedItems = resolveResolutionsWithMappings(
+                issues = resolvedOrtResult.getIssues().values.flatten(),
+                ruleViolations = emptyList(), // No evaluator = no rule violations
+                vulnerabilities = resolvedOrtResult.getVulnerabilities().values.flatten(),
+                resolutionProvider = resolutionProvider
+            )
         }
 
         val howToFixTextProviderScript = context.configManager.readConfigFileWithDefault(
@@ -181,12 +192,12 @@ class ReporterRunner(
             name to report.keys.toList()
         }
 
-        // Only return the package configurations and resolutions if they were not already resolved by the
-        // evaluator.
+        // Only return the package configurations and resolved items if they were not already resolved by
+        // the evaluator.
         return ReporterRunnerResult(
             reports,
             resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
-            resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null },
+            resolvedItems,
             issues = issues
         )
     }
@@ -347,7 +358,7 @@ class ReporterRunner(
 data class ReporterRunnerResult(
     val reports: Map<String, List<String>>,
     val resolvedPackageConfigurations: List<PackageConfiguration>?,
-    val resolvedResolutions: Resolutions?,
+    val resolvedItems: ResolvedItemsResult?,
     val issues: List<Issue> = emptyList()
 )
 
