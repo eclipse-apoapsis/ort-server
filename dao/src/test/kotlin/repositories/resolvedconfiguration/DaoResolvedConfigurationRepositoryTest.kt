@@ -26,22 +26,34 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import kotlinx.datetime.Clock
+
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.ResolvedVulnerabilitiesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRuleViolationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
-import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+
+import org.jetbrains.exposed.sql.selectAll
 
 class DaoResolvedConfigurationRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
@@ -135,13 +147,32 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
     }
 
     "addResolutions" should {
-        "add the provided resolutions" {
+        "add the provided resolutions from ResolvedItemsResult" {
+            // Create test issues and use dummy items to store resolutions
+            val dummyIssue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Test",
+                message = "dummy",
+                severity = Severity.WARNING
+            )
+            val dummyViolation = fixtures.ruleViolation
+            val dummyVulnerability = Vulnerability(
+                externalId = "dummy",
+                summary = "dummy",
+                description = "dummy",
+                references = emptyList()
+            )
+
             resolvedConfigurationRepository.addResolutions(
                 ortRunId = ortRunId,
-                resolutions = Resolutions(
-                    issues = listOf(issueResolution1, issueResolution2),
-                    ruleViolations = listOf(ruleViolationResolution1, ruleViolationResolution2),
-                    vulnerabilities = listOf(vulnerabilityResolution1, vulnerabilityResolution2)
+                resolvedItems = ResolvedItemsResult(
+                    issues = mapOf(dummyIssue to listOf(issueResolution1, issueResolution2)),
+                    ruleViolations = mapOf(
+                        dummyViolation to listOf(ruleViolationResolution1, ruleViolationResolution2)
+                    ),
+                    vulnerabilities = mapOf(
+                        dummyVulnerability to listOf(vulnerabilityResolution1, vulnerabilityResolution2)
+                    )
                 )
             )
 
@@ -154,21 +185,26 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
         }
 
         "not overwrite previously added resolutions" {
+            val dummyIssue1 = Issue(Clock.System.now(), "Test", "dummy1", Severity.WARNING)
+            val dummyIssue2 = Issue(Clock.System.now(), "Test", "dummy2", Severity.WARNING)
+            val dummyViolation = fixtures.ruleViolation
+            val dummyVulnerability = Vulnerability("dummy", "dummy", "dummy", emptyList())
+
             resolvedConfigurationRepository.addResolutions(
                 ortRunId = ortRunId,
-                resolutions = Resolutions(
-                    issues = listOf(issueResolution1),
-                    ruleViolations = listOf(ruleViolationResolution1),
-                    vulnerabilities = listOf(vulnerabilityResolution1)
+                resolvedItems = ResolvedItemsResult(
+                    issues = mapOf(dummyIssue1 to listOf(issueResolution1)),
+                    ruleViolations = mapOf(dummyViolation to listOf(ruleViolationResolution1)),
+                    vulnerabilities = mapOf(dummyVulnerability to listOf(vulnerabilityResolution1))
                 )
             )
 
             resolvedConfigurationRepository.addResolutions(
                 ortRunId = ortRunId,
-                resolutions = Resolutions(
-                    issues = listOf(issueResolution2),
-                    ruleViolations = listOf(ruleViolationResolution2),
-                    vulnerabilities = listOf(vulnerabilityResolution2)
+                resolvedItems = ResolvedItemsResult(
+                    issues = mapOf(dummyIssue2 to listOf(issueResolution2)),
+                    ruleViolations = mapOf(dummyViolation to listOf(ruleViolationResolution2)),
+                    vulnerabilities = mapOf(dummyVulnerability to listOf(vulnerabilityResolution2))
                 )
             )
 
@@ -178,6 +214,309 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                 ruleViolations should containExactlyInAnyOrder(ruleViolationResolution1, ruleViolationResolution2)
                 vulnerabilities should containExactlyInAnyOrder(vulnerabilityResolution1, vulnerabilityResolution2)
             }
+        }
+
+        "store resolved issues with their mappings" {
+            // Create an issue in the database first
+            val issue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "Test issue message",
+                severity = Severity.WARNING
+            )
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue)
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = mapOf(issue to listOf(issueResolution1)),
+                ruleViolations = emptyMap(),
+                vulnerabilities = emptyMap()
+            )
+
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify the resolved issue mapping was stored
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedResolvedIssues.size shouldBe 1
+
+            // Verify the resolution was also stored in the resolved configuration
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.issues should containExactly(issueResolution1)
+        }
+
+        "store resolved rule violations with their mappings" {
+            // Create a rule violation via evaluator run
+            val ruleViolation = fixtures.ruleViolation
+
+            fixtures.evaluatorRunRepository.create(
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                violations = listOf(ruleViolation)
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = emptyMap(),
+                ruleViolations = mapOf(ruleViolation to listOf(ruleViolationResolution1)),
+                vulnerabilities = emptyMap()
+            )
+
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify the resolved rule violation mapping was stored
+            val storedResolvedViolations = dbExtension.db.dbQuery {
+                ResolvedRuleViolationsTable.selectAll()
+                    .where { ResolvedRuleViolationsTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedResolvedViolations.size shouldBe 1
+
+            // Verify the resolution was also stored in the resolved configuration
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.ruleViolations should containExactly(ruleViolationResolution1)
+        }
+
+        "store resolved vulnerabilities with their mappings" {
+            // Create a vulnerability via advisor run
+            val vulnerability = Vulnerability(
+                externalId = "CVE-2023-12345",
+                summary = "Test vulnerability",
+                description = "A test vulnerability",
+                references = listOf(
+                    VulnerabilityReference(
+                        url = "https://example.com/vuln",
+                        scoringSystem = "CVSS3",
+                        severity = "HIGH",
+                        score = 7.5f,
+                        vector = "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+                    )
+                )
+            )
+
+            val advisorResult = AdvisorResult(
+                advisorName = "TestAdvisor",
+                capabilities = listOf("VULNERABILITIES"),
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                issues = emptyList(),
+                defects = emptyList(),
+                vulnerabilities = listOf(vulnerability)
+            )
+
+            fixtures.createAdvisorRun(
+                advisorJobId = fixtures.advisorJob.id,
+                results = mapOf(fixtures.identifier to listOf(advisorResult))
+            )
+
+            val vulnerabilityResolution = VulnerabilityResolution(
+                externalId = "CVE-2023-12345",
+                reason = "WILL_NOT_FIX",
+                comment = "Not applicable"
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = emptyMap(),
+                ruleViolations = emptyMap(),
+                vulnerabilities = mapOf(vulnerability to listOf(vulnerabilityResolution))
+            )
+
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify the resolved vulnerability mapping was stored
+            val storedResolvedVulnerabilities = dbExtension.db.dbQuery {
+                ResolvedVulnerabilitiesTable.selectAll()
+                    .where { ResolvedVulnerabilitiesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedResolvedVulnerabilities.size shouldBe 1
+
+            // Verify the resolution was also stored in the resolved configuration
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.vulnerabilities should containExactly(vulnerabilityResolution)
+        }
+
+        "handle empty resolved items" {
+            val resolvedItems = ResolvedItemsResult.EMPTY
+
+            // Should not throw
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify nothing was stored
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedResolvedIssues.size shouldBe 0
+        }
+
+        "handle same resolution matching multiple issues without constraint violation" {
+            // Create two issues in the database
+            val issue1 = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "First test issue",
+                severity = Severity.WARNING
+            )
+            val issue2 = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "Second test issue",
+                severity = Severity.WARNING
+            )
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue1, issue2)
+            )
+
+            // Use the same resolution for both issues (simulating a regex pattern match)
+            val sharedResolution = IssueResolution(
+                message = ".*test issue.*",
+                reason = "CANT_FIX_ISSUE",
+                comment = "Matches multiple issues"
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = mapOf(
+                    issue1 to listOf(sharedResolution),
+                    issue2 to listOf(sharedResolution)
+                ),
+                ruleViolations = emptyMap(),
+                vulnerabilities = emptyMap()
+            )
+
+            // Should not throw unique constraint violation
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify the resolution is stored only once in the resolved configuration
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.issues should containExactly(sharedResolution)
+
+            // Verify mappings were stored for both issues
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues.size shouldBe 2
+        }
+
+        "handle same resolution matching multiple rule violations without constraint violation" {
+            // Create two rule violations via evaluator run
+            val ruleViolation1 = fixtures.ruleViolation
+            val ruleViolation2 = fixtures.ruleViolation.copy(
+                message = "Second rule violation message"
+            )
+
+            fixtures.evaluatorRunRepository.create(
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                violations = listOf(ruleViolation1, ruleViolation2)
+            )
+
+            // Use the same resolution for both violations
+            val sharedResolution = RuleViolationResolution(
+                message = ".*",
+                reason = "CANT_FIX_EXCEPTION",
+                comment = "Matches multiple violations"
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = emptyMap(),
+                ruleViolations = mapOf(
+                    ruleViolation1 to listOf(sharedResolution),
+                    ruleViolation2 to listOf(sharedResolution)
+                ),
+                vulnerabilities = emptyMap()
+            )
+
+            // Should not throw unique constraint violation
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify the resolution is stored only once
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.ruleViolations should containExactly(sharedResolution)
+
+            // Verify mappings were stored for both violations
+            val storedResolvedViolations = dbExtension.db.dbQuery {
+                ResolvedRuleViolationsTable.selectAll()
+                    .where { ResolvedRuleViolationsTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedViolations.size shouldBe 2
+        }
+
+        "handle same resolution matching multiple vulnerabilities without constraint violation" {
+            // Create two vulnerabilities via advisor run
+            val vulnerability1 = Vulnerability(
+                externalId = "CVE-2023-0001",
+                summary = "First vulnerability",
+                description = "First test vulnerability",
+                references = emptyList()
+            )
+            val vulnerability2 = Vulnerability(
+                externalId = "CVE-2023-0002",
+                summary = "Second vulnerability",
+                description = "Second test vulnerability",
+                references = emptyList()
+            )
+
+            val advisorResult1 = AdvisorResult(
+                advisorName = "TestAdvisor",
+                capabilities = listOf("VULNERABILITIES"),
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                issues = emptyList(),
+                defects = emptyList(),
+                vulnerabilities = listOf(vulnerability1, vulnerability2)
+            )
+
+            fixtures.createAdvisorRun(
+                advisorJobId = fixtures.advisorJob.id,
+                results = mapOf(fixtures.identifier to listOf(advisorResult1))
+            )
+
+            // Use the same resolution for both vulnerabilities (regex pattern)
+            val sharedResolution = VulnerabilityResolution(
+                externalId = "CVE-2023-.*",
+                reason = "WILL_NOT_FIX",
+                comment = "Matches multiple vulnerabilities"
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = emptyMap(),
+                ruleViolations = emptyMap(),
+                vulnerabilities = mapOf(
+                    vulnerability1 to listOf(sharedResolution),
+                    vulnerability2 to listOf(sharedResolution)
+                )
+            )
+
+            // Should not throw unique constraint violation
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify the resolution is stored only once
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.vulnerabilities should containExactly(sharedResolution)
+
+            // Verify mappings were stored for both vulnerabilities
+            val storedResolvedVulnerabilities = dbExtension.db.dbQuery {
+                ResolvedVulnerabilitiesTable.selectAll()
+                    .where { ResolvedVulnerabilitiesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedVulnerabilities.size shouldBe 2
         }
     }
 })

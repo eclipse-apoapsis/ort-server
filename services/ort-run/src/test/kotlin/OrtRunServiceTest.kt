@@ -66,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
@@ -119,16 +120,10 @@ import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
-import org.ossreviewtoolkit.model.config.IssueResolutionReason
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
-import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViolationResolution
-import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.VcsMatcher
-import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
-import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.utils.common.gibibytes
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression
 import org.ossreviewtoolkit.utils.spdx.toSpdx
@@ -782,13 +777,21 @@ class OrtRunServiceTest : WordSpec({
             )
             fixtures.resolvedConfigurationRepository.addPackageCurations(ortRun.id, packageCurations)
 
-            val resolutions = Resolutions(
-                issues = listOf(IssueResolution(message = "message", reason = "reason", comment = "comment"))
+            val issueResolution = IssueResolution(message = "message", reason = "reason", comment = "comment")
+            val dummyIssue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Test",
+                message = "dummy",
+                severity = Severity.WARNING
             )
-            fixtures.resolvedConfigurationRepository.addResolutions(ortRun.id, resolutions)
+            fixtures.resolvedConfigurationRepository.addResolutions(
+                ortRun.id,
+                ResolvedItemsResult(issues = mapOf(dummyIssue to listOf(issueResolution)))
+            )
 
+            val expectedResolutions = Resolutions(issues = listOf(issueResolution))
             service.getResolvedConfiguration(ortRun) shouldBe
-                    ResolvedConfiguration(packageConfigurations, packageCurations, resolutions)
+                    ResolvedConfiguration(packageConfigurations, packageCurations, expectedResolutions)
         }
 
         "return an empty resolved configuration if no resolved configuration was stored" {
@@ -1220,26 +1223,30 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
-    "storeResolvedResolutions" should {
-        "store the resolved resolutions" {
-            val resolutions = org.ossreviewtoolkit.model.config.Resolutions(
-                issues = listOf(
-                    OrtIssueResolution("message", IssueResolutionReason.CANT_FIX_ISSUE, "comment")
-                ),
-                ruleViolations = listOf(
-                    OrtRuleViolationResolution("message", RuleViolationResolutionReason.CANT_FIX_EXCEPTION, "comment")
-                ),
-                vulnerabilities = listOf(
-                    OrtVulnerabilityResolution("id", VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY, "comment")
-                )
+    "storeResolvedItems" should {
+        "store the resolved items" {
+            val issueResolution = IssueResolution(
+                message = "message",
+                reason = "reason",
+                comment = "comment"
+            )
+            val issue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Test",
+                message = "test issue",
+                severity = Severity.WARNING
+            )
+            val resolvedItems = ResolvedItemsResult(
+                issues = mapOf(issue to listOf(issueResolution))
             )
 
-            service.storeResolvedResolutions(fixtures.ortRun.id, resolutions)
+            service.storeResolvedItems(fixtures.ortRun.id, resolvedItems)
 
-            val resolvedConfiguration = fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
+            val resolvedConfiguration =
+                fixtures.resolvedConfigurationRepository.getForOrtRun(fixtures.ortRun.id)
 
             resolvedConfiguration.shouldNotBeNull()
-            resolvedConfiguration.resolutions shouldBe resolutions.mapToModel()
+            resolvedConfiguration.resolutions.issues should containExactly(issueResolution)
         }
     }
 

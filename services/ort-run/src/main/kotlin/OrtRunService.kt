@@ -53,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRe
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -81,7 +82,6 @@ import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
-import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.utils.getKnownProvenancesWithoutVcsPath
 import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.scanner.utils.filterScanResultsByVcsPaths
@@ -596,11 +596,13 @@ class OrtRunService(
     }
 
     /**
-     * Store the provided resolved [resolutions] associated with the [ortRunId].
+     * Store the resolved item mappings (which items matched which resolutions) for the ORT run.
+     * This stores both the unique resolutions to the resolved configuration and the mappings
+     * between items and their matching resolutions for efficient statistics queries.
      */
-    fun storeResolvedResolutions(ortRunId: Long, resolutions: Resolutions) {
+    fun storeResolvedItems(ortRunId: Long, resolvedItems: ResolvedItemsResult) {
         db.blockingQuery {
-            resolvedConfigurationRepository.addResolutions(ortRunId, resolutions.mapToModel())
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
         }
     }
 
