@@ -40,9 +40,9 @@ data class PostInfrastructureService(
     val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
 ) {
     companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
-                "spaces. Leading and trailing whitespaces are not allowed."
+        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]+(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name must not be empty and may only contain letters, " +
+                "numbers, hyphen marks and spaces. Leading and trailing whitespaces are not allowed."
 
         val validate: (PostInfrastructureService) -> ValidationResult<PostInfrastructureService> = { obj ->
             Validation {
