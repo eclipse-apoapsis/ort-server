@@ -77,6 +77,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Choice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Given
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
@@ -533,7 +534,7 @@ class OrtServerMappingsTest : WordSpec({
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
                             externalId = vulnerability.externalId,
-                            reason = "INEFFECTIVE_VULNERABILITY",
+                            reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                             comment = "Test vulnerability resolution."
                         )
                     )
@@ -609,7 +610,7 @@ class OrtServerMappingsTest : WordSpec({
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
                             externalId = vulnerability.externalId,
-                            reason = "CANT_FIX_VULNERABILITY",
+                            reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
                             comment = "Test vulnerability resolution."
                         )
                     )

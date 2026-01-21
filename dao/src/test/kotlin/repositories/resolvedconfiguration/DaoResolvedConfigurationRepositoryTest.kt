@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 
 import org.jetbrains.exposed.sql.selectAll
 
@@ -318,7 +319,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
             val vulnerabilityResolution = VulnerabilityResolution(
                 externalId = "CVE-2023-12345",
-                reason = "WILL_NOT_FIX",
+                reason = VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY,
                 comment = "Not applicable"
             )
 
@@ -490,7 +491,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             // Use the same resolution for both vulnerabilities (regex pattern)
             val sharedResolution = VulnerabilityResolution(
                 externalId = "CVE-2023-.*",
-                reason = "WILL_NOT_FIX",
+                reason = VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY,
                 comment = "Matches multiple vulnerabilities"
             )
 
@@ -604,12 +605,12 @@ private val ruleViolationResolution2 = RuleViolationResolution(
 
 private val vulnerabilityResolution1 = VulnerabilityResolution(
     externalId = "vulnerability1",
-    reason = "CANT_FIX_VULNERABILITY",
+    reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
     comment = "comment1"
 )
 
 private val vulnerabilityResolution2 = VulnerabilityResolution(
     externalId = "vulnerability2",
-    reason = "INEFFECTIVE_VULNERABILITY",
+    reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
     comment = "comment2"
 )

@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Choice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Given
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
@@ -210,7 +211,7 @@ private val ruleViolationResolution = RuleViolationResolution(
 
 private val vulnerabilityResolution = VulnerabilityResolution(
     externalId = "vulnerability id",
-    reason = "INEFFECTIVE_VULNERABILITY",
+    reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
     comment = "Test vulnerability resolution."
 )
 
