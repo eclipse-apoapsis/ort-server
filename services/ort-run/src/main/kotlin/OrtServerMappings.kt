@@ -80,6 +80,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
@@ -732,6 +733,29 @@ fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(
 
 fun VulnerabilityResolution.mapToOrt() = OrtVulnerabilityResolution(
     id = externalId,
-    reason = OrtVulnerabilityResolutionReason.valueOf(reason),
+    reason = reason.mapToOrt(),
     comment = comment
 )
+
+fun VulnerabilityResolutionReason.mapToOrt() = when (this) {
+    VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.CANT_FIX_VULNERABILITY
+
+    VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY
+
+    VulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY
+
+    VulnerabilityResolutionReason.MITIGATED_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.MITIGATED_VULNERABILITY
+
+    VulnerabilityResolutionReason.NOT_A_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.NOT_A_VULNERABILITY
+
+    VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY
+
+    VulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY ->
+        OrtVulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY
+}

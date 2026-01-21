@@ -78,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Choice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Given
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
@@ -160,6 +161,7 @@ import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
+import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoice
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
@@ -639,9 +641,32 @@ fun OrtVulnerabilityReference.mapToModel() =
 
 fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(
     externalId = id,
-    reason = reason.name,
+    reason = reason.mapToModel(),
     comment = comment
 )
+
+fun OrtVulnerabilityResolutionReason.mapToModel() = when (this) {
+    OrtVulnerabilityResolutionReason.CANT_FIX_VULNERABILITY ->
+        VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY
+
+    OrtVulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY ->
+        VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY
+
+    OrtVulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY ->
+        VulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY
+
+    OrtVulnerabilityResolutionReason.MITIGATED_VULNERABILITY ->
+        VulnerabilityResolutionReason.MITIGATED_VULNERABILITY
+
+    OrtVulnerabilityResolutionReason.NOT_A_VULNERABILITY ->
+        VulnerabilityResolutionReason.NOT_A_VULNERABILITY
+
+    OrtVulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY ->
+        VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY
+
+    OrtVulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY ->
+        VulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY
+}
 
 fun OrtAdvisorDetails.mapToModel() = AdvisorDetails(
     name = name,

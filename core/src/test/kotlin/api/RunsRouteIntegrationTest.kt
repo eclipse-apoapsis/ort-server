@@ -85,6 +85,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolutionReason as ApiVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -132,6 +133,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -721,7 +723,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 // Add a resolution for one of the vulnerabilities.
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = ".*CVE-2021-12.*", // Matching RegEx
-                    reason = "INEFFECTIVE_VULNERABILITY",
+                    reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                     comment = "This is ineffective because of some reasons."
                 )
 
@@ -758,7 +760,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                     with(first().resolutions.first()) {
                         externalId shouldBe ".*CVE-2021-12.*" // Matching RegEx
-                        reason shouldBe "INEFFECTIVE_VULNERABILITY"
+                        reason shouldBe ApiVulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY
                         comment shouldBe "This is ineffective because of some reasons."
                     }
                 }
@@ -797,7 +799,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 // Add a resolution for one of the vulnerabilities.
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = ".*CVE-2021-12.*", // Matching RegEx
-                    reason = "INEFFECTIVE_VULNERABILITY",
+                    reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                     comment = "This is ineffective because of some reasons."
                 )
 
@@ -2168,7 +2170,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 )
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = "CVE-2021-1234",
-                    reason = "INEFFECTIVE_VULNERABILITY",
+                    reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                     comment = "Ineffective in our context"
                 )
                 val ruleViolationResolution = RuleViolationResolution(

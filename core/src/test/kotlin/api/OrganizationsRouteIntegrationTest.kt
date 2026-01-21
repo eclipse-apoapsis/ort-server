@@ -95,6 +95,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -1676,7 +1677,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 )
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = "CVE-2020-2346",
-                    reason = "INEFFECTIVE_VULNERABILITY",
+                    reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                     comment = "Ineffective in our context"
                 )
                 val ruleViolationResolution = RuleViolationResolution(

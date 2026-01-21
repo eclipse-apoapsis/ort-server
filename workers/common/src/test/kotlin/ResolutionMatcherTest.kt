@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
@@ -147,7 +148,7 @@ class ResolutionMatcherTest : WordSpec({
 
     val expectedVulnerabilityResolution1 = VulnerabilityResolution(
         externalId = "CVE-2023-0001",
-        reason = "INEFFECTIVE_VULNERABILITY",
+        reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
         comment = "Not exploitable in our context."
     )
 
