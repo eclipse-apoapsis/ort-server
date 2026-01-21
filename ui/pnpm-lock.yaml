@@ -148,8 +148,8 @@ importers:
         specifier: ^9.37.0
         version: 9.39.2
       '@hey-api/openapi-ts':
-        specifier: 0.90.6
-        version: 0.90.6(typescript@5.9.3)
+        specifier: 0.90.7
+        version: 0.90.7(typescript@5.9.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
         version: 4.7.0(prettier@3.8.0)
@@ -637,8 +637,8 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
-  '@hey-api/codegen-core@0.5.2':
-    resolution: {integrity: sha512-88cqrrB2cLXN8nMOHidQTcVOnZsJ5kebEbBefjMCifaUCwTA30ouSSWvTZqrOX4O104zjJyu7M8Gcv/NNYQuaA==}
+  '@hey-api/codegen-core@0.5.3':
+    resolution: {integrity: sha512-iAoZLRxDe36PDvU5UnlUlPd2jY3/uRzG0XHNYGyKCEaMC7jWj7DFtAd2mJYJLSpjNkJw5Rx9+eeRptEwnn1AJA==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
       typescript: '>=5.5.3'
@@ -647,12 +647,15 @@ packages:
     resolution: {integrity: sha512-oS+5yAdwnK20lSeFO1d53Ku+yaGCsY8PcrmSq2GtSs3bsBfRnHAbpPKSVzQcaxAOrzj5NB+f34WhZglVrNayBA==}
     engines: {node: '>= 16'}
 
-  '@hey-api/openapi-ts@0.90.6':
-    resolution: {integrity: sha512-ByE2BUkiV5bEA6hKGpcB1ZzHG2ybzQ/3qX/1xMSy5ylkN6uVlp53+OCoh6L3/53bSyKXD7TmfAF0m6q8cU9zkA==}
+  '@hey-api/openapi-ts@0.90.7':
+    resolution: {integrity: sha512-30N0cYtT9ldm/MOosnxg87qDr5BZAArMlYAEG0VRWG0wr8mqSzTKC1TjuS6pteVnmlgLVcVgB3vSUDJpqMqo1Q==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
       typescript: '>=5.5.3'
+
+  '@hey-api/types@0.1.1':
+    resolution: {integrity: sha512-h9OQG7nl2SHKW6g/sO3XneSn4fz5ow6T/c2hEYsrOCuZry8kLPbZ9335OBgeYLyEB1OEa2KjvsQcef0UBKzMAg==}
 
   '@hookform/resolvers@5.2.2':
     resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
@@ -3896,8 +3899,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@hey-api/codegen-core@0.5.2(typescript@5.9.3)':
+  '@hey-api/codegen-core@0.5.3(typescript@5.9.3)':
     dependencies:
+      '@hey-api/types': 0.1.1
       ansi-colors: 4.1.3
       color-support: 1.1.3
       typescript: 5.9.3
@@ -3909,10 +3913,11 @@ snapshots:
       js-yaml: 4.1.1
       lodash: 4.17.21
 
-  '@hey-api/openapi-ts@0.90.6(typescript@5.9.3)':
+  '@hey-api/openapi-ts@0.90.7(typescript@5.9.3)':
     dependencies:
-      '@hey-api/codegen-core': 0.5.2(typescript@5.9.3)
+      '@hey-api/codegen-core': 0.5.3(typescript@5.9.3)
       '@hey-api/json-schema-ref-parser': 1.2.2
+      '@hey-api/types': 0.1.1
       ansi-colors: 4.1.3
       c12: 3.3.3
       color-support: 1.1.3
@@ -3922,6 +3927,8 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - magicast
+
+  '@hey-api/types@0.1.1': {}
 
   '@hookform/resolvers@5.2.2(react-hook-form@7.71.1(react@19.2.3))':
     dependencies:
