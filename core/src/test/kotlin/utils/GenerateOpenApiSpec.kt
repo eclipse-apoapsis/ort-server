@@ -20,6 +20,9 @@
 package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.core.annotation.Condition
+import io.kotest.core.annotation.EnabledIf
+import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.file.aFile
 import io.kotest.matchers.shouldBe
@@ -28,6 +31,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 
 import java.io.File
+
+import kotlin.reflect.KClass
 
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.plugins.configureOpenApi
@@ -43,10 +48,11 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
  * This test is not executed during normal test runs and only enabled if the `generateOpenApiSpec` system property is
  * set to `true`.
  */
+@EnabledIf(GenerateOpenApiSpecCondition::class)
 class GenerateOpenApiSpec : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
-    "generate the OpenAPI specification".config(enabled = System.getProperty("generateOpenApiSpec").toBoolean()) {
+    "Generate the OpenAPI specification" {
         ortServerTestApplication(
             db = dbExtension.db,
             config = TestConfig.Test,
@@ -68,3 +74,7 @@ class GenerateOpenApiSpec : StringSpec({
         }
     }
 })
+
+internal class GenerateOpenApiSpecCondition : Condition {
+    override fun evaluate(kclass: KClass<out Spec>): Boolean = System.getProperty("generateOpenApiSpec").toBoolean()
+}
