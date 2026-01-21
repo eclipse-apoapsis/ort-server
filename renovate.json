@@ -40,6 +40,10 @@
     {
       "matchPackageNames": ["node"],
       "schedule": ["after 9pm on sunday"]
+    },
+    {
+      "matchPackageNames": ["io.kubernetes:client-java-extended", "io.kubernetes:client-java"],
+      "allowedVersions": "!/.*-legacy$/"
     }
   ],
   "prHourlyLimit": 5
