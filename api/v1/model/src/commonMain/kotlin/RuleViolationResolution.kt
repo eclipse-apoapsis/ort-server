@@ -24,6 +24,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RuleViolationResolution(
     val message: String,
-    val reason: String,
+    val reason: RuleViolationResolutionReason,
     val comment: String
 )

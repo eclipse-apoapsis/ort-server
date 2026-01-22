@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 
@@ -142,7 +143,7 @@ class ResolutionMatcherTest : WordSpec({
 
     val expectedRuleViolationResolution1 = RuleViolationResolution(
         message = ".*unknown license.*",
-        reason = "CANT_FIX_EXCEPTION",
+        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
         comment = "License will be added later."
     )
 

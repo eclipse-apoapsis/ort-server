@@ -73,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerCo
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
@@ -156,6 +157,7 @@ import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtR
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions as OrtResolutions
 import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViolationResolution
+import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason as OrtRuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
@@ -511,9 +513,29 @@ fun OrtRuleViolation.mapToModel() = RuleViolation(
 
 fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(
     message = message,
-    reason = reason.name,
+    reason = reason.mapToModel(),
     comment = comment
 )
+
+fun OrtRuleViolationResolutionReason.mapToModel() = when (this) {
+    OrtRuleViolationResolutionReason.CANT_FIX_EXCEPTION ->
+        RuleViolationResolutionReason.CANT_FIX_EXCEPTION
+
+    OrtRuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION ->
+        RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
+
+    OrtRuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION ->
+        RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
+
+    OrtRuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION ->
+        RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION
+
+    OrtRuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION ->
+        RuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION
+
+    OrtRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION ->
+        RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
+}
 
 fun OrtScannerConfiguration.mapToModel() =
     ScannerConfiguration(

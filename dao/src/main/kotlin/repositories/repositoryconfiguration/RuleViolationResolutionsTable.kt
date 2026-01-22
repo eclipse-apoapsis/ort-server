@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -33,7 +34,7 @@ import org.jetbrains.exposed.sql.and
  */
 object RuleViolationResolutionsTable : LongIdTable("rule_violation_resolutions") {
     val message = text("message")
-    val reason = text("reason")
+    val reason = enumerationByName<RuleViolationResolutionReason>("reason", 255)
     val comment = text("comment")
 }
 
