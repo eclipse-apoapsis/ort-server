@@ -172,10 +172,10 @@ importers:
         specifier: 24.10.9
         version: 24.10.9
       '@types/react':
-        specifier: ^19.0.0
+        specifier: 19.2.9
         version: 19.2.9
       '@types/react-dom':
-        specifier: ^19.0.0
+        specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.9)
       '@typescript-eslint/eslint-plugin':
         specifier: 8.53.1
