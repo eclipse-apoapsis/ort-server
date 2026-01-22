@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
@@ -146,6 +147,7 @@ import org.ossreviewtoolkit.model.config.Curations as OrtCurations
 import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
 import org.ossreviewtoolkit.model.config.Includes as OrtIncludes
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
+import org.ossreviewtoolkit.model.config.IssueResolutionReason as OrtIssueResolutionReason
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
@@ -303,7 +305,17 @@ fun OrtIncludes.mapToModel() = Includes(
     paths = paths.map(OrtPathInclude::mapToModel)
 )
 
-fun OrtIssueResolution.mapToModel() = IssueResolution(message = message, reason = reason.name, comment = comment)
+fun OrtIssueResolution.mapToModel() = IssueResolution(
+    message = message,
+    reason = reason.mapToModel(),
+    comment = comment
+)
+
+fun OrtIssueResolutionReason.mapToModel() = when (this) {
+    OrtIssueResolutionReason.BUILD_TOOL_ISSUE -> IssueResolutionReason.BUILD_TOOL_ISSUE
+    OrtIssueResolutionReason.CANT_FIX_ISSUE -> IssueResolutionReason.CANT_FIX_ISSUE
+    OrtIssueResolutionReason.SCANNER_ISSUE -> IssueResolutionReason.SCANNER_ISSUE
+}
 
 fun OrtLicenseChoices.mapToModel() = LicenseChoices(
     repositoryLicenseChoices = repositoryLicenseChoices.map(OrtSpdxLicenseChoice::mapToModel),

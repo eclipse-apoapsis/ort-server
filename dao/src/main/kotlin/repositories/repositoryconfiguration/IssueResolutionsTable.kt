@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -32,7 +33,7 @@ import org.jetbrains.exposed.sql.and
  */
 object IssueResolutionsTable : LongIdTable("issue_resolutions") {
     val message = text("message")
-    val reason = text("reason")
+    val reason = enumerationByName<IssueResolutionReason>("reason", 255)
     val comment = text("comment")
 }
 

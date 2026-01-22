@@ -75,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
@@ -129,7 +130,7 @@ private val licenseClassifications = LicenseClassifications(
 )
 
 private val resolutions = Resolutions(
-    issues = listOf(IssueResolution("message", "CANT_FIX_ISSUE", "comment"))
+    issues = listOf(IssueResolution("message", IssueResolutionReason.CANT_FIX_ISSUE, "comment"))
 )
 
 /** Name of a test reporter format. */

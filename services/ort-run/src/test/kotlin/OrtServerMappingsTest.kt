@@ -61,6 +61,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
@@ -521,7 +522,7 @@ class OrtServerMappingsTest : WordSpec({
                     issues = listOf(
                         IssueResolution(
                             message = issue.message,
-                            reason = "SCANNER_ISSUE",
+                            reason = IssueResolutionReason.SCANNER_ISSUE,
                             comment = "Test issue resolution."
                         )
                     ),
@@ -597,7 +598,7 @@ class OrtServerMappingsTest : WordSpec({
                     issues = listOf(
                         IssueResolution(
                             message = issue.message,
-                            reason = "CANT_FIX_ISSUE",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "Test issue resolution."
                         )
                     ),

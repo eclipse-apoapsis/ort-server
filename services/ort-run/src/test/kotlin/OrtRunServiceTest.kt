@@ -82,6 +82,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
@@ -777,7 +778,11 @@ class OrtRunServiceTest : WordSpec({
             )
             fixtures.resolvedConfigurationRepository.addPackageCurations(ortRun.id, packageCurations)
 
-            val issueResolution = IssueResolution(message = "message", reason = "reason", comment = "comment")
+            val issueResolution = IssueResolution(
+                message = "message",
+                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                comment = "comment"
+            )
             val dummyIssue = Issue(
                 timestamp = Clock.System.now(),
                 source = "Test",
@@ -1227,7 +1232,7 @@ class OrtRunServiceTest : WordSpec({
         "store the resolved items" {
             val issueResolution = IssueResolution(
                 message = "message",
-                reason = "reason",
+                reason = IssueResolutionReason.CANT_FIX_ISSUE,
                 comment = "comment"
             )
             val issue = Issue(

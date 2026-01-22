@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
@@ -131,13 +132,13 @@ class ResolutionMatcherTest : WordSpec({
 
     val expectedIssueResolution1 = IssueResolution(
         message = ".*resolve dependency.*",
-        reason = "CANT_FIX_ISSUE",
+        reason = IssueResolutionReason.CANT_FIX_ISSUE,
         comment = "Known issue with this dependency."
     )
 
     val expectedIssueResolution2 = IssueResolution(
         message = "Timeout.*",
-        reason = "SCANNER_ISSUE",
+        reason = IssueResolutionReason.SCANNER_ISSUE,
         comment = "Scanner timeout is acceptable."
     )
 
