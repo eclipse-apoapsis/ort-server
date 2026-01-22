@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
@@ -231,6 +232,7 @@ class RuleViolationServiceTest : WordSpec() {
                     evaluatorJobId = evaluatorJob.id,
                     startTime = Clock.System.now().toDatabasePrecision(),
                     endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = Environment.EMPTY,
                     violations = ruleViolations
                 )
 
@@ -603,6 +605,7 @@ class RuleViolationServiceTest : WordSpec() {
             evaluatorJobId = evaluatorJob.id,
             startTime = Clock.System.now().toDatabasePrecision(),
             endTime = Clock.System.now().toDatabasePrecision(),
+            environment = Environment.EMPTY,
             violations = ruleViolations
         )
 

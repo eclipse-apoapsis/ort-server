@@ -291,6 +291,7 @@ fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =
         evaluatorJobId = evaluatorJobId,
         startTime = startTime.toKotlinInstant(),
         endTime = endTime.toKotlinInstant(),
+        environment = environment.mapToModel(),
         violations = violations.map(OrtRuleViolation::mapToModel)
     )
 

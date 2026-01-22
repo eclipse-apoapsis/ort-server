@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
@@ -262,6 +263,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                 evaluatorJobId = fixtures.evaluatorJob.id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
+                environment = Environment.EMPTY,
                 violations = listOf(ruleViolation)
             )
 
@@ -425,6 +427,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                 evaluatorJobId = fixtures.evaluatorJob.id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
+                environment = Environment.EMPTY,
                 violations = listOf(ruleViolation1, ruleViolation2)
             )
 

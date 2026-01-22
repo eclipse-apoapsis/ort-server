@@ -27,6 +27,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 
 class DaoEvaluatorRunRepositoryTest : StringSpec({
@@ -47,6 +48,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = Clock.System.now(),
             endTime = Clock.System.now(),
+            environment = environment,
             violations = listOf(dbExtension.fixtures.ruleViolation)
         )
 
@@ -58,6 +60,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = createdEvaluatorRun.startTime,
             endTime = createdEvaluatorRun.endTime,
+            environment = environment,
             violations = listOf(dbExtension.fixtures.ruleViolation)
         )
     }
@@ -71,6 +74,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = Clock.System.now(),
             endTime = Clock.System.now(),
+            environment = environment,
             violations = listOf(dbExtension.fixtures.ruleViolation)
         )
 
@@ -79,6 +83,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
             evaluatorJobId = evaluatorJobId,
             startTime = createdEvaluatorRun.startTime,
             endTime = createdEvaluatorRun.endTime,
+            environment = environment,
             violations = listOf(dbExtension.fixtures.ruleViolation)
         )
     }
@@ -87,3 +92,17 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
         evaluatorRunRepository.getByJobId(1L).shouldBeNull()
     }
 })
+
+private val variables = mapOf(
+    "SHELL" to "/bin/bash",
+    "TERM" to "xterm-256color"
+)
+
+private val environment = Environment(
+    ortVersion = "1.0",
+    javaVersion = "11.0.16",
+    os = "Linux",
+    processors = 8,
+    maxMemory = 8321499136,
+    variables = variables
+)

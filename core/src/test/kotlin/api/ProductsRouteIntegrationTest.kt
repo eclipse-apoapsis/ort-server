@@ -99,6 +99,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -1212,6 +1213,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = evJob1Id,
                     startTime = Clock.System.now(),
                     endTime = Clock.System.now(),
+                    environment = Environment.EMPTY,
                     violations = listOf(
                         commonRuleViolation,
                         RuleViolation(
@@ -1357,6 +1359,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = evJob2Id,
                     startTime = Clock.System.now(),
                     endTime = Clock.System.now(),
+                    environment = Environment.EMPTY,
                     violations = listOf(
                         commonRuleViolation,
                         RuleViolation(

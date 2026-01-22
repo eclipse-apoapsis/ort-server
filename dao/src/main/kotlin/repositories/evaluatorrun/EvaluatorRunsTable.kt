@@ -19,10 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -38,6 +42,7 @@ object EvaluatorRunsTable : LongIdTable("evaluator_runs") {
     val evaluatorJobId = reference("evaluator_job_id", EvaluatorJobsTable)
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
+    val environmentId = reference("environment_id", EnvironmentsTable).nullable()
 }
 
 class EvaluatorRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -47,6 +52,7 @@ class EvaluatorRunDao(id: EntityID<Long>) : LongEntity(id) {
     var evaluatorJob by EvaluatorJobDao referencedOn EvaluatorRunsTable.evaluatorJobId
     var startTime by EvaluatorRunsTable.startTime.transformToDatabasePrecision()
     var endTime by EvaluatorRunsTable.endTime.transformToDatabasePrecision()
+    var environment by EnvironmentDao optionalReferencedOn EvaluatorRunsTable.environmentId
     var violations by RuleViolationDao via EvaluatorRunsRuleViolationsTable
 
     fun mapToModel() = EvaluatorRun(
@@ -54,6 +60,7 @@ class EvaluatorRunDao(id: EntityID<Long>) : LongEntity(id) {
         evaluatorJobId = evaluatorJob.id.value,
         startTime = startTime,
         endTime = endTime,
+        environment = environment?.mapToModel() ?: Environment.EMPTY,
         violations = violations.map { it.mapToModel() }
     )
 }

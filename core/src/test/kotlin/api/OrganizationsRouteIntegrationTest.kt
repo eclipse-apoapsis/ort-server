@@ -82,6 +82,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -1631,6 +1632,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = evJobId,
                     startTime = Clock.System.now(),
                     endTime = Clock.System.now(),
+                    environment = Environment.EMPTY,
                     violations = listOf(evaluatorRuleViolation)
                 )
                 dbExtension.fixtures.evaluatorJobRepository.update(
