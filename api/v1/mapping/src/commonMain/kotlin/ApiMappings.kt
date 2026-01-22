@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as Api
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.IssueResolution as ApiIssueResolution
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueResolutionReason as ApiIssueResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
@@ -155,6 +156,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
@@ -304,10 +306,22 @@ fun ApiIssue.mapToModel() =
         resolutions = resolutions.map { it.mapToModel() }
     )
 
-fun IssueResolution.mapToApi() = ApiIssueResolution(message = message, reason = reason, comment = comment)
+fun IssueResolution.mapToApi() = ApiIssueResolution(message = message, reason = reason.mapToApi(), comment = comment)
+
+fun IssueResolutionReason.mapToApi() = when (this) {
+    IssueResolutionReason.BUILD_TOOL_ISSUE -> ApiIssueResolutionReason.BUILD_TOOL_ISSUE
+    IssueResolutionReason.CANT_FIX_ISSUE -> ApiIssueResolutionReason.CANT_FIX_ISSUE
+    IssueResolutionReason.SCANNER_ISSUE -> ApiIssueResolutionReason.SCANNER_ISSUE
+}
 
 fun ApiIssueResolution.mapToModel() =
-    IssueResolution(message = message, reason = reason, comment = comment)
+    IssueResolution(message = message, reason = reason.mapToModel(), comment = comment)
+
+fun ApiIssueResolutionReason.mapToModel() = when (this) {
+    ApiIssueResolutionReason.BUILD_TOOL_ISSUE -> IssueResolutionReason.BUILD_TOOL_ISSUE
+    ApiIssueResolutionReason.CANT_FIX_ISSUE -> IssueResolutionReason.CANT_FIX_ISSUE
+    ApiIssueResolutionReason.SCANNER_ISSUE -> IssueResolutionReason.SCANNER_ISSUE
+}
 
 fun Severity.mapToApi() = when (this) {
     Severity.ERROR -> ApiSeverity.ERROR

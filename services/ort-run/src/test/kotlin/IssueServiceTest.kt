@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -129,12 +130,12 @@ class IssueServiceTest : WordSpec() {
                     issues = listOf(
                         IssueResolution(
                             message = "dependency not found.*",
-                            reason = "CANT_FIX_ISSUE",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "This is a known issue with the external dependency repository"
                         ),
                         IssueResolution(
                             message = "timeout while scanning.*",
-                            reason = "CANT_FIX_ISSUE",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "Timeout issues are acceptable for this type of scanning"
                         )
                     )
@@ -184,7 +185,7 @@ class IssueServiceTest : WordSpec() {
                     issues = listOf(
                         IssueResolution(
                             message = "dependency not found.*",
-                            reason = "CANT_FIX_ISSUE",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "This is a known issue with the external dependency repository"
                         )
                     )
@@ -224,7 +225,7 @@ class IssueServiceTest : WordSpec() {
                     issues = listOf(
                         IssueResolution(
                             message = "dependency not found.*",
-                            reason = "CANT_FIX_ISSUE",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "This is a known issue with the external dependency repository"
                         )
                     )
@@ -265,7 +266,7 @@ class IssueServiceTest : WordSpec() {
                     issues = listOf(
                         IssueResolution(
                             message = "dependency not found.*",
-                            reason = "CANT_FIX_ISSUE",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "This is a known issue with the external dependency repository"
                         )
                     )
@@ -531,7 +532,7 @@ class IssueServiceTest : WordSpec() {
                 // Resolve one issue
                 val resolutionToApply = IssueResolution(
                     message = "dependency not found.*",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "This is a known issue"
                 )
 
@@ -571,12 +572,12 @@ class IssueServiceTest : WordSpec() {
 
                 val resolution1 = IssueResolution(
                     message = "dependency not found.*",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Known issue"
                 )
                 val resolution2 = IssueResolution(
                     message = "timeout error",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Known issue"
                 )
 
@@ -629,7 +630,7 @@ class IssueServiceTest : WordSpec() {
                 // Resolve one issue in ortRun1
                 val resolution = IssueResolution(
                     message = "issue 1",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Known issue"
                 )
 
@@ -680,7 +681,7 @@ class IssueServiceTest : WordSpec() {
                 // Resolve the ERROR issue
                 val resolution = IssueResolution(
                     message = "dependency not found.*",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Known issue"
                 )
 
@@ -730,7 +731,7 @@ class IssueServiceTest : WordSpec() {
                 // Resolve one warning issue
                 val resolution = IssueResolution(
                     message = "warning issue",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Known issue"
                 )
 

@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
@@ -200,7 +201,7 @@ private val scopeExclude = ScopeExclude(
 
 private val issueResolution = IssueResolution(
     message = "issue message",
-    reason = "CANT_FIX_ISSUE",
+    reason = IssueResolutionReason.CANT_FIX_ISSUE,
     comment = "Test issue resolution."
 )
 

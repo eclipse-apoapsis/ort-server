@@ -62,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
@@ -342,9 +343,15 @@ fun Issue.mapToOrt() = OrtIssue(
 
 fun IssueResolution.mapToOrt() = OrtIssueResolution(
     message = message,
-    reason = OrtIssueResolutionReason.valueOf(reason),
+    reason = reason.mapToOrt(),
     comment = comment
 )
+
+fun IssueResolutionReason.mapToOrt() = when (this) {
+    IssueResolutionReason.BUILD_TOOL_ISSUE -> OrtIssueResolutionReason.BUILD_TOOL_ISSUE
+    IssueResolutionReason.CANT_FIX_ISSUE -> OrtIssueResolutionReason.CANT_FIX_ISSUE
+    IssueResolutionReason.SCANNER_ISSUE -> OrtIssueResolutionReason.SCANNER_ISSUE
+}
 
 fun KnownProvenance.mapToOrt() =
     when (this) {

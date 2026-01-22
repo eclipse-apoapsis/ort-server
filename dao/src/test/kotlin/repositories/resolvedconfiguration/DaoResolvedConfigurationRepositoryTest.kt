@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
@@ -384,7 +385,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             // Use the same resolution for both issues (simulating a regex pattern match)
             val sharedResolution = IssueResolution(
                 message = ".*test issue.*",
-                reason = "CANT_FIX_ISSUE",
+                reason = IssueResolutionReason.CANT_FIX_ISSUE,
                 comment = "Matches multiple issues"
             )
 
@@ -582,13 +583,13 @@ private val packageCurations2 = ResolvedPackageCurations(
 
 private val issueResolution1 = IssueResolution(
     message = "issue1",
-    reason = "CANT_FIX_ISSUE",
+    reason = IssueResolutionReason.CANT_FIX_ISSUE,
     comment = "comment1"
 )
 
 private val issueResolution2 = IssueResolution(
     message = "issue2",
-    reason = "SCANNER_ISSUE",
+    reason = IssueResolutionReason.SCANNER_ISSUE,
     comment = "comment2"
 )
 

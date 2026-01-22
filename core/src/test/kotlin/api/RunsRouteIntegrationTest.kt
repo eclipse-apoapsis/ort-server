@@ -131,6 +131,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
@@ -2166,7 +2167,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 // Add resolutions to mark some items as resolved
                 val issueResolution = IssueResolution(
                     message = "Issue 1",
-                    reason = "CANT_FIX_ISSUE",
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Cannot fix this issue"
                 )
                 val vulnerabilityResolution = VulnerabilityResolution(
