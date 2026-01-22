@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.20
+# syntax=docker/dockerfile:1.21
 
 # This Dockerfile is the base image for the Reporter Docker image.
 
