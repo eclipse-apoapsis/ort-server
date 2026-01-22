@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 
 import org.jetbrains.exposed.sql.Database
 
@@ -143,7 +144,7 @@ class RuleViolationServiceTest : WordSpec() {
 
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "This is resolved"
                 )
 
@@ -397,7 +398,7 @@ class RuleViolationServiceTest : WordSpec() {
                 // Resolve one violation
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "This is resolved"
                 )
 
@@ -419,17 +420,17 @@ class RuleViolationServiceTest : WordSpec() {
 
                 val resolution1 = RuleViolationResolution(
                     message = "Message-1",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Resolved"
                 )
                 val resolution2 = RuleViolationResolution(
                     message = "Message-2",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Resolved"
                 )
                 val resolution3 = RuleViolationResolution(
                     message = "Message-3",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Resolved"
                 )
 
@@ -469,7 +470,7 @@ class RuleViolationServiceTest : WordSpec() {
                 // Resolve one violation in ortRun1
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Resolved"
                 )
 
@@ -494,7 +495,7 @@ class RuleViolationServiceTest : WordSpec() {
                 // Resolve the ERROR violation (Message-2)
                 val resolution = RuleViolationResolution(
                     message = "Message-2",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Resolved"
                 )
 
@@ -521,7 +522,7 @@ class RuleViolationServiceTest : WordSpec() {
                 // Resolve the WARNING violation
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Resolved"
                 )
 

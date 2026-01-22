@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 
@@ -429,7 +430,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             // Use the same resolution for both violations
             val sharedResolution = RuleViolationResolution(
                 message = ".*",
-                reason = "CANT_FIX_EXCEPTION",
+                reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                 comment = "Matches multiple violations"
             )
 
@@ -593,13 +594,13 @@ private val issueResolution2 = IssueResolution(
 
 private val ruleViolationResolution1 = RuleViolationResolution(
     message = "ruleViolation1",
-    reason = "CANT_FIX_EXCEPTION",
+    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
     comment = "comment1"
 )
 
 private val ruleViolationResolution2 = RuleViolationResolution(
     message = "ruleViolation2",
-    reason = "EXAMPLE_OF_EXCEPTION",
+    reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
     comment = "comment2"
 )
 

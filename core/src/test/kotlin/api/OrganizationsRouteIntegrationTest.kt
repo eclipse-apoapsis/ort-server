@@ -94,6 +94,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
@@ -1682,7 +1683,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 )
                 val ruleViolationResolution = RuleViolationResolution(
                     message = "rule1",
-                    reason = "CANT_FIX_EXCEPTION",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Exception applies"
                 )
 

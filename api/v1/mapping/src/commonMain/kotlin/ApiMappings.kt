@@ -72,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiReposito
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters as ApiRuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution as ApiRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolutionReason as ApiRuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
@@ -156,6 +157,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
@@ -817,9 +819,29 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
 
 fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(
     message = message,
-    reason = reason,
+    reason = reason.mapToApi(),
     comment = comment
 )
+
+fun RuleViolationResolutionReason.mapToApi() = when (this) {
+    RuleViolationResolutionReason.CANT_FIX_EXCEPTION ->
+        ApiRuleViolationResolutionReason.CANT_FIX_EXCEPTION
+
+    RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION ->
+        ApiRuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
+
+    RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION ->
+        ApiRuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
+
+    RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION ->
+        ApiRuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION
+
+    RuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION ->
+        ApiRuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION
+
+    RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION ->
+        ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
+}
 
 fun VulnerabilityResolution.mapToApi() = ApiVulnerabilityResolution(
     externalId = externalId,

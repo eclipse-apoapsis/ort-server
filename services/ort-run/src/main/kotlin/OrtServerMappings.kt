@@ -75,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerCo
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
@@ -611,9 +612,29 @@ fun RuleViolation.mapToOrt() =
 fun RuleViolationResolution.mapToOrt() =
     OrtRuleViolationResolution(
         message = message,
-        reason = OrtRuleViolationResolutionReason.valueOf(reason),
+        reason = reason.mapToOrt(),
         comment = comment
     )
+
+fun RuleViolationResolutionReason.mapToOrt() = when (this) {
+    RuleViolationResolutionReason.CANT_FIX_EXCEPTION ->
+        OrtRuleViolationResolutionReason.CANT_FIX_EXCEPTION
+
+    RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION ->
+        OrtRuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
+
+    RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION ->
+        OrtRuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
+
+    RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION ->
+        OrtRuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION
+
+    RuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION ->
+        OrtRuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION
+
+    RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION ->
+        OrtRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
+}
 
 fun ScannerConfiguration.mapToOrt() =
     OrtScannerConfiguration(

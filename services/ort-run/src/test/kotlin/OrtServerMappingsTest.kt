@@ -73,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerCo
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
@@ -527,7 +528,7 @@ class OrtServerMappingsTest : WordSpec({
                     ruleViolations = listOf(
                         RuleViolationResolution(
                             message = ".*",
-                            reason = "EXAMPLE_OF_EXCEPTION",
+                            reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
                             comment = "Test rule violation resolution."
                         )
                     ),
@@ -603,7 +604,7 @@ class OrtServerMappingsTest : WordSpec({
                     ruleViolations = listOf(
                         RuleViolationResolution(
                             message = ".*",
-                            reason = "CANT_FIX_EXCEPTION",
+                            reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                             comment = "Test rule violation resolution."
                         )
                     ),

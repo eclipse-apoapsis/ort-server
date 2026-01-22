@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-data class RuleViolationResolution(
-    val message: String,
-    val reason: RuleViolationResolutionReason,
-    val comment: String
-)
+/**
+ * Possible reasons for resolving a rule violation using a [RuleViolationResolution].
+ */
+enum class RuleViolationResolutionReason {
+    CANT_FIX_EXCEPTION,
+    DYNAMIC_LINKAGE_EXCEPTION,
+    EXAMPLE_OF_EXCEPTION,
+    LICENSE_ACQUIRED_EXCEPTION,
+    NOT_MODIFIED_EXCEPTION,
+    PATENT_GRANT_EXCEPTION
+}
