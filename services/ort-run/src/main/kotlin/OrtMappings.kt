@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -116,6 +117,7 @@ import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
+import org.ossreviewtoolkit.model.LicenseSource as OrtLicenseSource
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.PackageCuration as OrtPackageCuration
 import org.ossreviewtoolkit.model.PackageCurationData as OrtPackageCurationData
@@ -339,6 +341,12 @@ fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
     comment = comment
 )
 
+fun OrtLicenseSource.mapToModel() = when (this) {
+    OrtLicenseSource.CONCLUDED -> LicenseSource.CONCLUDED
+    OrtLicenseSource.DECLARED -> LicenseSource.DECLARED
+    OrtLicenseSource.DETECTED -> LicenseSource.DETECTED
+}
+
 fun OrtIssue.mapToModel(identifier: Identifier? = null, worker: String? = null) =
     Issue(
         timestamp = timestamp.toKotlinInstant(),
@@ -520,7 +528,7 @@ fun OrtRuleViolation.mapToModel() = RuleViolation(
     message = message,
     howToFix = howToFix,
     license = license?.toString(),
-    licenseSources = licenseSources.mapTo(mutableSetOf()) { it.name }
+    licenseSources = licenseSources.mapTo(mutableSetOf()) { it.mapToModel() }
 )
 
 fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(

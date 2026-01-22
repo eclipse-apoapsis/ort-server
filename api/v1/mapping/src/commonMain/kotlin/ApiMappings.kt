@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.LicenseSource as ApiLicenseSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel as ApiLogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource as ApiLogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
@@ -142,6 +143,7 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
@@ -638,13 +640,19 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     id = id?.mapToApi(),
     license = license,
     // TODO: Add support for multiple license sources, see issue #4185.
-    licenseSource = licenseSources.firstOrNull(),
+    licenseSource = licenseSources.firstOrNull()?.mapToApi(),
     severity = severity.mapToApi(),
     message = message,
     howToFix = howToFix,
     resolutions = resolutions.map { it.mapToApi() },
     purl = purl
 )
+
+fun LicenseSource.mapToApi() = when (this) {
+    LicenseSource.CONCLUDED -> ApiLicenseSource.CONCLUDED
+    LicenseSource.DECLARED -> ApiLicenseSource.DECLARED
+    LicenseSource.DETECTED -> ApiLicenseSource.DETECTED
+}
 
 fun Identifier.mapToApi() = ApiIdentifier(type = type, namespace = namespace, name = name, version = version)
 

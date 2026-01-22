@@ -74,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
@@ -1035,7 +1036,7 @@ class OrtRunServiceTest : WordSpec({
                         rule = "rule",
                         fixtures.identifier,
                         license = "license",
-                        licenseSources = setOf("CONCLUDED", "DECLARED"),
+                        licenseSources = setOf(LicenseSource.CONCLUDED, LicenseSource.DECLARED),
                         severity = Severity.ERROR,
                         message = "the rule is violated",
                         howToFix = "how to fix info"
@@ -1060,7 +1061,7 @@ class OrtRunServiceTest : WordSpec({
                         rule = "rule",
                         fixtures.identifier,
                         license = "license",
-                        licenseSources = setOf("CONCLUDED"),
+                        licenseSources = setOf(LicenseSource.CONCLUDED),
                         severity = Severity.ERROR,
                         message = "the rule is violated",
                         howToFix = howToFix

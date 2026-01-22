@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -381,6 +382,12 @@ fun LicenseFindingCuration.mapToOrt() = OrtLicenseFindingCuration(
     comment = comment
 )
 
+fun LicenseSource.mapToOrt() = when (this) {
+    LicenseSource.CONCLUDED -> OrtLicenseSource.CONCLUDED
+    LicenseSource.DECLARED -> OrtLicenseSource.DECLARED
+    LicenseSource.DETECTED -> OrtLicenseSource.DETECTED
+}
+
 fun NestedProvenance.mapToOrt() =
     OrtNestedProvenance(
         root = root.mapToOrt(),
@@ -610,7 +617,7 @@ fun RuleViolation.mapToOrt() =
         rule = rule,
         pkg = id?.mapToOrt(),
         license = license?.let { SpdxSingleLicenseExpression.parse(it) },
-        licenseSources = licenseSources.mapTo(enumSetOf()) { OrtLicenseSource.valueOf(it) },
+        licenseSources = licenseSources.mapTo(enumSetOf()) { it.mapToOrt() },
         severity = severity.mapToOrt(),
         message = message,
         howToFix = howToFix

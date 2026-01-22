@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
@@ -239,7 +240,7 @@ class Fixtures(private val db: Database) {
         rule = "rule",
         id = identifier,
         license = "license",
-        licenseSources = setOf("DETECTED", "DECLARED"),
+        licenseSources = setOf(LicenseSource.DETECTED, LicenseSource.DECLARED),
         message = "message",
         severity = Severity.ERROR,
         howToFix = "how to fix"
