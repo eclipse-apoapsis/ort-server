@@ -118,6 +118,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
@@ -1746,7 +1747,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "2.14.0"
                         ),
                         "License-1",
-                        setOf("CONCLUDED"),
+                        setOf(LicenseSource.CONCLUDED),
                         Severity.WARNING,
                         "Message-1",
                         "How_to_fix-1"
@@ -1761,7 +1762,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "2.9.6"
                         ),
                         "License-2",
-                        setOf("DETECTED"),
+                        setOf(LicenseSource.DETECTED),
                         Severity.ERROR,
                         "Message-2",
                         "How_to_fix-2"
@@ -1776,7 +1777,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "2.20.0"
                         ),
                         "License-3",
-                        setOf("CONCLUDED"),
+                        setOf(LicenseSource.CONCLUDED),
                         Severity.WARNING,
                         "Message-3",
                         "How_to_fix-3"
@@ -1786,7 +1787,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "a-Rule-4",
                         null,
                         "License-4",
-                        setOf("CONCLUDED"),
+                        setOf(LicenseSource.CONCLUDED),
                         Severity.WARNING,
                         "Message-4",
                         "How_to_fix-4"
@@ -1831,7 +1832,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "2.14.0"
                         ),
                         "License-1-obsolete",
-                        setOf("CONCLUDED"),
+                        setOf(LicenseSource.CONCLUDED),
                         Severity.WARNING,
                         "Message-1-obsolete",
                         "How_to_fix-1-obsolete"
@@ -1840,7 +1841,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "Rule-2-obsolete",
                         null,
                         "License-2-obsolete",
-                        setOf("DETECTED"),
+                        setOf(LicenseSource.DETECTED),
                         Severity.ERROR,
                         "Message-2-obsolete",
                         "How_to_fix-2-obsolete"
@@ -1940,7 +1941,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "z-Rule-1",
                     Identifier("Maven", "com.example", "example", "1.0"),
                     "License-1",
-                    setOf("CONCLUDED"),
+                    setOf(LicenseSource.CONCLUDED),
                     Severity.WARNING,
                     "Message-1",
                     "How_to_fix-1"
@@ -1950,7 +1951,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "b-Rule-2",
                     Identifier("Maven", "com.example", "example", "1.0"),
                     "License-2",
-                    setOf("DETECTED"),
+                    setOf(LicenseSource.DETECTED),
                     Severity.ERROR,
                     "Message-2",
                     "How_to_fix-2"
@@ -1960,7 +1961,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "1-Rule-3",
                     Identifier("NPM", "com.example", "example2", "1.0"),
                     "License-3",
-                    setOf("CONCLUDED"),
+                    setOf(LicenseSource.CONCLUDED),
                     Severity.WARNING,
                     "Message-3",
                     "How_to_fix-3"
@@ -1970,7 +1971,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "a-Rule-4",
                     null,
                     "License-4",
-                    setOf("CONCLUDED"),
+                    setOf(LicenseSource.CONCLUDED),
                     Severity.WARNING,
                     "Message-4",
                     "How_to_fix-4"

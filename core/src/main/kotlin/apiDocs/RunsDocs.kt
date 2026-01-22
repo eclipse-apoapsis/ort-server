@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.model.LicenseSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
@@ -367,7 +368,7 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                                     "2.42"
                                 ),
                                 "GPL-1.0-or-later",
-                                "DETECTED",
+                                LicenseSource.DETECTED,
                                 Severity.ERROR,
                                 "The declared license 'LPGL-2.1' could not be mapped to a valid SPDX expression.",
                                 """

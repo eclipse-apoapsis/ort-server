@@ -26,7 +26,7 @@ data class RuleViolation(
     val rule: String,
     val id: Identifier? = null,
     val license: String?,
-    val licenseSource: String?,
+    val licenseSource: LicenseSource?,
     val severity: Severity,
     val message: String,
     val howToFix: String,
