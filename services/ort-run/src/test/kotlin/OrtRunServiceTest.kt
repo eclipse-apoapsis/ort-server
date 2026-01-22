@@ -617,6 +617,14 @@ class OrtRunServiceTest : WordSpec({
                 evaluatorJobId = fixtures.evaluatorJob.id,
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap()
+                ),
                 violations = emptyList()
             )
 
@@ -1030,6 +1038,14 @@ class OrtRunServiceTest : WordSpec({
                 evaluatorJobId = fixtures.evaluatorJob.id,
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap()
+                ),
                 violations = listOf(
                     RuleViolation(
                         rule = "rule",
@@ -1055,6 +1071,14 @@ class OrtRunServiceTest : WordSpec({
                 evaluatorJobId = fixtures.evaluatorJob.id,
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap()
+                ),
                 violations = listOf(
                     RuleViolation(
                         rule = "rule",

@@ -24,7 +24,9 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
@@ -38,14 +40,17 @@ class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunReposito
         evaluatorJobId: Long,
         startTime: Instant,
         endTime: Instant,
+        environment: Environment,
         violations: List<RuleViolation>
     ): EvaluatorRun = db.blockingQuery {
+        val environmentDao = EnvironmentDao.getOrPut(environment)
         val ruleViolations = mapAndDeduplicate(violations, RuleViolationDao::getOrPut)
 
         EvaluatorRunDao.new {
             this.evaluatorJobId = evaluatorJobId
             this.startTime = startTime
             this.endTime = endTime
+            this.environment = environmentDao
             this.violations = ruleViolations
         }.mapToModel()
     }

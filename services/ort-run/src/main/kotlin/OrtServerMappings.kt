@@ -321,6 +321,7 @@ fun EvaluatorRun.mapToOrt() =
     OrtEvaluatorRun(
         startTime = startTime.toJavaInstant(),
         endTime = endTime.toJavaInstant(),
+        environment = environment.mapToOrt(),
         violations = violations.map(RuleViolation::mapToOrt)
     )
 

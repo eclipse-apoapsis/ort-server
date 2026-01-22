@@ -1805,6 +1805,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = evaluatorJob.id,
                     startTime = Clock.System.now().toDatabasePrecision(),
                     endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = Environment.EMPTY,
                     violations = ruleViolations
                 )
 
@@ -1858,6 +1859,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = obsoleteEvaluatorJob.id,
                     startTime = Clock.System.now().toDatabasePrecision(),
                     endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = Environment.EMPTY,
                     violations = obsoleteRuleViolations
                 )
 
@@ -2146,6 +2148,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     evaluatorJobId = evaluatorJob.id,
                     startTime = now.toDatabasePrecision(),
                     endTime = now.toDatabasePrecision(),
+                    environment = Environment.EMPTY,
                     violations = listOf(
                         // 4th record after sort by "rule"
                         evaluatorRuleViolation1,

@@ -511,6 +511,7 @@ class OrtRunService(
             evaluatorRun.evaluatorJobId,
             evaluatorRun.startTime,
             evaluatorRun.endTime,
+            evaluatorRun.environment,
             evaluatorRun.violations
         )
     }

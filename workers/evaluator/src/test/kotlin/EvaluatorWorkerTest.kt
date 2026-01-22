@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -64,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactor
 
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
@@ -137,11 +139,13 @@ class EvaluatorWorkerTest : StringSpec({
             evaluatorJobId = EVALUATOR_JOB_ID,
             startTime = Instant.parse("2025-06-18T07:41:30Z"),
             endTime = Instant.parse("2025-06-18T07:42:17Z"),
+            environment = environment.mapToModel(),
             violations = emptyList()
         )
         val ortEvaluatorRun = OrtEvaluatorRun(
             startTime = JavaInstant.parse("2025-06-18T07:41:30Z"),
             endTime = JavaInstant.parse("2025-06-18T07:42:17Z"),
+            environment = environment,
             violations = emptyList()
         )
         val resolvedItems = ResolvedItemsResult.EMPTY
@@ -368,6 +372,20 @@ class EvaluatorWorkerTest : StringSpec({
         }
     }
 })
+
+private val variables = mapOf(
+    "SHELL" to "/bin/bash",
+    "TERM" to "xterm-256color"
+)
+
+private val environment = Environment(
+    ortVersion = "1.0",
+    javaVersion = "11.0.16",
+    os = "Linux",
+    processors = 8,
+    maxMemory = 8321499136,
+    variables = variables
+)
 
 /**
  * Create a mock [WorkerContextFactory] and prepare it to return the given [context].

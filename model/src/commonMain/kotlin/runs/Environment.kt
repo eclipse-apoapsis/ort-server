@@ -26,4 +26,8 @@ data class Environment(
     val processors: Int,
     val maxMemory: Long,
     val variables: Map<String, String>
-)
+) {
+    companion object {
+        val EMPTY = Environment("", "", "", 0, 0L, emptyMap())
+    }
+}

@@ -608,6 +608,7 @@ object OrtTestData {
     val evaluatorRun = EvaluatorRun(
         startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+        environment = environment,
         violations = listOf(
             RuleViolation(
                 rule = "rule",
