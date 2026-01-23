@@ -41,6 +41,7 @@ sealed interface OptionalValue<out T> {
      */
     class Present<T>(val value: T) : OptionalValue<T> {
         override fun toString() = value.toString()
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other == null) return false
@@ -51,9 +52,7 @@ sealed interface OptionalValue<out T> {
             return value == other.value
         }
 
-        override fun hashCode(): Int {
-            return value?.hashCode() ?: 0
-        }
+        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**

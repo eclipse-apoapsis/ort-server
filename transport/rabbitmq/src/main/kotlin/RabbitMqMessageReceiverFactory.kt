@@ -117,48 +117,46 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
     private fun <T : Any> ProducerScope<Message<T>>.createConsumer(
         channel: Channel,
         serializer: JsonSerializer<T>
-    ): Consumer {
-        return object : DefaultConsumer(channel) {
-            override fun handleCancelOk(consumerTag: String?) {
-                logger.info("handleCancelOk() callback.")
-                cancel("handleCancelOk() callback was invoked.")
-            }
+    ): Consumer = object : DefaultConsumer(channel) {
+        override fun handleCancelOk(consumerTag: String?) {
+            logger.info("handleCancelOk() callback.")
+            cancel("handleCancelOk() callback was invoked.")
+        }
 
-            override fun handleCancel(consumerTag: String?) {
-                logger.info("handleCancel() callback.")
-                cancel("handleCancel() callback was invoked.")
-            }
+        override fun handleCancel(consumerTag: String?) {
+            logger.info("handleCancel() callback.")
+            cancel("handleCancel() callback was invoked.")
+        }
 
-            override fun handleDelivery(
-                consumerTag: String?,
-                envelope: Envelope?,
-                properties: AMQP.BasicProperties?,
-                body: ByteArray?
-            ) {
-                runCatching {
-                    val delivery = Delivery(envelope, properties, body)
-                    val message = RabbitMqMessageConverter.toTransportMessage(delivery, serializer)
+        override fun handleDelivery(
+            consumerTag: String?,
+            envelope: Envelope?,
+            properties: AMQP.BasicProperties?,
+            body: ByteArray?
+        ) {
+            runCatching {
+                val delivery = Delivery(envelope, properties, body)
+                val message = RabbitMqMessageConverter.toTransportMessage(delivery, serializer)
 
-                    MDC.put("traceId", message.header.traceId)
-                    MDC.put("ortRunId", message.header.ortRunId.toString())
+                MDC.put("traceId", message.header.traceId)
+                MDC.put("ortRunId", message.header.ortRunId.toString())
 
-                    if (logger.isDebugEnabled) {
-                        logger.debug(
-                            "Received message '${message.header.traceId}' with payload of type " +
-                                    "'${message.payload.javaClass.name}'."
-                        )
-                    }
-
-                    // Inline kotlinx.coroutines.channels.trySendBlocking as the function calls runBlocking internally
-                    // without preserving the MDC context.
-                    if (!trySend(message).isSuccess) {
-                        runBlocking {
-                            send(message)
-                        }
-                    }
-                }.onFailure {
-                    logger.error("Error during message processing.", it)
+                if (logger.isDebugEnabled) {
+                    logger.debug(
+                        "Received message '${message.header.traceId}' with payload of type " +
+                                "'${message.payload.javaClass.name}'."
+                    )
                 }
+
+                // Inline kotlinx.coroutines.channels.trySendBlocking as the function calls runBlocking internally
+                // without preserving the MDC context.
+                if (!trySend(message).isSuccess) {
+                    runBlocking {
+                        send(message)
+                    }
+                }
+            }.onFailure {
+                logger.error("Error during message processing.", it)
             }
         }
     }

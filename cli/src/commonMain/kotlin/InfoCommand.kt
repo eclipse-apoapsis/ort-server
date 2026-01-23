@@ -47,6 +47,7 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
 
     override fun help(context: Context) = "Print information about a run."
 
+    @Suppress("ThrowsCount")
     override suspend fun run() {
         if (runId != null && ortRunByIndex != null) {
             throw MutuallyExclusiveGroupException(listOf("--run-id", "--repository-id and --index"))

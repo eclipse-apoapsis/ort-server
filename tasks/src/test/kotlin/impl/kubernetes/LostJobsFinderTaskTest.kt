@@ -139,7 +139,7 @@ class LostJobsFinderTaskTest : StringSpec({
             prepareJobsQuery(EvaluatorEndpoint)
             prepareJobsQuery(ReporterEndpoint)
             prepareJobsQuery(NotifierEndpoint)
-            every { findJobsForWorker(ConfigEndpoint) }.returns(listOf(configJob))
+            every { findJobsForWorker(ConfigEndpoint) } returns listOf(configJob)
         }
         val analyzerJobs = listOf(workerJobMock<AnalyzerJob>(RUN_ID), workerJobMock<AnalyzerJob>(RUN_ID + 1))
         val advisorJobs = listOf(workerJobMock<AdvisorJob>(RUN_ID + 2))
@@ -234,7 +234,7 @@ private fun <T : Any> JobHandler.prepareJobsQuery(endpoint: Endpoint<T>) {
         OrchestratorEndpoint -> AssertionErrorBuilder.fail("Orchestrator is not a worker.")
     }
 
-    every { findJobsForWorker(endpoint) }.returns(listOf(job))
+    every { findJobsForWorker(endpoint) } returns listOf(job)
 }
 
 /**

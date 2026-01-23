@@ -131,6 +131,7 @@ data class CompoundHierarchyId private constructor(
      * hierarchy. For an organization this is *null*.
      */
     val parent: CompoundHierarchyId?
+        @Suppress("UnsafeCallOnNullableType")
         get() = when {
             repositoryId != null -> forProduct(organizationId!!, productId!!)
             productId != null -> forOrganization(organizationId!!)

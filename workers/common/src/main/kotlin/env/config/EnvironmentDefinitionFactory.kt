@@ -236,11 +236,10 @@ private class DefinitionProperties(val properties: Map<String, String>) {
      * Return the value of a property of an Enum type with the given [name] or the given [default] if this property
      * is not defined. Throw an [EnvironmentConfigException] if the value is invalid.
      */
-    inline fun <reified T : Enum<T>> getEnumProperty(name: String, default: T): T {
-        return getOptionalProperty(name)?.let { value ->
+    inline fun <reified T : Enum<T>> getEnumProperty(name: String, default: T): T =
+        getOptionalProperty(name)?.let { value ->
             toEnumValue<T>(value, name)
         } ?: default
-    }
 
     /**
      * Convert the given string [value] to an enum value of type [T] or throw an [EnvironmentConfigException] if the

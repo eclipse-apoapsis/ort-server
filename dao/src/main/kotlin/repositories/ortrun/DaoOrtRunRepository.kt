@@ -204,14 +204,14 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         revision.ifPresent { ortRun.revision = it }
         resolvedRevision.ifPresent { ortRun.resolvedRevision = it }
 
-        issues.ifPresent { issues ->
-            issues.forEach { OrtRunIssueDao.createByIssue(id, it) }
+        issues.ifPresent {
+            it.forEach { issue -> OrtRunIssueDao.createByIssue(id, issue) }
         }
 
-        labels.ifPresent { labels ->
+        labels.ifPresent {
             val newLabels = mutableSetOf<LabelDao>()
             newLabels += ortRun.labels
-            newLabels += labels.map(::getLabelDao)
+            newLabels += it.map(::getLabelDao)
             ortRun.labels = SizedCollection(newLabels)
         }
 

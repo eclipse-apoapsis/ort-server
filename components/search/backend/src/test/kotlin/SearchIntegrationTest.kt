@@ -52,7 +52,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.jetbrains.exposed.sql.Database
 
 /** An [AbstractIntegrationTest] pre-configured for testing the search routes. */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class SearchIntegrationTest(
     body: SearchIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {

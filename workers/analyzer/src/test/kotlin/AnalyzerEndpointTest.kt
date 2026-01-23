@@ -329,7 +329,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             val context = mockk<WorkerContext> {
                 coEvery { resolveSecrets(*anyVararg()) } returns secretsMap
                 every { configManager } returns mockk<ConfigManager>()
-                every { credentialResolverFun } returns(secretsMap::getValue)
+                every { credentialResolverFun } returns secretsMap::getValue
                 every { hierarchy } returns testHierarchy
                 every { ortRun } returns OrtRun(
                     id = 20230627071600L,

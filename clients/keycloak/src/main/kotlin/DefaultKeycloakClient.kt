@@ -201,13 +201,11 @@ class DefaultKeycloakClient(
         return getGroupMembers(group.id)
     }
 
-    override suspend fun getGroupMembers(groupId: GroupId): Set<User> {
-        return runCatching {
-            httpClient.get("$apiUrl/groups/${groupId.value}/members")
-        }.getOrElse {
-            throw KeycloakClientException("Failed to get members of group '${groupId.value}'.", it)
-        }.body()
-    }
+    override suspend fun getGroupMembers(groupId: GroupId): Set<User> = runCatching {
+        httpClient.get("$apiUrl/groups/${groupId.value}/members")
+    }.getOrElse {
+        throw KeycloakClientException("Failed to get members of group '${groupId.value}'.", it)
+    }.body()
 
     private suspend fun getGroup(name: GroupName): Group =
         runCatching {

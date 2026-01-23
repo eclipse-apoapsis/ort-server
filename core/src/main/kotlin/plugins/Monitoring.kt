@@ -48,7 +48,7 @@ fun Application.configureMonitoring() {
         mdc("repositoryId") { it.parameters["repositoryId"] }
 
         format { call ->
-            val clientType = call.request.headers[CustomHttpHeaders.ClientType]
+            val clientType = call.request.headers[CustomHttpHeaders.CLIENT_TYPE]
                 ?: call.request.headers[HttpHeaders.UserAgent]
                 ?: "unknown"
 

@@ -91,11 +91,10 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
             override fun contains(context: Context, path: Path): Boolean =
                 resolveFile(context, path).isFile
 
-            override fun listFiles(context: Context, path: Path): Set<Path> {
-                return resolveFile(context, path).list()?.mapTo(mutableSetOf()) { name ->
+            override fun listFiles(context: Context, path: Path): Set<Path> =
+                resolveFile(context, path).list()?.mapTo(mutableSetOf()) { name ->
                     Path("${path.path}/$name")
                 } ?: throw IllegalArgumentException("Invalid path to list: '$path'.")
-            }
         }
     }
 }

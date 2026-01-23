@@ -33,9 +33,7 @@ data class PagedResponse<E>(
     val pagination: PagingData
 ) {
     /** Convert this object to a [PagedSearchResponse] with the provided [filters]. */
-    fun <T> toSearchResponse(filters: T): PagedSearchResponse<E, T> {
-        return PagedSearchResponse(data, pagination, filters)
-    }
+    fun <T> toSearchResponse(filters: T): PagedSearchResponse<E, T> = PagedSearchResponse(data, pagination, filters)
 }
 
 /**

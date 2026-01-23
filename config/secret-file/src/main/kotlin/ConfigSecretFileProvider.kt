@@ -57,9 +57,7 @@ class ConfigSecretFileProvider(
         private val splitKeyValueRegex = Regex("""\s*$KEY_VALUE_SEPARATOR\s*""")
     }
 
-    override fun getSecret(path: Path): String {
-        return getSecretValue(path.path, secretFiles.iterator())
-    }
+    override fun getSecret(path: Path): String = getSecretValue(path.path, secretFiles.iterator())
 
     private tailrec fun getSecretValue(name: String, filesIterator: Iterator<File>): String =
         if (filesIterator.hasNext()) {

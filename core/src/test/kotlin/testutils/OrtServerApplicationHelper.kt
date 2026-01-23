@@ -90,6 +90,7 @@ fun ortServerTestApplication(
  */
 sealed interface TestConfig {
     val config: ApplicationConfig
+
     fun Application.setupModules(db: Database)
 
     /**
@@ -97,6 +98,7 @@ sealed interface TestConfig {
      */
     object Default : TestConfig {
         override val config = ApplicationConfig("application.conf")
+
         override fun Application.setupModules(db: Database) {
             // No-op, because the default application.conf set ktor.application.modules.
         }
@@ -107,6 +109,7 @@ sealed interface TestConfig {
      */
     object TestAuth : TestConfig {
         override val config = ApplicationConfig("application-test-auth.conf")
+
         override fun Application.setupModules(db: Database) {
             testAuthModule(db)
         }
@@ -118,6 +121,7 @@ sealed interface TestConfig {
      */
     object Test : TestConfig {
         override val config = ApplicationConfig("application-test.conf")
+
         override fun Application.setupModules(db: Database) {
             testModule(db)
         }

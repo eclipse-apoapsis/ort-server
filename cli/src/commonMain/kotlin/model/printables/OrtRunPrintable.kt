@@ -37,30 +37,28 @@ import org.eclipse.apoapsis.ortserver.cli.json
  * A [CliPrintable] for a formatted and reduced [OrtRun] object.
  */
 class OrtRunPrintable(private val ortRun: OrtRun) : CliPrintable {
-    override fun humanReadable(): Widget {
-        return grid {
-            row(yellow("ORT Run Information"))
-            formattedRow("ID", ortRun.id)
-            formattedRow("Repository ID", ortRun.repositoryId)
-            formattedRow("Index", ortRun.index)
-            formattedStatusRow("Status", ortRun.status)
-            formattedRow("Created", ortRun.createdAt)
-            formattedRow("Revision", ortRun.revision)
-            ortRun.path?.takeIf { it.isNotBlank() }?.also { formattedRow("Path", it) }
-            ortRun.userDisplayName?.takeIf { it.username.isNotBlank() }
-                ?.also { formattedRow("User", "${it.fullName} (${it.username})") }
-            ortRun.jobConfigContext?.takeIf { it.isNotBlank() }?.also { formattedRow("Config Context", it) }
+    override fun humanReadable(): Widget = grid {
+        row(yellow("ORT Run Information"))
+        formattedRow("ID", ortRun.id)
+        formattedRow("Repository ID", ortRun.repositoryId)
+        formattedRow("Index", ortRun.index)
+        formattedStatusRow("Status", ortRun.status)
+        formattedRow("Created", ortRun.createdAt)
+        formattedRow("Revision", ortRun.revision)
+        ortRun.path?.takeIf { it.isNotBlank() }?.also { formattedRow("Path", it) }
+        ortRun.userDisplayName?.takeIf { it.username.isNotBlank() }
+            ?.also { formattedRow("User", "${it.fullName} (${it.username})") }
+        ortRun.jobConfigContext?.takeIf { it.isNotBlank() }?.also { formattedRow("Config Context", it) }
 
-            row()
-            if (ortRun.hasAnyJobs()) {
-                row(yellow("Job Status"))
-                ortRun.jobs.analyzer?.status?.also { formattedStatusRow("Analyzer Status", it) }
-                ortRun.jobs.advisor?.status?.also { formattedStatusRow("Advisor Status", it) }
-                ortRun.jobs.scanner?.status?.also { formattedStatusRow("Scanner Status", it) }
-                ortRun.jobs.evaluator?.status?.also { formattedStatusRow("Evaluator Status", it) }
-                ortRun.jobs.reporter?.status?.also { formattedStatusRow("Reporter Status", it) }
-                ortRun.jobs.notifier?.status?.also { formattedStatusRow("Notifier Status", it) }
-            }
+        row()
+        if (ortRun.hasAnyJobs()) {
+            row(yellow("Job Status"))
+            ortRun.jobs.analyzer?.status?.also { formattedStatusRow("Analyzer Status", it) }
+            ortRun.jobs.advisor?.status?.also { formattedStatusRow("Advisor Status", it) }
+            ortRun.jobs.scanner?.status?.also { formattedStatusRow("Scanner Status", it) }
+            ortRun.jobs.evaluator?.status?.also { formattedStatusRow("Evaluator Status", it) }
+            ortRun.jobs.reporter?.status?.also { formattedStatusRow("Reporter Status", it) }
+            ortRun.jobs.notifier?.status?.also { formattedStatusRow("Notifier Status", it) }
         }
     }
 

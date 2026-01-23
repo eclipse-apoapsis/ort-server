@@ -72,11 +72,11 @@ class S3StorageTest : WordSpec({
     }
 
     afterEach {
-        s3Client.listObjectsV2(ListObjectsV2Request { bucket = TEST_BUCKET_NAME }).contents.orEmpty().forEach {
+        s3Client.listObjectsV2(ListObjectsV2Request { bucket = TEST_BUCKET_NAME }).contents.orEmpty().forEach { obj ->
             s3Client.deleteObject(
                 DeleteObjectRequest {
                     bucket = TEST_BUCKET_NAME
-                    key = it.key
+                    key = obj.key
                 }
             )
         }

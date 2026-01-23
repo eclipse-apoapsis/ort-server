@@ -526,13 +526,11 @@ private fun createConfigManagerProperties(): Map<String, Map<String, Any>> {
  * Return a [Map] with the properties related to the configuration providers. This basically defines the content of
  * the `configManager` section in the configuration.
  */
-private fun createConfigProviderProperties(): Map<String, Any> {
-    return mapOf(
-        ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
-        ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
-        ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to mapOf(TEST_SECRET_NAME to TEST_SECRET_VALUE)
-    )
-}
+private fun createConfigProviderProperties(): Map<String, Any> = mapOf(
+    ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
+    ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+    ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to mapOf(TEST_SECRET_NAME to TEST_SECRET_VALUE)
+)
 
 /**
  * Return a [Context] for the test [ConfigFileProvider] that points to the config directory in the test resources.

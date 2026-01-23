@@ -127,17 +127,15 @@ class ConfigValidator private constructor(
      * result of this script. If the script execution fails, return a failure result as well with the information
      * available about the failure.
      */
-    fun validate(script: String): ConfigValidationResult {
-        return runCatching {
-            val executedScript = runScript(script).scriptInstance as ValidationScriptTemplate
+    fun validate(script: String): ConfigValidationResult = runCatching {
+        val executedScript = runScript(script).scriptInstance as ValidationScriptTemplate
 
-            when (val result = executedScript.validationResult) {
-                is ConfigValidationResultFailure -> result
-                is ConfigValidationResultSuccess -> result.validateAdminConfig()
-            }
-        }.getOrElse { exception ->
-            createScriptErrorResult(script, exception)
+        when (val result = executedScript.validationResult) {
+            is ConfigValidationResultFailure -> result
+            is ConfigValidationResultSuccess -> result.validateAdminConfig()
         }
+    }.getOrElse { exception ->
+        createScriptErrorResult(script, exception)
     }
 
     /**

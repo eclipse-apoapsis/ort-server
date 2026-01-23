@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory
  * to manage secrets.
  */
 class FileBasedSecretsProvider(config: Config) : SecretsProvider {
-
     companion object {
         /** The name of this test provider implementation.*/
         const val NAME = "fileBased"
@@ -100,9 +99,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     }
 
     @Synchronized
-    override fun readSecret(path: Path): SecretValue? {
-        return readSecrets()[path]
-    }
+    override fun readSecret(path: Path): SecretValue? = readSecrets()[path]
 
     @Synchronized
     override fun writeSecret(path: Path, secret: SecretValue) {

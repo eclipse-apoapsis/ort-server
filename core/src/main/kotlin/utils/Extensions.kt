@@ -160,25 +160,23 @@ inline fun <reified E : Enum<E>> findByName(name: String): E =
     )
 
 /** Extract [VulnerabilityForRunsFilters] from the [ApplicationCall] */
-fun ApplicationCall.vulnerabilityForRunsFilters(): VulnerabilityForRunsFilters {
-    return VulnerabilityForRunsFilters(
-        rating = parameters["rating"]?.let {
-            val parts = parameters["rating"]?.split(',').orEmpty()
+fun ApplicationCall.vulnerabilityForRunsFilters(): VulnerabilityForRunsFilters = VulnerabilityForRunsFilters(
+    rating = parameters["rating"]?.let {
+        val parts = parameters["rating"]?.split(',').orEmpty()
 
-            val ratingOperator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN
+        val ratingOperator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN
 
-            val ratings = parts
-                .filter { part -> part != "-" }
-                .map { rating -> findByName<VulnerabilityRating>(rating) }
-                .toSet()
+        val ratings = parts
+            .filter { part -> part != "-" }
+            .map { rating -> findByName<VulnerabilityRating>(rating) }
+            .toSet()
 
-            FilterOperatorAndValue(
-                ratingOperator,
-                ratings
-            )
-        },
-        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
-    )
-}
+        FilterOperatorAndValue(
+            ratingOperator,
+            ratings
+        )
+    },
+    identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+    purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+    externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
+)

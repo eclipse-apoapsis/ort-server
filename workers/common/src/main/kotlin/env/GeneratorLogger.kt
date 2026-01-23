@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory
  * It helps log messages related to the generation of environment configuration files.
  */
 internal object GeneratorLogger {
-
     private val logger = LoggerFactory.getLogger(GeneratorLogger::class.java)
 
     internal fun entryAdded(entry: String, targetFile: String, service: ResolvedInfrastructureService) {

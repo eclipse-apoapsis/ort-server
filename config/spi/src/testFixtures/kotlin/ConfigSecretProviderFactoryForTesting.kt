@@ -46,9 +46,7 @@ class ConfigSecretProviderFactoryForTesting : ConfigSecretProviderFactory {
             .entrySet().associate { it.key to it.value.unwrapped().toString() }
 
         return object : ConfigSecretProvider {
-            override fun getSecret(path: Path): String {
-                return secrets.getValue(path.path)
-            }
+            override fun getSecret(path: Path): String = secrets.getValue(path.path)
         }
     }
 }

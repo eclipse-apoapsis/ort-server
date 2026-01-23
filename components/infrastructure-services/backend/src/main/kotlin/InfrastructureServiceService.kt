@@ -67,26 +67,24 @@ class InfrastructureServiceService(
         usernameSecretRef: String,
         passwordSecretRef: String,
         credentialsTypes: Set<CredentialsType>
-    ): InfrastructureService {
-        return db.dbQuery {
-            if (getDaoForId(id, name) != null) {
-                throw UniqueConstraintException(
-                    "An infrastructure service with name '$name' already exists for the given hierarchy entity."
-                )
-            }
-
-            InfrastructureServicesDao.new {
-                this.name = name
-                this.url = url
-                this.description = description
-                this.usernameSecret = usernameSecretRef
-                this.passwordSecret = passwordSecretRef
-                this.credentialsTypes = credentialsTypes
-                this.organizationId = (id as? OrganizationId)?.value
-                this.productId = (id as? ProductId)?.value
-                this.repositoryId = (id as? RepositoryId)?.value
-            }.mapToModel()
+    ): InfrastructureService = db.dbQuery {
+        if (getDaoForId(id, name) != null) {
+            throw UniqueConstraintException(
+                "An infrastructure service with name '$name' already exists for the given hierarchy entity."
+            )
         }
+
+        InfrastructureServicesDao.new {
+            this.name = name
+            this.url = url
+            this.description = description
+            this.usernameSecret = usernameSecretRef
+            this.passwordSecret = passwordSecretRef
+            this.credentialsTypes = credentialsTypes
+            this.organizationId = (id as? OrganizationId)?.value
+            this.productId = (id as? ProductId)?.value
+            this.repositoryId = (id as? RepositoryId)?.value
+        }.mapToModel()
     }
 
     /**
@@ -100,18 +98,16 @@ class InfrastructureServiceService(
         usernameSecretRef: OptionalValue<String>,
         passwordSecretRef: OptionalValue<String>,
         credentialsTypes: OptionalValue<Set<CredentialsType>>
-    ): InfrastructureService {
-        return db.dbQuery {
-            val service = InfrastructureServicesDao.findSingle(selectByIdAndName(id, name))
+    ): InfrastructureService = db.dbQuery {
+        val service = InfrastructureServicesDao.findSingle(selectByIdAndName(id, name))
 
-            url.ifPresent { service.url = it }
-            description.ifPresent { service.description = it }
-            usernameSecretRef.ifPresent { service.usernameSecret = it }
-            passwordSecretRef.ifPresent { service.passwordSecret = it }
-            credentialsTypes.ifPresent { service.credentialsTypes = it }
+        url.ifPresent { service.url = it }
+        description.ifPresent { service.description = it }
+        usernameSecretRef.ifPresent { service.usernameSecret = it }
+        passwordSecretRef.ifPresent { service.passwordSecret = it }
+        credentialsTypes.ifPresent { service.credentialsTypes = it }
 
-            service.mapToModel()
-        }
+        service.mapToModel()
     }
 
     /**

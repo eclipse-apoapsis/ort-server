@@ -48,9 +48,7 @@ interface JsonSerializer<T> {
             return object : JsonSerializer<T> {
                 override fun toJson(obj: T): String = Json.encodeToString(serializer, obj)
 
-                override fun fromJson(json: String): T {
-                    return Json.decodeFromString(serializer, json)
-                }
+                override fun fromJson(json: String): T = Json.decodeFromString(serializer, json)
             }
         }
     }

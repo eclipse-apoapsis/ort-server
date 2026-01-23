@@ -44,7 +44,7 @@ internal data class ContextData(
  */
 @Serializable
 internal data class RunData(
-    /* The ID of the latest run started by the CLI. */
+    /** The ID of the latest run started by the CLI. */
     val latestId: Long? = null
 )
 
@@ -54,7 +54,7 @@ internal data class RunData(
 internal object ContextStorage {
     private val contextFile = configDir.resolve(CONTEXT_FILE_NAME)
     private var storage: ContextData = ContextData()
-    private var yaml = Yaml()
+    private val yaml = Yaml()
 
     init {
         if (contextFile.exists()) {

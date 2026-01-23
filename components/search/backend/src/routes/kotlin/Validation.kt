@@ -81,37 +81,35 @@ fun requireScopedReadPermission(): AuthorizationChecker =
             service: AuthorizationService,
             userId: String,
             call: ApplicationCall
-        ): EffectiveRole? {
-            return when (val scope = call.parseScope()) {
-                is RepositoryId -> {
-                    service.checkPermissions(
-                        userId,
-                        scope,
-                        HierarchyPermissions.permissions(RepositoryPermission.READ)
-                    )
-                }
-                is ProductId -> {
-                    service.checkPermissions(
-                        userId,
-                        scope,
-                        HierarchyPermissions.permissions(ProductPermission.READ)
-                    )
-                }
-                is OrganizationId -> {
-                    service.checkPermissions(
-                        userId,
-                        scope,
-                        HierarchyPermissions.permissions(OrganizationPermission.READ)
-                    )
-                }
-                else -> {
-                    // No scope provided, requires superuser
-                    service.checkPermissions(
-                        userId,
-                        CompoundHierarchyId.WILDCARD,
-                        HierarchyPermissions.permissions(OrganizationRole.ADMIN)
-                    )?.takeIf { it.isSuperuser }
-                }
+        ): EffectiveRole? = when (val scope = call.parseScope()) {
+            is RepositoryId -> {
+                service.checkPermissions(
+                    userId,
+                    scope,
+                    HierarchyPermissions.permissions(RepositoryPermission.READ)
+                )
+            }
+            is ProductId -> {
+                service.checkPermissions(
+                    userId,
+                    scope,
+                    HierarchyPermissions.permissions(ProductPermission.READ)
+                )
+            }
+            is OrganizationId -> {
+                service.checkPermissions(
+                    userId,
+                    scope,
+                    HierarchyPermissions.permissions(OrganizationPermission.READ)
+                )
+            }
+            else -> {
+                // No scope provided, requires superuser
+                service.checkPermissions(
+                    userId,
+                    CompoundHierarchyId.WILDCARD,
+                    HierarchyPermissions.permissions(OrganizationRole.ADMIN)
+                )?.takeIf { it.isSuperuser }
             }
         }
     }

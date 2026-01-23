@@ -67,6 +67,8 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
 
     override suspend fun beforeSpec(spec: Spec) {
         spec.install(TestContainerSpecExtension(postgres))
+
+        @Suppress("DEPRECATION")
         dataSource = postgres.toDataSource {
             poolName = "integrationTestsConnectionPool"
             maximumPoolSize = 5

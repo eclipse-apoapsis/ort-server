@@ -74,7 +74,6 @@ class EnvironmentService(
     /** The admin configuration service to access global settings. */
     private val adminConfigService: AdminConfigService
 ) {
-
     /**
      * Return a list of all [InfrastructureService]s that may be relevant for checking out the current repository
      * defined by the given [context]. If specified, merge this list with the services from the given [config], so

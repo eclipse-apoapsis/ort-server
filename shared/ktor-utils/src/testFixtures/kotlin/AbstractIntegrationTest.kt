@@ -54,7 +54,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 /**
  * A base class for integration tests that provides a database connection and a mock authentication provider.
  */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
     val dbExtension = extension(DatabaseTestExtension())
 

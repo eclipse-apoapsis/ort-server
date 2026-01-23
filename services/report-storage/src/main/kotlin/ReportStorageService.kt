@@ -64,13 +64,12 @@ class ReportStorageService(
      * Return a [ReportDownloadData] object for the report with the given [token] for the specified [runId]. Throw a
      * [ReportNotFoundException] if the report cannot be resolved or the token has expired.
      */
-    suspend fun fetchReportByToken(runId: Long, token: String): ReportDownloadData {
-        return reporterJobRepository.getReportByToken(runId, token)?.let { report ->
+    suspend fun fetchReportByToken(runId: Long, token: String): ReportDownloadData =
+        reporterJobRepository.getReportByToken(runId, token)?.let { report ->
             logger.info("Resolved report '${report.filename}' for run $runId from token.")
 
             fetchReport(runId, report.filename)
         } ?: throw ReportNotFoundException(runId, "<from token>")
-    }
 
     /**
      * Delete a report with the given [fileName] for the specified [runId].

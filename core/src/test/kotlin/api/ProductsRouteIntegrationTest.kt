@@ -1965,7 +1965,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 dbExtension.fixtures.createOrtRun(repository3Id)
                 val ortRunRepo3Failed = dbExtension.fixtures.createOrtRun(repository3Id)
 
-                /*update status ort run */
                 dbExtension.fixtures.ortRunRepository.update(
                     id = ortRunRepo1Failed.id,
                     status = OrtRunStatus.FAILED.asPresent2()
@@ -2031,7 +2030,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val ortRunRepo3Failed = dbExtension.fixtures.createOrtRun(repository3Id)
                 val ortRunRepo3Active = dbExtension.fixtures.createOrtRun(repository3Id)
 
-                /*update status*/
                 dbExtension.fixtures.ortRunRepository.update(
                     id = ortRunRepo1Failed.id,
                     status = OrtRunStatus.FAILED.asPresent2()

@@ -29,13 +29,12 @@ import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 internal object AzureServicebusMessageConverter {
-    fun <T> toServiceBusMessage(message: Message<T>, serializer: JsonSerializer<T>): ServiceBusMessage {
-        return ServiceBusMessage(serializer.toJson(message.payload)).apply {
+    fun <T> toServiceBusMessage(message: Message<T>, serializer: JsonSerializer<T>): ServiceBusMessage =
+        ServiceBusMessage(serializer.toJson(message.payload)).apply {
             setContentType("application/json")
             applicationProperties[TRACE_PROPERTY] = message.header.traceId
             applicationProperties[RUN_ID_PROPERTY] = message.header.ortRunId
         }
-    }
 
     fun <T> toTransportMessage(message: ServiceBusReceivedMessage, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(

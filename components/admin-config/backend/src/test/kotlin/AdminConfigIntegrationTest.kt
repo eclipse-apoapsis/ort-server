@@ -25,7 +25,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the admin-config routes. */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class AdminConfigIntegrationTest(body: AdminConfigIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
     init {
         body()

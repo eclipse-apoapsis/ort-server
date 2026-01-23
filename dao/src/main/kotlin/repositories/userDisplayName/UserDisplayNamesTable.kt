@@ -38,7 +38,6 @@ import org.jetbrains.exposed.sql.upsert
  * time of inactivity.
  */
 object UserDisplayNamesTable : IdTable<String>("user_display_names") {
-
     /**
      * Unique user identifier, for example, derived from JWT `sub` claim. This is stable over time.
      */

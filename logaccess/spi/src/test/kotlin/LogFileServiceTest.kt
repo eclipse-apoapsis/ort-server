@@ -224,11 +224,8 @@ private fun createLogFileCriteria(
 /**
  * Create a dummy log file under this directory for the given [source] with the given [content].
  */
-private fun File.createLogFile(source: LogSource, content: String = generateLog(source)): File {
-    return resolve("${RUN_ID}_${source.name}.log").also {
-        it.writeText(content)
-    }
-}
+private fun File.createLogFile(source: LogSource, content: String = generateLog(source)): File =
+    resolve("${RUN_ID}_${source.name}.log").apply { writeText(content) }
 
 /**
  * Return a string with dummy log data for the given [source].

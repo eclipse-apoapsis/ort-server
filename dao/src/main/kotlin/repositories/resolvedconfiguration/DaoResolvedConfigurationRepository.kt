@@ -195,8 +195,8 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
      * Find the OrtRunIssue ID for a given issue in the context of an ORT run.
      * Matches by message, timestamp, source, severity, and affectedPath.
      */
-    private fun findOrtRunIssueId(ortRunId: Long, issue: Issue): Long? {
-        return OrtRunsIssuesTable
+    private fun findOrtRunIssueId(ortRunId: Long, issue: Issue): Long? =
+        OrtRunsIssuesTable
             .innerJoin(IssuesTable)
             .select(OrtRunsIssuesTable.id)
             .where {
@@ -207,7 +207,6 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
                     (IssuesTable.affectedPath eq issue.affectedPath)
             }
             .firstOrNull()?.get(OrtRunsIssuesTable.id)?.value
-    }
 
     /**
      * Find the RuleViolation ID for a given rule violation in the context of an ORT run.
@@ -244,8 +243,8 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
     private fun findVulnerabilityIdentifierPairs(
         ortRunId: Long,
         vulnerability: Vulnerability
-    ): List<Pair<Long, Long>> {
-        return VulnerabilitiesTable
+    ): List<Pair<Long, Long>> =
+        VulnerabilitiesTable
             .innerJoin(AdvisorResultsVulnerabilitiesTable)
             .innerJoin(AdvisorResultsTable)
             .innerJoin(AdvisorRunsIdentifiersTable)
@@ -263,5 +262,4 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
                 )
             }
             .distinct()
-    }
 }

@@ -302,8 +302,6 @@ class DaoRepositoryRepositoryTest : StringSpec({
     }
 
     "listForProduct should apply query parameters and filter parameter" {
-        val type = RepositoryType.GIT
-
         val parameters = ListQueryParameters(
             sortFields = listOf(OrderField("url", OrderDirection.DESCENDING)),
             limit = 4

@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
  */
 abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
     abstract fun createJob(): T
+
     abstract fun getJobRepository(): WorkerJobRepository<T>
 
     init {
