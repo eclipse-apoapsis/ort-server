@@ -73,15 +73,21 @@ export const IssuesStatisticsCard = ({
     return;
   }
 
-  const total = data.issuesCount;
+  const unresolved = data.issuesCount;
+  const total = data.issuesCountTotal;
   const counts = data.issuesCountBySeverity;
-  const { value, description } = jobStatusTexts(status, jobIncluded, total);
+  const { value, description } = jobStatusTexts(
+    status,
+    jobIncluded,
+    unresolved
+  );
 
   return (
     <StatisticsCard
       title='Issues'
       icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
       value={value}
+      total={total ?? undefined}
       description={description}
       counts={
         counts
