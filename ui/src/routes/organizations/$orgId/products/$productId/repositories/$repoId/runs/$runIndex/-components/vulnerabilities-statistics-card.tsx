@@ -75,9 +75,14 @@ export const VulnerabilitiesStatisticsCard = ({
     return;
   }
 
-  const total = data.vulnerabilitiesCount;
+  const unresolved = data.vulnerabilitiesCount;
+  const total = data.vulnerabilitiesCountTotal;
   const counts = data.vulnerabilitiesCountByRating;
-  const { value, description } = jobStatusTexts(status, jobIncluded, total);
+  const { value, description } = jobStatusTexts(
+    status,
+    jobIncluded,
+    unresolved
+  );
 
   return (
     <StatisticsCard
@@ -86,6 +91,7 @@ export const VulnerabilitiesStatisticsCard = ({
         <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
       value={value}
+      total={total ?? undefined}
       description={description}
       counts={
         counts

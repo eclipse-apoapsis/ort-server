@@ -75,16 +75,22 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const total = data.ruleViolationsCount;
+  const unresolved = data.ruleViolationsCount;
+  const total = data.ruleViolationsCountTotal;
   const counts = data.ruleViolationsCountBySeverity;
 
-  const { value, description } = jobStatusTexts(status, jobIncluded, total);
+  const { value, description } = jobStatusTexts(
+    status,
+    jobIncluded,
+    unresolved
+  );
 
   return (
     <StatisticsCard
       title='Rule Violations'
       icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
       value={value}
+      total={total ?? undefined}
       description={description}
       counts={
         counts
