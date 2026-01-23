@@ -133,12 +133,6 @@ class AdvisorWorkerTest : StringSpec({
             every { getAdvisorJob(any()) } throws testException
         }
 
-        val context = mockk<WorkerContext> {
-            every { this@mockk.ortRun } returns mockOrtRun()
-            every { this@mockk.configManager } returns mockConfigManager()
-            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
-        }
-
         val worker = AdvisorWorker(
             mockk(),
             createRunner(),
@@ -251,12 +245,6 @@ class AdvisorWorkerTest : StringSpec({
         val invalidJob = advisorJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
             every { getAdvisorJob(any()) } returns invalidJob
-        }
-
-        val context = mockk<WorkerContext> {
-            every { this@mockk.ortRun } returns mockOrtRun()
-            every { this@mockk.configManager } returns mockConfigManager()
-            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
         }
 
         val worker = AdvisorWorker(

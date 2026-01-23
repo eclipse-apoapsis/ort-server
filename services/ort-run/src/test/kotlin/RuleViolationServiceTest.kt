@@ -51,7 +51,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolut
 import org.jetbrains.exposed.sql.Database
 
 class RuleViolationServiceTest : WordSpec() {
-
     private val dbExtension = extension(DatabaseTestExtension())
 
     private lateinit var db: Database
@@ -96,7 +95,6 @@ class RuleViolationServiceTest : WordSpec() {
                 results shouldHaveSize 3
 
                 with(results[0]) {
-
                     rule shouldBe "Rule-1"
                     license shouldBe "License-1"
                     licenseSources shouldBe setOf("CONCLUDED")

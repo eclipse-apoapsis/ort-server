@@ -81,6 +81,7 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
                 clientId = clientId ?: serverConfig.clientId
             )
         } else {
+            @Suppress("UnsafeCallOnNullableType")
             OidcConfig(tokenUrl!!, clientId!!)
         }
 

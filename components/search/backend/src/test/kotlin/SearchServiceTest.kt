@@ -200,7 +200,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactlyInAnyOrder(listOf(run1, run2, run3))
+            result shouldContainExactlyInAnyOrder listOf(run1, run2, run3)
         }
 
         "return empty when package is not present in the given scope" {

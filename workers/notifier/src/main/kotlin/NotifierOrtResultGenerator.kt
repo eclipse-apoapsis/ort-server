@@ -105,11 +105,12 @@ internal class NotifierOrtResultGenerator(
      * TODO: ORT's Notifier API should be changed to support the email addresses, and not require to handle this
      *       information as a label in the ORT result.
      */
-    private fun getMailRecipientsLabels(notifierJob: NotifierJob): Map<String, String> {
-        return notifierJob.configuration.recipientAddresses.takeUnless { it.isEmpty() }?.let { recipients ->
+    private fun getMailRecipientsLabels(notifierJob: NotifierJob): Map<String, String> =
+        notifierJob.configuration.recipientAddresses.takeUnless {
+            it.isEmpty()
+        }?.let { recipients ->
             mapOf(EMAIL_RECIPIENTS_LABEL to recipients.joinToString(RECIPIENTS_SEPARATOR))
         }.orEmpty()
-    }
 
     /**
      * Return a map with labels that contain information about the worker jobs executed for the given [ortRun].

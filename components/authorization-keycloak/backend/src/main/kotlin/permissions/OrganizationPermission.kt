@@ -28,7 +28,6 @@ import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
  * to control access to the [Organization] endpoints.
  */
 enum class OrganizationPermission {
-
     /** Permission to read the [Organization] details. */
     READ,
 

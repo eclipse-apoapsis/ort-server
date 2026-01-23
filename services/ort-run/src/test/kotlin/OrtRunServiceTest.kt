@@ -1464,106 +1464,102 @@ private fun createOrtRun(
 
 private fun createVcsInfo(url: String) = VcsInfo(RepositoryType.GIT, url, "revision", "path")
 
-private fun createProvenances(vcsPath: String): Set<ProvenanceResolutionResult> {
-    return setOf(
-        ProvenanceResolutionResult(
-            id = Identifier("NPM", "", "accepts", "1.3.8"),
-            packageProvenance = ArtifactProvenance(
-                sourceArtifact = RemoteArtifact(
-                    url = "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz",
-                    hashValue = "0bf0be125b67014adcb0b0921e62db7bffe16b2e",
-                    hashAlgorithm = "SHA-1"
+private fun createProvenances(vcsPath: String): Set<ProvenanceResolutionResult> = setOf(
+    ProvenanceResolutionResult(
+        id = Identifier("NPM", "", "accepts", "1.3.8"),
+        packageProvenance = ArtifactProvenance(
+            sourceArtifact = RemoteArtifact(
+                url = "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz",
+                hashValue = "0bf0be125b67014adcb0b0921e62db7bffe16b2e",
+                hashAlgorithm = "SHA-1"
+            )
+        )
+    ),
+    ProvenanceResolutionResult(
+        id = Identifier("NPM", "", "ocaas-test-reference", "0.0.1"),
+        packageProvenance = RepositoryProvenance(
+            vcsInfo = VcsInfo(
+                type = RepositoryType.GIT,
+                url = "https://github.com/bosch-ocaas/ocaas-test-projects.git",
+                revision = "05f320aff2e2b565f150a48a4f801382f6cf5987",
+                path = vcsPath
+            ),
+            resolvedRevision = "05f320aff2e2b565f150a48a4f801382f6cf5987"
+        )
+    )
+)
+
+private fun createScanResults(): Set<ScanResult> = setOf(
+    ScanResult(
+        provenance = RepositoryProvenance(
+            vcsInfo = VcsInfo(
+                type = RepositoryType.GIT,
+                url = "https://github.com/bosch-ocaas/ocaas-test-projects.git",
+                revision = "05f320aff2e2b565f150a48a4f801382f6cf5987",
+                path = ""
+            ),
+            resolvedRevision = "05f320aff2e2b565f150a48a4f801382f6cf5987"
+        ),
+        scanner = ScannerDetail("scanner", "1.0.0", ""),
+        summary = ScanSummary(
+            startTime = Clock.System.now(),
+            endTime = Clock.System.now(),
+            hash = Clock.System.now().toString(),
+            licenseFindings = setOf(
+                LicenseFinding(
+                    spdxLicense = "Apache-2.0",
+                    location = TextLocation(
+                        path = "gradle-inspector/bootstrap-java17/.ort.yml",
+                        startLine = 20,
+                        endLine = 20
+                    )
+                ),
+                LicenseFinding(
+                    spdxLicense = "ISC",
+                    location = TextLocation(
+                        path = "npm/simple/package.json",
+                        startLine = 6,
+                        endLine = 6
+                    )
+                )
+            ),
+            copyrightFindings = setOf(
+                CopyrightFinding(
+                    statement = "Copyright (c) 2015-2021 the original",
+                    location = TextLocation(
+                        path = "gradle-inspector/bootstrap-java17/gradlew",
+                        startLine = 4,
+                        endLine = 4
+                    )
+                ),
+                CopyrightFinding(
+                    statement = "Copyright (c) 2024 the test team",
+                    location = TextLocation(
+                        path = "npm/simple/README.md",
+                        startLine = 1,
+                        endLine = 1
+                    )
+                )
+            ),
+            snippetFindings = setOf(
+                SnippetFinding(
+                    location = TextLocation(
+                        path = "gradle-inspector/bootstrap-java17/gradlew",
+                        startLine = 1,
+                        endLine = 10
+                    ),
+                    snippets = emptySet()
+                ),
+                SnippetFinding(
+                    location = TextLocation(
+                        path = "npm/simple/README.md",
+                        startLine = 1,
+                        endLine = 10
+                    ),
+                    snippets = emptySet()
                 )
             )
         ),
-        ProvenanceResolutionResult(
-            id = Identifier("NPM", "", "ocaas-test-reference", "0.0.1"),
-            packageProvenance = RepositoryProvenance(
-                vcsInfo = VcsInfo(
-                    type = RepositoryType.GIT,
-                    url = "https://github.com/bosch-ocaas/ocaas-test-projects.git",
-                    revision = "05f320aff2e2b565f150a48a4f801382f6cf5987",
-                    path = vcsPath
-                ),
-                resolvedRevision = "05f320aff2e2b565f150a48a4f801382f6cf5987"
-            )
-        )
+        additionalData = emptyMap()
     )
-}
-
-private fun createScanResults(): Set<ScanResult> {
-    return setOf(
-        ScanResult(
-            provenance = RepositoryProvenance(
-                vcsInfo = VcsInfo(
-                    type = RepositoryType.GIT,
-                    url = "https://github.com/bosch-ocaas/ocaas-test-projects.git",
-                    revision = "05f320aff2e2b565f150a48a4f801382f6cf5987",
-                    path = ""
-                ),
-                resolvedRevision = "05f320aff2e2b565f150a48a4f801382f6cf5987"
-            ),
-            scanner = ScannerDetail("scanner", "1.0.0", ""),
-            summary = ScanSummary(
-                startTime = Clock.System.now(),
-                endTime = Clock.System.now(),
-                hash = Clock.System.now().toString(),
-                licenseFindings = setOf(
-                    LicenseFinding(
-                        spdxLicense = "Apache-2.0",
-                        location = TextLocation(
-                            path = "gradle-inspector/bootstrap-java17/.ort.yml",
-                            startLine = 20,
-                            endLine = 20
-                        )
-                    ),
-                    LicenseFinding(
-                        spdxLicense = "ISC",
-                        location = TextLocation(
-                            path = "npm/simple/package.json",
-                            startLine = 6,
-                            endLine = 6
-                        )
-                    )
-                ),
-                copyrightFindings = setOf(
-                    CopyrightFinding(
-                        statement = "Copyright (c) 2015-2021 the original",
-                        location = TextLocation(
-                            path = "gradle-inspector/bootstrap-java17/gradlew",
-                            startLine = 4,
-                            endLine = 4
-                        )
-                    ),
-                    CopyrightFinding(
-                        statement = "Copyright (c) 2024 the test team",
-                        location = TextLocation(
-                            path = "npm/simple/README.md",
-                            startLine = 1,
-                            endLine = 1
-                        )
-                    )
-                ),
-                snippetFindings = setOf(
-                    SnippetFinding(
-                        location = TextLocation(
-                            path = "gradle-inspector/bootstrap-java17/gradlew",
-                            startLine = 1,
-                            endLine = 10
-                        ),
-                        snippets = emptySet()
-                    ),
-                    SnippetFinding(
-                        location = TextLocation(
-                            path = "npm/simple/README.md",
-                            startLine = 1,
-                            endLine = 10
-                        ),
-                        snippets = emptySet()
-                    )
-                )
-            ),
-            additionalData = emptyMap()
-        )
-    )
-}
+)

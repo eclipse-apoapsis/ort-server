@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao

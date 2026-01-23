@@ -58,24 +58,25 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
         fun getOrPut(config: RepositoryAnalyzerConfiguration): RepositoryAnalyzerConfigurationDao =
             findByRepositoryAnalyzerConfiguration(config) ?: new {
-                val pkgManagerConfig = mapAndDeduplicate(config.packageManagers?.entries) {
-                    (packageManager, packageManagerConfiguration) ->
-                        val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
-                            name = packageManager
-                            mustRunAfter = packageManagerConfiguration.mustRunAfter
-                            hasOptions = (packageManagerConfiguration.options != null)
-                        }
-
-                        packageManagerConfiguration.options?.forEach { (name, value) ->
-                            PackageManagerConfigurationOptionDao.new {
-                                this.packageManagerConfiguration = packageManagerConfigurationDao
-                                this.name = name
-                                this.value = value
-                            }
-                        }
-
-                        packageManagerConfigurationDao
+                val pkgManagerConfig = mapAndDeduplicate(
+                    config.packageManagers?.entries
+                ) { (packageManager, packageManagerConfiguration) ->
+                    val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
+                        name = packageManager
+                        mustRunAfter = packageManagerConfiguration.mustRunAfter
+                        hasOptions = (packageManagerConfiguration.options != null)
                     }
+
+                    packageManagerConfiguration.options?.forEach { (name, value) ->
+                        PackageManagerConfigurationOptionDao.new {
+                            this.packageManagerConfiguration = packageManagerConfigurationDao
+                            this.name = name
+                            this.value = value
+                        }
+                    }
+
+                    packageManagerConfigurationDao
+                }
 
                 allowDynamicVersions = config.allowDynamicVersions
                 enabledPackageManagers = config.enabledPackageManagers

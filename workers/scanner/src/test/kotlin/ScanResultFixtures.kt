@@ -59,6 +59,7 @@ internal object ScanResultFixtures {
         maxVersion = Semver(SCANNER_VERSION).nextMinor(),
         configuration = "config"
     )
+
     fun createVcsInfo() = VcsInfo(
         RepositoryType.GIT,
         "https://github.com/apache/logging-log4j2.git",
@@ -91,55 +92,53 @@ internal object ScanResultFixtures {
         scannerVersion: String = SCANNER_VERSION,
         scannerConfig: String = "config",
         additionalData: Map<String, String> = mapOf("additional1" to "data1", "additional2" to "data2")
-    ): ScanResult {
-        return ScanResult(
-            provenance = provenance,
-            scanner = ScannerDetail(scannerName, scannerVersion, scannerConfig),
-            summary = ScanSummary(
-                Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
-                Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
-                "hash-1",
-                setOf(
-                    LicenseFinding(
-                        "LicenseRef-23",
-                        TextLocation("/example/path", 1, 50),
-                        Float.MIN_VALUE
-                    )
-                ),
-                setOf(
-                    CopyrightFinding(
-                        "Copyright Finding Statement",
-                        TextLocation("/example/path", 1, 50)
-                    )
-                ),
-                setOf(
-                    SnippetFinding(
-                        TextLocation("/example/path", 1, 50),
-                        setOf(
-                            Snippet(
-                                score = 1.0f,
-                                location = TextLocation("/example/path", 1, 50),
-                                provenance = createArtifactProvenance(),
-                                purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                                spdxLicense = "LicenseRef-23",
-                                additionalData = mapOf("data" to "value")
-                            ),
-                            Snippet(
-                                score = 2.0f,
-                                location = TextLocation("/example/path2", 10, 20),
-                                provenance = createRepositoryProvenance(),
-                                purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                                spdxLicense = "LicenseRef-23",
-                                additionalData = mapOf("data2" to "value2")
-                            )
+    ): ScanResult = ScanResult(
+        provenance = provenance,
+        scanner = ScannerDetail(scannerName, scannerVersion, scannerConfig),
+        summary = ScanSummary(
+            Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+            Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+            "hash-1",
+            setOf(
+                LicenseFinding(
+                    "LicenseRef-23",
+                    TextLocation("/example/path", 1, 50),
+                    Float.MIN_VALUE
+                )
+            ),
+            setOf(
+                CopyrightFinding(
+                    "Copyright Finding Statement",
+                    TextLocation("/example/path", 1, 50)
+                )
+            ),
+            setOf(
+                SnippetFinding(
+                    TextLocation("/example/path", 1, 50),
+                    setOf(
+                        Snippet(
+                            score = 1.0f,
+                            location = TextLocation("/example/path", 1, 50),
+                            provenance = createArtifactProvenance(),
+                            purl = "org.apache.logging.log4j:log4j-api:2.14.1",
+                            spdxLicense = "LicenseRef-23",
+                            additionalData = mapOf("data" to "value")
+                        ),
+                        Snippet(
+                            score = 2.0f,
+                            location = TextLocation("/example/path2", 10, 20),
+                            provenance = createRepositoryProvenance(),
+                            purl = "org.apache.logging.log4j:log4j-api:2.14.1",
+                            spdxLicense = "LicenseRef-23",
+                            additionalData = mapOf("data2" to "value2")
                         )
                     )
-                ),
-                listOf(issue)
+                )
             ),
-            additionalData
-        )
-    }
+            listOf(issue)
+        ),
+        additionalData
+    )
 
     fun createScanResult(
         scannerName: String,

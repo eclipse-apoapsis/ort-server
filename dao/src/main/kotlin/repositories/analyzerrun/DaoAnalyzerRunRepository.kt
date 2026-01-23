@@ -63,46 +63,44 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
         issues: List<Issue>,
         dependencyGraphs: Map<String, DependencyGraph>,
         shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>>
-    ): AnalyzerRun {
-        return db.blockingQuery {
-            val jobDao = AnalyzerJobDao[analyzerJobId]
-            val environmentDao = EnvironmentDao.getOrPut(environment)
+    ): AnalyzerRun = db.blockingQuery {
+        val jobDao = AnalyzerJobDao[analyzerJobId]
+        val environmentDao = EnvironmentDao.getOrPut(environment)
 
-            val analyzerRun = AnalyzerRunDao.new {
-                this.analyzerJob = jobDao
-                this.startTime = startTime
-                this.endTime = endTime
-                this.environment = environmentDao
-                this.dependencyGraphsWrapper = DependencyGraphsWrapper(dependencyGraphs)
-            }
+        val analyzerRun = AnalyzerRunDao.new {
+            this.analyzerJob = jobDao
+            this.startTime = startTime
+            this.endTime = endTime
+            this.environment = environmentDao
+            this.dependencyGraphsWrapper = DependencyGraphsWrapper(dependencyGraphs)
+        }
 
-            createAnalyzerConfiguration(analyzerRun, config)
+        createAnalyzerConfiguration(analyzerRun, config)
 
-            val projectsMap = projects.associate { it.identifier to createProject(analyzerRun, it) }
+        val projectsMap = projects.associate { it.identifier to createProject(analyzerRun, it) }
 
-            packages.forEach {
-                val pkgDao = createPackage(analyzerRun, it)
+        packages.forEach {
+            val pkgDao = createPackage(analyzerRun, it)
 
-                shortestDependencyPaths[it.identifier]?.forEach { shortestDependencyPath ->
-                    projectsMap[shortestDependencyPath.projectIdentifier]?.also { projectDao ->
-                        ShortestDependencyPathDao.new {
-                            this.pkg = pkgDao
-                            this.analyzerRun = analyzerRun
-                            this.project = projectDao
-                            this.scope = shortestDependencyPath.scope
-                            this.path = shortestDependencyPath.path
-                        }
+            shortestDependencyPaths[it.identifier]?.forEach { shortestDependencyPath ->
+                projectsMap[shortestDependencyPath.projectIdentifier]?.also { projectDao ->
+                    ShortestDependencyPathDao.new {
+                        this.pkg = pkgDao
+                        this.analyzerRun = analyzerRun
+                        this.project = projectDao
+                        this.scope = shortestDependencyPath.scope
+                        this.path = shortestDependencyPath.path
                     }
                 }
             }
-
-            issues.forEach {
-                val analyzerIssue = it.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE)
-                OrtRunIssueDao.createByIssue(jobDao.ortRun.id.value, analyzerIssue)
-            }
-
-            checkNotNull(get(analyzerRun.id.value))
         }
+
+        issues.forEach {
+            val analyzerIssue = it.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE)
+            OrtRunIssueDao.createByIssue(jobDao.ortRun.id.value, analyzerIssue)
+        }
+
+        checkNotNull(get(analyzerRun.id.value))
     }
 
     override fun get(id: Long): AnalyzerRun? = db.blockingQuery { AnalyzerRunsTable.getById(id) }
@@ -115,26 +113,25 @@ private fun createAnalyzerConfiguration(
     analyzerRun: AnalyzerRunDao,
     analyzerConfiguration: AnalyzerConfiguration
 ): AnalyzerConfigurationDao {
-    val packageManagerConfigurations =
-        mapAndDeduplicate(
-            analyzerConfiguration.packageManagers?.entries
-        ) { (packageManager, packageManagerConfiguration) ->
-            val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
-                name = packageManager
-                mustRunAfter = packageManagerConfiguration.mustRunAfter
-                hasOptions = (packageManagerConfiguration.options != null)
-            }
-
-            packageManagerConfiguration.options?.forEach { (name, value) ->
-                PackageManagerConfigurationOptionDao.new {
-                    this.packageManagerConfiguration = packageManagerConfigurationDao
-                    this.name = name
-                    this.value = value
-                }
-            }
-
-            packageManagerConfigurationDao
+    val packageManagerConfigurations = mapAndDeduplicate(
+        analyzerConfiguration.packageManagers?.entries
+    ) { (packageManager, packageManagerConfiguration) ->
+        val packageManagerConfigurationDao = PackageManagerConfigurationDao.new {
+            name = packageManager
+            mustRunAfter = packageManagerConfiguration.mustRunAfter
+            hasOptions = (packageManagerConfiguration.options != null)
         }
+
+        packageManagerConfiguration.options?.forEach { (name, value) ->
+            PackageManagerConfigurationOptionDao.new {
+                this.packageManagerConfiguration = packageManagerConfigurationDao
+                this.name = name
+                this.value = value
+            }
+        }
+
+        packageManagerConfigurationDao
+    }
 
     val analyzerConfigurationDao = AnalyzerConfigurationDao.new {
         this.analyzerRun = analyzerRun

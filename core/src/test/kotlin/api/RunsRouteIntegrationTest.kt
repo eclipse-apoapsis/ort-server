@@ -1869,7 +1869,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val ruleViolationsResponse = response.body<PagedResponse<ApiRuleViolation>>()
 
-                ruleViolationsResponse.data shouldHaveSize(4)
+                ruleViolationsResponse.data shouldHaveSize 4
 
                 with(ruleViolationsResponse.pagination) {
                     sortProperties shouldBe listOf(SortProperty("rule", SortDirection.ASCENDING))

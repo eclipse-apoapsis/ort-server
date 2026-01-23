@@ -46,7 +46,6 @@ class DaoSecretRepositoryTest : StringSpec() {
     private var repositoryId = RepositoryId(-1L)
 
     private val path = "https://secret-storage.com/ssh_host_rsa_key"
-    private val name = "rsa certificate"
     private val description = "ssh rsa certificate"
 
     init {

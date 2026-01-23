@@ -639,7 +639,7 @@ class ReporterRunnerTest : WordSpec({
 
             val ruleViolation = RuleViolation("RULE", null, null, enumSetOf(), OrtSeverity.ERROR, "message", "howToFix")
 
-            val result = runner.run(
+            runner.run(
                 ortResult = OrtTestData.result.copy(
                     evaluator = EvaluatorRun(
                         startTime = Clock.System.now().toJavaInstant(),
@@ -667,7 +667,7 @@ class ReporterRunnerTest : WordSpec({
             val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
             mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
-            val result = runner.run(
+            runner.run(
                 ortResult = OrtTestData.result.copy(
                     evaluator = EvaluatorRun(
                         startTime = Clock.System.now().toJavaInstant(),

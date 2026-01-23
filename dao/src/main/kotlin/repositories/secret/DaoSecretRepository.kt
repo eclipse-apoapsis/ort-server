@@ -59,9 +59,15 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
 
     override fun listForId(id: HierarchyId, parameters: ListQueryParameters) = db.blockingQueryCatching {
         val query: ConditionBuilder = when (id) {
-            is OrganizationId -> { { SecretsTable.organizationId eq id.value } }
-            is ProductId -> { { SecretsTable.productId eq id.value } }
-            is RepositoryId -> { { SecretsTable.repositoryId eq id.value } }
+            is OrganizationId -> {
+                { SecretsTable.organizationId eq id.value }
+            }
+            is ProductId -> {
+                { SecretsTable.productId eq id.value }
+            }
+            is RepositoryId -> {
+                { SecretsTable.repositoryId eq id.value }
+            }
         }
 
         SecretDao.listQuery(parameters, SecretDao::mapToModel, query)

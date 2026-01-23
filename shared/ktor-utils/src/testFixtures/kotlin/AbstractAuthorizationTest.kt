@@ -80,7 +80,7 @@ private const val TEST_USER_PASSWORD = "password"
  * A base class for authorization tests that provides a database connection and a Keycloak setup, and helper functions
  * to easily test if endpoints require authentication or authorization.
  */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> Unit) : WordSpec() {
     val dbExtension = DatabaseTestExtension()
     val keycloakExtension = KeycloakTestExtension()

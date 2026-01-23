@@ -335,7 +335,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactlyInAnyOrder(listOf(run1, run2, run3))
+                body shouldContainExactlyInAnyOrder listOf(run1, run2, run3)
             }
         }
 

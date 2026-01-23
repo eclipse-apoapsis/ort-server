@@ -28,5 +28,5 @@ object CustomHttpHeaders {
     /**
      * HTTP header name used to identify the client type making API requests.
      */
-    const val ClientType = "X-Client-Type"
+    const val CLIENT_TYPE = "X-Client-Type"
 }

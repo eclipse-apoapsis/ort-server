@@ -2175,14 +2175,12 @@ class OrchestratorTest : WordSpec() {
     private fun createOrtRunRepository(
         expectUpdate: Boolean = true,
         block: OrtRunRepository.() -> Unit = {}
-    ): OrtRunRepository {
-        return mockk<OrtRunRepository> {
-            every { get(RUN_ID) } returns ortRun
-            if (expectUpdate) {
-                every { update(any(), any(), any()) } returns mockk<OrtRun>()
-            }
-            block()
+    ): OrtRunRepository = mockk<OrtRunRepository> {
+        every { get(RUN_ID) } returns ortRun
+        if (expectUpdate) {
+            every { update(any(), any(), any()) } returns mockk<OrtRun>()
         }
+        block()
     }
 }
 

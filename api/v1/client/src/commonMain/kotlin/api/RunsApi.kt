@@ -57,8 +57,8 @@ class RunsApi(
     ) {
         val response = client.get("api/v1/runs/$runId/logs") {
             url {
-                level?.let { parameters.append("level", it.name) }
-                steps.joinToString(",").takeIf { it.isNotEmpty() }?.let { parameters.append("steps", it) }
+                if (level != null) parameters.append("level", level.name)
+                if (steps.isNotEmpty()) parameters.append("steps", steps.joinToString(","))
             }
         }
 

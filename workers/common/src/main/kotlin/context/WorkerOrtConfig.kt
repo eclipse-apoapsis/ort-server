@@ -73,16 +73,12 @@ class WorkerOrtConfig private constructor(
          * Create a new instance of [WorkerOrtConfig]. Load the configuration from `application.properties` via the
          * default mechanism of [ConfigFactory].
          */
-        fun create(): WorkerOrtConfig {
-            return create(ConfigManager.create(ConfigFactory.load()))
-        }
+        fun create(): WorkerOrtConfig = create(ConfigManager.create(ConfigFactory.load()))
 
         /**
          * Split the given [value] into a list of strings or return *null* if it is undefined.
          */
-        private fun splitProperty(value: String?): Collection<String>? {
-            return value?.split(DELIMITER)?.map { it.trim() }
-        }
+        private fun splitProperty(value: String?): Collection<String>? = value?.split(DELIMITER)?.map { it.trim() }
     }
 
     /**

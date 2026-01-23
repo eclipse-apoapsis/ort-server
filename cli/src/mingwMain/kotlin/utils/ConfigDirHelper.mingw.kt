@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.cli.utils
 
 import okio.Path
-
 import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME

@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the secrets routes. */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
     lateinit var repositoryService: RepositoryService
     lateinit var secretRepository: SecretRepository

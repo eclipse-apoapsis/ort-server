@@ -84,18 +84,16 @@ data class VaultConfiguration(
         /**
          * Create a new [VaultConfiguration] based on the properties stored in the given [configManager].
          */
-        fun create(configManager: ConfigManager): VaultConfiguration {
-            return VaultConfiguration(
-                vaultUri = configManager.getString(URI_PROPERTY),
-                credentials = VaultCredentials(
-                    configManager.getSecret(Path(ROLE_ID_PROPERTY)),
-                    configManager.getSecret(Path(SECRET_ID_PROPERTY))
-                ),
-                rootPath = getOptionalRootPath(configManager),
-                prefix = getOptionalPrefix(configManager),
-                namespace = configManager.getStringOrNull(NAMESPACE_PROPERTY)
-            )
-        }
+        fun create(configManager: ConfigManager): VaultConfiguration = VaultConfiguration(
+            vaultUri = configManager.getString(URI_PROPERTY),
+            credentials = VaultCredentials(
+                configManager.getSecret(Path(ROLE_ID_PROPERTY)),
+                configManager.getSecret(Path(SECRET_ID_PROPERTY))
+            ),
+            rootPath = getOptionalRootPath(configManager),
+            prefix = getOptionalPrefix(configManager),
+            namespace = configManager.getStringOrNull(NAMESPACE_PROPERTY)
+        )
 
         /**
          * Return the root path from the given [config] in a form, so that it can be used in a convenient way:

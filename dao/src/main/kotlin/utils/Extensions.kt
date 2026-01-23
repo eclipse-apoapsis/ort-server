@@ -66,16 +66,16 @@ import org.jetbrains.exposed.sql.or
  * Transform the given column to an [EntityID] when creating a DAO object. This can be used for foreign key columns to
  * avoid the need to manually create an [EntityID] object.
  */
-context(entity: EntityClass<*, *>)
 @Suppress("UNCHECKED_CAST")
+context(entity: EntityClass<*, *>)
 fun <T : EntityID<Long>?> Column<T>.transformToEntityId() =
-    with(entity) { transform({ it?.let { EntityID(it, table as IdTable<Long>) } as T }, { it?.value }) }
+    with(entity) { transform({ id -> id?.let { EntityID(it, table as IdTable<Long>) } as T }, { it?.value }) }
 
 /**
  * Transform the given column [to database precision][toDatabasePrecision] when creating a DAO object.
  */
-context(entity: EntityClass<*, *>)
 @Suppress("UNCHECKED_CAST")
+context(entity: EntityClass<*, *>)
 fun <T : Instant?> Column<T>.transformToDatabasePrecision() =
     with(entity) { transform({ it?.toDatabasePrecision() as T }, { it }) }
 
@@ -213,16 +213,14 @@ private fun OrderDirection.toSortOrder(): SortOrder =
 /**
  * Apply the given [operator] and filter [value] to filter this column by.
  */
-fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, value: T): Op<Boolean> {
-    return when (operator) {
-        ComparisonOperator.EQUALS -> this eq value
-        ComparisonOperator.NOT_EQUALS -> this neq value
-        ComparisonOperator.GREATER_THAN -> this greater value
-        ComparisonOperator.LESS_THAN -> this less value
-        ComparisonOperator.GREATER_OR_EQUAL -> this greaterEq value
-        ComparisonOperator.LESS_OR_EQUAL -> this lessEq value
-        else -> throw IllegalArgumentException("Unsupported operator for single value")
-    }
+fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, value: T): Op<Boolean> = when (operator) {
+    ComparisonOperator.EQUALS -> this eq value
+    ComparisonOperator.NOT_EQUALS -> this neq value
+    ComparisonOperator.GREATER_THAN -> this greater value
+    ComparisonOperator.LESS_THAN -> this less value
+    ComparisonOperator.GREATER_OR_EQUAL -> this greaterEq value
+    ComparisonOperator.LESS_OR_EQUAL -> this lessEq value
+    else -> throw IllegalArgumentException("Unsupported operator for single value")
 }
 
 /**
@@ -264,13 +262,12 @@ fun Expression<String>.applyIRegex(value: String): Op<Boolean> =
  * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
  * applyFilter function for collections.
  */
-fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, values: Collection<T>): Op<Boolean> {
-    return when (operator) {
+fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, values: Collection<T>): Op<Boolean> =
+    when (operator) {
         ComparisonOperator.IN -> this inList values
         ComparisonOperator.NOT_IN -> this notInList values
         else -> throw IllegalArgumentException("Unsupported operator for collections")
     }
-}
 
 /**
  * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
@@ -279,10 +276,8 @@ fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, valu
 fun <T : Comparable<T>> Column<T?>.applyFilterNullable(
     operator: ComparisonOperator,
     values: Collection<T>
-): Op<Boolean> {
-    return when (operator) {
-        ComparisonOperator.IN -> this inList values
-        ComparisonOperator.NOT_IN -> this notInList values
-        else -> throw IllegalArgumentException("Unsupported operator for collections")
-    }
+): Op<Boolean> = when (operator) {
+    ComparisonOperator.IN -> this inList values
+    ComparisonOperator.NOT_IN -> this notInList values
+    else -> throw IllegalArgumentException("Unsupported operator for collections")
 }

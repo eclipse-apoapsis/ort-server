@@ -560,7 +560,9 @@ internal sealed interface TemplateError {
     val message: String
 
     data class InvalidPlugin(override val message: String) : TemplateError
+
     data class InvalidState(override val message: String) : TemplateError
+
     data class NotFound(override val message: String) : TemplateError
 }
 

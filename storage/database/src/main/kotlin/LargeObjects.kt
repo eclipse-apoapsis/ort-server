@@ -81,21 +81,19 @@ internal fun getStreamForLargeObject(
     oid: Long,
     size: Long,
     inMemoryLimit: Int
-): InputStream {
-    return largeObjectManager.open(oid, LargeObjectManager.READ).use { largeObject ->
-        if (size <= inMemoryLimit) {
-            logger.debug("Loading data of size {} into memory.", size)
+): InputStream = largeObjectManager.open(oid, LargeObjectManager.READ).use { largeObject ->
+    if (size <= inMemoryLimit) {
+        logger.debug("Loading data of size {} into memory.", size)
 
-            val buffer = ByteArrayOutputStream(size.toInt())
-            largeObject.inputStream.copyTo(buffer)
-            ByteArrayInputStream(buffer.toByteArray())
-        } else {
-            val tempFile = Files.createTempFile("dbstorage", "tmp")
-            logger.debug("Storing data of size {} in temporary file '{}'.", size, tempFile)
+        val buffer = ByteArrayOutputStream(size.toInt())
+        largeObject.inputStream.copyTo(buffer)
+        ByteArrayInputStream(buffer.toByteArray())
+    } else {
+        val tempFile = Files.createTempFile("dbstorage", "tmp")
+        logger.debug("Storing data of size {} in temporary file '{}'.", size, tempFile)
 
-            largeObject.inputStream.copyTo(tempFile.outputStream())
-            TempFileInputStream(tempFile.toFile())
-        }
+        largeObject.inputStream.copyTo(tempFile.outputStream())
+        TempFileInputStream(tempFile.toFile())
     }
 }
 

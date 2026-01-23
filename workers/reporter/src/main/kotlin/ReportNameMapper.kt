@@ -34,9 +34,8 @@ interface ReportNameMapper {
          * A default [ReportNameMapper] instance that maps report files to their original names.
          */
         private val DEFAULT_MAPPER = object : ReportNameMapper {
-            override fun mapReportNames(reportFiles: Collection<File>): Map<String, File> {
-                return reportFiles.associateBy { it.name }
-            }
+            override fun mapReportNames(reportFiles: Collection<File>): Map<String, File> =
+                reportFiles.associateBy { it.name }
         }
 
         /**

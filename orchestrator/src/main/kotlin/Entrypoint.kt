@@ -110,9 +110,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         EndpointHandlerResult.CONTINUE
     }
 
-    override fun customModules(): List<Module> {
-        return listOf(orchestratorModule(), databaseModule())
-    }
+    override fun customModules(): List<Module> = listOf(orchestratorModule(), databaseModule())
 
     private fun orchestratorModule(): Module = module {
         single { ConfigFactory.load() }

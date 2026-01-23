@@ -87,22 +87,20 @@ class VaultSecretsProvider(
     /** The client to interact with the Vault service. */
     private val vaultClient = createClient()
 
-    override fun readSecret(path: Path): SecretValue? {
-        return vaultRequest {
-            val response = get(path.toUri()) {
-                // Override this flag here to handle 404 responses manually.
-                expectSuccess = false
+    override fun readSecret(path: Path): SecretValue? = vaultRequest {
+        val response = get(path.toUri()) {
+            // Override this flag here to handle 404 responses manually.
+            expectSuccess = false
+        }
+
+        when {
+            response.status == HttpStatusCode.NotFound -> null
+            response.status.isSuccess() -> {
+                val secretResponse = response.body<VaultSecretResponse>()
+                secretResponse.data.value?.let(::SecretValue)
             }
 
-            when {
-                response.status == HttpStatusCode.NotFound -> null
-                response.status.isSuccess() -> {
-                    val secretResponse = response.body<VaultSecretResponse>()
-                    secretResponse.data.value?.let(::SecretValue)
-                }
-
-                else -> throw ClientRequestException(response, response.body())
-            }
+            else -> throw ClientRequestException(response, response.body())
         }
     }
 

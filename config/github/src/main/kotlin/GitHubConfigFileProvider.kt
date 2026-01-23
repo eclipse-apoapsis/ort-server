@@ -188,11 +188,9 @@ class GitHubConfigFileProvider(
         /**
          * Create the HTTP client to be used for all requests against the GitHub REST API.
          */
-        private fun createClient(secretProvider: ConfigSecretProvider): HttpClient {
-            return HttpClient(OkHttp) {
-                defaultRequest {
-                    header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
-                }
+        private fun createClient(secretProvider: ConfigSecretProvider): HttpClient = HttpClient(OkHttp) {
+            defaultRequest {
+                header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
             }
         }
 
@@ -336,6 +334,7 @@ class GitHubConfigFileProvider(
             RAW_CONTENT_TYPE_HEADER
         )
 
+        @Suppress("UnreachableCode")
         response.headers["Content-Type"]?.let {
             if (it.contains(RAW_CONTENT_TYPE_HEADER)) {
                 return response.bodyAsChannel()

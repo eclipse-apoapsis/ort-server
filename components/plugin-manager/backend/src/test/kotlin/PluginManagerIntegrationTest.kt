@@ -25,7 +25,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the plugin-manager routes. */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class PluginManagerIntegrationTest(
     body: PluginManagerIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {

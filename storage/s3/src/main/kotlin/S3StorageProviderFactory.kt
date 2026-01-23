@@ -64,6 +64,7 @@ class S3StorageProviderFactory : StorageProviderFactory {
          */
         const val ENDPOINT_URL_PROPERTY = "s3EndpointUrl"
     }
+
     override val name: String = NAME
 
     /**

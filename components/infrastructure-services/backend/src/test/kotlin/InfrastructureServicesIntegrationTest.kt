@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the secrets routes. */
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class InfrastructureServicesIntegrationTest(
     body: InfrastructureServicesIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {

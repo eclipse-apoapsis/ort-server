@@ -24,9 +24,7 @@ import io.konform.validation.ValidationResult as KonformValidationResult
 
 import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
 
-fun mapValidationResult(result: KonformValidationResult<*>): KtorValidationResult {
-    return when (result) {
-        is Invalid -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
-        else -> KtorValidationResult.Valid
-    }
+fun mapValidationResult(result: KonformValidationResult<*>): KtorValidationResult = when (result) {
+    is Invalid -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
+    else -> KtorValidationResult.Valid
 }

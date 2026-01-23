@@ -47,9 +47,8 @@ class DeleteOrphanedEntitiesTask(
         /**
          * Create a new instance of [DeleteOldOrtRunsTask].
          */
-        fun create(config: ConfigManager, orphanRemovalService: OrphanRemovalService): DeleteOrphanedEntitiesTask {
-            return DeleteOrphanedEntitiesTask(config, orphanRemovalService)
-        }
+        fun create(config: ConfigManager, orphanRemovalService: OrphanRemovalService): DeleteOrphanedEntitiesTask =
+            DeleteOrphanedEntitiesTask(config, orphanRemovalService)
     }
 
     override suspend fun execute() {

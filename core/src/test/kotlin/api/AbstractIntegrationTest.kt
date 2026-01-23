@@ -55,7 +55,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
-@Suppress("UnnecessaryAbstractClass")
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class AbstractIntegrationTest(
     body: AbstractIntegrationTest.() -> Unit,
 

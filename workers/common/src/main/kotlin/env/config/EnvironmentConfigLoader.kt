@@ -284,14 +284,12 @@ class EnvironmentConfigLoader(
         config: RepositoryEnvironmentConfig,
         secrets: Map<String, Secret>
     ): Set<EnvironmentVariableDefinition> {
-        fun isValidVariable(variable: RepositoryEnvironmentVariableDefinition): Boolean {
-            return when {
+        fun isValidVariable(variable: RepositoryEnvironmentVariableDefinition): Boolean = when {
                 !variable.secretName.isNullOrEmpty() && !variable.value.isNullOrEmpty() -> false
                 !variable.secretName.isNullOrEmpty() -> variable.secretName in secrets
                 !variable.value.isNullOrEmpty() -> true
                 else -> false
             }
-        }
         val (validVariables, invalidVariables) = config.environmentVariables.partition { isValidVariable(it) }
 
         handleInvalidVariables(config, invalidVariables)

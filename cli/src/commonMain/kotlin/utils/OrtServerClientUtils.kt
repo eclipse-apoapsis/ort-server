@@ -55,7 +55,7 @@ fun createUnauthenticatedOrtServerClient(baseUrl: String) = OrtServerClient(crea
 private fun createHttpClient(url: String) = createOrtHttpClient(JSON) {
     defaultRequest {
         url(url)
-        header(CustomHttpHeaders.ClientType, "ort-server-cli")
+        header(CustomHttpHeaders.CLIENT_TYPE, "ort-server-cli")
     }
 }
 
