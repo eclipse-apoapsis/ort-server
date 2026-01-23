@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -51,7 +52,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         val publisher by inject<MessagePublisher>()
         val evaluatorJobId = message.payload.evaluatorJobId
 
-        withMdcContext("evaluatorJobId" to evaluatorJobId.toString()) {
+        withMdcContext(CustomMdcKey("evaluatorJobId") to evaluatorJobId.toString()) {
             val response = when (val result = evaluatorWorker.run(evaluatorJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Evaluator job '$evaluatorJobId' succeeded.")

@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
@@ -52,7 +53,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         val publisher by inject<MessagePublisher>()
         val jobId = message.payload.analyzerJobId
 
-        withMdcContext("analyzerJobId" to jobId.toString()) {
+        withMdcContext(CustomMdcKey("analyzerJobId") to jobId.toString()) {
             val response = when (val result = analyzerWorker.run(jobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Analyzer job '$jobId' succeeded.")

@@ -28,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migration.RolesToDbMigration
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
@@ -60,7 +61,7 @@ fun Application.configureLifecycle() {
  * database. The migration then runs in the background.
  */
 private suspend fun migrateRoles(migration: RolesToDbMigration) {
-    withMdcContext("component" to "core") {
+    withMdcContext(StandardMdcKeys.COMPONENT to "core") {
         launch {
             migration.migrateRolesToDb()
         }

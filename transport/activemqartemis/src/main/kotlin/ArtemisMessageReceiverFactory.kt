@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
@@ -86,8 +87,8 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
                         val message = ArtemisMessageConverter.toTransportMessage(jmsMessage, serializer)
 
                         withMdcContext(
-                            "traceId" to message.header.traceId,
-                            "ortRunId" to message.header.ortRunId.toString()
+                            StandardMdcKeys.TRACE_ID to message.header.traceId,
+                            StandardMdcKeys.ORT_RUN_ID to message.header.ortRunId.toString()
                         ) {
                             logger.debug(
                                 "Received message '{}' with payload of type {}.",

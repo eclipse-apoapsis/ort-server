@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
@@ -31,7 +32,7 @@ private val logger = LoggerFactory.getLogger(ConfigComponent::class.java)
  * script.
  */
 suspend fun main() {
-    withMdcContext("component" to "config-worker") {
+    withMdcContext(StandardMdcKeys.COMPONENT to "config-worker") {
         logger.info("Starting ORT Server Config endpoint.")
 
         ConfigComponent().start()

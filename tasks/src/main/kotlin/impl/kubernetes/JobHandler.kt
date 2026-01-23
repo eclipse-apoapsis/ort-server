@@ -33,6 +33,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
@@ -160,8 +161,8 @@ internal class JobHandler(
     suspend fun deleteAndNotifyIfFailed(job: V1Job) {
         job.metadata?.name?.takeIf { canProcess(it) }?.let { jobName ->
             withMdcContext(
-                "traceId" to (job.traceId().takeIf { it.isNotEmpty() } ?: "unknown"),
-                "ortRunId" to (job.ortRunId?.toString() ?: "unknown")
+                StandardMdcKeys.TRACE_ID to (job.traceId().takeIf { it.isNotEmpty() } ?: "unknown"),
+                StandardMdcKeys.ORT_RUN_ID to (job.ortRunId?.toString() ?: "unknown")
             ) {
                 runCatching {
                     if (job.isFailed()) {

@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(::main::class.java)
 
 suspend fun main() {
-    withMdcContext("component" to "reporter-worker") {
+    withMdcContext(StandardMdcKeys.COMPONENT to "reporter-worker") {
         logger.info("Starting ORT-Server Reporter endpoint.")
 
         enableOrtStackTraces()
