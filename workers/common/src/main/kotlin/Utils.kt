@@ -20,6 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.common
 
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
+import org.eclipse.apoapsis.ortserver.utils.logging.MdcKey
 
 import org.ossreviewtoolkit.utils.ort.printStackTrace
 
@@ -43,3 +46,9 @@ inline fun <reified T : WorkerJob> T?.validateForProcessing(jobId: Long): T {
 
     return this
 }
+
+/**
+ * Return a pair of [MdcKey] and [jobId] that can be used to add the job ID for this [Endpoint] to the MDC context.
+ */
+fun Endpoint<*>.jobMdcKey(jobId: Long): Pair<MdcKey, String> =
+    CustomMdcKey("${configPrefix}JobId") to jobId.toString()

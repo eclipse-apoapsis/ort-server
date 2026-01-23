@@ -34,12 +34,12 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
-import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.eclipse.apoapsis.ortserver.workers.common.env.buildEnvironmentModule
+import org.eclipse.apoapsis.ortserver.workers.common.jobMdcKey
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
 import org.koin.core.component.inject
@@ -97,7 +97,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         val publisher by inject<MessagePublisher>()
         val reporterJobId = message.payload.reporterJobId
 
-        withMdcContext(CustomMdcKey("reporterJobId") to reporterJobId.toString()) {
+        withMdcContext(ReporterEndpoint.jobMdcKey(reporterJobId)) {
             val response = when (val result = reporterWorker.run(reporterJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Reporter job '$reporterJobId' succeeded.")
