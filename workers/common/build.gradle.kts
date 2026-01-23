@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.secrets.secretsSpi)
     implementation(projects.utils.config)
     implementation(projects.services.adminConfigService)
+    implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
 
     implementation(libs.commonsText)

@@ -22,12 +22,14 @@ package org.eclipse.apoapsis.ortserver.workers.common
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContainIgnoringCase
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 
 import org.jetbrains.exposed.sql.Database
 
@@ -76,6 +78,17 @@ class UtilsTest : WordSpec({
 
                 exception.message shouldContainIgnoringCase job.id.toString()
             }
+        }
+    }
+
+    "jobMdcKey" should {
+        "return a pair of MdcKey and jobId string" {
+            val jobId = 42L
+
+            val (mdcKey, idString) = AnalyzerEndpoint.jobMdcKey(jobId)
+
+            mdcKey.key shouldBe "analyzerJobId"
+            idString shouldBe jobId.toString()
         }
     }
 })

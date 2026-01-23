@@ -32,12 +32,12 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
-import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.eclipse.apoapsis.ortserver.workers.common.env.buildEnvironmentModule
+import org.eclipse.apoapsis.ortserver.workers.common.jobMdcKey
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
 import org.koin.core.component.inject
@@ -54,7 +54,7 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         val publisher by inject<MessagePublisher>()
         val scannerJobId = message.payload.scannerJobId
 
-        withMdcContext(CustomMdcKey("scannerJobId") to scannerJobId.toString()) {
+        withMdcContext(ScannerEndpoint.jobMdcKey(scannerJobId)) {
             val response = when (val result = scannerWorker.run(scannerJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Scanner job '$scannerJobId' succeeded.")

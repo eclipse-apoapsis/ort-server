@@ -31,11 +31,11 @@ import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
-import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
+import org.eclipse.apoapsis.ortserver.workers.common.jobMdcKey
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
 import org.koin.core.component.inject
@@ -52,7 +52,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         val publisher by inject<MessagePublisher>()
         val evaluatorJobId = message.payload.evaluatorJobId
 
-        withMdcContext(CustomMdcKey("evaluatorJobId") to evaluatorJobId.toString()) {
+        withMdcContext(EvaluatorEndpoint.jobMdcKey(evaluatorJobId)) {
             val response = when (val result = evaluatorWorker.run(evaluatorJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Evaluator job '$evaluatorJobId' succeeded.")

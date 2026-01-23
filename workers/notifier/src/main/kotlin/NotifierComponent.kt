@@ -30,10 +30,10 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
-import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
+import org.eclipse.apoapsis.ortserver.workers.common.jobMdcKey
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
 import org.koin.core.component.inject
@@ -46,7 +46,7 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
         val publisher by inject<MessagePublisher>()
         val notifierJobId = message.payload.notifierJobId
 
-        withMdcContext(CustomMdcKey("notifierJobId") to notifierJobId.toString()) {
+        withMdcContext(NotifierEndpoint.jobMdcKey(notifierJobId)) {
             val response = when (val result = notifierWorker.run(notifierJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Notifier job '$notifierJobId' succeeded.")

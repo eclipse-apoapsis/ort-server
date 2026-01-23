@@ -40,10 +40,10 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
-import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
+import org.eclipse.apoapsis.ortserver.workers.common.jobMdcKey
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
 import org.koin.core.component.inject
@@ -58,7 +58,7 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
 
         val advisorJobId = message.payload.advisorJobId
 
-        withMdcContext(CustomMdcKey("advisorJobId") to advisorJobId.toString()) {
+        withMdcContext(AdvisorEndpoint.jobMdcKey(advisorJobId)) {
             val response = when (val result = advisorWorker.run(advisorJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Advisor job '$advisorJobId' succeeded.")
