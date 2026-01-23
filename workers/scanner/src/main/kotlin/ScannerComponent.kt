@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -53,7 +54,7 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         val publisher by inject<MessagePublisher>()
         val scannerJobId = message.payload.scannerJobId
 
-        withMdcContext("scannerJobId" to scannerJobId.toString()) {
+        withMdcContext(CustomMdcKey("scannerJobId") to scannerJobId.toString()) {
             val response = when (val result = scannerWorker.run(scannerJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Scanner job '$scannerJobId' succeeded.")

@@ -43,10 +43,10 @@ fun <T> runBlocking(context: CoroutineContext = EmptyCoroutineContext, block: su
  * Call the specified [block] with the given [elements] in the [MDC coroutine context][MDCContext] and return its value.
  * If the provided [elements] overwrite any existing values, the previous values are restored after executing [block].
  */
-suspend fun <T> withMdcContext(vararg elements: Pair<String, String>, block: suspend CoroutineScope.() -> T): T {
+suspend fun <T> withMdcContext(vararg elements: Pair<MdcKey, String>, block: suspend CoroutineScope.() -> T): T {
     val oldContext = MDC.getCopyOfContextMap()
 
-    elements.forEach { (key, value) -> MDC.put(key, value) }
+    elements.forEach { (key, value) -> MDC.put(key.key, value) }
 
     return try {
         withContext(MDCContext(), block)

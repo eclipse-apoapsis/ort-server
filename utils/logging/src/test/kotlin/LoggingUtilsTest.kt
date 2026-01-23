@@ -34,14 +34,15 @@ import org.slf4j.MDC
 class LoggingUtilsTest : WordSpec({
     "runBlocking" should {
         "preserve SLF4J's MDC context which kotlinx.coroutines.runBlocking does not" {
-            withMdcContext("key" to "value") {
+            withMdcContext(StandardMdcKeys.COMPONENT to "testComponent") {
                 @Suppress("ForbiddenMethodCall")
                 kotlinx.coroutines.runBlocking(EmptyCoroutineContext) {
-                    coroutineContext[MDCContext.Key]?.contextMap?.get("key") should beNull()
+                    coroutineContext[MDCContext.Key]?.contextMap?.get(StandardMdcKeys.COMPONENT.key) should beNull()
                 }
 
                 runBlocking(EmptyCoroutineContext) {
-                    coroutineContext[MDCContext.Key]?.contextMap?.get("key") shouldBe "value"
+                    coroutineContext[MDCContext.Key]?.contextMap
+                        ?.get(StandardMdcKeys.COMPONENT.key) shouldBe "testComponent"
                 }
             }
         }
@@ -49,8 +50,8 @@ class LoggingUtilsTest : WordSpec({
 
     "withMdcContext" should {
         "add the provided elements to the MDC context" {
-            withMdcContext("key1" to "val1", "key2" to "val2") {
-                MDC.get("key1") shouldBe "val1"
+            withMdcContext(StandardMdcKeys.TRACE_ID to "tx-1", CustomMdcKey("key2") to "val2") {
+                MDC.get(StandardMdcKeys.TRACE_ID.key) shouldBe "tx-1"
                 MDC.get("key2") shouldBe "val2"
             }
         }
@@ -61,7 +62,7 @@ class LoggingUtilsTest : WordSpec({
             // We have to add the MDCContext to the coroutine context, otherwise it would be lost if this test function
             // is suspended during execution.
             withContext(MDCContext()) {
-                withMdcContext("key1" to "new1", "key2" to "new2") {
+                withMdcContext(CustomMdcKey("key1") to "new1", CustomMdcKey("key2") to "new2") {
                     MDC.get("key1") shouldBe "new1"
                     MDC.get("key2") shouldBe "new2"
                 }
@@ -73,7 +74,7 @@ class LoggingUtilsTest : WordSpec({
             // We have to add the MDCContext to the coroutine context, otherwise it would be lost if this test function
             // is suspended during execution.
             withContext(MDCContext()) {
-                withMdcContext("key1" to "new1", "key2" to "new2") {}
+                withMdcContext(CustomMdcKey("key1") to "new1", CustomMdcKey("key2") to "new2") {}
                 MDC.get("key1") shouldBe "val1"
                 MDC.get("key2") shouldBe "val2"
             }

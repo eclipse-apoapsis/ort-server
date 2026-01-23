@@ -61,6 +61,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.koin.core.component.inject
@@ -73,7 +74,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger("org.eclipse.apoapsis.ortserver.orchestrator.EntrypointKt")
 
 suspend fun main() {
-    withMdcContext("component" to "orchestrator") {
+    withMdcContext(StandardMdcKeys.COMPONENT to "orchestrator") {
         log.info("Starting ORT-Server Orchestrator.")
 
         OrchestratorComponent().start()

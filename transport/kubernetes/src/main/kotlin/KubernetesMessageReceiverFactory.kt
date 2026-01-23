@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
@@ -64,8 +65,8 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
         val payload = System.getenv("payload")
 
         withMdcContext(
-            "traceId" to traceId,
-            "ortRunId" to runId.toString()
+            StandardMdcKeys.TRACE_ID to traceId,
+            StandardMdcKeys.ORT_RUN_ID to runId.toString()
         ) {
             val msg = Message(MessageHeader(traceId, runId), serializer.fromJson(payload))
 

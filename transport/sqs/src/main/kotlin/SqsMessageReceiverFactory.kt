@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
@@ -107,8 +108,8 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
                     val ortMessage = Message(attrs.toMessageHeader(), serializer.fromJson(body))
 
                     withMdcContext(
-                        "traceId" to ortMessage.header.traceId,
-                        "ortRunId" to ortMessage.header.ortRunId.toString()
+                        StandardMdcKeys.TRACE_ID to ortMessage.header.traceId,
+                        StandardMdcKeys.ORT_RUN_ID to ortMessage.header.ortRunId.toString()
                     ) {
                         handler(ortMessage)
                     }

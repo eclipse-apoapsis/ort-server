@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
+import org.eclipse.apoapsis.ortserver.utils.logging.CustomMdcKey
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -96,7 +97,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         val publisher by inject<MessagePublisher>()
         val reporterJobId = message.payload.reporterJobId
 
-        withMdcContext("reporterJobId" to reporterJobId.toString()) {
+        withMdcContext(CustomMdcKey("reporterJobId") to reporterJobId.toString()) {
             val response = when (val result = reporterWorker.run(reporterJobId, message.header.traceId)) {
                 is RunResult.Success -> {
                     logger.info("Reporter job '$reporterJobId' succeeded.")
