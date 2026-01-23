@@ -67,7 +67,7 @@
     "@eslint/js": "9.39.2",
     "@hey-api/openapi-ts": "0.90.9",
     "@ianvs/prettier-plugin-sort-imports": "4.7.0",
-    "@playwright/test": "1.57.0",
+    "@playwright/test": "1.58.0",
     "@tailwindcss/postcss": "4.1.18",
     "@tailwindcss/typography": "0.5.19",
     "@tanstack/router-cli": "1.151.6",
