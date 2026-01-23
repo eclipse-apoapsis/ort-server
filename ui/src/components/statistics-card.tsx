@@ -28,6 +28,7 @@ type StatisticsCardProps = {
   title: string;
   icon?: React.ComponentType<{ className?: string }>;
   value?: React.ReactNode;
+  total?: number;
   counts?: {
     key: string;
     count: number;
@@ -41,6 +42,7 @@ export const StatisticsCard = ({
   title,
   icon: Icon,
   value,
+  total,
   counts = [],
   description,
   className,
@@ -70,7 +72,7 @@ export const StatisticsCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent className='text-sm'>
-        <div className='flex flex-col'>
+        <div className='flex flex-col items-start'>
           {counts.length > 0 && counts.some(({ count }) => count > 0) ? (
             <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm bg-gray-100'>
               <Tooltip>
@@ -104,9 +106,27 @@ export const StatisticsCard = ({
           ) : (
             <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm' />
           )}
-          <div className='text-2xl font-bold'>
-            {value !== undefined ? value : 'Failed'}
-          </div>
+          {total !== undefined && typeof value === 'number' ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='flex items-baseline gap-2'>
+                  <div className='cursor-default text-2xl font-bold'>
+                    {value}
+                  </div>
+                  <div>unresolved</div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {value === total
+                  ? 'All unresolved'
+                  : `${value} unresolved, ${total} in total`}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <div className='text-2xl font-bold'>
+              {value !== undefined ? value : 'Failed'}
+            </div>
+          )}
           <div className='text-xs'>{description}</div>
         </div>
       </CardContent>
