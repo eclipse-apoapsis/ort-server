@@ -52,80 +52,91 @@ const RunComponent = () => {
 
   return (
     <>
-      <div className='flex flex-col gap-2'>
-        <div className='grid grid-cols-4 gap-2'>
-          <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations'
-            params={{
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-              runIndex: params.runIndex,
-            }}
-            search={{
-              sortBy: [{ id: 'severity', desc: true }],
-              itemResolved: ['Unresolved'],
-            }}
-          >
-            <RuleViolationsStatisticsCard
-              jobIncluded={ortRun.jobConfigs.evaluator !== undefined}
-              runId={ortRun.id}
-              status={ortRun.jobs.evaluator?.status}
-            />
-          </Link>
-          <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities'
-            params={{
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-              runIndex: params.runIndex,
-            }}
-            search={{
-              sortBy: [{ id: 'rating', desc: true }],
-              itemResolved: ['Unresolved'],
-            }}
-          >
-            <VulnerabilitiesStatisticsCard
-              jobIncluded={ortRun.jobConfigs.advisor !== undefined}
-              runId={ortRun.id}
-              status={ortRun.jobs.advisor?.status}
-            />
-          </Link>
-          <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
-            params={{
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-              runIndex: params.runIndex,
-            }}
-          >
-            <PackagesStatisticsCard
-              jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
-              runId={ortRun.id}
-              status={ortRun.jobs.analyzer?.status}
-            />
-          </Link>
-          <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues'
-            params={{
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-              runIndex: params.runIndex,
-            }}
-            search={{
-              sortBy: [{ id: 'severity', desc: true }],
-              itemResolved: ['Unresolved'],
-            }}
-          >
-            <IssuesStatisticsCard
-              jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
-              runId={ortRun.id}
-              status={ortRun.jobs.analyzer?.status}
-            />
-          </Link>
+      <div className='flex flex-col gap-4'>
+        {/* Status section */}
+        <div className='flex flex-col gap-2'>
+          <h2 className='text-lg font-semibold'>Status</h2>
+          <div className='grid grid-cols-3 gap-2'>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations'
+              params={{
+                orgId: params.orgId,
+                productId: params.productId,
+                repoId: params.repoId,
+                runIndex: params.runIndex,
+              }}
+              search={{
+                sortBy: [{ id: 'severity', desc: true }],
+                itemResolved: ['Unresolved'],
+              }}
+            >
+              <RuleViolationsStatisticsCard
+                jobIncluded={ortRun.jobConfigs.evaluator !== undefined}
+                runId={ortRun.id}
+                status={ortRun.jobs.evaluator?.status}
+              />
+            </Link>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities'
+              params={{
+                orgId: params.orgId,
+                productId: params.productId,
+                repoId: params.repoId,
+                runIndex: params.runIndex,
+              }}
+              search={{
+                sortBy: [{ id: 'rating', desc: true }],
+                itemResolved: ['Unresolved'],
+              }}
+            >
+              <VulnerabilitiesStatisticsCard
+                jobIncluded={ortRun.jobConfigs.advisor !== undefined}
+                runId={ortRun.id}
+                status={ortRun.jobs.advisor?.status}
+              />
+            </Link>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues'
+              params={{
+                orgId: params.orgId,
+                productId: params.productId,
+                repoId: params.repoId,
+                runIndex: params.runIndex,
+              }}
+              search={{
+                sortBy: [{ id: 'severity', desc: true }],
+                itemResolved: ['Unresolved'],
+              }}
+            >
+              <IssuesStatisticsCard
+                jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
+                runId={ortRun.id}
+                status={ortRun.jobs.analyzer?.status}
+              />
+            </Link>
+          </div>
+        </div>
+
+        {/* Statistics section */}
+        <div className='flex flex-col gap-2'>
+          <h2 className='text-lg font-semibold'>Statistics</h2>
+          <div className='grid grid-cols-3 gap-2'>
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+              params={{
+                orgId: params.orgId,
+                productId: params.productId,
+                repoId: params.repoId,
+                runIndex: params.runIndex,
+              }}
+            >
+              <PackagesStatisticsCard
+                jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
+                runId={ortRun.id}
+                status={ortRun.jobs.analyzer?.status}
+              />
+            </Link>
+          </div>
         </div>
       </div>
     </>
