@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldHaveSize
@@ -163,14 +164,14 @@ class ResolutionMatcherTest : WordSpec({
                 resolutionProvider = resolutionProvider
             )
 
-            result.issues shouldHaveSize 2
-            val issues = result.issues.keys.toList()
-            issues.forEach { it shouldNotBe null }
-            val resolutionsForIssue1 = result.issues.values.flatten()
-            resolutionsForIssue1 shouldContainExactlyInAnyOrder listOf(
-                expectedIssueResolution1,
-                expectedIssueResolution2
-            )
+            with(result.issues) {
+                this shouldHaveSize 2
+                keys.forAll { it shouldNotBe null }
+                result.issues.values.flatten() shouldContainExactlyInAnyOrder listOf(
+                    expectedIssueResolution1,
+                    expectedIssueResolution2
+                )
+            }
         }
 
         "match rule violations with resolutions using regex and return model types" {
@@ -184,10 +185,11 @@ class ResolutionMatcherTest : WordSpec({
                 resolutionProvider = resolutionProvider
             )
 
-            result.ruleViolations shouldHaveSize 1
-            val ruleViolations = result.ruleViolations.keys.toList()
-            ruleViolations.forEach { it shouldNotBe null }
-            result.ruleViolations.values.flatten() shouldBe listOf(expectedRuleViolationResolution1)
+            with(result.ruleViolations) {
+                this shouldHaveSize 1
+                keys.forAll { it shouldNotBe null }
+                result.ruleViolations.values.flatten() shouldBe listOf(expectedRuleViolationResolution1)
+            }
         }
 
         "match vulnerabilities with resolutions using exact id match and return model types" {
@@ -201,11 +203,12 @@ class ResolutionMatcherTest : WordSpec({
                 resolutionProvider = resolutionProvider
             )
 
-            result.vulnerabilities shouldHaveSize 1
-            val vulnerabilities = result.vulnerabilities.keys.toList()
-            vulnerabilities.forEach { it shouldNotBe null }
-            vulnerabilities.first().externalId shouldBe "CVE-2023-0001"
-            result.vulnerabilities.values.flatten() shouldBe listOf(expectedVulnerabilityResolution1)
+            with(result.vulnerabilities) {
+                this shouldHaveSize 1
+                keys.forAll { it shouldNotBe null }
+                keys.first().externalId shouldBe "CVE-2023-0001"
+                values.flatten() shouldBe listOf(expectedVulnerabilityResolution1)
+            }
         }
 
         "return empty maps for items with no matching resolutions" {
