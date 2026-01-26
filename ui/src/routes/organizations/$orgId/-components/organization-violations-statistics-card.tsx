@@ -40,14 +40,16 @@ export const OrganizationViolationsStatisticsCard = ({
     }),
   });
 
-  const total = data.data.ruleViolationsCount;
+  const unresolved = data.data.ruleViolationsCount;
+  const total = data.data.ruleViolationsCountTotal;
   const counts = data.data.ruleViolationsCountBySeverity;
 
   return (
     <StatisticsCard
       title='Rule Violations'
       icon={() => <Scale className='h-4 w-4 text-green-500' />}
-      value={total || '-'}
+      value={unresolved || '-'}
+      total={total || undefined}
       counts={
         counts
           ? Object.entries(counts).map(([severity, count]) => ({

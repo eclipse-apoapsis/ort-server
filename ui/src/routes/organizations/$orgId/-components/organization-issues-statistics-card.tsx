@@ -40,14 +40,16 @@ export const OrganizationIssuesStatisticsCard = ({
     }),
   });
 
-  const total = data.data.issuesCount;
+  const unresolved = data.data.issuesCount;
+  const total = data.data.issuesCountTotal;
   const counts = data.data.issuesCountBySeverity;
 
   return (
     <StatisticsCard
       title='Issues'
       icon={() => <Bug className='h-4 w-4 text-green-500' />}
-      value={total || '-'}
+      value={unresolved || '-'}
+      total={total || undefined}
       counts={
         counts
           ? Object.entries(counts).map(([severity, count]) => ({
