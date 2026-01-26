@@ -102,7 +102,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module

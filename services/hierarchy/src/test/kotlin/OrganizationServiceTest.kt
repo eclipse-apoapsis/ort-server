@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class OrganizationServiceTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

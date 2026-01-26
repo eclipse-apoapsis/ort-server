@@ -30,11 +30,11 @@ import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table to represent an analyzer run.
@@ -43,8 +43,8 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable)
 
-    val startTime = timestamp("start_time")
-    val endTime = timestamp("end_time")
+    val startTime = xTimestamp("start_time")
+    val endTime = xTimestamp("end_time")
     val dependencyGraphs = jsonb<DependencyGraphsWrapper>("dependency_graphs")
 
     /** Get the [AnalyzerRun] for the given [id]. Returns `null` if no run is found. */

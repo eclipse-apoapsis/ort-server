@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 /**
  * An intermediate table to store references from [PackageCurationDataTable] and [AuthorsTable].

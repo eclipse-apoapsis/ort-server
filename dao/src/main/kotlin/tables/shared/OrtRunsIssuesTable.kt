@@ -24,11 +24,11 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * An intermediate table to store references from [OrtRunsTable] and [IssuesTable] together with some additional
@@ -39,7 +39,7 @@ object OrtRunsIssuesTable : LongIdTable("ort_runs_issues") {
     val issueId = reference("issue_id", IssuesTable)
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val worker = text("worker").nullable()
-    val timestamp = timestamp("timestamp")
+    val timestamp = xTimestamp("timestamp")
 }
 
 class OrtRunIssueDao(id: EntityID<Long>) : LongEntity(id) {

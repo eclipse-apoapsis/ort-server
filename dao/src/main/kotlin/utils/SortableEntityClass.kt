@@ -21,9 +21,9 @@ package org.eclipse.apoapsis.ortserver.dao.utils
 
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.jdbc.SizedIterable
 
 /**
  * A specialized base class for entities with support for sorting. This class differs from its superclass

@@ -32,7 +32,7 @@ import io.mockk.mockk
 import org.eclipse.apoapsis.ortserver.core.testAuthModule
 import org.eclipse.apoapsis.ortserver.core.testModule
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.koin.core.context.stopKoin
 

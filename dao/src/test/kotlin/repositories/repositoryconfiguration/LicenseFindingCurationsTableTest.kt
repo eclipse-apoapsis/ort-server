@@ -26,7 +26,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
-import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 
 class LicenseFindingCurationsTableTest : StringSpec({
     val extension = extension(DatabaseTestExtension())

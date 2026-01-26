@@ -49,7 +49,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.FakeAuthenticationProvide
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.createJsonClient
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 /** An [AbstractIntegrationTest] pre-configured for testing the search routes. */
 @Suppress("AbstractClassCanBeConcreteClass")

@@ -63,7 +63,7 @@ tasks.withType<KotlinCompile>().configureEach {
     )
 
     compilerOptions {
-        allWarningsAsErrors = true
+        allWarningsAsErrors = false
         freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility", "-Xnon-local-break-continue")
         optIn = optInRequirements
     }

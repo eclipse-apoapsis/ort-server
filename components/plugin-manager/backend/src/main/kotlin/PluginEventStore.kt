@@ -19,28 +19,28 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.upsert
-
-import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 class PluginEventStore(private val db: Database) {
-    private fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.transaction {
+    private fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.blockingQuery {
         PluginEvents.selectAll()
             .where { PluginEvents.pluginType eq pluginType and (PluginEvents.pluginId eq pluginId) }
             .orderBy(PluginEvents.version)
             .map { it.toPluginEvent() }
     }
 
-    internal fun appendEvent(pluginEvent: PluginEvent): Unit = db.transaction {
+    internal fun appendEvent(pluginEvent: PluginEvent): Unit = db.blockingQuery {
         PluginEvents.insert {
             it[pluginType] = pluginEvent.pluginType
             it[pluginId] = pluginEvent.pluginId
@@ -59,7 +59,7 @@ class PluginEventStore(private val db: Database) {
     internal fun getPlugin(pluginType: PluginType, pluginId: String) =
         Plugin().applyAll(loadEvents(pluginType, pluginId))
 
-    private fun updateReadModel(pluginEvent: PluginEvent): Unit = db.transaction {
+    private fun updateReadModel(pluginEvent: PluginEvent): Unit = db.blockingQuery {
         when (pluginEvent.payload) {
             is PluginDisabled -> {
                 PluginsReadModel.upsert {
@@ -98,7 +98,7 @@ internal object PluginEvents : Table("plugin_events") {
     val version = long("version")
     val payload = jsonb<PluginEventPayload>("payload")
     val createdBy = text("created_by")
-    val createdAt = timestamp("created_at")
+    val createdAt = xTimestamp("created_at")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId, version)
 }

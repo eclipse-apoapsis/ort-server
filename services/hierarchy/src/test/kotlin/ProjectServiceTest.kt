@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class ProjectServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())

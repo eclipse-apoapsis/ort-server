@@ -24,13 +24,13 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 
-import org.jetbrains.exposed.dao.Entity
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.dao.Entity
+import org.jetbrains.exposed.v1.dao.EntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 /**
  * A table to represent names to identify a user. This is **not** used for any authentication or authorization, it is
@@ -53,7 +53,7 @@ object UserDisplayNamesTable : IdTable<String>("user_display_names") {
      */
     val fullName = text("full_name").nullable()
 
-    val createdAt = timestamp("created_at")
+    val createdAt = xTimestamp("created_at")
 }
 
 class UserDisplayNameDao(id: EntityID<String>) : Entity<String>(id) {

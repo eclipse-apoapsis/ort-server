@@ -45,7 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
 
 class DaoRepositoryRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())

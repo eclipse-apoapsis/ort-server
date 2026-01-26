@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.services.utils
 
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
-import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.v1.core.SortOrder
 
 /**
  * Convert this [OrderDirection] constant to the corresponding [SortOrder].

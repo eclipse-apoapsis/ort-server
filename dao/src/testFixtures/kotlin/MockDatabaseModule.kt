@@ -31,7 +31,7 @@ import io.mockk.unmockkStatic
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.koin.dsl.module
 import org.koin.test.KoinTest

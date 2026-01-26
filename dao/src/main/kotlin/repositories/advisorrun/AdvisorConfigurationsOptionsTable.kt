@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 /**
  * A junction table to link [AdvisorConfigurationsTable] with [AdvisorConfigurationOptionsTable].

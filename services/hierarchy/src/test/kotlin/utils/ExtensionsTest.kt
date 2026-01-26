@@ -25,7 +25,7 @@ import io.kotest.matchers.shouldBe
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
 
-import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.v1.core.SortOrder
 
 class ExtensionsTest : WordSpec({
     "OrderDirection.toSortOrder" should {

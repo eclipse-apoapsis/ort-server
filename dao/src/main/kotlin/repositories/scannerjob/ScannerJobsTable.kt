@@ -29,11 +29,11 @@ import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table to represent a scanner job.
@@ -41,9 +41,9 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 object ScannerJobsTable : LongIdTable("scanner_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 
-    val createdAt = timestamp("created_at")
-    val startedAt = timestamp("started_at").nullable()
-    val finishedAt = timestamp("finished_at").nullable()
+    val createdAt = xTimestamp("created_at")
+    val startedAt = xTimestamp("started_at").nullable()
+    val finishedAt = xTimestamp("finished_at").nullable()
     val configuration = jsonb<ScannerJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
     val errorMessage = text("error_message").nullable()

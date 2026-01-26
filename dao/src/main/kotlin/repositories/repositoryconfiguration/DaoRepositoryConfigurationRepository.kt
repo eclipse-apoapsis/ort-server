@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerCo
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 /**
  * An implementation of [RepositoryConfigurationRepository] that stores repository configurations in

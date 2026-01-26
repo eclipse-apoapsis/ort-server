@@ -29,7 +29,7 @@ import kotlin.io.path.outputStream
 
 import org.eclipse.apoapsis.ortserver.storage.TempFileInputStream
 
-import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 
 import org.postgresql.PGConnection
 import org.postgresql.largeobject.LargeObjectManager
@@ -42,7 +42,7 @@ private val logger = LoggerFactory.getLogger("LargeObjects")
  * Use proprietary API of PostgreSQL to create a large object and populate it with the given [data]. Return the ID of
  * this object which needs to be stored in the storage table as a reference.
  */
-internal fun Transaction.storeLargeObject(data: InputStream): Long {
+internal fun JdbcTransaction.storeLargeObject(data: InputStream): Long {
     val largeObjectManager = largeObjectManager(jdbcConnection())
 
     val oid = largeObjectManager.createLO(LargeObjectManager.READWRITE)
@@ -57,7 +57,7 @@ internal fun Transaction.storeLargeObject(data: InputStream): Long {
  * Return an [InputStream] to read the data of the large object with the given [oid]. Check the given [size] against
  * the configured [inMemoryLimit].
  */
-internal fun Transaction.readLargeObject(oid: Long, size: Long, inMemoryLimit: Int): InputStream {
+internal fun JdbcTransaction.readLargeObject(oid: Long, size: Long, inMemoryLimit: Int): InputStream {
     val largeObjectManager = largeObjectManager(jdbcConnection())
     return getStreamForLargeObject(largeObjectManager, oid, size, inMemoryLimit)
 }
@@ -65,7 +65,7 @@ internal fun Transaction.readLargeObject(oid: Long, size: Long, inMemoryLimit: I
 /**
  * Delete the large object with the given [oid]. This is not done automatically when the referencing entity is deleted.
  */
-internal fun Transaction.deleteLargeObject(oid: Long) {
+internal fun JdbcTransaction.deleteLargeObject(oid: Long) {
     val largeObjectManager = largeObjectManager(jdbcConnection())
     largeObjectManager.delete(oid)
 }
@@ -100,7 +100,7 @@ internal fun getStreamForLargeObject(
 /**
  * Return the JDBC [Connection] from this transaction. This is required for some low-level operations.
  */
-private fun Transaction.jdbcConnection(): Connection =
+private fun JdbcTransaction.jdbcConnection(): Connection =
     requireNotNull(connection.connection as? Connection) { "Cannot obtain JDBC connection." }
 
 /**

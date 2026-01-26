@@ -31,13 +31,14 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseMigrationTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Suppress("ClassNaming")
 class V71__projectsAnalyzerRunsTest : WordSpec() {
@@ -122,8 +123,8 @@ private object V69AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val analyzerJobId = long("analyzer_job_id")
     val environmentId = long("environment_id")
 
-    val startTime = timestamp("start_time")
-    val endTime = timestamp("end_time")
+    val startTime = xTimestamp("start_time")
+    val endTime = xTimestamp("end_time")
     val dependencyGraphs = jsonb<DependencyGraphsWrapper>("dependency_graphs")
 
     fun create() = insertAndGetId {

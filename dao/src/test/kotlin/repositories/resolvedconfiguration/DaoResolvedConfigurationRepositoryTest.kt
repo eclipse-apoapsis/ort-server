@@ -57,7 +57,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolut
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 class DaoResolvedConfigurationRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

@@ -64,7 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.jdbc.insert
 
 @Suppress("ClassNaming")
 class V73__deduplicatePackagesAndProjectsTest : StringSpec() {

@@ -22,8 +22,9 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import java.util.concurrent.ConcurrentHashMap
 
 import kotlin.time.measureTimedValue
+import kotlin.time.toKotlinInstant
 
-import kotlinx.datetime.toKotlinInstant
+import kotlinx.datetime.toDeprecatedInstant
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
@@ -44,12 +45,12 @@ import org.eclipse.apoapsis.ortserver.dao.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.ISqlExpressionBuilder
-import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.stringLiteral
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.stringLiteral
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SizedCollection
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Issue
@@ -205,8 +206,8 @@ class OrtServerScanResultStorage(
      */
     private fun createScanSummaryDao(summary: ScanSummary, hash: String): ScanSummaryDao {
         val summaryDao = ScanSummaryDao.new {
-            this.startTime = summary.startTime.toKotlinInstant()
-            this.endTime = summary.endTime.toKotlinInstant()
+            this.startTime = summary.startTime.toKotlinInstant().toDeprecatedInstant()
+            this.endTime = summary.endTime.toKotlinInstant().toDeprecatedInstant()
             this.hash = hash
         }
 
@@ -292,7 +293,7 @@ private fun findExistingScanResult(scanResult: ScanResult): ScanResultDao? =
  * Generate an [Expression] to match the properties of the given [scanResult] in the database that do not depend on
  * the provenance.
  */
-private fun ISqlExpressionBuilder.matchesBasicScanResultProperties(scanResult: ScanResult): Expression<Boolean> =
+private fun matchesBasicScanResultProperties(scanResult: ScanResult): Expression<Boolean> =
     (ScanResultsTable.scannerName eq scanResult.scanner.name) and
             (ScanResultsTable.scannerVersion eq scanResult.scanner.version) and
             (ScanResultsTable.scannerConfiguration eq scanResult.scanner.configuration) and

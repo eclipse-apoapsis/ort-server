@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.dao.utils
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.json.jsonb
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.json.jsonb
 
 /**
  * Create a JSONB column using [jsonForJsonbColumns] for serialization and deserialization. As the null character

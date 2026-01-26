@@ -28,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.core.plugins.*
 import org.eclipse.apoapsis.ortserver.core.testutils.configureTestAuthentication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.koin.ktor.ext.get
 

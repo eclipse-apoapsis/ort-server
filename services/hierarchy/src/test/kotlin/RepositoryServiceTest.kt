@@ -31,8 +31,8 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class RepositoryServiceTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

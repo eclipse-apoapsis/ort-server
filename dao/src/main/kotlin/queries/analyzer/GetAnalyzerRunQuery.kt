@@ -26,8 +26,9 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDa
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 /** A query to get an [AnalyzerRun] by its ID. Returns `null` if the run is not found. */
 class GetAnalyzerRunQuery(

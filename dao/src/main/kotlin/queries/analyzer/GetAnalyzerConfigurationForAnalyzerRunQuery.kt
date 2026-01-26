@@ -31,7 +31,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackageManage
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 /**
  * A query to get the [AnalyzerConfiguration] for a given [analyzerRunId]. Returns `null` if the configuration is not

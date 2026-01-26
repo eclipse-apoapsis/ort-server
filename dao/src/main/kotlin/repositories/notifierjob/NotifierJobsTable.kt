@@ -28,18 +28,18 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 object NotifierJobsTable : LongIdTable("notifier_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 
-    val createdAt = timestamp("created_at")
-    val startedAt = timestamp("started_at").nullable()
-    val finishedAt = timestamp("finished_at").nullable()
+    val createdAt = xTimestamp("created_at")
+    val startedAt = xTimestamp("started_at").nullable()
+    val finishedAt = xTimestamp("finished_at").nullable()
     val configuration = jsonb<NotifierJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
     val errorMessage = text("error_message").nullable()

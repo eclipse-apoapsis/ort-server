@@ -37,8 +37,10 @@ import io.mockk.verify
 import java.io.File
 import java.time.Instant
 
+import kotlin.time.toKotlinInstant
+
 import kotlinx.datetime.Clock
-import kotlinx.datetime.toKotlinInstant
+import kotlinx.datetime.toDeprecatedInstant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
@@ -346,7 +348,7 @@ class ScannerWorkerTest : StringSpec({
                 .zip(listOf(identifier1, identifier1, identifier2, identifier2, identifier2))
                 .map { (issue, identifier) ->
                     Issue(
-                        timestamp = issue.timestamp.toKotlinInstant(),
+                        timestamp = issue.timestamp.toKotlinInstant().toDeprecatedInstant(),
                         source = issue.source,
                         message = issue.message,
                         severity = issue.severity.mapToModel(),

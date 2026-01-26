@@ -22,6 +22,9 @@ package org.eclipse.apoapsis.ortserver.dao.queries.analyzer
 import org.eclipse.apoapsis.ortserver.dao.Query
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.select
+
 /**
  * A query to get the ORT run ID for a given [analyzerJobId]. Returns `null` if the run is not found.
  */

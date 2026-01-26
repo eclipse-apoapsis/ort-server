@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 /**
  * An intermediate table to associate [ProcessedDeclaredLicensesTable] with [MappedDeclaredLicensesTable].

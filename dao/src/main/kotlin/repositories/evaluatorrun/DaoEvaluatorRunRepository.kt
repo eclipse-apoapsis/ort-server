@@ -30,7 +30,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
 
 /**
  * An implementation of [EvaluatorRunRepository] that stores evaluator runs in [EvaluatorRunsTable].

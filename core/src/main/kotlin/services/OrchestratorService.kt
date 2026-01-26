@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.slf4j.MDC
 

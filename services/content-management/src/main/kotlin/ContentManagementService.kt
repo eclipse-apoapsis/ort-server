@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.contentSection.ContentManagementSectionDao
 import org.eclipse.apoapsis.ortserver.model.ContentManagementSection
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class ContentManagementService(private val db: Database) {
     suspend fun findSectionById(id: String): ContentManagementSection? = db.dbQuery(readOnly = true) {

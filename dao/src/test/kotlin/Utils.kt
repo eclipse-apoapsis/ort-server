@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao
 
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.transactions.TransactionManager
+import org.jetbrains.exposed.v1.core.Transaction
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 
 /**
  * Disable foreign key constraints for the given [block]. This is useful in testing when otherwise a lot of irrelevant

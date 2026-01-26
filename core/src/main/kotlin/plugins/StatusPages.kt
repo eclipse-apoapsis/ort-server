@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
 
 import org.ossreviewtoolkit.utils.common.collectMessages
 

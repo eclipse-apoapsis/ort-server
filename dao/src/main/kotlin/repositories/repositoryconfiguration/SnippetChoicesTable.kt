@@ -25,11 +25,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoic
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
 
 /**
  * A table to represent a snippet choice, which is part of a

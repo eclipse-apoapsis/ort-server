@@ -32,20 +32,20 @@ import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.DatabaseConfig
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.SizedIterable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.transactions.transactionManager
+import org.jetbrains.exposed.v1.core.DatabaseConfig
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.Transaction
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.SizedCollection
+import org.jetbrains.exposed.v1.jdbc.SizedIterable
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -135,7 +135,7 @@ fun databaseModule(startEager: Boolean = true): Module = module {
 suspend fun <T> Database.dbQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
+    block: JdbcTransaction.() -> T
 ): T =
     dbQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
@@ -147,11 +147,11 @@ suspend fun <T> Database.dbQuery(
 suspend fun <T> Database.dbQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
+    block: JdbcTransaction.() -> T
 ): Result<T> =
     runCatching {
         withContext(Dispatchers.IO) {
-            transaction(transactionIsolation, readOnly, this@runCatching) { block() }
+            transaction(this@runCatching, transactionIsolation, readOnly) { block() }
         }
     }.mapExceptions()
 
@@ -177,7 +177,7 @@ fun <T> Database.blockingQueryCatching(
     readOnly: Boolean = transactionManager.defaultReadOnly,
     block: Transaction.() -> T
 ): Result<T> =
-    runCatching { transaction(transactionIsolation, readOnly, this) { block() } }.mapExceptions()
+    runCatching { transaction(this, transactionIsolation, readOnly) { block() } }.mapExceptions()
 
 /**
  * Execute the [block] in a [blockingQueryCatching], configured with the provided [transactionIsolation] and [readOnly].
@@ -213,18 +213,12 @@ internal fun <T> Result<T>.mapExceptions(): Result<T> =
     }
 
 /**
- * Alias definition for a function that generates the conditions of a WHERE clause that can be used to select entities
- * in queries.
- */
-typealias ConditionBuilder = SqlExpressionBuilder.() -> Op<Boolean>
-
-/**
  * Find a single entity of this entity class based on the passed in [condition]. Throw an [EntityNotFoundException] if
  * no entity is matched by the selection criteria. This extension function is useful to implement certain get
  * operations in repositories operating on multiple properties that uniquely identify an entity. Note: It should be
  * ensured via constraints in the database that the query will not return multiple entities.
  */
-fun <T : LongEntity> LongEntityClass<T>.findSingle(condition: ConditionBuilder): T =
+fun <T : LongEntity> LongEntityClass<T>.findSingle(condition: Op<Boolean>): T =
     find(condition).singleOrNull() ?: throw EntityNotFoundException(EntityID(0L, table), this)
 
 /**

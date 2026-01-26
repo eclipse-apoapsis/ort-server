@@ -62,6 +62,9 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.select
+
 @Suppress("LargeClass")
 class DaoOrtRunRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

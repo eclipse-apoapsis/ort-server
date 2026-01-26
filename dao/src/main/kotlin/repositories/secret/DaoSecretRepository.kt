@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
-import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
@@ -34,8 +33,10 @@ import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.slf4j.LoggerFactory
 
@@ -58,16 +59,10 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
     }
 
     override fun listForId(id: HierarchyId, parameters: ListQueryParameters) = db.blockingQueryCatching {
-        val query: ConditionBuilder = when (id) {
-            is OrganizationId -> {
-                { SecretsTable.organizationId eq id.value }
-            }
-            is ProductId -> {
-                { SecretsTable.productId eq id.value }
-            }
-            is RepositoryId -> {
-                { SecretsTable.repositoryId eq id.value }
-            }
+        val query = when (id) {
+            is OrganizationId -> SecretsTable.organizationId eq id.value
+            is ProductId -> SecretsTable.productId eq id.value
+            is RepositoryId -> SecretsTable.repositoryId eq id.value
         }
 
         SecretDao.listQuery(parameters, SecretDao::mapToModel, query)
@@ -91,9 +86,8 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
 /**
  * Generate a WHERE condition to find a [Secret] entity within the hierarchy [id] and the given [name].
  */
-private fun byNameCondition(id: HierarchyId, name: String): ConditionBuilder = {
+private fun byNameCondition(id: HierarchyId, name: String): Op<Boolean> =
     SecretsTable.organizationId eq (id as? OrganizationId)?.value and
             (SecretsTable.productId eq (id as? ProductId)?.value) and
             (SecretsTable.repositoryId eq (id as? RepositoryId)?.value) and
             (SecretsTable.name eq name)
-}
