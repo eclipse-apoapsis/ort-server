@@ -34,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.Severity

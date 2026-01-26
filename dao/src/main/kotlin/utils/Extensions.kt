@@ -26,7 +26,6 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.minus
 
-import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
@@ -36,31 +35,32 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.AbstractQuery
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ComparisonOp
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.QueryParameter
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SizedIterable
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
-import org.jetbrains.exposed.sql.TextColumnType
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.v1.core.AbstractQuery
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.ComparisonOp
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryParameter
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.TextColumnType
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.notInList
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.dao.EntityClass
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.jdbc.Query
+import org.jetbrains.exposed.v1.jdbc.SizedIterable
 
 /**
  * Transform the given column to an [EntityID] when creating a DAO object. This can be used for foreign key columns to
@@ -92,13 +92,12 @@ fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANO
 fun Collection<CompoundHierarchyId>.extractIds(level: HierarchyLevel): List<Long> = mapNotNull { it[level]?.value }
 
 /**
- * Definition of a function type for generating query conditions based on accessible hierarchy elements. The function
- * has access to a [SqlExpressionBuilder] to create the conditions. It is passed the level in the hierarchy to filter
- * by, a list with the IDs to be included together with their child elements, and the filter itself to gain access to
- * additional properties. The function returns an [Op] representing the condition. The conditions for the different
- * hierarchy levels are then combined using an `OR` operator.
+ * Definition of a function type for generating query conditions based on accessible hierarchy elements. It is passed
+ * the level in the hierarchy to filter by, a list with the IDs to be included together with their child elements, and
+ * the filter itself to gain access to additional properties. The function returns an [Op] representing the condition.
+ * The conditions for the different hierarchy levels are then combined using an `OR` operator.
  */
-typealias HierarchyConditionGenerator = SqlExpressionBuilder.(
+typealias HierarchyConditionGenerator = (
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,
     filter: HierarchyFilter
@@ -112,19 +111,17 @@ typealias HierarchyConditionGenerator = SqlExpressionBuilder.(
 fun HierarchyFilter.apply(
     otherCondition: Op<Boolean> = Op.TRUE,
     generator: HierarchyConditionGenerator
-): ConditionBuilder = {
-    if (isWildcard) {
-        otherCondition
-    } else {
-        // Always iterate over all levels to make sure that conditions for all levels are generated.
-        val hierarchyCondition = HierarchyLevel.DEFINED_LEVELS_TOP_DOWN.fold(Op.FALSE as Op<Boolean>) { op, level ->
-                val ids = transitiveIncludes[level].orEmpty()
-                val condition = generator(this, level, ids, this@apply)
-                op or condition
-            }
-
-        otherCondition and hierarchyCondition
+): Op<Boolean> = if (isWildcard) {
+    otherCondition
+} else {
+    // Always iterate over all levels to make sure that conditions for all levels are generated.
+    val hierarchyCondition = HierarchyLevel.DEFINED_LEVELS_TOP_DOWN.fold(Op.FALSE as Op<Boolean>) { op, level ->
+        val ids = transitiveIncludes[level].orEmpty()
+        val condition = generator(level, ids, this@apply)
+        op or condition
     }
+
+    otherCondition and hierarchyCondition
 }
 
 /**
@@ -134,7 +131,7 @@ fun HierarchyFilter.apply(
 fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
     parameters: ListQueryParameters,
     entityMapper: (E) -> M,
-    query: ConditionBuilder
+    query: Op<Boolean>
 ): ListQueryResult<M> {
     val filterQuery = find(query)
     val totalCount = filterQuery.count()
@@ -143,6 +140,12 @@ fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
     return ListQueryResult(data, parameters, totalCount)
 }
 
+fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
+    parameters: ListQueryParameters,
+    entityMapper: (E) -> M,
+    query: () -> Op<Boolean>
+): ListQueryResult<M> = listQuery(parameters, entityMapper, query())
+
 /**
  * Run the [query] using the [parameters] to create a [ListQueryResult]. The entities are mapped to the corresponding
  * model objects using the provided [entityMapper].
@@ -150,7 +153,7 @@ fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
 fun <E : LongEntity, M, T : AbstractQuery<T>> SortableEntityClass<E>.listCustomQuery(
     parameters: ListQueryParameters,
     entityMapper: (ResultRow) -> M,
-    query: () -> AbstractQuery<T>
+    query: () -> Query
 ): ListQueryResult<M> {
     val totalCount = query().count()
     val apply = query().apply(sortableTable, parameters)
@@ -167,7 +170,7 @@ fun <M, T : AbstractQuery<T>> listCustomQueryCustomOrders(
     parameters: ListQueryParameters,
     customOrders: List<Pair<Expression<*>, SortOrder>>,
     entityMapper: (ResultRow) -> M,
-    query: () -> AbstractQuery<T>
+    query: () -> Query
 ): ListQueryResult<M> {
     val totalCount = query().count()
     val apply = query().apply(parameters, customOrders)

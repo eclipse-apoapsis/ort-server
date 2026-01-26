@@ -27,9 +27,10 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.dao.LongEntity
 
 /**
  * A table to represent a rule violation.

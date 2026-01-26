@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationsRunsTable.infrastructureServiceDeclarationId
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationsRunsTable.ortRunId
-import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -40,11 +39,15 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 /**
  * A service providing functionality for managing [infrastructure services][InfrastructureService].
@@ -224,7 +227,7 @@ class InfrastructureServiceService(
     private fun getDaoForId(id: HierarchyId, name: String): InfrastructureServicesDao? =
         InfrastructureServicesDao.find(selectByIdAndName(id, name)).singleOrNull()
 
-    private fun list(parameters: ListQueryParameters, op: ConditionBuilder) =
+    private fun list(parameters: ListQueryParameters, op: () -> Op<Boolean>) =
         InfrastructureServicesDao.find(op)
             .apply(InfrastructureServicesTable, parameters)
             .map(InfrastructureServicesDao::mapToModel)
@@ -237,7 +240,7 @@ class InfrastructureServiceService(
 private fun selectByIdAndName(
     id: HierarchyId,
     name: String
-): ConditionBuilder = {
+): Op<Boolean> =
     when (id) {
         is OrganizationId -> InfrastructureServicesTable.organizationId eq id.value
         is ProductId -> InfrastructureServicesTable.productId eq id.value
@@ -245,7 +248,6 @@ private fun selectByIdAndName(
     }.and {
         InfrastructureServicesTable.name eq name
     }
-}
 
 /**
  * An exception class that is thrown if the reference to a secret cannot be resolved.

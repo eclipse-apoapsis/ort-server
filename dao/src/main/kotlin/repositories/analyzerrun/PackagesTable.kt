@@ -36,12 +36,14 @@ import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.andHaving
-import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.alias
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.jdbc.andHaving
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.select
 
 /**
  * A table to represent all metadata for a software package.

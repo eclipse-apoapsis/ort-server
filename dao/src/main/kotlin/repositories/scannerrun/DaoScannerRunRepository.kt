@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.queries.ortrun.GetIssuesForOrtRunQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerConfigurationsSecretsTable.scannerConfigurationSecretId
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
@@ -39,8 +40,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionRes
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
 
 /**
  * An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable].

@@ -49,7 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class RuleViolationServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())

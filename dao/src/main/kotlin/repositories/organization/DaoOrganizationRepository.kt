@@ -33,9 +33,9 @@ import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.Database
 
 /**
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
@@ -78,7 +78,7 @@ class DaoOrganizationRepository(private val db: Database) : OrganizationReposito
 /**
  * Generate a condition defined by a [filter] for the given [level] and [ids].
  */
-private fun SqlExpressionBuilder.generateHierarchyCondition(
+private fun generateHierarchyCondition(
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,
     filter: HierarchyFilter

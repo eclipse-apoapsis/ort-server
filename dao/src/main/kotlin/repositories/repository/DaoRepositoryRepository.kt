@@ -36,12 +36,14 @@ import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.select
 
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun create(type: RepositoryType, url: String, productId: Long, description: String?) = db.blockingQuery {
@@ -112,7 +114,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
 /**
  * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
  */
-private fun SqlExpressionBuilder.generateHierarchyCondition(
+private fun generateHierarchyCondition(
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>
 ): Op<Boolean> =

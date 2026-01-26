@@ -24,7 +24,7 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.getConfigByKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.setConfigByKey
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 /** Add all admin-config routes. */
 fun Route.adminConfigRoutes(db: Database) {

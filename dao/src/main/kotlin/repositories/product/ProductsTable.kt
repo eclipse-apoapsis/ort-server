@@ -26,8 +26,8 @@ import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.Product
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.dao.LongEntity
 
 /**
  * A product is a collection of repositories which are combined into one software product.

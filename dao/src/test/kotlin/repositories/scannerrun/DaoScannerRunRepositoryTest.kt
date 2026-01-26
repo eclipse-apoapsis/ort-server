@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class DaoScannerRunRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

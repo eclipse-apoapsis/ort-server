@@ -19,10 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
-import org.jetbrains.exposed.sql.CustomFunction
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.QueryBuilder
-import org.jetbrains.exposed.sql.TextColumnType
+import org.jetbrains.exposed.v1.core.CustomFunction
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.QueryBuilder
+import org.jetbrains.exposed.v1.core.TextColumnType
 
 /**
  * A custom function to calculate the SHA-256 digest of a string. This is used for looking up text values that can

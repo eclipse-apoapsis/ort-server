@@ -53,7 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 class DaoAnalyzerRunRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())

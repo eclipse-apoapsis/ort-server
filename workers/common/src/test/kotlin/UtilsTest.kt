@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class UtilsTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

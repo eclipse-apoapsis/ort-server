@@ -24,9 +24,10 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplatesRe
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.Query
 
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 internal class GetPluginTemplatesQuery(val pluginType: PluginType, val pluginId: String) : Query<List<PluginTemplate>> {
     override fun execute(): List<PluginTemplate> =

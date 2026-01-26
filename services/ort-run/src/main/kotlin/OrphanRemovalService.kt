@@ -47,24 +47,25 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.AbstractQuery
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.LongColumnType
-import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inSubQuery
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.intLiteral
-import org.jetbrains.exposed.sql.notExists
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.union
+import org.jetbrains.exposed.v1.core.AbstractQuery
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.LongColumnType
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.alias
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.intLiteral
+import org.jetbrains.exposed.v1.core.notExists
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.Query
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.union
 
 import org.slf4j.LoggerFactory
 
@@ -117,7 +118,7 @@ class OrphanRemovalService(
      * fulfilled.
      */
     private suspend fun <T : LongIdTable> T.deleteWhereNotExists(
-        cond: SqlExpressionBuilder.(Column<EntityID<Long>>) -> AbstractQuery<*>
+        cond: (Column<EntityID<Long>>) -> AbstractQuery<*>
     ): Int =
         db.dbQuery {
             deleteWhere {
@@ -229,7 +230,7 @@ private enum class OrphanEntityHandler(
     val configPrefix: String
 ) {
     VCS_INFO(VcsInfoTable, "vcsInfo") {
-        override fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*> = {
+        override fun filterOrphanedEntities(): () -> AbstractQuery<*> = {
             val subQuery = OrtRunsTable
                 .select(OrtRunsTable.vcsId.alias("id"))
                 .union(
@@ -278,7 +279,7 @@ private enum class OrphanEntityHandler(
     },
 
     REMOTE_ARTIFACTS(RemoteArtifactsTable, "remoteArtifacts") {
-        override fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*> = {
+        override fun filterOrphanedEntities(): () -> AbstractQuery<*> = {
             val subQuery = PackagesTable
                 .select(PackagesTable.binaryArtifactId.alias("id"))
                 .union(
@@ -307,7 +308,7 @@ private enum class OrphanEntityHandler(
     },
 
     SNIPPETS(SnippetsTable, "snippets") {
-        override fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*> = {
+        override fun filterOrphanedEntities(): () -> AbstractQuery<*> = {
             SnippetFindingsSnippetsTable
                 .select(intLiteral(1))
                 .where(SnippetFindingsSnippetsTable.snippetId eq table.id)
@@ -315,7 +316,7 @@ private enum class OrphanEntityHandler(
     },
 
     SNIPPET_FINDINGS(SnippetFindingsTable, "snippetFindings") {
-        override fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*> = {
+        override fun filterOrphanedEntities(): () -> AbstractQuery<*> = {
             SnippetFindingsSnippetsTable
                 .select(intLiteral(1))
                 .where(SnippetFindingsSnippetsTable.snippetFindingId eq table.id)
@@ -334,7 +335,7 @@ private enum class OrphanEntityHandler(
 
         val orphanIds = db.dbQuery {
             val orphansQuery = table.select(table.id).where {
-                notExists(filterOrphanedEntities().invoke(this))
+                notExists(filterOrphanedEntities().invoke())
             }.limit(limit)
 
             orphansQuery.mapTo(mutableSetOf()) { it[table.id] }
@@ -358,5 +359,5 @@ private enum class OrphanEntityHandler(
     /**
      * Return a query condition that filters for orphaned entities for the represented table.
      */
-    abstract fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*>
+    abstract fun filterOrphanedEntities(): () -> AbstractQuery<*>
 }

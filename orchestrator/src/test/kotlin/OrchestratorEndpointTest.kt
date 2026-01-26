@@ -59,7 +59,7 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest

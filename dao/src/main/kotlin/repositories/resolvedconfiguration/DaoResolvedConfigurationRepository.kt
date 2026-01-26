@@ -53,11 +53,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.stringLiteral
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.stringLiteral
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedConfigurationRepository {
     override fun get(id: Long): ResolvedConfiguration? = db.entityQuery { ResolvedConfigurationDao[id].mapToModel() }

@@ -34,8 +34,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.KnownProvenance

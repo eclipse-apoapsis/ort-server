@@ -27,10 +27,12 @@ import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
-import org.jetbrains.exposed.sql.SizedIterable
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.SizedIterable
+import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by a database table using PostgreSQL's large
@@ -43,7 +45,7 @@ class DatabaseStorageProvider(
     /** The maximum size of a storage entry that can be loaded into memory. */
     private val inMemoryLimit: Int
 ) : StorageProvider {
-    override suspend fun read(key: Key): StorageEntry = newSuspendedTransaction {
+    override suspend fun read(key: Key): StorageEntry = suspendTransaction {
         val entry = findByKey(key).single()
 
         val inputStream = readLargeObject(entry.data, entry.size, inMemoryLimit)
@@ -51,7 +53,7 @@ class DatabaseStorageProvider(
     }
 
     override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
-        newSuspendedTransaction {
+        suspendTransaction {
             // In case of an override, delete the key first. This may not be the cleanest solution (it has the
             // side effect that the createdAt date is changed), but it is very easy to implement.
             deleteKey(key)
@@ -78,7 +80,7 @@ class DatabaseStorageProvider(
     /**
      * Delete the entry with the given [key] from this storage. The caller is responsible for transaction management.
      */
-    private fun Transaction.deleteKey(key: Key) =
+    private fun JdbcTransaction.deleteKey(key: Key) =
         findByKey(key).singleOrNull()?.let { dao ->
             deleteLargeObject(dao.data)
             dao.delete()

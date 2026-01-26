@@ -22,10 +22,10 @@ package org.eclipse.apoapsis.ortserver.dao.utils
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.QueryBuilder
-import org.jetbrains.exposed.sql.append
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryBuilder
+import org.jetbrains.exposed.v1.core.append
 
 /**
  * A custom operation to check if the aggregated values of a string column are equal to a set of values, to be used in a

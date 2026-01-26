@@ -39,8 +39,11 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
-import org.jetbrains.exposed.sql.Count
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.core.Count
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
 
 import org.ossreviewtoolkit.model.CuratedPackage as OrtCuratedPackage
 

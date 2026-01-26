@@ -22,12 +22,12 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.contentSection
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.ContentManagementSection
 
-import org.jetbrains.exposed.dao.Entity
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.dao.Entity
+import org.jetbrains.exposed.v1.dao.EntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table that represents Markdown-formatted text to be displayed in UI sections.
@@ -42,7 +42,7 @@ object ContentManagementSectionTable : IdTable<String>("content_management_secti
 
     val markdown = text("markdown")
 
-    val updatedAt = timestamp("updated_at")
+    val updatedAt = xTimestamp("updated_at")
 }
 
 class ContentManagementSectionDao(id: EntityID<String>) : Entity<String>(id) {

@@ -33,8 +33,8 @@ import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.dao.LongEntity
 
 /**
  * A table to store infrastructure services, such as source code or artifact repositories.

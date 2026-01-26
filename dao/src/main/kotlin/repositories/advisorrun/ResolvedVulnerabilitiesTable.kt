@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VulnerabilityResolutionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 /**
  * A table to store resolved vulnerabilities, linking [OrtRunsTable], [VulnerabilitiesTable], [IdentifiersTable],

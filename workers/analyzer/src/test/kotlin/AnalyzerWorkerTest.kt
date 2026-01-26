@@ -38,9 +38,11 @@ import io.mockk.verify
 
 import java.io.File
 
+import kotlin.time.toJavaInstant
+
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
+import kotlinx.datetime.toStdlibInstant
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -602,7 +604,8 @@ class AnalyzerWorkerTest : StringSpec({
                             issues = mapOf(
                                 Identifier("Maven:com.example:package:1.0") to listOf(
                                     Issue(
-                                        timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                                        timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toStdlibInstant()
+                                            .toJavaInstant(),
                                         source = "tool-x",
                                         message = "An issue occurred.",
                                         severity = Severity.HINT

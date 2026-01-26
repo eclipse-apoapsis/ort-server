@@ -21,10 +21,11 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 /**
  * A junction table to link [ScannerRunsTable] with [ScanResultsTable].

@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.ossreviewtoolkit.downloader.DefaultWorkingTreeCache
 import org.ossreviewtoolkit.model.Issue

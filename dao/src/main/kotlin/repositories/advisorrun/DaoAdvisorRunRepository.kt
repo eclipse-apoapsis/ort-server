@@ -35,8 +35,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
 
 /**
  * An implementation of [AdvisorRunRepository] that stores the advisor runs in [AdvisorRunsTable].

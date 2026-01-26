@@ -24,12 +24,13 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplatesRe
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.Query
 
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.QueryBuilder
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.longLiteral
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryBuilder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.longLiteral
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 internal class GetPluginTemplateForOrganizationQuery(
     val pluginType: PluginType,

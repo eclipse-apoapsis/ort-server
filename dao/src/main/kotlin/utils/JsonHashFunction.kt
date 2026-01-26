@@ -19,10 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
-import org.jetbrains.exposed.sql.CustomFunction
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.QueryBuilder
-import org.jetbrains.exposed.sql.TextColumnType
+import org.jetbrains.exposed.v1.core.CustomFunction
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.QueryBuilder
+import org.jetbrains.exposed.v1.core.TextColumnType
 
 /**
  * A custom function to calculate a hash value on a JSONB column. This is used for querying JSON data in a functional

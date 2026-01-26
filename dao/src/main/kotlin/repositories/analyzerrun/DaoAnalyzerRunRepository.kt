@@ -45,8 +45,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
 
 /**
  * An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable].

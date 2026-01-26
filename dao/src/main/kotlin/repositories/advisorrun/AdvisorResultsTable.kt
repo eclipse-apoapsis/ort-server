@@ -23,11 +23,11 @@ import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table to represent a result of an advisor for a single identifier.
@@ -37,8 +37,8 @@ object AdvisorResultsTable : LongIdTable("advisor_results") {
 
     val advisorName = text("advisor_name")
     val capabilities = text("capabilities")
-    val startTime = timestamp("start_time")
-    val endTime = timestamp("end_time")
+    val startTime = xTimestamp("start_time")
+    val endTime = xTimestamp("end_time")
 }
 
 class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {

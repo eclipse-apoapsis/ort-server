@@ -64,7 +64,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
 
 private val TEST_USER = User(
     id = UserId("test-user-id"),

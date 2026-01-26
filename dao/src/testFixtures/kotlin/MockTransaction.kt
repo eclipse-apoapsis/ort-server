@@ -28,18 +28,20 @@ import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
 
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.transactions.TransactionManager
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.vendors.currentDialect
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-private const val TRANSACTION_MANAGER_CLASS = "org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt"
+private const val DATABASE_DIALECT_CLASS = "org.jetbrains.exposed.v1.core.vendors.DatabaseDialectKt"
+private const val TRANSACTIONS_CLASS = "org.jetbrains.exposed.v1.jdbc.transactions.TransactionsKt"
 
 /**
  * Create a static mock for [transaction] that does not actually create a transaction. Can be used to mock database
  * access for functions that call [transaction]. Make sure to call [unmockkTransaction] to clear the mock.
  */
 fun mockkTransaction() {
-    val slot = slot<Transaction.() -> Any>()
+    val slot = slot<JdbcTransaction.() -> Any>()
 
     mockkObject(TransactionManager.Companion)
     every { TransactionManager.managerFor(any()) } returns mockk {
@@ -48,8 +50,10 @@ fun mockkTransaction() {
         every { defaultMaxAttempts } returns -1
     }
 
-    mockkStatic(TRANSACTION_MANAGER_CLASS)
-    every { transaction(any(), capture(slot)) } answers { slot.invoke(mockk()) }
+    mockkStatic(DATABASE_DIALECT_CLASS)
+    every { currentDialect } returns mockk()
+
+    mockkStatic(TRANSACTIONS_CLASS)
     every { transaction(any(), any(), any(), capture(slot)) } answers { slot.invoke(mockk()) }
 }
 
@@ -58,7 +62,8 @@ fun mockkTransaction() {
  */
 fun unmockkTransaction() {
     unmockkObject(TransactionManager.Companion)
-    unmockkStatic(TRANSACTION_MANAGER_CLASS)
+    unmockkStatic(DATABASE_DIALECT_CLASS)
+    unmockkStatic(TRANSACTIONS_CLASS)
 }
 
 /**

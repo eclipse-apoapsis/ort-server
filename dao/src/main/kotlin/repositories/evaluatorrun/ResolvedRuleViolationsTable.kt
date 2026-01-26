@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RuleViolationResolutionsTable
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 /**
  * A table to store resolved rule violations, linking [OrtRunsTable], [RuleViolationsTable],

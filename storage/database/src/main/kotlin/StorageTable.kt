@@ -19,17 +19,17 @@
 
 package org.eclipse.apoapsis.ortserver.storage.database
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * Definition of a table for storing arbitrary binary data in a BLOB column.
  */
 object StorageTable : LongIdTable("storage") {
-    val createdAt = timestamp("created_at")
+    val createdAt = xTimestamp("created_at")
     val namespace = text("namespace")
     val key = text("key")
     val contentType = text("content_type").nullable()

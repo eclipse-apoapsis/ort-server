@@ -41,13 +41,17 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
-import org.jetbrains.exposed.sql.Count
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.innerJoin
-import org.jetbrains.exposed.sql.not
+import org.jetbrains.exposed.v1.core.Count
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.core.not
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.Query
+import org.jetbrains.exposed.v1.jdbc.select
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue

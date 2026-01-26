@@ -21,7 +21,9 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
-import kotlinx.datetime.toKotlinInstant
+import kotlin.time.toKotlinInstant
+
+import kotlinx.datetime.toDeprecatedInstant
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
@@ -186,8 +188,8 @@ fun OrtAdvisorResult.mapToModel() =
     AdvisorResult(
         advisorName = advisor.name,
         capabilities = advisor.capabilities.map { it.name },
-        startTime = summary.startTime.toKotlinInstant(),
-        endTime = summary.endTime.toKotlinInstant(),
+        startTime = summary.startTime.toKotlinInstant().toDeprecatedInstant(),
+        endTime = summary.endTime.toKotlinInstant().toDeprecatedInstant(),
         issues = summary.issues.map { it.mapToModel() },
         defects = defects.map { it.mapToModel() },
         vulnerabilities = vulnerabilities.map { it.mapToModel() }
@@ -197,8 +199,8 @@ fun OrtAdvisorRun.mapToModel(advisorJobId: Long) =
     AdvisorRun(
         id = -1,
         advisorJobId = advisorJobId,
-        startTime = startTime.toKotlinInstant(),
-        endTime = endTime.toKotlinInstant(),
+        startTime = startTime.toKotlinInstant().toDeprecatedInstant(),
+        endTime = endTime.toKotlinInstant().toDeprecatedInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
         results = results.entries.associate { (k, v) ->
@@ -219,8 +221,8 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
     AnalyzerRun(
         id = -1,
         analyzerJobId = analyzerJobId,
-        startTime = startTime.toKotlinInstant(),
-        endTime = endTime.toKotlinInstant(),
+        startTime = startTime.toKotlinInstant().toDeprecatedInstant(),
+        endTime = endTime.toKotlinInstant().toDeprecatedInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
         projects = result.projects.mapTo(mutableSetOf()) { it.mapToModel() },
@@ -247,9 +249,9 @@ fun OrtDefect.mapToModel() =
         state = state,
         severity = severity,
         description = description,
-        creationTime = creationTime?.toKotlinInstant(),
-        modificationTime = modificationTime?.toKotlinInstant(),
-        closingTime = closingTime?.toKotlinInstant(),
+        creationTime = creationTime?.toKotlinInstant()?.toDeprecatedInstant(),
+        modificationTime = modificationTime?.toKotlinInstant()?.toDeprecatedInstant(),
+        closingTime = closingTime?.toKotlinInstant()?.toDeprecatedInstant(),
         fixReleaseVersion = fixReleaseVersion,
         fixReleaseUrl = fixReleaseUrl,
         labels = labels
@@ -291,8 +293,8 @@ fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =
     EvaluatorRun(
         id = -1,
         evaluatorJobId = evaluatorJobId,
-        startTime = startTime.toKotlinInstant(),
-        endTime = endTime.toKotlinInstant(),
+        startTime = startTime.toKotlinInstant().toDeprecatedInstant(),
+        endTime = endTime.toKotlinInstant().toDeprecatedInstant(),
         environment = environment.mapToModel(),
         violations = violations.map(OrtRuleViolation::mapToModel)
     )
@@ -350,7 +352,7 @@ fun OrtLicenseSource.mapToModel() = when (this) {
 
 fun OrtIssue.mapToModel(identifier: Identifier? = null, worker: String? = null) =
     Issue(
-        timestamp = timestamp.toKotlinInstant(),
+        timestamp = timestamp.toKotlinInstant().toDeprecatedInstant(),
         source = source,
         message = message,
         severity = severity.mapToModel(),
@@ -578,8 +580,8 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
     ScannerRun(
         id = -1L,
         scannerJobId = scannerJobId,
-        startTime = startTime.toKotlinInstant(),
-        endTime = endTime.toKotlinInstant(),
+        startTime = startTime.toKotlinInstant().toDeprecatedInstant(),
+        endTime = endTime.toKotlinInstant().toDeprecatedInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
         provenances = provenances.mapTo(mutableSetOf(), OrtProvenanceResolutionResult::mapToModel),
@@ -605,8 +607,8 @@ fun OrtScanResult.mapToModel() =
 
 fun OrtScanSummary.mapToModel() =
     ScanSummary(
-        startTime = startTime.toKotlinInstant(),
-        endTime = endTime.toKotlinInstant(),
+        startTime = startTime.toKotlinInstant().toDeprecatedInstant(),
+        endTime = endTime.toKotlinInstant().toDeprecatedInstant(),
         hash = "", // ORT does not have a hash property, so there is no defined value here.
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),

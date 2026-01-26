@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.dao.utils
 
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 /**
  * A specialized base class for database tables that provides functionality to mark single columns as sortable.

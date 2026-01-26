@@ -33,12 +33,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.Provenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.UnknownProvenance
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
 
 object PackageProvenancesTable : LongIdTable("package_provenances") {
     val identifierId = reference("identifier_id", IdentifiersTable)

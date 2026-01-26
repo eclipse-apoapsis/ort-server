@@ -29,11 +29,11 @@ import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table to represent a summary of a scanner run.
@@ -42,8 +42,8 @@ object ScannerRunsTable : LongIdTable("scanner_runs") {
     val scannerJobId = reference("scanner_job_id", ScannerJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable).nullable()
 
-    val startTime = timestamp("start_time").nullable()
-    val endTime = timestamp("end_time").nullable()
+    val startTime = xTimestamp("start_time").nullable()
+    val endTime = xTimestamp("end_time").nullable()
 }
 
 class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {

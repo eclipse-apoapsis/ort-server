@@ -20,10 +20,13 @@
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.toStdlibInstant
 
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 object ConfigTable : Table("config_table") {
     val key = enumerationByName<ConfigKey>("key", 255)
@@ -47,7 +50,7 @@ object ConfigTable : Table("config_table") {
             it[ConfigTable.key] = key
             it[ConfigTable.value] = value ?: key.default
             it[ConfigTable.isEnabled] = isEnabled
-            it[updatedAt] = Clock.System.now()
+            it[ConfigTable.updatedAt] = Clock.System.now().toStdlibInstant()
         }
     }
 }

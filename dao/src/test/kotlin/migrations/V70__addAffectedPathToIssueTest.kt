@@ -27,11 +27,12 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseMigrationTestExtension
 import org.eclipse.apoapsis.ortserver.model.Severity
 
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Suppress("ClassNaming")
 class V70__addAffectedPathToIssueTest : WordSpec({
@@ -65,7 +66,7 @@ class V70__addAffectedPathToIssueTest : WordSpec({
 })
 
 private object V69IssuesTable : LongIdTable("issues") {
-    val timestamp = timestamp("timestamp")
+    val timestamp = xTimestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)
@@ -79,7 +80,7 @@ private object V69IssuesTable : LongIdTable("issues") {
 }
 
 private object V70IssuesTable : LongIdTable("issues") {
-    val timestamp = timestamp("timestamp")
+    val timestamp = xTimestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)

@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 /**
  * An intermediate table to store references from [PackagesTable] and [DeclaredLicensesTable].

@@ -24,8 +24,9 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplatesRe
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.Query
 
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 internal class GetPluginTemplateQuery(
     val templateName: String,

@@ -22,12 +22,13 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Defect
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table to represent a software defect.
@@ -39,9 +40,9 @@ object DefectsTable : LongIdTable("defects") {
     val state = text("state").nullable()
     val severity = text("severity").nullable()
     val description = text("description").nullable()
-    val creationTime = timestamp("creation_time").nullable()
-    val modificationTime = timestamp("modification_time").nullable()
-    val closingTime = timestamp("closing_time").nullable()
+    val creationTime = xTimestamp("creation_time").nullable()
+    val modificationTime = xTimestamp("modification_time").nullable()
+    val closingTime = xTimestamp("closing_time").nullable()
     val fixReleaseVersion = text("fix_release_version").nullable()
     val fixReleaseUrl = text("fix_release_url").nullable()
 }

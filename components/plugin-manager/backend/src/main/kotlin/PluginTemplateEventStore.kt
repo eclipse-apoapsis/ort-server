@@ -19,29 +19,28 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
-import org.jetbrains.exposed.sql.CustomFunction
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.longLiteral
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
-import org.jetbrains.exposed.sql.upsert
-
-import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
+import org.jetbrains.exposed.v1.core.CustomFunction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.longLiteral
+import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 /** A store for [PluginTemplateEvent]s. */
 class PluginTemplateEventStore(private val db: Database) {
     private fun loadEvents(name: String, pluginType: PluginType, pluginId: String): List<PluginTemplateEvent> =
-        db.transaction {
+        db.blockingQuery {
             PluginTemplateEvents.selectAll()
                 .where { PluginTemplateEvents.name eq name }
                 .andWhere { PluginTemplateEvents.pluginType eq pluginType }
@@ -50,7 +49,7 @@ class PluginTemplateEventStore(private val db: Database) {
                 .map { it.toPluginTemplateEvent() }
         }
 
-    internal fun appendEvent(pluginTemplateEvent: PluginTemplateEvent): Unit = db.transaction {
+    internal fun appendEvent(pluginTemplateEvent: PluginTemplateEvent): Unit = db.blockingQuery {
         PluginTemplateEvents.insert {
             it[name] = pluginTemplateEvent.name
             it[pluginType] = pluginTemplateEvent.pluginType
@@ -199,7 +198,7 @@ internal object PluginTemplateEvents : Table("plugin_template_events") {
     val version = long("version")
     val payload = jsonb<PluginTemplateEventPayload>("payload")
     val createdBy = text("created_by")
-    val createdAt = timestamp("created_at")
+    val createdAt = xTimestamp("created_at")
 
     override val primaryKey = PrimaryKey(name, pluginType, pluginId, version)
 }

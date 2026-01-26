@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.components.adminConfig.adminConfigApiModel)
 
     implementation(libs.exposedCore)
+    implementation(libs.exposedJdbc)
     implementation(libs.exposedKotlinDatetime)
 
     routesImplementation(projects.components.authorization.authorizationBackend)

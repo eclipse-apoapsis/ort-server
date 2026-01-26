@@ -42,7 +42,9 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
 
 import org.slf4j.LoggerFactory
 

@@ -109,9 +109,9 @@ import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
 
 import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier

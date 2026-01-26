@@ -24,11 +24,11 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * An intermediate table to store references from [ScanSummariesTable] and [IssuesTable] together with some
@@ -37,7 +37,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 object ScanSummariesIssuesTable : LongIdTable("scan_summaries_issues") {
     val scanSummaryId = reference("scan_summary_id", ScanSummariesTable)
     val issueId = reference("issue_id", IssuesTable)
-    val timestamp = timestamp("timestamp")
+    val timestamp = xTimestamp("timestamp")
 }
 
 class ScanSummariesIssuesDao(id: EntityID<Long>) : LongEntity(id) {

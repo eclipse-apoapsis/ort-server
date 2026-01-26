@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class SecretServiceTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())

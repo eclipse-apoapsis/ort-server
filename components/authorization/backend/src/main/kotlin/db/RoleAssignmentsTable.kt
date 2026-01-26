@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.organization.Organization
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 /**
  * A database table for storing role assignments to users for hierarchy elements.

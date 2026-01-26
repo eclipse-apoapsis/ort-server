@@ -26,8 +26,9 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 /**
  * A query to get the [Issue]s for a given [ortRunId] and [issueWorkerType]. Returns an empty list if no issues are

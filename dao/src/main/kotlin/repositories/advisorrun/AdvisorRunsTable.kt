@@ -27,11 +27,11 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 
-import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.xTimestamp
 
 /**
  * A table to represent a summary of an advisor run.
@@ -40,8 +40,8 @@ object AdvisorRunsTable : LongIdTable("advisor_runs") {
     val advisorJobId = reference("advisor_job_id", AdvisorJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable)
 
-    val startTime = timestamp("start_time")
-    val endTime = timestamp("end_time")
+    val startTime = xTimestamp("start_time")
+    val endTime = xTimestamp("end_time")
 }
 
 class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {

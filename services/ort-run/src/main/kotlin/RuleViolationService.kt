@@ -34,10 +34,13 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
-import org.jetbrains.exposed.sql.Count
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.not
+import org.jetbrains.exposed.v1.core.Count
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.not
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
 
 import org.ossreviewtoolkit.model.config.RuleViolationResolution
 

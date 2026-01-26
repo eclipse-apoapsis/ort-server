@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.utils.config)
 
     api(libs.exposedDao)
+    api(libs.exposedJdbc)
     api(libs.koinCore)
 
     implementation(libs.bundles.flyway)

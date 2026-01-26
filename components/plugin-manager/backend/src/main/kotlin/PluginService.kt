@@ -19,11 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.selectAll
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 
-import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 /**
  * A service to query ORT plugins and their configuration.
@@ -36,7 +38,7 @@ class PluginService(private val db: Database) {
     fun isEnabled(pluginType: PluginType, pluginId: String): Boolean {
         val normalizedPluginId = normalizePluginId(pluginType, pluginId) ?: return false
 
-        return db.transaction {
+        return db.blockingQuery {
             PluginsReadModel.select(PluginsReadModel.enabled)
                 .where {
                     PluginsReadModel.pluginType eq pluginType and
@@ -57,7 +59,7 @@ class PluginService(private val db: Database) {
     fun getPlugins(): List<PluginDescriptor> {
         val pluginInfo = mutableMapOf<PluginType, MutableMap<String, Boolean>>()
 
-        db.transaction {
+        db.blockingQuery {
             PluginsReadModel.selectAll().forEach {
                 val pluginType = it[PluginsReadModel.pluginType]
                 val pluginId = it[PluginsReadModel.pluginId]

@@ -32,13 +32,13 @@ import com.github.michaelbull.result.toResultOr
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
-import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 import org.ossreviewtoolkit.utils.ort.runBlocking
 
 /** A service for managing plugin templates. */
@@ -61,7 +61,7 @@ class PluginTemplateService(
         organizationId: Long,
         userId: String
     ): Result<Unit, TemplateError> =
-        db.transaction {
+        db.blockingQuery {
             validateOrganizationExists(organizationId)
                 .andThen { validatePlugin(pluginType, pluginId) }
                 .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
@@ -98,7 +98,7 @@ class PluginTemplateService(
         pluginId: String,
         userId: String,
         options: List<PluginOptionTemplate>
-    ): Result<Unit, TemplateError> = db.transaction {
+    ): Result<Unit, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .andThen { normalizedPluginId -> validatePluginOptions(pluginType, normalizedPluginId, options) }
             .andThen { normalizedPluginId -> validateNotExisting(templateName, pluginType, normalizedPluginId) }
@@ -123,7 +123,7 @@ class PluginTemplateService(
         pluginType: PluginType,
         pluginId: String,
         userId: String
-    ): Result<Unit, TemplateError> = db.transaction {
+    ): Result<Unit, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
             .andThen(::validateNotDeleted)
@@ -147,7 +147,7 @@ class PluginTemplateService(
         pluginType: PluginType,
         pluginId: String,
         userId: String
-    ): Result<Unit, TemplateError> = db.transaction {
+    ): Result<Unit, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
             .andThen(::validateNotDeleted)
@@ -178,7 +178,7 @@ class PluginTemplateService(
         pluginType: PluginType,
         pluginId: String,
         userId: String
-    ): Result<Unit, TemplateError> = db.transaction {
+    ): Result<Unit, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
             .andThen(::validateNotDeleted)
@@ -206,11 +206,11 @@ class PluginTemplateService(
 
     internal fun getPluginsForRepository(
         repositoryId: Long
-    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
+    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.blockingQuery {
         val organizationId = repositoryRepository.get(repositoryId)?.organizationId
 
         if (organizationId == null) {
-            return@transaction TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+            return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
         }
 
         pluginService.getPlugins().filter { it.enabled }
@@ -242,7 +242,7 @@ class PluginTemplateService(
     /** Return the plugin template with the given [templateName], [pluginType], and [pluginId]. */
     internal fun getTemplate(
         templateName: String, pluginType: PluginType, pluginId: String
-    ): Result<PluginTemplate, TemplateError> = db.transaction {
+    ): Result<PluginTemplate, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .map { normalizedPluginId ->
                 GetPluginTemplateQuery(templateName, pluginType, normalizedPluginId).execute()
@@ -263,7 +263,7 @@ class PluginTemplateService(
         pluginType: PluginType,
         pluginId: String,
         organizationId: Long
-    ): Result<PluginTemplate?, TemplateError> = db.transaction {
+    ): Result<PluginTemplate?, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .map { normalizedPluginId ->
                 GetPluginTemplateForOrganizationQuery(pluginType, normalizedPluginId, organizationId).execute()
@@ -273,7 +273,7 @@ class PluginTemplateService(
     /** Return the plugin templates for the given [pluginType] and [pluginId]. */
     internal fun getTemplates(
         pluginType: PluginType, pluginId: String
-    ): Result<List<PluginTemplate>, TemplateError> = db.transaction {
+    ): Result<List<PluginTemplate>, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .map { normalizedPluginId -> GetPluginTemplatesQuery(pluginType, normalizedPluginId).execute() }
     }
@@ -289,7 +289,7 @@ class PluginTemplateService(
         organizationId: Long,
         userId: String
     ): Result<Unit, TemplateError> =
-        db.transaction {
+        db.blockingQuery {
             validatePlugin(pluginType, pluginId)
                 .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
                 .andThen(::validateNotDeleted)
@@ -325,7 +325,7 @@ class PluginTemplateService(
         pluginId: String,
         userId: String,
         options: List<PluginOptionTemplate>
-    ): Result<Unit, TemplateError> = db.transaction {
+    ): Result<Unit, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .andThen { normalizedPluginId -> validatePluginOptions(pluginType, normalizedPluginId, options) }
             .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
