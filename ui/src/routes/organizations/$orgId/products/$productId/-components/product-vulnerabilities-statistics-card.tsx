@@ -40,14 +40,16 @@ export const ProductVulnerabilitiesStatisticsCard = ({
     }),
   });
 
-  const total = data.data.vulnerabilitiesCount;
+  const unresolved = data.data.vulnerabilitiesCount;
+  const total = data.data.vulnerabilitiesCountTotal;
   const counts = data.data.vulnerabilitiesCountByRating;
 
   return (
     <StatisticsCard
       title='Vulnerabilities'
       icon={() => <ShieldQuestion className='h-4 w-4 text-green-500' />}
-      value={total || '-'}
+      value={unresolved || '-'}
+      total={total || undefined}
       counts={
         counts
           ? Object.entries(counts).map(([rating, count]) => ({
