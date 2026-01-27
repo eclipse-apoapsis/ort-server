@@ -168,10 +168,7 @@ class DbAuthorizationService(
     ): Set<String> = db.dbQuery {
         RoleAssignmentsTable.select(RoleAssignmentsTable.userId)
             .where {
-                (RoleAssignmentsTable.organizationId eq compoundHierarchyId.organizationId?.value) and
-                        (RoleAssignmentsTable.productId eq compoundHierarchyId.productId?.value) and
-                        (RoleAssignmentsTable.repositoryId eq compoundHierarchyId.repositoryId?.value) and
-                        roleCondition(role)
+                compoundHierarchyId.toFilterCondition() and roleCondition(role)
             }.mapTo(mutableSetOf()) { it[RoleAssignmentsTable.userId] }
     }
 
@@ -327,10 +324,7 @@ class DbAuthorizationService(
      */
     private fun doRemoveAssignment(userId: String, compoundHierarchyId: CompoundHierarchyId): Boolean = (
             RoleAssignmentsTable.deleteWhere {
-                (RoleAssignmentsTable.userId eq userId) and
-                        (RoleAssignmentsTable.organizationId eq compoundHierarchyId.organizationId?.value) and
-                        (RoleAssignmentsTable.productId eq compoundHierarchyId.productId?.value) and
-                        (RoleAssignmentsTable.repositoryId eq compoundHierarchyId.repositoryId?.value)
+                (RoleAssignmentsTable.userId eq userId) and compoundHierarchyId.toFilterCondition()
             } == 1
             ).also {
             if (it) {
@@ -373,6 +367,14 @@ private fun CompoundHierarchyId.isInvalid() =
     organizationId?.value == INVALID_ID ||
             productId?.value == INVALID_ID ||
             repositoryId?.value == INVALID_ID
+
+/**
+ * Generate a filter condition that matches exactly all role assignments for this [CompoundHierarchyId].
+ */
+private fun CompoundHierarchyId.toFilterCondition(): Op<Boolean> =
+    (RoleAssignmentsTable.organizationId eq this.organizationId?.value) and
+            (RoleAssignmentsTable.productId eq this.productId?.value) and
+            (RoleAssignmentsTable.repositoryId eq this.repositoryId?.value)
 
 /**
  * Fetch the concrete [Role] that is referenced by this [ResultRow].
