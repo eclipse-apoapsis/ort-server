@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.storage.database
 
 import java.io.InputStream
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry

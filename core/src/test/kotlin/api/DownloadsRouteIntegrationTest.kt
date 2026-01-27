@@ -32,9 +32,8 @@ import io.ktor.http.HttpStatusCode
 
 import io.mockk.mockk
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
-
-import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.OrtRun

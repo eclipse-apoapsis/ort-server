@@ -29,15 +29,15 @@ import io.micrometer.core.instrument.binder.MeterBinder
 
 import java.util.concurrent.TimeUnit
 
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable

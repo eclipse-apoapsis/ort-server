@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity

@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery

@@ -47,7 +47,7 @@ import io.ktor.http.HttpStatusCode
 
 import io.mockk.mockk
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration

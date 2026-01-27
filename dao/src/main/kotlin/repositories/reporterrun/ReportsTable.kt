@@ -25,7 +25,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent a report.
@@ -33,7 +33,7 @@ import org.jetbrains.exposed.v1.datetime.xTimestamp
 object ReportsTable : LongIdTable("reports") {
     val filename = text("report_filename")
     val downloadLink = text("download_link")
-    val downloadTokenExpiryDate = xTimestamp("download_token_expiry_date")
+    val downloadTokenExpiryDate = timestamp("download_token_expiry_date")
 }
 
 class ReportDao(id: EntityID<Long>) : LongEntity(id) {

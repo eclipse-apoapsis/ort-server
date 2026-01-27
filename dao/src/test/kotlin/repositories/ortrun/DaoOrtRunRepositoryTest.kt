@@ -34,10 +34,9 @@ import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao

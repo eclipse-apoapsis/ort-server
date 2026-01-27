@@ -33,10 +33,9 @@ import io.mockk.runs
 import io.mockk.slot
 
 import kotlin.math.abs
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService

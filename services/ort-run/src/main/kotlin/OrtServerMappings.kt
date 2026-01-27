@@ -26,8 +26,6 @@ import java.time.Instant
 
 import kotlin.time.toJavaInstant
 
-import kotlinx.datetime.toStdlibInstant
-
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
@@ -217,8 +215,8 @@ fun AdvisorResult.mapToOrt() =
             }
         ),
         summary = OrtAdvisorSummary(
-            startTime = startTime.toStdlibInstant().toJavaInstant(),
-            endTime = endTime.toStdlibInstant().toJavaInstant(),
+            startTime = startTime.toJavaInstant(),
+            endTime = endTime.toJavaInstant(),
             issues = issues.map(Issue::mapToOrt)
         ),
         defects = defects.map(Defect::mapToOrt),
@@ -227,8 +225,8 @@ fun AdvisorResult.mapToOrt() =
 
 fun AdvisorRun.mapToOrt() =
     OrtAdvisorRun(
-        startTime = startTime.toStdlibInstant().toJavaInstant(),
-        endTime = endTime.toStdlibInstant().toJavaInstant(),
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
         environment = environment.mapToOrt(),
         config = config.mapToOrt(),
         results = results.entries.associateTo(sortedMapOf()) {
@@ -247,8 +245,8 @@ fun AnalyzerConfiguration.mapToOrt() =
 
 fun AnalyzerRun.mapToOrt() =
     OrtAnalyzerRun(
-        startTime = startTime.toStdlibInstant().toJavaInstant(),
-        endTime = endTime.toStdlibInstant().toJavaInstant(),
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
         environment = environment.mapToOrt(),
         config = config.mapToOrt(),
         result = OrtAnalyzerResult(
@@ -282,9 +280,9 @@ fun Defect.mapToOrt() =
         state = state,
         severity = severity,
         description = description,
-        creationTime = creationTime?.toStdlibInstant()?.toJavaInstant(),
-        modificationTime = modificationTime?.toStdlibInstant()?.toJavaInstant(),
-        closingTime = closingTime?.toStdlibInstant()?.toJavaInstant(),
+        creationTime = creationTime?.toJavaInstant(),
+        modificationTime = modificationTime?.toJavaInstant(),
+        closingTime = closingTime?.toJavaInstant(),
         fixReleaseVersion = fixReleaseVersion,
         fixReleaseUrl = fixReleaseUrl,
         labels = labels
@@ -322,8 +320,8 @@ fun Environment.mapToOrt() =
 
 fun EvaluatorRun.mapToOrt() =
     OrtEvaluatorRun(
-        startTime = startTime.toStdlibInstant().toJavaInstant(),
-        endTime = endTime.toStdlibInstant().toJavaInstant(),
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
         environment = environment.mapToOrt(),
         violations = violations.map(RuleViolation::mapToOrt)
     )
@@ -338,7 +336,7 @@ fun Identifier.mapToOrt() = OrtIdentifier(type = type, namespace = namespace, na
 fun Includes.mapToOrt() = OrtIncludes(paths.map(PathInclude::mapToOrt))
 
 fun Issue.mapToOrt() = OrtIssue(
-    timestamp = timestamp.toStdlibInstant().toJavaInstant(),
+    timestamp = timestamp.toJavaInstant(),
     source = source,
     message = message,
     severity = severity.mapToOrt(),
@@ -666,8 +664,8 @@ fun ScannerDetail.mapToOrt() = OrtScannerDetails(name = name, version = version,
 
 fun ScannerRun.mapToOrt() =
     OrtScannerRun(
-        startTime = startTime?.toStdlibInstant()?.toJavaInstant() ?: Instant.EPOCH,
-        endTime = endTime?.toStdlibInstant()?.toJavaInstant() ?: Instant.EPOCH,
+        startTime = startTime?.toJavaInstant() ?: Instant.EPOCH,
+        endTime = endTime?.toJavaInstant() ?: Instant.EPOCH,
         environment = environment?.mapToOrt() ?: OrtEnvironment(),
         config = config?.mapToOrt() ?: OrtScannerConfiguration(),
         provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
@@ -687,8 +685,8 @@ fun ScanResult.mapToOrt() =
 
 fun ScanSummary.mapToOrt() =
     OrtScanSummary(
-        startTime = startTime.toStdlibInstant().toJavaInstant(),
-        endTime = endTime.toStdlibInstant().toJavaInstant(),
+        startTime = startTime.toJavaInstant(),
+        endTime = endTime.toJavaInstant(),
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFinding::mapToOrt),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFinding::mapToOrt),
         snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFinding::mapToOrt),

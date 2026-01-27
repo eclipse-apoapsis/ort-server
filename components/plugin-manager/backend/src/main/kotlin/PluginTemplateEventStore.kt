@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.longLiteral
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -198,7 +198,7 @@ internal object PluginTemplateEvents : Table("plugin_template_events") {
     val version = long("version")
     val payload = jsonb<PluginTemplateEventPayload>("payload")
     val createdBy = text("created_by")
-    val createdAt = xTimestamp("created_at")
+    val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(name, pluginType, pluginId, version)
 }

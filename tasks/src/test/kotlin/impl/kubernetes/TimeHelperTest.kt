@@ -30,11 +30,10 @@ import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class TimeHelperTest : WordSpec({
     "now" should {

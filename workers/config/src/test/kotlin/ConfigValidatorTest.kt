@@ -35,8 +35,7 @@ import io.mockk.every
 import io.mockk.mockk
 
 import kotlin.math.abs
-
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context

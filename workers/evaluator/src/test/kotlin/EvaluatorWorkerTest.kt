@@ -37,8 +37,8 @@ import io.mockk.unmockkAll
 import java.io.File
 import java.time.Instant as JavaInstant
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager

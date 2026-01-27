@@ -53,11 +53,9 @@ import java.io.InputStream
 
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.time.toJavaInstant
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toStdlibInstant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -643,8 +641,8 @@ class ReporterRunnerTest : WordSpec({
             runner.run(
                 ortResult = OrtTestData.result.copy(
                     evaluator = EvaluatorRun(
-                        startTime = Clock.System.now().toStdlibInstant().toJavaInstant(),
-                        endTime = Clock.System.now().toStdlibInstant().toJavaInstant(),
+                        startTime = Clock.System.now().toJavaInstant(),
+                        endTime = Clock.System.now().toJavaInstant(),
                         environment = Environment(),
                         violations = listOf(ruleViolation)
                     )
@@ -671,8 +669,8 @@ class ReporterRunnerTest : WordSpec({
             runner.run(
                 ortResult = OrtTestData.result.copy(
                     evaluator = EvaluatorRun(
-                        startTime = Clock.System.now().toStdlibInstant().toJavaInstant(),
-                        endTime = Clock.System.now().toStdlibInstant().toJavaInstant(),
+                        startTime = Clock.System.now().toJavaInstant(),
+                        endTime = Clock.System.now().toJavaInstant(),
                         environment = Environment(),
                         violations = listOf(
                             RuleViolation("RULE", null, null, enumSetOf(), OrtSeverity.ERROR, "message", "howToFix")

@@ -22,14 +22,14 @@ package org.eclipse.apoapsis.ortserver.dao.migrations
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseMigrationTestExtension
 import org.eclipse.apoapsis.ortserver.model.Severity
 
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -66,7 +66,7 @@ class V70__addAffectedPathToIssueTest : WordSpec({
 })
 
 private object V69IssuesTable : LongIdTable("issues") {
-    val timestamp = xTimestamp("timestamp")
+    val timestamp = timestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)
@@ -80,7 +80,7 @@ private object V69IssuesTable : LongIdTable("issues") {
 }
 
 private object V70IssuesTable : LongIdTable("issues") {
-    val timestamp = xTimestamp("timestamp")
+    val timestamp = timestamp("timestamp")
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)

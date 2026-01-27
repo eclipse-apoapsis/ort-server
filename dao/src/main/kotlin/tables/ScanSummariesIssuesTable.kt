@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * An intermediate table to store references from [ScanSummariesTable] and [IssuesTable] together with some
@@ -37,7 +37,7 @@ import org.jetbrains.exposed.v1.datetime.xTimestamp
 object ScanSummariesIssuesTable : LongIdTable("scan_summaries_issues") {
     val scanSummaryId = reference("scan_summary_id", ScanSummariesTable)
     val issueId = reference("issue_id", IssuesTable)
-    val timestamp = xTimestamp("timestamp")
+    val timestamp = timestamp("timestamp")
 }
 
 class ScanSummariesIssuesDao(id: EntityID<Long>) : LongEntity(id) {

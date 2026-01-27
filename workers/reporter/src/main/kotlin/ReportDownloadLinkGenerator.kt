@@ -23,10 +23,9 @@ import java.security.SecureRandom
 
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.time.Clock
 import kotlin.time.Duration
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * A data class representing a link with a token that can be used to download a report without authentication.

@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.kotlinx.datetime.shouldBeBetween
+import io.kotest.matchers.comparables.between
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 
@@ -31,11 +31,10 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
@@ -2259,7 +2258,7 @@ private fun createMessagePublisher() = mockk<MessagePublisher> {
 private fun Instant.verifyTimeRange(allowedDiff: Duration) {
     val now = Clock.System.now()
 
-    this.shouldBeBetween(now - allowedDiff, now)
+    this shouldBe between(now - allowedDiff, now)
 }
 
 private fun <T> OptionalValue<T>.verifyOptionalValue(expectedValue: T) {

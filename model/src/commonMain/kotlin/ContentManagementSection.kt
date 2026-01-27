@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * Markdown-formatted text to be displayed in UI sections.

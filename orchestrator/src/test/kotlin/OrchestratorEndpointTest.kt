@@ -30,7 +30,7 @@ import io.mockk.mockkClass
 import io.mockk.runs
 import io.mockk.verify
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded

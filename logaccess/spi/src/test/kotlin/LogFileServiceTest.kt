@@ -36,7 +36,7 @@ import io.mockk.mockk
 import java.io.File
 import java.util.EnumSet
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.LogLevel

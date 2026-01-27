@@ -19,7 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
+
 import kotlinx.serialization.Serializable
 
 @Serializable

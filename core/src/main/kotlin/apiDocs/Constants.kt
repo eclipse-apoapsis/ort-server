@@ -20,8 +20,7 @@
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import kotlin.time.Duration.Companion.minutes
-
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /** A constant to use for the creation timestamp of an entity. */
 internal val CREATED_AT = Instant.parse("2024-01-01T00:00:00Z")

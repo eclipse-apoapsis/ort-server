@@ -27,10 +27,11 @@ import io.kubernetes.client.openapi.models.V1Pod
 import java.time.OffsetDateTime
 import java.util.TreeMap
 
+import kotlin.time.Clock
+import kotlin.time.Instant
+
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys

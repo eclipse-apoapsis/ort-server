@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -29,7 +29,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.dao.Entity
 import org.jetbrains.exposed.v1.dao.EntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 /**
@@ -53,7 +53,7 @@ object UserDisplayNamesTable : IdTable<String>("user_display_names") {
      */
     val fullName = text("full_name").nullable()
 
-    val createdAt = xTimestamp("created_at")
+    val createdAt = timestamp("created_at")
 }
 
 class UserDisplayNameDao(id: EntityID<String>) : Entity<String>(id) {

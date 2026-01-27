@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.contentSection.ContentManagementSectionDao

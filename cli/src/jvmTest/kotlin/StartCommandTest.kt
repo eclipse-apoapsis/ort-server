@@ -35,8 +35,7 @@ import io.mockk.unmockkAll
 import java.io.IOException
 
 import kotlin.time.Duration.Companion.milliseconds
-
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs

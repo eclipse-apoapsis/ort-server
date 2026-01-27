@@ -33,7 +33,7 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations

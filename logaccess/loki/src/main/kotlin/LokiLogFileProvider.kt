@@ -36,7 +36,8 @@ import io.ktor.serialization.kotlinx.json.json
 
 import java.io.File
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
+
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider

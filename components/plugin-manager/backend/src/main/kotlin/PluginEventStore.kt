@@ -26,7 +26,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -98,7 +98,7 @@ internal object PluginEvents : Table("plugin_events") {
     val version = long("version")
     val payload = jsonb<PluginEventPayload>("payload")
     val createdBy = text("created_by")
-    val createdAt = xTimestamp("created_at")
+    val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId, version)
 }

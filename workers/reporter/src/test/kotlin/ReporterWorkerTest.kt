@@ -37,8 +37,8 @@ import io.mockk.unmockkAll
 
 import java.io.File
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction

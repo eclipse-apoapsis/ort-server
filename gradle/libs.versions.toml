@@ -24,7 +24,6 @@ gitSemverPlugin = "0.18.0"
 jibPlugin = "3.5.2"
 kotlinPlugin = "2.3.0"
 kotlinxCoroutines = "1.10.2"
-kotlinxDatetime = "0.6.2"
 kotlinxSerialization = "1.10.0"
 kspPlugin = "2.3.4"
 mavenPublishPlugin = "0.36.0"
@@ -47,7 +46,6 @@ keycloakTestcontainerVersion = "4.1.1"
 koin = "4.1.1"
 konform = "0.11.1"
 kotest = "6.1.2"
-kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotlinResult = "2.1.0"
 ktorOpenApi = "5.4.0"
@@ -103,7 +101,6 @@ koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
 koinTest = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 konform = { module = "io.konform:konform", version.ref = "konform" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotestAssertionsKotlinxDatetime = { module = "io.kotest.extensions:kotest-assertions-kotlinx-datetime", version.ref = "kotestAssertionsKotlinxDatetime" }
 kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotestAssertionsTable = { module = "io.kotest:kotest-assertions-table", version.ref = "kotest" }
 kotestExtensions = { module = "io.kotest:kotest-extensions", version.ref = "kotest" }
@@ -113,7 +110,6 @@ kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = 
 kotlinResult = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinResult" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesSlf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinxCoroutines" }
-kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktorOpenApi = { module = "io.github.smiley4:ktor-openapi", version.ref = "ktorOpenApi" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorOpenApi" }

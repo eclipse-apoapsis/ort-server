@@ -24,7 +24,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.WorkerJobRepositoryTest
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension

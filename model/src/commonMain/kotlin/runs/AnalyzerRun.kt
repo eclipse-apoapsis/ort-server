@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class AnalyzerRun(
     val id: Long,

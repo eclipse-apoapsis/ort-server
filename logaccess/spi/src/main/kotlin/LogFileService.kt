@@ -24,11 +24,11 @@ import java.nio.file.Path
 import java.util.ServiceLoader
 
 import kotlin.io.path.createTempDirectory
+import kotlin.time.Instant
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath

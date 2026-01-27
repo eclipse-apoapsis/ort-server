@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.reporter
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * A data class providing some metadata about a report generated during an ORT run.
