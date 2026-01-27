@@ -31,7 +31,6 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
-import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 /**
@@ -69,11 +68,11 @@ class DatabaseStorageProvider(
         }
     }
 
-    override suspend fun contains(key: Key): Boolean = newSuspendedTransaction {
+    override suspend fun contains(key: Key): Boolean = suspendTransaction {
         !findByKey(key).empty()
     }
 
-    override suspend fun delete(key: Key): Boolean = newSuspendedTransaction {
+    override suspend fun delete(key: Key): Boolean = suspendTransaction {
         deleteKey(key)
     }
 
