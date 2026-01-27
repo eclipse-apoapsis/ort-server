@@ -19,7 +19,7 @@
 
 package ort.eclipse.apoapsis.ortserver.components.search
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage

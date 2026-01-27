@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.notifier
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class NotifierRun(
     val id: Long,

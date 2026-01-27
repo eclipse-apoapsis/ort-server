@@ -24,7 +24,7 @@ import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.should
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.disableForeignKeyConstraints
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseMigrationTestExtension
@@ -34,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -123,8 +123,8 @@ private object V69AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val analyzerJobId = long("analyzer_job_id")
     val environmentId = long("environment_id")
 
-    val startTime = xTimestamp("start_time")
-    val endTime = xTimestamp("end_time")
+    val startTime = timestamp("start_time")
+    val endTime = timestamp("end_time")
     val dependencyGraphs = jsonb<DependencyGraphsWrapper>("dependency_graphs")
 
     fun create() = insertAndGetId {

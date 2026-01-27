@@ -22,8 +22,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
+import kotlin.time.Instant
+
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.minus
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException

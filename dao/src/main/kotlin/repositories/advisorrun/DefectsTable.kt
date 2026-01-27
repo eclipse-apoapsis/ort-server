@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent a software defect.
@@ -40,9 +40,9 @@ object DefectsTable : LongIdTable("defects") {
     val state = text("state").nullable()
     val severity = text("severity").nullable()
     val description = text("description").nullable()
-    val creationTime = xTimestamp("creation_time").nullable()
-    val modificationTime = xTimestamp("modification_time").nullable()
-    val closingTime = xTimestamp("closing_time").nullable()
+    val creationTime = timestamp("creation_time").nullable()
+    val modificationTime = timestamp("modification_time").nullable()
+    val closingTime = timestamp("closing_time").nullable()
     val fixReleaseVersion = text("fix_release_version").nullable()
     val fixReleaseUrl = text("fix_release_url").nullable()
 }

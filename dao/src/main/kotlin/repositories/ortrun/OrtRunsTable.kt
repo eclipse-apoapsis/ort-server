@@ -57,7 +57,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.select
 
 /**
@@ -69,7 +69,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val index = long("index").sortable()
     val revision = text("revision").sortable()
     val resolvedRevision = text("resolved_revision").nullable()
-    val createdAt = xTimestamp("created_at").sortable("createdAt")
+    val createdAt = timestamp("created_at").sortable("createdAt")
 
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
     //       frequent changes during early development.
@@ -80,7 +80,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
     val status = enumerationByName<OrtRunStatus>("status", 128)
-    val finishedAt = xTimestamp("finished_at").nullable()
+    val finishedAt = timestamp("finished_at").nullable()
     val path = text("path").nullable()
     val traceId = text("trace_id").nullable()
     val environmentConfigPath = text("environment_config_path").nullable()

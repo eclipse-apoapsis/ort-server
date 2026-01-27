@@ -26,7 +26,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.ResolvedVulnerabilitiesTable

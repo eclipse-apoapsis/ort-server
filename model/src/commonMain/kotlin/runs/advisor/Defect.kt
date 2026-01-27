@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.advisor
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class Defect(
     val externalId: String,

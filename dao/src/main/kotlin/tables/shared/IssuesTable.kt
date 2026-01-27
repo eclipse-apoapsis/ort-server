@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables.shared
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.utils.DigestFunction
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass

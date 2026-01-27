@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.reporter
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class ReporterRun(
     val id: Long,

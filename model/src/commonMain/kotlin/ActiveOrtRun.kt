@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * A data class holding a minimal set of properties to reference an active ORT run.

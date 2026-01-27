@@ -33,8 +33,7 @@ import io.mockk.verify
 
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob

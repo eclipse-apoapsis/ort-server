@@ -27,7 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent a result of an advisor for a single identifier.
@@ -37,8 +37,8 @@ object AdvisorResultsTable : LongIdTable("advisor_results") {
 
     val advisorName = text("advisor_name")
     val capabilities = text("capabilities")
-    val startTime = xTimestamp("start_time")
-    val endTime = xTimestamp("end_time")
+    val startTime = timestamp("start_time")
+    val endTime = timestamp("end_time")
 }
 
 class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {

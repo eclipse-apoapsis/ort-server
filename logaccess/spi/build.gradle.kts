@@ -32,8 +32,6 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
-    api(libs.kotlinxDatetime)
-
     implementation(projects.model)
     implementation(projects.utils.config)
 

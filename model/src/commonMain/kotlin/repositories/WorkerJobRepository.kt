@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.repositories
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.WorkerJob

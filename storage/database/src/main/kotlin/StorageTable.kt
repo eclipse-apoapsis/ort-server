@@ -23,13 +23,13 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * Definition of a table for storing arbitrary binary data in a BLOB column.
  */
 object StorageTable : LongIdTable("storage") {
-    val createdAt = xTimestamp("created_at")
+    val createdAt = timestamp("created_at")
     val namespace = text("namespace")
     val key = text("key")
     val contentType = text("content_type").nullable()

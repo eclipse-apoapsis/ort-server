@@ -32,7 +32,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs

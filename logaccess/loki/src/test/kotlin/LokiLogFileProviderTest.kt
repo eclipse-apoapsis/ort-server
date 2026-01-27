@@ -52,9 +52,9 @@ import java.util.UUID
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 import kotlinx.coroutines.withTimeout
-import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService

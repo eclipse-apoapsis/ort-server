@@ -35,14 +35,14 @@ import java.nio.file.attribute.FileTime
 import java.util.concurrent.atomic.AtomicInteger
 
 import kotlin.io.path.setLastModifiedTime
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
 
 class GitHubConfigFileCacheTest : WordSpec({
     "getOrPutFile" should {

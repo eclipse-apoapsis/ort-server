@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.logaccess
 
 import java.io.File
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource

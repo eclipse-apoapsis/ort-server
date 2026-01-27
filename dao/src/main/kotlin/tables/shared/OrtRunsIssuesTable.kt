@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * An intermediate table to store references from [OrtRunsTable] and [IssuesTable] together with some additional
@@ -39,7 +39,7 @@ object OrtRunsIssuesTable : LongIdTable("ort_runs_issues") {
     val issueId = reference("issue_id", IssuesTable)
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val worker = text("worker").nullable()
-    val timestamp = xTimestamp("timestamp")
+    val timestamp = timestamp("timestamp")
 }
 
 class OrtRunIssueDao(id: EntityID<Long>) : LongEntity(id) {

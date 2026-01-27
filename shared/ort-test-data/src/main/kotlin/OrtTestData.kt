@@ -22,8 +22,8 @@ package org.eclipse.apoapsis.ortserver.shared.orttestdata
 import java.io.File
 import java.net.URI
 
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 import org.ossreviewtoolkit.model.AdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorDetails

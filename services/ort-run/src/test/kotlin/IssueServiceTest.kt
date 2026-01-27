@@ -27,9 +27,8 @@ import io.kotest.matchers.string.shouldStartWith
 
 import io.mockk.mockk
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
-
-import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures

@@ -27,7 +27,7 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures

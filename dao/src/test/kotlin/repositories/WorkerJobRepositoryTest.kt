@@ -29,9 +29,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
-
-import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus

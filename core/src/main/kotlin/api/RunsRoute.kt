@@ -33,7 +33,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 import io.ktor.util.AttributeKey
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary

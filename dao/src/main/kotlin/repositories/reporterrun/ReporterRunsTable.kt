@@ -29,15 +29,15 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent a summary of a reporter run.
  */
 object ReporterRunsTable : LongIdTable("reporter_runs") {
     val reporterJobId = reference("reporter_job_id", ReporterJobsTable)
-    val startTime = xTimestamp("start_time")
-    val endTime = xTimestamp("end_time")
+    val startTime = timestamp("start_time")
+    val endTime = timestamp("end_time")
 }
 
 class ReporterRunDao(id: EntityID<Long>) : LongEntity(id) {

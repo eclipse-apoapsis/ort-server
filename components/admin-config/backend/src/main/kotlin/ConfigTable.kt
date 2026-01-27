@@ -19,8 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.toStdlibInstant
+import kotlin.time.Clock
 
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.eq
@@ -50,7 +49,7 @@ object ConfigTable : Table("config_table") {
             it[ConfigTable.key] = key
             it[ConfigTable.value] = value ?: key.default
             it[ConfigTable.isEnabled] = isEnabled
-            it[ConfigTable.updatedAt] = Clock.System.now().toStdlibInstant()
+            it[ConfigTable.updatedAt] = Clock.System.now()
         }
     }
 }

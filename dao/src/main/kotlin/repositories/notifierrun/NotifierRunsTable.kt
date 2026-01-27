@@ -29,12 +29,12 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 object NotifierRunsTable : LongIdTable("notifier_runs") {
     val notifierJobId = reference("notifier_job_id", NotifierJobsTable)
-    val startTime = xTimestamp("start_time")
-    val endTime = xTimestamp("end_time")
+    val startTime = timestamp("start_time")
+    val endTime = timestamp("end_time")
 }
 
 class NotifierRunDao(id: EntityID<Long>) : LongEntity(id) {

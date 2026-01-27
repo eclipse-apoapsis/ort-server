@@ -32,7 +32,7 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule

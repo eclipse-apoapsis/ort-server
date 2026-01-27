@@ -40,7 +40,6 @@ kotlin {
                 api(projects.components.infrastructureServices.infrastructureServicesApiModel)
                 api(projects.shared.apiModel)
 
-                api(libs.kotlinxDatetime)
                 api(libs.konform)
 
                 implementation(ktorLibs.http)

@@ -32,7 +32,7 @@ import io.ktor.utils.io.readText
 
 import io.mockk.spyk
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs

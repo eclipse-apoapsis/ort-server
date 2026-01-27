@@ -27,7 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.dao.Entity
 import org.jetbrains.exposed.v1.dao.EntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table that represents Markdown-formatted text to be displayed in UI sections.
@@ -42,7 +42,7 @@ object ContentManagementSectionTable : IdTable<String>("content_management_secti
 
     val markdown = text("markdown")
 
-    val updatedAt = xTimestamp("updated_at")
+    val updatedAt = timestamp("updated_at")
 }
 
 class ContentManagementSectionDao(id: EntityID<String>) : Entity<String>(id) {

@@ -34,7 +34,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent an analyzer run.
@@ -43,8 +43,8 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable)
 
-    val startTime = xTimestamp("start_time")
-    val endTime = xTimestamp("end_time")
+    val startTime = timestamp("start_time")
+    val endTime = timestamp("end_time")
     val dependencyGraphs = jsonb<DependencyGraphsWrapper>("dependency_graphs")
 
     /** Get the [AnalyzerRun] for the given [id]. Returns `null` if no run is found. */

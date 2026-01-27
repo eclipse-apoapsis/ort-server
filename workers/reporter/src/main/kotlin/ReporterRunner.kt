@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 
@@ -31,7 +32,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration

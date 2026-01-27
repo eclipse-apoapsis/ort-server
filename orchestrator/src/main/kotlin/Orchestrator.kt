@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 
 import java.sql.Connection
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations

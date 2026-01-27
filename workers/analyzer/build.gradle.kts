@@ -97,7 +97,6 @@ dependencies {
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.koinTest)
-    testImplementation(libs.kotestAssertionsKotlinxDatetime)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

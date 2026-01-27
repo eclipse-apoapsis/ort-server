@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.orchestrator
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.WorkerJob

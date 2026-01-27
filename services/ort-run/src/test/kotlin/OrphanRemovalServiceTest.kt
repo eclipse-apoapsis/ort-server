@@ -30,9 +30,8 @@ import java.util.Locale
 
 import kotlin.random.Random
 import kotlin.text.format
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.dbQuery

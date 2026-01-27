@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * A common interface for all concrete worker job classes.

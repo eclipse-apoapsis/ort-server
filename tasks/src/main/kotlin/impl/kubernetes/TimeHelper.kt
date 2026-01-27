@@ -22,10 +22,9 @@ package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+import kotlin.time.Clock
 import kotlin.time.Duration
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * An internally used helper class that provides some functionality related to querying the current time and

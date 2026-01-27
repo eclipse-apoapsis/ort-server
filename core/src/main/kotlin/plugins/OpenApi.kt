@@ -43,7 +43,8 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
+
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType

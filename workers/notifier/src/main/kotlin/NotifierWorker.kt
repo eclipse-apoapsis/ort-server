@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.notifier
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun

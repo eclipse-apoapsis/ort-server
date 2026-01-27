@@ -19,10 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl
 
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService

@@ -33,7 +33,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-import org.jetbrains.exposed.v1.datetime.xTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent an evaluator job.
@@ -41,9 +41,9 @@ import org.jetbrains.exposed.v1.datetime.xTimestamp
 object EvaluatorJobsTable : LongIdTable("evaluator_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 
-    val createdAt = xTimestamp("created_at")
-    val startedAt = xTimestamp("started_at").nullable()
-    val finishedAt = xTimestamp("finished_at").nullable()
+    val createdAt = timestamp("created_at")
+    val startedAt = timestamp("started_at").nullable()
+    val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<EvaluatorJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
     val errorMessage = text("error_message").nullable()

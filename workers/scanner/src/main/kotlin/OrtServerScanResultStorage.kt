@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.measureTimedValue
 import kotlin.time.toKotlinInstant
 
-import kotlinx.datetime.toDeprecatedInstant
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
@@ -206,8 +205,8 @@ class OrtServerScanResultStorage(
      */
     private fun createScanSummaryDao(summary: ScanSummary, hash: String): ScanSummaryDao {
         val summaryDao = ScanSummaryDao.new {
-            this.startTime = summary.startTime.toKotlinInstant().toDeprecatedInstant()
-            this.endTime = summary.endTime.toKotlinInstant().toDeprecatedInstant()
+            this.startTime = summary.startTime.toKotlinInstant()
+            this.endTime = summary.endTime.toKotlinInstant()
             this.hash = hash
         }
 
