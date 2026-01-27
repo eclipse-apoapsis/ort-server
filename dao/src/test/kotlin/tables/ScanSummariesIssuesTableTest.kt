@@ -59,7 +59,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
 
                     val expectedIssue = issue.copy(
                         // Check if the timestamp is normalized to the database precision.
-                        timestamp = Instant.parse("2024-10-18T05:56:06Z"),
+                        timestamp = issue.timestamp.toDatabasePrecision(),
                         identifier = null,
                         worker = null
                     )
