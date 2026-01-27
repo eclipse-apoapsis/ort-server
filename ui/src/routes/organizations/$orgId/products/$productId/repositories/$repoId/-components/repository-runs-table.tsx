@@ -65,6 +65,7 @@ import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
+import { ItemCounts } from './item-counts';
 
 type RepositoryTableProps = {
   repoId: string;
@@ -82,12 +83,37 @@ const columnHelper = createColumnHelper<OrtRunSummary>();
 
 const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
   const hasLabels = summary.labels && Object.keys(summary.labels).length > 0;
+
   return (
-    <div className='flex flex-col gap-1'>
-      <div className='flex items-center justify-between'>
-        <Badge className={`border ${getStatusBackgroundColor(summary.status)}`}>
+    <div className='grid grid-cols-12 gap-2'>
+      {/* Left column - status, job status, duration */}
+      <div className='col-span-4 flex flex-col gap-1'>
+        <Badge
+          className={`border ${getStatusBackgroundColor(summary.status)} w-fit`}
+        >
           {summary.status}
         </Badge>
+        <div className='col-span-2 flex flex-col items-start justify-center gap-2'>
+          <ItemCounts summary={summary} />
+        </div>
+        <OrtRunJobStatus
+          jobs={summary.jobs}
+          orgId={summary.organizationId.toString()}
+          productId={summary.productId.toString()}
+          repoId={summary.repositoryId.toString()}
+          runIndex={summary.index.toString()}
+        />
+        <RunDuration
+          createdAt={summary.createdAt}
+          finishedAt={summary.finishedAt ?? undefined}
+        />
+      </div>
+
+      {/* Middle column - reserved for future use */}
+      <div className='col-span-2'></div>
+
+      {/* Right column - created at, revision, configuration */}
+      <div className='col-span-6 flex flex-col items-end gap-1'>
         <div className='flex gap-1'>
           <div className='text-muted-foreground'>Created at</div>
           <TimestampWithUTC timestamp={summary.createdAt} />
@@ -106,15 +132,6 @@ const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
             <span>{summary.userDisplayName?.fullName}</span>
           )}
         </div>
-      </div>
-      <div className='flex items-center justify-between'>
-        <OrtRunJobStatus
-          jobs={summary.jobs}
-          orgId={summary.organizationId.toString()}
-          productId={summary.productId.toString()}
-          repoId={summary.repositoryId.toString()}
-          runIndex={summary.index.toString()}
-        />
         <div className='flex gap-1 text-sm'>
           <div className='text-muted-foreground'>Revision</div>{' '}
           {summary.revision}
@@ -123,45 +140,39 @@ const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
               <Sha1Component sha1={summary.resolvedRevision} />
             )}
         </div>
-      </div>
-      <div className='flex items-center justify-start'>
-        <RunDuration
-          createdAt={summary.createdAt}
-          finishedAt={summary.finishedAt ?? undefined}
-        />
-      </div>
-      <Accordion type='multiple' className='rounded-sm'>
-        <AccordionItem value='configuration'>
-          <AccordionTrigger className='justify-end gap-2'>
-            <div className='text-sm'>Configuration</div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className='flex flex-col gap-1'>
-              <div className='flex gap-2 text-sm'>
-                <div className='text-muted-foreground'>Context:</div>{' '}
-                {summary.jobConfigContext}
-                {summary.resolvedJobConfigContext &&
-                  summary.jobConfigContext !==
-                    summary.resolvedJobConfigContext && (
-                    <Sha1Component sha1={summary.resolvedJobConfigContext} />
-                  )}
-              </div>
-              {hasLabels && (
-                <div className='flex flex-wrap gap-2'>
-                  {Object.entries(summary.labels!).map(([key, value]) => (
-                    <Badge
-                      key={key}
-                      className='bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                    >
-                      {key}: {value}
-                    </Badge>
-                  ))}
+        <Accordion type='multiple' className='w-full rounded-sm'>
+          <AccordionItem value='configuration'>
+            <AccordionTrigger className='justify-end gap-2'>
+              <div className='text-sm'>Configuration</div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className='flex flex-col items-end gap-1'>
+                <div className='flex gap-2 text-sm'>
+                  <div className='text-muted-foreground'>Context:</div>{' '}
+                  {summary.jobConfigContext}
+                  {summary.resolvedJobConfigContext &&
+                    summary.jobConfigContext !==
+                      summary.resolvedJobConfigContext && (
+                      <Sha1Component sha1={summary.resolvedJobConfigContext} />
+                    )}
                 </div>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+                {hasLabels && (
+                  <div className='flex flex-wrap justify-end gap-2'>
+                    {Object.entries(summary.labels!).map(([key, value]) => (
+                      <Badge
+                        key={key}
+                        className='bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                      >
+                        {key}: {value}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
     </div>
   );
 };
