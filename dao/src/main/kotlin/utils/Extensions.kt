@@ -22,10 +22,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
+import kotlin.time.DurationUnit
 import kotlin.time.Instant
-
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.minus
+import kotlin.time.toDuration
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -80,11 +79,11 @@ fun <T : Instant?> Column<T>.transformToDatabasePrecision() =
     with(entity) { transform({ it?.toDatabasePrecision() as T }, { it }) }
 
 /**
- * Convert an instance to microsecond precision which is stored in the database. This function should always be used
- * when writing timestamps to the database to ensure that the created DAO objects use the same precision as the
- * database.
+ * Convert an instance to microsecond precision which is stored in the database (see
+ * https://www.postgresql.org/docs/current/datatype-datetime.html). This function should always be used when writing
+ * timestamps to the database to ensure that the created DAO objects use the same precision as the database.
  */
-fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)
+fun Instant.toDatabasePrecision() = this - (nanosecondsOfSecond % 1000).toDuration(DurationUnit.NANOSECONDS)
 
 /**
  * Extract the defined IDs on the specified [level] from the [CompoundHierarchyId]s in this collection as long values.
