@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -219,7 +220,7 @@ class ReporterRunner(
     ): Pair<List<Pair<String, Map<String, File>>>, List<Issue>> =
         withContext(Dispatchers.IO) {
             val outputDir = context.createTempDir()
-            val issues = mutableListOf<Issue>()
+            val issues = ConcurrentLinkedQueue<Issue>()
 
             val deferredTransformedOptions = async { processReporterOptions(context, config, adminConfig) }
 
@@ -294,7 +295,7 @@ class ReporterRunner(
             }.awaitAll().filterNotNull()
 
             monitorJob.cancel()
-            success to issues
+            success to issues.toList()
         }
 
     /**
