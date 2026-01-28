@@ -77,7 +77,7 @@ class LocalConfigFileProvider(
         val dir = configDir.resolve(path.path)
 
         if (!dir.isDirectory) {
-            throw ConfigException("The provided path '${path.path}' does not refer a directory.", null)
+            throw ConfigException("The provided path '${path.path}' does not refer a directory.")
         }
 
         return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) { Path(it.path) }

@@ -58,7 +58,7 @@ class ExtensionsTest : WordSpec({
 
     val invalidConfigFileYaml = "invalid"
 
-    val configException = ConfigException("message", null)
+    val configException = ConfigException("message")
 
     "mapOptions" should {
         "apply the transform to all option entries" {

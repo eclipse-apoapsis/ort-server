@@ -230,7 +230,7 @@ class GitHubConfigFileProvider(
         val response = sendHttpRequest("/branches/$branchName")
 
         if (!response.isPresent()) {
-            throw ConfigException("The branch '${context.name}' is not found in the config repository.", null)
+            throw ConfigException("The branch '${context.name}' is not found in the config repository.")
         }
 
         val jsonBody = getJsonBody(response)
@@ -293,7 +293,7 @@ class GitHubConfigFileProvider(
             logger.error("Error response from GitHub API request: ${response.status}.")
             logger.info("Response body: ${response.body<String>()}")
 
-            throw ConfigException("Error response from GitHub API request: ${response.status}.", null)
+            throw ConfigException("Error response from GitHub API request: ${response.status}.")
         } else {
             response
         }
@@ -335,19 +335,18 @@ class GitHubConfigFileProvider(
         )
 
         val contentType = response.headers["Content-Type"]
-            ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.", null)
+            ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.")
 
         if (contentType.contains(RAW_CONTENT_TYPE_HEADER)) return response.bodyAsChannel()
 
         if (contentType.contains(JSON_CONTENT_TYPE_HEADER) && getJsonBody(response).isDirectory()) {
             throw ConfigException(
                 "The provided path `${path.path}` refers a directory rather than a file. An exact configuration file " +
-                        "path should be provided.",
-                null
+                        "path should be provided."
             )
         }
 
-        throw ConfigException("The GitHub response has unsupported content type: '$contentType'", null)
+        throw ConfigException("The GitHub response has unsupported content type: '$contentType'")
     }
 
     /**
@@ -360,7 +359,7 @@ class GitHubConfigFileProvider(
         val jsonBody = getJsonBody(response)
 
         if (!jsonBody.isDirectory()) {
-            throw ConfigException("The provided path `${path.path}` does not refer a directory.", null)
+            throw ConfigException("The provided path `${path.path}` does not refer a directory.")
         }
 
         return jsonBody.jsonArray
@@ -378,7 +377,7 @@ class GitHubConfigFileProvider(
 
 private fun getJsonBody(response: HttpResponse): JsonElement {
     if (!response.isPresent()) {
-        throw ConfigException("The requested path doesn't exist in the specified branch.", null)
+        throw ConfigException("The requested path doesn't exist in the specified branch.")
     }
 
     return runBlocking { Json.parseToJsonElement(response.body<String>()) }

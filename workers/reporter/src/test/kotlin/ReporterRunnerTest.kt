@@ -1216,7 +1216,7 @@ private fun simulateGetConfigFile(name: String): InputStream =
         ruleSet.copyrightGarbageFile -> copyrightGarbage.toStream()
         ruleSet.licenseClassificationsFile -> licenseClassifications.toStream()
         ruleSet.resolutionsFile -> resolutions.toStream()
-        else -> throw ConfigException("Unsupported config file: $name", null)
+        else -> throw ConfigException("Unsupported config file: $name")
     }
 
 /**

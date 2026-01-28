@@ -151,7 +151,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "Exceptions during validation should be handled" {
-        val configException = ConfigException("Test exception", null)
+        val configException = ConfigException("Test exception")
         val (contextFactory, _, _) = mockContext(configureConfigManager = {
             every { getFileAsString(any(), any()) } throws configException
         })
