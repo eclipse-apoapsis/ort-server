@@ -334,23 +334,20 @@ class GitHubConfigFileProvider(
             RAW_CONTENT_TYPE_HEADER
         )
 
-        @Suppress("UnreachableCode")
-        response.headers["Content-Type"]?.let {
-            if (it.contains(RAW_CONTENT_TYPE_HEADER)) {
-                return response.bodyAsChannel()
-            } else if (it.contains(JSON_CONTENT_TYPE_HEADER) && getJsonBody(response).isDirectory()) {
-                throw ConfigException(
-                    "The provided path `${path.path}` refers a directory rather than a file. An exact " +
-                            "configuration file path should be provided.",
-                    null
-                )
-            } else {
-                throw ConfigException(
-                    "The GitHub response has unsupported content type: '$it'",
-                    null
-                )
-            }
-        } ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.", null)
+        val contentType = response.headers["Content-Type"]
+            ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.", null)
+
+        if (contentType.contains(RAW_CONTENT_TYPE_HEADER)) return response.bodyAsChannel()
+
+        if (contentType.contains(JSON_CONTENT_TYPE_HEADER) && getJsonBody(response).isDirectory()) {
+            throw ConfigException(
+                "The provided path `${path.path}` refers a directory rather than a file. An exact configuration file " +
+                        "path should be provided.",
+                null
+            )
+        }
+
+        throw ConfigException("The GitHub response has unsupported content type: '$contentType'", null)
     }
 
     /**
