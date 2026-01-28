@@ -189,8 +189,8 @@ class ReporterRunner(
             howToFixTextProvider
         )
 
-        val reports = successes.associate { (name, report) ->
-            name to report.keys.toList()
+        val reports = successes.associate { (name, reports) ->
+            name to reports.toList()
         }
 
         // Only return the package configurations and resolved items if they were not already resolved by
@@ -206,8 +206,8 @@ class ReporterRunner(
     /**
      * Generate all reports for the current [context] as defined by the given [config] and [adminConfig] using as input
      * the given [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider]. Return
-     * a pair with a list of reports that were created successfully (consisting of the format name and the
-     * generated files) and a list of issues that occurred during the report generation.
+     * a pair with a list of reports that were created successfully (consisting of the format name and the generated
+     * report names) and a list of issues that occurred during the report generation.
      */
     private suspend fun generateReports(
         context: WorkerContext,
@@ -217,7 +217,7 @@ class ReporterRunner(
         copyrightGarbage: CopyrightGarbage,
         licenseClassifications: LicenseClassifications,
         howToFixTextProvider: HowToFixTextProvider
-    ): Pair<List<Pair<String, Map<String, File>>>, List<Issue>> =
+    ): Pair<List<Pair<String, Set<String>>>, List<Issue>> =
         withContext(Dispatchers.IO) {
             val outputDir = context.createTempDir()
             val issues = ConcurrentLinkedQueue<Issue>()
@@ -286,8 +286,11 @@ class ReporterRunner(
                         val nameMapper = ReportNameMapper.create(
                             requireNotNull(adminConfig.getReportDefinition(format))
                         )
-                        format to nameMapper.mapReportNames(reportFiles)
-                            .also { reportStorage.storeReportFiles(context.ortRun.id, it) }
+
+                        val namedReportFiles = nameMapper.mapReportNames(reportFiles)
+                        reportStorage.storeReportFiles(context.ortRun.id, namedReportFiles)
+
+                        format to namedReportFiles.keys
                     }.also {
                         activeReporters -= format
                     }
