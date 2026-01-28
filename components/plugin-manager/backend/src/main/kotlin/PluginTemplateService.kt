@@ -208,10 +208,7 @@ class PluginTemplateService(
         repositoryId: Long
     ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.blockingQuery {
         val organizationId = repositoryRepository.get(repositoryId)?.organizationId
-
-        if (organizationId == null) {
-            return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
-        }
+            ?: return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
 
         pluginService.getPlugins().filter { it.enabled }
             .fold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
