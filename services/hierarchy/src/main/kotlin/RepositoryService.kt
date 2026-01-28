@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
@@ -30,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -42,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -63,7 +66,8 @@ class RepositoryService(
     private val scannerJobRepository: ScannerJobRepository,
     private val evaluatorJobRepository: EvaluatorJobRepository,
     private val reporterJobRepository: ReporterJobRepository,
-    private val notifierJobRepository: NotifierJobRepository
+    private val notifierJobRepository: NotifierJobRepository,
+    private val authorizationService: AuthorizationService
 ) {
     /**
      * Delete the [Repository] by its [repositoryId] and all [OrtRun]s that are associated with it.
@@ -132,9 +136,25 @@ class RepositoryService(
         repositoryId: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
         url: OptionalValue<String> = OptionalValue.Absent,
-        description: OptionalValue<String?> = OptionalValue.Absent
+        description: OptionalValue<String?> = OptionalValue.Absent,
+        productId: OptionalValue<Long> = OptionalValue.Absent
     ): Repository = db.dbQuery {
-        repositoryRepository.update(repositoryId, type, url, description)
+        var isMove = false
+        productId.ifPresent { newProductId ->
+            if (repositoryRepository.get(repositoryId)?.productId != newProductId) {
+                isMove = true
+            }
+        }
+
+        repositoryRepository.update(repositoryId, type, url, description, productId).also {
+            if (isMove) {
+                runBlocking {
+                    // Because of the change in the hierarchical structure, role assignments may now be inconsistent.
+                    // Therefore, remove all direct role assignments for the repository.
+                    authorizationService.removeAssignments(RepositoryId(repositoryId), recursively = true)
+                }
+            }
+        }
     }
 
     /**

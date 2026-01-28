@@ -25,6 +25,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
@@ -77,7 +79,8 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
             dbExtension.fixtures.scannerJobRepository,
             dbExtension.fixtures.evaluatorJobRepository,
             dbExtension.fixtures.reporterJobRepository,
-            dbExtension.fixtures.notifierJobRepository
+            dbExtension.fixtures.notifierJobRepository,
+            mockk()
         )
 
         secretService = SecretService(
