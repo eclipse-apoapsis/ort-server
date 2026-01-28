@@ -147,15 +147,15 @@ class IssueServiceTest : WordSpec() {
                 result.data.size shouldBe 3
                 result.totalCount shouldBe 3
 
-                val dependencyIssue = result.data.single { it.message.contains("dependency not found") }
+                val dependencyIssue = result.data.single { "dependency not found" in it.message }
                 dependencyIssue.resolutions.size shouldBe 1
                 dependencyIssue.resolutions[0].message shouldStartWith "dependency not found"
 
-                val timeoutIssue = result.data.single { it.message.contains("timeout while scanning") }
+                val timeoutIssue = result.data.single { "timeout while scanning" in it.message }
                 timeoutIssue.resolutions.size shouldBe 1
                 timeoutIssue.resolutions[0].message shouldStartWith "timeout while scanning"
 
-                val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
+                val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
                 unresolvedIssue.resolutions.size shouldBe 0
             }
 
@@ -278,10 +278,10 @@ class IssueServiceTest : WordSpec() {
                 result.data.size shouldBe 2
                 result.totalCount shouldBe 2
 
-                val resolvedIssue = result.data.single { it.message.contains("dependency not found") }
+                val resolvedIssue = result.data.single { "dependency not found" in it.message }
                 resolvedIssue.resolutions.size shouldBe 1
 
-                val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
+                val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
                 unresolvedIssue.resolutions.size shouldBe 0
             }
 
@@ -368,16 +368,16 @@ class IssueServiceTest : WordSpec() {
                 result.data.size shouldBe 4
                 result.totalCount shouldBe 4
 
-                val couldNotResolveIssue = result.data.single { it.message.contains("could not resolve") }
+                val couldNotResolveIssue = result.data.single { "could not resolve" in it.message }
                 couldNotResolveIssue.purl shouldBe null
 
-                val dependencyIssue = result.data.single { it.message.contains("dependency not found") }
+                val dependencyIssue = result.data.single { "dependency not found" in it.message }
                 dependencyIssue.purl shouldBe pkg1.purl
 
-                val timeoutIssue = result.data.single { it.message.contains("timeout while scanning") }
+                val timeoutIssue = result.data.single { "timeout while scanning" in it.message }
                 timeoutIssue.purl shouldBe "curated"
 
-                val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
+                val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
                 unresolvedIssue.purl shouldBe "curated-higher"
             }
         }

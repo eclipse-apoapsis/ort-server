@@ -73,7 +73,7 @@ fun Application.configureAuthentication(config: ApplicationConfig, authorization
             }
 
             validate { credential ->
-                credential.payload.takeIf { it.audience.contains(requiredAudience) }?.let {
+                credential.payload.takeIf { requiredAudience in it.audience }?.let {
                     createAuthorizedPrincipal(authorizationService, credential.payload)
                 }
             }
