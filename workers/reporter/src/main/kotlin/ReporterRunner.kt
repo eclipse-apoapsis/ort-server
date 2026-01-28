@@ -327,7 +327,7 @@ class ReporterRunner(
 
         // Replace the placeholder for the working directory in the options with the actual path.
         val workDirOptions = config.config?.mapOptions { (_, value) ->
-            if (value.contains(ReporterComponent.WORK_DIR_PLACEHOLDER)) {
+            if (ReporterComponent.WORK_DIR_PLACEHOLDER in value) {
                 value.replace(ReporterComponent.WORK_DIR_PLACEHOLDER, templateDir.absolutePath)
             } else {
                 value
@@ -336,7 +336,7 @@ class ReporterRunner(
 
         // Get all template file references from the plugin options.
         val templateReferences = workDirOptions.flatMap { (_, pluginConfig) ->
-            pluginConfig.options.values.filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
+            pluginConfig.options.values.filter { ReporterComponent.TEMPLATE_REFERENCE in it }
         }
 
         // Download the referenced template files.

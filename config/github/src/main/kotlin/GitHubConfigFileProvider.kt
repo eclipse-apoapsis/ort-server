@@ -337,9 +337,9 @@ class GitHubConfigFileProvider(
         val contentType = response.headers["Content-Type"]
             ?: throw ConfigException("Invalid GitHub response received: the 'Content-Type' is missing.")
 
-        if (contentType.contains(RAW_CONTENT_TYPE_HEADER)) return response.bodyAsChannel()
+        if (RAW_CONTENT_TYPE_HEADER in contentType) return response.bodyAsChannel()
 
-        if (contentType.contains(JSON_CONTENT_TYPE_HEADER) && getJsonBody(response).isDirectory()) {
+        if (JSON_CONTENT_TYPE_HEADER in contentType && getJsonBody(response).isDirectory()) {
             throw ConfigException(
                 "The provided path `${path.path}` refers a directory rather than a file. An exact configuration file " +
                         "path should be provided."

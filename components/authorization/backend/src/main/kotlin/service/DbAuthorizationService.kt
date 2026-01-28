@@ -234,7 +234,7 @@ class DbAuthorizationService(
         containedInId?.let {
             val containedInLevel = it.level
             val isFilterCovered = permissions.includes().entries.any { (level, ids) ->
-                level < containedInLevel && ids.any { id -> id.contains(containedInId) }
+                level < containedInLevel && ids.any { id -> containedInId in id }
             }
 
             if (isFilterCovered) {

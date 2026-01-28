@@ -76,7 +76,7 @@ internal class UserInfoSecretAuthenticator private constructor(
 
             return System.getenv().entries.filter { (key, _) ->
                 val upperKey = key.uppercase()
-                upperKey.contains("URL") || upperKey.contains("URI")
+                "URL" in upperKey || "URI" in upperKey
             }.mapNotNull {
                 getAuthenticationData(userInfoAuthenticator, it.key, it.value, secretResolverFun)
             }

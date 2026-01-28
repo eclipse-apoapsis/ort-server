@@ -72,7 +72,7 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
         internal fun parseGitConfigUrlInsteadOf(config: String) =
             config.split(',')
                 .mapIndexedNotNull { index, baseInsteadOfPair ->
-                    if (!baseInsteadOfPair.contains("=")) {
+                    if ("=" !in baseInsteadOfPair) {
                         logger.warn(
                             "Invalid format of base=insteadOf pair #${index + 1}: '$baseInsteadOfPair'. " +
                                 "Ignoring."
