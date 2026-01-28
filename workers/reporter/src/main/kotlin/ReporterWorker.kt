@@ -107,9 +107,8 @@ internal class ReporterWorker(
             val endTime = Clock.System.now()
 
             val reports = reporterRunnerResult.reports.values
-                .flatMap { it.toList() }
+                .flatten()
                 .map { toReport(it, job.ortRunId) }
-                .toList()
 
             val reporterRun = ReporterRun(
                 id = -1L,
