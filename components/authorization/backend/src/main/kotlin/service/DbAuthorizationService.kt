@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -160,6 +161,28 @@ class DbAuthorizationService(
         compoundHierarchyId: CompoundHierarchyId
     ): Boolean = db.dbQuery {
         doRemoveAssignment(userId, compoundHierarchyId)
+    }
+
+    override suspend fun removeAssignments(
+        hierarchyId: HierarchyId,
+        recursively: Boolean
+    ): Int {
+        val compoundHierarchyId = resolveCompoundId(hierarchyId)
+        require(compoundHierarchyId.level != HierarchyLevel.WILDCARD) {
+            "Removing assignments for the wildcard ID is not supported."
+        }
+
+        val condition = if (recursively) {
+            removeRecursivelyCondition(compoundHierarchyId)
+        } else {
+            compoundHierarchyId.toFilterCondition()
+        }
+
+        return db.dbQuery {
+            RoleAssignmentsTable.deleteWhere {
+                condition
+            }
+        }
     }
 
     override suspend fun listUsersWithRole(
@@ -472,3 +495,19 @@ private fun findHighestRole(
         }
     }.firstOrNull()
 }
+
+/** A list with the columns in the role assignments table defining hierarchy elements mapped to their levels. */
+private val assignmentColumnsByLevel = listOf(
+    RoleAssignmentsTable.organizationId,
+    RoleAssignmentsTable.productId,
+    RoleAssignmentsTable.repositoryId
+).zip(HierarchyLevel.DEFINED_LEVELS_TOP_DOWN)
+
+/**
+ * Generate a filter condition that matches all role assignments on this [compoundHierarchyId] and on all its child
+ * elements. Only defined components of the ID are considered; therefore, a whole subtree is selected.
+ */
+private fun removeRecursivelyCondition(compoundHierarchyId: CompoundHierarchyId): Op<Boolean> =
+    assignmentColumnsByLevel.mapNotNull { (column, level) ->
+        compoundHierarchyId[level]?.let { id -> column eq id.value }
+    }.reduce { acc, op -> acc and op }

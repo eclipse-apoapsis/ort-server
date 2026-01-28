@@ -96,6 +96,14 @@ interface AuthorizationService {
     suspend fun removeAssignment(userId: String, compoundHierarchyId: CompoundHierarchyId): Boolean
 
     /**
+     * Remove all role assignments on the hierarchy element identified by the given [hierarchyId]. This function can be
+     * used for instance, when the ID is no longer valid after a change in the hierarchy structure.
+     * If [recursively] is set to *true*, all role assignments on the child elements below this hierarchy level are
+     * removed as well; otherwise, only direct matches are removed.
+     */
+    suspend fun removeAssignments(hierarchyId: HierarchyId, recursively: Boolean): Int
+
+    /**
      * Return a [Set] with the IDs of all users who are assigned the given [role] on the hierarchy element identified
      * by the specified [compoundHierarchyId]. The function returns only users with an explicit assignment of this
      * role; this does not include users inheriting this role from higher levels in the hierarchy.
