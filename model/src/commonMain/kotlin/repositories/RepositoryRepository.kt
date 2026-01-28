@@ -74,7 +74,8 @@ interface RepositoryRepository {
         id: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
         url: OptionalValue<String> = OptionalValue.Absent,
-        description: OptionalValue<String?> = OptionalValue.Absent
+        description: OptionalValue<String?> = OptionalValue.Absent,
+        productId: OptionalValue<Long> = OptionalValue.Absent
     ): Repository
 
     /**

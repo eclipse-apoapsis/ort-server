@@ -93,13 +93,15 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         id: Long,
         type: OptionalValue<RepositoryType>,
         url: OptionalValue<String>,
-        description: OptionalValue<String?>
+        description: OptionalValue<String?>,
+        productId: OptionalValue<Long>
     ) = db.blockingQuery {
         val repository = RepositoryDao[id]
 
         type.ifPresent { repository.type = it.name }
         url.ifPresent { repository.url = it }
         description.ifPresent { repository.description = it }
+        productId.ifPresent { repository.productId = it }
 
         RepositoryDao[id].mapToModel()
     }

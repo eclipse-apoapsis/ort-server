@@ -351,6 +351,33 @@ class DaoRepositoryRepositoryTest : StringSpec({
         )
     }
 
+    "update should move a repository to another product" {
+        val createdRepository =
+            repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId, null)
+        val newProduct = fixtures.createProduct(name = "newProduct")
+
+        val updateRepositoryResult = repositoryRepository.update(
+            createdRepository.id,
+            productId = newProduct.id.asPresent()
+        )
+
+        updateRepositoryResult shouldBe Repository(
+            id = createdRepository.id,
+            organizationId = newProduct.organizationId,
+            productId = newProduct.id,
+            type = createdRepository.type,
+            url = createdRepository.url
+        )
+
+        repositoryRepository.get(createdRepository.id) shouldBe Repository(
+            id = createdRepository.id,
+            organizationId = newProduct.organizationId,
+            productId = newProduct.id,
+            type = createdRepository.type,
+            url = createdRepository.url
+        )
+    }
+
     "update should throw an exception if a repository with the same url exists" {
         val type = RepositoryType.GIT
 
@@ -366,6 +393,22 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         shouldThrow<UniqueConstraintException> {
             repositoryRepository.update(createdRepository2.id, updateType, updateUrl)
+        }
+    }
+
+    "update should throw an exception when moving a repository and there is a conflict with the url" {
+        val url = "https://example.com/repo.git"
+        val createdRepository =
+            repositoryRepository.create(RepositoryType.GIT, url, productId, null)
+
+        val newProduct = fixtures.createProduct(name = "newProduct")
+        repositoryRepository.create(RepositoryType.GIT, url, newProduct.id, null)
+
+        shouldThrow<UniqueConstraintException> {
+            repositoryRepository.update(
+                createdRepository.id,
+                productId = newProduct.id.asPresent()
+            )
         }
     }
 
