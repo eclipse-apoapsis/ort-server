@@ -189,14 +189,10 @@ class ReporterRunner(
             howToFixTextProvider
         )
 
-        val reports = successes.associate { (name, reports) ->
-            name to reports.toList()
-        }
-
         // Only return the package configurations and resolved items if they were not already resolved by
         // the evaluator.
         return ReporterRunnerResult(
-            reports,
+            successes.flatMapTo(mutableSetOf()) { it.second },
             resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
             resolvedItems,
             issues = issues
@@ -360,7 +356,7 @@ class ReporterRunner(
 }
 
 data class ReporterRunnerResult(
-    val reports: Map<String, List<String>>,
+    val reports: Set<String>,
     val resolvedPackageConfigurations: List<PackageConfiguration>?,
     val resolvedItems: ResolvedItemsResult?,
     val issues: List<Issue> = emptyList()
