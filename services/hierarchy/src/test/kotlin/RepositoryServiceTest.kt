@@ -26,9 +26,16 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
@@ -39,10 +46,12 @@ class RepositoryServiceTest : WordSpec({
 
     lateinit var db: Database
     lateinit var fixtures: Fixtures
+    lateinit var authorizationService: AuthorizationService
 
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
+        authorizationService = mockk()
     }
 
     fun createService() = RepositoryService(
@@ -54,7 +63,8 @@ class RepositoryServiceTest : WordSpec({
         dbExtension.fixtures.scannerJobRepository,
         dbExtension.fixtures.evaluatorJobRepository,
         dbExtension.fixtures.reporterJobRepository,
-        dbExtension.fixtures.notifierJobRepository
+        dbExtension.fixtures.notifierJobRepository,
+        authorizationService
     )
 
     "deleteRepository" should {
@@ -257,6 +267,67 @@ class RepositoryServiceTest : WordSpec({
 
             val ortRunId = service.getLatestOrtRunIdWithSuccessfulEvaluatorJob(repositoryId = repoId)
             ortRunId shouldBe run1Id
+        }
+    }
+
+    "updateRepository" should {
+        "update basic properties of a repository" {
+            val service = createService()
+
+            val repository = fixtures.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/repo.git",
+                description = "Initial description"
+            )
+
+            val updatedRepository = service.updateRepository(
+                repositoryId = repository.id,
+                type = RepositoryType.MERCURIAL.asPresent(),
+                url = "https://example.com/updated-repo.git".asPresent(),
+                description = "Updated description".asPresent()
+            )
+
+            updatedRepository.type shouldBe RepositoryType.MERCURIAL
+            updatedRepository.url shouldBe "https://example.com/updated-repo.git"
+            updatedRepository.description shouldBe "Updated description"
+
+            service.getRepository(repository.id) shouldBe updatedRepository
+        }
+
+        "remove role assignments for the repository when moving it to another product" {
+            val service = createService()
+
+            val newProduct = fixtures.createProduct(name = "New Product")
+            val repository = fixtures.createRepository()
+
+            coEvery {
+                authorizationService.removeAssignments(RepositoryId(repository.id), recursively = true)
+            } returns 42
+
+            service.updateRepository(repositoryId = repository.id, productId = newProduct.id.asPresent())
+
+            service.getRepository(repository.id)?.productId shouldBe newProduct.id
+            coVerify {
+                authorizationService.removeAssignments(RepositoryId(repository.id), recursively = true)
+            }
+        }
+
+        "not remove role assignments when the product is not changed" {
+            val service = createService()
+
+            val repository = fixtures.createRepository()
+
+            service.updateRepository(
+                repositoryId = repository.id,
+                description = "Updated description".asPresent(),
+                productId = repository.productId.asPresent()
+            )
+
+            service.getRepository(repository.id)?.description shouldBe "Updated description"
+
+            coVerify(exactly = 0) {
+                authorizationService.removeAssignments(RepositoryId(repository.id), recursively = true)
+            }
         }
     }
 })
