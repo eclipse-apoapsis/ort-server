@@ -179,7 +179,7 @@ class ReporterRunner(
             HowToFixTextProvider.NONE
         }
 
-        val (successes, issues) = generateReports(
+        val (reportNames, issues) = generateReports(
             context,
             config,
             adminConfig.reporterConfig,
@@ -192,7 +192,7 @@ class ReporterRunner(
         // Only return the package configurations and resolved items if they were not already resolved by
         // the evaluator.
         return ReporterRunnerResult(
-            successes.flatMapTo(mutableSetOf()) { it.second },
+            reportNames,
             resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
             resolvedItems,
             issues = issues
@@ -202,8 +202,8 @@ class ReporterRunner(
     /**
      * Generate all reports for the current [context] as defined by the given [config] and [adminConfig] using as input
      * the given [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider]. Return
-     * a pair with a list of reports that were created successfully (consisting of the format name and the generated
-     * report names) and a list of issues that occurred during the report generation.
+     * a pair with a set of the names of reports that were created successfully and a list of issues that occurred
+     * during the report generation.
      */
     private suspend fun generateReports(
         context: WorkerContext,
@@ -213,7 +213,7 @@ class ReporterRunner(
         copyrightGarbage: CopyrightGarbage,
         licenseClassifications: LicenseClassifications,
         howToFixTextProvider: HowToFixTextProvider
-    ): Pair<List<Pair<String, Set<String>>>, List<Issue>> =
+    ): Pair<Set<String>, List<Issue>> =
         withContext(Dispatchers.IO) {
             val outputDir = context.createTempDir()
             val issues = ConcurrentLinkedQueue<Issue>()
@@ -286,12 +286,12 @@ class ReporterRunner(
                         val namedReportFiles = nameMapper.mapReportNames(reportFiles)
                         reportStorage.storeReportFiles(context.ortRun.id, namedReportFiles)
 
-                        format to namedReportFiles.keys
+                        namedReportFiles.keys
                     }.also {
                         activeReporters -= format
                     }
                 }
-            }.awaitAll().filterNotNull()
+            }.awaitAll().filterNotNull().flatMapTo(mutableSetOf()) { it }
 
             monitorJob.cancel()
             success to issues.toList()
