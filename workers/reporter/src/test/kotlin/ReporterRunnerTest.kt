@@ -23,6 +23,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -214,7 +215,7 @@ class ReporterRunnerTest : WordSpec({
             )
             val result = runner.run(OrtResult.EMPTY, config, null, mockContext())
 
-            result.reports shouldBe mapOf(reportType to listOf("testReport.html"))
+            result.reports should containExactly("testReport.html")
             result.issues should beEmpty()
 
             val slotReports = slot<Map<String, File>>()
@@ -440,7 +441,7 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.reports shouldBe mapOf(successReportFormat to listOf(successReport.name))
+            result.reports should containExactly(successReport.name)
             with(result.issues.single()) {
                 message shouldContain "Something went wrong"
                 message shouldContain failureReportFormat
@@ -471,7 +472,7 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.reports shouldBe mapOf(supportedReportFormat to listOf(generatedReport.name))
+            result.reports should containExactly(generatedReport.name)
             with(result.issues.single()) {
                 message shouldContain "No reporter found"
                 message shouldContain unsupportedReportFormat
@@ -506,7 +507,7 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.reports shouldBe mapOf(supportedReportFormat to listOf(generatedReport.name))
+            result.reports should containExactly(generatedReport.name)
             with(result.issues.single()) {
                 message shouldContain "No reporter plugin found"
                 message shouldContain unsupportedPlugin

@@ -175,7 +175,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val runnerResult = ReporterRunnerResult(
-            reports = mapOf("WebApp" to listOf("report.html")),
+            reports = setOf("report.html"),
             resolvedPackageConfigurations = null,
             resolvedItems = null,
             issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.HINT))
@@ -293,7 +293,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val runnerResult = ReporterRunnerResult(
-            reports = mapOf("WebApp" to listOf("report.html")),
+            reports = setOf("report.html"),
             resolvedPackageConfigurations = null,
             resolvedItems = null,
             issues = listOf(OrtTestData.issue.mapToModel())
@@ -387,7 +387,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val runnerResult = ReporterRunnerResult(
-            reports = mapOf("WebApp" to listOf("report.html")),
+            reports = setOf("report.html"),
             resolvedPackageConfigurations = null,
             resolvedItems = null,
             issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
@@ -480,7 +480,7 @@ class ReporterWorkerTest : StringSpec({
 
         val resolvedItems = ResolvedItemsResult.EMPTY
         val runnerResult = ReporterRunnerResult(
-            reports = mapOf("WebApp" to listOf("report.html")),
+            reports = setOf("report.html"),
             resolvedPackageConfigurations = emptyList(),
             resolvedItems = resolvedItems,
             issues = emptyList()
