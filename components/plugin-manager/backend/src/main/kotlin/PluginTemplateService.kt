@@ -461,7 +461,7 @@ class PluginTemplateService(
         val template = eventStore.getPluginTemplate(templateName, pluginType, pluginId)
 
         return if (template != null && !template.isDeleted) {
-            return TemplateError.InvalidState(
+            TemplateError.InvalidState(
                 "A plugin template with name '$templateName' for plugin type '$pluginType' and ID '$pluginId' " +
                         "already exists."
             ).toErr()
