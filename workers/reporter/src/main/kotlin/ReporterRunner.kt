@@ -246,13 +246,13 @@ class ReporterRunner(
             val reporterInput = deferredReporterInput.await()
             val transformedOptions = deferredTransformedOptions.await()
 
-            val activeReporters = ConcurrentHashMap<String, Boolean>()
-            val monitorJob = launch { logActiveReporters(activeReporters.keys) }
+            val activeReporters = ConcurrentHashMap.newKeySet<String>()
+            val monitorJob = launch { logActiveReporters(activeReporters) }
 
             val success = config.formats.map { format ->
                 async {
                     logger.info("Generating the '$format' report...")
-                    activeReporters += format to true
+                    activeReporters += format
 
                     val result = runCatching {
                         measureTimedValue {
