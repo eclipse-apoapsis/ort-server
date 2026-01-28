@@ -591,10 +591,76 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                     service.removeAssignment(USER_ID, id) shouldBe true
 
-                    dbExtension.db.dbQuery {
-                        RoleAssignmentsTable.select(RoleAssignmentsTable.id).count()
-                    } shouldBe 2
+                    assertRoleAssignmentCount(2)
                 }
+            }
+        }
+
+        "removeAssignments" should {
+            "remove only direct assignments" {
+                val repositoryCompoundId = repositoryCompoundId()
+
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = dbExtension.fixtures.repository.id,
+                    repositoryRole = RepositoryRole.WRITER
+                )
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryRole = RepositoryRole.ADMIN
+                )
+                val service = createService()
+
+                service.removeAssignments(repositoryCompoundId.productId!!, recursively = false) shouldBe 1
+
+                val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
+                checkPermissions(effectiveRole, RepositoryRole.WRITER)
+                assertRoleAssignmentCount(1)
+            }
+
+            "remove assignments recursively" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct")
+                val otherProductRepo = dbExtension.fixtures.createRepository(
+                    productId = otherProduct.id,
+                    url = "https://example.com/otherProductRepo.git"
+                )
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = dbExtension.fixtures.repository.id,
+                    repositoryRole = RepositoryRole.WRITER
+                )
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = otherRepo.id,
+                    repositoryRole = RepositoryRole.READER
+                )
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = otherProduct.id,
+                    repositoryId = otherProductRepo.id,
+                    repositoryRole = RepositoryRole.ADMIN
+                )
+                val service = createService()
+
+                service.removeAssignments(repositoryCompoundId.productId!!, recursively = true) shouldBe 2
+
+                assertRoleAssignmentCount(1)
+                val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
+                checkPermissions(effectiveRole)
+
+                val otherRepoCompoundId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(otherProduct.id),
+                    RepositoryId(otherProductRepo.id)
+                )
+                val otherEffectiveRole = service.getEffectiveRole(USER_ID, otherRepoCompoundId)
+                checkPermissions(otherEffectiveRole, RepositoryRole.ADMIN)
             }
         }
 
@@ -1299,6 +1365,20 @@ class DbAuthorizationServiceTest : WordSpec() {
 
         val users = service.listUsersWithRole(role, hierarchyId)
         users shouldContainExactlyInAnyOrder listOf(USER_ID, user2)
+    }
+
+    /**
+     * Verify that the number of role assignments in the database matches the [expectedCount].
+     */
+    private suspend fun assertRoleAssignmentCount(expectedCount: Int) {
+        queryRoleAssignmentsCount() shouldBe expectedCount
+    }
+
+    /**
+     * Query the number of role assignments in the database.
+     */
+    private suspend fun queryRoleAssignmentsCount(): Long = dbExtension.db.dbQuery {
+        RoleAssignmentsTable.select(RoleAssignmentsTable.id).count()
     }
 }
 
