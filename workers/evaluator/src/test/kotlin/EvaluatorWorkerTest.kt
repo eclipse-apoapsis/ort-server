@@ -238,7 +238,7 @@ class EvaluatorWorkerTest : StringSpec({
         val configManager = mockk<ConfigManager> {
             every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
                     File("src/test/resources/example.rules.kts").readText()
-            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
             every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
                     File("src/test/resources/license-classifications.yml").inputStream()
             every { getFile(any(), any()) } returns
@@ -306,7 +306,7 @@ class EvaluatorWorkerTest : StringSpec({
         val configManager = mockk<ConfigManager> {
             every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
                     File("src/test/resources/example.rules.kts").readText()
-            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
             every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
                     File("src/test/resources/license-classifications.yml").inputStream()
             every { getFile(any(), any()) } returns

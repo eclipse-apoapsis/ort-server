@@ -303,15 +303,15 @@ private fun createConfigManager(): ConfigManager {
         every { getFile(resolvedConfigContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(resolvedConfigContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+        every { getFile(resolvedConfigContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
 
         every { getFileAsString(resolvedConfigContext, Path(ORT_EVALUATOR_RULES_FILENAME)) } throws
-                ConfigException("Could not read '$ORT_EVALUATOR_RULES_FILENAME'.", null)
+                ConfigException("Could not read '$ORT_EVALUATOR_RULES_FILENAME'.")
 
         every { getFile(resolvedConfigContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(resolvedConfigContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
+        every { getFile(resolvedConfigContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("")
 
         every { getFile(resolvedConfigContext, Path(RESOLUTIONS_FILE)) } answers
                 { File("src/test/resources/resolutions.yml").inputStream() }

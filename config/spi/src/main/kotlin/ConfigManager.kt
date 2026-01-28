@@ -137,12 +137,11 @@ class ConfigManager(
             nameExtractor: (T) -> String
         ): T {
             val providerName = config.getStringOrNull(nameProperty)
-                ?: throw ConfigException("Missing '$nameProperty' property.", null)
+                ?: throw ConfigException("Missing '$nameProperty' property.")
 
             return find { nameExtractor(it) == providerName }
                 ?: throw ConfigException(
-                    "Could not find ${T::class.simpleName} with name '$providerName' on classpath.",
-                    null
+                    "Could not find ${T::class.simpleName} with name '$providerName' on classpath."
                 )
         }
 
@@ -245,7 +244,7 @@ class ConfigManager(
      * given [path]. The returned [ConfigManager] uses the same providers.
      */
     fun subConfig(path: Path): ConfigManager {
-        if (!hasPath(path.path)) throw ConfigException("Non-existing path for subConfig: ${path.path}", null)
+        if (!hasPath(path.path)) throw ConfigException("Non-existing path for subConfig: ${path.path}")
 
         return ConfigManager(
             config.getConfig(path.path),
@@ -259,7 +258,7 @@ class ConfigManager(
 /**
  * A specialized exception class for reporting errors related to the access of configuration data.
  */
-class ConfigException(message: String, cause: Throwable?) : Exception(message, cause)
+class ConfigException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
  * Execute the given [block] and catch all exceptions it might throw. A caught exception is then wrapped in a
