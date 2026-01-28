@@ -47,13 +47,7 @@ import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.greater
-import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.core.less
-import org.jetbrains.exposed.v1.core.lessEq
-import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.notInList
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.dao.EntityClass
@@ -162,23 +156,6 @@ fun <E : LongEntity, M, T : AbstractQuery<T>> SortableEntityClass<E>.listCustomQ
 }
 
 /**
- * Run the [query] using the [parameters] and the [customOrders] to create a [ListQueryResult]. The entities are mapped
- * to the corresponding model objects using the provided [entityMapper].
- */
-fun <M, T : AbstractQuery<T>> listCustomQueryCustomOrders(
-    parameters: ListQueryParameters,
-    customOrders: List<Pair<Expression<*>, SortOrder>>,
-    entityMapper: (ResultRow) -> M,
-    query: () -> Query
-): ListQueryResult<M> {
-    val totalCount = query().count()
-    val apply = query().apply(parameters, customOrders)
-    val data = apply.map(entityMapper)
-
-    return ListQueryResult(data, parameters, totalCount)
-}
-
-/**
  * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.
  */
 fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParameters): SizedIterable<T> {
@@ -213,28 +190,10 @@ private fun OrderDirection.toSortOrder(): SortOrder =
     }
 
 /**
- * Apply the given [operator] and filter [value] to filter this column by.
- */
-fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, value: T): Op<Boolean> = when (operator) {
-    ComparisonOperator.EQUALS -> this eq value
-    ComparisonOperator.NOT_EQUALS -> this neq value
-    ComparisonOperator.GREATER_THAN -> this greater value
-    ComparisonOperator.LESS_THAN -> this less value
-    ComparisonOperator.GREATER_OR_EQUAL -> this greaterEq value
-    ComparisonOperator.LESS_OR_EQUAL -> this lessEq value
-    else -> throw IllegalArgumentException("Unsupported operator for single value")
-}
-
-/**
  * Represents a case-insensitive LIKE operation. This is an extension of the [ComparisonOp] class that uses the ILIKE
  * operator, which is the case-insensitive version of the LIKE operator in PostgreSQL.
  */
 class InsensitiveLikeOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "ILIKE")
-
-/**
- *  Represents a regex operation. This is an extension of the [ComparisonOp] class that uses the ~ operator.
- */
-class RegexOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "~")
 
 /**
  *  Represents a case-insensitive regex operation. This is an extension of the [ComparisonOp] class that uses the ~*
@@ -247,12 +206,6 @@ class InsensitiveRegexOp(expr1: Expression<*>, expr2: Expression<*>) : Compariso
  */
 fun Expression<String>.applyILike(value: String): Op<Boolean> =
     InsensitiveLikeOp(this, QueryParameter("%$value%", TextColumnType()))
-
-/**
- * Apply the given [value] to filter this column by using the ~ operator.
- */
-fun Expression<String>.applyRegex(value: String): Op<Boolean> =
-    RegexOp(this, QueryParameter(value, TextColumnType()))
 
 /**
  * Apply the given [value] to filter this column by using the ~* operator.
@@ -270,16 +223,3 @@ fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, valu
         ComparisonOperator.NOT_IN -> this notInList values
         else -> throw IllegalArgumentException("Unsupported operator for collections")
     }
-
-/**
- * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
- * applyFilter function for collections that supports nullable columns.
- */
-fun <T : Comparable<T>> Column<T?>.applyFilterNullable(
-    operator: ComparisonOperator,
-    values: Collection<T>
-): Op<Boolean> = when (operator) {
-    ComparisonOperator.IN -> this inList values
-    ComparisonOperator.NOT_IN -> this notInList values
-    else -> throw IllegalArgumentException("Unsupported operator for collections")
-}
