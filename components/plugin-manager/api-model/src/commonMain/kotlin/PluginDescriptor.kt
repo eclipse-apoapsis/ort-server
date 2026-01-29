@@ -65,6 +65,8 @@ data class PluginOption(
  */
 enum class PluginOptionType {
     BOOLEAN,
+    ENUM,
+    ENUM_LIST,
     INTEGER,
     LONG,
     SECRET,

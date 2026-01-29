@@ -152,10 +152,12 @@ class AuthorizedRoutesTest : WordSpec() {
                 slotHierarchyId.captured shouldBe OrganizationId(ID_PARAMETER)
                 slotChecker.captured.organizationPermissions shouldContainExactly setOf(requiredPermission)
             }
+
             is ProductPermission -> {
                 slotHierarchyId.captured shouldBe ProductId(ID_PARAMETER)
                 slotChecker.captured.productPermissions shouldContainExactly setOf(requiredPermission)
             }
+
             is RepositoryPermission -> {
                 slotHierarchyId.captured shouldBe RepositoryId(ID_PARAMETER)
                 slotChecker.captured.repositoryPermissions shouldContainExactly setOf(requiredPermission)

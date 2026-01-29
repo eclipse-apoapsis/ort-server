@@ -89,6 +89,7 @@ fun requireScopedReadPermission(): AuthorizationChecker =
                     HierarchyPermissions.permissions(RepositoryPermission.READ)
                 )
             }
+
             is ProductId -> {
                 service.checkPermissions(
                     userId,
@@ -96,6 +97,7 @@ fun requireScopedReadPermission(): AuthorizationChecker =
                     HierarchyPermissions.permissions(ProductPermission.READ)
                 )
             }
+
             is OrganizationId -> {
                 service.checkPermissions(
                     userId,
@@ -103,6 +105,7 @@ fun requireScopedReadPermission(): AuthorizationChecker =
                     HierarchyPermissions.permissions(OrganizationPermission.READ)
                 )
             }
+
             else -> {
                 // No scope provided, requires superuser
                 service.checkPermissions(

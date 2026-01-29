@@ -81,12 +81,14 @@ private fun <T : Enum<T>> GridBuilder.formattedStatusRow(name: String, status: T
             OrtRunStatus.FAILED -> red
             OrtRunStatus.FINISHED_WITH_ISSUES -> cyan
         }
+
         is JobStatus -> when (status) {
             JobStatus.CREATED, JobStatus.SCHEDULED, JobStatus.RUNNING -> yellow
             JobStatus.FINISHED -> green
             JobStatus.FAILED -> red
             JobStatus.FINISHED_WITH_ISSUES -> cyan
         }
+
         else -> null
     }
 

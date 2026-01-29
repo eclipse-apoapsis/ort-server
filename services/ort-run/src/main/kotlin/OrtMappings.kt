@@ -459,6 +459,7 @@ fun OrtProject.mapToModel() =
 fun OrtProvenance.mapToModel() =
     when (this) {
         is OrtArtifactProvenance -> ArtifactProvenance(sourceArtifact = sourceArtifact.mapToModel())
+
         is OrtRepositoryProvenance -> RepositoryProvenance(
             vcsInfo = vcsInfo.mapToModel(),
             resolvedRevision = resolvedRevision

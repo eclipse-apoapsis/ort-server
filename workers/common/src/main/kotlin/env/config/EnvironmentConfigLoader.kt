@@ -299,12 +299,14 @@ class EnvironmentConfigLoader(
                 definition.value != null -> {
                     SimpleVariableDefinition(definition.name, definition.value)
                 }
+
                 definition.secretName != null -> {
                     val secret = secrets[definition.secretName] ?: throw EnvironmentConfigException(
                         "Unknown secret: '${definition.secretName}'."
                     )
                     SecretVariableDefinition(definition.name, secret)
                 }
+
                 else -> throw EnvironmentConfigException("Invalid environment variable definition: $definition")
             }
         }.toSet()

@@ -43,6 +43,8 @@ internal fun OrtPluginOption.mapToApi() = PluginOption(
 
 internal fun OrtPluginOptionType.mapToApi() = when (this) {
     OrtPluginOptionType.BOOLEAN -> PluginOptionType.BOOLEAN
+    OrtPluginOptionType.ENUM -> PluginOptionType.ENUM
+    OrtPluginOptionType.ENUM_LIST -> PluginOptionType.ENUM_LIST
     OrtPluginOptionType.INTEGER -> PluginOptionType.INTEGER
     OrtPluginOptionType.LONG -> PluginOptionType.LONG
     OrtPluginOptionType.SECRET -> PluginOptionType.SECRET

@@ -411,9 +411,7 @@ class Orchestrator(
 
             val ortRunStatus = when {
                 context.isFailed() -> OrtRunStatus.FAILED
-
                 context.isFinishedWithIssues() -> OrtRunStatus.FINISHED_WITH_ISSUES
-
                 else -> OrtRunStatus.FINISHED
             }
 
