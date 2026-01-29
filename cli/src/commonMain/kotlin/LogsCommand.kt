@@ -64,7 +64,7 @@ class LogsCommand : SuspendingCliktCommand() {
     private val level by option(
         "--level",
         envvar = "OSC_DOWNLOAD_LOGS_LEVEL",
-        help = "The log level of the logs to download, one of ${LogLevel.entries.joinToString(", ")}."
+        help = "The log level of the logs to download, one of ${LogLevel.entries.joinToString()}."
     ).enum<LogLevel>()
         .default(LogLevel.INFO)
 

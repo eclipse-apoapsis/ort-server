@@ -78,7 +78,7 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
         call.respondError(
             HttpStatusCode.BadRequest,
             message = "Invalid config key: $keyParameter",
-            cause = "Allowed keys: ${ConfigKey.entries.joinToString(", ")}"
+            cause = "Allowed keys: ${ConfigKey.entries.joinToString()}"
         )
         return@get
     }
