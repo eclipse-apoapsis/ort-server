@@ -174,7 +174,7 @@ class ConfigValidator private constructor(
         if (ruleSetName != null && ruleSetName !in adminConfig.ruleSetNames) {
             validationIssues += createIssue(
                 "Invalid rule set '$ruleSetName'. " +
-                        "Available rule sets are: ${adminConfig.ruleSetNames.joinToString(", ")}.",
+                        "Available rule sets are: ${adminConfig.ruleSetNames.joinToString()}.",
                 PARAMETER_VALIDATION_SOURCE
             )
         }
@@ -192,7 +192,7 @@ class ConfigValidator private constructor(
         jobConfig.formats.filter { reporterAdminConfig.getReportDefinition(it) == null }.forEach { format ->
             validationIssues += createIssue(
                 "Invalid reporter format '$format'. " +
-                        "Available formats are: ${reporterAdminConfig.reportDefinitionNames.joinToString(", ")}.",
+                        "Available formats are: ${reporterAdminConfig.reportDefinitionNames.joinToString()}.",
                 PARAMETER_VALIDATION_SOURCE
             )
         }
@@ -202,7 +202,7 @@ class ConfigValidator private constructor(
             .forEach { assetGroup ->
                 validationIssues += createIssue(
                     "Invalid reporter asset group '$assetGroup'. " +
-                            "Available asset groups are: ${reporterAdminConfig.globalAssets.keys.joinToString(", ")}.",
+                            "Available asset groups are: ${reporterAdminConfig.globalAssets.keys.joinToString()}.",
                     PARAMETER_VALIDATION_SOURCE
                 )
             }

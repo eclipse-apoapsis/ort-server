@@ -122,7 +122,7 @@ class VaultTestContainer {
          * Generate the string to define a policy that grants the given [capabilities] to the given [path].
          */
         private fun policy(path: String, vararg capabilities: String): String =
-            """path \"$path*\" {\n capabilities = [ ${capabilities.joinToString(", ") { """\"$it\"""" }} ]\n}"""
+            """path \"$path*\" {\n capabilities = [ ${capabilities.joinToString { """\"$it\"""" }} ]\n}"""
 
         /**
          * Create an [HttpClient] that is configured for the interaction with the given [vault] container.
