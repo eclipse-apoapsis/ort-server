@@ -955,9 +955,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         HttpMethod.Put -> put("/api/v1/repositories/${createdRepo.id}/roles/READER") {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> delete(
                             "/api/v1/repositories/${createdRepo.id}/roles/READER?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
                 }
@@ -978,9 +980,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/repositories/${createdRepo.id}/roles/READER?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1006,9 +1010,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/repositories/999999/roles/READER?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1034,6 +1040,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(org)
                         }
+
                         else -> error("Unsupported method: $method")
                     }
 

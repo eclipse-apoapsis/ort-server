@@ -33,11 +33,16 @@ import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 internal fun getInstalledPlugins(pluginType: PluginType): List<PluginDescriptor> =
     when (pluginType) {
         PluginType.ADVISOR -> AdviceProviderFactory.ALL.values.map { it.descriptor }
+
         PluginType.PACKAGE_CONFIGURATION_PROVIDER ->
             PackageConfigurationProviderFactory.ALL.values.map { it.descriptor }
+
         PluginType.PACKAGE_CURATION_PROVIDER -> PackageCurationProviderFactory.ALL.values.map { it.descriptor }
+
         PluginType.PACKAGE_MANAGER -> PackageManagerFactory.ALL.values.map { it.descriptor }
+
         PluginType.REPORTER -> ReporterFactory.ALL.values.map { it.descriptor }
+
         PluginType.SCANNER -> ScannerWrapperFactory.ALL.values.map { it.descriptor }
     }
 

@@ -108,12 +108,17 @@ fun createOrtHttpClient(
                 if (!response.status.isSuccess()) {
                     when (response.status) {
                         BadRequest -> throw BadRequestException("Request is invalid.")
+
                         Unauthorized -> throw UnauthorizedException(
                             "Authentication required for ${response.request.url}."
                         )
+
                         Forbidden -> throw ForbiddenException("Access to '${response.request.url}' is forbidden.")
+
                         NotFound -> throw NotFoundException("Resource not found.")
+
                         InternalServerError -> throw InternalServerException("Internal server error.")
+
                         else -> throw ResponseException(
                             "Request failed with status ${response.status.value}: ${response.bodyAsText()}",
                             response.status

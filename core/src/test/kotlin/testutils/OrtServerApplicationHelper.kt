@@ -56,7 +56,9 @@ fun ortServerTestApplication(
         @Suppress("UNCHECKED_CAST")
         when (value) {
             is String -> additionalConfig.put(path, value)
+
             is Iterable<*> -> additionalConfig.put(path, value as Iterable<String>)
+
             else -> IllegalArgumentException(
                 "Value '$value' cannot be added as an application configuration. The configuration type has to be " +
                         "either 'String' or 'Iterable<String>'."

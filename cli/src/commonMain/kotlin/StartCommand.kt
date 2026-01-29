@@ -146,10 +146,12 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
                             failureCount = 0
                             update.getOrThrow()
                         }
+
                         update.isFailure && failureCount >= MAX_FAILURE_COUNT -> {
                             echoMessage("Aborting after $MAX_FAILURE_COUNT consecutive errors.")
                             update.getOrThrow()
                         }
+
                         else -> {
                             failureCount++
                             echoMessage("Warning: An error occurred while polling the run status. Retrying...")

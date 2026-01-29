@@ -90,5 +90,6 @@ private fun generateHierarchyCondition(
                     filter.nonTransitiveIncludes[HierarchyLevel.ORGANIZATION].orEmpty()
                         .extractIds(HierarchyLevel.ORGANIZATION)
             )
+
         else -> Op.FALSE
     }

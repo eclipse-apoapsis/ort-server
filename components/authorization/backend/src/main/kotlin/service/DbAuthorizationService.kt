@@ -251,7 +251,9 @@ class DbAuthorizationService(
     private suspend fun resolveCompoundId(hierarchyId: HierarchyId): CompoundHierarchyId =
         when (hierarchyId) {
             is OrganizationId -> CompoundHierarchyId.forOrganization(hierarchyId)
+
             is ProductId -> CompoundHierarchyId.forProduct(resolveOrganization(hierarchyId), hierarchyId)
+
             is RepositoryId -> {
                 val (orgId, prodId) = resolveOrganizationAndProduct(hierarchyId)
                 CompoundHierarchyId.forRepository(orgId, prodId, hierarchyId)

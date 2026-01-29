@@ -534,6 +534,8 @@ class PluginTemplateService(
             val canBeParsed = (pluginOption.isNullable && option.value == null) ||
                     when (pluginOption.type) {
                         PluginOptionType.BOOLEAN -> option.value?.toBooleanStrictOrNull() != null
+                        PluginOptionType.ENUM -> option.value?.isNotBlank() == true
+                        PluginOptionType.ENUM_LIST -> true
                         PluginOptionType.INTEGER -> option.value?.toIntOrNull() != null
                         PluginOptionType.LONG -> option.value?.toLongOrNull() != null
                         PluginOptionType.SECRET -> option.value?.isNotBlank() == true

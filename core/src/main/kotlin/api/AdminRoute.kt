@@ -56,9 +56,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.koin.ktor.ext.inject
 
 fun Route.admin() = route("admin") {
-    /**
-     * For CRUD operations for users.
-     */
+    // For CRUD operations for users.
     route("users") {
         val authorizationService by inject<AuthorizationService>()
         val userService by inject<UserService>()
@@ -132,9 +130,7 @@ fun Route.admin() = route("admin") {
         }
     }
 
-    /**
-     * For dynamic text sections.
-     */
+    // For dynamic text sections.
     route("content-management") {
         val contentManagementService by inject<ContentManagementService>()
 

@@ -63,8 +63,11 @@ fun main(args: Array<String>) {
 
         when (e) {
             is AuthenticationException -> cli.echoError("Authentication failed. Please check your credentials.")
+
             is OrtServerCliException, is OrtServerException -> cli.echoError(e.message)
+
             is RunFinishedWithIssuesException -> exitProcess(2)
+
             is CliktError -> {
                 // The jsonFormat flag is not supported for the help message.
                 cli.echoFormattedHelp(e)
