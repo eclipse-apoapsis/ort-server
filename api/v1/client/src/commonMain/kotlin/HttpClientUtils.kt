@@ -65,7 +65,7 @@ fun createDefaultHttpClient(
 ): HttpClient {
     val client = engine?.let { HttpClient(it) } ?: HttpClient {
         // Configure proxy settings from environment variables if any are set.
-        proxyEnvironmentVariables.mapNotNull { getEnv(it) }.firstOrNull()?.let { proxyUrl ->
+        proxyEnvironmentVariables.firstNotNullOfOrNull { getEnv(it) }?.let { proxyUrl ->
             engine {
                 proxy = ProxyBuilder.http(proxyUrl)
             }
