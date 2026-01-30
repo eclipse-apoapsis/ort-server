@@ -249,12 +249,14 @@ val patchRepository: RouteConfig.() -> Unit = {
             description = "The repository's ID."
         }
         jsonBody<PatchRepository> {
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            description = "Set the values that should be updated. To delete a value, set it explicitly to null. " +
+                    "To move the repository to another product, set the productId field."
             example("Update Repository") {
                 value = PatchRepository(
                     type = RepositoryType.GIT_REPO.asPresent(),
                     url = "https://example.com/org/updated-repo.git".asPresent(),
-                    description = "Updated repository description.".asPresent()
+                    description = "Updated repository description.".asPresent(),
+                    productId = 42L.asPresent()
                 )
             }
         }
