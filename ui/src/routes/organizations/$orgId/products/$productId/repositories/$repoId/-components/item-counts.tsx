@@ -30,6 +30,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
+import { isJobFinished } from '@/helpers/job-helpers';
 
 type ItemCountsProps = {
   summary: OrtRunSummary;
@@ -42,7 +43,7 @@ export const ItemCounts = ({ summary }: ItemCountsProps) => {
     return (
       jobSummary !== undefined &&
       jobSummary !== null &&
-      ['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(jobSummary.status)
+      isJobFinished(jobSummary.status)
     );
   };
 
