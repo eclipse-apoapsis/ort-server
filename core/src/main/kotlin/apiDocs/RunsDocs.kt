@@ -25,7 +25,6 @@ import io.ktor.http.HttpStatusCode
 
 import kotlin.time.Duration.Companion.minutes
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorCapability
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
@@ -307,10 +306,7 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                                         comment = "A comment why the vulnerability can be resolved."
                                     )
                                 ),
-                                advisor = AdvisorDetails(
-                                    name = "VulnerableCode",
-                                    capabilities = setOf(AdvisorCapability.VULNERABILITIES)
-                                ),
+                                advisor = AdvisorDetails(name = "VulnerableCode"),
                                 purl = "pkg:maven/org.namespace/name@1.0"
                             )
                         ),

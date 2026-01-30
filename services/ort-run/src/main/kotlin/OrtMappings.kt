@@ -49,12 +49,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
-import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorCapability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
-import org.eclipse.apoapsis.ortserver.model.runs.advisor.Defect
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
@@ -109,7 +107,6 @@ import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
 import org.ossreviewtoolkit.model.ArtifactProvenance as OrtArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding as OrtCopyrightFinding
-import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
@@ -185,11 +182,9 @@ fun OrtAdvisorConfiguration.mapToModel() =
 fun OrtAdvisorResult.mapToModel() =
     AdvisorResult(
         advisorName = advisor.name,
-        capabilities = advisor.capabilities.map { it.name },
         startTime = summary.startTime.toKotlinInstant(),
         endTime = summary.endTime.toKotlinInstant(),
         issues = summary.issues.map { it.mapToModel() },
-        defects = defects.map { it.mapToModel() },
         vulnerabilities = vulnerabilities.map { it.mapToModel() }
     )
 
@@ -238,22 +233,6 @@ fun OrtCurations.mapToModel() = Curations(
     packages = packages.map(OrtPackageCuration::mapToModel),
     licenseFindings = licenseFindings.map(OrtLicenseFindingCuration::mapToModel)
 )
-
-fun OrtDefect.mapToModel() =
-    Defect(
-        externalId = id,
-        url = url.toString(),
-        title = title,
-        state = state,
-        severity = severity,
-        description = description,
-        creationTime = creationTime?.toKotlinInstant(),
-        modificationTime = modificationTime?.toKotlinInstant(),
-        closingTime = closingTime?.toKotlinInstant(),
-        fixReleaseVersion = fixReleaseVersion,
-        fixReleaseUrl = fixReleaseUrl,
-        labels = labels
-    )
 
 fun OrtDependencyGraph.mapToModel() =
     DependencyGraph(
@@ -712,7 +691,4 @@ fun OrtVulnerabilityResolutionReason.mapToModel() = when (this) {
         VulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY
 }
 
-fun OrtAdvisorDetails.mapToModel() = AdvisorDetails(
-    name = name,
-    capabilities = capabilities.map { AdvisorCapability.valueOf(it.name) }.toSet()
-)
+fun OrtAdvisorDetails.mapToModel() = AdvisorDetails(name = name)

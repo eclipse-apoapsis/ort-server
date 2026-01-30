@@ -2104,11 +2104,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
 private fun generateAdvisorResult(vulnerabilities: List<Vulnerability>) = AdvisorResult(
     advisorName = "advisor",
-    capabilities = listOf("vulnerabilities"),
     startTime = Clock.System.now(),
     endTime = Clock.System.now(),
     issues = emptyList(),
-    defects = emptyList(),
     vulnerabilities = vulnerabilities
 )
 

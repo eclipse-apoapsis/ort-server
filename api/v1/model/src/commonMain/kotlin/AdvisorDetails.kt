@@ -26,19 +26,5 @@ data class AdvisorDetails(
     /**
      * The name of the used advisor.
      */
-    val name: String,
-
-    /**
-     * The capabilities of the used advisor. This property indicates, which kind of findings are retrieved by the
-     * advisor.
-     */
-    val capabilities: Set<AdvisorCapability>
+    val name: String
 )
-
-enum class AdvisorCapability {
-    /** Indicates that an advisor can retrieve information about defects. */
-    DEFECTS,
-
-    /** Indicates that an advisor can retrieve information about security vulnerabilities. */
-    VULNERABILITIES
-}

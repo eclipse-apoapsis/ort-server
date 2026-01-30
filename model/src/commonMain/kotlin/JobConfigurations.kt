@@ -129,7 +129,7 @@ data class AnalyzerJobConfiguration(
 @Serializable
 data class AdvisorJobConfiguration(
     /**
-     * The Advisors to use (e.g., NexusIQ, VulnerableCode, DefectDB).
+     * The Advisors to use (e.g., NexusIQ, VulnerableCode).
      */
     val advisors: List<String> = emptyList(),
 

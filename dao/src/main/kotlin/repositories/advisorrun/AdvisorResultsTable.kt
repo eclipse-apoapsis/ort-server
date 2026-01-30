@@ -36,7 +36,6 @@ object AdvisorResultsTable : LongIdTable("advisor_results") {
     val advisorRunIdentifierId = reference("advisor_run_identifier_id", AdvisorRunsIdentifiersTable)
 
     val advisorName = text("advisor_name")
-    val capabilities = text("capabilities")
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
 }
@@ -47,21 +46,16 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
     var advisorRunIdentifier by AdvisorRunIdentifierDao referencedOn AdvisorResultsTable.advisorRunIdentifierId
 
     var advisorName by AdvisorResultsTable.advisorName
-    var capabilities by AdvisorResultsTable.capabilities
-        .transform({ it.joinToString(",") }, { it.split(',') })
     var startTime by AdvisorResultsTable.startTime.transformToDatabasePrecision()
     var endTime by AdvisorResultsTable.endTime.transformToDatabasePrecision()
 
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
-    var defects by DefectDao via AdvisorResultsDefectsTable
 
     fun mapToModel(identifierIssues: List<Issue>) = AdvisorResult(
         advisorName = advisorName,
-        capabilities = capabilities.filter(String::isNotEmpty),
         startTime = startTime,
         endTime = endTime,
         issues = filterResultIssues(identifierIssues),
-        defects = defects.map(DefectDao::mapToModel),
         vulnerabilities = vulnerabilities.map(VulnerabilityDao::mapToModel)
     )
 

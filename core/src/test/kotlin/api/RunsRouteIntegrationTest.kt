@@ -1035,7 +1035,6 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         Identifier("Maven", "namespace", "name", "1.0.0") to listOf(
                             AdvisorResult(
                                 advisorName = "Advisor",
-                                capabilities = listOf("VULNERABILITIES"),
                                 startTime = now.toDatabasePrecision(),
                                 endTime = now.toDatabasePrecision(),
                                 issues = listOf(
@@ -1054,7 +1053,6 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                                         affectedPath = "path"
                                     )
                                 ),
-                                defects = emptyList(),
                                 vulnerabilities = emptyList()
                             )
                         )
@@ -2117,14 +2115,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         Identifier("NPM", "com.example", "example2", "1.0") to listOf(
                             AdvisorResult(
                                 advisorName = "Advisor",
-                                capabilities = listOf("vulnerabilities"),
                                 startTime = now.toDatabasePrecision(),
                                 endTime = now.toDatabasePrecision(),
                                 issues = listOf(
                                     advisorIssue1,
                                     advisorIssue2
                                 ),
-                                defects = emptyList(),
                                 vulnerabilities = listOf(
                                     advisorVulnerability
                                 )
@@ -2452,11 +2448,9 @@ private fun generateAdvisorResult() = mapOf(
         Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0") to listOf(
             AdvisorResult(
                 advisorName = "advisor",
-                capabilities = listOf("vulnerabilities"),
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
                 issues = emptyList(),
-                defects = emptyList(),
                 vulnerabilities = listOf(
                     Vulnerability(
                         externalId = "CVE-2021-1234",
@@ -2485,11 +2479,9 @@ private fun generateAdvisorResult() = mapOf(
         Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6") to listOf(
             AdvisorResult(
                 advisorName = "advisor",
-                capabilities = listOf("vulnerabilities"),
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
                 issues = emptyList(),
-                defects = emptyList(),
                 vulnerabilities = listOf(
                     Vulnerability(
                         externalId = "CVE-2018-14721",

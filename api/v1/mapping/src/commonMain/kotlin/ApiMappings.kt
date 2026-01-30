@@ -21,7 +21,6 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.mapping
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorCapability as ApiAdvisorCapability
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails as ApiAdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
@@ -613,10 +612,7 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     submoduleFetchStrategy = submoduleFetchStrategy.mapToModel()
 )
 
-fun AdvisorDetails.mapToApi() = ApiAdvisorDetails(
-    name = name,
-    capabilities = capabilities.map { ApiAdvisorCapability.valueOf(it.name) }.toSet()
-)
+fun AdvisorDetails.mapToApi() = ApiAdvisorDetails(name = name)
 
 fun VulnerabilityWithDetails.mapToApi() =
     ApiVulnerabilityWithDetails(
