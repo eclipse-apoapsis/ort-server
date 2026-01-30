@@ -41,6 +41,7 @@ import { LastJobStatus } from '../products/$productId/-components/last-job-statu
 import { LastRunDate } from '../products/$productId/-components/last-run-date';
 import { LastRunStatus } from '../products/$productId/-components/last-run-status';
 import { TotalRuns } from '../products/$productId/-components/total-runs';
+import { ProductItemCounts } from './product-item-counts';
 
 const columnHelper = createColumnHelper<Product>();
 
@@ -119,7 +120,7 @@ export const OrganizationProductTable = () => {
       columnHelper.display({
         id: 'runs',
         header: 'Runs',
-        size: 60,
+        size: 50,
         cell: function CellComponent({ row }) {
           const { data, isPending, isError } = useQuery({
             ...getProductRepositoriesOptions({
@@ -165,12 +166,18 @@ export const OrganizationProductTable = () => {
 
           if (isError) return <span>Error loading data.</span>;
 
-          if (data.pagination.totalCount === 1 && data.data[0])
-            return <LastRunStatus repoId={data.data[0].id} />;
-          else
-            return (
-              <span>Contains {data.pagination.totalCount} repositories</span>
-            );
+          return (
+            <div className='flex flex-col gap-1'>
+              {data.pagination.totalCount === 1 && data.data[0] ? (
+                <LastRunStatus repoId={data.data[0].id} />
+              ) : (
+                <span>Contains {data.pagination.totalCount} repositories</span>
+              )}
+              <div className='flex'>
+                <ProductItemCounts productId={row.original.id} />
+              </div>
+            </div>
+          );
         },
         enableColumnFilter: false,
       }),
@@ -199,6 +206,9 @@ export const OrganizationProductTable = () => {
             return <LastRunDate repoId={data.data[0].id} />;
           else return null;
         },
+        meta: {
+          widthPercentage: 12,
+        },
         enableColumnFilter: false,
       }),
       columnHelper.display({
@@ -225,6 +235,9 @@ export const OrganizationProductTable = () => {
           if (data.pagination.totalCount === 1 && data.data[0])
             return <LastJobStatus repoId={data.data[0].id} />;
           else return null;
+        },
+        meta: {
+          widthPercentage: 8,
         },
         enableColumnFilter: false,
       }),
