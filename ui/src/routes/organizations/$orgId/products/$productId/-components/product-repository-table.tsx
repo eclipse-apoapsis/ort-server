@@ -35,6 +35,7 @@ import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from './last-job-status';
 import { LastRunDate } from './last-run-date';
+import { LastRunItemCounts } from './last-run-item-counts';
 import { LastRunStatus } from './last-run-status';
 import { TotalRuns } from './total-runs';
 
@@ -119,7 +120,7 @@ export const ProductRepositoryTable = () => {
       columnHelper.display({
         id: 'runs',
         header: 'Runs',
-        size: 60,
+        size: 50,
         cell: ({ row }) => (
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
@@ -138,19 +139,32 @@ export const ProductRepositoryTable = () => {
       columnHelper.display({
         id: 'runStatus',
         header: 'Last Run Status',
-        cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
+        cell: ({ row }) => (
+          <div className='flex flex-col gap-1'>
+            <LastRunStatus repoId={row.original.id} />
+            <div className='flex'>
+              <LastRunItemCounts repoId={row.original.id} />
+            </div>
+          </div>
+        ),
         enableColumnFilter: false,
       }),
       columnHelper.display({
         id: 'lastRunDate',
         header: 'Last Run Date',
         cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
+        meta: {
+          widthPercentage: 12,
+        },
         enableColumnFilter: false,
       }),
       columnHelper.display({
         id: 'jobStatus',
         header: 'Last Job Status',
         cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
+        meta: {
+          widthPercentage: 8,
+        },
         enableColumnFilter: false,
       }),
     ],
