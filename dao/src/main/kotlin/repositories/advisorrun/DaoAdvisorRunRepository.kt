@@ -72,15 +72,12 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
             }
 
             advisorResults.forEach { result ->
-                val defects = mapAndDeduplicate(result.defects, DefectDao::getOrPut)
                 val vulnerabilities = mapAndDeduplicate(result.vulnerabilities, VulnerabilityDao::getOrPut)
                 AdvisorResultDao.new {
                     this.advisorRunIdentifier = advisorRunIdentifierDao
                     this.advisorName = result.advisorName
-                    this.capabilities = result.capabilities
                     this.startTime = result.startTime
                     this.endTime = result.endTime
-                    this.defects = defects
                     this.vulnerabilities = vulnerabilities
                 }
 

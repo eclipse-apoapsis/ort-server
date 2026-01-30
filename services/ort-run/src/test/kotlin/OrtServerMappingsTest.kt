@@ -307,15 +307,6 @@ class OrtServerMappingsTest : WordSpec({
 
             val advisorConfiguration = AdvisorConfiguration(
                 config = mapOf(
-                    "GitHubDefects" to PluginConfig(
-                        options = mapOf(
-                            "endpointUrl" to "https://github.com/defects",
-                            "labelFilter" to "!any",
-                            "maxNumberOfIssuesPerRepository" to "5",
-                            "parallelRequests" to "2"
-                        ),
-                        secrets = mapOf("token" to "tokenValue")
-                    ),
                     "NexusIQ" to PluginConfig(
                         options = mapOf(
                             "serverUrl" to "https://example.org/nexus",
@@ -354,11 +345,9 @@ class OrtServerMappingsTest : WordSpec({
 
             val advisorResult = AdvisorResult(
                 advisorName = "VulnerableCode",
-                capabilities = listOf("VULNERABILITIES"),
                 startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 issues = listOf(issue),
-                defects = emptyList(),
                 vulnerabilities = listOf(vulnerability)
 
             )

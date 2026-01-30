@@ -37,7 +37,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
-import org.eclipse.apoapsis.ortserver.model.runs.advisor.Defect
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 
@@ -128,15 +127,6 @@ private val environment = Environment(
 
 private val advisorConfiguration = AdvisorConfiguration(
     config = mapOf(
-        "GitHubDefects" to PluginConfig(
-            options = mapOf(
-                "endpointUrl" to "https://github.com/defects",
-                "labelFilter" to "!any",
-                "maxNumberOfIssuesPerRepository" to "5",
-                "parallelRequests" to "2"
-            ),
-            secrets = mapOf("token" to "tokenValue")
-        ),
         "NexusIQ" to PluginConfig(
             options = mapOf(
                 "serverUrl" to "https://example.org/nexus",
@@ -183,26 +173,11 @@ private val issue = Issue(
 
 private val otherIssue = Issue(
     timestamp = Clock.System.now().toDatabasePrecision(),
-    source = "GitHubDefects",
+    source = "OSV",
     message = "otherMessage",
     severity = Severity.ERROR,
     identifier = otherIdentifier,
     worker = "advisor"
-)
-
-private val defect = Defect(
-    externalId = "external-id",
-    url = "https://example.com/external-id",
-    title = "title",
-    state = "state",
-    severity = "ERROR",
-    description = "description",
-    creationTime = Clock.System.now().toDatabasePrecision(),
-    modificationTime = Clock.System.now().toDatabasePrecision(),
-    closingTime = Clock.System.now().toDatabasePrecision(),
-    fixReleaseVersion = "version",
-    fixReleaseUrl = "url",
-    labels = mapOf("key" to "value")
 )
 
 private val vulnerability = Vulnerability(
@@ -222,21 +197,17 @@ private val vulnerability = Vulnerability(
 
 private val advisorResult = AdvisorResult(
     advisorName = "NexusIQ",
-    capabilities = emptyList(),
     startTime = Clock.System.now().toDatabasePrecision(),
     endTime = Clock.System.now().toDatabasePrecision(),
     issues = listOf(issue),
-    defects = emptyList(),
     vulnerabilities = listOf(vulnerability)
 )
 
 private val otherAdvisorResult = AdvisorResult(
-    advisorName = "GitHubDefects",
-    capabilities = emptyList(),
+    advisorName = "OSV",
     startTime = Clock.System.now().toDatabasePrecision(),
     endTime = Clock.System.now().toDatabasePrecision(),
     issues = listOf(otherIssue),
-    defects = listOf(defect),
     vulnerabilities = emptyList()
 )
 

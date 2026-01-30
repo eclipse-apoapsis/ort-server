@@ -56,7 +56,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
-import org.eclipse.apoapsis.ortserver.model.runs.advisor.Defect
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
@@ -114,7 +113,6 @@ import org.ossreviewtoolkit.model.AnalyzerResult as OrtAnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
 import org.ossreviewtoolkit.model.ArtifactProvenance as OrtArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding as OrtCopyrightFinding
-import org.ossreviewtoolkit.model.Defect as OrtDefect
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
@@ -210,16 +208,14 @@ fun AdvisorResult.mapToOrt() =
     OrtAdvisorResult(
         advisor = OrtAdvisorDetails(
             name = advisorName,
-            capabilities = capabilities.mapTo(enumSetOf()) {
-                OrtAdvisorCapability.valueOf(it.uppercase())
-            }
+            capabilities = enumSetOf(OrtAdvisorCapability.VULNERABILITIES)
         ),
         summary = OrtAdvisorSummary(
             startTime = startTime.toJavaInstant(),
             endTime = endTime.toJavaInstant(),
             issues = issues.map(Issue::mapToOrt)
         ),
-        defects = defects.map(Defect::mapToOrt),
+        defects = emptyList(),
         vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt)
     )
 
@@ -271,22 +267,6 @@ fun Curations.mapToOrt() = OrtCurations(
     packages = packages.map(PackageCuration::mapToOrt),
     licenseFindings = licenseFindings.map(LicenseFindingCuration::mapToOrt)
 )
-
-fun Defect.mapToOrt() =
-    OrtDefect(
-        id = externalId,
-        url = URI.create(url),
-        title = title,
-        state = state,
-        severity = severity,
-        description = description,
-        creationTime = creationTime?.toJavaInstant(),
-        modificationTime = modificationTime?.toJavaInstant(),
-        closingTime = closingTime?.toJavaInstant(),
-        fixReleaseVersion = fixReleaseVersion,
-        fixReleaseUrl = fixReleaseUrl,
-        labels = labels
-    )
 
 fun DependencyGraph.mapToOrt() =
     OrtDependencyGraph(

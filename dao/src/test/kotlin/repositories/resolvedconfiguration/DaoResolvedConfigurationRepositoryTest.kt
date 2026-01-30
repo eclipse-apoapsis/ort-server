@@ -309,11 +309,9 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
             val advisorResult = AdvisorResult(
                 advisorName = "TestAdvisor",
-                capabilities = listOf("VULNERABILITIES"),
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
                 issues = emptyList(),
-                defects = emptyList(),
                 vulnerabilities = listOf(vulnerability)
             )
 
@@ -481,11 +479,9 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
             val advisorResult1 = AdvisorResult(
                 advisorName = "TestAdvisor",
-                capabilities = listOf("VULNERABILITIES"),
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
                 issues = emptyList(),
-                defects = emptyList(),
                 vulnerabilities = listOf(vulnerability1, vulnerability2)
             )
 

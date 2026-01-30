@@ -25,10 +25,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 data class AdvisorResult(
     val advisorName: String,
-    val capabilities: List<String>,
     val startTime: Instant,
     val endTime: Instant,
     val issues: List<Issue>,
-    val defects: List<Defect>,
     val vulnerabilities: List<Vulnerability>
 )

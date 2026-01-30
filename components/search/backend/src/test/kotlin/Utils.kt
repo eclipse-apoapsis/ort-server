@@ -148,11 +148,9 @@ fun createRunWithVulnerability(
     )
     val advisorResult = AdvisorResult(
         advisorName = "TestAdvisor",
-        capabilities = listOf("VULNERABILITIES"),
         startTime = Clock.System.now(),
         endTime = Clock.System.now(),
         issues = emptyList(),
-        defects = emptyList(),
         vulnerabilities = listOf(vulnerability)
     )
     fixtures.createAdvisorRun(
@@ -200,11 +198,9 @@ fun createRunWithVulnerabilityAndCuratedPurl(
     )
     val advisorResult = AdvisorResult(
         advisorName = "TestAdvisor",
-        capabilities = listOf("VULNERABILITIES"),
         startTime = Clock.System.now(),
         endTime = Clock.System.now(),
         issues = emptyList(),
-        defects = emptyList(),
         vulnerabilities = listOf(vulnerability)
     )
     fixtures.createAdvisorRun(
@@ -264,11 +260,9 @@ fun createRunWithVulnerabilityForPurlSearch(
     )
     val advisorResult = AdvisorResult(
         advisorName = "TestAdvisor",
-        capabilities = listOf("VULNERABILITIES"),
         startTime = Clock.System.now(),
         endTime = Clock.System.now(),
         issues = emptyList(),
-        defects = emptyList(),
         vulnerabilities = listOf(vulnerability)
     )
     fixtures.createAdvisorRun(

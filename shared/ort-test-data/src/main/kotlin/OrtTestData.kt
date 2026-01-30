@@ -425,15 +425,6 @@ object OrtTestData {
 
     val advisorConfiguration = AdvisorConfiguration(
         advisors = mapOf(
-            "GitHubDefects" to PluginConfig(
-                options = mapOf(
-                    "endpointUrl" to "https://github.com/defects",
-                    "labelFilter" to "!any",
-                    "maxNumberOfIssuesPerRepository" to "5",
-                    "parallelRequests" to "2"
-                ),
-                secrets = mapOf("token" to "tokenValue")
-            ),
             "NexusIQ" to PluginConfig(
                 options = mapOf(
                     "serverUrl" to "https://example.org/nexus",
