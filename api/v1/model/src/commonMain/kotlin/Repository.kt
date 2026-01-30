@@ -99,7 +99,13 @@ data class PostRepository(
 data class PatchRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
     val url: OptionalValue<String> = OptionalValue.Absent,
-    val description: OptionalValue<String?> = OptionalValue.Absent
+    val description: OptionalValue<String?> = OptionalValue.Absent,
+
+    /**
+     * The id of the product this repository belongs to. This is only used when moving the repository to another
+     * product.
+     */
+    val productId: OptionalValue<Long> = OptionalValue.Absent
 ) {
     companion object {
         val validate: ValidatorFunc<PatchRepository> = { obj ->

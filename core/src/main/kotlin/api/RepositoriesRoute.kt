@@ -32,7 +32,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationException
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
@@ -59,7 +64,10 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -96,11 +104,32 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         val id = call.requireIdParameter("repositoryId")
         val updateRepository = call.receive<PatchRepository>()
 
+        var newProductId: Long? = null
+        updateRepository.productId.ifPresent { newProductId = it }
+
+        suspend fun checkAdditionalPermission(elementId: HierarchyId, checker: PermissionChecker) {
+            if (authorizationService.checkPermissions(requirePrincipal().username, elementId, checker) == null) {
+                throw AuthorizationException()
+            }
+        }
+
+        if (newProductId != null) {
+            checkAdditionalPermission(
+                ProductId(newProductId),
+                HierarchyPermissions.permissions(ProductPermission.CREATE_REPOSITORY)
+            )
+            checkAdditionalPermission(
+                RepositoryId(id),
+                HierarchyPermissions.permissions(RepositoryPermission.DELETE)
+            )
+        }
+
         val updatedRepository = repositoryService.updateRepository(
             id,
             updateRepository.type.mapToModel { it.mapToModel() },
             updateRepository.url.mapToModel(),
-            updateRepository.description.mapToModel()
+            updateRepository.description.mapToModel(),
+            updateRepository.productId.mapToModel()
         )
 
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())

@@ -23,12 +23,14 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldContainIgnoringCase
@@ -79,6 +81,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole as ApiRepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
@@ -120,6 +123,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
     lateinit var authorizationService: AuthorizationService
+    lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var pluginService: PluginService
@@ -130,7 +134,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     beforeEach {
         authorizationService = DbAuthorizationService(dbExtension.db)
 
-        val organizationService = OrganizationService(
+        organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
@@ -281,6 +285,82 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     "https://svn.example.com/repos/org/repo/trunk".asPresent()
                 )
                 patch("/api/v1/repositories/${createdRepository.id}") { setBody(updateRepository) }
+            }
+        }
+
+        "move a repository to another product" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+                val newProduct = organizationService.createProduct("brandNewProduct", "desc", orgId)
+
+                val oldRepositoryId = CompoundHierarchyId.forRepository(
+                    OrganizationId(orgId),
+                    ProductId(productId),
+                    RepositoryId(createdRepository.id)
+                )
+
+                val updateRepository = PatchRepository(
+                    productId = newProduct.id.asPresent()
+                )
+
+                val response = superuserClient.patch("/api/v1/repositories/${createdRepository.id}") {
+                    setBody(updateRepository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody Repository(
+                    createdRepository.id,
+                    orgId,
+                    newProduct.id,
+                    createdRepository.type.mapToApi(),
+                    createdRepository.url,
+                    createdRepository.description
+                )
+
+                // Test that role assignments on the old compound hierarchy ID have been removed.
+                val usersWithRole = authorizationService.listUsersWithRole(
+                    ApiRepositoryRole.WRITER.mapToModel(),
+                    oldRepositoryId
+                )
+                usersWithRole should beEmpty()
+            }
+        }
+
+        "require RepositoryPermission.CREATE on the new product and RepositoryPermission.DELETE on the old product" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+                val oldRepositoryId = CompoundHierarchyId.forRepository(
+                    OrganizationId(orgId),
+                    ProductId(productId),
+                    RepositoryId(createdRepository.id)
+                )
+                val newProduct = organizationService.createProduct("brandNewProduct", "desc", orgId)
+                val newProductId = CompoundHierarchyId.forProduct(
+                    OrganizationId(orgId),
+                    ProductId(newProduct.id)
+                )
+
+                val updateRepository = PatchRepository(
+                    productId = newProduct.id.asPresent()
+                )
+
+                suspend fun checkMoveRequest(expectedStatusCode: HttpStatusCode) =
+                    testUserClient.patch("/api/v1/repositories/${createdRepository.id}") {
+                        setBody(updateRepository)
+                    } shouldHaveStatus expectedStatusCode
+
+                authorizationService.assignRole(TEST_USER.username.value, RepositoryRole.WRITER, oldRepositoryId)
+                checkMoveRequest(HttpStatusCode.Forbidden)
+
+                authorizationService.assignRole(TEST_USER.username.value, RepositoryRole.ADMIN, oldRepositoryId)
+                checkMoveRequest(HttpStatusCode.Forbidden)
+                authorizationService.assignRole(TEST_USER.username.value, RepositoryRole.WRITER, oldRepositoryId)
+
+                authorizationService.assignRole(TEST_USER.username.value, ProductRole.WRITER, newProductId)
+                checkMoveRequest(HttpStatusCode.Forbidden)
+
+                authorizationService.assignRole(TEST_USER.username.value, RepositoryRole.ADMIN, oldRepositoryId)
+                checkMoveRequest(HttpStatusCode.OK)
             }
         }
     }
