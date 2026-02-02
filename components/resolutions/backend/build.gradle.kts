@@ -29,4 +29,8 @@ group = "org.eclipse.apoapsis.ortserver.components.resolutions"
 
 dependencies {
     api(projects.components.resolutions.resolutionsApiModel)
+
+    implementation(projects.model)
+
+    implementation(libs.kotlinxSerializationJson)
 }
