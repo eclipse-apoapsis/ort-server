@@ -60,6 +60,7 @@ export default defineConfig([
         'warn',
         {
           allowConstantExport: true,
+          extraHOCs: ['createFileRoute', 'createRootRouteWithContext'],
         },
       ],
       'no-console': ['warn'],
