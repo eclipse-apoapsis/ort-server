@@ -25,11 +25,13 @@ ARG ANDROID_CMD_VERSION=13114758
 ARG BAZELISK_VERSION=1.20.0
 ARG BOWER_VERSION=1.8.14
 ARG COCOAPODS_VERSION=1.16.2
+ARG COSIGN_VERSION=3.0.3
 ARG COMPOSER_VERSION=2.8.12
 ARG CONAN_VERSION=1.66.0
 ARG CONAN2_VERSION=2.21.0
 ARG DART_VERSION=2.18.4
 ARG DOTNET_VERSION=6.0
+ARG GLEAM_VERSION=1.13.0
 ARG GO_VERSION=1.25.0
 ARG HASKELL_STACK_VERSION=2.13.1
 ARG NODEJS_VERSION=24.10.0
@@ -400,6 +402,40 @@ COPY --from=bazelbuild /opt/bazel /opt/bazel
 COPY --from=bazelbuild /opt/go/bin/buildozer /opt/go/bin/buildozer
 
 #------------------------------------------------------------------------
+# GLEAM
+FROM ort-base-image AS gleambuild
+
+ARG COSIGN_VERSION
+ARG GLEAM_VERSION
+
+ENV GLEAM_HOME=/opt/gleam
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN COSIGN_ARCH=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) \
+    && curl -L "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-${COSIGN_ARCH}" \
+        -o /tmp/cosign \
+    && chmod +x /tmp/cosign \
+    && mkdir -p $GLEAM_HOME/bin \
+    && ARCH=$(arch) \
+    && curl -L "https://github.com/gleam-lang/gleam/releases/download/v${GLEAM_VERSION}/gleam-v${GLEAM_VERSION}-${ARCH}-unknown-linux-musl.tar.gz" \
+        -o /tmp/gleam.tar.gz \
+    && curl -L "https://github.com/gleam-lang/gleam/releases/download/v${GLEAM_VERSION}/gleam-v${GLEAM_VERSION}-${ARCH}-unknown-linux-musl.tar.gz.sigstore" \
+        -o /tmp/gleam.sigstore \
+    && /tmp/cosign verify-blob \
+        --bundle /tmp/gleam.sigstore \
+        --certificate-identity-regexp "^https://github.com/gleam-lang/gleam/.*@refs/tags/v${GLEAM_VERSION}$" \
+        --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+        /tmp/gleam.tar.gz \
+    && tar -xzf /tmp/gleam.tar.gz -C $GLEAM_HOME/bin \
+    && chmod a+x $GLEAM_HOME/bin/gleam \
+    && rm /tmp/gleam.tar.gz /tmp/gleam.sigstore /tmp/cosign \
+    && $GLEAM_HOME/bin/gleam --version
+
+FROM scratch AS gleam
+COPY --from=gleambuild /opt/gleam /opt/gleam
+
+#------------------------------------------------------------------------
 # Components container
 FROM ort-base-image AS components
 
@@ -495,6 +531,11 @@ ENV PATH=$PATH:$BAZEL_HOME/bin
 
 COPY --from=bazel $BAZEL_HOME $BAZEL_HOME
 COPY --from=bazel --chown=$USER:$USER /opt/go/bin/buildozer /opt/go/bin/buildozer
+
+# Gleam
+ENV GLEAM_HOME=/opt/gleam
+ENV PATH=$PATH:$GLEAM_HOME/bin
+COPY --from=gleam --chown=$USER:$USER $GLEAM_HOME $GLEAM_HOME
 
 # Install cargo-credential-netrc late in the build to prevent an error accessing /opt/rust/cargo/registry/.
 RUN $CARGO_HOME/bin/cargo install cargo-credential-netrc
