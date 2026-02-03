@@ -107,6 +107,7 @@ kotestExtensions = { module = "io.kotest:kotest-extensions", version.ref = "kote
 kotestExtensionsTestcontainers = { module = "io.kotest:kotest-extensions-testcontainers", version.ref = "kotest" }
 kotestFrameworkEngine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotlinBom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlinPlugin" }
 kotlinResult = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinResult" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesSlf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinxCoroutines" }
