@@ -32,6 +32,8 @@ plugins {
 }
 
 dependencies {
+    implementation(enforcedPlatform(libs.kotlinBom))
+
     testImplementation(project(":utils:logging"))
     testImplementation(project(":utils:test"))
 }
