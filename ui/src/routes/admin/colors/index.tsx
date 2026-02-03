@@ -191,7 +191,7 @@ const ColorsComponent = () => {
               <TableRow>
                 <TableCell>Java/Kotlin</TableCell>
                 <TableCell className='flex gap-2'>
-                  {['Gradle', 'GradleInspector', 'Maven'].map((p) => (
+                  {['Gradle', 'GradleInspector', 'Maven', 'Tycho'].map((p) => (
                     <Badge
                       className={`border ${getEcosystemBackgroundColor(p)}`}
                     >

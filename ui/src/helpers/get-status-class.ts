@@ -218,6 +218,8 @@ export function getEcosystemBackgroundColor(
       return 'bg-slate-400';
     case 'SwiftPM':
       return 'bg-rose-500';
+    case 'Tycho':
+      return 'bg-indigo-700';
     case 'Yarn':
       return 'bg-teal-600';
     case 'Yarn2':
