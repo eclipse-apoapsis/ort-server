@@ -59,8 +59,9 @@ COPY scripts/set_apt_proxy.sh /etc/analyzer_scripts/set_apt_proxy.sh
 RUN /etc/analyzer_scripts/set_apt_proxy.sh
 
 # Base package set
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=tmpfs,target=/var/log \
     sudo apt-get update \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -114,8 +115,9 @@ ARG PYTHON_VERSION
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=tmpfs,target=/var/log \
     sudo apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     libreadline-dev \
@@ -185,8 +187,9 @@ ARG COCOAPODS_VERSION
 ARG RUBY_VERSION
 
 # hadolint ignore=DL3004
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=tmpfs,target=/var/log \
     sudo apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     libreadline6-dev \
@@ -274,8 +277,9 @@ FROM ort-base-image AS androidbuild
 
 ARG ANDROID_CMD_VERSION
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=tmpfs,target=/var/log \
     sudo apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     unzip \
@@ -460,8 +464,9 @@ ARG COMPOSER_VERSION
 RUN sudo rm -rf /etc/analyzer_scripts
 
 # Apt install commands.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=tmpfs,target=/var/log \
     sudo apt-get update && \
     DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
         php \
