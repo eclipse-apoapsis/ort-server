@@ -101,6 +101,7 @@ export const createRunFormSchema = z.object({
           SpdxDocumentFile: packageManagerOptionsSchema,
           Stack: packageManagerOptionsSchema,
           SwiftPM: packageManagerOptionsSchema,
+          Tycho: packageManagerOptionsSchema,
           Yarn: packageManagerOptionsSchema,
           Yarn2: packageManagerOptionsSchema,
         })
@@ -321,6 +322,7 @@ export function defaultValues(
           SpdxDocumentFile: defaultPackageManagerOptions('SpdxDocumentFile'),
           Stack: defaultPackageManagerOptions('Stack'),
           SwiftPM: defaultPackageManagerOptions('SwiftPM'),
+          Tycho: defaultPackageManagerOptions('Tycho'),
           Yarn: defaultPackageManagerOptions('Yarn'),
           Yarn2: defaultPackageManagerOptions('Yarn2'),
         },

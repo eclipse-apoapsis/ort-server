@@ -197,6 +197,10 @@ export const packageManagers = [
     label: 'SwiftPM (Swift)',
   },
   {
+    id: 'Tycho',
+    label: 'Tycho (Java)',
+  },
+  {
     id: 'Yarn',
     label: 'Yarn 1 (JavaScript / Node.js)',
   },
