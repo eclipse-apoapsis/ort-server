@@ -489,9 +489,8 @@ RUN chmod -R g+rwX $NVM_DIR
 # Rust
 ENV RUST_HOME=/opt/rust
 ENV CARGO_HOME=$RUST_HOME/cargo
-ENV RUSTUP_HOME=$RUST_HOME/rustup
-ENV PATH=$PATH:$CARGO_HOME/bin:$RUSTUP_HOME/bin
-COPY --from=rust --chown=$USER:$USER /opt/rust /opt/rust
+ENV PATH=$PATH:$CARGO_HOME/bin
+COPY --from=rust --chown=$USER:$USER $CARGO_HOME $CARGO_HOME
 RUN chmod o+rwx $CARGO_HOME
 
 # cargo-credential-netrc
