@@ -225,6 +225,17 @@ FROM scratch AS rust
 COPY --from=rustbuild /opt/rust /opt/rust
 
 #------------------------------------------------------------------------
+# cargo-credential-netrc
+FROM rustbuild AS cargo-credential-netrc-build
+
+ENV PATH=$PATH:$CARGO_HOME/bin
+
+RUN cargo install cargo-credential-netrc --root /opt/cargo-credential-netrc
+
+FROM scratch AS cargo-credential-netrc
+COPY --from=cargo-credential-netrc-build /opt/cargo-credential-netrc /opt/cargo-credential-netrc
+
+#------------------------------------------------------------------------
 # GOLANG - Build as a separate component
 FROM ort-base-image AS gobuild
 
@@ -474,6 +485,11 @@ ENV PATH=$PATH:$CARGO_HOME/bin:$RUSTUP_HOME/bin
 COPY --from=rust --chown=$USER:$USER /opt/rust /opt/rust
 RUN chmod o+rwx $CARGO_HOME
 
+# cargo-credential-netrc
+ENV CARGO_CREDENTIAL_NETRC_HOME=/opt/cargo-credential-netrc
+ENV PATH=$PATH:$CARGO_CREDENTIAL_NETRC_HOME/bin
+COPY --from=cargo-credential-netrc $CARGO_CREDENTIAL_NETRC_HOME $CARGO_CREDENTIAL_NETRC_HOME
+
 # Golang
 ENV PATH=$PATH:/opt/go/bin
 COPY --from=golang --chown=$USER:$USER /opt/go /opt/go
@@ -536,9 +552,6 @@ COPY --from=bazel --chown=$USER:$USER /opt/go/bin/buildozer /opt/go/bin/buildoze
 ENV GLEAM_HOME=/opt/gleam
 ENV PATH=$PATH:$GLEAM_HOME/bin
 COPY --from=gleam --chown=$USER:$USER $GLEAM_HOME $GLEAM_HOME
-
-# Install cargo-credential-netrc late in the build to prevent an error accessing /opt/rust/cargo/registry/.
-RUN $CARGO_HOME/bin/cargo install cargo-credential-netrc
 
 # Make sure the user executing the container has access rights in the $CARGO_HOME directory.
 RUN sudo chgrp -R 0 $CARGO_HOME && sudo chmod -R g+rwX $CARGO_HOME
