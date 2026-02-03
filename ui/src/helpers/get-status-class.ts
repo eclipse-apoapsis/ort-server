@@ -188,6 +188,8 @@ export function getEcosystemBackgroundColor(
       return 'bg-neutral-400';
     case 'Conan':
       return 'bg-emerald-400';
+    case 'Hex':
+      return 'bg-fuchsia-500';
     case 'GoMod':
       return 'bg-cyan-500';
     case 'Gradle':

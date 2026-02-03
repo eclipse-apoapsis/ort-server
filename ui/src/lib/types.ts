@@ -137,6 +137,10 @@ export const packageManagers = [
     label: 'Conan 1.x (C / C++)',
   },
   {
+    id: 'Gleam',
+    label: 'Gleam (Gleam)',
+  },
+  {
     id: 'GoMod',
     label: 'GoMod (Go)',
   },

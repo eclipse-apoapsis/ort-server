@@ -165,6 +165,18 @@ const ColorsComponent = () => {
                 </TableCell>
               </TableRow>
               <TableRow>
+                <TableCell>Gleam</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Hex'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
                 <TableCell>Go</TableCell>
                 <TableCell className='flex gap-2'>
                   {['GoMod'].map((p) => (
