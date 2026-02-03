@@ -123,7 +123,6 @@ class DefaultKeycloakClientTest : WordSpec() {
                         accessTokenUrl = "${server.baseUrl()}/realms/some-realm/protocol/openid-connect/token",
                         apiUser = "some-user",
                         apiSecret = "some-secret",
-                        subjectClientId = "some-subject-client",
                         timeout = 50.milliseconds
                     )
 

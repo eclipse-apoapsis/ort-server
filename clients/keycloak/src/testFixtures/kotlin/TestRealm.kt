@@ -58,9 +58,6 @@ const val TEST_CONFIDENTIAL_CLIENT = "test-confidential-client"
 /** A secret used by the confidential test client. */
 const val TEST_CLIENT_SECRET = "abcdefghijklmnopqrstuvwxyz"
 
-/** The name of a test client that is subject to role manipulations. */
-const val TEST_SUBJECT_CLIENT = "subjectClient"
-
 /**
  * A test [realm configuration][RealmRepresentation] that creates a [realm][TEST_REALM] with two clients that can be
  * used to access it:
@@ -69,9 +66,6 @@ const val TEST_SUBJECT_CLIENT = "subjectClient"
  *   [TEST_REALM_ADMIN_PASSWORD].
  * - [TEST_CONFIDENTIAL_CLIENT] is a confidential client that supports the client credentials flow with
  *   [TEST_CLIENT_SECRET] as secret. Note: To use it, it must be assigned corresponding client roles.
- *
- * There is one additional [client][TEST_SUBJECT_CLIENT] that is the subject of role manipulations. It is not used for
- * authentication, but role manipulations are done on this client.
  */
 val testRealm = RealmRepresentation().apply {
     realm = TEST_REALM
@@ -90,12 +84,6 @@ val testRealm = RealmRepresentation().apply {
             isPublicClient = false
             isServiceAccountsEnabled = true
             secret = TEST_CLIENT_SECRET
-        },
-        ClientRepresentation().apply {
-            id = TEST_SUBJECT_CLIENT
-            isEnabled = true
-            isPublicClient = true
-            isStandardFlowEnabled = true
         }
     )
 

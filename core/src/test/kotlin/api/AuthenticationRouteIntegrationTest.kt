@@ -28,7 +28,7 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.OidcConfig
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class AuthenticationRouteIntegrationTest : AbstractIntegrationTest({
@@ -44,7 +44,7 @@ class AuthenticationRouteIntegrationTest : AbstractIntegrationTest({
 
                 with(body) {
                     accessTokenUrl shouldEndWith "/protocol/openid-connect/token"
-                    clientId shouldBe TEST_SUBJECT_CLIENT
+                    clientId shouldBe TEST_CLIENT
                 }
             }
         }

@@ -253,7 +253,6 @@ class ExtensionsTest : WordSpec({
                 "keycloak.baseUrl" to "http://localhost:8080",
                 "keycloak.realm" to "myrealm",
                 "keycloak.clientId" to "myclient",
-                "keycloak.subjectClientId" to "subjectclient",
                 "keycloak.apiUser" to "user",
                 "keycloak.apiSecret" to "secret",
                 "keycloak.timeoutSeconds" to 30
@@ -265,13 +264,11 @@ class ExtensionsTest : WordSpec({
             keycloakClientConfig.baseUrl shouldBe "http://localhost:8080"
             keycloakClientConfig.realm shouldBe "myrealm"
             keycloakClientConfig.clientId shouldBe "myclient"
-            keycloakClientConfig.subjectClientId shouldBe "subjectclient"
             keycloakClientConfig.apiSecret shouldBe "secret"
             keycloakClientConfig.apiUser shouldBe "user"
             keycloakClientConfig.apiUrl shouldBe "http://localhost:8080/admin/realms/myrealm"
             keycloakClientConfig.accessTokenUrl shouldBe
                     "http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
-            keycloakClientConfig.dataGetChunkSize shouldBe 5000
             keycloakClientConfig.timeout shouldBe 30.seconds
         }
     }
