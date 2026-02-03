@@ -72,8 +72,7 @@ fun User.toUserRepresentation(
 fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
     secret: String = TEST_REALM_ADMIN_PASSWORD,
     user: String = TEST_REALM_ADMIN_USERNAME,
-    clientId: String = TEST_CLIENT,
-    dataGetChunkSize: Int = 9999
+    clientId: String = TEST_CLIENT
 ) =
     KeycloakClientConfiguration(
         baseUrl = authServerUrl,
@@ -82,9 +81,7 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
         clientId = clientId,
         accessTokenUrl = "$authServerUrl/realms/$TEST_REALM/protocol/openid-connect/token",
         apiUser = user,
-        apiSecret = secret,
-        subjectClientId = TEST_SUBJECT_CLIENT,
-        dataGetChunkSize = dataGetChunkSize
+        apiSecret = secret
     )
 
 /**
@@ -100,8 +97,7 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
             "keycloak.clientId" to config.clientId,
             "keycloak.accessTokenUrl" to config.accessTokenUrl,
             "keycloak.apiUser" to config.apiUser,
-            "keycloak.apiSecret" to config.apiSecret,
-            "keycloak.subjectClientId" to config.subjectClientId
+            "keycloak.apiSecret" to config.apiSecret
         )
     }
 
@@ -114,7 +110,7 @@ fun KeycloakContainer.createJwtConfigMapForTestRealm() =
         "jwt.jwksUri" to "$authServerUrl/realms/$TEST_REALM/protocol/openid-connect/certs",
         "jwt.issuer" to "$authServerUrl/realms/$TEST_REALM",
         "jwt.realm" to TEST_REALM,
-        "jwt.audience" to TEST_SUBJECT_CLIENT,
+        "jwt.audience" to TEST_CLIENT,
         "jwt.roleCacheLifetimeSeconds" to "0"
     )
 
@@ -138,7 +134,7 @@ private fun audienceMapper(audience: String) = ProtocolMapperRepresentation().ap
  * the default scopes of the [TEST_CLIENT].
  */
 fun Keycloak.setUpClientScope(audience: String) {
-    val subjectClientScope = "$TEST_SUBJECT_CLIENT-scope"
+    val subjectClientScope = "$TEST_CLIENT-scope"
 
     realm(TEST_REALM).apply {
         clientScopes().create(
@@ -163,11 +159,11 @@ fun Keycloak.setUpUser(user: User, password: String) {
 }
 
 /**
- * Create the provided [roles] in the [TEST_SUBJECT_CLIENT] and assign them to the provided [username].
+ * Create the provided [roles] in the [TEST_CLIENT] and assign them to the provided [username].
  */
 fun Keycloak.setUpUserRoles(username: String, roles: List<String>) {
     realm(TEST_REALM).apply {
-        val client = clients().findByClientId(TEST_SUBJECT_CLIENT).single()
+        val client = clients().findByClientId(TEST_CLIENT).single()
 
         val roleRepresentations = roles.map { role ->
             clients().get(client.id).roles().run {

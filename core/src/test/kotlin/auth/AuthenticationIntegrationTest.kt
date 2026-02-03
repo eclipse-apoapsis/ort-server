@@ -40,7 +40,6 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
@@ -95,7 +94,7 @@ class AuthenticationIntegrationTest : StringSpec({
         }
 
     "A request with a valid token should be accepted" {
-        keycloak.keycloakAdminClient.setUpClientScope(TEST_SUBJECT_CLIENT)
+        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
 
         authTestApplication {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
@@ -105,7 +104,7 @@ class AuthenticationIntegrationTest : StringSpec({
     }
 
     "A request without a token should be rejected" {
-        keycloak.keycloakAdminClient.setUpClientScope(TEST_SUBJECT_CLIENT)
+        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
 
         authTestApplication {
             client.get("/api/v1/test") shouldHaveStatus HttpStatusCode.Unauthorized
@@ -121,7 +120,7 @@ class AuthenticationIntegrationTest : StringSpec({
     }
 
     "A token with a wrong audience claim should be rejected" {
-        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
+        keycloak.keycloakAdminClient.setUpClientScope("wrong-client")
 
         authTestApplication {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
@@ -131,7 +130,7 @@ class AuthenticationIntegrationTest : StringSpec({
     }
 
     "A principal with correct properties should be created" {
-        keycloak.keycloakAdminClient.setUpClientScope(TEST_SUBJECT_CLIENT)
+        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
 
         authTestApplication(onCall = {
             val principal = call.principal<OrtServerPrincipal>(AuthenticationProviders.TOKEN_PROVIDER)

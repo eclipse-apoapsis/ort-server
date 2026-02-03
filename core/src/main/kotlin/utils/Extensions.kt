@@ -51,7 +51,6 @@ fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfigurati
         accessTokenUrl = tryGetString("keycloak.accessTokenUrl") ?: defaultAccessTokenUrl,
         apiUser = getString("keycloak.apiUser"),
         apiSecret = getSecret(Path("keycloak.apiSecret")),
-        subjectClientId = getString("keycloak.subjectClientId"),
         timeout = getInt("keycloak.timeoutSeconds").seconds
     )
 }

@@ -32,7 +32,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
@@ -58,7 +58,7 @@ class ErrorsIntegrationTest : StringSpec() {
     private val keycloak = install(KeycloakTestExtension()) {
         setUpUser(SUPERUSER, SUPERUSER_PASSWORD)
         setUpUserRoles(SUPERUSER.username.value, listOf(Superuser.ROLE_NAME))
-        setUpClientScope(TEST_SUBJECT_CLIENT)
+        setUpClientScope(TEST_CLIENT)
     }
 
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()

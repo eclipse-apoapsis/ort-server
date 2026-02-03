@@ -47,7 +47,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.User
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
@@ -92,7 +92,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
 
     val keycloak = keycloakExtension.mount {
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
-        setUpClientScope(TEST_SUBJECT_CLIENT)
+        setUpClientScope(TEST_CLIENT)
     }
 
     val json = Json { ignoreUnknownKeys = true }
@@ -118,7 +118,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
         testApplication {
             val config = MapApplicationConfig()
             (keycloakConfig + jwtConfig).forEach { config.put(it.key, it.value) }
-            config.put("jwt.audience", TEST_SUBJECT_CLIENT)
+            config.put("jwt.audience", TEST_CLIENT)
 
             environment {
                 this.config = config
