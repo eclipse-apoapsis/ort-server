@@ -90,8 +90,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters as ApiVu
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters as ApiVulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution as ApiVulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolutionReason as ApiVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails as ApiVulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
@@ -162,8 +160,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
-import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
@@ -861,35 +857,6 @@ fun RuleViolationResolutionReason.mapToApi() = when (this) {
 
     RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION ->
         ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
-}
-
-fun VulnerabilityResolution.mapToApi() = ApiVulnerabilityResolution(
-    externalId = externalId,
-    reason = reason.mapToApi(),
-    comment = comment
-)
-
-fun VulnerabilityResolutionReason.mapToApi() = when (this) {
-    VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.CANT_FIX_VULNERABILITY
-
-    VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY
-
-    VulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY
-
-    VulnerabilityResolutionReason.MITIGATED_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.MITIGATED_VULNERABILITY
-
-    VulnerabilityResolutionReason.NOT_A_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.NOT_A_VULNERABILITY
-
-    VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY
-
-    VulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY ->
-        ApiVulnerabilityResolutionReason.WORKAROUND_FOR_VULNERABILITY
 }
 
 fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
