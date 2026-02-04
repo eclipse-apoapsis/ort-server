@@ -34,8 +34,18 @@ dependencies {
 
     implementation(projects.dao)
     implementation(projects.model)
+    implementation(projects.services.hierarchyService)
+    implementation(projects.utils.logging)
 
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
+    implementation(libs.kotlinResult)
     implementation(libs.kotlinxSerializationJson)
+
+    testImplementation(testFixtures(projects.dao))
+
+    testImplementation(projects.components.authorization.authorizationBackend)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.mockk)
 }
