@@ -38,6 +38,8 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -194,6 +196,8 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::SearchService)
     singleOf(::SecretService)
     singleOf(::VulnerabilityService)
+    singleOf(::VulnerabilityResolutionEventStore)
+    singleOf(::VulnerabilityResolutionService)
 
     if (authorizationService != null) {
         single<AuthorizationService> { authorizationService }
