@@ -30,7 +30,12 @@ group = "org.eclipse.apoapsis.ortserver.components.resolutions"
 dependencies {
     api(projects.components.resolutions.resolutionsApiModel)
 
+    api(libs.exposedJdbc)
+
+    implementation(projects.dao)
     implementation(projects.model)
 
+    implementation(libs.exposedCore)
+    implementation(libs.exposedKotlinDatetime)
     implementation(libs.kotlinxSerializationJson)
 }
