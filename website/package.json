@@ -58,7 +58,7 @@
     "@docusaurus/plugin-debug": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
     "@docusaurus/types": "3.9.2",
-    "@ianvs/prettier-plugin-sort-imports": "4.7.0",
+    "@ianvs/prettier-plugin-sort-imports": "4.7.1",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
   },
