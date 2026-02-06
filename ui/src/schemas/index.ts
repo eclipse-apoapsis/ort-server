@@ -19,7 +19,12 @@
 
 import z from 'zod';
 
-import { zOrtRunStatus, zSeverity, zVulnerabilityRating } from '@/api/zod.gen';
+import {
+  zJobs,
+  zOrtRunStatus,
+  zSeverity,
+  zVulnerabilityRating,
+} from '@/api/zod.gen';
 
 // Schema to validate that a string is a valid regular expression.
 export const regexSchema = z
@@ -149,4 +154,11 @@ export const markedSearchParameterSchema = z.object({
 // organizations, products, or repositories with regexp.
 export const filterByNameSearchParameterSchema = z.object({
   filter: z.string().optional(),
+});
+
+// Job name schema derived from the auto-generated zJobs keys, used as a
+// search parameter to control which job section is initially expanded on
+// the config page.
+export const jobSearchParameterSchema = z.object({
+  job: zJobs.keyof().optional(),
 });
