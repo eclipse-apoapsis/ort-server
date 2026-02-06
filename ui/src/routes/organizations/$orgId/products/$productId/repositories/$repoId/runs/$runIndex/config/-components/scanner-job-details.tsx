@@ -19,70 +19,58 @@
 
 import { OrtRun } from '@/api';
 import { RenderProperty } from '@/components/render-property';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { JobTitle } from './job-title';
 
 type ScannerJobDetailsProps = {
   run: OrtRun;
 };
 
 export const ScannerJobDetails = ({ run }: ScannerJobDetailsProps) => {
-  const job = run.jobs.scanner;
   const jobConfigs = run.resolvedJobConfigs?.scanner;
 
+  if (!jobConfigs) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <JobTitle title='Scanner' job={job} />
-        </CardTitle>
-      </CardHeader>
-      {jobConfigs && (
-        <CardContent>
-          <div className='flex flex-col gap-4 text-sm'>
-            <RenderProperty
-              label='Skip concluded'
-              value={jobConfigs.skipConcluded}
-              showIfEmpty={false}
-            />
-            <RenderProperty
-              label='Skip excluded'
-              value={jobConfigs.skipExcluded}
-              showIfEmpty={false}
-            />
-            {jobConfigs.scanners && (
-              <div className='space-y-2'>
-                <Label className='font-semibold'>Scanners</Label>
-                {jobConfigs.scanners.map((scanner) => (
-                  <div className='ml-2' key={scanner}>
-                    <Label className='font-semibold'>{scanner}</Label>
-                    {jobConfigs?.config?.[scanner] && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>Configuration</Label>
-                        <div className='ml-2'>
-                          <RenderProperty
-                            label='Options'
-                            value={jobConfigs.config?.[scanner].options}
-                            type='keyvalue'
-                            showIfEmpty={false}
-                          />
-                          <RenderProperty
-                            label='Secrets'
-                            value={jobConfigs.config?.[scanner].secrets}
-                            type='keyvalue'
-                            showIfEmpty={false}
-                          />
-                        </div>
-                      </div>
-                    )}
+    <div className='ml-4 flex flex-col gap-4 text-sm'>
+      <RenderProperty
+        label='Skip concluded'
+        value={jobConfigs.skipConcluded}
+        showIfEmpty={false}
+      />
+      <RenderProperty
+        label='Skip excluded'
+        value={jobConfigs.skipExcluded}
+        showIfEmpty={false}
+      />
+      {jobConfigs.scanners && (
+        <div className='space-y-2'>
+          <Label className='font-semibold'>Scanners</Label>
+          {jobConfigs.scanners.map((scanner) => (
+            <div className='ml-2' key={scanner}>
+              <Label className='font-semibold'>{scanner}</Label>
+              {jobConfigs?.config?.[scanner] && (
+                <div className='ml-2'>
+                  <Label className='font-semibold'>Configuration</Label>
+                  <div className='ml-2'>
+                    <RenderProperty
+                      label='Options'
+                      value={jobConfigs.config?.[scanner].options}
+                      type='keyvalue'
+                      showIfEmpty={false}
+                    />
+                    <RenderProperty
+                      label='Secrets'
+                      value={jobConfigs.config?.[scanner].secrets}
+                      type='keyvalue'
+                      showIfEmpty={false}
+                    />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </CardContent>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
-    </Card>
+    </div>
   );
 };

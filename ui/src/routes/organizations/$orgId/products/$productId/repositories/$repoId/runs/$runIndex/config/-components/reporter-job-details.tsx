@@ -19,35 +19,23 @@
 
 import { OrtRun } from '@/api';
 import { RenderProperty } from '@/components/render-property';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { JobTitle } from './job-title';
 
 type ReporterJobDetailsProps = {
   run: OrtRun;
 };
 
 export const ReporterJobDetails = ({ run }: ReporterJobDetailsProps) => {
-  const job = run.jobs.reporter;
   const jobConfigs = run.resolvedJobConfigs?.reporter;
 
+  if (!jobConfigs) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <JobTitle title='Reporter' job={job} />
-        </CardTitle>
-      </CardHeader>
-      {jobConfigs && (
-        <CardContent>
-          <div className='flex flex-col gap-4 text-sm'>
-            <RenderProperty
-              label='Report formats'
-              value={jobConfigs.formats}
-              showIfEmpty={false}
-            />
-          </div>
-        </CardContent>
-      )}
-    </Card>
+    <div className='ml-4 flex flex-col gap-4 text-sm'>
+      <RenderProperty
+        label='Report formats'
+        value={jobConfigs.formats}
+        showIfEmpty={false}
+      />
+    </div>
   );
 };
