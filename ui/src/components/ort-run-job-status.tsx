@@ -53,7 +53,7 @@ export const OrtRunJobStatus = ({
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
             params={{ orgId, productId, repoId, runIndex }}
-            hash='analyzer'
+            search={{ job: 'analyzer' }}
           >
             <div
               className={`${getStatusClass(jobs.analyzer?.status)} ${getStatusBackgroundColor(jobs.analyzer?.status)}`}
@@ -89,7 +89,7 @@ export const OrtRunJobStatus = ({
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
             params={{ orgId, productId, repoId, runIndex }}
-            hash='advisor'
+            search={{ job: 'advisor' }}
           >
             <div
               className={`${getStatusClass(jobs.advisor?.status)} ${getStatusBackgroundColor(jobs.advisor?.status)}`}
@@ -125,7 +125,7 @@ export const OrtRunJobStatus = ({
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
             params={{ orgId, productId, repoId, runIndex }}
-            hash='scanner'
+            search={{ job: 'scanner' }}
           >
             <div
               className={`${getStatusClass(jobs.scanner?.status)} ${getStatusBackgroundColor(jobs.scanner?.status)}`}
@@ -161,7 +161,7 @@ export const OrtRunJobStatus = ({
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
             params={{ orgId, productId, repoId, runIndex }}
-            hash='evaluator'
+            search={{ job: 'evaluator' }}
           >
             <div
               className={`${getStatusClass(jobs.evaluator?.status)} ${getStatusBackgroundColor(jobs.evaluator?.status)}`}
@@ -197,7 +197,7 @@ export const OrtRunJobStatus = ({
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config'
             params={{ orgId, productId, repoId, runIndex }}
-            hash='reporter'
+            search={{ job: 'reporter' }}
           >
             <div
               className={`${getStatusClass(jobs.reporter?.status)} ${getStatusBackgroundColor(jobs.reporter?.status)}`}
