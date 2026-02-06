@@ -19,41 +19,29 @@
 
 import { OrtRun } from '@/api';
 import { RenderProperty } from '@/components/render-property';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { JobTitle } from './job-title';
 
 type AdvisorJobDetailsProps = {
   run: OrtRun;
 };
 
 export const AdvisorJobDetails = ({ run }: AdvisorJobDetailsProps) => {
-  const job = run.jobs.advisor;
   const jobConfigs = run.resolvedJobConfigs?.advisor;
 
+  if (!jobConfigs) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <JobTitle title='Advisor' job={job} />
-        </CardTitle>
-      </CardHeader>
-      {jobConfigs && (
-        <CardContent>
-          <div className='flex flex-col gap-4 text-sm'>
-            <RenderProperty
-              label='Skip Excluded'
-              value={jobConfigs.skipExcluded}
-              showIfEmpty={false}
-            />
-            <RenderProperty
-              label='Advisors'
-              value={jobConfigs.advisors}
-              type='array'
-              showIfEmpty={false}
-            />
-          </div>
-        </CardContent>
-      )}
-    </Card>
+    <div className='ml-4 flex flex-col gap-4 text-sm'>
+      <RenderProperty
+        label='Skip Excluded'
+        value={jobConfigs.skipExcluded}
+        showIfEmpty={false}
+      />
+      <RenderProperty
+        label='Advisors'
+        value={jobConfigs.advisors}
+        type='array'
+        showIfEmpty={false}
+      />
+    </div>
   );
 };

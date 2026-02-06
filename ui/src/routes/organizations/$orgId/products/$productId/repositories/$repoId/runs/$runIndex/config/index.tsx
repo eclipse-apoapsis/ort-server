@@ -19,22 +19,50 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
 
+import { OrtRun } from '@/api';
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { jobSearchParameterSchema } from '@/schemas';
 import { Sha1Component } from '@/components/sha1-component';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { jobSearchParameterSchema } from '@/schemas';
 import { AdvisorJobDetails } from './-components/advisor-job-details';
 import { AnalyzerJobDetails } from './-components/analyzer-job-details';
 import { EvaluatorJobDetails } from './-components/evaluator-job-details';
+import { JobTitle } from './-components/job-title';
 import { NotifierJobDetails } from './-components/notifier-job-details';
 import { ReporterJobDetails } from './-components/reporter-job-details';
 import { ScannerJobDetails } from './-components/scanner-job-details';
 
+const jobSections = [
+  { value: 'analyzer', title: 'Analyzer', Component: AnalyzerJobDetails },
+  { value: 'advisor', title: 'Advisor', Component: AdvisorJobDetails },
+  { value: 'scanner', title: 'Scanner', Component: ScannerJobDetails },
+  { value: 'evaluator', title: 'Evaluator', Component: EvaluatorJobDetails },
+  { value: 'reporter', title: 'Reporter', Component: ReporterJobDetails },
+  { value: 'notifier', title: 'Notifier', Component: NotifierJobDetails },
+] as const;
+
+type JobKey = (typeof jobSections)[number]['value'];
+
+const getJob = (run: OrtRun, key: JobKey) => run.jobs[key];
+
+const allJobValues = jobSections.map(({ value }) => value);
+
 const ConfigComponent = () => {
   const params = Route.useParams();
+  const { job } = Route.useSearch();
+  const [openSections, setOpenSections] = useState<string[]>(job ? [job] : []);
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -69,24 +97,14 @@ const ConfigComponent = () => {
                 )}
             </div>
           )}
-          {Object.keys(ortRun.labels).length > 0 && (
-            <div className='text-sm'>
-              <Label className='font-semibold'>Labels:</Label>{' '}
-              {Object.entries(ortRun.labels).map(([key, value]) => (
-                <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                  <div className='col-span-3 text-left break-all'>{key}</div>
-                  <div className='col-span-1 text-center'>=</div>
-                  <div className='col-span-8 text-left break-all'>{value}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {ortRun.jobConfigs.parameters &&
-            Object.keys(ortRun.jobConfigs.parameters).length > 0 && (
+          {(() => {
+            const labels = ortRun.labels;
+            const hasLabels = Object.keys(labels).length > 0;
+            return (
               <div className='text-sm'>
-                <Label className='font-semibold'>Parameters:</Label>{' '}
-                {Object.entries(ortRun.jobConfigs.parameters).map(
-                  ([key, value]) => (
+                <Label className='font-semibold'>Labels:</Label>{' '}
+                {hasLabels ? (
+                  Object.entries(labels).map(([key, value]) => (
                     <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
                       <div className='col-span-3 text-left break-all'>
                         {key}
@@ -96,28 +114,90 @@ const ConfigComponent = () => {
                         {value}
                       </div>
                     </div>
-                  )
+                  ))
+                ) : (
+                  <span className='text-muted-foreground ml-4 text-xs italic'>
+                    undefined
+                  </span>
                 )}
               </div>
-            )}
+            );
+          })()}
+          {(() => {
+            const parameters = ortRun.jobConfigs.parameters ?? {};
+            const hasParameters = Object.keys(parameters).length > 0;
+            return (
+              <div className='text-sm'>
+                <Label className='font-semibold'>Parameters:</Label>{' '}
+                {hasParameters ? (
+                  Object.entries(parameters).map(([key, value]) => (
+                    <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
+                      <div className='col-span-3 text-left break-all'>
+                        {key}
+                      </div>
+                      <div className='col-span-1 text-center'>=</div>
+                      <div className='col-span-8 text-left break-all'>
+                        {value}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <span className='text-muted-foreground ml-4 text-xs italic'>
+                    undefined
+                  </span>
+                )}
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
-      <div id='analyzer' className='scroll-mt-16'>
-        <AnalyzerJobDetails run={ortRun} />
-      </div>
-      <div id='advisor' className='scroll-mt-16'>
-        <AdvisorJobDetails run={ortRun} />
-      </div>
-      <div id='scanner' className='scroll-mt-16'>
-        <ScannerJobDetails run={ortRun} />
-      </div>
-      <div id='evaluator' className='scroll-mt-16'>
-        <EvaluatorJobDetails run={ortRun} />
-      </div>
-      <div id='reporter' className='scroll-mt-16'>
-        <ReporterJobDetails run={ortRun} />
-      </div>
-      <NotifierJobDetails run={ortRun} />
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center justify-between'>
+            <span>Job Configurations</span>
+            <Button
+              variant='ghost'
+              size='xs'
+              className='-mr-1.5'
+              onClick={() =>
+                setOpenSections((prev) =>
+                  prev.length === allJobValues.length ? [] : [...allJobValues]
+                )
+              }
+            >
+              {openSections.length === allJobValues.length ? (
+                <>
+                  Collapse all
+                  <ChevronsDownUp className='size-4' />
+                </>
+              ) : (
+                <>
+                  Expand all
+                  <ChevronsUpDown className='size-4' />
+                </>
+              )}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Accordion
+            type='multiple'
+            value={openSections}
+            onValueChange={setOpenSections}
+          >
+            {jobSections.map(({ value, title, Component }) => (
+              <AccordionItem key={value} value={value}>
+                <AccordionTrigger>
+                  <JobTitle title={title} job={getJob(ortRun, value)} />
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Component run={ortRun} />
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
     </div>
   );
 };
