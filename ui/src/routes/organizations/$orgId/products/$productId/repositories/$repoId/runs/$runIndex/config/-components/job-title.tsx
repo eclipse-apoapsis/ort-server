@@ -44,28 +44,28 @@ type JobTitleProps = {
 
 export const JobTitle = ({ title, job }: JobTitleProps) => {
   return (
-    <div className='flex items-center gap-2'>
-      {title}
+    <div className='grid grid-cols-[6rem_auto_1fr] items-center gap-2'>
+      <span>{title}</span>
       <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
         {job?.status || 'NOT RUN'}
       </Badge>
-      {job?.startedAt && (
-        <>
-          {job.finishedAt ? (
-            <div className='text-muted-foreground flex items-center gap-1'>
+      <span className='text-muted-foreground'>
+        {job?.startedAt &&
+          (job.finishedAt ? (
+            <span className='flex items-center gap-1'>
               in
               <RunDuration
                 createdAt={job.startedAt}
                 finishedAt={job.finishedAt}
               />
-            </div>
+            </span>
           ) : (
-            <div className='text-muted-foreground flex items-center'>
-              (<RunDuration createdAt={job.startedAt} finishedAt={undefined} />)
-            </div>
-          )}
-        </>
-      )}
+            <span className='flex items-center'>
+              (
+              <RunDuration createdAt={job.startedAt} finishedAt={undefined} />)
+            </span>
+          ))}
+      </span>
     </div>
   );
 };
