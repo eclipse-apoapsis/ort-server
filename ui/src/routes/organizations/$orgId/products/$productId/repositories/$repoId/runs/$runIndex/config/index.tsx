@@ -22,6 +22,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { jobSearchParameterSchema } from '@/schemas';
 import { Sha1Component } from '@/components/sha1-component';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -124,6 +125,7 @@ const ConfigComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config/'
 )({
+  validateSearch: jobSearchParameterSchema,
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
       ...getRepositoryRunOptions({
