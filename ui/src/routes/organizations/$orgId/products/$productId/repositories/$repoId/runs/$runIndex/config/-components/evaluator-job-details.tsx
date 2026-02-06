@@ -19,72 +19,60 @@
 
 import { OrtRun } from '@/api';
 import { RenderProperty } from '@/components/render-property';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { JobTitle } from './job-title';
 
 type EvaluatorJobDetailsProps = {
   run: OrtRun;
 };
 
 export const EvaluatorJobDetails = ({ run }: EvaluatorJobDetailsProps) => {
-  const job = run.jobs.evaluator;
   const jobConfigs = run.resolvedJobConfigs?.evaluator;
 
+  if (!jobConfigs) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <JobTitle title='Evaluator' job={job} />
-        </CardTitle>
-      </CardHeader>
-      {jobConfigs && (
-        <CardContent>
-          <div className='flex flex-col gap-4 text-sm'>
-            <RenderProperty
-              label='Ruleset'
-              value={run.resolvedJobConfigs?.ruleSet}
-              showIfEmpty={false}
-            />
-            {jobConfigs.packageConfigurationProviders && (
-              <div className='space-y-2'>
-                <Label className='font-semibold'>
-                  Package configuration providers
-                </Label>
-                {jobConfigs.packageConfigurationProviders.map((provider) => (
-                  <div className='ml-2' key={provider.id}>
-                    <Label className='font-semibold'>{provider.type}</Label>
-                    <div className='ml-2'>
-                      <RenderProperty
-                        label='Id'
-                        value={provider.id}
-                        showIfEmpty={false}
-                      />
-                      <RenderProperty
-                        label='Enabled'
-                        value={provider.enabled}
-                        showIfEmpty={false}
-                      />
-                      <RenderProperty
-                        label='Options'
-                        value={provider.options}
-                        type='keyvalue'
-                        showIfEmpty={false}
-                      />
-                      <RenderProperty
-                        label='Secrets'
-                        value={provider.secrets}
-                        type='keyvalue'
-                        showIfEmpty={false}
-                      />
-                    </div>
-                  </div>
-                ))}
+    <div className='ml-4 flex flex-col gap-4 text-sm'>
+      <RenderProperty
+        label='Ruleset'
+        value={run.resolvedJobConfigs?.ruleSet}
+        showIfEmpty={false}
+      />
+      {jobConfigs.packageConfigurationProviders && (
+        <div className='space-y-2'>
+          <Label className='font-semibold'>
+            Package configuration providers
+          </Label>
+          {jobConfigs.packageConfigurationProviders.map((provider) => (
+            <div className='ml-2' key={provider.id}>
+              <Label className='font-semibold'>{provider.type}</Label>
+              <div className='ml-2'>
+                <RenderProperty
+                  label='Id'
+                  value={provider.id}
+                  showIfEmpty={false}
+                />
+                <RenderProperty
+                  label='Enabled'
+                  value={provider.enabled}
+                  showIfEmpty={false}
+                />
+                <RenderProperty
+                  label='Options'
+                  value={provider.options}
+                  type='keyvalue'
+                  showIfEmpty={false}
+                />
+                <RenderProperty
+                  label='Secrets'
+                  value={provider.secrets}
+                  type='keyvalue'
+                  showIfEmpty={false}
+                />
               </div>
-            )}
-          </div>
-        </CardContent>
+            </div>
+          ))}
+        </div>
       )}
-    </Card>
+    </div>
   );
 };

@@ -19,36 +19,24 @@
 
 import { OrtRun } from '@/api';
 import { RenderProperty } from '@/components/render-property';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { JobTitle } from './job-title';
 
 type NotifierJobDetailsProps = {
   run: OrtRun;
 };
 
 export const NotifierJobDetails = ({ run }: NotifierJobDetailsProps) => {
-  const job = run.jobs.notifier;
   const jobConfigs = run.resolvedJobConfigs?.notifier;
 
+  if (!jobConfigs) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <JobTitle title='Notifier' job={job} />
-        </CardTitle>
-      </CardHeader>
-      {jobConfigs && (
-        <CardContent>
-          <div className='flex flex-col gap-4 text-sm'>
-            <RenderProperty
-              label='Recipient addresses'
-              value={jobConfigs.recipientAddresses}
-              type='array'
-              showIfEmpty={false}
-            />
-          </div>
-        </CardContent>
-      )}
-    </Card>
+    <div className='ml-4 flex flex-col gap-4 text-sm'>
+      <RenderProperty
+        label='Recipient addresses'
+        value={jobConfigs.recipientAddresses}
+        type='array'
+        showIfEmpty={false}
+      />
+    </div>
   );
 };
