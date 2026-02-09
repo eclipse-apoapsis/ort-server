@@ -72,7 +72,7 @@ const columns = [
     cell: ({ row }) => {
       const groups = row.original.groups;
       let IconComponent;
-      let effectiveGroup = '';
+      let effectiveGroup;
       if (groups.includes('ADMINS')) {
         IconComponent = Shield;
         effectiveGroup = 'ADMINS';
