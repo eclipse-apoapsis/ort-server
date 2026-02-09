@@ -267,7 +267,14 @@ class OrtRunServiceTest : WordSpec({
 
     "deleteOrtRun" should {
         "delete an ORT run" {
-            val ortRunId = createOrtRun()
+            val ortRunId = createOrtRun(
+                db = db,
+                vcsInfo = null,
+                processedVcsInfo = null,
+                nestedVcsInfo1 = createVcsInfo("https://example.com/repo1.git"),
+                nestedVcsInfo2 = createVcsInfo("https://example.com/repo2.git"),
+                fixtures
+            ).id
             val jobId = createReporterJob(ortRunId)
 
             val mockReportStorageService = mockk<ReportStorageService> {
