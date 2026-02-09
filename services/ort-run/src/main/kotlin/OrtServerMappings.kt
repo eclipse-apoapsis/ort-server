@@ -564,6 +564,7 @@ fun RepositoryAnalyzerConfiguration.mapToOrt() = OrtRepositoryAnalyzerConfigurat
 fun RepositoryConfiguration.mapToOrt() = OrtRepositoryConfiguration(
     analyzer = analyzerConfig?.mapToOrt(),
     excludes = excludes.mapToOrt(),
+    includes = includes.mapToOrt(),
     resolutions = resolutions.mapToOrt(),
     curations = curations.mapToOrt(),
     packageConfigurations = packageConfigurations.map(PackageConfiguration::mapToOrt),

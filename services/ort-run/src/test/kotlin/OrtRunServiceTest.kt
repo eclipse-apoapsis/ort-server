@@ -122,9 +122,12 @@ import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.VcsInfoCurationData
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.Includes
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
+import org.ossreviewtoolkit.model.config.PathInclude
+import org.ossreviewtoolkit.model.config.PathIncludeReason
 import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.utils.common.gibibytes
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression
@@ -668,7 +671,7 @@ class OrtRunServiceTest : WordSpec({
                 vcsInfo.mapToOrt(),
                 processedVcsInfo.mapToOrt(),
                 mapOf("nested-1" to nestedVcsInfo1.mapToOrt(), "nested-2" to nestedVcsInfo2.mapToOrt()),
-                OrtTestData.repository.config
+                repositoryConfigurationWithIncludes
             )
         }
 
@@ -1446,7 +1449,7 @@ private fun createOrtRun(
         }
     }
 
-    val repositoryConfiguration = OrtTestData.repository.config.mapToModel(fixtures.ortRun.id)
+    val repositoryConfiguration = repositoryConfigurationWithIncludes.mapToModel(fixtures.ortRun.id)
 
     fixtures.repositoryConfigurationRepository.create(
         ortRunId = ortRunDao.id.value,
@@ -1564,3 +1567,16 @@ private fun createScanResults(): Set<ScanResult> = setOf(
         additionalData = emptyMap()
     )
 )
+
+private val pathInclude = PathInclude(
+    pattern = "included/**",
+    reason = PathIncludeReason.OTHER,
+    comment = "Test path include."
+)
+private val includes = Includes(listOf(pathInclude))
+
+/**
+ * A repository configuration that contains path includes to test that the includes are correctly processed by the
+ * service under test.
+ */
+private val repositoryConfigurationWithIncludes = OrtTestData.repository.config.copy(includes = includes)
