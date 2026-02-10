@@ -30,8 +30,9 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
-import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
+import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -91,24 +92,31 @@ class ScannerWorker(
             val scannerRunResult = runner.run(context, ortResult, scannerJob.configuration, scannerRunId)
 
             val issues = scannerRunResult.extractIssues()
+            val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
+
+            val resolutionProvider = context.createResolutionProvider(ortResult, adminConfigService)
+
+            // Apply resolutions using the common function.
+            val allOrtIssues = allIssues.map { it.mapToOrt() }
+            val resolvedItems = resolveResolutionsWithMappings(
+                issues = allOrtIssues,
+                ruleViolations = emptyList(),
+                vulnerabilities = emptyList(),
+                resolutionProvider = resolutionProvider
+            )
+
             db.dbQuery {
                 getValidScannerJob(scannerJob.id)
                 ortRunService.finalizeScannerRun(
                     scannerRunResult.scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId),
                     issues
                 )
+                ortRunService.storeResolvedItems(scannerJob.ortRunId, resolvedItems)
             }
 
-            val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
-
-            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
-            val globalIssueResolutions = context.loadGlobalResolutions(adminConfigService).issues
-
-            val unresolvedIssues = allIssues
-                .map { issue -> issue.mapToOrt() }
-                .filter { issue ->
-                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
-                        globalIssueResolutions.none { it.matches(issue) }
+            // Calculate unresolved issues for logging.
+            val unresolvedIssues = allOrtIssues.filter { issue ->
+                issue.mapToModel() !in resolvedItems.issues.keys
             }
 
             logger.info(
