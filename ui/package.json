@@ -72,7 +72,7 @@
     "@tailwindcss/typography": "0.5.19",
     "@tanstack/router-cli": "1.158.4",
     "@tanstack/router-vite-plugin": "1.159.3",
-    "@types/node": "24.10.12",
+    "@types/node": "24.10.13",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.55.0",
