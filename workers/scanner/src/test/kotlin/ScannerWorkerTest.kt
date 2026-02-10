@@ -34,6 +34,7 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.time.Instant
 
@@ -48,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -71,6 +73,9 @@ import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.IssueResolution
+import org.ossreviewtoolkit.model.config.IssueResolutionReason
+import org.ossreviewtoolkit.model.config.Resolutions
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
@@ -91,6 +96,7 @@ private val scannerJob = ScannerJob(
     errorMessage = null
 )
 
+@Suppress("LargeClass")
 class ScannerWorkerTest : StringSpec({
     "A project should be scanned successfully" {
         val analyzerRun = mockk<AnalyzerRun>()
@@ -120,6 +126,7 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } returns scannerJob
             every { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -222,6 +229,7 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } returns scannerJob
             every { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -412,6 +420,7 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } returns scannerJob
             every { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -484,6 +493,7 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } returns scannerJob
             every { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -518,6 +528,231 @@ class ScannerWorkerTest : StringSpec({
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Success
+        }
+    }
+
+    "Resolved items should be stored for scanner issues" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { organizationId } returns ORGANIZATION_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigs } returns null
+            every { revision } returns "main"
+        }
+
+        val scannerIssue = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner",
+            message = "Scanner issue",
+            severity = Severity.ERROR,
+            affectedPath = "test/path"
+        )
+
+        val ortResult = OrtResult.EMPTY.copy(
+            repository = OrtResult.EMPTY.repository.copy(
+                config = OrtResult.EMPTY.repository.config.copy(
+                    resolutions = Resolutions(
+                        issues = listOf(
+                            IssueResolution(
+                                message = scannerIssue.message,
+                                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                                comment = "Scanner resolution."
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val resolvedItemsSlot = slot<ResolvedItemsResult>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { createScannerRun(any()) } returns mockk {
+                every { id } returns scannerJob.id
+            }
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getOrtRun(any()) } returns ortRun
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { getScannerJob(any()) } returns scannerJob
+            every { finalizeScannerRun(any(), any()) } returns mockk()
+            every { startScannerJob(any()) } returns scannerJob
+            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns ortRun
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val provenance = mockk<ArtifactProvenance>(relaxed = true)
+        val ortIdentifier = Identifier("type", "namespace", "name", "version")
+        val ortScannerRun = ScannerRun.EMPTY.copy(
+            scanners = mapOf(ortIdentifier to setOf("scanner1")),
+            scanResults = setOf(
+                ScanResult(
+                    provenance = provenance,
+                    scanner = mockk(relaxed = true),
+                    summary = ScanSummary(
+                        startTime = Instant.now(),
+                        endTime = Instant.now(),
+                        issues = emptyList()
+                    )
+                )
+            ),
+            provenances = setOf(
+                ProvenanceResolutionResult(packageProvenance = provenance, id = ortIdentifier)
+            )
+        )
+        val issuesMap = mapOf<Provenance, Set<OrtIssue>>(provenance to setOf(scannerIssue))
+
+        val runner = mockk<ScannerRunner> {
+            coEvery { run(context, any(), any(), any()) } returns OrtScannerResult(ortScannerRun, issuesMap)
+        }
+
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
+        val worker = ScannerWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            environmentService,
+            mockk(relaxed = true)
+        )
+
+        mockkTransaction {
+            val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
+
+            val resolvedIssue = resolvedItemsSlot.captured.issues.keys.single()
+            resolvedIssue.message shouldBe scannerIssue.message
+            resolvedIssue.source shouldBe scannerIssue.source
+            resolvedIssue.severity.name shouldBe scannerIssue.severity.name
+        }
+    }
+
+    "Resolved items should be stored even if no resolutions match for scanner issues" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { organizationId } returns ORGANIZATION_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigs } returns null
+            every { revision } returns "main"
+        }
+
+        val scannerIssue = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner",
+            message = "Unresolved scanner issue",
+            severity = Severity.ERROR,
+            affectedPath = "test/path"
+        )
+
+        val emptyResolutionsYaml = """
+            ---
+            issues: []
+            rule_violations: []
+            vulnerabilities: []
+        """.trimIndent()
+
+        val ortResult = OrtResult.EMPTY.copy(
+            repository = OrtResult.EMPTY.repository.copy(
+                config = OrtResult.EMPTY.repository.config.copy(
+                    resolutions = Resolutions()
+                )
+            )
+        )
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val resolvedItemsSlot = slot<ResolvedItemsResult>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { createScannerRun(any()) } returns mockk {
+                every { id } returns scannerJob.id
+            }
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getOrtRun(any()) } returns ortRun
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { getScannerJob(any()) } returns scannerJob
+            every { finalizeScannerRun(any(), any()) } returns mockk()
+            every { startScannerJob(any()) } returns scannerJob
+            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockk<ConfigManager> {
+                every { getFile(any(), any()) } returns ByteArrayInputStream(emptyResolutionsYaml.toByteArray())
+            }
+            every { this@mockk.ortRun } returns ortRun
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val provenance = mockk<ArtifactProvenance>(relaxed = true)
+        val ortIdentifier = Identifier("type", "namespace", "name", "version")
+        val ortScannerRun = ScannerRun.EMPTY.copy(
+            scanners = mapOf(ortIdentifier to setOf("scanner1")),
+            scanResults = setOf(
+                ScanResult(
+                    provenance = provenance,
+                    scanner = mockk(relaxed = true),
+                    summary = ScanSummary(
+                        startTime = Instant.now(),
+                        endTime = Instant.now(),
+                        issues = emptyList()
+                    )
+                )
+            ),
+            provenances = setOf(
+                ProvenanceResolutionResult(packageProvenance = provenance, id = ortIdentifier)
+            )
+        )
+        val issuesMap = mapOf<Provenance, Set<OrtIssue>>(provenance to setOf(scannerIssue))
+
+        val runner = mockk<ScannerRunner> {
+            coEvery { run(context, any(), any(), any()) } returns OrtScannerResult(ortScannerRun, issuesMap)
+        }
+
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
+        val worker = ScannerWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            environmentService,
+            mockk(relaxed = true)
+        )
+
+        mockkTransaction {
+            val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.FinishedWithIssues
+            resolvedItemsSlot.captured.issues shouldBe emptyMap()
         }
     }
 
