@@ -364,6 +364,41 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             storedResolvedIssues.size shouldBe 0
         }
 
+        "handle duplicate addResolutions calls without constraint violation" {
+            // This simulates both the evaluator and reporter calling storeResolvedItems()
+            // for the same ORT run with overlapping data.
+            val issue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "Duplicate test issue",
+                severity = Severity.WARNING
+            )
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue)
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = mapOf(issue to listOf(issueResolution1)),
+                ruleViolations = emptyMap(),
+                vulnerabilities = emptyMap()
+            )
+
+            // First call (e.g. evaluator)
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Second call with the same data (e.g. reporter) should not throw
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify only one mapping was stored (upsert, not duplicate)
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues.size shouldBe 1
+        }
+
         "handle same resolution matching multiple issues without constraint violation" {
             // Create two issues in the database
             val issue1 = Issue(
