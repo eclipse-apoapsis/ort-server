@@ -31,8 +31,9 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
-import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
+import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -119,14 +120,22 @@ internal class AnalyzerWorker(
             val analyzerRun = ortResult.analyzer
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
-            val allIssues = analyzerRun.result.getAllIssues().values.flatten()
+            // IMPORTANT: Use getAnalyzerIssues() to get ONLY analyzer issues, not all issues.
+            val allIssues = ortResult.getAnalyzerIssues().values.flatten()
 
-            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
-            val globalIssueResolutions = context.loadGlobalResolutions(adminConfigService).issues
+            val resolutionProvider = context.createResolutionProvider(ortResult, adminConfigService)
 
+            // Apply resolutions using the common function.
+            val resolvedItems = resolveResolutionsWithMappings(
+                issues = allIssues,
+                ruleViolations = emptyList(),
+                vulnerabilities = emptyList(),
+                resolutionProvider = resolutionProvider
+            )
+
+            // Calculate unresolved issues for logging.
             val unresolvedIssues = allIssues.filter { issue ->
-                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
-                        globalIssueResolutions.none { it.matches(issue) }
+                issue.mapToModel() !in resolvedItems.issues.keys
             }
 
             logger.info(
@@ -148,6 +157,7 @@ internal class AnalyzerWorker(
 
             db.dbQuery {
                 getValidAnalyzerJob(jobId)
+                ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
                 ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
             }
 
