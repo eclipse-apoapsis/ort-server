@@ -130,7 +130,11 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
 
                 // Store resolved item mapping if the issue was found in the run
                 if (ortRunIssueId != null) {
-                    ResolvedIssuesTable.insert {
+                    ResolvedIssuesTable.upsert(
+                        ResolvedIssuesTable.ortRunId,
+                        ResolvedIssuesTable.ortRunIssueId,
+                        ResolvedIssuesTable.issueResolutionId
+                    ) {
                         it[ResolvedIssuesTable.ortRunId] = ortRunId
                         it[ResolvedIssuesTable.ortRunIssueId] = ortRunIssueId
                         it[issueResolutionId] = issueResolutionDao.id.value
@@ -156,7 +160,11 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
 
                 // Store resolved item mapping if the rule violation was found
                 if (ruleViolationId != null) {
-                    ResolvedRuleViolationsTable.insert {
+                    ResolvedRuleViolationsTable.upsert(
+                        ResolvedRuleViolationsTable.ortRunId,
+                        ResolvedRuleViolationsTable.ruleViolationId,
+                        ResolvedRuleViolationsTable.ruleViolationResolutionId
+                    ) {
                         it[ResolvedRuleViolationsTable.ortRunId] = ortRunId
                         it[ResolvedRuleViolationsTable.ruleViolationId] = ruleViolationId
                         it[ruleViolationResolutionId] = ruleViolationResolutionDao.id.value
@@ -182,7 +190,12 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
 
                 // Store resolved item mappings for each vulnerability-identifier pair
                 vulnerabilityIdentifierPairs.forEach { (vulnId, identifierId) ->
-                    ResolvedVulnerabilitiesTable.insert {
+                    ResolvedVulnerabilitiesTable.upsert(
+                        ResolvedVulnerabilitiesTable.ortRunId,
+                        ResolvedVulnerabilitiesTable.vulnerabilityId,
+                        ResolvedVulnerabilitiesTable.identifierId,
+                        ResolvedVulnerabilitiesTable.vulnerabilityResolutionId
+                    ) {
                         it[ResolvedVulnerabilitiesTable.ortRunId] = ortRunId
                         it[vulnerabilityId] = vulnId
                         it[ResolvedVulnerabilitiesTable.identifierId] = identifierId
