@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
     alias(libs.plugins.kotlinSerialization)

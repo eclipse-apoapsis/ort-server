@@ -30,7 +30,6 @@ plugins {
 
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-application-conventions")
-    id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
     alias(libs.plugins.jib)
