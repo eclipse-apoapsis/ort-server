@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.common
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
@@ -29,7 +31,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
+import java.io.ByteArrayInputStream
 import java.io.IOException
+import java.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -39,7 +43,16 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+
+import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.IssueResolution
+import org.ossreviewtoolkit.model.config.IssueResolutionReason
+import org.ossreviewtoolkit.model.config.Resolutions
 
 class ExtensionsTest : WordSpec({
     data class ConfigClass(val name: String, val value: String)
@@ -306,6 +319,79 @@ class ExtensionsTest : WordSpec({
             }
 
             workerContext.resolvedConfigurationContext shouldBe Context(resolvedContext)
+        }
+    }
+
+    "createResolutionProvider" should {
+        "merge repository config and global resolutions" {
+            val repoIssueMessage = "repo issue"
+            val globalIssueMessage = "global issue"
+
+            val globalResolutionsYaml = """
+                ---
+                issues:
+                  - message: "$globalIssueMessage"
+                    reason: "CANT_FIX_ISSUE"
+                    comment: "Global resolution."
+            """.trimIndent()
+
+            val ortRun = mockk<OrtRun> {
+                every { resolvedJobConfigContext } returns null
+                every { organizationId } returns 1L
+                every { resolvedJobConfigs } returns null
+            }
+
+            val adminConfigService = mockk<AdminConfigService> {
+                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+            }
+
+            val workerContext = mockk<WorkerContext> {
+                every { this@mockk.ortRun } returns ortRun
+                every { this@mockk.configManager } returns mockk<ConfigManager> {
+                    every { getFile(any(), any()) } returns ByteArrayInputStream(globalResolutionsYaml.toByteArray())
+                }
+            }
+
+            val ortResult = OrtResult.EMPTY.copy(
+                repository = OrtResult.EMPTY.repository.copy(
+                    config = OrtResult.EMPTY.repository.config.copy(
+                        resolutions = Resolutions(
+                            issues = listOf(
+                                IssueResolution(
+                                    message = repoIssueMessage,
+                                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                                    comment = "Repo resolution."
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+
+            val resolutionProvider = workerContext.createResolutionProvider(ortResult, adminConfigService)
+
+            val repoIssue = Issue(
+                timestamp = Instant.now(),
+                source = "test",
+                message = repoIssueMessage,
+                severity = Severity.ERROR
+            )
+            val globalIssue = Issue(
+                timestamp = Instant.now(),
+                source = "test",
+                message = globalIssueMessage,
+                severity = Severity.ERROR
+            )
+            val unmatchedIssue = Issue(
+                timestamp = Instant.now(),
+                source = "test",
+                message = "unmatched issue",
+                severity = Severity.ERROR
+            )
+
+            resolutionProvider.getResolutionsFor(repoIssue).shouldNotBeEmpty()
+            resolutionProvider.getResolutionsFor(globalIssue).shouldNotBeEmpty()
+            resolutionProvider.getResolutionsFor(unmatchedIssue).shouldBeEmpty()
         }
     }
 })
