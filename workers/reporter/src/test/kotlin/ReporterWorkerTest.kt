@@ -162,6 +162,7 @@ class ReporterWorkerTest : StringSpec({
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeIssues(any(), any()) } just runs
             every { storeReporterRun(any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -279,6 +280,7 @@ class ReporterWorkerTest : StringSpec({
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
             every { storeIssues(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
             every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
         }
 
@@ -373,6 +375,7 @@ class ReporterWorkerTest : StringSpec({
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
             every { storeIssues(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
             every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
         }
 

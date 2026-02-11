@@ -31,8 +31,9 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
-import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
+import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -116,6 +117,18 @@ internal class ReporterWorker(
                 reports = reports
             )
 
+            val allIssues = reporterRunnerResult.issues
+            val reporterIssuesAsOrt = allIssues.map { it.mapToOrt() }
+
+            val resolutionProvider = context.createResolutionProvider(ortResult, adminConfigService)
+
+            val resolvedReporterItems = resolveResolutionsWithMappings(
+                issues = reporterIssuesAsOrt,
+                ruleViolations = emptyList(),
+                vulnerabilities = emptyList(),
+                resolutionProvider = resolutionProvider
+            )
+
             db.dbQuery {
                 ortRunService.storeReporterRun(reporterRun)
                 reporterRunnerResult.resolvedPackageConfigurations?.let {
@@ -127,18 +140,11 @@ internal class ReporterWorker(
                 reporterRunnerResult.issues.takeUnless { it.isEmpty() }?.let {
                     ortRunService.storeIssues(ortRun.id, it)
                 }
+                ortRunService.storeResolvedItems(ortRun.id, resolvedReporterItems)
             }
 
-            val allIssues = reporterRunnerResult.issues
-
-            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
-            val globalIssueResolutions = context.loadGlobalResolutions(adminConfigService).issues
-
-            val unresolvedIssues = allIssues
-                .map { issue -> issue.mapToOrt() }
-                .filter { issue ->
-                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
-                        globalIssueResolutions.none { it.matches(issue) }
+            val unresolvedIssues = reporterIssuesAsOrt.filter { issue ->
+                resolutionProvider.getResolutionsFor(issue).isEmpty()
             }
 
             logger.info(

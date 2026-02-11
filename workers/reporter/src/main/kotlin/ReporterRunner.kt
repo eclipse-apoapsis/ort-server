@@ -49,7 +49,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
-import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.OrtResult
@@ -123,7 +122,6 @@ class ReporterRunner(
         )
 
         var resolvedOrtResult = ortResult
-        var resolvedItems: ResolvedItemsResult? = null
 
         if (evaluatorConfig == null) {
             // Resolve package configurations if not already done by the evaluator.
@@ -156,14 +154,6 @@ class ReporterRunner(
             val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
 
             resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
-
-            // Compute resolved items mappings when evaluator didn't run.
-            resolvedItems = resolveResolutionsWithMappings(
-                issues = resolvedOrtResult.getIssues().values.flatten(),
-                ruleViolations = emptyList(), // No evaluator = no rule violations
-                vulnerabilities = resolvedOrtResult.getVulnerabilities().values.flatten(),
-                resolutionProvider = resolutionProvider
-            )
         }
 
         val howToFixTextProviderScript = context.configManager.readConfigFileWithDefault(
@@ -189,12 +179,12 @@ class ReporterRunner(
             howToFixTextProvider
         )
 
-        // Only return the package configurations and resolved items if they were not already resolved by
-        // the evaluator.
+        // Only return the package configurations if not already resolved by the evaluator.
+        // Resolved items are always null here; each worker resolves its own items.
         return ReporterRunnerResult(
             reportNames,
             resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
-            resolvedItems,
+            null,
             issues = issues
         )
     }
