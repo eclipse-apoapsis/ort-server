@@ -30,9 +30,7 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-      working-directory: website
+      run: pnpm -C website install --frozen-lockfile
 
     - name: Test build
-      run: pnpm build
-      working-directory: website
+      run: pnpm -C website build
