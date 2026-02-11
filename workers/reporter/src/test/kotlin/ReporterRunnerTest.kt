@@ -684,38 +684,28 @@ class ReporterRunnerTest : WordSpec({
             )
         }
 
-        "not return resolvedItems when evaluator ran" {
+        "not return resolvedItems as each worker resolves its own items" {
             val runner = createRunner(config = testReportConfig)
 
             val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
             mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
-            val result = runner.run(
+            val resultWithEvaluator = runner.run(
                 ortResult = OrtTestData.result,
                 config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
                 evaluatorConfig = EvaluatorJobConfiguration(),
                 mockContext()
             )
 
-            result.resolvedItems should beNull()
-        }
-
-        "return resolvedItems when evaluator did not run" {
-            val runner = createRunner(config = testReportConfig)
-
-            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
-            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
-
-            val result = runner.run(
+            val resultWithoutEvaluator = runner.run(
                 ortResult = OrtTestData.result,
                 config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
                 evaluatorConfig = null,
                 mockContext()
             )
 
-            result.resolvedItems shouldNot beNull()
-            // resolvedItems should have been computed when evaluator didn't run
-            result.resolvedItems!!.issues.isEmpty() shouldBe false
+            resultWithEvaluator.resolvedItems should beNull()
+            resultWithoutEvaluator.resolvedItems should beNull()
         }
 
         "download asset files" {
