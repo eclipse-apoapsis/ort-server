@@ -35,8 +35,11 @@ import io.mockk.spyk
 import io.mockk.unmockkAll
 
 import java.io.File
+import java.net.URI
 
 import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
@@ -45,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -53,8 +57,24 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
+import org.ossreviewtoolkit.model.AdvisorCapability
+import org.ossreviewtoolkit.model.AdvisorDetails
+import org.ossreviewtoolkit.model.AdvisorResult
+import org.ossreviewtoolkit.model.AdvisorRun
+import org.ossreviewtoolkit.model.AdvisorSummary
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
+import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.IssueResolution
+import org.ossreviewtoolkit.model.config.IssueResolutionReason
+import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.model.config.VulnerabilityResolution
+import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
+import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability
+import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference
+import org.ossreviewtoolkit.utils.common.enumSetOf
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
@@ -64,6 +84,7 @@ private const val ORGANIZATION_ID = 1L
 private const val REPOSITORY_ID = 1L
 private const val ORT_RUN_ID = 12L
 private const val TRACE_ID = "42"
+private const val TIME_STAMP_SECONDS = 1678119934L
 
 private val advisorJob = AdvisorJob(
     id = ADVISOR_JOB_ID,
@@ -103,6 +124,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getOrtRepositoryInformation(any()) } returns mockk()
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { storeAdvisorRun(any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -113,7 +135,7 @@ class AdvisorWorkerTest : StringSpec({
         val contextFactory = mockContextFactory(context)
 
         val runner = spyk(createRunner())
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
+        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -137,7 +159,8 @@ class AdvisorWorkerTest : StringSpec({
             mockk(),
             createRunner(),
             ortRunService,
-            mockContextFactory()
+            mockContextFactory(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -163,6 +186,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getOrtRepositoryInformation(any()) } returns mockk()
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { storeAdvisorRun(any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -177,7 +201,7 @@ class AdvisorWorkerTest : StringSpec({
            OrtTestData.result
         }
 
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
+        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -213,6 +237,7 @@ class AdvisorWorkerTest : StringSpec({
             every { getOrtRepositoryInformation(any()) } returns mockk()
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { storeAdvisorRun(any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -227,7 +252,7 @@ class AdvisorWorkerTest : StringSpec({
            OrtTestData.result
         }
 
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
+        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -241,6 +266,122 @@ class AdvisorWorkerTest : StringSpec({
         }
     }
 
+    "Resolved items should be stored for advisor issues and vulnerabilities" {
+        val advisorIssue = Issue(
+            timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+            source = "VulnerableCode",
+            message = "Advisor issue",
+            severity = Severity.ERROR
+        )
+        val advisorVulnerability = Vulnerability(
+            id = "CVE-2023-0001",
+            summary = "Test vulnerability.",
+            description = "Test vulnerability description.",
+            references = listOf(
+                VulnerabilityReference(
+                    url = URI.create("http://cve.example.org"),
+                    scoringSystem = "CVSS3",
+                    severity = "MEDIUM",
+                    score = 5.5f,
+                    vector = "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H"
+                )
+            )
+        )
+
+        val ortResult = OrtResult.EMPTY.copy(
+            analyzer = OrtAnalyzerRun.EMPTY,
+            repository = OrtResult.EMPTY.repository.copy(
+                config = OrtResult.EMPTY.repository.config.copy(
+                    resolutions = Resolutions(
+                        issues = listOf(
+                            IssueResolution(
+                                message = advisorIssue.message,
+                                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                                comment = "Advisor issue resolution."
+                            )
+                        ),
+                        vulnerabilities = listOf(
+                            VulnerabilityResolution(
+                                id = advisorVulnerability.id,
+                                reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
+                                comment = "Advisor vulnerability resolution."
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val advisorRunResult = OrtResult.EMPTY.copy(
+            advisor = AdvisorRun(
+                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                environment = OrtTestData.environment,
+                config = OrtTestData.advisorConfiguration,
+                results = sortedMapOf(
+                    Identifier("Maven:com.example:package:1.0") to listOf(
+                        AdvisorResult(
+                            advisor = AdvisorDetails(
+                                name = "VulnerableCode",
+                                capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
+                            ),
+                            summary = AdvisorSummary(
+                                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                                issues = listOf(advisorIssue)
+                            ),
+                            defects = emptyList(),
+                            vulnerabilities = listOf(advisorVulnerability)
+                        )
+                    )
+                )
+            )
+        )
+
+        val ortRun = mockOrtRun()
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val resolvedItemsSlot = slot<ResolvedItemsResult>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorJob(any()) } returns advisorJob
+            every { getAnalyzerRunForOrtRun(any()) } returns OrtTestData.analyzerRun.mapToModel(ANALYZER_JOB_ID)
+            every { startAdvisorJob(any()) } returns advisorJob
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { storeAdvisorRun(any()) } just runs
+            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+            every { this@mockk.configManager } returns mockConfigManager()
+            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val runner = spyk(createRunner())
+        coEvery { runner.run(any(), any(), any()) } coAnswers { advisorRunResult }
+
+        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
+
+        mockkTransaction {
+            val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
+
+            val resolvedIssue = resolvedItemsSlot.captured.issues.keys.single()
+            resolvedIssue.message shouldBe advisorIssue.message
+            resolvedIssue.source shouldBe advisorIssue.source
+            resolvedIssue.severity.name shouldBe advisorIssue.severity.name
+
+            val resolvedVuln = resolvedItemsSlot.captured.vulnerabilities.keys.single()
+            resolvedVuln.externalId shouldBe advisorVulnerability.id
+        }
+    }
+
     "An ignore result should be returned for an invalid job" {
         val invalidJob = advisorJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
@@ -251,7 +392,8 @@ class AdvisorWorkerTest : StringSpec({
             mockk(),
             createRunner(),
             ortRunService,
-            mockContextFactory()
+            mockContextFactory(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
