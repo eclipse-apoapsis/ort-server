@@ -148,9 +148,9 @@ class EvaluatorRunner(
         val evaluatorRun = evaluator.run(script)
 
         val resolvedItems = resolveResolutionsWithMappings(
-            issues = resolvedOrtResult.getIssues().values.flatten(),
+            issues = emptyList(),
             ruleViolations = evaluatorRun.violations,
-            vulnerabilities = resolvedOrtResult.getVulnerabilities().values.flatten(),
+            vulnerabilities = emptyList(),
             resolutionProvider = resolutionProvider
         )
 

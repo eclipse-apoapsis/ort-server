@@ -276,7 +276,7 @@ class EvaluatorRunnerTest : WordSpec({
             }
         }
 
-        "use the resolutions from the repository configuration and resolutions file" {
+        "only resolve rule violations, not issues or vulnerabilities" {
             adminConfigService.initRuleSet(testRuleSet)
 
             val result = runner.run(
@@ -285,9 +285,9 @@ class EvaluatorRunnerTest : WordSpec({
                 createWorkerContext()
             )
 
-            // Check that resolvedItems is not empty when resolutions exist
             result.resolvedItems shouldNotBe null
-            result.resolvedItems.issues.isEmpty() shouldBe false
+            result.resolvedItems.issues shouldBe emptyMap()
+            result.resolvedItems.vulnerabilities shouldBe emptyMap()
         }
     }
 })
