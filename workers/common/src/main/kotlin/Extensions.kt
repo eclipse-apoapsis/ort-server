@@ -30,8 +30,11 @@ import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.fromYaml
+import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
+import org.ossreviewtoolkit.model.utils.ResolutionProvider
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 import org.slf4j.Logger
@@ -172,4 +175,17 @@ fun WorkerContext.loadGlobalResolutions(adminConfigService: AdminConfigService):
         Resolutions(),
         resolvedConfigurationContext
     )
+}
+
+/**
+ * Create a [ResolutionProvider] that merges the resolutions from the [ortResult]'s repository configuration with
+ * the global resolutions loaded from the configuration file.
+ */
+fun WorkerContext.createResolutionProvider(
+    ortResult: OrtResult,
+    adminConfigService: AdminConfigService
+): ResolutionProvider {
+    val resolutionsFromOrtResult = ortResult.repository.config.resolutions
+    val globalResolutions = loadGlobalResolutions(adminConfigService)
+    return DefaultResolutionProvider(resolutionsFromOrtResult.merge(globalResolutions))
 }
