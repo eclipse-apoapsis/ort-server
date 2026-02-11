@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -27,6 +28,8 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
+import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -42,7 +45,8 @@ internal class AdvisorWorker(
     private val db: Database,
     private val runner: AdvisorRunner,
     private val ortRunService: OrtRunService,
-    private val contextFactory: WorkerContextFactory
+    private val contextFactory: WorkerContextFactory,
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAdvisorJob(jobId)
@@ -76,24 +80,40 @@ internal class AdvisorWorker(
                 ).advisor
             ) { "ORT Adviser failed to create a result." }
 
+            val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
+            val allVulnerabilities = advisorRun.results.values.flatten().flatMap { it.vulnerabilities }
+
+            val resolutionProvider = workerContext.createResolutionProvider(ortResult, adminConfigService)
+
+            // Apply resolutions using the common function for both issues AND vulnerabilities.
+            val resolvedItems = resolveResolutionsWithMappings(
+                issues = allIssues,
+                ruleViolations = emptyList(),
+                vulnerabilities = allVulnerabilities,
+                resolutionProvider = resolutionProvider
+            )
+
             db.dbQuery {
                 getValidAdvisorJob(jobId)
+                ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
                 ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
             }
 
-            val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
-
-            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
-
-            // It is only about technical issues here, and NOT about vulnerabilities, because the evaluation if
-            // a vulnerability of a given severity should trigger a policy violation is done in the Evaluator stage.
+            // Calculate unresolved issues for logging.
             val unresolvedIssues = allIssues.filter { issue ->
-                repositoryConfigIssueResolutions.none { it.matches(issue) }
+                issue.mapToModel() !in resolvedItems.issues.keys
+            }
+
+            // Calculate unresolved vulnerabilities for logging.
+            val unresolvedVulnerabilities = allVulnerabilities.filter { vulnerability ->
+                vulnerability.mapToModel() !in resolvedItems.vulnerabilities.keys
             }
 
             logger.info(
                 "Advisor job ${job.id} finished with ${allIssues.size} total issues " +
-                        "and ${unresolvedIssues.size} unresolved issues."
+                        "and ${unresolvedIssues.size} unresolved issues, " +
+                        "${allVulnerabilities.size} total vulnerabilities " +
+                        "and ${unresolvedVulnerabilities.size} unresolved vulnerabilities."
             )
 
             if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
