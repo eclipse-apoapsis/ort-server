@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
+import { formatFileSize } from '@/helpers/format-file-size';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 
@@ -120,6 +121,8 @@ const SBOMComponent = () => {
     (filename) => filename.toLowerCase().includes('cyclonedx')
   );
 
+  const sizesMap = ortRun.jobs.reporter?.reportSizesInBytes;
+
   const systemMode = window.matchMedia('(prefers-color-scheme: dark)').matches
     ? 'dark'
     : 'light';
@@ -153,27 +156,39 @@ const SBOMComponent = () => {
           </CardHeader>
           <div className='flex justify-around gap-2 pb-6'>
             {cycloneDxReports && cycloneDxReports.length > 0
-              ? cycloneDxReports.map((filename) => (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div key={filename}>
-                        <Button
-                          variant='outline'
-                          className='h-auto font-semibold whitespace-normal text-blue-400'
-                          onClick={() => handleDownload(ortRun.id, filename)}
-                        >
-                          <Download />
-                          {filename.includes('json') ? 'JSON' : 'XML'}
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Click to download in
-                      {filename.includes('json') ? ' JSON ' : ' XML '}
-                      format
-                    </TooltipContent>
-                  </Tooltip>
-                ))
+              ? cycloneDxReports.map((filename) => {
+                  const sizeBytes =
+                    sizesMap && filename in sizesMap
+                      ? sizesMap[filename]
+                      : undefined;
+                  const format = filename.includes('json') ? 'JSON' : 'XML';
+                  const sizeLabel =
+                    sizeBytes !== undefined
+                      ? formatFileSize(sizeBytes)
+                      : 'Unknown size';
+                  return (
+                    <Tooltip key={filename}>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Button
+                            variant='outline'
+                            className='h-auto font-semibold whitespace-normal text-blue-400'
+                            onClick={() => handleDownload(ortRun.id, filename)}
+                          >
+                            <Download />
+                            {format}
+                            <span className='text-muted-foreground text-xs font-normal'>
+                              {sizeLabel}
+                            </span>
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Click to download in {format} format
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })
               : 'No CycloneDX reports available.'}
           </div>
 
@@ -200,27 +215,39 @@ const SBOMComponent = () => {
           </CardHeader>
           <div className='flex justify-around gap-2 pb-6'>
             {spdxReports && spdxReports.length > 0
-              ? spdxReports.map((filename) => (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div key={filename}>
-                        <Button
-                          variant='outline'
-                          className='h-auto font-semibold whitespace-normal text-blue-400'
-                          onClick={() => handleDownload(ortRun.id, filename)}
-                        >
-                          <Download />
-                          {filename.includes('json') ? 'JSON' : 'YAML'}
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Click to download in
-                      {filename.includes('json') ? ' JSON ' : ' YAML '}
-                      format
-                    </TooltipContent>
-                  </Tooltip>
-                ))
+              ? spdxReports.map((filename) => {
+                  const sizeBytes =
+                    sizesMap && filename in sizesMap
+                      ? sizesMap[filename]
+                      : undefined;
+                  const format = filename.includes('json') ? 'JSON' : 'YAML';
+                  const sizeLabel =
+                    sizeBytes !== undefined
+                      ? formatFileSize(sizeBytes)
+                      : 'Unknown size';
+                  return (
+                    <Tooltip key={filename}>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Button
+                            variant='outline'
+                            className='h-auto font-semibold whitespace-normal text-blue-400'
+                            onClick={() => handleDownload(ortRun.id, filename)}
+                          >
+                            <Download />
+                            {format}
+                            <span className='text-muted-foreground text-xs font-normal'>
+                              {sizeLabel}
+                            </span>
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Click to download in {format} format
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })
               : 'No SPDX reports available.'}
           </div>
 
