@@ -176,7 +176,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val runnerResult = ReporterRunnerResult(
-            reports = setOf("report.html"),
+            reports = mapOf("report.html" to 12345L),
             resolvedPackageConfigurations = null,
             resolvedItems = null,
             issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.HINT))
@@ -216,7 +216,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
-            Report("report.html", link.downloadLink, link.expirationTime)
+            Report("report.html", link.downloadLink, link.expirationTime, 12345L)
         )
     }
 
@@ -295,7 +295,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val runnerResult = ReporterRunnerResult(
-            reports = setOf("report.html"),
+            reports = mapOf("report.html" to 12345L),
             resolvedPackageConfigurations = null,
             resolvedItems = null,
             issues = listOf(OrtTestData.issue.mapToModel())
@@ -335,7 +335,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
-            Report("report.html", link.downloadLink, link.expirationTime)
+            Report("report.html", link.downloadLink, link.expirationTime, 12345L)
         )
     }
 
@@ -390,7 +390,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val runnerResult = ReporterRunnerResult(
-            reports = setOf("report.html"),
+            reports = mapOf("report.html" to 12345L),
             resolvedPackageConfigurations = null,
             resolvedItems = null,
             issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
@@ -430,7 +430,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
-            Report("report.html", link.downloadLink, link.expirationTime)
+            Report("report.html", link.downloadLink, link.expirationTime, 12345L)
         )
     }
 
@@ -483,7 +483,7 @@ class ReporterWorkerTest : StringSpec({
 
         val resolvedItems = ResolvedItemsResult.EMPTY
         val runnerResult = ReporterRunnerResult(
-            reports = setOf("report.html"),
+            reports = mapOf("report.html" to 12345L),
             resolvedPackageConfigurations = emptyList(),
             resolvedItems = resolvedItems,
             issues = emptyList()

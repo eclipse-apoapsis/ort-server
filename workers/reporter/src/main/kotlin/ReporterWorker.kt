@@ -107,7 +107,9 @@ internal class ReporterWorker(
 
             val endTime = Clock.System.now()
 
-            val reports = reporterRunnerResult.reports.map { toReport(it, job.ortRunId) }
+            val reports = reporterRunnerResult.reports.map { (filename, size) ->
+                toReport(filename, size, job.ortRunId)
+            }
 
             val reporterRun = ReporterRun(
                 id = -1L,
@@ -178,8 +180,8 @@ internal class ReporterWorker(
     /**
      * Create a [Report] for the given [file] and [runId] together with a link to download it.
      */
-    private fun toReport(file: String, runId: Long): Report {
+    private fun toReport(file: String, sizeInBytes: Long, runId: Long): Report {
         val reportToken = linkGenerator.generateLink(runId)
-        return Report(file, reportToken.downloadLink, reportToken.expirationTime)
+        return Report(file, reportToken.downloadLink, reportToken.expirationTime, sizeInBytes)
     }
 }
