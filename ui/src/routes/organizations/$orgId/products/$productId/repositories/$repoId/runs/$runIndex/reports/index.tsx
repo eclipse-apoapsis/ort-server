@@ -32,6 +32,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { config } from '@/config';
+import { formatFileSize } from '@/helpers/format-file-size';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 
@@ -118,17 +119,31 @@ const ReportComponent = () => {
                   !filename.toLowerCase().includes('spdx') &&
                   !filename.toLowerCase().includes('cyclonedx')
               )
-              .map((filename) => (
-                <div key={filename} className='flex flex-col pb-2'>
-                  <Button
-                    variant='outline'
-                    className='h-auto font-semibold whitespace-normal text-blue-400'
-                    onClick={() => handleDownload(ortRun.id, filename)}
-                  >
-                    <div className='break-all'>{filename}</div>
-                  </Button>
-                </div>
-              ))
+              .map((filename) => {
+                const sizesMap = ortRun.jobs.reporter?.reportSizesInBytes;
+                const sizeBytes =
+                  sizesMap && filename in sizesMap
+                    ? sizesMap[filename]
+                    : undefined;
+                return (
+                  <div key={filename} className='flex flex-col pb-2'>
+                    <Button
+                      variant='outline'
+                      className='h-auto font-semibold whitespace-normal text-blue-400'
+                      onClick={() => handleDownload(ortRun.id, filename)}
+                    >
+                      <div className='break-all'>
+                        {filename}
+                        <span className='text-muted-foreground ml-2 text-xs font-normal'>
+                          {sizeBytes !== undefined
+                            ? formatFileSize(sizeBytes)
+                            : 'Unknown size'}
+                        </span>
+                      </div>
+                    </Button>
+                  </div>
+                );
+              })
           : 'No reports available.'}
       </CardContent>
     </Card>
