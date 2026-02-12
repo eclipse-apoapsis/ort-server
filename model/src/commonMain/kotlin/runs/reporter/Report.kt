@@ -32,5 +32,8 @@ data class Report(
     val downloadLink: String,
 
     /** The date until when the [downloadLink] is valid. */
-    val downloadTokenExpiryDate: Instant
+    val downloadTokenExpiryDate: Instant,
+
+    /** The size of the report file in bytes, or null if unknown (legacy data). */
+    val sizeInBytes: Long? = null
 )

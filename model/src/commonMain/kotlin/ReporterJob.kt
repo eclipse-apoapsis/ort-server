@@ -66,6 +66,12 @@ data class ReporterJob(
     val filenames: List<String>? = emptyList(),
 
     /**
+     * A map of report filename to file size in bytes for reports with known sizes.
+     * Legacy reports without stored sizes are omitted from this map.
+     */
+    val reportSizesInBytes: Map<String, Long> = emptyMap(),
+
+    /**
      * Job execution error message, if any.
      */
     override val errorMessage: String?
