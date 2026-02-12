@@ -214,7 +214,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         storage.write(key, reportData, "application/pdf")
 
         val reporterJob = dbExtension.fixtures.createReporterJob(ortRunId = run.id)
-        val report = Report(reportFile, "", Instant.fromEpochSeconds(0))
+        val report = Report(reportFile, "", Instant.fromEpochSeconds(0), sizeInBytes = 1024L)
         dbExtension.fixtures.reporterRunRepository.create(
             reporterJob.id,
             Clock.System.now() - 1.minutes,
