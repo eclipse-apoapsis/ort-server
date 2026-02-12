@@ -34,15 +34,11 @@ import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.unmockkAll
 
-import java.io.File
 import java.time.Instant as JavaInstant
 
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.config.ConfigException
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
@@ -65,9 +61,9 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactor
 
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.config.RuleViolationResolution
+import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.utils.ort.Environment
-import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
@@ -122,14 +118,8 @@ class EvaluatorWorkerTest : StringSpec({
             every { storeResolvedItems(any(), any()) } just runs
         }
 
-        val configManager = mockk<ConfigManager> {
-            every { getFile(any(), any()) } returns
-                    File("src/test/resources/resolutions.yml").inputStream()
-        }
-
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
-            every { this@mockk.configManager } returns configManager
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
         val contextFactory = mockContextFactory(context)
@@ -161,8 +151,7 @@ class EvaluatorWorkerTest : StringSpec({
             mockk(),
             runner,
             ortRunService,
-            contextFactory,
-            mockk(relaxed = true)
+            contextFactory
         )
 
         mockkTransaction {
@@ -183,20 +172,12 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val context = mockk<WorkerContext> {
-            every { this@mockk.ortRun } returns mockOrtRun()
-            every { this@mockk.configManager } returns mockk()
-            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
-        }
-        val contextFactory = mockContextFactory(context)
-
         val worker =
             EvaluatorWorker(
                 mockk(),
                 EvaluatorRunner(mockk(), mockk()),
                 ortRunService,
-                contextFactory,
-                mockk(relaxed = true)
+                mockk()
             )
 
         mockkTransaction {
@@ -235,19 +216,8 @@ class EvaluatorWorkerTest : StringSpec({
             every { storeResolvedItems(any(), any()) } just runs
         }
 
-        val configManager = mockk<ConfigManager> {
-            every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
-                    File("src/test/resources/example.rules.kts").readText()
-            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
-            every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
-                    File("src/test/resources/license-classifications.yml").inputStream()
-            every { getFile(any(), any()) } returns
-                    File("src/test/resources/resolutions.yml").inputStream()
-        }
-
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns mockOrtRun()
-            every { this@mockk.configManager } returns configManager
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
         val contextFactory = mockContextFactory(context)
@@ -260,8 +230,7 @@ class EvaluatorWorkerTest : StringSpec({
             mockk(),
             runner,
             ortRunService,
-            contextFactory,
-            mockk(relaxed = true)
+            contextFactory
         )
 
         mockkTransaction {
@@ -303,33 +272,33 @@ class EvaluatorWorkerTest : StringSpec({
             every { storeResolvedItems(any(), any()) } just runs
         }
 
-        val configManager = mockk<ConfigManager> {
-            every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
-                    File("src/test/resources/example.rules.kts").readText()
-            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
-            every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
-                    File("src/test/resources/license-classifications.yml").inputStream()
-            every { getFile(any(), any()) } returns
-                    File("src/test/resources/resolutions.yml").inputStream()
-            }
-
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
-            every { this@mockk.configManager } returns configManager
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
         val contextFactory = mockContextFactory(context)
 
+        val resolvedViolations = OrtTestData.evaluatorRun.violations.associateWith {
+            listOf(
+                RuleViolationResolution(
+                    message = ".*",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "Test rule violation resolution."
+                ).mapToModel()
+            )
+        }.mapKeys { (violation, _) -> violation.mapToModel() }
+
         val runner = spyk(EvaluatorRunner(mockk(), mockk()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
-            OrtTestData.evaluatorRun, emptyList(), ResolvedItemsResult.EMPTY
+            OrtTestData.evaluatorRun,
+            emptyList(),
+            ResolvedItemsResult(ruleViolations = resolvedViolations)
         )
         val worker = EvaluatorWorker(
             mockk(),
             runner,
             ortRunService,
-            contextFactory,
-            mockk(relaxed = true)
+            contextFactory
         )
 
         mockkTransaction {
@@ -349,20 +318,12 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val context = mockk<WorkerContext> {
-            every { this@mockk.ortRun } returns mockOrtRun()
-            every { this@mockk.configManager } returns mockk()
-            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
-        }
-        val contextFactory = mockContextFactory(context)
-
         val worker =
             EvaluatorWorker(
                 mockk(),
                 EvaluatorRunner(mockk(), mockk()),
                 ortRunService,
-                contextFactory,
-                mockk(relaxed = true)
+                mockk()
             )
 
         mockkTransaction {
