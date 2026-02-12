@@ -34,6 +34,7 @@ object ReportsTable : LongIdTable("reports") {
     val filename = text("report_filename")
     val downloadLink = text("download_link")
     val downloadTokenExpiryDate = timestamp("download_token_expiry_date")
+    val sizeInBytes = long("size_in_bytes").nullable()
 }
 
 class ReportDao(id: EntityID<Long>) : LongEntity(id) {
@@ -42,10 +43,12 @@ class ReportDao(id: EntityID<Long>) : LongEntity(id) {
     var filename by ReportsTable.filename
     var downloadLink by ReportsTable.downloadLink
     var downloadTokenExpiryDate by ReportsTable.downloadTokenExpiryDate
+    var sizeInBytes by ReportsTable.sizeInBytes
 
     fun mapToModel() = Report(
         filename = filename,
         downloadLink = downloadLink,
-        downloadTokenExpiryDate = downloadTokenExpiryDate
+        downloadTokenExpiryDate = downloadTokenExpiryDate,
+        sizeInBytes = sizeInBytes
     )
 }

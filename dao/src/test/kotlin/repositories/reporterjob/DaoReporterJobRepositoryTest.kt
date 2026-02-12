@@ -181,15 +181,42 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
             nonExpiredReports shouldBe emptyList()
         }
+
+        "get should expose reportSizesInBytes for reports with known sizes" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+            reporterJob.createRunWithReport(
+                Clock.System.now().toDatabasePrecision().plus(10.minutes),
+                sizeInBytes = 4096L
+            )
+
+            val dbEntry = reporterJobRepository.get(reporterJob.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry.reportSizesInBytes shouldBe mapOf("file.pdf" to 4096L)
+        }
+
+        "get should omit reports with null sizeInBytes from reportSizesInBytes" {
+            val reporterJob = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+            reporterJob.createRunWithReport(
+                Clock.System.now().toDatabasePrecision().plus(10.minutes),
+                sizeInBytes = null
+            )
+
+            val dbEntry = reporterJobRepository.get(reporterJob.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry.reportSizesInBytes shouldBe emptyMap()
+        }
     }
 
     /**
-     * Create a run for this [ReporterJob] that contains a test report with the given token [expiryTime].
+     * Create a run for this [ReporterJob] that contains a test report with the given token [expiryTime]
+     * and optional [sizeInBytes].
      */
-    private fun ReporterJob.createRunWithReport(expiryTime: Instant): Report {
+    private fun ReporterJob.createRunWithReport(expiryTime: Instant, sizeInBytes: Long? = null): Report {
         val refTime = Clock.System.now().toDatabasePrecision()
         val downloadLink = "https://reports.example.org/ap1/v1/runs/42/downloads/report/report-token"
-        val report = Report("file.pdf", downloadLink, expiryTime)
+        val report = Report("file.pdf", downloadLink, expiryTime, sizeInBytes = sizeInBytes)
         val runRepository = dbExtension.fixtures.reporterRunRepository
         runRepository.create(id, refTime, refTime, listOf(report))
 
