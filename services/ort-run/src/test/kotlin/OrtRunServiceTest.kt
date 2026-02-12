@@ -199,9 +199,9 @@ class OrtRunServiceTest : WordSpec({
     fun createReporterJob(ortRunId: Long): Long {
         val reporterJobId = fixtures.createReporterJob(ortRunId, ReporterJobConfiguration()).id
         val reports = listOf(
-            Report("abc123", "https://example.com/report/abc123", Clock.System.now()),
-            Report("def456", "https://example.com/report/def456", Clock.System.now()),
-            Report("ghi789", "https://example.com/report/ghi789", Clock.System.now())
+            Report("abc123", "https://example.com/report/abc123", Clock.System.now(), sizeInBytes = 100L),
+            Report("def456", "https://example.com/report/def456", Clock.System.now(), sizeInBytes = 200L),
+            Report("ghi789", "https://example.com/report/ghi789", Clock.System.now(), sizeInBytes = 300L)
         )
 
         fixtures.reporterRunRepository.create(
@@ -1117,8 +1117,8 @@ class OrtRunServiceTest : WordSpec({
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
                 reports = listOf(
-                    Report("report1.zip", "token1", Clock.System.now().toDatabasePrecision()),
-                    Report("report2.zip", "token2", Clock.System.now().toDatabasePrecision())
+                    Report("report1.zip", "token1", Clock.System.now().toDatabasePrecision(), sizeInBytes = 1024L),
+                    Report("report2.zip", "token2", Clock.System.now().toDatabasePrecision(), sizeInBytes = 2048L)
                 )
             )
 

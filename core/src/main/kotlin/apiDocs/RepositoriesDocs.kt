@@ -183,6 +183,11 @@ val jobs = Jobs(
                 "AsciiDoc_disclosure_document.pdf",
                 "AsciiDoc_vulnerability_report.pdf",
                 "scan-report-web-app.html"
+            ),
+            reportSizesInBytes = mapOf(
+                "AsciiDoc_disclosure_document.pdf" to 1048576L,
+                "AsciiDoc_vulnerability_report.pdf" to 524288L,
+                "scan-report-web-app.html" to 2097152L
             )
         )
     },
