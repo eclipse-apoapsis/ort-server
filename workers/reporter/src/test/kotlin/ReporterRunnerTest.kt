@@ -25,6 +25,7 @@ import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -215,7 +216,8 @@ class ReporterRunnerTest : WordSpec({
             )
             val result = runner.run(OrtResult.EMPTY, config, null, mockContext())
 
-            result.reports should containExactly("testReport.html")
+            result.reports.keys should containExactly("testReport.html")
+            result.reports.values.shouldBeSingleton { it >= 0L }
             result.issues should beEmpty()
 
             val slotReports = slot<Map<String, File>>()
@@ -441,7 +443,7 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.reports should containExactly(successReport.name)
+            result.reports.keys should containExactly(successReport.name)
             with(result.issues.single()) {
                 message shouldContain "Something went wrong"
                 message shouldContain failureReportFormat
@@ -472,7 +474,7 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.reports should containExactly(generatedReport.name)
+            result.reports.keys should containExactly(generatedReport.name)
             with(result.issues.single()) {
                 message shouldContain "No reporter found"
                 message shouldContain unsupportedReportFormat
@@ -507,7 +509,7 @@ class ReporterRunnerTest : WordSpec({
                 mockContext()
             )
 
-            result.reports should containExactly(generatedReport.name)
+            result.reports.keys should containExactly(generatedReport.name)
             with(result.issues.single()) {
                 message shouldContain "No reporter plugin found"
                 message shouldContain unsupportedPlugin
