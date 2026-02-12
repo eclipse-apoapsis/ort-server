@@ -74,6 +74,10 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
         configuration = configuration,
         status = status,
         filenames = reporterRun?.reports?.map { it.filename }?.sorted().orEmpty(),
+        reportSizesInBytes = reporterRun?.reports
+            ?.mapNotNull { report -> report.sizeInBytes?.let { report.filename to it } }
+            ?.toMap()
+            .orEmpty(),
         errorMessage = errorMessage
     )
 

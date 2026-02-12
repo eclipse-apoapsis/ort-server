@@ -40,8 +40,8 @@ class DaoReporterRunRepositoryTest : StringSpec({
 
     val time = Clock.System.now().toDatabasePrecision()
     val reports = listOf(
-        Report("file1.pdf", "token1", time.plus(10.minutes)),
-        Report("file2.pdf", "token2", time.minus(10.minutes))
+        Report("file1.pdf", "token1", time.plus(10.minutes), sizeInBytes = 1024L),
+        Report("file2.pdf", "token2", time.minus(10.minutes), sizeInBytes = 2048L)
     )
 
     beforeEach {
@@ -74,5 +74,18 @@ class DaoReporterRunRepositoryTest : StringSpec({
         val reporterRun = reporterRunRepository.create(reporterJob.id, time, time, reports)
 
         reporterRunRepository.get(reporterRun.id) shouldBe reporterRun
+    }
+
+    "create should handle reports with null sizeInBytes" {
+        val reportsWithNullSize = listOf(
+            Report("legacy.pdf", "token3", time.plus(10.minutes), sizeInBytes = null)
+        )
+
+        val reporterRun = reporterRunRepository.create(reporterJob.id, time, time, reportsWithNullSize)
+
+        val dbEntry = reporterRunRepository.get(reporterRun.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry.reports.single().sizeInBytes shouldBe null
     }
 })

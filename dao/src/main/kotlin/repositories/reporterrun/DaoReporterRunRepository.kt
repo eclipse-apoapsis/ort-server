@@ -46,6 +46,7 @@ class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository
                 filename = it.filename
                 downloadLink = it.downloadLink
                 downloadTokenExpiryDate = it.downloadTokenExpiryDate
+                sizeInBytes = it.sizeInBytes
             }
         }
 
