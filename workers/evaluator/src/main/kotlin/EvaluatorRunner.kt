@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsR
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
@@ -35,11 +36,9 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
-import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
-import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
@@ -47,7 +46,6 @@ import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePack
 import org.ossreviewtoolkit.utils.config.setPackageConfigurations
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 import org.slf4j.LoggerFactory
 
@@ -118,16 +116,7 @@ class EvaluatorRunner(
 
         val resolvedOrtResult = ortResult.setPackageConfigurations(packageConfigurationProvider)
 
-        val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
-
-        val resolutionsFromFile = workerContext.configManager.readConfigFileValueWithDefault(
-            path = ruleSet.resolutionsFile,
-            defaultPath = ORT_RESOLUTIONS_FILENAME,
-            fallbackValue = Resolutions(),
-            workerContext.resolvedConfigurationContext
-        )
-
-        val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+        val resolutionProvider = workerContext.createResolutionProvider(resolvedOrtResult, adminConfigService)
 
         // TODO: Make the hardcoded values below configurable.
         val licenseInfoResolver = LicenseInfoResolver(
