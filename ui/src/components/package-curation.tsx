@@ -182,6 +182,7 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                     label='Declared License Mapping'
                     value={curation.data.declaredLicenseMapping}
                     type='keyvalue'
+                    useArrowsInKeyValue
                     showIfEmpty={false}
                   />
                 )}

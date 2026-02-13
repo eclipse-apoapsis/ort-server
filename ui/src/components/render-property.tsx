@@ -24,6 +24,7 @@ type RenderPropertyProps<T> = {
   value: T | T[] | Record<string, unknown> | null | undefined;
   type?: 'string' | 'textblock' | 'array' | 'url' | 'keyvalue';
   showIfEmpty?: boolean;
+  useArrowsInKeyValue?: boolean;
 };
 
 export const RenderProperty = <T,>({
@@ -31,6 +32,7 @@ export const RenderProperty = <T,>({
   value,
   type = 'string',
   showIfEmpty = true,
+  useArrowsInKeyValue = false,
 }: RenderPropertyProps<T>) => {
   if (value || showIfEmpty) {
     switch (type) {
@@ -43,7 +45,11 @@ export const RenderProperty = <T,>({
               {label}
               {isEmpty && ':'}
             </div>
-            <FormattedValue value={value} type={type} />
+            <FormattedValue
+              value={value}
+              type={type}
+              useArrows={useArrowsInKeyValue}
+            />
           </div>
         );
       }

@@ -17,16 +17,20 @@
  * License-Filename: LICENSE
  */
 
+import { MoveRight } from 'lucide-react';
+
 import { valueOrNa } from '@/helpers/value-or-na'; // Adjust import path as needed
 
 type FormattedValueProps<T> = {
   value: T | T[] | Record<string, unknown> | null | undefined;
   type?: 'string' | 'array' | 'url' | 'keyvalue';
+  useArrows?: boolean;
 };
 
 export const FormattedValue = <T,>({
   value,
   type = 'string',
+  useArrows = false,
 }: FormattedValueProps<T>) => {
   const arrayFormat =
     type === 'array' || type === 'keyvalue' ? 'array' : 'string';
@@ -64,8 +68,12 @@ export const FormattedValue = <T,>({
             {entries
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([key, val], idx) => (
-                <div className='text-muted-foreground ml-2' key={idx}>
-                  {`${key}: ${String(val)}`}
+                <div
+                  className='text-muted-foreground ml-2 flex items-center gap-1'
+                  key={idx}
+                >
+                  {key} {useArrows ? <MoveRight size={16} /> : ':'}{' '}
+                  {String(val)}
                 </div>
               ))}
           </div>
