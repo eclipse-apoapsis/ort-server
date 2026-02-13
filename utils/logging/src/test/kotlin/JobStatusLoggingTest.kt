@@ -19,11 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.utils.logging
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.read.ListAppender
-
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
@@ -39,44 +34,16 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-import org.eclipse.apoapsis.ortserver.utils.logging.JobStatusLogging.JOB_STATUS_LOGGER_NAME
 import org.eclipse.apoapsis.ortserver.utils.logging.JobStatusLogging.runWithStatusLogging
 
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 class JobStatusLoggingTest : WordSpec({
-    val logger = LoggerFactory.getLogger(JOB_STATUS_LOGGER_NAME) as Logger
-    val listAppender = ListAppender<ILoggingEvent>().apply { start() }
-
-    beforeSpec {
-        logger.addAppender(listAppender)
-    }
-
-    afterSpec {
-        logger.detachAppender(listAppender)
-    }
-
-    beforeTest {
-        listAppender.list.clear()
-    }
-
-    /**
-     * Return the single log event created for the job status as a [JsonObject].
-     */
-    fun statusLog(): JsonObject {
-        val event = listAppender.list.single { it.level == Level.INFO }
-        event.loggerName shouldBe JOB_STATUS_LOGGER_NAME
-
-        return Json.parseToJsonElement(event.message).jsonObject
-    }
+    val logExtension = extension(StatusLoggingTestExtension())
 
     "runWithStatusLogging" should {
         "set the provided MDC elements" {
@@ -106,7 +73,7 @@ class JobStatusLoggingTest : WordSpec({
         "log status information for a successful job execution" {
             runWithStatusLogging("statusLoggingTest") {}
 
-            val status = statusLog()
+            val status = logExtension.statusLog()
             status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_SUCCESS
         }
 
@@ -119,7 +86,7 @@ class JobStatusLoggingTest : WordSpec({
 
             result shouldBe false
 
-            val status = statusLog()
+            val status = logExtension.statusLog()
             status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_FAILURE
             val error = status[JobStatusLogging.ERROR_KEY]?.jsonPrimitive?.content.orEmpty()
             error shouldContain exception::class.java.simpleName
@@ -132,7 +99,7 @@ class JobStatusLoggingTest : WordSpec({
                 builder.put("field2", JsonPrimitive(42))
             }
 
-            val status = statusLog()
+            val status = logExtension.statusLog()
             status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_SUCCESS
             status["field1"]?.jsonPrimitive?.content shouldBe "value1"
             status["field2"]?.jsonPrimitive?.int shouldBe 42
@@ -143,7 +110,7 @@ class JobStatusLoggingTest : WordSpec({
                 delay(10.milliseconds)
             }
 
-            val status = statusLog()
+            val status = logExtension.statusLog()
             val executionTime = status[JobStatusLogging.EXECUTION_TIME_KEY]?.jsonPrimitive?.int.shouldNotBeNull()
             executionTime shouldBeGreaterThanOrEqual 10
         }
@@ -151,7 +118,7 @@ class JobStatusLoggingTest : WordSpec({
         "provide a field for the completion time of the job" {
             runWithStatusLogging("statusLoggingCompletionTimeTest") {}
 
-            val status = statusLog()
+            val status = logExtension.statusLog()
             val completionTime = Instant.parse(
                 status[JobStatusLogging.TIMESTAMP_KEY]?.jsonPrimitive?.content.shouldNotBeNull()
             )
@@ -167,7 +134,7 @@ class JobStatusLoggingTest : WordSpec({
                 throw exception
             }
 
-            val status = statusLog()
+            val status = logExtension.statusLog()
             status[JobStatusLogging.TIMESTAMP_KEY].shouldNotBeNull()
             val executionTime = status[JobStatusLogging.EXECUTION_TIME_KEY]?.jsonPrimitive?.int.shouldNotBeNull()
             executionTime shouldBeGreaterThanOrEqual 0
