@@ -21,6 +21,8 @@ plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
+
+    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.utils"
@@ -29,6 +31,7 @@ dependencies {
     api(libs.kotlinxCoroutines)
 
     implementation(libs.kotlinxCoroutinesSlf4j)
+    implementation(libs.kotlinxSerializationJson)
     implementation(libs.logback)
     implementation(libs.slf4j)
 
