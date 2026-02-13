@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
-private const val ARTEMIS_CONTAINER = "quay.io/artemiscloud/activemq-artemis-broker:artemis.2.26.0"
+private const val ARTEMIS_CONTAINER = "quay.io/arkmq-org/activemq-artemis-broker:artemis.2.50.0"
 private const val ARTEMIS_PORT = 61616
 
 /**
