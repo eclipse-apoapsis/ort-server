@@ -18,6 +18,8 @@
  */
 
 plugins {
+    `java-test-fixtures`
+
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
@@ -37,4 +39,9 @@ dependencies {
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
+
+    testFixturesImplementation(libs.logback)
+    testFixturesImplementation(libs.kotestRunnerJunit5)
+    testFixturesImplementation(libs.kotlinxSerializationJson)
+    testFixturesImplementation(libs.slf4j)
 }
