@@ -27,8 +27,7 @@ import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.test.TestResult
-import io.kotest.extensions.testcontainers.TestContainerSpecExtension
-import io.kotest.extensions.testcontainers.toDataSource
+import io.kotest.extensions.testcontainers.JdbcDatabaseContainerSpecExtension
 
 import javax.sql.DataSource
 
@@ -66,10 +65,7 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
     lateinit var fixtures: Fixtures
 
     override suspend fun beforeSpec(spec: Spec) {
-        spec.install(TestContainerSpecExtension(postgres))
-
-        @Suppress("DEPRECATION")
-        dataSource = postgres.toDataSource {
+        dataSource = spec.install(JdbcDatabaseContainerSpecExtension(postgres)) {
             poolName = "integrationTestsConnectionPool"
             maximumPoolSize = 5
             schema = TEST_DB_SCHEMA
