@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.model.util.ProcessingResult
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
@@ -154,9 +155,10 @@ class OrtRunService(
 
     /**
      * Delete all ORT runs that are older than the given [before] timestamp. Runs are deleted from the database and
-     * their reports are deleted from storage.
+     * their reports are deleted from storage. Return a [ProcessingResult] with information about the runs that were
+     * processed.
      */
-    suspend fun deleteRunsCreatedBefore(before: Instant) {
+    suspend fun deleteRunsCreatedBefore(before: Instant): ProcessingResult {
         val runIds = ortRunRepository.findRunsBefore(before)
 
         logger.info("Deleting ${runIds.size} ORT runs older than $before.")
@@ -172,6 +174,8 @@ class OrtRunService(
         if (failureCount > 0) {
             logger.warn("Failed to delete $failureCount old ORT runs.")
         }
+
+        return ProcessingResult(runIds.size, failureCount)
     }
 
     /**
