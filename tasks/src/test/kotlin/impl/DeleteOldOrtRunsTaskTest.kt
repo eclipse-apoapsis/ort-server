@@ -27,9 +27,7 @@ import io.kotest.matchers.comparables.shouldBeLessThan
 
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import io.mockk.slot
 
 import kotlin.math.abs
@@ -38,6 +36,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.model.util.ProcessingResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 
 class DeleteOldOrtRunsTaskTest : StringSpec({
@@ -75,7 +74,7 @@ class DeleteOldOrtRunsTaskTest : StringSpec({
  */
 private fun createOrtRunService(): OrtRunService =
     mockk<OrtRunService> {
-    coEvery { deleteRunsCreatedBefore(any()) } just runs
+    coEvery { deleteRunsCreatedBefore(any()) } returns ProcessingResult(10, 0)
 }
 
 /**

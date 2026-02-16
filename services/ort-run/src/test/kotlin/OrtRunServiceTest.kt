@@ -360,11 +360,11 @@ class OrtRunServiceTest : WordSpec({
             delay(1000)
             fixtures.ortRunRepository.update(ortRunId3, OrtRunStatus.FINISHED.asPresent())
 
-            val finishedAt = fixtures.ortRunRepository.get(ortRunId3)?.finishedAt
-            finishedAt shouldNotBe null
-            finishedAt?.let {
-                service.deleteRunsCreatedBefore(it.minus(500.milliseconds))
-            }
+            val finishedAt = fixtures.ortRunRepository.get(ortRunId3)?.finishedAt.shouldNotBeNull()
+            val result = service.deleteRunsCreatedBefore(finishedAt - 500.milliseconds)
+
+            result.totalCount shouldBe 1
+            result.failedCount shouldBe 0
 
             fixtures.ortRunRepository.get(ortRunId1) shouldBe null
             // Run 2 is the latest run in the repository and is intentionally retained.
@@ -398,6 +398,31 @@ class OrtRunServiceTest : WordSpec({
             fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
             fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNotBe null
             fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
+        }
+
+        "return the number of failed delete operations" {
+            val (ortRunId1, ortRunId2, ortRunId3) = (1..4).map {
+                // Create 4 runs, since the last of the repository is kept.
+                fixtures.createOrtRun().let { run ->
+                    fixtures.ortRunRepository.update(run.id, OrtRunStatus.FINISHED.asPresent()).id
+                }
+            }
+            createReporterJob(ortRunId1)
+            createReporterJob(ortRunId2)
+            createReporterJob(ortRunId3)
+
+            val mockReportStorageService = mockk<ReportStorageService> {
+                coEvery { deleteReport(any() as Long, any() as String) } just Runs
+                coEvery {
+                    deleteReport(ortRunId2, any() as String)
+                } throws RuntimeException("Test exception: Cannot delete report.")
+            }
+
+            service = createService(mockReportStorageService)
+            val result = service.deleteRunsCreatedBefore(Clock.System.now() + 1.minutes)
+
+            result.totalCount shouldBe 3
+            result.failedCount shouldBe 1
         }
     }
 
