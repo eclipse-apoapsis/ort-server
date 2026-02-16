@@ -23,9 +23,12 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
+import kotlinx.serialization.json.JsonPrimitive
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.tasks.Task
+import org.eclipse.apoapsis.ortserver.utils.logging.JobStatusLogging
 
 import org.slf4j.LoggerFactory
 
@@ -46,6 +49,8 @@ class DeleteOldOrtRunsTask(
     private val ortRunMaxAgeThreshold: Instant
 ) : Task {
     companion object {
+        const val TASK_NAME = "deleteOldOrtRunsTask"
+
         private val logger = LoggerFactory.getLogger(DeleteOldOrtRunsTask::class.java)
 
         /**
@@ -59,8 +64,13 @@ class DeleteOldOrtRunsTask(
     }
 
     override suspend fun execute() {
-        logger.info("Deleting ORT runs that finished before $ortRunMaxAgeThreshold.")
+        JobStatusLogging.runWithStatusLogging(TASK_NAME) { jsonBuilder ->
+            logger.info("Deleting ORT runs that finished before $ortRunMaxAgeThreshold.")
 
-        ortRunService.deleteRunsCreatedBefore(ortRunMaxAgeThreshold)
+            val result = ortRunService.deleteRunsCreatedBefore(ortRunMaxAgeThreshold)
+
+            jsonBuilder.put(JobStatusLogging.PROCESSED_COUNT_KEY, JsonPrimitive(result.totalCount))
+            jsonBuilder.put(JobStatusLogging.FAILED_COUNT_KEY, JsonPrimitive(result.failedCount))
+        }
     }
 }

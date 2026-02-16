@@ -24,6 +24,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -35,11 +36,18 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.util.ProcessingResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.utils.logging.JobStatusLogging
+import org.eclipse.apoapsis.ortserver.utils.logging.StatusLoggingTestExtension
 
 class DeleteOldOrtRunsTaskTest : StringSpec({
+    val logExtension = extension(StatusLoggingTestExtension())
+
     "Old ORT runs should be deleted according to the configured retention policy" {
         val ortRunRetentionDays = 77
         val configMap = mapOf("dataRetention.ortRunDays" to ortRunRetentionDays.toString())
@@ -67,14 +75,32 @@ class DeleteOldOrtRunsTaskTest : StringSpec({
             checkDeleteInvocation(ortRunService, ortRunRetentionDays)
         }
     }
+
+    "A status log entry should be created for the execution of the task" {
+        val configMap = mapOf("dataRetention.ortRunDays" to "100")
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+        val ortRunService = createOrtRunService()
+
+        val task = DeleteOldOrtRunsTask.create(configManager, ortRunService)
+        task.execute()
+
+        val status = logExtension.statusLog()
+
+        status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_SUCCESS
+        status[JobStatusLogging.PROCESSED_COUNT_KEY]?.jsonPrimitive?.int shouldBe deletionResult.totalCount
+        status[JobStatusLogging.FAILED_COUNT_KEY]?.jsonPrimitive?.int shouldBe deletionResult.failedCount
+    }
 })
+
+/** The result to be returned by the [OrtRunService] mock when it is invoked to delete old ORT runs. */
+private val deletionResult = ProcessingResult(16, 1)
 
 /**
  * Create a mock for [OrtRunService] and prepare it to expect a call to delete old ORT runs.
  */
 private fun createOrtRunService(): OrtRunService =
     mockk<OrtRunService> {
-    coEvery { deleteRunsCreatedBefore(any()) } returns ProcessingResult(10, 0)
+    coEvery { deleteRunsCreatedBefore(any()) } returns deletionResult
 }
 
 /**

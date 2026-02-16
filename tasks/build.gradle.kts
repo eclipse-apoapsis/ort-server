@@ -50,6 +50,7 @@ dependencies {
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
+    implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
     implementation(libs.logback)
     implementation(libs.typesafeConfig)
@@ -61,6 +62,7 @@ dependencies {
     runtimeOnly(platform(projects.transport))
 
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.utils.logging))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.koinTest)
