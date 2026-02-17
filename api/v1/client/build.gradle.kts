@@ -43,6 +43,7 @@ kotlin {
                 implementation(ktorLibs.client.auth)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
+                implementation(libs.okio)
             }
         }
 

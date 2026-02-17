@@ -53,6 +53,13 @@ import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 private val proxyEnvironmentVariables = sequenceOf("HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy")
 
 /**
+ * Platform-specific configuration for the HTTP client engine to handle SSL certificates correctly.
+ * This is particularly important for native platforms (Linux with Curl engine) where the system trust store
+ * is not automatically used.
+ */
+internal expect fun HttpClientConfig<*>.configurePlatformSpecificSsl()
+
+/**
  * Create a default HTTP client with the given [json] configuration and [engine]. If no engine is provided, it will
  * choose the engine automatically based on the platform. If [maxRetriesOnTimeout] is greater than zero, the client
  * will retry requests that failed due to a timeout or received a 504 Gateway Timeout response up to the given
@@ -70,6 +77,9 @@ fun createDefaultHttpClient(
                 proxy = ProxyBuilder.http(proxyUrl)
             }
         }
+
+        // Configure platform-specific SSL settings.
+        configurePlatformSpecificSsl()
     }
 
     return client.config {
