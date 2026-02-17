@@ -25,7 +25,7 @@ jibPlugin = "3.5.3"
 kotlinPlugin = "2.3.10"
 kotlinxCoroutines = "1.10.2"
 kotlinxSerialization = "1.10.0"
-kspPlugin = "2.3.5"
+kspPlugin = "2.3.6"
 mavenPublishPlugin = "0.36.0"
 
 # Gradle dependencies
