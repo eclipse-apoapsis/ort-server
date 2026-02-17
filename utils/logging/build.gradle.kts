@@ -31,9 +31,9 @@ group = "org.eclipse.apoapsis.ortserver.utils"
 
 dependencies {
     api(libs.kotlinxCoroutines)
+    api(libs.kotlinxSerializationJson)
 
     implementation(libs.kotlinxCoroutinesSlf4j)
-    implementation(libs.kotlinxSerializationJson)
     implementation(libs.logback)
     implementation(libs.slf4j)
 
