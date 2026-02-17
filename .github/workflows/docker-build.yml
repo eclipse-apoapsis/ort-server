@@ -209,7 +209,6 @@ jobs:
           -Djib.baseImageCache=/mnt/jib-base-cache \
           -Djib.allowInsecureRegistries=true \
           -Djava.io.tmpdir=/mnt/tmp \
-          -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
           -Djib.to.tags="$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ',' | sed 's/,$//')"
         if [ "${{ env.IS_PR }}" = "false" ]; then
