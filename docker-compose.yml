@@ -597,7 +597,7 @@ services:
         tag: "ui"
 
   logstash:
-    image: grafana/logstash-output-loki:3.6.5
+    image: grafana/logstash-output-loki:3.6.6
     ports:
       - "12201:12201/udp"
     volumes:
