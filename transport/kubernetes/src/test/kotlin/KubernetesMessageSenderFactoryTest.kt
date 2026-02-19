@@ -47,6 +47,7 @@ private const val ARGS = "run \"all tests\" fast"
 private const val SECRET_MOUNTS =
     "secret1->/mnt/sec1|sub1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other | sub2\""
 private const val PVC_MOUNTS = "pvc1->/mnt/pvc1,R \"pvc2->/path/with/white space,W\" \"pvc3 -> /mnt/other,r\""
+private const val LABELS = "label1=value1 , label2 = value2"
 private const val SERVICE_ACCOUNT = "test_service_account"
 
 private val annotationVariables = mapOf(
@@ -74,6 +75,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.enableDebugLogging" to "true",
             "$keyPrefix.mountSecrets" to SECRET_MOUNTS,
             "$keyPrefix.mountPvcs" to PVC_MOUNTS,
+            "$keyPrefix.labels" to LABELS,
             "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
             "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT
         )
@@ -103,6 +105,10 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
                 PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
                 PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
                 PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
+            )
+            labels shouldContainExactly mapOf(
+                "label1" to "value1",
+                "label2" to "value2"
             )
             annotations shouldContainExactly mapOf(
                 "ort-server.org/test" to "true",
@@ -137,6 +143,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             restartPolicy shouldBe "OnFailure"
             imagePullSecret should beNull()
             secretVolumes should beEmpty()
+            labels.keys should beEmpty()
             annotations.keys should beEmpty()
             serviceAccountName should beNull()
             enableDebugLogging shouldBe false
@@ -183,6 +190,46 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
             PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
             PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
+        )
+    }
+
+    "Invalid labels are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val labels = "label1=value1 , invalid label, label2 = value2, =invalid, invalid="
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.labels" to labels
+        )
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+        sender.config.labels shouldContainExactly mapOf(
+            "label1" to "value1",
+            "label2" to "value2"
+        )
+    }
+
+    "Reserved labels are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val labels = "label1=value1,label2=value2,ort-worker=invalid,run-id=invalid,trace-id-0=invalid"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.labels" to labels
+        )
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+        sender.config.labels shouldContainExactly mapOf(
+            "label1" to "value1",
+            "label2" to "value2"
         )
     }
 

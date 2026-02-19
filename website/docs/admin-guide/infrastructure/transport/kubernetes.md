@@ -26,6 +26,7 @@ endpoint {
         commands = "/bin/sh"
         args = "-c java my.pkg.MyClass"
         mountSecrets = "server-secrets->/mnt/secrets server-certificates->/mnt/certificates"
+        labels = "label1=value1,label2=value2"
         annotationVariables = "ANNOTATION_VAR1, ANNOTATION_VAR2"
         serviceAccount = "my_service_account"
         cpuRequest = 250m
@@ -107,6 +108,14 @@ Each mount declaration has the form `secret→mountPath`, where `secret` is the 
 On this path, for each key of the secret a file is created whose content is the value of the key.
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
 This mechanism is useful not only for secrets but also for other kinds of external data that should be accessible from a pod, for instance, custom certificates.
+
+### `labels`
+
+**Default: `empty`**
+
+A comma-separated list of labels to be added to the job.
+Labels are key-value pairs and must have the form `key=value`.
+The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted automatically by the Kubernetes sender and cannot be overridden; matching entries in this list are ignored.
 
 ### `annotationVariables`
 
