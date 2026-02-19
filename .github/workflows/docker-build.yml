@@ -50,35 +50,35 @@ jobs:
         # skipWorkerBaseImage: Whether to skip building the worker base image.
         docker:
         - jibImage: core
-          task: :core:jibDockerBuild
+          task: :core:tinyJibDocker
         - jibImage: orchestrator
-          task: :orchestrator:jibDockerBuild
+          task: :orchestrator:tinyJibDocker
         - jibImage: maintenance-tasks
-          task: :tasks:jibDockerBuild
+          task: :tasks:tinyJibDocker
         - jibImage: advisor-worker
-          task: :workers:advisor:jibDockerBuild
+          task: :workers:advisor:tinyJibDocker
         - image: analyzer-worker-base-image
           context: workers/analyzer/docker
           dockerfile: Analyzer.Dockerfile
           jibImage: analyzer-worker
-          task: :workers:analyzer:jibDockerBuild
+          task: :workers:analyzer:tinyJibDocker
           freeDiskSpace: true
         - jibImage: config-worker
-          task: :workers:config:jibDockerBuild
+          task: :workers:config:tinyJibDocker
         - jibImage: evaluator-worker
-          task: :workers:evaluator:jibDockerBuild
+          task: :workers:evaluator:tinyJibDocker
         - jibImage: notifier-worker
-          task: :workers:notifier:jibDockerBuild
+          task: :workers:notifier:tinyJibDocker
         - image: reporter-worker-base-image
           context: workers/reporter/docker
           dockerfile: Reporter.Dockerfile
           jibImage: reporter-worker
-          task: :workers:reporter:jibDockerBuild
+          task: :workers:reporter:tinyJibDocker
         - image: scanner-worker-base-image
           context: workers/scanner/docker
           dockerfile: Scanner.Dockerfile
           jibImage: scanner-worker
-          task: :workers:scanner:jibDockerBuild
+          task: :workers:scanner:tinyJibDocker
         - preparationTask: :core:generateOpenApiSpec
           image: ui
           context: ui

@@ -52,13 +52,13 @@ You can also configure the tag which defaults to `latest`.
 
 ```shell
 # Publish all Docker images.
-./gradlew -PdockerImagePrefix=my.registry/ jib
+./gradlew -PdockerImagePrefix=my.registry/ tinyJibPublish
 
 # Publish one specific image.
-./gradlew -PdockerImagePrefix=my.registry/ :core:jib
+./gradlew -PdockerImagePrefix=my.registry/ :core:tinyJibPublish
 
 # Publish using a custom tag.
-./gradlew -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom jib
+./gradlew -PdockerImagePrefix=my.registry/ -PdockerImageTag=custom tinyJibPublish
 ```
 
 ## Generate OpenAPI specification

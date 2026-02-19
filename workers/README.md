@@ -48,7 +48,7 @@ Build the base image for the Analyzer. This is the same image as upstream ORT bu
 
 Build the Analyzer worker Docker image:
 
-```./gradlew :workers:analyzer:jibDockerBuild```
+```./gradlew :workers:analyzer:tinyJibDocker```
 
 Run the image:
 
@@ -85,7 +85,7 @@ Push the base image to the ACR:
 
 Build the Analyzer worker Docker image:
 
-```./gradlew :workers:analyzer:jibDockerBuild -Djib.from.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-baseimage-latest -Djib.to.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-latest -PworkerTool=analyzer```
+```./gradlew :workers:analyzer:tinyJibDocker -Djib.from.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-baseimage-latest -Djib.to.image=$ACR_NAME.azurecr.io/ort-server-worker:analyzer-latest -PworkerTool=analyzer```
 
 Push the Analyzer worker Docker image to the ACR:
 

@@ -17,8 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import com.google.cloud.tools.jib.gradle.JibTask
-
 val dockerImagePrefix: String by project
 val dockerImageTag: String by project
 val dockerBaseImagePrefix: String by project
@@ -32,11 +30,7 @@ plugins {
     id("ort-server-kotlin-jvm-application-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.jib)
-}
-
-tasks.withType<JibTask> {
-    notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
+    alias(libs.plugins.tinyJib)
 }
 
 group = "org.eclipse.apoapsis.ortserver.workers"
@@ -83,9 +77,20 @@ dependencies {
     testImplementation(libs.mockk)
 }
 
-jib {
-    from.image = "${dockerBaseImagePrefix}ort-server-reporter-worker-base-image:$dockerBaseImageTag"
-    to.image = "${dockerImagePrefix}ort-server-reporter-worker:$dockerImageTag"
+tinyJib {
+    // Support Jib system properties for compatibility.
+    System.getProperty("jib.applicationCache")?.also { applicationCache = File(it) }
+    System.getProperty("jib.baseImageCache")?.also { baseImageCache = File(it) }
+    System.getProperty("jib.allowInsecureRegistries")?.also { allowInsecureRegistries = it.toBooleanStrict() }
+    System.getProperty("jib.container.labels")?.also {
+        container.labels = it.split(',').associate { label -> label.substringBefore('=') to label.substringAfter('=') }
+    }
+
+    from.image = System.getProperty("jib.from.image")
+        ?: "${dockerBaseImagePrefix}ort-server-reporter-worker-base-image:$dockerBaseImageTag"
+
+    to.image = System.getProperty("jib.to.image")
+        ?: "${dockerImagePrefix}ort-server-reporter-worker:$dockerImageTag"
 
     container {
         mainClass = "org.eclipse.apoapsis.ortserver.workers.reporter.EntrypointKt"
