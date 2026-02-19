@@ -46,7 +46,7 @@ For interactive UI development with live-preview in the browser follow these ste
 If changes to the API were done during development, these are the minimum commands to rerun to reflect the changes (again from the project root):
 
 ```shell
-$ ./gradlew -PdockerImagePrefix=ghcr.io/eclipse-apoapsis/ -PdockerImageTag=main :core:jibDockerBuild
+$ ./gradlew -PdockerImagePrefix=ghcr.io/eclipse-apoapsis/ -PdockerImageTag=main :core:tinyJibDocker
 $ docker compose up -d core
 $ ./gradlew :core:generateOpenApiSpec
 $ pnpm -C ui generate:api

@@ -26,7 +26,7 @@ val containerEngineCommand: String by project
 
 plugins {
     alias(libs.plugins.gitSemver)
-    alias(libs.plugins.jib) apply false
+    alias(libs.plugins.tinyJib) apply false
 }
 
 semver {
@@ -153,12 +153,12 @@ tasks.register("buildAllImages") {
     group = "Docker"
     description = "Builds all Docker images for the backend and frontend."
 
-    val jibDockerBuilds = getTasksByName("jibDockerBuild", /* recursive = */ true).onEach {
+    val tinyJibDocker = getTasksByName("tinyJibDocker", /* recursive = */ true).onEach {
         it.dependsOn(":buildBaseWorkerImage")
         it.mustRunAfter(buildAllWorkerImages)
     }
 
     val uiDockerBuild = getTasksByName("buildUIImage", /* recursive = */ false).single()
 
-    dependsOn(buildAllWorkerImages, jibDockerBuilds, uiDockerBuild)
+    dependsOn(buildAllWorkerImages, tinyJibDocker, uiDockerBuild)
 }

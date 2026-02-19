@@ -21,7 +21,7 @@ buildConfigPlugin = "6.0.7"
 dependencyAnalysisPlugin = "3.5.1"
 detektPlugin = "2.0.0-alpha.2"
 gitSemverPlugin = "0.18.0"
-jibPlugin = "3.5.3"
+tinyJibPlugin = "0.3.0"
 kotlinPlugin = "2.3.10"
 kotlinxCoroutines = "1.10.2"
 kotlinxSerialization = "1.10.0"
@@ -68,9 +68,9 @@ wiremock = "3.0.1"
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
 gitSemver = { id = "com.github.jmongard.git-semver-plugin", version.ref = "gitSemverPlugin" }
-jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
+tinyJib = { id = "tel.schich.tinyjib", version.ref = "tinyJibPlugin" }
 
 [libraries]
 # These are Maven coordinates for Gradle plugins, which is necessary to use them in precompiled plugin scripts.

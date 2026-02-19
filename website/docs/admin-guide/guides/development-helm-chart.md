@@ -74,9 +74,9 @@ workers/analyzer/docker$ DOCKER_BUILDKIT=1 docker build . -f Analyzer.Dockerfile
 Then the different images of ORT Server:
 
 ```shell
-./gradlew :core:jibDockerBuild
-./gradlew :orchestrator:jibDockerBuild
-./gradlew :workers:analyzer:jibDockerBuild
+./gradlew :core:tinyJibDocker
+./gradlew :orchestrator:tinyJibDocker
+./gradlew :workers:analyzer:tinyJibDocker
 ```
 
 ### Mount initialization directory
