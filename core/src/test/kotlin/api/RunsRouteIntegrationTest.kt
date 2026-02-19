@@ -72,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.LicenseSource as ApiLicenseSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
@@ -1759,7 +1760,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "2.9.6"
                         ),
                         "License-2",
-                        setOf(LicenseSource.DETECTED),
+                        setOf(LicenseSource.DECLARED, LicenseSource.DETECTED),
                         Severity.ERROR,
                         "Message-2",
                         "How_to_fix-2"
@@ -1878,6 +1879,10 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 ruleViolationsResponse.data[1] shouldBe ruleViolations[3].mapToApi()
                 ruleViolationsResponse.data[2] shouldBe ruleViolations[1].mapToApi()
                 ruleViolationsResponse.data[3] shouldBe ruleViolations[0].mapToApi()
+                ruleViolationsResponse.data[2].licenseSources shouldContainExactlyInAnyOrder listOf(
+                    ApiLicenseSource.DECLARED,
+                    ApiLicenseSource.DETECTED
+                )
             }
         }
     }

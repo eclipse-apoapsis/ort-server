@@ -26,7 +26,18 @@ data class RuleViolation(
     val rule: String,
     val id: Identifier? = null,
     val license: String?,
+    /**
+     * The license source for which the rule violation was triggered. This field exists only for reasons of backward
+     * compatibility. The ORT data model now supports multiple license sources for a rule violation, which are stored
+     * in the [licenseSources] property. This property is set to the first license source if available, otherwise null.
+     */
+    @Deprecated(
+        "ORT now supports multiple license sources for a rule violation. This property contains only " +
+        "the first license source. Use the 'licenseSources' property instead"
+    )
     val licenseSource: LicenseSource?,
+    /** The set of license sources for which the rule violation was triggered. */
+    val licenseSources: Set<LicenseSource> = emptySet(),
     val severity: Severity,
     val message: String,
     val howToFix: String,

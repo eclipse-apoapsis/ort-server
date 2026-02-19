@@ -365,6 +365,7 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                                 ),
                                 "GPL-1.0-or-later",
                                 LicenseSource.DETECTED,
+                                setOf(LicenseSource.DECLARED, LicenseSource.DETECTED),
                                 Severity.ERROR,
                                 "The declared license 'LPGL-2.1' could not be mapped to a valid SPDX expression.",
                                 """
@@ -404,8 +405,10 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                     )
                     description = """
                         A list of all rule violations found in the ORT run.
-                        Note: While ORT may detect multiple license sources for a single rule violation, this endpoint
-                        will always return only one source per rule violation.
+                        Note: ORT may now detect multiple license sources for a single rule violation. These are
+                        available in the `licenseSources` property. For backward compatibility, there is also a
+                        `licenseSource` property containing only the first license source if available. This is
+                        deprecated, and clients should migrate to using the `licenseSources` property.
                     """.trimIndent()
                 }
             }
