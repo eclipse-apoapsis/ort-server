@@ -166,9 +166,10 @@ const RuleViolationCard = ({
         </div>
         <div className='text-muted-foreground flex gap-1 text-sm'>
           {ruleViolation.license && <div>{ruleViolation.license}</div>}
-          {ruleViolation.licenseSource && (
-            <div>({ruleViolation.licenseSource})</div>
-          )}
+          {ruleViolation.licenseSources &&
+            ruleViolation.licenseSources.length > 0 && (
+              <div>({ruleViolation.licenseSources.join(', ')})</div>
+            )}
         </div>
       </div>
     </div>
@@ -203,9 +204,16 @@ const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
               <div className='col-span-6'>
                 <FormattedValue value={ruleViolation.license} />
               </div>
-              <div className='col-span-2 font-semibold'>License source:</div>
+              <div className='col-span-2 font-semibold'>License sources:</div>
               <div className='col-span-6'>
-                <FormattedValue value={ruleViolation.licenseSource} />
+                <FormattedValue
+                  value={
+                    ruleViolation.licenseSources &&
+                    ruleViolation.licenseSources.length > 0
+                      ? ruleViolation.licenseSources.join(', ')
+                      : null
+                  }
+                />
               </div>
               <div className='col-span-2 font-semibold'>How to fix:</div>
             </div>
