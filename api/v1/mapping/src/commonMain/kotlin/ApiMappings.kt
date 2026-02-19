@@ -636,8 +636,9 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     rule = rule,
     id = id?.mapToApi(),
     license = license,
-    // TODO: Add support for multiple license sources, see issue #4185.
+    // TODO: Remove this deprecated property when version 1.0 of the API is released, see issue #4531.
     licenseSource = licenseSources.firstOrNull()?.mapToApi(),
+    licenseSources = licenseSources.mapTo(mutableSetOf()) { it.mapToApi() },
     severity = severity.mapToApi(),
     message = message,
     howToFix = howToFix,
