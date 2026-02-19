@@ -145,7 +145,7 @@ dependencyResolutionManagement {
         }
 
         create("ortLibs") {
-            from("org.ossreviewtoolkit:version-catalog:79.0.0")
+            from("org.ossreviewtoolkit:version-catalog:79.1.0")
         }
     }
 }
