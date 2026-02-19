@@ -119,7 +119,8 @@ class KubernetesMessageSenderTest : StringSpec({
 
         verifyLabels(
             actualLabels = job.metadata?.labels.orEmpty(),
-            expectedRunId = message.header.ortRunId
+            expectedRunId = message.header.ortRunId,
+            customLabels = senderConfig.labels
         )
 
         val jobAnnotations = job.spec?.template?.metadata?.annotations.orEmpty()
@@ -127,7 +128,8 @@ class KubernetesMessageSenderTest : StringSpec({
 
         verifyLabels(
             actualLabels = job.spec?.template?.metadata?.labels.orEmpty(),
-            expectedRunId = message.header.ortRunId
+            expectedRunId = message.header.ortRunId,
+            customLabels = senderConfig.labels
         )
     }
 
@@ -278,6 +280,7 @@ private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSend
         "imagePullSecret" to "image_pull_secret",
         "mountSecrets" to "secretService->/mnt/secret topSecret->/mnt/top/secret|sub-secret",
         "mountPvcs" to "pvc1->/mnt/readOnly,R pvc2->/mnt/data,W",
+        "labels" to "label1=value1,label2=value2,ort-worker=invalid,run-id=invalid,trace-id-0=invalid",
         "annotationVariables" to "v1,v2",
         "serviceAccountName" to "test_service_account"
     )
@@ -296,7 +299,7 @@ private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSend
 private fun messageWithProperties(vararg properties: Pair<String, String>): Message<AnalyzerRequest> =
     message.copy(header = header.copy(transportProperties = mapOf(*properties)))
 
-private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long) {
+private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long, customLabels: Map<String, String>) {
     val traceIdFromLabels = (0..3).fold("") { id, idx ->
         id + actualLabels.getValue("trace-id-$idx")
     }
@@ -304,4 +307,8 @@ private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long)
 
     actualLabels["run-id"] shouldBe expectedRunId.toString()
     actualLabels["ort-worker"] shouldBe "analyzer"
+
+    customLabels.forEach { (key, value) ->
+        actualLabels[key] shouldBe value
+    }
 }

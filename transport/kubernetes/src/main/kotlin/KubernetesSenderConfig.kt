@@ -101,6 +101,12 @@ data class KubernetesSenderConfig(
     val pvcVolumes: List<PvcVolumeMount> = emptyList(),
 
     /**
+     * A list of labels to add to the new pod. The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted
+     * automatically by the Kubernetes sender and cannot be overridden; matching entries in this map are ignored.
+     */
+    val labels: Map<String, String> = emptyMap(),
+
+    /**
      * A map with annotations to be added to the new pod. The map defines the keys and values of annotation.
      * Corresponding annotations are added to the _template_ section of newly created jobs, so that they are present
      * in the pods created for these jobs.
@@ -183,6 +189,14 @@ data class KubernetesSenderConfig(
         private const val MOUNT_PVCS_PROPERTY = "mountPvcs"
 
         /**
+         * The name of the configuration property defining the labels to add to new pods. The value of this property is
+         * interpreted as a comma-separated list of labels, ignoring whitespace around the labels. Each label must have
+         * the format _key=value_. The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted automatically by
+         * the Kubernetes sender and cannot be overridden; matching entries in this list are ignored.
+         */
+        private const val LABELS_PROPERTY = "labels"
+
+        /**
          * The name of the configuration property that allows defining annotations based on environment variables.
          * If available, the value of this property is interpreted as a comma-separated list of environment variable
          * names. Each variable is looked up in the current environment. It must have the form _key=value_. The
@@ -249,6 +263,9 @@ data class KubernetesSenderConfig(
         /** A regular expression to parse a PVC-based volume mount declaration. */
         private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
 
+        /** A regular expression to split the list of labels. */
+        private val splitLabelsRegex = splitRegex(LIST_SEPARATOR)
+
         /** A regular expression to split the list with environment variables defining annotations. */
         private val splitAnnotationVariablesRegex = splitRegex(LIST_SEPARATOR)
 
@@ -270,6 +287,7 @@ data class KubernetesSenderConfig(
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
                 secretVolumes = config.parseSecretVolumeMounts(),
                 pvcVolumes = config.parsePvcVolumeMounts(),
+                labels = createLabels(config.getStringOrDefault(LABELS_PROPERTY, "")),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false),
@@ -328,6 +346,36 @@ data class KubernetesSenderConfig(
                 val (claimName, mountPath, readOnly) = match.destructured
                 PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r")
             }
+
+        /**
+         * Create the map with labels based on the given [labels]. Extract the labels from the comma-delimited string,
+         * ignoring whitespace around the key value pairs. Each label must have the format _key=value_. Ignore invalid
+         * labels, but log a warning for them. Also ignore labels with reserved keys, but log a warning for them as
+         * well.
+         */
+        private fun createLabels(labels: String): Map<String, String> {
+            if (labels.isEmpty()) return emptyMap()
+
+            val reservedLabels = listOf("ort-worker", "run-id")
+
+            return labels.split(splitLabelsRegex).mapNotNull { label ->
+                val keyValue = label.split(splitKeyValueRegex, limit = 2)
+                if (keyValue.size != 2 || keyValue[0].isEmpty() || keyValue[1].isEmpty()) {
+                    logger.warn("Ignore invalid label declaration: '$label'. Labels must have the format 'key=value'.")
+                    return@mapNotNull null
+                }
+
+                if (keyValue[0] in reservedLabels || keyValue[0].startsWith("trace-id-")) {
+                    logger.warn(
+                        "Ignore label with reserved key '${keyValue[0]}'. The keys 'ort-worker', 'run-id' and " +
+                                "'trace-id-*' are reserved and cannot be used in custom labels."
+                    )
+                    return@mapNotNull null
+                }
+
+                keyValue[0] to keyValue[1]
+            }.toMap()
+        }
 
         /**
          * Create the map with annotations based on the given string with [variableNames]. Extract the names from the

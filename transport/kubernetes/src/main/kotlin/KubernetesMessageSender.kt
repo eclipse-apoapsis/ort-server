@@ -99,7 +99,7 @@ internal class KubernetesMessageSender<T : Any>(
 
         val msgConfig = config.forMessage(message)
         val envVars = createEnvironment()
-        val labels = createTraceIdLabels(traceId) + mapOf(
+        val labels = config.labels + createTraceIdLabels(traceId) + mapOf(
             RUN_ID_LABEL to message.header.ortRunId.toString(),
             WORKER_LABEL to endpoint.configPrefix
         )
