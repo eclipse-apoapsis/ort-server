@@ -30,7 +30,6 @@ plugins {
     id("ort-server-kotlin-jvm-application-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.tinyJib)
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -171,14 +170,6 @@ dependencies {
 }
 
 tinyJib {
-    // Support Jib system properties for compatibility.
-    System.getProperty("jib.applicationCache")?.also { applicationCache = File(it) }
-    System.getProperty("jib.baseImageCache")?.also { baseImageCache = File(it) }
-    System.getProperty("jib.allowInsecureRegistries")?.also { allowInsecureRegistries = it.toBooleanStrict() }
-    System.getProperty("jib.container.labels")?.also {
-        container.labels = it.split(',').associate { label -> label.substringBefore('=') to label.substringAfter('=') }
-    }
-
     from.image = System.getProperty("jib.from.image")
         ?: "${dockerBaseImagePrefix}ort-server-base-image:$dockerBaseImageTag"
 

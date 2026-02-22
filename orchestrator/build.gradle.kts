@@ -25,9 +25,6 @@ val dockerBaseImageTag: String by project
 plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-application-conventions")
-
-    // Apply third-party plugins.
-    alias(libs.plugins.tinyJib)
 }
 
 group = "org.eclipse.apoapsis.ortserver"
@@ -53,14 +50,6 @@ dependencies {
 }
 
 tinyJib {
-    // Support Jib system properties for compatibility.
-    System.getProperty("jib.applicationCache")?.also { applicationCache = File(it) }
-    System.getProperty("jib.baseImageCache")?.also { baseImageCache = File(it) }
-    System.getProperty("jib.allowInsecureRegistries")?.also { allowInsecureRegistries = it.toBooleanStrict() }
-    System.getProperty("jib.container.labels")?.also {
-        container.labels = it.split(',').associate { label -> label.substringBefore('=') to label.substringAfter('=') }
-    }
-
     from.image = System.getProperty("jib.from.image")
         ?: "${dockerBaseImagePrefix}ort-server-base-image:$dockerBaseImageTag"
 

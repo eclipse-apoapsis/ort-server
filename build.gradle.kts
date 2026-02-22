@@ -26,7 +26,6 @@ val containerEngineCommand: String by project
 
 plugins {
     alias(libs.plugins.gitSemver)
-    alias(libs.plugins.tinyJib) apply false
 }
 
 semver {

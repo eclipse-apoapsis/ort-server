@@ -20,8 +20,21 @@
 plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
+
+    // Apply third-party plugins.
+    alias(libs.plugins.tinyJib)
 }
 
 dependencies {
     implementation(enforcedPlatform(libs.kotlinBom))
+}
+
+tinyJib {
+    // Support Jib system properties for compatibility.
+    System.getProperty("jib.allowInsecureRegistries")?.also { allowInsecureRegistries = it.toBooleanStrict() }
+    System.getProperty("jib.applicationCache")?.also { applicationCache = File(it) }
+    System.getProperty("jib.baseImageCache")?.also { baseImageCache = File(it) }
+    System.getProperty("jib.container.labels")?.also {
+        container.labels = it.split(',').associate { label -> label.substringBefore('=') to label.substringAfter('=') }
+    }
 }
