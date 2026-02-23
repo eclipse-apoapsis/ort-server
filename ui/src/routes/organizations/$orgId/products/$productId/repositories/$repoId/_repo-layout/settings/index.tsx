@@ -63,6 +63,7 @@ import {
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
+import { MoveRepository } from '../../-components/move-repository';
 
 const formSchema = z.object({
   url: z.string(),
@@ -267,16 +268,20 @@ const RepositorySettingsPage = () => {
           <CardTitle>Danger Zone</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='flex justify-between'>
-            <div>Delete this repository</div>
-            <DeleteDialog
-              thingName={'repository'}
-              thingId={repository.url}
-              uiComponent={
-                <Button variant='destructive'>Delete repository</Button>
-              }
-              onDelete={handleDelete}
-            />
+          <div className='flex flex-col gap-4'>
+            <div className='flex justify-between'>
+              <div>Delete this repository</div>
+              <DeleteDialog
+                thingName={'repository'}
+                thingId={repository.url}
+                uiComponent={
+                  <Button variant='destructive'>Delete repository</Button>
+                }
+                onDelete={handleDelete}
+              />
+            </div>
+            <div>Move this repository to another product</div>
+            <MoveRepository repoUrl={repository.url} />
           </div>
         </CardContent>
       </Card>
