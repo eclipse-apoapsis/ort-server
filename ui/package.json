@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "2.0.2",
-    "@eslint/eslintrc": "3.3.3",
+    "@eslint/eslintrc": "3.3.4",
     "@eslint/js": "10.0.1",
     "@hey-api/openapi-ts": "0.92.4",
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",
