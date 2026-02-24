@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
@@ -72,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironm
 import org.ossreviewtoolkit.analyzer.PackageManagerFactory
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.IssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
@@ -143,6 +145,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -210,6 +213,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -277,6 +281,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -344,6 +349,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -399,6 +405,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -528,6 +535,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -626,6 +634,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -693,6 +702,137 @@ class AnalyzerWorkerTest : StringSpec({
         }
     }
 
+    "Package curation associations should be stored after analyzer run" {
+        val associationsSlot =
+            slot<Map<org.eclipse.apoapsis.ortserver.model.runs.Identifier, List<AppliedPackageCurationRef>>>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), capture(associationsSlot)) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            coEvery { findInfrastructureServicesForRepository(context, null) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
+        }
+
+        val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
+            coEvery { run(any(), any(), any(), any()) } returns OrtTestData.result
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockPluginService(),
+            mockk(relaxed = true)
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
+
+            verify(exactly = 1) {
+                ortRunService.storePackageCurationAssociations(analyzerJob.ortRunId, any())
+            }
+
+            associationsSlot.captured shouldBe mapOf(
+                org.eclipse.apoapsis.ortserver.model.runs.Identifier("Maven", "com.example", "package", "1.0") to
+                    listOf(
+                        AppliedPackageCurationRef(
+                            providerName = ResolvedPackageCurations.REPOSITORY_CONFIGURATION_PROVIDER_ID,
+                            curationRank = 0
+                        )
+                    )
+            )
+        }
+    }
+
+    "Package curation associations should not be stored when no curations are applied" {
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            coEvery { findInfrastructureServicesForRepository(context, null) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
+        }
+
+        val ortResultWithoutCurations = OrtTestData.result.copy(
+            resolvedConfiguration = OrtTestData.result.resolvedConfiguration.copy(packageCurations = emptyList())
+        )
+
+        val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
+            coEvery { run(any(), any(), any(), any()) } returns ortResultWithoutCurations
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockPluginService(),
+            mockk(relaxed = true)
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
+
+            verify(exactly = 0) {
+                ortRunService.storePackageCurationAssociations(any(), any())
+            }
+        }
+    }
+
     "A 'finished with issues' result should be returned if the analyzer run finished with issues" {
         val ortRunService = mockk<OrtRunService> {
             every { getAnalyzerJob(any()) } returns analyzerJob
@@ -702,6 +842,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -765,6 +906,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
@@ -844,6 +986,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
             every { storeResolvedItems(any(), any()) } just runs
             every { updateResolvedRevision(any(), any()) } just runs
         }
