@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
@@ -159,6 +160,26 @@ internal class AnalyzerWorker(
                 getValidAnalyzerJob(jobId)
                 ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
                 ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
+            }
+
+            val packageIds = ortResult.getPackages().map { it.metadata.id }.toSet()
+
+            val packageCurationAssociations = packageIds.associate { pkgId ->
+                val refs = buildList {
+                    ortResult.resolvedConfiguration.packageCurations.forEach { resolvedPackageCurations ->
+                        resolvedPackageCurations.curations.forEachIndexed { rank, curation ->
+                            if (curation.isApplicable(pkgId)) {
+                                add(AppliedPackageCurationRef(resolvedPackageCurations.provider.id, rank))
+                            }
+                        }
+                    }
+                }
+
+                pkgId.mapToModel() to refs
+            }.filterValues { it.isNotEmpty() }
+
+            if (packageCurationAssociations.isNotEmpty()) {
+                ortRunService.storePackageCurationAssociations(job.ortRunId, packageCurationAssociations)
             }
 
             if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
