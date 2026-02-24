@@ -34,7 +34,22 @@ tinyJib {
     System.getProperty("jib.allowInsecureRegistries")?.also { allowInsecureRegistries = it.toBooleanStrict() }
     System.getProperty("jib.applicationCache")?.also { applicationCache = File(it) }
     System.getProperty("jib.baseImageCache")?.also { baseImageCache = File(it) }
+
     System.getProperty("jib.container.labels")?.also {
         container.labels = it.split(',').associate { label -> label.substringBefore('=') to label.substringAfter('=') }
     }
+
+    System.getProperty("jib.from.platforms")?.also {
+        from.platforms {
+            it.split(',').map { platform ->
+                platform {
+                    os = platform.substringBefore('/')
+                    architecture = platform.substringAfter('/')
+                }
+            }
+        }
+    }
+
+    System.getProperty("jib.to.auth.username")?.also { to.auth.username = it }
+    System.getProperty("jib.to.auth.password")?.also { to.auth.password = it }
 }
