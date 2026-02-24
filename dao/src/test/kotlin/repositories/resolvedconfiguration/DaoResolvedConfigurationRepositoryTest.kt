@@ -19,23 +19,32 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.ResolvedVulnerabilitiesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRuleViolationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
@@ -58,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolut
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
 class DaoResolvedConfigurationRepositoryTest : WordSpec({
@@ -148,6 +158,212 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
             val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
             resolvedConfiguration.packageCurations should containExactly(packageCurations1, packageCurations2)
+        }
+    }
+
+    "addPackageCurationAssociations" should {
+        "store associations between packages and their applied curations" {
+            val package1 = fixtures.generatePackage(identifier1)
+            val package2 = fixtures.generatePackage(identifier2)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1, package2)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1, packageCurations2))
+
+            val associations = mapOf(
+                identifier1 to listOf(
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 0),
+                    AppliedPackageCurationRef(providerName = "provider2", curationRank = 0)
+                ),
+                identifier2 to listOf(
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 1)
+                )
+            )
+
+            resolvedConfigurationRepository.addPackageCurationAssociations(ortRunId, associations)
+
+            val packageIds = dbExtension.db.dbQuery {
+                PackagesTable
+                    .innerJoin(IdentifiersTable)
+                    .innerJoin(PackagesAnalyzerRunsTable)
+                    .innerJoin(AnalyzerRunsTable)
+                    .innerJoin(AnalyzerJobsTable)
+                    .select(
+                        PackagesTable.id,
+                        IdentifiersTable.type,
+                        IdentifiersTable.namespace,
+                        IdentifiersTable.name,
+                        IdentifiersTable.version
+                    )
+                    .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+                    .associate { row ->
+                        Identifier(
+                            type = row[IdentifiersTable.type],
+                            namespace = row[IdentifiersTable.namespace],
+                            name = row[IdentifiersTable.name],
+                            version = row[IdentifiersTable.version]
+                        ) to row[PackagesTable.id].value
+                    }
+            }
+
+            val curationIds = dbExtension.db.dbQuery {
+                ResolvedPackageCurationsTable
+                    .innerJoin(ResolvedPackageCurationProvidersTable)
+                    .innerJoin(PackageCurationProviderConfigsTable)
+                    .innerJoin(ResolvedConfigurationsTable)
+                    .select(
+                        ResolvedPackageCurationsTable.id,
+                        PackageCurationProviderConfigsTable.name,
+                        ResolvedPackageCurationsTable.rank
+                    )
+                    .where { ResolvedConfigurationsTable.ortRunId eq ortRunId }
+                    .associate { row ->
+                        (row[PackageCurationProviderConfigsTable.name] to row[ResolvedPackageCurationsTable.rank]) to
+                            row[ResolvedPackageCurationsTable.id].value
+                    }
+            }
+
+            val storedRows = dbExtension.db.dbQuery {
+                CuratedPackagesTable.selectAll()
+                    .where { CuratedPackagesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedRows.map { row ->
+                row[CuratedPackagesTable.packageId].value to row[CuratedPackagesTable.resolvedPackageCurationId].value
+            } should containExactlyInAnyOrder(
+                packageIds.getValue(identifier1) to curationIds.getValue("provider1" to 0),
+                packageIds.getValue(identifier1) to curationIds.getValue("provider2" to 0),
+                packageIds.getValue(identifier2) to curationIds.getValue("provider1" to 1)
+            )
+        }
+
+        "handle multiple curations applied to the same package" {
+            val package1 = fixtures.generatePackage(identifier1)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1, packageCurations2))
+
+            resolvedConfigurationRepository.addPackageCurationAssociations(
+                ortRunId = ortRunId,
+                packageCurationAssociations = mapOf(
+                    identifier1 to listOf(
+                        AppliedPackageCurationRef(providerName = "provider1", curationRank = 0),
+                        AppliedPackageCurationRef(providerName = "provider2", curationRank = 0)
+                    )
+                )
+            )
+
+            val curationIds = dbExtension.db.dbQuery {
+                ResolvedPackageCurationsTable
+                    .innerJoin(ResolvedPackageCurationProvidersTable)
+                    .innerJoin(PackageCurationProviderConfigsTable)
+                    .innerJoin(ResolvedConfigurationsTable)
+                    .select(
+                        ResolvedPackageCurationsTable.id,
+                        PackageCurationProviderConfigsTable.name,
+                        ResolvedPackageCurationsTable.rank
+                    )
+                    .where { ResolvedConfigurationsTable.ortRunId eq ortRunId }
+                    .associate { row ->
+                        (row[PackageCurationProviderConfigsTable.name] to row[ResolvedPackageCurationsTable.rank]) to
+                            row[ResolvedPackageCurationsTable.id].value
+                    }
+            }
+
+            val storedRows = dbExtension.db.dbQuery {
+                CuratedPackagesTable.selectAll()
+                    .where { CuratedPackagesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedRows.size shouldBe 2
+            storedRows.map { it[CuratedPackagesTable.resolvedPackageCurationId].value } should containExactlyInAnyOrder(
+                curationIds.getValue("provider1" to 0),
+                curationIds.getValue("provider2" to 0)
+            )
+        }
+
+        "handle duplicate calls idempotently (upsert)" {
+            val package1 = fixtures.generatePackage(identifier1)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1))
+
+            val associations = mapOf(
+                identifier1 to listOf(
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 0)
+                )
+            )
+
+            resolvedConfigurationRepository.addPackageCurationAssociations(ortRunId, associations)
+            resolvedConfigurationRepository.addPackageCurationAssociations(ortRunId, associations)
+
+            val storedRows = dbExtension.db.dbQuery {
+                CuratedPackagesTable.selectAll()
+                    .where { CuratedPackagesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedRows.shouldBeSingleton { }
+        }
+
+        "fail if a package is not found in the run" {
+            val package1 = fixtures.generatePackage(identifier1)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1))
+
+            val missingIdentifier = Identifier("Maven", "org.example", "missing", "1.0")
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                resolvedConfigurationRepository.addPackageCurationAssociations(
+                    ortRunId = ortRunId,
+                    packageCurationAssociations = mapOf(
+                        missingIdentifier to listOf(
+                            AppliedPackageCurationRef(providerName = "provider1", curationRank = 0)
+                        )
+                    )
+                )
+            }
+
+            exception.message shouldContain "No package found for identifier"
+            exception.message shouldContain "missing"
+        }
+
+        "fail if a curation is not found in the resolved configuration" {
+            val package1 = fixtures.generatePackage(identifier1)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1))
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                resolvedConfigurationRepository.addPackageCurationAssociations(
+                    ortRunId = ortRunId,
+                    packageCurationAssociations = mapOf(
+                        identifier1 to listOf(
+                            AppliedPackageCurationRef(providerName = "unknown-provider", curationRank = 0)
+                        )
+                    )
+                )
+            }
+
+            exception.message shouldContain "No resolved package curation found for provider"
+            exception.message shouldContain "unknown-provider"
         }
     }
 

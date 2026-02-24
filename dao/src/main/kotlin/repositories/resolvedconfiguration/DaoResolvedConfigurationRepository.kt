@@ -28,6 +28,10 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsIde
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.ResolvedVulnerabilitiesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.VulnerabilitiesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsTable
@@ -40,14 +44,17 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RuleViolationResolutionDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VulnerabilityResolutionDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.utils.DigestFunction
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
@@ -109,6 +116,75 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
                 }
             }
         }
+
+    override fun addPackageCurationAssociations(
+        ortRunId: Long,
+        packageCurationAssociations: Map<Identifier, List<AppliedPackageCurationRef>>
+    ) = db.blockingQuery {
+        val packageIdByIdentifier = PackagesTable
+            .innerJoin(IdentifiersTable)
+            .innerJoin(PackagesAnalyzerRunsTable)
+            .innerJoin(AnalyzerRunsTable)
+            .innerJoin(AnalyzerJobsTable)
+            .select(
+                PackagesTable.id,
+                IdentifiersTable.type,
+                IdentifiersTable.namespace,
+                IdentifiersTable.name,
+                IdentifiersTable.version
+            )
+            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+            .associate { row ->
+                Identifier(
+                    type = row[IdentifiersTable.type],
+                    namespace = row[IdentifiersTable.namespace],
+                    name = row[IdentifiersTable.name],
+                    version = row[IdentifiersTable.version]
+                ) to row[PackagesTable.id].value
+            }
+
+        val resolvedPackageCurationIdByProviderAndRank = ResolvedPackageCurationsTable
+            .innerJoin(ResolvedPackageCurationProvidersTable)
+            .innerJoin(PackageCurationProviderConfigsTable)
+            .innerJoin(ResolvedConfigurationsTable)
+            .select(
+                ResolvedPackageCurationsTable.id,
+                PackageCurationProviderConfigsTable.name,
+                ResolvedPackageCurationsTable.rank
+            )
+            .where { ResolvedConfigurationsTable.ortRunId eq ortRunId }
+            .associate { row ->
+                (row[PackageCurationProviderConfigsTable.name] to row[ResolvedPackageCurationsTable.rank]) to
+                    row[ResolvedPackageCurationsTable.id].value
+            }
+
+        packageCurationAssociations.forEach { (identifier, curationRefs) ->
+            val packageId = requireNotNull(packageIdByIdentifier[identifier]) {
+                "No package found for identifier '$identifier' in ORT run '$ortRunId'."
+            }
+
+            curationRefs.forEach { curationRef ->
+                val resolvedPackageCurationId = requireNotNull(
+                    resolvedPackageCurationIdByProviderAndRank[
+                        curationRef.providerName to curationRef.curationRank
+                    ]
+                ) {
+                    "No resolved package curation found for provider '${curationRef.providerName}' " +
+                        "with rank '${curationRef.curationRank}' in ORT run '$ortRunId'."
+                }
+
+                CuratedPackagesTable.upsert(
+                    CuratedPackagesTable.ortRunId,
+                    CuratedPackagesTable.packageId,
+                    CuratedPackagesTable.resolvedPackageCurationId
+                ) {
+                    it[CuratedPackagesTable.ortRunId] = ortRunId
+                    it[CuratedPackagesTable.packageId] = packageId
+                    it[CuratedPackagesTable.resolvedPackageCurationId] = resolvedPackageCurationId
+                }
+            }
+        }
+    }
 
     override fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult) = db.blockingQuery {
         val resolvedConfiguration = ResolvedConfigurationDao.getOrPut(ortRunId)

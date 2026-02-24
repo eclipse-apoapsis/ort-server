@@ -20,9 +20,11 @@
 package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
 /**
@@ -60,4 +62,14 @@ interface ResolvedConfigurationRepository {
      * If there is no [ResolvedConfiguration] for the [OrtRun] it is created.
      */
     fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult)
+
+    /**
+     * Add package-to-curation associations for the [OrtRun] identified by [ortRunId].
+     *
+     * Unknown packages or curation references are skipped.
+     */
+    fun addPackageCurationAssociations(
+        ortRunId: Long,
+        packageCurationAssociations: Map<Identifier, List<AppliedPackageCurationRef>>
+    )
 }
