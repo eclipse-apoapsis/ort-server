@@ -17,17 +17,25 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+
+import { RequireRepositoryPermission } from '@/components/authorization';
+
+function RepositoryInfrastructureServicesGuard() {
+  const { repoId } = Route.useParams();
+
+  return (
+    <RequireRepositoryPermission
+      repositoryId={Number.parseInt(repoId)}
+      permission='WRITE'
+    >
+      <Outlet />
+    </RequireRepositoryPermission>
+  );
+}
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services'
 )({
-  component: () => <Outlet />,
-  beforeLoad: ({ context }) => {
-    if (!context.permissions.repository?.includes('WRITE')) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
+  component: RepositoryInfrastructureServicesGuard,
 });

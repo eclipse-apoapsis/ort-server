@@ -17,15 +17,29 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { getRepositoryUsersOptions } from '@/api/@tanstack/react-query.gen';
+import { RequireRepositoryPermission } from '@/components/authorization';
 import { paginationSearchParameterSchema } from '@/schemas';
+
+function RepositoryUsersGuard() {
+  const { repoId } = Route.useParams();
+
+  return (
+    <RequireRepositoryPermission
+      repositoryId={Number.parseInt(repoId)}
+      permission='MANAGE_GROUPS'
+    >
+      <Outlet />
+    </RequireRepositoryPermission>
+  );
+}
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users'
 )({
-  component: () => <Outlet />,
+  component: RepositoryUsersGuard,
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,
@@ -51,12 +65,5 @@ export const Route = createFileRoute(
         },
       }),
     });
-  },
-  beforeLoad: ({ context }) => {
-    if (!context.permissions.repository?.includes('MANAGE_GROUPS')) {
-      throw redirect({
-        to: '/403',
-      });
-    }
   },
 });

@@ -17,13 +17,27 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { getOrganizationUsersOptions } from '@/api/@tanstack/react-query.gen';
+import { RequireOrganizationPermission } from '@/components/authorization';
 import { paginationSearchParameterSchema } from '@/schemas';
 
+function OrganizationUsersGuard() {
+  const { orgId } = Route.useParams();
+
+  return (
+    <RequireOrganizationPermission
+      organizationId={Number.parseInt(orgId)}
+      permission='MANAGE_GROUPS'
+    >
+      <Outlet />
+    </RequireOrganizationPermission>
+  );
+}
+
 export const Route = createFileRoute('/organizations/$orgId/users')({
-  component: () => <Outlet />,
+  component: OrganizationUsersGuard,
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,
@@ -49,12 +63,5 @@ export const Route = createFileRoute('/organizations/$orgId/users')({
         },
       }),
     });
-  },
-  beforeLoad: ({ context }) => {
-    if (!context.permissions.organization?.includes('MANAGE_GROUPS')) {
-      throw redirect({
-        to: '/403',
-      });
-    }
   },
 });

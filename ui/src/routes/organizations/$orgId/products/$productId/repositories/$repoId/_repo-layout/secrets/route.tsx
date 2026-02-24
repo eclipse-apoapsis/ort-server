@@ -17,17 +17,25 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+
+import { RequireRepositoryPermission } from '@/components/authorization';
+
+function RepositorySecretsGuard() {
+  const { repoId } = Route.useParams();
+
+  return (
+    <RequireRepositoryPermission
+      repositoryId={Number.parseInt(repoId)}
+      permission='WRITE_SECRETS'
+    >
+      <Outlet />
+    </RequireRepositoryPermission>
+  );
+}
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets'
 )({
-  component: () => <Outlet />,
-  beforeLoad: ({ context }) => {
-    if (!context.permissions.repository?.includes('WRITE_SECRETS')) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
+  component: RepositorySecretsGuard,
 });
