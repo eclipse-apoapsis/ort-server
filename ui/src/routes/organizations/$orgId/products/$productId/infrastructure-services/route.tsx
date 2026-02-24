@@ -17,17 +17,25 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+
+import { RequireProductPermission } from '@/components/authorization';
+
+function ProductInfrastructureServicesGuard() {
+  const { productId } = Route.useParams();
+
+  return (
+    <RequireProductPermission
+      productId={Number.parseInt(productId)}
+      permission='WRITE'
+    >
+      <Outlet />
+    </RequireProductPermission>
+  );
+}
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/infrastructure-services'
 )({
-  component: () => <Outlet />,
-  beforeLoad: ({ context }) => {
-    if (!context.permissions.product?.includes('WRITE')) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
+  component: ProductInfrastructureServicesGuard,
 });

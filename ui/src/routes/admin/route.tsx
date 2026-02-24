@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
   Blocks,
   Eye,
@@ -28,6 +28,7 @@ import {
   User,
 } from 'lucide-react';
 
+import { RequireSuperuser } from '@/components/authorization';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 
@@ -97,19 +98,14 @@ const Layout = () => {
     },
   ];
   return (
-    <PageLayout sections={sections}>
-      <Outlet />
-    </PageLayout>
+    <RequireSuperuser>
+      <PageLayout sections={sections}>
+        <Outlet />
+      </PageLayout>
+    </RequireSuperuser>
   );
 };
 
 export const Route = createFileRoute('/admin')({
   component: Layout,
-  beforeLoad: ({ context }) => {
-    if (!context.auth.isSuperuser) {
-      throw redirect({
-        to: '/403',
-      });
-    }
-  },
 });
