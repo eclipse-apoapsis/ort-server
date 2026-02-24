@@ -23,6 +23,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContain
@@ -50,9 +51,20 @@ import kotlin.time.Instant
 import kotlinx.coroutines.delay
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.CuratedPackagesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.PackageCurationProviderConfigsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
@@ -64,6 +76,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
@@ -109,9 +122,12 @@ import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
@@ -1285,6 +1301,109 @@ class OrtRunServiceTest : WordSpec({
 
             resolvedConfiguration.shouldNotBeNull()
             resolvedConfiguration.packageCurations should containExactly(curations.map { it.mapToModel() })
+        }
+    }
+
+    "storePackageCurationAssociations" should {
+        "store the package curation associations" {
+            val packageIdentifier = Identifier("Maven", "org.example", "package1", "1.0")
+            val pkg = fixtures.generatePackage(packageIdentifier)
+
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(pkg)
+            )
+
+            val curations = listOf(
+                OrtResolvedPackageCurations(
+                    provider = OrtResolvedPackageCurations.Provider("provider1"),
+                    curations = listOf(
+                        OrtPackageCuration(
+                            id = OrtIdentifier("Maven:org.example:package1:1.0"),
+                            data = OrtPackageCurationData(comment = "comment 1")
+                        ),
+                        OrtPackageCuration(
+                            id = OrtIdentifier("Maven:org.example:package1:1.0"),
+                            data = OrtPackageCurationData(comment = "comment 2")
+                        )
+                    )
+                ),
+                OrtResolvedPackageCurations(
+                    provider = OrtResolvedPackageCurations.Provider("provider2"),
+                    curations = listOf(
+                        OrtPackageCuration(
+                            id = OrtIdentifier("Maven:org.example:package1:1.0"),
+                            data = OrtPackageCurationData(comment = "comment 3")
+                        )
+                    )
+                )
+            )
+
+            service.storeResolvedPackageCurations(fixtures.ortRun.id, curations)
+
+            service.storePackageCurationAssociations(
+                ortRunId = fixtures.ortRun.id,
+                packageCurationAssociations = mapOf(
+                    packageIdentifier to listOf(
+                        AppliedPackageCurationRef(providerName = "provider1", curationRank = 0),
+                        AppliedPackageCurationRef(providerName = "provider2", curationRank = 0)
+                    )
+                )
+            )
+
+            val packageIds = dbExtension.db.dbQuery {
+                PackagesTable
+                    .innerJoin(IdentifiersTable)
+                    .innerJoin(PackagesAnalyzerRunsTable)
+                    .innerJoin(AnalyzerRunsTable)
+                    .innerJoin(AnalyzerJobsTable)
+                    .select(
+                        PackagesTable.id,
+                        IdentifiersTable.type,
+                        IdentifiersTable.namespace,
+                        IdentifiersTable.name,
+                        IdentifiersTable.version
+                    )
+                    .where { AnalyzerJobsTable.ortRunId eq fixtures.ortRun.id }
+                    .associate { row ->
+                        Identifier(
+                            type = row[IdentifiersTable.type],
+                            namespace = row[IdentifiersTable.namespace],
+                            name = row[IdentifiersTable.name],
+                            version = row[IdentifiersTable.version]
+                        ) to row[PackagesTable.id].value
+                    }
+            }
+
+            val curationIds = dbExtension.db.dbQuery {
+                ResolvedPackageCurationsTable
+                    .innerJoin(ResolvedPackageCurationProvidersTable)
+                    .innerJoin(PackageCurationProviderConfigsTable)
+                    .innerJoin(ResolvedConfigurationsTable)
+                    .select(
+                        ResolvedPackageCurationsTable.id,
+                        PackageCurationProviderConfigsTable.name,
+                        ResolvedPackageCurationsTable.rank
+                    )
+                    .where { ResolvedConfigurationsTable.ortRunId eq fixtures.ortRun.id }
+                    .associate { row ->
+                        (row[PackageCurationProviderConfigsTable.name] to row[ResolvedPackageCurationsTable.rank]) to
+                            row[ResolvedPackageCurationsTable.id].value
+                    }
+            }
+
+            val storedRows = dbExtension.db.dbQuery {
+                CuratedPackagesTable.selectAll()
+                    .where { CuratedPackagesTable.ortRunId eq fixtures.ortRun.id }
+                    .toList()
+            }
+
+            storedRows.map { row ->
+                row[CuratedPackagesTable.packageId].value to row[CuratedPackagesTable.resolvedPackageCurationId].value
+            } should containExactlyInAnyOrder(
+                packageIds.getValue(packageIdentifier) to curationIds.getValue("provider1" to 0),
+                packageIds.getValue(packageIdentifier) to curationIds.getValue("provider2" to 0)
+            )
         }
     }
 

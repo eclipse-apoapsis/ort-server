@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
@@ -597,6 +598,18 @@ class OrtRunService(
     fun storeResolvedPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) {
         db.blockingQuery {
             resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
+        }
+    }
+
+    /**
+     * Store package curation associations for the provided [ortRunId].
+     */
+    fun storePackageCurationAssociations(
+        ortRunId: Long,
+        packageCurationAssociations: Map<Identifier, List<AppliedPackageCurationRef>>
+    ) {
+        db.blockingQuery {
+            resolvedConfigurationRepository.addPackageCurationAssociations(ortRunId, packageCurationAssociations)
         }
     }
 
