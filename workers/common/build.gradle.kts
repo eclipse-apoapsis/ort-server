@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
 
+    api(projects.components.resolutions.resolutionsBackend)
     api(projects.components.secrets.secretsBackend)
     api(projects.config.configSpi)
     api(projects.services.ortRunService)

@@ -31,6 +31,7 @@ dependencies {
     api(projects.components.resolutions.resolutionsApiModel)
 
     api(libs.exposedJdbc)
+    api(libs.kotlinResult)
 
     implementation(projects.dao)
     implementation(projects.model)
@@ -39,7 +40,6 @@ dependencies {
 
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
-    implementation(libs.kotlinResult)
     implementation(libs.kotlinxSerializationJson)
 
     routesImplementation(projects.components.authorization.authorizationBackend)

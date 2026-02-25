@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
@@ -94,7 +95,11 @@ class ScannerWorker(
             val issues = scannerRunResult.extractIssues()
             val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
 
-            val resolutionProvider = context.createResolutionProvider(ortResult, adminConfigService)
+            val resolutionProvider = context.createResolutionProvider(
+                RepositoryId(context.hierarchy.repository.id),
+                ortResult,
+                adminConfigService
+            )
 
             // Apply resolutions using the common function.
             val allOrtIssues = allIssues.map { it.mapToOrt() }
