@@ -78,6 +78,7 @@ fun ModelRepositoryPermission.mapToApi() = when (this) {
     ModelRepositoryPermission.WRITE -> RepositoryPermission.WRITE
     ModelRepositoryPermission.WRITE_SECRETS -> RepositoryPermission.WRITE_SECRETS
     ModelRepositoryPermission.MANAGE_GROUPS -> RepositoryPermission.MANAGE_GROUPS
+    ModelRepositoryPermission.MANAGE_RESOLUTIONS -> RepositoryPermission.MANAGE_RESOLUTIONS
     ModelRepositoryPermission.READ_ORT_RUNS -> RepositoryPermission.READ_ORT_RUNS
     ModelRepositoryPermission.TRIGGER_ORT_RUN -> RepositoryPermission.TRIGGER_ORT_RUN
     ModelRepositoryPermission.DELETE -> RepositoryPermission.DELETE

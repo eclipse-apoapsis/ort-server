@@ -53,6 +53,7 @@ enum class RepositoryPermission {
     WRITE,
     WRITE_SECRETS,
     MANAGE_GROUPS,
+    MANAGE_RESOLUTIONS,
     READ_ORT_RUNS,
     TRIGGER_ORT_RUN,
     DELETE
