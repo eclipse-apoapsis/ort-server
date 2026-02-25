@@ -39,6 +39,9 @@ enum class RepositoryPermission {
     /** Permission to manage [Repository] groups. */
     MANAGE_GROUPS,
 
+    /** Permission to manage [Repository] resolutions. */
+    MANAGE_RESOLUTIONS,
+
     /** Permission to read the list of [OrtRun]s of the [Repository]. */
     READ_ORT_RUNS,
 
