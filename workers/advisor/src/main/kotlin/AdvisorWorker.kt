@@ -19,7 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
@@ -46,7 +48,8 @@ internal class AdvisorWorker(
     private val runner: AdvisorRunner,
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
-    private val adminConfigService: AdminConfigService
+    private val adminConfigService: AdminConfigService,
+    private val vulnerabilityResolutionService: VulnerabilityResolutionService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAdvisorJob(jobId)
@@ -83,7 +86,12 @@ internal class AdvisorWorker(
             val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
             val allVulnerabilities = advisorRun.results.values.flatten().flatMap { it.vulnerabilities }
 
-            val resolutionProvider = workerContext.createResolutionProvider(ortResult, adminConfigService)
+            val resolutionProvider = workerContext.createResolutionProvider(
+                RepositoryId(ortRun.repositoryId),
+                ortResult,
+                adminConfigService,
+                vulnerabilityResolutionService
+            )
 
             // Apply resolutions using the common function for both issues AND vulnerabilities.
             val resolvedItems = resolveResolutionsWithMappings(
