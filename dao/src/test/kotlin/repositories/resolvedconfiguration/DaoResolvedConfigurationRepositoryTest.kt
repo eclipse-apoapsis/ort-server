@@ -70,6 +70,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
+@Suppress("LargeClass")
 class DaoResolvedConfigurationRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
@@ -771,6 +772,79 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
             storedResolvedVulnerabilities.size shouldBe 2
+        }
+    }
+
+    "getForOrtRunId" should {
+        "return curations grouped by package identifier" {
+            val package1 = fixtures.generatePackage(identifier1)
+            val package2 = fixtures.generatePackage(identifier2)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1, package2)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1, packageCurations2))
+
+            val associations = mapOf(
+                identifier1 to listOf(
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 0),
+                    AppliedPackageCurationRef(providerName = "provider2", curationRank = 0)
+                ),
+                identifier2 to listOf(
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 1)
+                )
+            )
+
+            resolvedConfigurationRepository.addPackageCurationAssociations(ortRunId, associations)
+
+            val result = dbExtension.db.dbQuery {
+                CuratedPackagesTable.getForOrtRunId(ortRunId)
+            }
+
+            result.keys should containExactlyInAnyOrder(identifier1, identifier2)
+
+            val id1Curations = result.getValue(identifier1)
+            id1Curations.map { it.first } should containExactlyInAnyOrder("provider1", "provider2")
+            id1Curations.first { it.first == "provider1" }.second shouldBe packageCurations1.curations[0]
+            id1Curations.first { it.first == "provider2" }.second shouldBe packageCurations2.curations[0]
+
+            val id2Curations = result.getValue(identifier2)
+            id2Curations.shouldBeSingleton { }
+            id2Curations[0].first shouldBe "provider1"
+            id2Curations[0].second shouldBe packageCurations1.curations[1]
+        }
+
+        "return empty map when no curations exist" {
+            dbExtension.db.dbQuery {
+                CuratedPackagesTable.getForOrtRunId(ortRunId)
+            } shouldBe emptyMap()
+        }
+
+        "not include packages without curations" {
+            val package1 = fixtures.generatePackage(identifier1)
+            val package2 = fixtures.generatePackage(identifier2)
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                packages = setOf(package1, package2)
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1))
+
+            val associations = mapOf(
+                identifier1 to listOf(
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 0)
+                )
+            )
+
+            resolvedConfigurationRepository.addPackageCurationAssociations(ortRunId, associations)
+
+            val result = dbExtension.db.dbQuery {
+                CuratedPackagesTable.getForOrtRunId(ortRunId)
+            }
+
+            result.keys should containExactly(identifier1)
+            result[identifier2] shouldBe null
         }
     }
 })
