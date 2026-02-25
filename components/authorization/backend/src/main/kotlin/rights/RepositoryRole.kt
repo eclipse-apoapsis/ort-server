@@ -43,6 +43,7 @@ enum class RepositoryRole(
         repositoryPermissions = setOf(
             RepositoryPermission.READ,
             RepositoryPermission.WRITE,
+            RepositoryPermission.MANAGE_RESOLUTIONS,
             RepositoryPermission.READ_ORT_RUNS,
             RepositoryPermission.TRIGGER_ORT_RUN
         )
