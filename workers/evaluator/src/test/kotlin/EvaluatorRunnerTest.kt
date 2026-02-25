@@ -337,6 +337,7 @@ private fun createWorkerContext(
         every { configManager } returns configManagerMock
         every { ortRun.resolvedJobConfigContext } returns resolvedConfigContext.name
         every { ortRun.organizationId } returns ORGANIZATION_ID
+        every { ortRun.repositoryId } returns 1L
         every { ortRun.resolvedJobConfigs?.ruleSet } returns ruleSetName
         coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
     }

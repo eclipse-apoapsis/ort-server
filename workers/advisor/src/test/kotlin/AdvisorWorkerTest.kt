@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import com.github.michaelbull.result.Ok
+
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -41,6 +43,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
@@ -49,6 +52,8 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ModelVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason as ModelVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -135,7 +140,14 @@ class AdvisorWorkerTest : StringSpec({
         val contextFactory = mockContextFactory(context)
 
         val runner = spyk(createRunner())
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
+        val worker = AdvisorWorker(
+            db = mockk(),
+            runner = runner,
+            ortRunService = ortRunService,
+            contextFactory = contextFactory,
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService()
+        )
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -156,11 +168,12 @@ class AdvisorWorkerTest : StringSpec({
         }
 
         val worker = AdvisorWorker(
-            mockk(),
-            createRunner(),
-            ortRunService,
-            mockContextFactory(),
-            mockk(relaxed = true)
+            db = mockk(),
+            runner = createRunner(),
+            ortRunService = ortRunService,
+            contextFactory = mockContextFactory(),
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService()
         )
 
         mockkTransaction {
@@ -201,7 +214,14 @@ class AdvisorWorkerTest : StringSpec({
            OrtTestData.result
         }
 
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
+        val worker = AdvisorWorker(
+            db = mockk(),
+            runner = runner,
+            ortRunService = ortRunService,
+            contextFactory = contextFactory,
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService()
+        )
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -252,7 +272,14 @@ class AdvisorWorkerTest : StringSpec({
            OrtTestData.result
         }
 
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
+        val worker = AdvisorWorker(
+            db = mockk(),
+            runner = runner,
+            ortRunService = ortRunService,
+            contextFactory = contextFactory,
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService()
+        )
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -365,7 +392,14 @@ class AdvisorWorkerTest : StringSpec({
         val runner = spyk(createRunner())
         coEvery { runner.run(any(), any(), any()) } coAnswers { advisorRunResult }
 
-        val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory, mockk(relaxed = true))
+        val worker = AdvisorWorker(
+            db = mockk(),
+            runner = runner,
+            ortRunService = ortRunService,
+            contextFactory = contextFactory,
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService()
+        )
 
         mockkTransaction {
             val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
@@ -382,6 +416,104 @@ class AdvisorWorkerTest : StringSpec({
         }
     }
 
+    "Resolved items should be stored for vulnerabilities resolved via the VulnerabilityResolutionService" {
+        val advisorVulnerability = Vulnerability(
+            id = "CVE-2023-0002",
+            summary = "Test vulnerability from service.",
+            description = "Test vulnerability description from service.",
+            references = listOf(
+                VulnerabilityReference(
+                    url = URI.create("http://cve.example.org"),
+                    scoringSystem = "CVSS3",
+                    severity = "HIGH",
+                    score = 7.5f,
+                    vector = "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+                )
+            )
+        )
+
+        val serviceResolution = ModelVulnerabilityResolution(
+            externalId = advisorVulnerability.id,
+            reason = ModelVulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
+            comment = "Resolved via service."
+        )
+
+        val ortResult = OrtResult.EMPTY.copy(
+            analyzer = OrtAnalyzerRun.EMPTY
+        )
+
+        val advisorRunResult = OrtResult.EMPTY.copy(
+            advisor = AdvisorRun(
+                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                environment = OrtTestData.environment,
+                config = OrtTestData.advisorConfiguration,
+                results = sortedMapOf(
+                    Identifier("Maven:com.example:package:1.0") to listOf(
+                        AdvisorResult(
+                            advisor = AdvisorDetails(
+                                name = "VulnerableCode",
+                                capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
+                            ),
+                            summary = AdvisorSummary(
+                                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                                issues = emptyList()
+                            ),
+                            defects = emptyList(),
+                            vulnerabilities = listOf(advisorVulnerability)
+                        )
+                    )
+                )
+            )
+        )
+
+        val ortRun = mockOrtRun()
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val resolvedItemsSlot = slot<ResolvedItemsResult>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorJob(any()) } returns advisorJob
+            every { getAnalyzerRunForOrtRun(any()) } returns OrtTestData.analyzerRun.mapToModel(ANALYZER_JOB_ID)
+            every { startAdvisorJob(any()) } returns advisorJob
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { storeAdvisorRun(any()) } just runs
+            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+            every { this@mockk.configManager } returns mockConfigManager()
+            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val runner = spyk(createRunner())
+        coEvery { runner.run(any(), any(), any()) } coAnswers { advisorRunResult }
+
+        val worker = AdvisorWorker(
+            db = mockk(),
+            runner = runner,
+            ortRunService = ortRunService,
+            contextFactory = contextFactory,
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService(listOf(serviceResolution))
+        )
+
+        mockkTransaction {
+            val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
+
+            val resolvedVulnerability = resolvedItemsSlot.captured.vulnerabilities.keys.single()
+            resolvedVulnerability.externalId shouldBe advisorVulnerability.id
+        }
+    }
+
     "An ignore result should be returned for an invalid job" {
         val invalidJob = advisorJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
@@ -389,11 +521,12 @@ class AdvisorWorkerTest : StringSpec({
         }
 
         val worker = AdvisorWorker(
-            mockk(),
-            createRunner(),
-            ortRunService,
-            mockContextFactory(),
-            mockk(relaxed = true)
+            db = mockk(),
+            runner = createRunner(),
+            ortRunService = ortRunService,
+            contextFactory = mockContextFactory(),
+            adminConfigService = mockk(relaxed = true),
+            vulnerabilityResolutionService = mockk()
         )
 
         mockkTransaction {
@@ -429,4 +562,10 @@ private fun mockOrtRun() = mockk<OrtRun> {
 private fun mockConfigManager() = mockk<ConfigManager> {
     every { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
+}
+
+private fun mockVulnerabilityResolutionService(
+    resolutions: List<ModelVulnerabilityResolution> = emptyList()
+) = mockk<VulnerabilityResolutionService> {
+    every { getResolutionsForRepository(any()) } returns Ok(resolutions)
 }
