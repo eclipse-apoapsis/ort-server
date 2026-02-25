@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -546,6 +547,18 @@ class PackageServiceTest : WordSpec() {
                 )
 
                 fixtures.resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(resolvedPackageCurations))
+
+                fixtures.resolvedConfigurationRepository.addPackageCurationAssociations(
+                    ortRunId,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            AppliedPackageCurationRef(providerName = "test", curationRank = 0)
+                        ),
+                        pkg2.identifier to listOf(
+                            AppliedPackageCurationRef(providerName = "test", curationRank = 1)
+                        )
+                    )
+                )
 
                 val packages = service.listForOrtRunId(ortRunId)
                 packages.data shouldHaveSize 2
