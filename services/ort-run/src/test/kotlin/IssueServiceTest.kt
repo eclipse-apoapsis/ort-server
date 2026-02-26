@@ -19,8 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
@@ -30,6 +32,7 @@ import io.mockk.mockk
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
@@ -379,6 +382,316 @@ class IssueServiceTest : WordSpec() {
 
                 val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
                 unresolvedIssue.purl shouldBe "curated-higher"
+            }
+
+            "sort by timestamp descending by default" {
+                val repositoryId = fixtures.createRepository().id
+                val now = Clock.System.now()
+                val issues = listOf(
+                    Issue(
+                        timestamp = now,
+                        source = "A",
+                        message = "middle",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(2.seconds),
+                        source = "B",
+                        message = "newest",
+                        severity = Severity.WARNING
+                    ),
+                    Issue(
+                        timestamp = now.minus(2.seconds),
+                        source = "C",
+                        message = "oldest",
+                        severity = Severity.HINT
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 3
+                result.data[0].message shouldBe "newest"
+                result.data[1].message shouldBe "middle"
+                result.data[2].message shouldBe "oldest"
+            }
+
+            "sort by timestamp ascending" {
+                val repositoryId = fixtures.createRepository().id
+                val now = Clock.System.now()
+                val issues = listOf(
+                    Issue(
+                        timestamp = now,
+                        source = "A",
+                        message = "middle",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(2.seconds),
+                        source = "B",
+                        message = "newest",
+                        severity = Severity.WARNING
+                    ),
+                    Issue(
+                        timestamp = now.minus(2.seconds),
+                        source = "C",
+                        message = "oldest",
+                        severity = Severity.HINT
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+                val params = ListQueryParameters(
+                    sortFields = listOf(OrderField("timestamp", OrderDirection.ASCENDING))
+                )
+
+                val result = service.listForOrtRunId(ortRun.id, params)
+
+                result.data shouldHaveSize 3
+                result.data[0].message shouldBe "oldest"
+                result.data[1].message shouldBe "middle"
+                result.data[2].message shouldBe "newest"
+            }
+
+            "sort by severity" {
+                val repositoryId = fixtures.createRepository().id
+                val now = Clock.System.now()
+                val issues = listOf(
+                    Issue(
+                        timestamp = now,
+                        source = "A",
+                        message = "warning",
+                        severity = Severity.WARNING
+                    ),
+                    Issue(
+                        timestamp = now.plus(1.seconds),
+                        source = "B",
+                        message = "error",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(2.seconds),
+                        source = "C",
+                        message = "hint",
+                        severity = Severity.HINT
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+                val params = ListQueryParameters(
+                    sortFields = listOf(OrderField("severity", OrderDirection.ASCENDING))
+                )
+
+                val result = service.listForOrtRunId(ortRun.id, params)
+
+                result.data shouldHaveSize 3
+                // Severity is stored as enumerationByName, so SQL sorts alphabetically:
+                // ERROR < HINT < WARNING
+                result.data.map { it.severity } shouldBe
+                    listOf(Severity.ERROR, Severity.HINT, Severity.WARNING)
+            }
+
+            "sort by source" {
+                val repositoryId = fixtures.createRepository().id
+                val now = Clock.System.now()
+                val issues = listOf(
+                    Issue(
+                        timestamp = now,
+                        source = "Maven",
+                        message = "issue 1",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(1.seconds),
+                        source = "Analyzer",
+                        message = "issue 2",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(2.seconds),
+                        source = "Scanner",
+                        message = "issue 3",
+                        severity = Severity.ERROR
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+                val params = ListQueryParameters(
+                    sortFields = listOf(OrderField("source", OrderDirection.ASCENDING))
+                )
+
+                val result = service.listForOrtRunId(ortRun.id, params)
+
+                result.data shouldHaveSize 3
+                result.data.map { it.source } shouldBe listOf("Analyzer", "Maven", "Scanner")
+            }
+
+            "sort by multiple fields" {
+                val repositoryId = fixtures.createRepository().id
+                val now = Clock.System.now()
+                val issues = listOf(
+                    Issue(
+                        timestamp = now,
+                        source = "A",
+                        message = "error-older",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(1.seconds),
+                        source = "B",
+                        message = "error-newer",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = now.plus(2.seconds),
+                        source = "C",
+                        message = "warning",
+                        severity = Severity.WARNING
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                // Sort by severity DESC (alphabetically: WARNING > HINT > ERROR), then timestamp ASC.
+                val params = ListQueryParameters(
+                    sortFields = listOf(
+                        OrderField("severity", OrderDirection.DESCENDING),
+                        OrderField("timestamp", OrderDirection.ASCENDING)
+                    )
+                )
+
+                val result = service.listForOrtRunId(ortRun.id, params)
+
+                result.data shouldHaveSize 3
+                result.data[0].message shouldBe "warning"
+                result.data[1].message shouldBe "error-older"
+                result.data[2].message shouldBe "error-newer"
+            }
+
+            "apply pagination with limit and offset" {
+                val repositoryId = fixtures.createRepository().id
+                val now = Clock.System.now()
+                val issues = (1..5).map { i ->
+                    Issue(
+                        timestamp = now.plus(i.seconds),
+                        source = "Source",
+                        message = "issue $i",
+                        severity = Severity.ERROR
+                    )
+                }
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                // Sort ascending by timestamp, take page of 2 starting at offset 1.
+                val params = ListQueryParameters(
+                    sortFields = listOf(OrderField("timestamp", OrderDirection.ASCENDING)),
+                    limit = 2,
+                    offset = 1
+                )
+
+                val result = service.listForOrtRunId(ortRun.id, params)
+
+                result.totalCount shouldBe 5
+                result.data shouldHaveSize 2
+                result.data[0].message shouldBe "issue 2"
+                result.data[1].message shouldBe "issue 3"
+            }
+
+            "return empty list for ORT run with no issues" {
+                val repositoryId = fixtures.createRepository().id
+                val ortRun = fixtures.createOrtRun(repositoryId)
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 0
+                result.totalCount shouldBe 0
+            }
+
+            "handle issues with null identifier, worker, and affectedPath" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Analyzer",
+                        message = "issue with nulls",
+                        severity = Severity.ERROR,
+                        affectedPath = null,
+                        identifier = null,
+                        worker = null
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 1
+                result.data[0].identifier shouldBe null
+                result.data[0].worker shouldBe null
+                result.data[0].affectedPath shouldBe null
+                result.data[0].purl shouldBe null
+            }
+
+            "throw QueryParametersException for unknown sort field" {
+                val repositoryId = fixtures.createRepository().id
+                val ortRun = createOrtRunWithIssues(repositoryId, generateIssues())
+
+                val params = ListQueryParameters(
+                    sortFields = listOf(OrderField("nonExistent", OrderDirection.ASCENDING))
+                )
+
+                shouldThrow<QueryParametersException> {
+                    service.listForOrtRunId(ortRun.id, params)
+                }
+            }
+
+            "return totalCount reflecting resolved filter, not full issue count" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "timeout scanning package",
+                        severity = Severity.WARNING
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(2.seconds),
+                        source = "Scanner",
+                        message = "missing license info",
+                        severity = Severity.WARNING
+                    )
+                )
+
+                val resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "dependency not found.*",
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                            comment = "Known"
+                        )
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions)
+
+                // Paginate unresolved with limit 1 — totalCount should still be 2 (all unresolved).
+                val params = ListQueryParameters(limit = 1)
+                val result = service.listForOrtRunId(
+                    ortRun.id,
+                    params,
+                    issuesFilter = IssueFilter(resolved = false)
+                )
+
+                result.data shouldHaveSize 1
+                result.totalCount shouldBe 2
             }
         }
 
@@ -745,115 +1058,6 @@ class IssueServiceTest : WordSpec() {
                 val unresolvedCount = service.countUnresolvedForOrtRunIds(ortRun.id)
 
                 severitiesToCounts.map.values.sum() shouldBe unresolvedCount
-            }
-        }
-
-        "List<Issue>.sort" should {
-            "sort issues by timestamp in ascending order" {
-                val issues = generateIssues()
-
-                val sortedIssues = issues.sort(listOf(OrderField("timestamp", OrderDirection.ASCENDING)))
-
-                sortedIssues shouldBe issues.sortedWith(compareBy<Issue> { it.timestamp }.thenBy { it.hashCode() })
-            }
-
-            "sort issues by timestamp in descending order" {
-                val issues = generateIssues()
-
-                val sortedIssues = issues.sort(listOf(OrderField("timestamp", OrderDirection.DESCENDING)))
-
-                sortedIssues shouldBe issues.sortedWith(
-                    compareBy<Issue> { it.timestamp }.thenBy { it.hashCode() }
-                ).reversed()
-            }
-
-            "sort issues by severity in ascending order" {
-                val issues = generateIssues()
-
-                val sortedIssues = issues.sort(listOf(OrderField("severity", OrderDirection.ASCENDING)))
-
-                sortedIssues shouldBe issues.sortedWith(compareBy<Issue> { it.severity }.thenBy { it.hashCode() })
-            }
-
-            "sort issues by severity in descending order" {
-                val issues = generateIssues()
-
-                val sortedIssues = issues.sort(listOf(OrderField("severity", OrderDirection.DESCENDING)))
-
-                sortedIssues shouldBe issues.sortedWith(
-                    compareBy<Issue> { it.severity }.thenBy { it.hashCode() }
-                ).reversed()
-            }
-
-            "sort issues by identifier in ascending order" {
-                val issues = generateIssues()
-
-                val sortedIssues = issues.sort(listOf(OrderField("identifier", OrderDirection.ASCENDING)))
-
-                sortedIssues shouldBe issues.sortedWith(
-                    compareBy<Issue> { it.identifier?.toConcatenatedString() }.thenBy { it.hashCode() }
-                )
-            }
-
-            "sort issues by identifier in descending order" {
-                val issues = generateIssues()
-
-                val sortedIssues = issues.sort(listOf(OrderField("identifier", OrderDirection.DESCENDING)))
-
-                sortedIssues shouldBe issues.sortedWith(
-                    compareBy<Issue> { it.identifier?.toConcatenatedString() }.thenBy { it.hashCode() }
-                ).reversed()
-            }
-        }
-
-        "List<Issue>.paginate" should {
-            "apply default pagination when offset and limit are null" {
-                val issues = generateIssues()
-                val parameters = ListQueryParameters()
-
-                val paginatedIssues = issues.paginate(parameters)
-
-                paginatedIssues.size shouldBe issues.size.coerceAtMost(ListQueryParameters.DEFAULT_LIMIT)
-            }
-
-            "return the first issue when offset is 0 and limit is 1" {
-                val issues = generateIssues()
-                val parameters = ListQueryParameters(offset = 0, limit = 1)
-
-                val paginatedIssues = issues.paginate(parameters)
-
-                paginatedIssues.size shouldBe 1
-                paginatedIssues[0] shouldBe issues[0]
-            }
-
-            "return the second issue when offset is 1 and limit is 1" {
-                val issues = generateIssues()
-                val parameters = ListQueryParameters(offset = 1, limit = 1)
-
-                val paginatedIssues = issues.paginate(parameters)
-
-                paginatedIssues.size shouldBe 1
-                paginatedIssues[0] shouldBe issues[1]
-            }
-
-            "return the second and third issue when offset is 1 and limit is 2" {
-                val issues = generateIssues()
-                val parameters = ListQueryParameters(offset = 1, limit = 2)
-
-                val paginatedIssues = issues.paginate(parameters)
-
-                paginatedIssues.size shouldBe 2
-                paginatedIssues[0] shouldBe issues[1]
-                paginatedIssues[1] shouldBe issues[2]
-            }
-
-            "return an empty list when offset is equal to the size of the list" {
-                val issues = generateIssues()
-                val parameters = ListQueryParameters(offset = issues.size.toLong(), limit = 1)
-
-                val paginatedIssues = issues.paginate(parameters)
-
-                paginatedIssues shouldBe emptyList()
             }
         }
     }
