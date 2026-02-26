@@ -95,8 +95,8 @@ internal class AdvisorWorker(
 
             db.dbQuery {
                 getValidAdvisorJob(jobId)
-                ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
                 ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
+                ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
             }
 
             // Calculate unresolved issues for logging.
