@@ -158,8 +158,8 @@ internal class AnalyzerWorker(
 
             db.dbQuery {
                 getValidAnalyzerJob(jobId)
-                ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
                 ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
+                ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
             }
 
             val packageIds = ortResult.getPackages().map { it.metadata.id }.toSet()
