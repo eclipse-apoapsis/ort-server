@@ -50,6 +50,11 @@ tinyJib {
         }
     }
 
+    System.getProperty("jib.from.image")?.also { from.image = it }
+    System.getProperty("jib.to.image")?.also { to.image = it }
+
     System.getProperty("jib.to.auth.username")?.also { to.auth.username = it }
     System.getProperty("jib.to.auth.password")?.also { to.auth.password = it }
+
+    System.getProperty("jib.to.tags")?.also { to.tags = it.split(',') }
 }
