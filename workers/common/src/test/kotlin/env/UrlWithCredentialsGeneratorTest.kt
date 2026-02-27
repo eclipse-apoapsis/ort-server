@@ -34,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.C
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.testSecretRef
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
-class GitCredentialsGeneratorTest : StringSpec({
+class UrlWithCredentialsGeneratorTest : StringSpec({
     "Files with correct names should be generated" {
         val mockBuilder = MockConfigFileBuilder()
         val definition = EnvironmentServiceDefinition(
@@ -46,7 +46,7 @@ class GitCredentialsGeneratorTest : StringSpec({
             )
         )
 
-        GitCredentialsGenerator().generate(mockBuilder.builder, listOf(definition))
+        UrlWithCredentialsGenerator(CredentialFile.GitCredentialsFile).generate(mockBuilder.builder, listOf(definition))
 
         mockBuilder.homeFileNames shouldContainExactlyInAnyOrder listOf(".git-credentials")
     }
@@ -61,7 +61,7 @@ class GitCredentialsGeneratorTest : StringSpec({
             )
         )
 
-        GitCredentialsGenerator().generate(mockBuilder.builder, listOf(definition))
+        UrlWithCredentialsGenerator(CredentialFile.GitCredentialsFile).generate(mockBuilder.builder, listOf(definition))
 
         mockBuilder.homeFileNames should beEmpty()
     }
@@ -92,7 +92,7 @@ class GitCredentialsGeneratorTest : StringSpec({
             )
         )
 
-        GitCredentialsGenerator().generate(mockBuilder.builder, definitions)
+        UrlWithCredentialsGenerator(CredentialFile.GitCredentialsFile).generate(mockBuilder.builder, definitions)
         val lines = mockBuilder.generatedLinesFor(homeFileName = ".git-credentials")
 
         lines shouldContainExactlyInAnyOrder listOf(
@@ -125,7 +125,7 @@ class GitCredentialsGeneratorTest : StringSpec({
             )
         )
 
-        GitCredentialsGenerator().generate(mockBuilder.builder, definitions)
+        UrlWithCredentialsGenerator(CredentialFile.GitCredentialsFile).generate(mockBuilder.builder, definitions)
         val lines = mockBuilder.generatedLinesFor(homeFileName = ".git-credentials")
 
         lines shouldContainExactly listOf(
@@ -149,7 +149,7 @@ class GitCredentialsGeneratorTest : StringSpec({
             )
         )
 
-        GitCredentialsGenerator().generate(mockBuilder.builder, definitions)
+        UrlWithCredentialsGenerator(CredentialFile.GitCredentialsFile).generate(mockBuilder.builder, definitions)
 
         fun checkEncodingFun(reference: String) {
             val encodingFun = mockBuilder.encodingFunctionFor(reference)

@@ -45,8 +45,8 @@ import org.slf4j.LoggerFactory
  * See also: [Git documentation](https://git-scm.com/docs/git-config#Documentation/git-config.txt-urlltbasegtinsteadOf)
  *
  * There is a coupling between this generator class and the generator class for Git credentials
- * [GitCredentialsGenerator]. If Git credentials are generated, then this class also generates a `credential` section in
- * the Git configuration file _.gitconfig_ to reference the generated _.git-credentials_ file.
+ * [UrlWithCredentialsGenerator]. If Git credentials are generated, then this class also generates a `credential`
+ * section in the Git configuration file _.gitconfig_ to reference the generated _.git-credentials_ file.
  */
 class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, String>) :
     EnvironmentConfigGenerator<EnvironmentServiceDefinition> {
