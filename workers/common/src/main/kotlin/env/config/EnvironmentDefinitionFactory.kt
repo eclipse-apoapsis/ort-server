@@ -23,6 +23,7 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.BazelDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
@@ -42,6 +43,9 @@ class EnvironmentDefinitionFactory {
     companion object {
         /** The name for the [ConanDefinition] type. */
         const val CONAN_TYPE = "conan"
+
+        /** The name for the [BazelDefinition] type. */
+        const val BAZEL_TYPE = "bazel"
 
         /** The name for the [GradleDefinition] type. */
         const val GRADLE_TYPE = "gradle"
@@ -79,6 +83,7 @@ class EnvironmentDefinitionFactory {
     ): Result<EnvironmentServiceDefinition> =
         when (type) {
             CONAN_TYPE -> createConanDefinition(service, DefinitionProperties(properties))
+            BAZEL_TYPE -> createBazelDefinition(service, DefinitionProperties(properties))
             GRADLE_TYPE -> createGradleDefinition(service, DefinitionProperties(properties))
             MAVEN_TYPE -> createMavenDefinition(service, DefinitionProperties(properties))
             NPM_TYPE -> createNpmDefinition(service, DefinitionProperties(properties))
@@ -102,6 +107,17 @@ class EnvironmentDefinitionFactory {
                 url = getProperty("url"),
                 verifySsl = getBooleanProperty("verifySsl", true)
             )
+        }
+
+    /**
+     * Create a definition for the _~/.bazel-credentials_ configuration file with the given [service] and [properties].
+     */
+    private fun createBazelDefinition(
+        service: ResolvedInfrastructureService,
+        properties: DefinitionProperties
+    ): Result<EnvironmentServiceDefinition> =
+        properties.withRequiredProperties {
+            BazelDefinition(service = service)
         }
 
     /**
