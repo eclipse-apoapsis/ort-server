@@ -39,6 +39,9 @@ sealed class CredentialFile<T : EnvironmentServiceDefinition>(
 ) {
     data object GitCredentialsFile :
         CredentialFile<EnvironmentServiceDefinition>(".git-credentials", EnvironmentServiceDefinition::class)
+
+    data object BazelCredentialsFile :
+        CredentialFile<BazelDefinition>(".bazel-credentials", BazelDefinition::class)
 }
 
 /**

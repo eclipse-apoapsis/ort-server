@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createSecret
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.testSecretRef
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.BazelDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 class UrlWithCredentialsGeneratorTest : StringSpec({
@@ -158,5 +159,84 @@ class UrlWithCredentialsGeneratorTest : StringSpec({
 
         checkEncodingFun(testSecretRef(secUser))
         checkEncodingFun(testSecretRef(secPass))
+    }
+
+    "for Bazel, environmentDefinitionType" should {
+        "return the correct definition class" {
+            val definitionType = UrlWithCredentialsGenerator(
+                CredentialFile.BazelCredentialsFile
+            ).environmentDefinitionType
+
+            definitionType shouldBe BazelDefinition::class.java
+        }
+    }
+
+    "for Bazel, generate" should {
+        "generate the files at the correct location" {
+            val definition = BazelDefinition(
+                MockConfigFileBuilder.createInfrastructureService(REMOTE_URL)
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            UrlWithCredentialsGenerator(
+                CredentialFile.BazelCredentialsFile
+            ).generate(mockBuilder.builder, listOf(definition))
+
+            mockBuilder.homeFileNames shouldBe listOf(CredentialFile.BazelCredentialsFile.fileName)
+        }
+
+        "generate a file with a single credential entry" {
+            val mockBuilder = MockConfigFileBuilder()
+            val secUser1 = MockConfigFileBuilder.createSecret("user1Secret")
+            val secPass1 = MockConfigFileBuilder.createSecret("pass1Secret")
+            val infrastructureService = createInfrastructureService(
+                "https://repo1.example.org",
+                secUser1,
+                secPass1
+            )
+            val definition = BazelDefinition(infrastructureService)
+
+            UrlWithCredentialsGenerator(
+                CredentialFile.BazelCredentialsFile
+            ).generate(mockBuilder.builder, listOf(definition))
+
+            val expectedLines = """
+                https://${testSecretRef(secUser1)}:${testSecretRef(secPass1)}@repo1.example.org
+            """.trimIndent().lines()
+            val lines = mockBuilder.generatedLinesFor(homeFileName = CredentialFile.BazelCredentialsFile.fileName)
+            lines shouldContainExactly expectedLines
+        }
+
+        "generate a file with multiple credential entries" {
+            val mockBuilder = MockConfigFileBuilder()
+            val secUser1 = MockConfigFileBuilder.createSecret("user1Secret")
+            val secPass1 = MockConfigFileBuilder.createSecret("pass1Secret")
+            val infrastructureService1 = createInfrastructureService(
+                "https://repo1.example.org",
+                secUser1,
+                secPass1
+            )
+            val definition1 = BazelDefinition(infrastructureService1)
+            val secUser2 = MockConfigFileBuilder.createSecret("user2Secret")
+            val secPass2 = MockConfigFileBuilder.createSecret("pass2Secret")
+            val infrastructureService2 = createInfrastructureService(
+                "https://repo2.example.org",
+                secUser2,
+                secPass2
+            )
+            val definition2 = BazelDefinition(infrastructureService2)
+
+            UrlWithCredentialsGenerator(
+                CredentialFile.BazelCredentialsFile
+            ).generate(mockBuilder.builder, listOf(definition1, definition2))
+
+            val expectedLines = """
+                https://${testSecretRef(secUser1)}:${testSecretRef(secPass1)}@repo1.example.org
+                https://${testSecretRef(secUser2)}:${testSecretRef(secPass2)}@repo2.example.org
+            """.trimIndent().lines()
+            val lines = mockBuilder.generatedLinesFor(homeFileName = CredentialFile.BazelCredentialsFile.fileName)
+            lines shouldContainExactly expectedLines
+        }
     }
 })
