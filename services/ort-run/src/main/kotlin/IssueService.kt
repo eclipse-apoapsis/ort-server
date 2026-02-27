@@ -22,16 +22,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.IssueResolutionsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
@@ -51,15 +42,16 @@ import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
 
 import org.jetbrains.exposed.v1.core.Count
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.core.innerJoin
-import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 
@@ -77,192 +69,174 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
         )
 
         return db.blockingQuery {
-            val baseJoin = OrtRunsIssuesTable
-                .innerJoin(IssuesTable, { issueId }, { id })
-                .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
+            val query = buildListForOrtRunIdQuery(ortRunId, issuesFilter)
 
-            // Step 1: Build the ID query with filtering.
-            val query = baseJoin
-                .select(OrtRunsIssuesTable.id)
-                .where { OrtRunsIssuesTable.ortRunId eq ortRunId }
-
-            // Step 2: Apply resolved/unresolved filter.
-            val resolvedIssueIdsSubquery = ResolvedIssuesTable
-                .select(ResolvedIssuesTable.ortRunIssueId)
-                .where { ResolvedIssuesTable.ortRunId eq ortRunId }
-
-            when (issuesFilter.resolved) {
-                true -> query.andWhere { OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery }
-                false -> query.andWhere { not(OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery) }
-                null -> {} // no filter
-            }
-
-            // Step 3: Count total before pagination.
             val totalCount = query.count()
+            val ortRunIssueIds = fetchPagedIssueIds(query, parameters)
 
-            // Step 4: Sorting.
-            val sortFields = parameters.sortFields.ifEmpty {
-                listOf(OrderField("timestamp", OrderDirection.DESCENDING))
-            }
-
-            sortFields.forEach { orderField ->
-                val sortOrder = orderField.direction.toSortOrder()
-                when (orderField.name) {
-                    "timestamp" -> query.orderBy(OrtRunsIssuesTable.timestamp to sortOrder)
-
-                    "source" -> query.orderBy(IssuesTable.issueSource to sortOrder)
-
-                    "message" -> query.orderBy(IssuesTable.message to sortOrder)
-
-                    "severity" -> query.orderBy(IssuesTable.severity to sortOrder)
-
-                    "affectedPath" -> query.orderBy(IssuesTable.affectedPath to sortOrder)
-
-                    "identifier" -> {
-                        query.orderBy(IdentifiersTable.type to sortOrder)
-                        query.orderBy(IdentifiersTable.namespace to sortOrder)
-                        query.orderBy(IdentifiersTable.name to sortOrder)
-                        query.orderBy(IdentifiersTable.version to sortOrder)
-                    }
-
-                    "worker" -> query.orderBy(OrtRunsIssuesTable.worker to sortOrder)
-
-                    else -> throw QueryParametersException("Unknown sort field '${orderField.name}'.")
-                }
-            }
-            query.orderBy(OrtRunsIssuesTable.id to SortOrder.ASC)
-
-            // Step 5: Pagination.
-            val limit = parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT
-            val offset = parameters.offset ?: 0L
-            query.limit(limit).offset(offset)
-
-            // Step 6: Fetch paginated IDs, then batch-load full rows.
-            val ortRunIssueIds = query.map { it[OrtRunsIssuesTable.id].value }
             if (ortRunIssueIds.isEmpty()) {
                 return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
             }
 
-            // Single batch query to fetch all columns needed to construct Issue models.
-            val issueRowsById = baseJoin
-                .select(
-                    OrtRunsIssuesTable.id,
-                    OrtRunsIssuesTable.timestamp,
-                    OrtRunsIssuesTable.worker,
-                    OrtRunsIssuesTable.identifierId,
-                    IssuesTable.issueSource,
-                    IssuesTable.message,
-                    IssuesTable.severity,
-                    IssuesTable.affectedPath,
-                    IdentifiersTable.type,
-                    IdentifiersTable.namespace,
-                    IdentifiersTable.name,
-                    IdentifiersTable.version
-                )
-                .where { OrtRunsIssuesTable.id inList ortRunIssueIds }
-                .associateBy { it[OrtRunsIssuesTable.id].value }
+            val issueRowsById = fetchIssueRowsById(ortRunIssueIds)
+            val resolutionsByOrtRunIssueId = fetchResolutionsByOrtRunIssueId(ortRunIssueIds)
 
-            // Step 7: Batch-fetch resolutions.
-            val resolutionsByOrtRunIssueId = ResolvedIssuesTable
-                .innerJoin(IssueResolutionsTable, { issueResolutionId }, { id })
-                .select(
-                    ResolvedIssuesTable.ortRunIssueId,
-                    IssueResolutionsTable.message,
-                    IssueResolutionsTable.reason,
-                    IssueResolutionsTable.comment
-                )
-                .where { ResolvedIssuesTable.ortRunIssueId inList ortRunIssueIds }
-                .groupBy(
-                    { it[ResolvedIssuesTable.ortRunIssueId].value },
-                    {
-                        IssueResolution(
-                            message = it[IssueResolutionsTable.message],
-                            reason = it[IssueResolutionsTable.reason],
-                            comment = it[IssueResolutionsTable.comment]
-                        )
-                    }
-                )
-
-            // Step 8: Batch-fetch purls with curation support.
             val identifierIds = ortRunIssueIds
                 .mapNotNull { issueRowsById[it]?.getOrNull(OrtRunsIssuesTable.identifierId)?.value }
                 .distinct()
 
-            val purlByIdentifierId = if (identifierIds.isNotEmpty()) {
-                val basePurls = PackagesTable
-                    .innerJoin(PackagesAnalyzerRunsTable)
-                    .innerJoin(AnalyzerRunsTable)
-                    .innerJoin(AnalyzerJobsTable)
-                    .select(PackagesTable.identifierId, PackagesTable.purl)
-                    .where {
-                        (AnalyzerJobsTable.ortRunId eq ortRunId) and
-                            (PackagesTable.identifierId inList identifierIds)
-                    }
-                    .associate { it[PackagesTable.identifierId].value to it[PackagesTable.purl] }
+            val purlByIdentifierId = getPurlByIdentifierIdForOrtRun(ortRunId, identifierIds)
+            val issues = assembleIssues(
+                ortRunIssueIds,
+                issueRowsById,
+                resolutionsByOrtRunIssueId,
+                purlByIdentifierId
+            )
 
-                // Curated purls override base purls. ORDER BY rank ensures the highest-priority
-                // curation (lowest rank) comes first; groupBy preserves this order so first() picks it.
-                val curatedPurls = PackageCurationDataTable
-                    .innerJoin(PackageCurationsTable)
-                    .innerJoin(ResolvedPackageCurationsTable)
-                    .innerJoin(ResolvedPackageCurationProvidersTable)
-                    .innerJoin(ResolvedConfigurationsTable)
-                    .select(PackageCurationsTable.identifierId, PackageCurationDataTable.purl)
-                    .where {
-                        (ResolvedConfigurationsTable.ortRunId eq ortRunId) and
-                            (PackageCurationsTable.identifierId inList identifierIds) and
-                            (PackageCurationDataTable.purl.isNotNull())
-                    }
-                    .orderBy(ResolvedPackageCurationProvidersTable.rank)
-                    .orderBy(ResolvedPackageCurationsTable.rank)
-                    .groupBy { it[PackageCurationsTable.identifierId].value }
-                    .mapValues { (_, rows) ->
-                        requireNotNull(rows.first()[PackageCurationDataTable.purl]) {
-                            "Curated purl was unexpectedly null after filtering."
-                        }
-                    }
+            ListQueryResult(data = issues, params = parameters, totalCount = totalCount)
+        }
+    }
 
-                basePurls + curatedPurls
-            } else {
-                emptyMap()
+    private fun buildListForOrtRunIdQuery(ortRunId: Long, issuesFilter: IssueFilter): Query {
+        val baseJoin = OrtRunsIssuesTable
+            .innerJoin(IssuesTable, { issueId }, { id })
+            .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
+
+        val query = baseJoin
+            .select(OrtRunsIssuesTable.id)
+            .where { OrtRunsIssuesTable.ortRunId eq ortRunId }
+
+        val resolvedIssueIdsSubquery = ResolvedIssuesTable
+            .select(ResolvedIssuesTable.ortRunIssueId)
+            .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+
+        when (issuesFilter.resolved) {
+            true -> query.andWhere { OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery }
+            false -> query.andWhere { not(OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery) }
+            null -> {}
+        }
+
+        return query
+    }
+
+    private fun fetchPagedIssueIds(query: Query, parameters: ListQueryParameters): List<Long> {
+        val sortFields = parameters.sortFields.ifEmpty {
+            listOf(OrderField("timestamp", OrderDirection.DESCENDING))
+        }
+
+        sortFields.forEach { orderField ->
+            val sortOrder = orderField.direction.toSortOrder()
+            when (orderField.name) {
+                "timestamp" -> query.orderBy(OrtRunsIssuesTable.timestamp to sortOrder)
+
+                "source" -> query.orderBy(IssuesTable.issueSource to sortOrder)
+
+                "message" -> query.orderBy(IssuesTable.message to sortOrder)
+
+                "severity" -> query.orderBy(IssuesTable.severity to sortOrder)
+
+                "affectedPath" -> query.orderBy(IssuesTable.affectedPath to sortOrder)
+
+                "identifier" -> {
+                    query.orderBy(IdentifiersTable.type to sortOrder)
+                    query.orderBy(IdentifiersTable.namespace to sortOrder)
+                    query.orderBy(IdentifiersTable.name to sortOrder)
+                    query.orderBy(IdentifiersTable.version to sortOrder)
+                }
+
+                "worker" -> query.orderBy(OrtRunsIssuesTable.worker to sortOrder)
+
+                else -> throw QueryParametersException("Unknown sort field '${orderField.name}'.")
             }
+        }
 
-            // Step 9: Assemble Issue models directly from ResultRows.
-            val finalIssues = ortRunIssueIds.map { ortRunIssueId ->
-                val row = issueRowsById.getValue(ortRunIssueId)
+        query.orderBy(OrtRunsIssuesTable.id to SortOrder.ASC)
+        query.limit(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT).offset(parameters.offset ?: 0L)
 
-                val type = row.getOrNull(IdentifiersTable.type)
-                val namespace = row.getOrNull(IdentifiersTable.namespace)
-                val name = row.getOrNull(IdentifiersTable.name)
-                val version = row.getOrNull(IdentifiersTable.version)
-                val identifier = type?.let { safeType ->
-                    namespace?.let { safeNamespace ->
-                        name?.let { safeName ->
-                            version?.let { safeVersion ->
-                                Identifier(safeType, safeNamespace, safeName, safeVersion)
-                            }
+        return query.map { it[OrtRunsIssuesTable.id].value }
+    }
+
+    private fun fetchIssueRowsById(ortRunIssueIds: List<Long>): Map<Long, ResultRow> =
+        OrtRunsIssuesTable
+            .innerJoin(IssuesTable, { issueId }, { id })
+            .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
+            .select(
+                OrtRunsIssuesTable.id,
+                OrtRunsIssuesTable.timestamp,
+                OrtRunsIssuesTable.worker,
+                OrtRunsIssuesTable.identifierId,
+                IssuesTable.issueSource,
+                IssuesTable.message,
+                IssuesTable.severity,
+                IssuesTable.affectedPath,
+                IdentifiersTable.type,
+                IdentifiersTable.namespace,
+                IdentifiersTable.name,
+                IdentifiersTable.version
+            )
+            .where { OrtRunsIssuesTable.id inList ortRunIssueIds }
+            .associateBy { it[OrtRunsIssuesTable.id].value }
+
+    private fun fetchResolutionsByOrtRunIssueId(
+        ortRunIssueIds: List<Long>
+    ): Map<Long, List<IssueResolution>> =
+        ResolvedIssuesTable
+            .innerJoin(IssueResolutionsTable, { issueResolutionId }, { id })
+            .select(
+                ResolvedIssuesTable.ortRunIssueId,
+                IssueResolutionsTable.message,
+                IssueResolutionsTable.reason,
+                IssueResolutionsTable.comment
+            )
+            .where { ResolvedIssuesTable.ortRunIssueId inList ortRunIssueIds }
+            .groupBy(
+                { it[ResolvedIssuesTable.ortRunIssueId].value },
+                {
+                    IssueResolution(
+                        message = it[IssueResolutionsTable.message],
+                        reason = it[IssueResolutionsTable.reason],
+                        comment = it[IssueResolutionsTable.comment]
+                    )
+                }
+            )
+
+    private fun assembleIssues(
+        ortRunIssueIds: List<Long>,
+        issueRowsById: Map<Long, ResultRow>,
+        resolutionsByOrtRunIssueId: Map<Long, List<IssueResolution>>,
+        purlByIdentifierId: Map<Long, String>
+    ): List<Issue> =
+        ortRunIssueIds.map { ortRunIssueId ->
+            val row = issueRowsById.getValue(ortRunIssueId)
+
+            val type = row.getOrNull(IdentifiersTable.type)
+            val namespace = row.getOrNull(IdentifiersTable.namespace)
+            val name = row.getOrNull(IdentifiersTable.name)
+            val version = row.getOrNull(IdentifiersTable.version)
+            val identifier = type?.let { safeType ->
+                namespace?.let { safeNamespace ->
+                    name?.let { safeName ->
+                        version?.let { safeVersion ->
+                            Identifier(safeType, safeNamespace, safeName, safeVersion)
                         }
                     }
                 }
-
-                val identifierId = row.getOrNull(OrtRunsIssuesTable.identifierId)?.value
-
-                Issue(
-                    timestamp = row[OrtRunsIssuesTable.timestamp],
-                    source = row[IssuesTable.issueSource],
-                    message = row[IssuesTable.message],
-                    severity = row[IssuesTable.severity],
-                    affectedPath = row.getOrNull(IssuesTable.affectedPath),
-                    identifier = identifier,
-                    worker = row.getOrNull(OrtRunsIssuesTable.worker),
-                    resolutions = resolutionsByOrtRunIssueId[ortRunIssueId].orEmpty(),
-                    purl = identifierId?.let { purlByIdentifierId[it] }
-                )
             }
 
-            ListQueryResult(data = finalIssues, params = parameters, totalCount = totalCount)
+            val identifierId = row.getOrNull(OrtRunsIssuesTable.identifierId)?.value
+
+            Issue(
+                timestamp = row[OrtRunsIssuesTable.timestamp],
+                source = row[IssuesTable.issueSource],
+                message = row[IssuesTable.message],
+                severity = row[IssuesTable.severity],
+                affectedPath = row.getOrNull(IssuesTable.affectedPath),
+                identifier = identifier,
+                worker = row.getOrNull(OrtRunsIssuesTable.worker),
+                resolutions = resolutionsByOrtRunIssueId[ortRunIssueId].orEmpty(),
+                purl = identifierId?.let { purlByIdentifierId[it] }
+            )
         }
-    }
 
     /** Count issues found in provided ORT runs. */
     suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
