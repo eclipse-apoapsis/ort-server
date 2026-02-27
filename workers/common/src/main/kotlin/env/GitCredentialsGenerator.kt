@@ -19,10 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import java.net.URI
-
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
@@ -41,33 +38,6 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
     companion object {
         /** The name of the file storing the actual credentials. */
         private const val GIT_CREDENTIALS_FILE_NAME = ".git-credentials"
-
-        /**
-         * Return a string with the URL of this [ResolvedInfrastructureService] with the credentials embedded as needed
-         * within the _.git-credentials_ file. Use [builder] to obtain secret references. Return *null* if the URL is
-         * invalid.
-         */
-        private fun ResolvedInfrastructureService.urlWithCredentials(builder: ConfigFileBuilder): String? =
-            runCatching {
-                val serviceUrl = URI.create(url).toURL()
-
-                GeneratorLogger.entryAdded(
-                    "${serviceUrl.protocol}://<username>:<password>@${serviceUrl.authority}${serviceUrl.path}",
-                    GIT_CREDENTIALS_FILE_NAME,
-                    this
-                )
-
-                buildString {
-                    append(serviceUrl.protocol)
-                    append("://")
-                    append(builder.secretRef(usernameSecret, ConfigFileBuilder.urlEncoding)).append(':')
-                    append(builder.secretRef(passwordSecret, ConfigFileBuilder.urlEncoding)).append('@')
-                    append(serviceUrl.authority)
-                    append(serviceUrl.path)
-                }
-            }.onFailure {
-                GeneratorLogger.error("Invalid URL for service '$this'. Ignoring it.", GIT_CREDENTIALS_FILE_NAME, it)
-            }.getOrNull()
     }
 
     override val environmentDefinitionType: Class<EnvironmentServiceDefinition> =
@@ -89,7 +59,7 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
         definitions: Collection<EnvironmentServiceDefinition>
     ) {
         builder.buildInUserHome(GIT_CREDENTIALS_FILE_NAME) {
-            definitions.mapNotNull { it.service.urlWithCredentials(builder) }
+            definitions.mapNotNull { it.service.urlWithCredentials(builder, GIT_CREDENTIALS_FILE_NAME) }
                 .forEach(this::println)
         }
     }
