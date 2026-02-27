@@ -23,7 +23,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
+
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.jdbc.select
 
 import org.ossreviewtoolkit.model.FileList
 import org.ossreviewtoolkit.model.KnownProvenance
@@ -46,3 +62,44 @@ internal fun getFileLists(fileListResolver: FileListResolver, provenances: Set<K
             }
         }.awaitAll().filterNotNull()
     }
+
+/**
+ * Return package purls by identifier ID for the given [ortRunId]. Curated purls override base purls.
+ */
+internal fun getPurlByIdentifierIdForOrtRun(ortRunId: Long, identifierIds: Collection<Long>): Map<Long, String> {
+    if (identifierIds.isEmpty()) return emptyMap()
+
+    val basePurls = PackagesTable
+        .innerJoin(PackagesAnalyzerRunsTable)
+        .innerJoin(AnalyzerRunsTable)
+        .innerJoin(AnalyzerJobsTable)
+        .select(PackagesTable.identifierId, PackagesTable.purl)
+        .where {
+            (AnalyzerJobsTable.ortRunId eq ortRunId) and
+                (PackagesTable.identifierId inList identifierIds.toList())
+        }
+        .associate { it[PackagesTable.identifierId].value to it[PackagesTable.purl] }
+
+    // ORDER BY rank ensures highest-priority curation comes first; groupBy preserves this order.
+    val curatedPurls = PackageCurationDataTable
+        .innerJoin(PackageCurationsTable)
+        .innerJoin(ResolvedPackageCurationsTable)
+        .innerJoin(ResolvedPackageCurationProvidersTable)
+        .innerJoin(ResolvedConfigurationsTable)
+        .select(PackageCurationsTable.identifierId, PackageCurationDataTable.purl)
+        .where {
+            (ResolvedConfigurationsTable.ortRunId eq ortRunId) and
+                (PackageCurationsTable.identifierId inList identifierIds.toList()) and
+                (PackageCurationDataTable.purl.isNotNull())
+        }
+        .orderBy(ResolvedPackageCurationProvidersTable.rank)
+        .orderBy(ResolvedPackageCurationsTable.rank)
+        .groupBy { it[PackageCurationsTable.identifierId].value }
+        .mapValues { (_, rows) ->
+            requireNotNull(rows.first()[PackageCurationDataTable.purl]) {
+                "Curated purl was unexpectedly null after filtering."
+            }
+        }
+
+    return basePurls + curatedPurls
+}
