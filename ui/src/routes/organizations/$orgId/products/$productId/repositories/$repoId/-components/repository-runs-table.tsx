@@ -31,16 +31,18 @@ import {
 } from '@tanstack/react-table';
 import { Repeat, View } from 'lucide-react';
 
-import { OrtRunSummary } from '@/api';
+import { JobSummary, OrtRunSummary } from '@/api';
 import {
   deleteRepositoryRunMutation,
   getRepositoryOptions,
   getRepositoryRunsOptions,
   getRepositoryRunsQueryKey,
+  getRunStatisticsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
+import { ItemCounts } from '@/components/item-counts';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
@@ -62,10 +64,10 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { isJobFinished } from '@/helpers/job-helpers';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
-import { ItemCounts } from './item-counts';
 
 type RepositoryTableProps = {
   repoId: string;
@@ -81,8 +83,23 @@ const pollInterval = config.pollInterval;
 
 const columnHelper = createColumnHelper<OrtRunSummary>();
 
+const showBadge = (jobSummary: JobSummary | null | undefined) => {
+  return (
+    jobSummary !== undefined &&
+    jobSummary !== null &&
+    isJobFinished(jobSummary.status)
+  );
+};
+
 const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
   const hasLabels = summary.labels && Object.keys(summary.labels).length > 0;
+
+  const statistics = useQuery({
+    ...getRunStatisticsOptions({
+      path: { runId: summary.id },
+    }),
+    refetchInterval: pollInterval,
+  });
 
   return (
     <div className='grid grid-cols-12 gap-2'>
@@ -94,7 +111,33 @@ const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
           {summary.status}
         </Badge>
         <div className='col-span-2 flex flex-col items-start justify-center gap-2'>
-          <ItemCounts summary={summary} />
+          <ItemCounts
+            statistics={statistics.data}
+            wide
+            showIssues={showBadge(summary.jobs.analyzer)}
+            showVulnerabilities={showBadge(summary.jobs.advisor)}
+            showRuleViolations={showBadge(summary.jobs.evaluator)}
+            link={{
+              params: {
+                orgId: summary.organizationId.toString(),
+                productId: summary.productId.toString(),
+                repoId: summary.repositoryId.toString(),
+                runIndex: summary.index.toString(),
+              },
+              issuesSearch: {
+                sortBy: [{ id: 'severity', desc: true }],
+                itemResolved: ['Unresolved'],
+              },
+              vulnerabilitiesSearch: {
+                sortBy: [{ id: 'rating', desc: true }],
+                itemResolved: ['Unresolved'],
+              },
+              ruleViolationsSearch: {
+                sortBy: [{ id: 'severity', desc: true }],
+                itemResolved: ['Unresolved'],
+              },
+            }}
+          />
         </div>
         <OrtRunJobStatus
           jobs={summary.jobs}

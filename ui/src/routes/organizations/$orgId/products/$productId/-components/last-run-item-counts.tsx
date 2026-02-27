@@ -18,20 +18,14 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
-import { Bug, Loader2, Scale, ShieldQuestion } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { JobSummary, OrtRunSummary } from '@/api';
 import {
   getRepositoryRunsOptions,
   getRunStatisticsOptions,
 } from '@/api/@tanstack/react-query.gen';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { ItemCounts } from '@/components/item-counts';
 import { config } from '@/config';
 import { isJobFinished } from '@/helpers/job-helpers';
 
@@ -78,11 +72,11 @@ export const LastRunItemCounts = ({ repoId }: LastRunItemCountsProps) => {
   return <LastRunItemCountsInner summary={run} />;
 };
 
-const LastRunItemCountsInner = ({ summary }: { summary: OrtRunSummary }) => {
-  const showBadge = (jobSummary: JobSummary | null | undefined) => {
-    return jobSummary != null && isJobFinished(jobSummary.status);
-  };
+const showBadge = (jobSummary: JobSummary | null | undefined) => {
+  return jobSummary != null && isJobFinished(jobSummary.status);
+};
 
+const LastRunItemCountsInner = ({ summary }: { summary: OrtRunSummary }) => {
   const statistics = useQuery({
     ...getRunStatisticsOptions({
       path: { runId: summary.id },
@@ -91,89 +85,37 @@ const LastRunItemCountsInner = ({ summary }: { summary: OrtRunSummary }) => {
   });
 
   return (
-    <div className='grid grid-cols-3 gap-1'>
-      {showBadge(summary.jobs.analyzer) && (
-        <CountBadgeLink
-          count={statistics.data?.issuesCount}
-          icon={Bug}
-          label='issues'
-          colStart='col-start-1'
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues'
-          summary={summary}
-        />
-      )}
-      {showBadge(summary.jobs.advisor) && (
-        <CountBadgeLink
-          count={statistics.data?.vulnerabilitiesCount}
-          icon={ShieldQuestion}
-          label='vulnerabilities'
-          colStart='col-start-2'
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities'
-          summary={summary}
-        />
-      )}
-      {showBadge(summary.jobs.evaluator) && (
-        <CountBadgeLink
-          count={statistics.data?.ruleViolationsCount}
-          icon={Scale}
-          label='rule violations'
-          colStart='col-start-3'
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations'
-          summary={summary}
-        />
-      )}
-    </div>
-  );
-};
-
-type CountBadgeLinkProps = {
-  count: number | null | undefined;
-  icon: typeof Bug;
-  label: string;
-  colStart: string;
-  to: string;
-  summary: OrtRunSummary;
-};
-
-const CountBadgeLink = ({
-  count,
-  icon: Icon,
-  label,
-  colStart,
-  to,
-  summary,
-}: CountBadgeLinkProps) => {
-  const displayCount = count == null ? '' : count > 99 ? '99+' : count;
-  const tooltipText =
-    count == null ? '' : count > 99 ? `View all ${count}` : 'View';
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild className={`${colStart} w-12`}>
-        <Button
-          variant='outline'
-          size='xs'
-          asChild
-          className='flex justify-start'
-        >
-          <Link
-            to={to}
-            params={{
-              orgId: summary.organizationId.toString(),
-              productId: summary.productId.toString(),
-              repoId: summary.repositoryId.toString(),
-              runIndex: summary.index.toString(),
-            }}
-            search={{ itemResolved: ['Unresolved'] }}
-          >
-            <Icon className='size-3' />
-            <div className='text-xs'>{displayCount}</div>
-          </Link>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        {tooltipText} {label} of run {summary.index}
-      </TooltipContent>
-    </Tooltip>
+    <ItemCounts
+      statistics={statistics.data}
+      showIssues={showBadge(summary.jobs.analyzer)}
+      showVulnerabilities={showBadge(summary.jobs.advisor)}
+      showRuleViolations={showBadge(summary.jobs.evaluator)}
+      compact
+      link={{
+        params: {
+          orgId: summary.organizationId.toString(),
+          productId: summary.productId.toString(),
+          repoId: summary.repositoryId.toString(),
+          runIndex: summary.index.toString(),
+        },
+        issuesSearch: {
+          sortBy: [{ id: 'severity', desc: true }],
+          itemResolved: ['Unresolved'],
+        },
+        vulnerabilitiesSearch: {
+          sortBy: [{ id: 'rating', desc: true }],
+          itemResolved: ['Unresolved'],
+        },
+        ruleViolationsSearch: {
+          sortBy: [{ id: 'severity', desc: true }],
+          itemResolved: ['Unresolved'],
+        },
+      }}
+      tooltip={(label, count) =>
+        count > 99
+          ? `View all ${count} ${label} of run ${summary.index}`
+          : `View ${label} of run ${summary.index}`
+      }
+    />
   );
 };
