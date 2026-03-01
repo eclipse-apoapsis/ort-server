@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureServi
 import org.eclipse.apoapsis.ortserver.workers.common.env.NPM_REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.env.REMOTE_NAME
 import org.eclipse.apoapsis.ortserver.workers.common.env.REMOTE_URL
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.BazelDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
@@ -183,6 +184,29 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                     CredentialsType.GIT_CREDENTIALS_FILE,
                     CredentialsType.NETRC_FILE
                 )
+            }
+        }
+
+        "A BazelDefinition" should {
+            "be created successfully" {
+                val definition = createSuccessful(EnvironmentDefinitionFactory.BAZEL_TYPE, emptyMap())
+
+                definition.shouldBeInstanceOf<BazelDefinition>()
+            }
+
+            "fail if there are unsupported properties" {
+                val unsupportedProperty1 = "anotherProperty"
+                val unsupportedProperty2 = "oneMoreUnsupportedProperty"
+
+                val properties = mapOf(
+                    unsupportedProperty1 to "bar",
+                    unsupportedProperty2 to "baz"
+                )
+
+                val exception = createFailed(EnvironmentDefinitionFactory.BAZEL_TYPE, properties)
+
+                exception.message shouldContain "'$unsupportedProperty1'"
+                exception.message shouldContain "'$unsupportedProperty2'"
             }
         }
 
