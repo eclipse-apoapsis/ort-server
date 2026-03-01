@@ -19,15 +19,20 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
+import com.github.michaelbull.result.get
+
 import java.io.InputStream
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.OrtResult
@@ -182,10 +187,22 @@ fun WorkerContext.loadGlobalResolutions(adminConfigService: AdminConfigService):
  * the global resolutions loaded from the configuration file.
  */
 fun WorkerContext.createResolutionProvider(
+    repositoryId: RepositoryId,
     ortResult: OrtResult,
-    adminConfigService: AdminConfigService
+    adminConfigService: AdminConfigService,
+    vulnerabilityResolutionService: VulnerabilityResolutionService? = null
 ): ResolutionProvider {
     val resolutionsFromOrtResult = ortResult.repository.config.resolutions
     val globalResolutions = loadGlobalResolutions(adminConfigService)
-    return DefaultResolutionProvider(resolutionsFromOrtResult.merge(globalResolutions))
+
+    val resolutionsFromRepository = Resolutions(
+        vulnerabilities = vulnerabilityResolutionService?.getResolutionsForRepository(repositoryId)
+            ?.get()?.map { it.mapToOrt() }.orEmpty()
+    )
+
+    return DefaultResolutionProvider(
+        resolutionsFromOrtResult
+            .merge(globalResolutions)
+            .merge(resolutionsFromRepository)
+    )
 }

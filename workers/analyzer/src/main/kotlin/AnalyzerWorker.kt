@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
@@ -124,7 +125,11 @@ internal class AnalyzerWorker(
             // IMPORTANT: Use getAnalyzerIssues() to get ONLY analyzer issues, not all issues.
             val allIssues = ortResult.getAnalyzerIssues().values.flatten()
 
-            val resolutionProvider = context.createResolutionProvider(ortResult, adminConfigService)
+            val resolutionProvider = context.createResolutionProvider(
+                RepositoryId(context.hierarchy.repository.id),
+                ortResult,
+                adminConfigService
+            )
 
             // Apply resolutions using the common function.
             val resolvedItems = resolveResolutionsWithMappings(

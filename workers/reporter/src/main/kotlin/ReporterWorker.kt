@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
@@ -122,7 +123,11 @@ internal class ReporterWorker(
             val allIssues = reporterRunnerResult.issues
             val reporterIssuesAsOrt = allIssues.map { it.mapToOrt() }
 
-            val resolutionProvider = context.createResolutionProvider(ortResult, adminConfigService)
+            val resolutionProvider = context.createResolutionProvider(
+                RepositoryId(context.hierarchy.repository.id),
+                ortResult,
+                adminConfigService
+            )
 
             val resolvedReporterItems = resolveResolutionsWithMappings(
                 issues = reporterIssuesAsOrt,

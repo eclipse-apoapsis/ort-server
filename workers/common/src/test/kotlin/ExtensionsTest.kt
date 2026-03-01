@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
@@ -368,7 +369,11 @@ class ExtensionsTest : WordSpec({
                 )
             )
 
-            val resolutionProvider = workerContext.createResolutionProvider(ortResult, adminConfigService)
+            val resolutionProvider = workerContext.createResolutionProvider(
+                RepositoryId(ortRun.repositoryId),
+                ortResult,
+                adminConfigService
+            )
 
             val repoIssue = Issue(
                 timestamp = Instant.now(),

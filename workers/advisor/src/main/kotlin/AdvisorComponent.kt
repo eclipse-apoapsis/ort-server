@@ -19,6 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
@@ -33,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -97,6 +102,11 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+
+        single<AuthorizationService> { DbAuthorizationService(get()) }
+        singleOf(::RepositoryService)
+        singleOf(::VulnerabilityResolutionEventStore)
+        singleOf(::VulnerabilityResolutionService)
 
         singleOf(::AdvisorRunner)
         singleOf(::AdvisorWorker)

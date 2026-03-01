@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -116,7 +117,11 @@ class EvaluatorRunner(
 
         val resolvedOrtResult = ortResult.setPackageConfigurations(packageConfigurationProvider)
 
-        val resolutionProvider = workerContext.createResolutionProvider(resolvedOrtResult, adminConfigService)
+        val resolutionProvider = workerContext.createResolutionProvider(
+            RepositoryId(workerContext.hierarchy.repository.id),
+            resolvedOrtResult,
+            adminConfigService
+        )
 
         // TODO: Make the hardcoded values below configurable.
         val licenseInfoResolver = LicenseInfoResolver(
