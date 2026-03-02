@@ -19,6 +19,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+import type {
+  OrganizationPermission,
+  ProductPermission,
+  RepositoryPermission,
+} from '@/api';
 import {
   getSuperuserOptions,
   getUserInfoOptions,
@@ -31,6 +36,23 @@ type PermissionResult = {
   isPending: boolean;
   error: unknown;
 };
+
+type ScopedPermissionRequest =
+  | {
+      scopeType: 'organization';
+      scope: { organizationId: number };
+      requiredPermission: OrganizationPermission;
+    }
+  | {
+      scopeType: 'product';
+      scope: { productId: number };
+      requiredPermission: ProductPermission;
+    }
+  | {
+      scopeType: 'repository';
+      scope: { repositoryId: number };
+      requiredPermission: RepositoryPermission;
+    };
 
 export const useIsSuperuser = (): {
   isSuperuser: boolean | undefined;
@@ -54,11 +76,7 @@ export const useIsSuperuser = (): {
 };
 
 const useEntityPermission = (
-  scope:
-    | { organizationId: number }
-    | { productId: number }
-    | { repositoryId: number },
-  requiredPermission: string
+  request: ScopedPermissionRequest
 ): PermissionResult => {
   const {
     data: userInfo,
@@ -66,14 +84,20 @@ const useEntityPermission = (
     error,
   } = useQuery({
     ...getUserInfoOptions({
-      query: scope,
+      query: request.scope,
     }),
     staleTime: PERMISSIONS_STALE_TIME,
   });
 
   const isAllowed =
     userInfo?.isSuperuser ||
-    userInfo?.permissions?.includes(requiredPermission);
+    (request.scopeType === 'organization'
+      ? userInfo?.organizationPermissions?.includes(request.requiredPermission)
+      : request.scopeType === 'product'
+        ? userInfo?.productPermissions?.includes(request.requiredPermission)
+        : userInfo?.repositoryPermissions?.includes(
+            request.requiredPermission
+          ));
 
   return {
     isAllowed,
@@ -84,33 +108,36 @@ const useEntityPermission = (
 
 export const useOrganizationPermission = (
   organizationId: number,
-  requiredPermission: string
+  requiredPermission: OrganizationPermission
 ): PermissionResult =>
-  useEntityPermission(
-    {
+  useEntityPermission({
+    scopeType: 'organization',
+    scope: {
       organizationId,
     },
-    requiredPermission
-  );
+    requiredPermission,
+  });
 
 export const useProductPermission = (
   productId: number,
-  requiredPermission: string
+  requiredPermission: ProductPermission
 ): PermissionResult =>
-  useEntityPermission(
-    {
+  useEntityPermission({
+    scopeType: 'product',
+    scope: {
       productId,
     },
-    requiredPermission
-  );
+    requiredPermission,
+  });
 
 export const useRepositoryPermission = (
   repositoryId: number,
-  requiredPermission: string
+  requiredPermission: RepositoryPermission
 ): PermissionResult =>
-  useEntityPermission(
-    {
+  useEntityPermission({
+    scopeType: 'repository',
+    scope: {
       repositoryId,
     },
-    requiredPermission
-  );
+    requiredPermission,
+  });

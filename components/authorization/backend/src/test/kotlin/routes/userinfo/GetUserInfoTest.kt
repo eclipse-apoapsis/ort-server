@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Organizati
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -63,6 +64,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                 val userInfo = response.body<UserInfo>()
                 userInfo.username shouldBe TEST_USER
                 userInfo.fullName shouldBe "Test User"
+                userInfo.isSuperuser shouldBe false
+                userInfo.organizationPermissions shouldBe emptySet()
+                userInfo.productPermissions shouldBe emptySet()
+                userInfo.repositoryPermissions shouldBe emptySet()
             }
         }
 
@@ -77,8 +82,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                     val response = client.get("/authorization/userinfo?organizationId=${orgId.value}")
                     val userInfo = response.body<UserInfo>()
                     userInfo.isSuperuser shouldBe false
+                    userInfo.productPermissions shouldBe emptySet()
+                    userInfo.repositoryPermissions shouldBe emptySet()
                     role.organizationPermissions.forAll { permission ->
-                        userInfo.permissions shouldContain permission.name
+                        userInfo.organizationPermissions shouldContain permission.mapToApi()
                     }
                 }
             }
@@ -98,8 +105,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                     val response = client.get("/authorization/userinfo?productId=${productId.value}")
                     val userInfo = response.body<UserInfo>()
                     userInfo.isSuperuser shouldBe false
+                    userInfo.organizationPermissions shouldBe emptySet()
+                    userInfo.repositoryPermissions shouldBe emptySet()
                     role.productPermissions.forAll { permission ->
-                        userInfo.permissions shouldContain permission.name
+                        userInfo.productPermissions shouldContain permission.mapToApi()
                     }
                 }
             }
@@ -120,8 +129,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                     val response = client.get("/authorization/userinfo?repositoryId=${repositoryId.value}")
                     val userInfo = response.body<UserInfo>()
                     userInfo.isSuperuser shouldBe false
+                    userInfo.organizationPermissions shouldBe emptySet()
+                    userInfo.productPermissions shouldBe emptySet()
                     role.repositoryPermissions.forAll { permission ->
-                        userInfo.permissions shouldContain permission.name
+                        userInfo.repositoryPermissions shouldContain permission.mapToApi()
                     }
                 }
             }
@@ -136,9 +147,9 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                 val userInfo = response.body<UserInfo>()
 
                 userInfo.isSuperuser shouldBe true
-                OrganizationRole.ADMIN.organizationPermissions.forAll { permission ->
-                    userInfo.permissions shouldContain permission.name
-                }
+                userInfo.organizationPermissions shouldBe emptySet()
+                userInfo.productPermissions shouldBe emptySet()
+                userInfo.repositoryPermissions shouldBe emptySet()
             }
         }
 
@@ -153,8 +164,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                 val userInfo = response.body<UserInfo>()
 
                 userInfo.isSuperuser shouldBe true
+                userInfo.productPermissions shouldBe emptySet()
+                userInfo.repositoryPermissions shouldBe emptySet()
                 OrganizationRole.ADMIN.organizationPermissions.forAll { permission ->
-                    userInfo.permissions shouldContain permission.name
+                    userInfo.organizationPermissions shouldContain permission.mapToApi()
                 }
             }
         }
@@ -168,8 +181,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                 val userInfo = response.body<UserInfo>()
 
                 userInfo.isSuperuser shouldBe true
+                userInfo.organizationPermissions shouldBe emptySet()
+                userInfo.repositoryPermissions shouldBe emptySet()
                 ProductRole.ADMIN.productPermissions.forAll { permission ->
-                    userInfo.permissions shouldContain permission.name
+                    userInfo.productPermissions shouldContain permission.mapToApi()
                 }
             }
         }
@@ -183,8 +198,10 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                 val userInfo = response.body<UserInfo>()
 
                 userInfo.isSuperuser shouldBe true
+                userInfo.organizationPermissions shouldBe emptySet()
+                userInfo.productPermissions shouldBe emptySet()
                 RepositoryRole.ADMIN.repositoryPermissions.forAll { permission ->
-                    userInfo.permissions shouldContain permission.name
+                    userInfo.repositoryPermissions shouldContain permission.mapToApi()
                 }
             }
         }

@@ -34,10 +34,14 @@ data class UserInfo(
     /** The full name of the current user. */
     val fullName: String,
 
-    /**
-     * A set with the names of permissions the current user has on the current level of the hierarchy.
-     */
-    val permissions: Set<String>,
+    /** A set with the organization permissions the current user has. */
+    val organizationPermissions: Set<OrganizationPermission> = emptySet(),
+
+    /** A set with the product permissions the current user has. */
+    val productPermissions: Set<ProductPermission> = emptySet(),
+
+    /** A set with the repository permissions the current user has. */
+    val repositoryPermissions: Set<RepositoryPermission> = emptySet(),
 
     /** A flag whether the current user is a superuser. */
     val isSuperuser: Boolean

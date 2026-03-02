@@ -19,6 +19,11 @@
 
 import type { ReactNode } from 'react';
 
+import type {
+  OrganizationPermission,
+  ProductPermission,
+  RepositoryPermission,
+} from '@/api';
 import { PermissionGuard } from '@/components/authorization/permission-guard';
 import {
   useOrganizationPermission,
@@ -26,20 +31,20 @@ import {
   useRepositoryPermission,
 } from '@/hooks/use-authorization';
 
-interface RequirePermissionProps {
+interface RequirePermissionProps<TPermission extends string> {
   children: ReactNode;
-  permission: string;
+  permission: TPermission;
 }
 
-interface RequireOrganizationPermissionProps extends RequirePermissionProps {
+interface RequireOrganizationPermissionProps extends RequirePermissionProps<OrganizationPermission> {
   organizationId: number;
 }
 
-interface RequireProductPermissionProps extends RequirePermissionProps {
+interface RequireProductPermissionProps extends RequirePermissionProps<ProductPermission> {
   productId: number;
 }
 
-interface RequireRepositoryPermissionProps extends RequirePermissionProps {
+interface RequireRepositoryPermissionProps extends RequirePermissionProps<RepositoryPermission> {
   repositoryId: number;
 }
 
