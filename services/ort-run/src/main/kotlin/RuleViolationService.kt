@@ -19,30 +19,44 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RuleViolationResolutionsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
+import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
 
 import org.jetbrains.exposed.v1.core.Count
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.Query
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
-
-import org.ossreviewtoolkit.model.config.RuleViolationResolution
 
 /**
  * A service to interact with rule violations.
@@ -53,81 +67,169 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         ruleViolationFilter: RuleViolationFilters = RuleViolationFilters()
     ): ListQueryResult<RuleViolation> {
-        val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
+        ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
             "ORT run with ID $ortRunId not found."
         )
 
-        var comparator = compareBy<RuleViolation> { 0 }
+        return db.blockingQuery {
+            val query = buildListForOrtRunIdQuery(ortRunId, ruleViolationFilter)
 
-        parameters.sortFields.forEach { orderField ->
+            val totalCount = query.count()
+            val ruleViolationIds = fetchPagedRuleViolationIds(query, parameters)
+
+            if (ruleViolationIds.isEmpty()) {
+                return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
+            }
+
+            val ruleViolationRowsById = fetchRuleViolationRowsById(ruleViolationIds)
+            val resolutionsByRuleViolationId = fetchResolutionsByRuleViolationId(ortRunId, ruleViolationIds)
+
+            val identifierIds = ruleViolationIds
+                .mapNotNull { ruleViolationRowsById[it]?.getOrNull(RuleViolationsTable.identifierId)?.value }
+                .distinct()
+
+            val purlByIdentifierId = getPurlByIdentifierIdForOrtRun(ortRunId, identifierIds)
+            val ruleViolations = assembleRuleViolations(
+                ruleViolationIds,
+                ruleViolationRowsById,
+                resolutionsByRuleViolationId,
+                purlByIdentifierId
+            )
+
+            ListQueryResult(data = ruleViolations, params = parameters, totalCount = totalCount)
+        }
+    }
+
+    private fun buildListForOrtRunIdQuery(ortRunId: Long, ruleViolationFilter: RuleViolationFilters): Query {
+        val query = RuleViolationsTable
+            .innerJoin(EvaluatorRunsRuleViolationsTable)
+            .innerJoin(EvaluatorRunsTable)
+            .innerJoin(EvaluatorJobsTable)
+            .select(RuleViolationsTable.id)
+            .where { EvaluatorJobsTable.ortRunId eq ortRunId }
+
+        val resolvedRuleViolationIdsSubquery = ResolvedRuleViolationsTable
+            .select(ResolvedRuleViolationsTable.ruleViolationId)
+            .where { ResolvedRuleViolationsTable.ortRunId eq ortRunId }
+
+        when (ruleViolationFilter.resolved) {
+            true -> query.andWhere { RuleViolationsTable.id inSubQuery resolvedRuleViolationIdsSubquery }
+            false -> query.andWhere { not(RuleViolationsTable.id inSubQuery resolvedRuleViolationIdsSubquery) }
+            null -> {}
+        }
+
+        return query
+    }
+
+    private fun fetchPagedRuleViolationIds(query: Query, parameters: ListQueryParameters): List<Long> {
+        val sortFields = parameters.sortFields.ifEmpty {
+            listOf(OrderField("rule", OrderDirection.ASCENDING))
+        }
+
+        sortFields.forEach { orderField ->
+            val sortOrder = orderField.direction.toSortOrder()
+
             when (orderField.name) {
-                "rule" -> {
-                    comparator = when (orderField.direction) {
-                        OrderDirection.ASCENDING -> comparator.thenBy { it.rule }
-                        OrderDirection.DESCENDING -> comparator.thenByDescending { it.rule }
-                    }
-                }
-
-                "severity" -> {
-                    comparator = when (orderField.direction) {
-                        OrderDirection.ASCENDING -> comparator.thenBy { it.severity }
-                        OrderDirection.DESCENDING -> comparator.thenByDescending { it.severity }
-                    }
-                }
+                "rule" -> query.orderBy(RuleViolationsTable.rule to sortOrder)
+                "severity" -> query.orderBy(RuleViolationsTable.severity to sortOrder)
+                else -> throw QueryParametersException("Unknown sort field '${orderField.name}'.")
             }
         }
 
-        val ortResult = ortRunService.generateOrtResult(
-            ortRun,
-            loadAdvisorRun = false,
-            loadScannerRun = false,
-            failIfRepoInfoMissing = false
-        )
+        query.orderBy(RuleViolationsTable.id to SortOrder.ASC)
+        query.limit(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT).offset(parameters.offset ?: 0L)
 
-        val ruleViolations = ortResult.getRuleViolations(omitResolved = false).map { it.mapToModel() }
-        val resolutions = ortResult.getResolutions().ruleViolations
+        return query.map { it[RuleViolationsTable.id].value }
+    }
 
-        val sortedResult = ruleViolations.sortedWith(comparator)
-        val filteredResult = sortedResult.applyResultFilter(ruleViolationFilter, resolutions)
-        val limitedResults = filteredResult
-            .drop(parameters.offset?.toInt() ?: 0)
-            .take(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT)
+    private fun fetchRuleViolationRowsById(ruleViolationIds: List<Long>): Map<Long, ResultRow> =
+        RuleViolationsTable
+            .join(IdentifiersTable, JoinType.LEFT, RuleViolationsTable.identifierId, IdentifiersTable.id)
+            .select(
+                RuleViolationsTable.id,
+                RuleViolationsTable.rule,
+                RuleViolationsTable.identifierId,
+                RuleViolationsTable.license,
+                RuleViolationsTable.licenseSources,
+                RuleViolationsTable.severity,
+                RuleViolationsTable.message,
+                RuleViolationsTable.howToFix,
+                IdentifiersTable.type,
+                IdentifiersTable.namespace,
+                IdentifiersTable.name,
+                IdentifiersTable.version
+            )
+            .where { RuleViolationsTable.id inList ruleViolationIds }
+            .associateBy { it[RuleViolationsTable.id].value }
 
-        val ruleViolationsWithResolutions = limitedResults.map { ruleViolation ->
-            val matchingResolutions = resolutions.filter { it.matches(ruleViolation.mapToOrt()) }
-            ruleViolation.copy(
-                resolutions = matchingResolutions.map { it.mapToModel() },
-                purl = ruleViolation.id?.mapToOrt()?.let {
-                    ortResult.getPackage(it)?.metadata?.purl
+    private fun fetchResolutionsByRuleViolationId(
+        ortRunId: Long,
+        ruleViolationIds: List<Long>
+    ): Map<Long, List<RuleViolationResolution>> =
+        ResolvedRuleViolationsTable
+            .innerJoin(RuleViolationResolutionsTable, { ruleViolationResolutionId }, { id })
+            .select(
+                ResolvedRuleViolationsTable.ruleViolationId,
+                RuleViolationResolutionsTable.message,
+                RuleViolationResolutionsTable.reason,
+                RuleViolationResolutionsTable.comment
+            )
+            .where {
+                (ResolvedRuleViolationsTable.ortRunId eq ortRunId) and
+                    (ResolvedRuleViolationsTable.ruleViolationId inList ruleViolationIds)
+            }
+            .groupBy(
+                { it[ResolvedRuleViolationsTable.ruleViolationId].value },
+                {
+                    RuleViolationResolution(
+                        message = it[RuleViolationResolutionsTable.message],
+                        reason = it[RuleViolationResolutionsTable.reason],
+                        comment = it[RuleViolationResolutionsTable.comment]
+                    )
                 }
+            )
+
+    private fun assembleRuleViolations(
+        ruleViolationIds: List<Long>,
+        ruleViolationRowsById: Map<Long, ResultRow>,
+        resolutionsByRuleViolationId: Map<Long, List<RuleViolationResolution>>,
+        purlByIdentifierId: Map<Long, String>
+    ): List<RuleViolation> =
+        ruleViolationIds.map { ruleViolationId ->
+            val row = ruleViolationRowsById.getValue(ruleViolationId)
+
+            val type = row.getOrNull(IdentifiersTable.type)
+            val namespace = row.getOrNull(IdentifiersTable.namespace)
+            val name = row.getOrNull(IdentifiersTable.name)
+            val version = row.getOrNull(IdentifiersTable.version)
+
+            val identifier = type?.let { safeType ->
+                namespace?.let { safeNamespace ->
+                    name?.let { safeName ->
+                        version?.let { safeVersion ->
+                            Identifier(safeType, safeNamespace, safeName, safeVersion)
+                        }
+                    }
+                }
+            }
+
+            val identifierId = row.getOrNull(RuleViolationsTable.identifierId)?.value
+
+            RuleViolation(
+                rule = row[RuleViolationsTable.rule],
+                id = identifier,
+                license = row.getOrNull(RuleViolationsTable.license),
+                licenseSources = row[RuleViolationsTable.licenseSources].mapToLicenseSources(),
+                severity = row[RuleViolationsTable.severity],
+                message = row[RuleViolationsTable.message],
+                howToFix = row[RuleViolationsTable.howToFix],
+                resolutions = resolutionsByRuleViolationId[ruleViolationId].orEmpty(),
+                purl = identifierId?.let { purlByIdentifierId[it] }
             )
         }
 
-        return ListQueryResult(
-            data = ruleViolationsWithResolutions,
-            params = parameters,
-            totalCount = filteredResult.size.toLong()
-        )
-    }
-
-    private fun List<RuleViolation>.applyResultFilter(
-        ruleViolationFilter: RuleViolationFilters,
-        resolutions: List<RuleViolationResolution>
-    ): List<RuleViolation> = when (ruleViolationFilter.resolved) {
-        true -> {
-            filter { violation ->
-                resolutions.any { it.matches(violation.mapToOrt()) }
-            }
-        }
-
-        false -> {
-            filter { violation ->
-                resolutions.none { it.matches(violation.mapToOrt()) }
-            }
-        }
-
-        null -> this
-    }
+    private fun String?.mapToLicenseSources(): Set<LicenseSource> =
+        this?.split(',')?.mapTo(mutableSetOf()) { enumValueOf<LicenseSource>(it) }.orEmpty()
 
     /** Count rule violations found in provided ORT runs. */
     suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
