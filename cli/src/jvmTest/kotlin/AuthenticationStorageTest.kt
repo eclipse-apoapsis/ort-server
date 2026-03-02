@@ -18,6 +18,7 @@
  */
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -67,7 +68,7 @@ class AuthenticationStorageTest : StringSpec({
             AuthenticationStorage.store(auth)
             AuthenticationStorage.clear()
 
-            AuthenticationStorage.get() shouldBe null
+            AuthenticationStorage.get() should beNull()
         }
     }
 })

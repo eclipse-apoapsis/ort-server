@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -82,9 +84,8 @@ class DaoReporterRunRepositoryTest : StringSpec({
 
         val reporterRun = reporterRunRepository.create(reporterJob.id, time, time, reportsWithNullSize)
 
-        val dbEntry = reporterRunRepository.get(reporterRun.id)
-
-        dbEntry.shouldNotBeNull()
-        dbEntry.reports.single().sizeInBytes shouldBe null
+        reporterRunRepository.get(reporterRun.id) shouldNotBeNull {
+            this.reports.single().sizeInBytes should beNull()
+        }
     }
 })

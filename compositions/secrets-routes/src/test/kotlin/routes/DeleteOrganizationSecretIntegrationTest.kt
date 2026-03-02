@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -54,7 +55,7 @@ class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
                 client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForId(OrganizationId(orgId)).data shouldBe emptyList()
+                secretRepository.listForId(OrganizationId(orgId)).data should beEmpty()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()

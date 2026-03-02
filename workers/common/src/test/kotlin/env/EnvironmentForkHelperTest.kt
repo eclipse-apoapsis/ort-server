@@ -23,6 +23,8 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withSystemProperty
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -174,7 +176,7 @@ class EnvironmentForkHelperTest : StringSpec({
 
         // Clear MDC to simulate fresh forked process
         MDC.clear()
-        MDC.getCopyOfContextMap() shouldBe null
+        MDC.getCopyOfContextMap() should beNull()
 
         // Simulate setupFork in the forked process
         val stdin = ByteArrayInputStream(processInput.toByteArray())

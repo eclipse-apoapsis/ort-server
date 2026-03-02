@@ -21,10 +21,11 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
@@ -57,7 +58,7 @@ class UserWithGroupsHelperTest : WordSpec({
             val pagedUsers = users.sortAndPage(pagingOptions)
 
             // Then
-            pagedUsers.size shouldBe 2
+            pagedUsers shouldHaveSize 2
             pagedUsers[0].user.username shouldBe "john3hh"
             pagedUsers[1].user.username shouldBe "john4hh"
         }
@@ -79,7 +80,7 @@ class UserWithGroupsHelperTest : WordSpec({
             val pagedUsers = users.sortAndPage(pagingOptions)
 
             // Then
-            pagedUsers.size shouldBe 6
+            pagedUsers shouldHaveSize 6
             pagedUsers[0].user.username shouldBe "john1hh"
             pagedUsers[1].user.username shouldBe "john2hh"
             pagedUsers[2].user.username shouldBe "john3hh"
@@ -105,7 +106,7 @@ class UserWithGroupsHelperTest : WordSpec({
             val pagedUsers = users.sortAndPage(pagingOptions)
 
             // Then
-            pagedUsers.size shouldBe 6
+            pagedUsers shouldHaveSize 6
             pagedUsers[4].groups[0] shouldBe ApiUserGroup.READERS
             pagedUsers[5].groups[0] shouldBe ApiUserGroup.READERS
             pagedUsers[2].groups[0] shouldBe ApiUserGroup.WRITERS
@@ -137,7 +138,7 @@ class UserWithGroupsHelperTest : WordSpec({
             val pagedUsers = users.sortAndPage(pagingOptions)
 
             // Then
-            pagedUsers.size shouldBe 3
+            pagedUsers shouldHaveSize 3
             pagedUsers[0].groups[0] shouldBe ApiUserGroup.ADMINS
             pagedUsers[0].user.username shouldBe "john6hh"
             pagedUsers[1].groups[0] shouldBe ApiUserGroup.WRITERS
@@ -220,22 +221,23 @@ class UserWithGroupsHelperTest : WordSpec({
             val apiUsers = modelUsers.mapToApi()
 
             // Then
-            apiUsers.size shouldBeExactly 2
-            val user1 = apiUsers.find { it.user.username == "john2hh" }
-            user1 shouldNotBe null
-            user1?.user?.firstName shouldBe "John"
-            user1?.user?.lastName shouldBe "Doe"
-            user1?.user?.email shouldBe "john.doe@example.com"
-            user1?.groups?.size shouldBe 2
-            user1?.groups shouldContainExactly listOf(ApiUserGroup.ADMINS, ApiUserGroup.WRITERS)
+            apiUsers shouldHaveSize 2
 
-            val user2 = apiUsers.find { it.user.username == "ron5ff" }
-            user2 shouldNotBe null
-            user2?.user?.firstName shouldBe "Ron"
-            user2?.user?.lastName shouldBe "Boo"
-            user2?.user?.email shouldBe "ron.boo@example.com"
-            user2?.groups?.size shouldBe 3
-            user2?.groups shouldContainExactly listOf(ApiUserGroup.ADMINS, ApiUserGroup.WRITERS, ApiUserGroup.READERS)
+            apiUsers.find { it.user.username == "john2hh" } shouldNotBeNull {
+                user.firstName shouldBe "John"
+                user.lastName shouldBe "Doe"
+                user.email shouldBe "john.doe@example.com"
+                groups.size shouldBe 2
+                groups should containExactly(ApiUserGroup.ADMINS, ApiUserGroup.WRITERS)
+            }
+
+            apiUsers.find { it.user.username == "ron5ff" } shouldNotBeNull {
+                user.firstName shouldBe "Ron"
+                user.lastName shouldBe "Boo"
+                user.email shouldBe "ron.boo@example.com"
+                groups shouldHaveSize 3
+                groups should containExactly(ApiUserGroup.ADMINS, ApiUserGroup.WRITERS, ApiUserGroup.READERS)
+            }
         }
 
         "sort groups by rank" {

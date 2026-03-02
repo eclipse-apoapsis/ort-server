@@ -32,7 +32,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
-import io.kotest.matchers.shouldNotBe
 
 import io.mockk.Runs
 import io.mockk.andThenJust
@@ -276,7 +275,7 @@ class OrtRunServiceTest : WordSpec({
 
             val results = service.listOrtRuns(ListQueryParameters.DEFAULT, filters)
 
-            results.data shouldHaveSize 0
+            results.data should beEmpty()
             results.totalCount shouldBe 0
         }
     }
@@ -307,8 +306,8 @@ class OrtRunServiceTest : WordSpec({
                 )
             }
 
-            fixtures.reporterRunRepository.getByJobId(jobId) shouldBe null
-            fixtures.ortRunRepository.get(ortRunId) shouldBe null
+            fixtures.reporterRunRepository.getByJobId(jobId) should beNull()
+            fixtures.ortRunRepository.get(ortRunId) should beNull()
         }
 
         "delete an ORT run even if some reports are not found in storage" {
@@ -332,8 +331,8 @@ class OrtRunServiceTest : WordSpec({
                 )
             }
 
-            fixtures.reporterRunRepository.getByJobId(jobId) shouldBe null
-            fixtures.ortRunRepository.get(ortRunId) shouldBe null
+            fixtures.reporterRunRepository.getByJobId(jobId) should beNull()
+            fixtures.ortRunRepository.get(ortRunId) should beNull()
         }
 
         "not delete an ORT run in case of technical issues of the report storage" {
@@ -352,8 +351,8 @@ class OrtRunServiceTest : WordSpec({
                 service.deleteOrtRun(ortRunId)
             }.message shouldBe "Simulated Exception"
 
-            fixtures.reporterRunRepository.getByJobId(jobId) shouldNotBe null
-            fixtures.ortRunRepository.get(ortRunId) shouldNotBe null
+            fixtures.reporterRunRepository.getByJobId(jobId) shouldNot beNull()
+            fixtures.ortRunRepository.get(ortRunId) shouldNot beNull()
         }
     }
 
@@ -382,14 +381,14 @@ class OrtRunServiceTest : WordSpec({
             result.totalCount shouldBe 1
             result.failedCount shouldBe 0
 
-            fixtures.ortRunRepository.get(ortRunId1) shouldBe null
+            fixtures.ortRunRepository.get(ortRunId1) should beNull()
             // Run 2 is the latest run in the repository and is intentionally retained.
-            fixtures.ortRunRepository.get(ortRunId2) shouldNotBe null
-            fixtures.ortRunRepository.get(ortRunId3) shouldNotBe null
+            fixtures.ortRunRepository.get(ortRunId2) shouldNot beNull()
+            fixtures.ortRunRepository.get(ortRunId3) shouldNot beNull()
 
-            fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
-            fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNotBe null
-            fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
+            fixtures.reporterRunRepository.getByJobId(reporterjobId1) should beNull()
+            fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNot beNull()
+            fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNot beNull()
         }
 
         "delete only finished ORT runs older than the given timestamp" {
@@ -405,15 +404,15 @@ class OrtRunServiceTest : WordSpec({
             service = createService(mockReportStorageService)
             service.deleteRunsCreatedBefore(Clock.System.now())
 
-            fixtures.ortRunRepository.get(ortRunId1) shouldBe null
+            fixtures.ortRunRepository.get(ortRunId1) should beNull()
             // Run 2 is the latest run in the repository and is intentionally retained.
-            fixtures.ortRunRepository.get(ortRunId2) shouldNotBe null
+            fixtures.ortRunRepository.get(ortRunId2) shouldNot beNull()
             // Run 3 is active and should not be deleted
-            fixtures.ortRunRepository.get(ortRunId3) shouldNotBe null
+            fixtures.ortRunRepository.get(ortRunId3) shouldNot beNull()
 
-            fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
-            fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNotBe null
-            fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
+            fixtures.reporterRunRepository.getByJobId(reporterjobId1) should beNull()
+            fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNot beNull()
+            fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNot beNull()
         }
 
         "return the number of failed delete operations" {
@@ -1537,9 +1536,9 @@ class OrtRunServiceTest : WordSpec({
                             size shouldBe 1
                             first().apply {
                                 // No findings are filtered out.
-                                licenseFindings.size shouldBe 2
-                                copyrightFindings.size shouldBe 2
-                                snippetFindings.size shouldBe 2
+                                licenseFindings shouldHaveSize 2
+                                copyrightFindings shouldHaveSize 2
+                                snippetFindings shouldHaveSize 2
                             }
                         }
                     }
@@ -1562,9 +1561,9 @@ class OrtRunServiceTest : WordSpec({
                             size shouldBe 1
                             first().apply {
                                 // Only the findings within the VCS path are kept.
-                                licenseFindings.size shouldBe 1
-                                copyrightFindings.size shouldBe 1
-                                snippetFindings.size shouldBe 1
+                                licenseFindings shouldHaveSize 1
+                                copyrightFindings shouldHaveSize 1
+                                snippetFindings shouldHaveSize 1
                             }
                         }
                     }

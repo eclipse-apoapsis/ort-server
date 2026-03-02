@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -196,7 +197,7 @@ class UtilsTest : WordSpec({
         }
 
         "return an empty map for empty identifier IDs" {
-            getPurlByIdentifierIdForOrtRun(ortRunId = 1L, identifierIds = emptyList()) shouldBe emptyMap()
+            getPurlByIdentifierIdForOrtRun(ortRunId = 1L, identifierIds = emptyList()) should beEmptyMap()
         }
     }
 })

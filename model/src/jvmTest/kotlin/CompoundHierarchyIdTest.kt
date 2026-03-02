@@ -21,6 +21,9 @@ package org.eclipse.apoapsis.ortserver.model
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 class CompoundHierarchyIdTest : WordSpec({
@@ -30,8 +33,8 @@ class CompoundHierarchyIdTest : WordSpec({
             val compoundId = CompoundHierarchyId.forOrganization(orgId)
 
             compoundId.organizationId shouldBe orgId
-            compoundId.productId shouldBe null
-            compoundId.repositoryId shouldBe null
+            compoundId.productId should beNull()
+            compoundId.repositoryId should beNull()
         }
     }
 
@@ -43,7 +46,7 @@ class CompoundHierarchyIdTest : WordSpec({
 
             compoundId.organizationId shouldBe orgId
             compoundId.productId shouldBe prodId
-            compoundId.repositoryId shouldBe null
+            compoundId.repositoryId should beNull()
         }
     }
 
@@ -64,7 +67,7 @@ class CompoundHierarchyIdTest : WordSpec({
         "return null for an organization" {
             val compoundId = CompoundHierarchyId.forOrganization(OrganizationId(1))
 
-            compoundId.parent shouldBe null
+            compoundId.parent should beNull()
         }
 
         "return the organization ID for a product" {
@@ -85,7 +88,7 @@ class CompoundHierarchyIdTest : WordSpec({
         }
 
         "return null for the wildcard instance" {
-            CompoundHierarchyId.WILDCARD.parent shouldBe null
+            CompoundHierarchyId.WILDCARD.parent should beNull()
         }
     }
 
@@ -93,7 +96,7 @@ class CompoundHierarchyIdTest : WordSpec({
         "return an empty list for an organization" {
             val compoundId = CompoundHierarchyId.forOrganization(OrganizationId(1))
 
-            compoundId.parents shouldBe emptyList()
+            compoundId.parents should beEmpty()
         }
 
         "return a list with the organization ID for a product" {
@@ -117,7 +120,7 @@ class CompoundHierarchyIdTest : WordSpec({
         }
 
         "return an empty list for the wildcard instance" {
-            CompoundHierarchyId.WILDCARD.parents shouldBe emptyList()
+            CompoundHierarchyId.WILDCARD.parents should beEmpty()
         }
     }
 
@@ -151,8 +154,8 @@ class CompoundHierarchyIdTest : WordSpec({
             val compoundId = CompoundHierarchyId.forOrganization(orgId)
 
             compoundId[HierarchyLevel.ORGANIZATION] shouldBe orgId
-            compoundId[HierarchyLevel.PRODUCT] shouldBe null
-            compoundId[HierarchyLevel.REPOSITORY] shouldBe null
+            compoundId[HierarchyLevel.PRODUCT] should beNull()
+            compoundId[HierarchyLevel.REPOSITORY] should beNull()
         }
 
         "return the correct ID for a product" {
@@ -162,7 +165,7 @@ class CompoundHierarchyIdTest : WordSpec({
 
             compoundId[HierarchyLevel.ORGANIZATION] shouldBe orgId
             compoundId[HierarchyLevel.PRODUCT] shouldBe prodId
-            compoundId[HierarchyLevel.REPOSITORY] shouldBe null
+            compoundId[HierarchyLevel.REPOSITORY] should beNull()
         }
 
         "return the correct ID for a repository" {

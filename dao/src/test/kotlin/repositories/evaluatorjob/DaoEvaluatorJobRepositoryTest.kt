@@ -19,7 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob
 
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -123,7 +125,7 @@ class DaoEvaluatorJobRepositoryTest : WorkerJobRepositoryTest<EvaluatorJob>() {
 
             evaluatorJobRepository.delete(evaluatorJob.id)
 
-            evaluatorJobRepository.get(evaluatorJob.id) shouldBe null
+            evaluatorJobRepository.get(evaluatorJob.id) should beNull()
         }
     }
 }

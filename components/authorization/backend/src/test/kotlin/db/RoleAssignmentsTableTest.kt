@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.components.authorization.db
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable.userId
@@ -97,10 +99,10 @@ class RoleAssignmentsTableTest : StringSpec() {
                 row[RoleAssignmentsTable.organizationId]?.value shouldBe dbExtension.fixtures.organization.id
                 row[RoleAssignmentsTable.userId] shouldBe "user-id"
                 row[RoleAssignmentsTable.organizationRole] shouldBe "WRITER"
-                row[RoleAssignmentsTable.productId] shouldBe null
-                row[RoleAssignmentsTable.repositoryId] shouldBe null
-                row[RoleAssignmentsTable.productRole] shouldBe null
-                row[RoleAssignmentsTable.repositoryRole] shouldBe null
+                row[RoleAssignmentsTable.productId] should beNull()
+                row[RoleAssignmentsTable.repositoryId] should beNull()
+                row[RoleAssignmentsTable.productRole] should beNull()
+                row[RoleAssignmentsTable.repositoryRole] should beNull()
             }
         }
     }

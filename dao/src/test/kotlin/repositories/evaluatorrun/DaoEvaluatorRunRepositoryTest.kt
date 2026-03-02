@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -64,7 +65,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
     }
 
     "get should return null if evaluator run was not found" {
-        evaluatorRunRepository.get(1L).shouldBeNull()
+        evaluatorRunRepository.get(1L) should beNull()
     }
 
     "get should find an evaluator run by evaluator job id" {
@@ -87,7 +88,7 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
     }
 
     "get should not find an evaluator run by non-existing evaluator job id" {
-        evaluatorRunRepository.getByJobId(1L).shouldBeNull()
+        evaluatorRunRepository.getByJobId(1L) should beNull()
     }
 })
 

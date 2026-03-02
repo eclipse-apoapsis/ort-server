@@ -701,7 +701,7 @@ class PackageServiceTest : WordSpec() {
 
                 val licenses = service.getProcessedDeclaredLicenses(ortRunId)
 
-                licenses.size shouldBe 3
+                licenses shouldHaveSize 3
                 licenses shouldBe listOf("Apache-2.0", "Apache-2.0 OR LGPL-2.1-or-later", "MIT")
             }
         }

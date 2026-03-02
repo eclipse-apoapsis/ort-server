@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
-import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -70,7 +70,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
             dbExtension.db.blockingQuery {
                 val associatedScanResults = ScannerRunDao[scannerRun.id].scanResults.map { it.mapToModel() }
 
-                associatedScanResults should haveSize(scanResults.size)
+                associatedScanResults shouldHaveSize scanResults.size
                 associatedScanResults.map { it.mapToOrt() } should containExactlyInAnyOrder(*scanResults)
             }
         }
@@ -201,7 +201,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult2)
 
-                loadScanSummaryIds().size shouldBe 1
+                loadScanSummaryIds() shouldHaveSize 1
             }
 
             "duplicate a scan summary if it has different timestamps" {
@@ -220,7 +220,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult2)
 
-                loadScanSummaryIds().size shouldBe 2
+                loadScanSummaryIds() shouldHaveSize 2
             }
 
             "duplicate a scan summary if it has different content" {
@@ -238,7 +238,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult2)
 
-                loadScanSummaryIds().size shouldBe 2
+                loadScanSummaryIds() shouldHaveSize 2
             }
         }
 
@@ -296,7 +296,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult)
 
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldBe emptyList()
+                readResult should beEmpty()
             }
 
             "return empty results list in case no matching artifact provenance scan results are found the database" {
@@ -308,7 +308,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult)
 
                 val readResult = scanResultStorage.read(artifactProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldBe emptyList()
+                readResult should beEmpty()
             }
 
             "apply the scanner matcher" {

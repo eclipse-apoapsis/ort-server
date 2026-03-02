@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containExactlyInAnyOrder
-import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -76,7 +76,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 val associatedProvenanceDaos = ScannerRunDao[scannerRun.id].packageProvenances
 
                 val associatedProvenances = associatedProvenanceDaos.map { it.mapToModel().mapToOrt() }
-                associatedProvenances should haveSize(1)
+                associatedProvenances shouldHaveSize 1
                 associatedProvenances.single() shouldBe provenance
 
                 if (provenance is RepositoryProvenance) {

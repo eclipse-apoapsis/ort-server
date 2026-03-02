@@ -19,7 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob
 
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -77,7 +78,7 @@ class DaoAnalyzerJobRepositoryTest : WorkerJobRepositoryTest<AnalyzerJob>() {
         }
 
         "get should return null" {
-            analyzerJobRepository.get(1L).shouldBeNull()
+            analyzerJobRepository.get(1L) should beNull()
         }
 
         "get should return the job" {
@@ -121,7 +122,7 @@ class DaoAnalyzerJobRepositoryTest : WorkerJobRepositoryTest<AnalyzerJob>() {
 
             analyzerJobRepository.delete(analyzerJob.id)
 
-            analyzerJobRepository.get(analyzerJob.id) shouldBe null
+            analyzerJobRepository.get(analyzerJob.id) should beNull()
         }
     }
 }

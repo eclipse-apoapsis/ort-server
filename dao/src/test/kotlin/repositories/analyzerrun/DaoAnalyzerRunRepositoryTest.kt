@@ -20,8 +20,10 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -175,7 +177,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         result.shouldBeSingleton {
             it.projectIdentifier shouldBe project.identifier
             it.scope shouldBe "compile"
-            it.path shouldBe emptyList()
+            it.path should beEmpty()
         }
     }
 

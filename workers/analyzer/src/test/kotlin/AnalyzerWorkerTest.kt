@@ -23,6 +23,8 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -698,7 +700,7 @@ class AnalyzerWorkerTest : StringSpec({
             val result = worker.testRun()
 
             result shouldBe RunResult.FinishedWithIssues
-            resolvedItemsSlot.captured.issues shouldBe emptyMap()
+            resolvedItemsSlot.captured.issues should beEmpty()
         }
     }
 

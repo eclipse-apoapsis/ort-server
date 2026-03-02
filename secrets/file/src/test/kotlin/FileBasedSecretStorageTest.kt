@@ -23,6 +23,8 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempfile
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import java.io.File
@@ -61,7 +63,7 @@ class FileBasedSecretStorageTest : WordSpec() {
             "return null for a non-existing secret" {
                 val result = storage.readSecret(Path("non-existing"))
 
-                result shouldBe null
+                result should beNull()
             }
         }
 
@@ -96,7 +98,7 @@ class FileBasedSecretStorageTest : WordSpec() {
 
                 storage.removeSecret(targetPath)
 
-                storage.readSecret(targetPath) shouldBe null
+                storage.readSecret(targetPath) should beNull()
             }
 
             "remove a secret with all its versions" {
@@ -108,7 +110,7 @@ class FileBasedSecretStorageTest : WordSpec() {
 
                 storage.removeSecret(targetPath)
 
-                storage.readSecret(targetPath) shouldBe null
+                storage.readSecret(targetPath) should beNull()
             }
         }
 

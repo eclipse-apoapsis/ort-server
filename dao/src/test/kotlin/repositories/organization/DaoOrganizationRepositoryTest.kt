@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.organization
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -249,7 +251,7 @@ class DaoOrganizationRepositoryTest : StringSpec({
 
         organizationRepository.delete(createdOrg.id)
 
-        organizationRepository.list().data shouldBe emptyList()
+        organizationRepository.list().data should beEmpty()
     }
 
     "get should return null" {

@@ -343,7 +343,7 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 definition.shouldBeInstanceOf<NuGetDefinition>()
                 definition.sourceName shouldBe sourceName
                 definition.sourcePath shouldBe sourcePath
-                definition.sourceProtocolVersion shouldBe null
+                definition.sourceProtocolVersion should beNull()
                 definition.authMode shouldBe NuGetAuthMode.API_KEY
             }
 

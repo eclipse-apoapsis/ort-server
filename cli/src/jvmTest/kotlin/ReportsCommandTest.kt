@@ -20,7 +20,7 @@
 import com.github.ajalt.clikt.command.test
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.should
 
 import io.mockk.coEvery
@@ -75,7 +75,7 @@ class ReportsCommandTest : StringSpec({
                 runsMock.downloadReport(1, "example3.txt", any())
             }
 
-            result.output.trim().lines().shouldContainExactly(
+            result.output.trim().lines() should containExactly(
                 "/tmp/output/example1.txt",
                 "/tmp/output/example2.txt",
                 "/tmp/output/example3.txt"

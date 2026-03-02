@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob
 
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
@@ -121,7 +123,7 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
 
             notifierJobRepository.delete(notifierJob.id)
 
-            notifierJobRepository.get(notifierJob.id) shouldBe null
+            notifierJobRepository.get(notifierJob.id) should beNull()
         }
 
         "deleteMailRecipients should only delete the mail recipients from the configuration" {
@@ -130,7 +132,7 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
 
             val updatedNotifierJob = notifierJobRepository.deleteMailRecipients(notifierJob.id)
 
-            updatedNotifierJob.configuration.recipientAddresses shouldBe emptyList()
+            updatedNotifierJob.configuration.recipientAddresses should beEmpty()
         }
     }
 }

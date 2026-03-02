@@ -24,6 +24,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -306,7 +307,7 @@ class SearchServiceTest : WordSpec({
 
             result.shouldBeSingleton {
                 it.purl shouldBe expectedPurl
-                it.packageId shouldBe null
+                it.packageId should beNull()
             }
         }
 
@@ -322,7 +323,7 @@ class SearchServiceTest : WordSpec({
 
             result.shouldBeSingleton {
                 it.packageId shouldBe pkgId.toApiIdentifier()
-                it.purl shouldBe null
+                it.purl should beNull()
             }
         }
 
@@ -589,7 +590,7 @@ class SearchServiceTest : WordSpec({
 
             result.shouldBeSingleton {
                 it.packageId shouldBe pkgId.toApiIdentifier()
-                it.purl shouldBe null
+                it.purl should beNull()
                 it.externalId shouldBe vulnId
             }
         }
@@ -612,7 +613,7 @@ class SearchServiceTest : WordSpec({
 
             result.shouldBeSingleton {
                 it.purl shouldBe pkgId.toPurl()
-                it.packageId shouldBe null
+                it.packageId should beNull()
                 it.externalId shouldBe vulnId
             }
         }

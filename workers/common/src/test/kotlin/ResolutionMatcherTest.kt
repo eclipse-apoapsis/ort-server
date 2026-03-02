@@ -20,9 +20,11 @@
 package org.eclipse.apoapsis.ortserver.workers.common
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import java.time.Instant
@@ -162,13 +164,11 @@ class ResolutionMatcherTest : WordSpec({
                 resolutionProvider = resolutionProvider
             )
 
-            with(result.issues) {
-                this shouldHaveSize 2
-                result.issues.values.flatten() shouldContainExactlyInAnyOrder listOf(
-                    expectedIssueResolution1,
-                    expectedIssueResolution2
-                )
-            }
+            result.issues shouldHaveSize 2
+            result.issues.values.flatten() should containExactlyInAnyOrder(
+                expectedIssueResolution1,
+                expectedIssueResolution2
+            )
         }
 
         "match rule violations with resolutions using regex and return model types" {
@@ -182,9 +182,8 @@ class ResolutionMatcherTest : WordSpec({
                 resolutionProvider = resolutionProvider
             )
 
-            with(result.ruleViolations) {
-                this shouldHaveSize 1
-                result.ruleViolations.values.flatten() shouldBe listOf(expectedRuleViolationResolution1)
+            result.ruleViolations.entries.shouldBeSingleton { (_, resolutions) ->
+                resolutions should containExactlyInAnyOrder(expectedRuleViolationResolution1)
             }
         }
 
@@ -199,10 +198,9 @@ class ResolutionMatcherTest : WordSpec({
                 resolutionProvider = resolutionProvider
             )
 
-            with(result.vulnerabilities) {
-                this shouldHaveSize 1
-                keys.first().externalId shouldBe "CVE-2023-0001"
-                values.flatten() shouldBe listOf(expectedVulnerabilityResolution1)
+            result.vulnerabilities.entries.shouldBeSingleton { (vulnerability, resolutions) ->
+                vulnerability.externalId shouldBe "CVE-2023-0001"
+                resolutions should containExactlyInAnyOrder(expectedVulnerabilityResolution1)
             }
         }
 

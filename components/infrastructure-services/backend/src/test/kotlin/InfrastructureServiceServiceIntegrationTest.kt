@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainOnly
@@ -583,7 +584,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             exception.message shouldInclude serviceName
 
-            service.listDeclarationsForRun(fixtures.ortRun.id) shouldBe emptyList()
+            service.listDeclarationsForRun(fixtures.ortRun.id) should beEmpty()
         }
     }
 

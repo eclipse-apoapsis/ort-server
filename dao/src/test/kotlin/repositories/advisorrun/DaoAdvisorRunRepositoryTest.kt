@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -82,7 +83,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
 
     "get" should {
         "return null if the advisor run does not exist" {
-            advisorRunRepository.get(advisorJobId).shouldBeNull()
+            advisorRunRepository.get(advisorJobId) should beNull()
         }
     }
 
@@ -95,7 +96,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
         }
 
         "return null if there is no run for the job id" {
-            advisorRunRepository.getByJobId(advisorJobId).shouldBeNull()
+            advisorRunRepository.getByJobId(advisorJobId) should beNull()
         }
     }
 })

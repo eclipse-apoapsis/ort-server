@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.migrations
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -57,7 +59,7 @@ class V70__addAffectedPathToIssueTest : WordSpec({
                     }
 
                     V70IssuesTable.selectAll().where { V70IssuesTable.id eq issueIdWithoutTimeoutError }.single().let {
-                        it[V70IssuesTable.affectedPath] shouldBe null
+                        it[V70IssuesTable.affectedPath] should beNull()
                     }
                 }
             }

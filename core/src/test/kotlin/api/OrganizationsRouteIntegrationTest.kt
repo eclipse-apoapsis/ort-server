@@ -23,13 +23,12 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -353,9 +352,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Organization(1, org.name, org.description)
 
-                organizationService.getOrganization(1)?.mapToApi().shouldBe(
+                organizationService.getOrganization(1)?.mapToApi() shouldBe
                     Organization(1, org.name, org.description)
-                )
             }
         }
 
@@ -373,7 +371,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for PostOrganization"
 
-                organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
+                organizationService.getOrganization(1)?.mapToApi() should beNull()
             }
         }
 
@@ -398,7 +396,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization"
                 body.cause shouldContain "Caused by: JsonDecodingException: Unexpected JSON token at offset 53"
 
-                organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
+                organizationService.getOrganization(1)?.mapToApi() should beNull()
             }
         }
 
@@ -521,7 +519,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/organizations/${createdOrg.id}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                organizationService.listOrganizations().data shouldBe emptyList()
+                organizationService.listOrganizations().data should beEmpty()
             }
         }
 
@@ -569,7 +567,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for PostProduct"
 
-                productService.getProduct(1)?.mapToApi().shouldBeNull()
+                productService.getProduct(1)?.mapToApi() should beNull()
             }
         }
 
@@ -943,7 +941,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NoContent
 
                     val membersAfter = authorizationService.listUsersWithRole(role.mapToModel(), orgHierarchyId)
-                    membersAfter.shouldBeEmpty()
+                    membersAfter should beEmpty()
                 }
             }
         }
