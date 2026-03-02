@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
@@ -60,7 +62,7 @@ enum class ProductPermission {
          * Get all [role names][roleName] for the provided [productId].
          */
         fun getRolesForProduct(productId: Long) =
-            enumValues<ProductPermission>().map { it.roleName(productId) }
+            enumEntries<ProductPermission>().map { it.roleName(productId) }
 
         /**
          * A unique prefix for the roles for the provided [productId].

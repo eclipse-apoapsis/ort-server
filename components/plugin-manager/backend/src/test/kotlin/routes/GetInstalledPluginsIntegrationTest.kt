@@ -29,6 +29,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
@@ -44,7 +46,7 @@ class GetInstalledPluginsIntegrationTest : PluginManagerIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val pluginDescriptors = response.body<List<PluginDescriptor>>()
-                enumValues<PluginType>().forEach { pluginType ->
+                enumEntries<PluginType>().forEach { pluginType ->
                     pluginDescriptors.filter { it.type == pluginType } shouldNot beEmpty()
                 }
             }

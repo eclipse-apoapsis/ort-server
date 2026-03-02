@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.core.utils
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.tryGetString
 
+import kotlin.enums.enumEntries
 import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
@@ -155,7 +156,7 @@ fun PostRepositoryRun.hasKeepAliveWorkerFlag() =
 inline fun <reified E : Enum<E>> findByName(name: String): E =
     runCatching { enumValueOf<E>(name.uppercase()) }.getOrNull() ?: throw QueryParametersException(
         "Invalid parameter value: '$name'. Allowed values are: " +
-                enumValues<E>().joinToString { "'$it'" }
+                enumEntries<E>().joinToString { "'$it'" }
     )
 
 /** Extract [VulnerabilityForRunsFilters] from the [ApplicationCall] */

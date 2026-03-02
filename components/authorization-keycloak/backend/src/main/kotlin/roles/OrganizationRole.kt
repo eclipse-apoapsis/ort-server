@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -72,11 +74,11 @@ enum class OrganizationRole(
 
         /** Get all group names for the provided [organizationId]. */
         fun getGroupsForOrganization(organizationId: Long) =
-            enumValues<OrganizationRole>().map { it.groupName(organizationId) }
+            enumEntries<OrganizationRole>().map { it.groupName(organizationId) }
 
         /** Get all role names for the provided [organizationId]. */
         fun getRolesForOrganization(organizationId: Long) =
-            enumValues<OrganizationRole>().map { it.roleName(organizationId) }
+            enumEntries<OrganizationRole>().map { it.roleName(organizationId) }
 
         /** A unique prefix for the groups for the provided [organizationId]. */
         fun groupPrefix(organizationId: Long) = "$GROUP_PREFIX${organizationId}_"
@@ -99,7 +101,7 @@ enum class OrganizationRole(
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
 
-    override fun getSiblings(): Set<OrganizationRole> = enumValues<OrganizationRole>().toSet() - this
+    override fun getSiblings(): Set<OrganizationRole> = enumEntries<OrganizationRole>().toSet() - this
 
     override fun groupName(id: OrganizationId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 

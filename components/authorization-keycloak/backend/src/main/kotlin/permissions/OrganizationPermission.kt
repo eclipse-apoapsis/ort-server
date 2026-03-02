@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
@@ -57,7 +59,7 @@ enum class OrganizationPermission {
          * Get all [role names][roleName] for the provided [organizationId].
          */
         fun getRolesForOrganization(organizationId: Long) =
-            enumValues<OrganizationPermission>().map { it.roleName(organizationId) }
+            enumEntries<OrganizationPermission>().map { it.roleName(organizationId) }
 
         /**
          * A unique prefix for the roles for the provided [organizationId].

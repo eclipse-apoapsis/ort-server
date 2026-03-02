@@ -47,6 +47,7 @@ import io.ktor.http.HttpStatusCode
 
 import io.mockk.mockk
 
+import kotlin.enums.enumEntries
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
@@ -634,7 +635,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "PUT /products/{productId}/roles/{role}" should {
-        enumValues<ApiProductRole>().forAll { role ->
+        enumEntries<ApiProductRole>().forAll { role ->
             "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdProd = createProduct()
@@ -663,7 +664,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /products/{productId}/roles/{role}" should {
-        enumValues<ApiProductRole>().forAll { role ->
+        enumEntries<ApiProductRole>().forAll { role ->
             "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdProd = createProduct()

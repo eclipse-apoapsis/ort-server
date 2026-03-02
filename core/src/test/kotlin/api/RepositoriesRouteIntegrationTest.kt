@@ -50,6 +50,8 @@ import io.mockk.mockk
 
 import java.util.EnumSet
 
+import kotlin.enums.enumEntries
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -1160,7 +1162,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "PUT /repositories/{orgId}/roles/{role}" should {
-        enumValues<ApiRepositoryRole>().forAll { role ->
+        enumEntries<ApiRepositoryRole>().forAll { role ->
             "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdRepo = createRepository()
@@ -1183,7 +1185,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /repositories/{orgId}/roles/{role}" should {
-        enumValues<ApiRepositoryRole>().forAll { role ->
+        enumEntries<ApiRepositoryRole>().forAll { role ->
             "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdRepo = createRepository()
