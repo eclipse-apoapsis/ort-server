@@ -64,7 +64,6 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val users = Json.decodeFromString<Set<UserWithSuperuserStatus>>(response.bodyAsText())
-                users.shouldNotBeNull()
                 users shouldContain UserWithSuperuserStatus(
                     user = User(
                         username = SUPERUSER.username.value,

@@ -85,7 +85,6 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
 
             val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
         }
 
@@ -99,7 +98,6 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
 
             val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
         }
 
@@ -113,7 +111,6 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
 
             val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
         }
 

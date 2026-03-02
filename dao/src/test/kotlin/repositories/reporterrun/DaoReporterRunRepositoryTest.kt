@@ -54,7 +54,6 @@ class DaoReporterRunRepositoryTest : StringSpec({
 
         val dbEntry = reporterRunRepository.get(reporterRun.id)
 
-        dbEntry.shouldNotBeNull()
         dbEntry shouldBe ReporterRun(
             id = reporterRun.id,
             reporterJobId = reporterJob.id,

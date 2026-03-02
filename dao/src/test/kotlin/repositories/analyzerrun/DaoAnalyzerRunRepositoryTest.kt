@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -74,13 +73,11 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
 
         val dbEntry = analyzerRunRepository.get(createdAnalyzerRun.id)
 
-        dbEntry.shouldNotBeNull()
-        val expectedRun = analyzerRun.copy(
+        dbEntry shouldBe analyzerRun.copy(
             id = createdAnalyzerRun.id,
             analyzerJobId = analyzerJobId,
             issues = analyzerRun.issues.map { it.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE) }
         )
-        dbEntry shouldBe expectedRun
     }
 
     "create should deduplicate packages with empty metadata" {

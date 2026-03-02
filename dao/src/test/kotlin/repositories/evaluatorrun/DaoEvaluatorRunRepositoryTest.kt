@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -54,7 +53,6 @@ class DaoEvaluatorRunRepositoryTest : StringSpec({
 
         val dbEntry = evaluatorRunRepository.get(createdEvaluatorRun.id)
 
-        dbEntry.shouldNotBeNull()
         dbEntry shouldBe EvaluatorRun(
             id = createdEvaluatorRun.id,
             evaluatorJobId = evaluatorJobId,
