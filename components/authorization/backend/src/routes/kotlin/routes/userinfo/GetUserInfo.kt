@@ -24,13 +24,18 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationPermission as ApiOrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductPermission as ApiProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryPermission as ApiRepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.api.UserInfo
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
-import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationChecker
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
@@ -69,7 +74,12 @@ internal fun Route.getUserInfo() = get("/authorization/userinfo", {
                         username = "jdoe",
                         fullName = "John Doe",
                         isSuperuser = false,
-                        permissions = setOf("READ", "READ_ORT_RUNS", "WRITE", "TRIGGER_ORT_RUN")
+                        repositoryPermissions = setOf(
+                            ApiRepositoryPermission.READ,
+                            ApiRepositoryPermission.READ_ORT_RUNS,
+                            ApiRepositoryPermission.WRITE,
+                            ApiRepositoryPermission.TRIGGER_ORT_RUN
+                        )
                     )
                 }
             }
@@ -88,11 +98,14 @@ internal fun Route.getUserInfo() = get("/authorization/userinfo", {
     }
 
     val principal = requirePrincipal()
+    val permissions = extractPermissions(principal.effectiveRole)
 
     val userInfo = UserInfo(
         username = principal.username,
         fullName = principal.fullName.orEmpty(),
-        permissions = extractPermissionNames(principal.effectiveRole),
+        organizationPermissions = permissions.organizationPermissions,
+        productPermissions = permissions.productPermissions,
+        repositoryPermissions = permissions.repositoryPermissions,
         isSuperuser = principal.effectiveRole.isSuperuser
     )
     call.respond(HttpStatusCode.OK, userInfo)
@@ -101,30 +114,42 @@ internal fun Route.getUserInfo() = get("/authorization/userinfo", {
 /**
  * Return a [Set] with the names of all permissions contained in the given [effectiveRole] for the current hierarchy
  * level. If the current user is a superuser, the set contains all permissions of the ADMIN role on this level.
+ * For requests without any scope given, empty sets are returned.
  */
-private fun extractPermissionNames(effectiveRole: EffectiveRole): Set<String> {
-    val level = effectiveRole.elementId.level
+private fun extractPermissions(effectiveRole: EffectiveRole): UserInfoPermissions =
+    when (effectiveRole.elementId.level) {
+        HierarchyLevel.ORGANIZATION -> UserInfoPermissions(
+            organizationPermissions = effectiveRole.organizationPermissionsForLevel()
+                .mapTo(mutableSetOf()) { it.mapToApi() }
+        )
 
-    val permissions = if (effectiveRole.isSuperuser) {
-        Role.getRoleByNameAndLevel(level, "ADMIN")?.let { role ->
-            when (level) {
-                HierarchyLevel.ORGANIZATION -> role.organizationPermissions
-                HierarchyLevel.PRODUCT -> role.productPermissions
-                HierarchyLevel.REPOSITORY -> role.repositoryPermissions
-                else -> emptySet()
-            }
-        } ?: OrganizationRole.ADMIN.organizationPermissions
-    } else {
-        when (level) {
-            HierarchyLevel.ORGANIZATION -> effectiveRole.getOrganizationPermissions()
-            HierarchyLevel.PRODUCT -> effectiveRole.getProductPermissions()
-            HierarchyLevel.REPOSITORY -> effectiveRole.getRepositoryPermissions()
-            HierarchyLevel.WILDCARD -> emptySet()
-        }
+        HierarchyLevel.PRODUCT -> UserInfoPermissions(
+            productPermissions = effectiveRole.productPermissionsForLevel()
+                .mapTo(mutableSetOf()) { it.mapToApi() }
+        )
+
+        HierarchyLevel.REPOSITORY -> UserInfoPermissions(
+            repositoryPermissions = effectiveRole.repositoryPermissionsForLevel()
+                .mapTo(mutableSetOf()) { it.mapToApi() }
+        )
+
+        HierarchyLevel.WILDCARD -> UserInfoPermissions()
     }
 
-    return permissions.mapTo(mutableSetOf()) { it.name }
-}
+private fun EffectiveRole.organizationPermissionsForLevel() =
+    if (isSuperuser) OrganizationRole.ADMIN.organizationPermissions else getOrganizationPermissions()
+
+private fun EffectiveRole.productPermissionsForLevel() =
+    if (isSuperuser) ProductRole.ADMIN.productPermissions else getProductPermissions()
+
+private fun EffectiveRole.repositoryPermissionsForLevel() =
+    if (isSuperuser) RepositoryRole.ADMIN.repositoryPermissions else getRepositoryPermissions()
+
+private data class UserInfoPermissions(
+    val organizationPermissions: Set<ApiOrganizationPermission> = emptySet(),
+    val productPermissions: Set<ApiProductPermission> = emptySet(),
+    val repositoryPermissions: Set<ApiRepositoryPermission> = emptySet()
+)
 
 /** The query parameter for the organization ID. */
 private const val ORGANIZATION_PARAM = "organizationId"

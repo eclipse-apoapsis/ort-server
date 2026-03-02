@@ -19,62 +19,75 @@
 
 import { QueryClient } from '@tanstack/react-query';
 
+import type {
+  OrganizationPermission,
+  ProductPermission,
+  RepositoryPermission,
+  UserInfo,
+} from '@/api';
 import {
   getSuperuserOptions,
   getUserInfoOptions,
 } from '@/api/@tanstack/react-query.gen.ts';
 
-class BasePermissions {
+class BasePermissions<TPermission extends string> {
   constructor(
     public readonly isSuperuser: boolean,
-    public readonly permissions: string[]
+    public readonly permissions: TPermission[]
   ) {}
 
-  includes(requiredPermission: string): boolean {
+  includes(requiredPermission: TPermission): boolean {
     return this.isSuperuser || this.permissions.includes(requiredPermission);
   }
 }
 
-export class OrganizationPermissions extends BasePermissions {
+export class OrganizationPermissions extends BasePermissions<OrganizationPermission> {
   constructor(
     public readonly organizationId: number,
     isSuperuser: boolean,
-    permissions: string[]
+    permissions: OrganizationPermission[]
   ) {
     super(isSuperuser, permissions);
   }
 }
 
-export class ProductPermissions extends BasePermissions {
+export class ProductPermissions extends BasePermissions<ProductPermission> {
   constructor(
     public readonly productId: number,
     isSuperuser: boolean,
-    permissions: string[]
+    permissions: ProductPermission[]
   ) {
     super(isSuperuser, permissions);
   }
 }
 
-export class RepositoryPermissions extends BasePermissions {
+export class RepositoryPermissions extends BasePermissions<RepositoryPermission> {
   constructor(
     public readonly repositoryId: number,
     isSuperuser: boolean,
-    permissions: string[]
+    permissions: RepositoryPermission[]
   ) {
     super(isSuperuser, permissions);
   }
 }
 
 type PermissionEntity = 'organizationId' | 'productId' | 'repositoryId';
+type PermissionConfig<TPermission extends string> = {
+  entityType: PermissionEntity;
+  permissionsForScope: (userInfo: UserInfo) => Array<TPermission> | undefined;
+};
 
-async function fetchPermissions<T extends BasePermissions>(
+async function fetchPermissions<
+  TPermission extends string,
+  T extends BasePermissions<TPermission>,
+>(
   queryClient: QueryClient,
   entityId: number,
-  entityType: PermissionEntity,
+  config: PermissionConfig<TPermission>,
   PermissionsClass: new (
     entityId: number,
     isSuperuser: boolean,
-    permissions: string[]
+    permissions: TPermission[]
   ) => T
 ): Promise<T> {
   const isSuperuser = await queryClient.fetchQuery({
@@ -89,13 +102,17 @@ async function fetchPermissions<T extends BasePermissions>(
   const userInfo = await queryClient.fetchQuery({
     ...getUserInfoOptions({
       query: {
-        [entityType]: entityId,
+        [config.entityType]: entityId,
       },
     }),
     staleTime: 60000,
   });
 
-  return new PermissionsClass(entityId, false, userInfo.permissions);
+  return new PermissionsClass(
+    entityId,
+    false,
+    config.permissionsForScope(userInfo) ?? []
+  );
 }
 
 export const fetchOrganizationPermissions = (
@@ -105,14 +122,26 @@ export const fetchOrganizationPermissions = (
   fetchPermissions(
     queryClient,
     organizationId,
-    'organizationId',
+    {
+      entityType: 'organizationId',
+      permissionsForScope: (userInfo) => userInfo.organizationPermissions,
+    },
     OrganizationPermissions
   );
 
 export const fetchProductPermissions = (
   queryClient: QueryClient,
   productId: number
-) => fetchPermissions(queryClient, productId, 'productId', ProductPermissions);
+) =>
+  fetchPermissions(
+    queryClient,
+    productId,
+    {
+      entityType: 'productId',
+      permissionsForScope: (userInfo) => userInfo.productPermissions,
+    },
+    ProductPermissions
+  );
 
 export const fetchRepositoryPermissions = (
   queryClient: QueryClient,
@@ -121,6 +150,9 @@ export const fetchRepositoryPermissions = (
   fetchPermissions(
     queryClient,
     repositoryId,
-    'repositoryId',
+    {
+      entityType: 'repositoryId',
+      permissionsForScope: (userInfo) => userInfo.repositoryPermissions,
+    },
     RepositoryPermissions
   );
