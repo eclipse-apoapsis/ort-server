@@ -133,12 +133,11 @@ class AuthenticationIntegrationTest : StringSpec({
         keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
 
         authTestApplication(onCall = {
-            val principal = call.principal<OrtServerPrincipal>(AuthenticationProviders.TOKEN_PROVIDER)
-
-            principal.shouldNotBeNull()
-            principal.username shouldBe TEST_USER.username.value
-            principal.effectiveRole.elementId shouldBe CompoundHierarchyId.WILDCARD
-            principal.effectiveRole.isSuperuser shouldBe false
+            call.principal<OrtServerPrincipal>(AuthenticationProviders.TOKEN_PROVIDER) shouldNotBeNull {
+                username shouldBe TEST_USER.username.value
+                effectiveRole.elementId shouldBe CompoundHierarchyId.WILDCARD
+                effectiveRole.isSuperuser shouldBe false
+            }
         }) {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 

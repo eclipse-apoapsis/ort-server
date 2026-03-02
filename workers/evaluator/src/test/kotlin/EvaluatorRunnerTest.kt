@@ -22,10 +22,11 @@ package org.eclipse.apoapsis.ortserver.workers.evaluator
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
-import io.kotest.matchers.collections.haveSize
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
@@ -148,7 +149,7 @@ class EvaluatorRunnerTest : WordSpec({
             // rules create rule violations if detected licenses LicenseRef-detected1 or LicenseRef-detected2 are
             // found. If the package configuration is applied, the result will only contain a rule violation for the
             // LicenseRef-detected2 finding.
-            result.evaluatorRun.violations should haveSize(1)
+            result.evaluatorRun.violations shouldHaveSize 1
             result.evaluatorRun.violations.first().message shouldBe "Found forbidden license 'LicenseRef-detected2'."
 
             result.packageConfigurations should containExactly(
@@ -206,7 +207,7 @@ class EvaluatorRunnerTest : WordSpec({
             // LicenseRef-detected2 finding. The used rules create rule violations if detected licenses
             // LicenseRef-detected1 or LicenseRef-detected2 are found. If the package configuration is applied, the
             // result will only contain a rule violation for the LicenseRef-detected1 finding.
-            result.evaluatorRun.violations should haveSize(1)
+            result.evaluatorRun.violations shouldHaveSize 1
             result.evaluatorRun.violations.first().message shouldBe "Found forbidden license 'LicenseRef-detected1'."
 
             result.packageConfigurations should containExactly(
@@ -285,9 +286,10 @@ class EvaluatorRunnerTest : WordSpec({
                 createWorkerContext()
             )
 
-            result.resolvedItems shouldNotBe null
-            result.resolvedItems.issues shouldBe emptyMap()
-            result.resolvedItems.vulnerabilities shouldBe emptyMap()
+            result.resolvedItems shouldNotBeNull {
+                issues should beEmpty()
+                vulnerabilities should beEmpty()
+            }
         }
     }
 })

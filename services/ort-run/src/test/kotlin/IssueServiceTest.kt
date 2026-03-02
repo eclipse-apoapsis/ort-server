@@ -21,8 +21,11 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
@@ -143,19 +146,19 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id)
 
-                result.data.size shouldBe 3
+                result.data shouldHaveSize 3
                 result.totalCount shouldBe 3
 
                 val dependencyIssue = result.data.single { "dependency not found" in it.message }
-                dependencyIssue.resolutions.size shouldBe 1
+                dependencyIssue.resolutions shouldHaveSize 1
                 dependencyIssue.resolutions[0].message shouldStartWith "dependency not found"
 
                 val timeoutIssue = result.data.single { "timeout while scanning" in it.message }
-                timeoutIssue.resolutions.size shouldBe 1
+                timeoutIssue.resolutions shouldHaveSize 1
                 timeoutIssue.resolutions[0].message shouldStartWith "timeout while scanning"
 
                 val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
-                unresolvedIssue.resolutions.size shouldBe 0
+                unresolvedIssue.resolutions should beEmpty()
             }
 
             "filter resolved issues when issuesFilter.resolved is true" {
@@ -193,10 +196,10 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id, issuesFilter = IssueFilter(resolved = true))
 
-                result.data.size shouldBe 1
+                result.data shouldHaveSize 1
                 result.totalCount shouldBe 1
                 result.data[0].message shouldContain "dependency not found"
-                result.data[0].resolutions.size shouldBe 1
+                result.data[0].resolutions shouldHaveSize 1
             }
 
             "filter unresolved issues when issuesFilter.resolved is false" {
@@ -233,10 +236,10 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id, issuesFilter = IssueFilter(resolved = false))
 
-                result.data.size shouldBe 1
+                result.data shouldHaveSize 1
                 result.totalCount shouldBe 1
                 result.data[0].message shouldContain "unresolved npm issue"
-                result.data[0].resolutions.size shouldBe 0
+                result.data[0].resolutions should beEmpty()
             }
 
             "return all issues when issuesFilter.resolved is null" {
@@ -274,14 +277,14 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id, issuesFilter = IssueFilter(resolved = null))
 
-                result.data.size shouldBe 2
+                result.data shouldHaveSize 2
                 result.totalCount shouldBe 2
 
                 val resolvedIssue = result.data.single { "dependency not found" in it.message }
-                resolvedIssue.resolutions.size shouldBe 1
+                resolvedIssue.resolutions shouldHaveSize 1
 
                 val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
-                unresolvedIssue.resolutions.size shouldBe 0
+                unresolvedIssue.resolutions should beEmpty()
             }
 
             "return purl for issues that are related to packages" {
@@ -316,11 +319,11 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id)
 
-                result.data.size shouldBe 2
+                result.data shouldHaveSize 2
                 result.totalCount shouldBe 2
 
                 val couldNotResolveIssue = result.data.single { "could not resolve" in it.message }
-                couldNotResolveIssue.purl shouldBe null
+                couldNotResolveIssue.purl should beNull()
 
                 val dependencyIssue = result.data.single { "dependency not found" in it.message }
                 dependencyIssue.purl shouldBe pkg.purl
@@ -547,7 +550,7 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id)
 
-                result.data shouldHaveSize 0
+                result.data should beEmpty()
                 result.totalCount shouldBe 0
             }
 
@@ -570,10 +573,10 @@ class IssueServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id)
 
                 result.data shouldHaveSize 1
-                result.data[0].identifier shouldBe null
-                result.data[0].worker shouldBe null
-                result.data[0].affectedPath shouldBe null
-                result.data[0].purl shouldBe null
+                result.data[0].identifier should beNull()
+                result.data[0].worker should beNull()
+                result.data[0].affectedPath should beNull()
+                result.data[0].purl should beNull()
             }
 
             "throw QueryParametersException for unknown sort field" {

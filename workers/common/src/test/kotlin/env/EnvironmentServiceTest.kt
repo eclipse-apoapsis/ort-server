@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
@@ -748,7 +750,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val result = environmentService.resolveSecretByName("my-secret-name", currentOrtRun, "my-service-name")
 
-            result shouldBe null
+            result should beNull()
         }
 
         "return a matching secret on repository level in the context of the ORT run" {

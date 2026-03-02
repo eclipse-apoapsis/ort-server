@@ -315,7 +315,7 @@ class HierarchyPermissionsTest : WordSpec({
             )
             val implicitIncludes = permissions.implicitIncludes()
 
-            implicitIncludes shouldBe emptyMap()
+            implicitIncludes should beEmpty()
         }
 
         "not return duplicate IDs" {

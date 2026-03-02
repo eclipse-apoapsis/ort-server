@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -123,7 +125,7 @@ class PostProductSecretIntegrationTest : SecretsIntegrationTest({
                 secretRepository.getByIdAndName(ProductId(prodId), secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("product_${prodId}_${secret.name}"))?.value shouldBe null
+                provider.readSecret(Path("product_${prodId}_${secret.name}"))?.value should beNull()
             }
         }
     }

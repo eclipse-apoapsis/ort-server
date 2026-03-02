@@ -373,7 +373,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/repositories/${createdRepository.id}") shouldHaveStatus
                     HttpStatusCode.NoContent
 
-                productService.listRepositoriesForProduct(productId).data shouldBe emptyList()
+                productService.listRepositoriesForProduct(productId).data should beEmpty()
             }
         }
 
@@ -724,14 +724,15 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 with(run.jobConfigs.analyzer) {
                     allowDynamicVersions shouldBe true
-                    val jobConfig = environmentConfig.shouldNotBeNull()
-                    jobConfig.strict shouldBe false
-                    jobConfig.environmentDefinitions shouldBe environmentDefinitions
-                    jobConfig.infrastructureServices shouldContainExactly listOf(serviceDeclaration)
-                    jobConfig.environmentVariables shouldContainExactly listOf(
-                        EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret"),
-                        EnvironmentVariableDeclaration("MY_OTHER_ENV_VAR", value = "nonSensitiveData")
-                    )
+                    environmentConfig shouldNotBeNull {
+                        strict shouldBe false
+                        this.environmentDefinitions shouldBe environmentDefinitions
+                        infrastructureServices shouldContainExactly listOf(serviceDeclaration)
+                        this.environmentVariables shouldContainExactly listOf(
+                            EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret"),
+                            EnvironmentVariableDeclaration("MY_OTHER_ENV_VAR", value = "nonSensitiveData")
+                        )
+                    }
                 }
 
                 run.jobConfigs.reporter shouldNotBeNull {

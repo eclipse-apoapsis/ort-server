@@ -19,6 +19,7 @@
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -108,7 +109,7 @@ class RunsApiTest : StringSpec({
 
             runsApi.downloadLogs(runId = 1, streamTarget = {})
 
-            mockEngine.requestHistory.size shouldBe 1
+            mockEngine.requestHistory shouldHaveSize 1
             with(mockEngine.requestHistory.first()) {
                 url.fullPath shouldBe "/api/v1/runs/1/logs"
             }
@@ -123,7 +124,7 @@ class RunsApiTest : StringSpec({
 
             runsApi.downloadLogs(runId = 1, steps = listOf(LogSource.ANALYZER), streamTarget = {})
 
-            mockEngine.requestHistory.size shouldBe 1
+            mockEngine.requestHistory shouldHaveSize 1
             with(mockEngine.requestHistory.first()) {
                 url.fullPath shouldBe "/api/v1/runs/1/logs?steps=ANALYZER"
             }
@@ -138,7 +139,7 @@ class RunsApiTest : StringSpec({
 
             runsApi.downloadLogs(runId = 1, level = LogLevel.WARN, streamTarget = {})
 
-            mockEngine.requestHistory.size shouldBe 1
+            mockEngine.requestHistory shouldHaveSize 1
             with(mockEngine.requestHistory.first()) {
                 url.fullPath shouldBe "/api/v1/runs/1/logs?level=WARN"
             }
@@ -153,7 +154,7 @@ class RunsApiTest : StringSpec({
 
             runsApi.downloadLogs(1, LogLevel.INFO, listOf(LogSource.CONFIG, LogSource.ANALYZER)) {}
 
-            mockEngine.requestHistory.size shouldBe 1
+            mockEngine.requestHistory shouldHaveSize 1
             with(mockEngine.requestHistory.first()) {
                 url.fullPath shouldBe "/api/v1/runs/1/logs?level=INFO&steps=CONFIG%2CANALYZER"
             }

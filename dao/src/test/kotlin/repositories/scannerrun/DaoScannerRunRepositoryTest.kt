@@ -176,17 +176,16 @@ class DaoScannerRunRepositoryTest : WordSpec({
                 issues
             )
 
-            val dbEntry = scannerRunRepository.get(createdScannerRun.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry.issues shouldBe issues
-            dbEntry.issues[pkg.identifier]?.firstOrNull()?.let { retrievedIssue ->
-                retrievedIssue.source shouldBe testIssue.source
-                retrievedIssue.message shouldBe testIssue.message
-                retrievedIssue.severity shouldBe testIssue.severity
-                retrievedIssue.affectedPath shouldBe testIssue.affectedPath
-                retrievedIssue.identifier shouldBe testIssue.identifier
-                retrievedIssue.worker shouldBe testIssue.worker
+            scannerRunRepository.get(createdScannerRun.id) shouldNotBeNull {
+                this.issues shouldBe issues
+                issues[pkg.identifier]?.shouldBeSingleton { retrievedIssue ->
+                    retrievedIssue.source shouldBe testIssue.source
+                    retrievedIssue.message shouldBe testIssue.message
+                    retrievedIssue.severity shouldBe testIssue.severity
+                    retrievedIssue.affectedPath shouldBe testIssue.affectedPath
+                    retrievedIssue.identifier shouldBe testIssue.identifier
+                    retrievedIssue.worker shouldBe testIssue.worker
+                }
             }
         }
     }

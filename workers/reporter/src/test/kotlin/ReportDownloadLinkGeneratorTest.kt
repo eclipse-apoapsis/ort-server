@@ -53,7 +53,7 @@ class ReportDownloadLinkGeneratorTest : WordSpec({
             val token = extractToken(generator.generateLink(RUN_ID).downloadLink)
 
             val tokenBytes = Base64.UrlSafe.decode(token)
-            tokenBytes.size shouldBe tokenLength
+            tokenBytes shouldHaveSize tokenLength
         }
 
         "set the correct expiration time" {

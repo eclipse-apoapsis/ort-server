@@ -26,6 +26,7 @@ import io.kotest.assertions.ktor.client.haveHeader
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -837,7 +838,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         version shouldBe "2.9.6"
                     }
 
-                    first().resolutions shouldBe emptyList()
+                    first().resolutions should beEmpty()
                 }
             }
         }
@@ -895,7 +896,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 pagedIssues.pagination.totalCount shouldBe 0
-                pagedIssues.data shouldHaveSize 0
+                pagedIssues.data should beEmpty()
 
                 // Applies a default sort order
                 pagedIssues.pagination.sortProperties.firstOrNull()?.name shouldBe "timestamp"
@@ -1254,7 +1255,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         shortestDependencyPaths.shouldBeSingleton {
                             it.projectIdentifier shouldBe project.identifier.mapToApi()
                             it.scope shouldBe "compileClassPath"
-                            it.path shouldBe emptyList()
+                            it.path should beEmpty()
                         }
                     }
 
@@ -1334,7 +1335,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
-                packages.data.size shouldBe 1
+                packages.data shouldHaveSize 1
                 packages.data.first().processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
                 packages.data.first().identifier shouldBe identifier3.mapToApi()
 
@@ -1383,7 +1384,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
-                packages.data.size shouldBe 2
+                packages.data shouldHaveSize 2
 
                 packages.data.first().purl shouldBe "pkg:Maven/com.example/example@1.0"
                 packages.data.last().purl shouldBe "pkg:Maven/com.example/example2@1.0"

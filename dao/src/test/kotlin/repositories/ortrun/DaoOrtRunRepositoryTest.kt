@@ -837,7 +837,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
                 ortRunRepository.delete(ortRun.id)
 
-                ortRunRepository.listForRepository(repository.id).data shouldBe emptyList()
+                ortRunRepository.listForRepository(repository.id).data should beEmpty()
 
                 analyzerJobRepository.getForOrtRun(ortRun.id) should beNull()
                 advisorJobRepository.getForOrtRun(ortRun.id) should beNull()

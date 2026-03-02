@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob
 
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -129,7 +131,7 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
             reporterJobRepository.delete(reporterJob.id)
 
-            reporterJobRepository.get(reporterJob.id) shouldBe null
+            reporterJobRepository.get(reporterJob.id) should beNull()
         }
 
         "getReportByToken should return an existing report" {
@@ -178,7 +180,7 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
             val nonExpiredReports = reporterJobRepository.getNonExpiredReports(ortRunId)
 
-            nonExpiredReports shouldBe emptyList()
+            nonExpiredReports should beEmpty()
         }
 
         "get should expose reportSizesInBytes for reports with known sizes" {
@@ -188,10 +190,9 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
                 sizeInBytes = 4096L
             )
 
-            val dbEntry = reporterJobRepository.get(reporterJob.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry.reportSizesInBytes shouldBe mapOf("file.pdf" to 4096L)
+            reporterJobRepository.get(reporterJob.id) shouldNotBeNull {
+                reportSizesInBytes shouldBe mapOf("file.pdf" to 4096L)
+            }
         }
 
         "get should omit reports with null sizeInBytes from reportSizesInBytes" {
@@ -201,10 +202,9 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
                 sizeInBytes = null
             )
 
-            val dbEntry = reporterJobRepository.get(reporterJob.id)
-
-            dbEntry.shouldNotBeNull()
-            dbEntry.reportSizesInBytes shouldBe emptyMap()
+            reporterJobRepository.get(reporterJob.id) shouldNotBeNull {
+                reportSizesInBytes should beEmptyMap()
+            }
         }
     }
 

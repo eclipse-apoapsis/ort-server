@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -141,7 +142,7 @@ class DaoSecretRepositoryTest : StringSpec() {
 
             secretRepository.deleteForIdAndName(repositoryId, name)
 
-            secretRepository.listForId(repositoryId).data shouldBe emptyList()
+            secretRepository.listForId(repositoryId).data should beEmpty()
         }
 
         "Reading all secrets of specific type" should {

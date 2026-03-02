@@ -23,9 +23,9 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
 
 import java.util.EnumSet
 
@@ -128,7 +128,7 @@ class GitConfigGeneratorTest : WordSpec({
 
             val result = GitConfigGenerator.parseGitConfigUrlInsteadOf(configLine)
 
-            result shouldBe emptyMap()
+            result should beEmptyMap()
         }
 
         "gracefully handle a partly invalid configuration" {

@@ -91,7 +91,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 with(effectiveRole.elementId) {
                     organizationId?.value shouldBe dbExtension.fixtures.organization.id
                     productId?.value shouldBe dbExtension.fixtures.product.id
-                    repositoryId shouldBe null
+                    repositoryId should beNull()
                 }
             }
 
@@ -105,8 +105,8 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 with(effectiveRole.elementId) {
                     organizationId?.value shouldBe dbExtension.fixtures.organization.id
-                    productId shouldBe null
-                    repositoryId shouldBe null
+                    productId should beNull()
+                    repositoryId should beNull()
                 }
             }
 

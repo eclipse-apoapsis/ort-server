@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
@@ -38,11 +40,11 @@ class RolesTest : WordSpec({
         }
 
         "return null for an invalid role name" {
-            Role.getRoleByNameAndLevel(HierarchyLevel.ORGANIZATION, "GARDENER") shouldBe null
+            Role.getRoleByNameAndLevel(HierarchyLevel.ORGANIZATION, "GARDENER") should beNull()
         }
 
         "return null for an invalid level" {
-            Role.getRoleByNameAndLevel(HierarchyLevel.WILDCARD, "READER") shouldBe null
+            Role.getRoleByNameAndLevel(HierarchyLevel.WILDCARD, "READER") should beNull()
         }
     }
 

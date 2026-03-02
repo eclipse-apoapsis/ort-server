@@ -23,7 +23,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -257,7 +257,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/${createdProduct.id}") shouldHaveStatus
                     HttpStatusCode.NoContent
 
-                organizationService.listProductsForOrganization(orgId).data shouldBe emptyList()
+                organizationService.listProductsForOrganization(orgId).data should beEmpty()
             }
         }
 
@@ -682,7 +682,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NoContent
 
                     val membersAfter = authorizationService.listUsersWithRole(role.mapToModel(), productHierarchyId)
-                    membersAfter.shouldBeEmpty()
+                    membersAfter should beEmpty()
                 }
             }
         }

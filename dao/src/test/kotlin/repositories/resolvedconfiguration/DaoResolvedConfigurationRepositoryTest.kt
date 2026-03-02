@@ -21,10 +21,13 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.beEmpty as beEmptyMap
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -99,7 +102,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
         }
 
         "return null if the resolved configuration does not exist" {
-            resolvedConfigurationRepository.get(-1L) shouldBe null
+            resolvedConfigurationRepository.get(-1L) should beNull()
         }
     }
 
@@ -113,11 +116,11 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
         }
 
         "return null if the ORT run does not exist" {
-            resolvedConfigurationRepository.getForOrtRun(-1L) shouldBe null
+            resolvedConfigurationRepository.getForOrtRun(-1L) should beNull()
         }
 
         "return null if the resolved configuration does not exist" {
-            resolvedConfigurationRepository.getForOrtRun(ortRunId) shouldBe null
+            resolvedConfigurationRepository.getForOrtRun(ortRunId) should beNull()
         }
     }
 
@@ -285,7 +288,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
 
-            storedRows.size shouldBe 2
+            storedRows shouldHaveSize 2
             storedRows.map { it[CuratedPackagesTable.resolvedPackageCurationId].value } should containExactlyInAnyOrder(
                 curationIds.getValue("provider1" to 0),
                 curationIds.getValue("provider2" to 0)
@@ -468,7 +471,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
 
-            storedResolvedIssues.size shouldBe 1
+            storedResolvedIssues shouldHaveSize 1
 
             // Verify the resolution was also stored in the resolved configuration
             val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
@@ -554,7 +557,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
 
-            storedResolvedViolations.size shouldBe 1
+            storedResolvedViolations shouldHaveSize 1
 
             // Verify the resolution was also stored in the resolved configuration
             val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
@@ -612,7 +615,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
 
-            storedResolvedVulnerabilities.size shouldBe 1
+            storedResolvedVulnerabilities shouldHaveSize 1
 
             // Verify the resolution was also stored in the resolved configuration
             val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
@@ -632,7 +635,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
 
-            storedResolvedIssues.size shouldBe 0
+            storedResolvedIssues should beEmpty()
         }
 
         "handle duplicate addResolutions calls without constraint violation" {
@@ -667,7 +670,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .where { ResolvedIssuesTable.ortRunId eq ortRunId }
                     .toList()
             }
-            storedResolvedIssues.size shouldBe 1
+            storedResolvedIssues shouldHaveSize 1
         }
 
         "handle same resolution matching multiple issues without constraint violation" {
@@ -718,7 +721,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .where { ResolvedIssuesTable.ortRunId eq ortRunId }
                     .toList()
             }
-            storedResolvedIssues.size shouldBe 2
+            storedResolvedIssues shouldHaveSize 2
         }
 
         "handle same resolution matching multiple rule violations without constraint violation" {
@@ -765,7 +768,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .where { ResolvedRuleViolationsTable.ortRunId eq ortRunId }
                     .toList()
             }
-            storedResolvedViolations.size shouldBe 2
+            storedResolvedViolations shouldHaveSize 2
         }
 
         "handle same resolution matching multiple vulnerabilities without constraint violation" {
@@ -825,7 +828,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .where { ResolvedVulnerabilitiesTable.ortRunId eq ortRunId }
                     .toList()
             }
-            storedResolvedVulnerabilities.size shouldBe 2
+            storedResolvedVulnerabilities shouldHaveSize 2
         }
     }
 
@@ -872,7 +875,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
         "return empty map when no curations exist" {
             dbExtension.db.dbQuery {
                 CuratedPackagesTable.getForOrtRunId(ortRunId)
-            } shouldBe emptyMap()
+            } should beEmptyMap()
         }
 
         "not include packages without curations" {
@@ -898,7 +901,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             }
 
             result.keys should containExactly(identifier1)
-            result[identifier2] shouldBe null
+            result[identifier2] should beNull()
         }
     }
 })

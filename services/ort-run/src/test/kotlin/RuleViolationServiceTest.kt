@@ -23,6 +23,8 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
@@ -134,7 +136,7 @@ class RuleViolationServiceTest : WordSpec() {
                     severity shouldBe Severity.HINT
                     message shouldBe "Message-3"
                     howToFix shouldBe "How_to_fix-3"
-                    id shouldBe null
+                    id should beNull()
                 }
             }
 
@@ -246,10 +248,10 @@ class RuleViolationServiceTest : WordSpec() {
                 results[1].purl shouldBe pkg2.purl
 
                 results[2].rule shouldBe "Rule-3-no-id"
-                results[2].purl shouldBe null
+                results[2].purl should beNull()
 
                 results[3].rule shouldBe "Rule-4-project-id"
-                results[3].purl shouldBe null
+                results[3].purl should beNull()
             }
         }
 

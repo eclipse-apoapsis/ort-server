@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
@@ -36,7 +38,7 @@ class UtilsTest : WordSpec({
         }
 
         "return null if no matching plugin ID is found" {
-            normalizePluginId(pluginType, "unknown") shouldBe null
+            normalizePluginId(pluginType, "unknown") should beNull()
         }
     }
 })

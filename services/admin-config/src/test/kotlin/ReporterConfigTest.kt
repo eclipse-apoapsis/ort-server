@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.services.config
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
@@ -31,14 +33,14 @@ class ReporterConfigTest : WordSpec({
             reporterConfig.pluginOptionsForDefinition(
                 "non-existing-definition",
                 mapOf(PLUGIN_ID to templatePluginOptions)
-            ) shouldBe null
+            ) should beNull()
         }
 
         "return null if no configuration is found" {
             reporterConfig.pluginOptionsForDefinition(
                 REPORT_DEFINITION_NAME,
                 emptyMap()
-            ) shouldBe null
+            ) should beNull()
         }
 
         "return the configuration for the reporter plugin" {

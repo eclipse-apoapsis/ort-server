@@ -920,9 +920,9 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.getReportDefinition("HtmlTemplate") shouldNotBeNull {
                 pluginId shouldBe "HtmlTemplate"
-                assetFiles shouldBe emptyList()
-                assetDirectories shouldBe emptyList()
-                nameMapping shouldBe null
+                assetFiles should beEmpty()
+                assetDirectories should beEmpty()
+                nameMapping should beNull()
             }
         }
 
@@ -955,7 +955,7 @@ class AdminConfigServiceTest : WordSpec({
         "return null if no mirror is configured" {
             val service = createServiceWithConfig("")
 
-            service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror shouldBe null
+            service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror should beNull()
         }
 
         "return the configured Maven Central mirror" {
@@ -1001,8 +1001,8 @@ class AdminConfigServiceTest : WordSpec({
                 name shouldBe "testName"
                 url shouldBe "https://test.url"
                 mirrorOf shouldBe "testMirrorOf"
-                usernameSecret shouldBe null
-                passwordSecret shouldBe null
+                usernameSecret should beNull()
+                passwordSecret should beNull()
             }
         }
     }

@@ -21,9 +21,12 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.coEvery
 import io.mockk.every
@@ -72,8 +75,8 @@ class ScannerRunnerTest : WordSpec({
             val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
 
             result.scannerRun shouldNotBeNull {
-                provenances shouldBe emptySet()
-                scanResults shouldBe emptySet()
+                provenances should beEmpty()
+                scanResults should beEmpty()
             }
         }
 
@@ -88,7 +91,7 @@ class ScannerRunnerTest : WordSpec({
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
-            result.scannerRun shouldNotBe null
+            result.scannerRun shouldNot beNull()
 
             result.scannerRun.config shouldBe ScannerConfiguration(
                 skipConcluded = true,
@@ -105,7 +108,7 @@ class ScannerRunnerTest : WordSpec({
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
-            result.scannerRun shouldNotBe null
+            result.scannerRun shouldNot beNull()
 
             result.scannerRun.config shouldBe ScannerConfiguration(
                 detectedLicenseMapping = testScannerConfig.detectedLicenseMappings,
@@ -201,7 +204,7 @@ class ScannerRunnerTest : WordSpec({
 
             val result = ScannerRunner.createCanonicalVcsPluginConfigs(vcsPluginConfigs)
 
-            result shouldBe null
+            result should beNull()
         }
 
         "return a canonical string of VCS plugin configs." {

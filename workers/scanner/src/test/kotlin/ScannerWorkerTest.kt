@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -752,7 +754,7 @@ class ScannerWorkerTest : StringSpec({
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.FinishedWithIssues
-            resolvedItemsSlot.captured.issues shouldBe emptyMap()
+            resolvedItemsSlot.captured.issues should beEmpty()
         }
     }
 

@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -65,20 +67,20 @@ class UtilsTest : WordSpec({
                 shortestPathsByScope
             )
 
-            identifierToShortestPathMap.size shouldBe 2
+            identifierToShortestPathMap shouldHaveSize 2
 
             val shortestPath1 = identifierToShortestPathMap[Identifier("NPM", "", "acorn", "1.0")]
 
             shortestPath1.shouldNotBeNull {
                 scope shouldBe "devDependencies"
-                path.size shouldBe 2
+                path shouldHaveSize 2
             }
 
             val shortestPath2 = identifierToShortestPathMap[Identifier("NPM", "", "cookie", "1.0")]
 
             shortestPath2.shouldNotBeNull {
                 scope shouldBe "dependencies"
-                path.size shouldBe 3
+                path shouldHaveSize 3
             }
         }
     }

@@ -21,7 +21,9 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
@@ -416,7 +418,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         repositoryRepository.delete(createdRepository.id)
 
-        repositoryRepository.listForProduct(productId).data shouldBe emptyList()
+        repositoryRepository.listForProduct(productId).data should beEmpty()
     }
 
     "get should return null" {
