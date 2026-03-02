@@ -24,6 +24,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -39,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnaly
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
@@ -471,6 +473,58 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             // Verify the resolution was also stored in the resolved configuration
             val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
             resolvedConfiguration.resolutions.issues should containExactly(issueResolution1)
+        }
+
+        "store separate resolutions for issues sharing issue ID but having different identifiers" {
+            val issueWithIdentifier1 = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "Issue with identifier context",
+                severity = Severity.WARNING,
+                identifier = identifier1
+            )
+            val issueWithIdentifier2 = issueWithIdentifier1.copy(identifier = identifier2)
+
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issueWithIdentifier1, issueWithIdentifier2)
+            )
+
+            val ortRunIssueRows = dbExtension.db.dbQuery {
+                OrtRunsIssuesTable.select(
+                    OrtRunsIssuesTable.id,
+                    OrtRunsIssuesTable.issueId,
+                    OrtRunsIssuesTable.identifierId
+                ).where {
+                    OrtRunsIssuesTable.ortRunId eq ortRunId
+                }.toList()
+            }
+
+            ortRunIssueRows shouldHaveSize 2
+            ortRunIssueRows.mapTo(mutableSetOf()) { it[OrtRunsIssuesTable.issueId].value } shouldHaveSize 1
+            ortRunIssueRows.mapTo(mutableSetOf()) { it[OrtRunsIssuesTable.identifierId]?.value } shouldHaveSize 2
+
+            resolvedConfigurationRepository.addResolutions(
+                ortRunId = ortRunId,
+                resolvedItems = ResolvedItemsResult(
+                    issues = mapOf(
+                        issueWithIdentifier1 to listOf(issueResolution1),
+                        issueWithIdentifier2 to listOf(issueResolution2)
+                    ),
+                    ruleViolations = emptyMap(),
+                    vulnerabilities = emptyMap()
+                )
+            )
+
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+
+            storedResolvedIssues shouldHaveSize 2
+            storedResolvedIssues.mapTo(mutableSetOf()) { it[ResolvedIssuesTable.ortRunIssueId].value } shouldBe
+                ortRunIssueRows.mapTo(mutableSetOf()) { it[OrtRunsIssuesTable.id].value }
         }
 
         "store resolved rule violations with their mappings" {

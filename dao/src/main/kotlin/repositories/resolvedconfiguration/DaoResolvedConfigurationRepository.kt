@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.stringLiteral
@@ -284,10 +285,12 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
 
     /**
      * Find the OrtRunIssue ID for a given issue in the context of an ORT run.
-     * Matches by message, timestamp, source, severity, and affectedPath.
+     * Matches by message, timestamp, source, severity, affectedPath, and identifier if available.
      */
-    private fun findOrtRunIssueId(ortRunId: Long, issue: Issue): Long? =
-        OrtRunsIssuesTable
+    private fun findOrtRunIssueId(ortRunId: Long, issue: Issue): Long? {
+        val identifierId = issue.identifier?.let { findIdentifierId(it) ?: return null }
+
+        return OrtRunsIssuesTable
             .innerJoin(IssuesTable)
             .select(OrtRunsIssuesTable.id)
             .where {
@@ -295,9 +298,25 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
                     (IssuesTable.issueSource eq issue.source) and
                     (DigestFunction(IssuesTable.message) eq DigestFunction(stringLiteral(issue.message))) and
                     (IssuesTable.severity eq issue.severity) and
-                    (IssuesTable.affectedPath eq issue.affectedPath)
+                    (IssuesTable.affectedPath eq issue.affectedPath) and
+                        (identifierId?.let { OrtRunsIssuesTable.identifierId eq it } ?: Op.TRUE)
             }
             .firstOrNull()?.get(OrtRunsIssuesTable.id)?.value
+    }
+
+    /**
+     * Find the identifier ID for the given identifier details.
+     */
+    private fun findIdentifierId(identifier: Identifier): Long? =
+        IdentifiersTable
+            .select(IdentifiersTable.id)
+            .where {
+                (IdentifiersTable.type eq identifier.type) and
+                        (IdentifiersTable.namespace eq identifier.namespace) and
+                        (IdentifiersTable.name eq identifier.name) and
+                        (IdentifiersTable.version eq identifier.version)
+            }
+            .firstOrNull()?.get(IdentifiersTable.id)?.value
 
     /**
      * Find the RuleViolation ID for a given rule violation in the context of an ORT run.
