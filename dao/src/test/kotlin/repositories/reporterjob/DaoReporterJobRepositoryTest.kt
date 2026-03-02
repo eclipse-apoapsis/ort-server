@@ -66,7 +66,6 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
             val dbEntry = reporterJobRepository.get(createdReporterJob.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe ReporterJob(
                 id = createdReporterJob.id,
                 ortRunId = ortRunId,

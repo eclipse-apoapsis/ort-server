@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob
 
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
@@ -61,8 +60,6 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
             val createdNotifierJob = notifierJobRepository.create(ortRunId, notifierJobConfiguration)
 
             val dbEntry = notifierJobRepository.get(createdNotifierJob.id)
-
-            dbEntry.shouldNotBeNull()
 
             dbEntry shouldBe NotifierJob(
                 id = createdNotifierJob.id,

@@ -121,7 +121,6 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
             val dbEntry = ortRunRepository.get(createdOrtRun.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe OrtRun(
                 id = createdOrtRun.id,
                 index = createdOrtRun.id,

@@ -20,12 +20,10 @@
 package org.eclipse.apoapsis.ortserver.workers.common
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 
 import java.time.Instant
 
@@ -166,7 +164,6 @@ class ResolutionMatcherTest : WordSpec({
 
             with(result.issues) {
                 this shouldHaveSize 2
-                keys.forAll { it shouldNotBe null }
                 result.issues.values.flatten() shouldContainExactlyInAnyOrder listOf(
                     expectedIssueResolution1,
                     expectedIssueResolution2
@@ -187,7 +184,6 @@ class ResolutionMatcherTest : WordSpec({
 
             with(result.ruleViolations) {
                 this shouldHaveSize 1
-                keys.forAll { it shouldNotBe null }
                 result.ruleViolations.values.flatten() shouldBe listOf(expectedRuleViolationResolution1)
             }
         }
@@ -205,7 +201,6 @@ class ResolutionMatcherTest : WordSpec({
 
             with(result.vulnerabilities) {
                 this shouldHaveSize 1
-                keys.forAll { it shouldNotBe null }
                 keys.first().externalId shouldBe "CVE-2023-0001"
                 values.flatten() shouldBe listOf(expectedVulnerabilityResolution1)
             }

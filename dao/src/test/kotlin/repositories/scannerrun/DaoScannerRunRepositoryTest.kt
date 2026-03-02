@@ -87,7 +87,6 @@ class DaoScannerRunRepositoryTest : WordSpec({
 
             val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe scannerRun.copy(
                 id = createdScannerRun.id,
                 scannerJobId = scannerJobId,
@@ -117,7 +116,6 @@ class DaoScannerRunRepositoryTest : WordSpec({
 
             val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe scannerRun.copy(
                 id = createdScannerRun.id,
                 scannerJobId = scannerJobId,

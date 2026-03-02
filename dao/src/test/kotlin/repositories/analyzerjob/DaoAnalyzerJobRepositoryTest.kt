@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob
 
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -59,7 +58,6 @@ class DaoAnalyzerJobRepositoryTest : WorkerJobRepositoryTest<AnalyzerJob>() {
 
             val dbEntry = analyzerJobRepository.get(createdAnalyzerJob.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe AnalyzerJob(
                 id = createdAnalyzerJob.id,
                 ortRunId = ortRunId,

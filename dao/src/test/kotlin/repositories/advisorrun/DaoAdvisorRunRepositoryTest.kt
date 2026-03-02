@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -61,7 +60,6 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
 
             val dbEntry = advisorRunRepository.get(createdAdvisorRun.id)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe advisorRun.copy(id = createdAdvisorRun.id, advisorJobId = advisorJobId)
         }
 

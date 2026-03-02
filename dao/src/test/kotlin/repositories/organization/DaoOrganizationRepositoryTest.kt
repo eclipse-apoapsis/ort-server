@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.organization
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -56,8 +55,7 @@ class DaoOrganizationRepositoryTest : StringSpec({
 
         val dbEntry = organizationRepository.get(createdOrg.id)
 
-        dbEntry.shouldNotBeNull()
-        dbEntry shouldBe Organization(dbEntry.id, name, description)
+        dbEntry shouldBe Organization(createdOrg.id, name, description)
     }
 
     "list should retrieve all entities from the database" {

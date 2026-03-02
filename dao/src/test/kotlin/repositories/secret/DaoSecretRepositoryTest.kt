@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -64,7 +63,6 @@ class DaoSecretRepositoryTest : StringSpec() {
 
             val dbEntry = secretRepository.getByIdAndName(organizationId, name)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe secret
         }
 
@@ -80,7 +78,6 @@ class DaoSecretRepositoryTest : StringSpec() {
 
             val dbEntry = secretRepository.getByIdAndName(organizationId, name)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
                 secret.id,
                 path + name,
@@ -104,7 +101,6 @@ class DaoSecretRepositoryTest : StringSpec() {
 
             val dbEntry = secretRepository.getByIdAndName(productId, name)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
                 secret.id,
                 path + name,
@@ -128,7 +124,6 @@ class DaoSecretRepositoryTest : StringSpec() {
 
             val dbEntry = secretRepository.getByIdAndName(repositoryId, name)
 
-            dbEntry.shouldNotBeNull()
             dbEntry shouldBe Secret(
                 secret.id,
                 path + name,

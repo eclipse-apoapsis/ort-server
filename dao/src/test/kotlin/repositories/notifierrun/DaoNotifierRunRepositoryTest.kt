@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.notifierrun
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -48,7 +47,6 @@ class DaoNotifierRunRepositoryTest : StringSpec({
 
         val dbEntry = notifierRunRepository.get(notifierRun.id)
 
-        dbEntry.shouldNotBeNull()
         dbEntry shouldBe NotifierRun(
             id = notifierRun.id,
             notifierJobId = notifierJob.id,

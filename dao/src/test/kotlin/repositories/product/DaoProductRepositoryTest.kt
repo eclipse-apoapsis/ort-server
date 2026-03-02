@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.product
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
@@ -66,7 +65,6 @@ class DaoProductRepositoryTest : StringSpec({
 
         val dbEntry = productRepository.get(createdProduct.id)
 
-        dbEntry.shouldNotBeNull()
         dbEntry shouldBe Product(createdProduct.id, orgId, name, description)
     }
 
