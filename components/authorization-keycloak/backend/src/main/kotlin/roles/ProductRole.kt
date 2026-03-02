@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
@@ -73,11 +75,11 @@ enum class ProductRole(
 
         /** Get all group names for the provided [productId]. */
         fun getGroupsForProduct(productId: Long) =
-            enumValues<ProductRole>().map { it.groupName(productId) }
+            enumEntries<ProductRole>().map { it.groupName(productId) }
 
         /** Get all role names for the provided [productId]. */
         fun getRolesForProduct(productId: Long) =
-            enumValues<ProductRole>().map { it.roleName(productId) }
+            enumEntries<ProductRole>().map { it.roleName(productId) }
 
         /** A unique prefix for the groups for the provided [productId]. */
         fun groupPrefix(productId: Long) = "$GROUP_PREFIX${productId}_"
@@ -100,7 +102,7 @@ enum class ProductRole(
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
 
-    override fun getSiblings(): Set<ProductRole> = enumValues<ProductRole>().toSet() - this
+    override fun getSiblings(): Set<ProductRole> = enumEntries<ProductRole>().toSet() - this
 
     override fun groupName(id: ProductId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 

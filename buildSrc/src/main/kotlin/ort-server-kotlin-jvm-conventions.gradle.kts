@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import kotlin.enums.enumEntries
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -50,7 +52,7 @@ tasks.withType<Jar>().configureEach {
 }
 
 val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaLanguageVersion) }
-    .getOrDefault(enumValues<JvmTarget>().max())
+    .getOrDefault(enumEntries<JvmTarget>().max())
 
 tasks.named<KotlinCompile>("compileKotlin") {
     compilerOptions {

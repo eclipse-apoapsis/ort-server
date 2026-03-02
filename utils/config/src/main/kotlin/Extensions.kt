@@ -26,6 +26,8 @@ import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValue
 
+import kotlin.enums.enumEntries
+
 import org.ossreviewtoolkit.utils.common.replaceCredentialsInUri
 import org.ossreviewtoolkit.utils.common.toUri
 
@@ -58,7 +60,7 @@ inline fun <reified E : Enum<E>> Config.getEnumOrDefault(path: String, default: 
 
             is ConfigException.BadValue -> {
                 val enumValue = getString(path)
-                enumValues<E>().single { value -> value.toString() == enumValue }
+                enumEntries<E>().single { value -> value.toString() == enumValue }
             }
 
             else -> throw it

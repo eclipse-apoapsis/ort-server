@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
 import java.util.EnumSet
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.BazelDefinition
@@ -262,7 +264,7 @@ private class DefinitionProperties(val properties: Map<String, String>) {
      * string does not reference a valid constant of this type.
      */
     inline fun <reified T : Enum<T>> toEnumValue(value: String, name: String): T {
-        val allowedValues = enumValues<T>()
+        val allowedValues = enumEntries<T>()
         return allowedValues.find { it.name.equals(value, ignoreCase = true) }
             ?: throw EnvironmentConfigException(
                 "Invalid valid for property '$name': '$value'. " +

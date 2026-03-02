@@ -44,6 +44,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
+import kotlin.enums.enumEntries
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
@@ -901,7 +902,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "PUT /organizations/{orgId}/roles/{role}" should {
-        enumValues<ApiOrganizationRole>().forAll { role ->
+        enumEntries<ApiOrganizationRole>().forAll { role ->
             "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
@@ -925,7 +926,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /organizations/{orgId}/roles/{role}" should {
-        enumValues<ApiOrganizationRole>().forAll { role ->
+        enumEntries<ApiOrganizationRole>().forAll { role ->
             "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()

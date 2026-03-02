@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles
 
+import kotlin.enums.enumEntries
+
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -65,11 +67,11 @@ enum class RepositoryRole(
 
         /** Get all group names for the provided [repositoryId]. */
         fun getGroupsForRepository(repositoryId: Long) =
-            enumValues<RepositoryRole>().map { it.groupName(repositoryId) }
+            enumEntries<RepositoryRole>().map { it.groupName(repositoryId) }
 
         /** Get all role names for the provided [repositoryId]. */
         fun getRolesForRepository(repositoryId: Long) =
-            enumValues<RepositoryRole>().map { it.roleName(repositoryId) }
+            enumEntries<RepositoryRole>().map { it.roleName(repositoryId) }
 
         /** A unique prefix for the groups for the provided [repositoryId]. */
         fun groupPrefix(repositoryId: Long) = "$GROUP_PREFIX${repositoryId}_"
@@ -92,7 +94,7 @@ enum class RepositoryRole(
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
 
-    override fun getSiblings(): Set<RepositoryRole> = enumValues<RepositoryRole>().toSet() - this
+    override fun getSiblings(): Set<RepositoryRole> = enumEntries<RepositoryRole>().toSet() - this
 
     override fun groupName(id: RepositoryId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 
