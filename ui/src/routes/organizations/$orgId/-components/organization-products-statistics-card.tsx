@@ -32,6 +32,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useOrganizationPermission } from '@/hooks/use-authorization';
 import { toast } from '@/lib/toast';
 
 type OrganizationProductsStatisticsCardProps = {
@@ -43,6 +44,11 @@ export const OrganizationProductsStatisticsCard = ({
   orgId,
   className,
 }: OrganizationProductsStatisticsCardProps) => {
+  const { isAllowed: canCreateProduct } = useOrganizationPermission(
+    Number.parseInt(orgId),
+    'CREATE_PRODUCT'
+  );
+
   const { data, isPending, isError, error } = useSuspenseQuery({
     ...getOrganizationProductsOptions({
       path: { organizationId: Number.parseInt(orgId) },
@@ -92,7 +98,12 @@ export const OrganizationProductsStatisticsCard = ({
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
+              <Button
+                asChild
+                size='sm'
+                className='ml-auto gap-1'
+                disabled={canCreateProduct === false}
+              >
                 <Link
                   to='/organizations/$orgId/create-product'
                   params={{
@@ -104,7 +115,11 @@ export const OrganizationProductsStatisticsCard = ({
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Add a product to this organization</TooltipContent>
+            <TooltipContent>
+              {canCreateProduct !== false
+                ? 'Add a product to this organization'
+                : 'Insufficient permissions.'}
+            </TooltipContent>
           </Tooltip>
         </div>
       </CardContent>
