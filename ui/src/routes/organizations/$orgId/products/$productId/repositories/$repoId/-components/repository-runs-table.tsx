@@ -65,6 +65,7 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { isJobFinished } from '@/helpers/job-helpers';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -266,6 +267,11 @@ const columns = [
         }),
       });
 
+      const { isAllowed: canTriggerRun } = useRepositoryPermission(
+        row.original.repositoryId,
+        'TRIGGER_ORT_RUN'
+      );
+
       const { mutateAsync: deleteRun } = useMutation({
         ...deleteRepositoryRunMutation(),
         onSuccess() {
@@ -325,7 +331,13 @@ const columns = [
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant='outline' asChild size='sm' className='w-10'>
+              <Button
+                variant='outline'
+                asChild
+                size='sm'
+                className='w-10'
+                disabled={canTriggerRun === false}
+              >
                 <Link
                   to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
                   params={{
@@ -341,7 +353,11 @@ const columns = [
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Create a new run based on this run</TooltipContent>
+            <TooltipContent>
+              {canTriggerRun !== false
+                ? 'Create a new run based on this run'
+                : 'Insufficient permissions.'}
+            </TooltipContent>
           </Tooltip>
           <DeleteDialog
             thingName={

@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { cn } from '@/lib/utils';
 
 type RunDetailsBarProps = {
@@ -87,6 +88,11 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
       return pollInterval;
     },
   });
+
+  const { isAllowed: canTriggerRun } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'TRIGGER_ORT_RUN'
+  );
 
   const currentIndex = Number.parseInt(params.runIndex);
   const currentPosition = allRunIndexes.indexOf(currentIndex);
@@ -160,22 +166,34 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
           />
         </div>
         <div className='flex flex-col justify-start'>
-          <Button variant='outline' asChild size='sm'>
-            <Link
-              to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-              params={{
-                orgId: params.orgId,
-                productId: params.productId,
-                repoId: params.repoId,
-              }}
-              search={{
-                rerunIndex: ortRun.index,
-              }}
-            >
-              <Repeat className='mr-1 h-4 w-4' />
-              Rerun
-            </Link>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='outline'
+                asChild
+                size='sm'
+                disabled={canTriggerRun === false}
+              >
+                <Link
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                  params={{
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                  }}
+                  search={{
+                    rerunIndex: ortRun.index,
+                  }}
+                >
+                  <Repeat className='mr-1 h-4 w-4' />
+                  Rerun
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            {canTriggerRun === false && (
+              <TooltipContent>Insufficient permissions.</TooltipContent>
+            )}
+          </Tooltip>
         </div>
       </div>
       <div className='flex flex-col'>
