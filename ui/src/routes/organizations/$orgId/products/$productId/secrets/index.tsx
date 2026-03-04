@@ -61,6 +61,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useOrganizationPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -165,6 +166,10 @@ const columns: ColumnDef<Secret>[] = [
 const ProductSecrets = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const { isAllowed: canManageOrgSecrets } = useOrganizationPermission(
+    Number.parseInt(params.orgId),
+    'WRITE_SECRETS'
+  );
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const orgPageIndex = search.orgPage ? search.orgPage - 1 : 0;
@@ -324,16 +329,28 @@ const ProductSecrets = () => {
             Inherited secrets from {organization.name}.
           </CardDescription>
           <div className='py-2'>
-            <Button asChild size='sm' className='ml-auto gap-1'>
-              <Link
-                to='/organizations/$orgId/secrets'
-                params={{
-                  orgId: params.orgId,
-                }}
-              >
-                Manage Organization Secrets
-              </Link>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  size='sm'
+                  className='ml-auto gap-1'
+                  disabled={canManageOrgSecrets === false}
+                >
+                  <Link
+                    to='/organizations/$orgId/secrets'
+                    params={{
+                      orgId: params.orgId,
+                    }}
+                  >
+                    Manage Organization Secrets
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              {canManageOrgSecrets === false && (
+                <TooltipContent>Insufficient permissions.</TooltipContent>
+              )}
+            </Tooltip>
           </div>
         </CardHeader>
         <CardContent>

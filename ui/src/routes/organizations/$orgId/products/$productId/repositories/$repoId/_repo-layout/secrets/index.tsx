@@ -63,6 +63,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  useOrganizationPermission,
+  useProductPermission,
+} from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -166,6 +170,14 @@ const columns: ColumnDef<Secret>[] = [
 const RepositorySecrets = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const { isAllowed: canManageProductSecrets } = useProductPermission(
+    Number.parseInt(params.productId),
+    'WRITE_SECRETS'
+  );
+  const { isAllowed: canManageOrgSecrets } = useOrganizationPermission(
+    Number.parseInt(params.orgId),
+    'WRITE_SECRETS'
+  );
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const productPageIndex = search.productPage ? search.productPage - 1 : 0;
@@ -391,17 +403,29 @@ const RepositorySecrets = () => {
             Inherited secrets from {product.name}.
           </CardDescription>
           <div className='py-2'>
-            <Button asChild size='sm' className='ml-auto gap-1'>
-              <Link
-                to='/organizations/$orgId/products/$productId/secrets'
-                params={{
-                  orgId: params.orgId,
-                  productId: params.productId,
-                }}
-              >
-                Manage Product Secrets
-              </Link>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  size='sm'
+                  className='ml-auto gap-1'
+                  disabled={canManageProductSecrets === false}
+                >
+                  <Link
+                    to='/organizations/$orgId/products/$productId/secrets'
+                    params={{
+                      orgId: params.orgId,
+                      productId: params.productId,
+                    }}
+                  >
+                    Manage Product Secrets
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              {canManageProductSecrets === false && (
+                <TooltipContent>Insufficient permissions.</TooltipContent>
+              )}
+            </Tooltip>
           </div>
         </CardHeader>
         <CardContent>
@@ -429,16 +453,28 @@ const RepositorySecrets = () => {
             Inherited secrets from {organization.name}.
           </CardDescription>
           <div className='py-2'>
-            <Button asChild size='sm' className='ml-auto gap-1'>
-              <Link
-                to='/organizations/$orgId/secrets'
-                params={{
-                  orgId: params.orgId,
-                }}
-              >
-                Manage Organization Secrets
-              </Link>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  size='sm'
+                  className='ml-auto gap-1'
+                  disabled={canManageOrgSecrets === false}
+                >
+                  <Link
+                    to='/organizations/$orgId/secrets'
+                    params={{
+                      orgId: params.orgId,
+                    }}
+                  >
+                    Manage Organization Secrets
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              {canManageOrgSecrets === false && (
+                <TooltipContent>Insufficient permissions.</TooltipContent>
+              )}
+            </Tooltip>
           </div>
         </CardHeader>
         <CardContent>
