@@ -32,6 +32,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useProductPermission } from '@/hooks/use-authorization';
 import { toast } from '@/lib/toast';
 
 type ProductRepositoriesStatisticsCardProps = {
@@ -45,6 +46,11 @@ export const ProductRepositoriesStatisticsCard = ({
   productId,
   className,
 }: ProductRepositoriesStatisticsCardProps) => {
+  const { isAllowed: canCreateRepository } = useProductPermission(
+    Number.parseInt(productId),
+    'CREATE_REPOSITORY'
+  );
+
   const { data, isPending, isError, error } = useQuery({
     ...getProductRepositoriesOptions({
       path: { productId: Number.parseInt(productId) },
@@ -94,7 +100,12 @@ export const ProductRepositoriesStatisticsCard = ({
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
+              <Button
+                asChild
+                size='sm'
+                className='ml-auto gap-1'
+                disabled={canCreateRepository === false}
+              >
                 <Link
                   to='/organizations/$orgId/products/$productId/create-repository'
                   params={{
@@ -108,7 +119,9 @@ export const ProductRepositoriesStatisticsCard = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              Add a repository for managing compliance runs
+              {canCreateRepository !== false
+                ? 'Add a repository for managing compliance runs'
+                : 'Insufficient permissions.'}
             </TooltipContent>
           </Tooltip>
         </div>

@@ -36,6 +36,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { paginationSearchParameterSchema } from '@/schemas';
@@ -48,6 +54,10 @@ const RepositoryRunsComponent = () => {
   const runPageSize = useTablePrefsStore.getState().runPageSize;
   const params = Route.useParams();
   const search = Route.useSearch();
+  const { isAllowed: canTriggerRun } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'TRIGGER_ORT_RUN'
+  );
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : runPageSize;
 
@@ -115,19 +125,31 @@ const RepositoryRunsComponent = () => {
         <CardHeader>
           <CardTitle>Runs</CardTitle>
           <div className='py-2'>
-            <Button asChild size='sm' className='ml-auto gap-1'>
-              <Link
-                to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                params={{
-                  orgId: params.orgId,
-                  productId: params.productId,
-                  repoId: params.repoId,
-                }}
-              >
-                New run
-                <PlusIcon className='h-4 w-4' />
-              </Link>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  size='sm'
+                  className='ml-auto gap-1'
+                  disabled={canTriggerRun === false}
+                >
+                  <Link
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                    params={{
+                      orgId: params.orgId,
+                      productId: params.productId,
+                      repoId: params.repoId,
+                    }}
+                  >
+                    New run
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              {canTriggerRun === false && (
+                <TooltipContent>Insufficient permissions.</TooltipContent>
+              )}
+            </Tooltip>
           </div>
         </CardHeader>
         <CardContent>

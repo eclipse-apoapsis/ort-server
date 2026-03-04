@@ -46,6 +46,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useIsSuperuser } from '@/hooks/use-authorization';
 import { toast } from '@/lib/toast';
 import {
   filterByNameSearchParameterSchema,
@@ -63,6 +64,7 @@ export const IndexPage = () => {
   const setOrgPageSize = useTablePrefsStore((state) => state.setOrgPageSize);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { isSuperuser } = useIsSuperuser();
 
   const pageIndex = useMemo(
     () => (search.page ? search.page - 1 : 0),
@@ -184,7 +186,12 @@ export const IndexPage = () => {
         <div className='py-2'>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
+              <Button
+                asChild
+                size='sm'
+                className='ml-auto gap-1'
+                disabled={isSuperuser === false}
+              >
                 <Link to='/create-organization'>
                   Add organization
                   <PlusIcon className='h-4 w-4' />
@@ -192,7 +199,9 @@ export const IndexPage = () => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              Add an organization for managing products
+              {isSuperuser !== false
+                ? 'Add an organization for managing products'
+                : 'Insufficient permissions.'}
             </TooltipContent>
           </Tooltip>
         </div>
