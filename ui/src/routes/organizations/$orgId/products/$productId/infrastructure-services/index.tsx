@@ -255,7 +255,7 @@ const InfrastructureServices = () => {
                   to='/organizations/$orgId/products/$productId/infrastructure-services/create'
                   params={{ orgId: params.orgId, productId: params.productId }}
                 >
-                  New infrastructure service
+                  Add infrastructure service
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>

@@ -293,7 +293,7 @@ const ProductSecrets = () => {
                       productId: params.productId,
                     }}
                   >
-                    New secret
+                    Add secret
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
@@ -343,7 +343,7 @@ const ProductSecrets = () => {
                       orgId: params.orgId,
                     }}
                   >
-                    Manage Organization Secrets
+                    Manage organization secrets
                   </Link>
                 </Button>
               </TooltipTrigger>

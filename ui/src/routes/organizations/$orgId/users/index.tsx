@@ -220,7 +220,7 @@ const ManageUsers = () => {
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Add User to Group'
+                'Add user to group'
               )}
             </Button>
           </form>
