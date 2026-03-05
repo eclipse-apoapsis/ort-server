@@ -30,6 +30,7 @@ http-client.private.env.json
 # Files related to usage of AI agents which are better kept private,
 # to not pollute the repository with personal configurations.
 .bv/
+.claude/
 .codex/
 .github/chatmodes/
 .perles/
