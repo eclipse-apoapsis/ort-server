@@ -26,7 +26,6 @@ import z from 'zod';
 import { getProductOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
-import { ToastError } from '@/components/toast-error';
 import {
   Card,
   CardContent,
@@ -34,7 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   filterByNameSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -65,14 +64,7 @@ const ProductComponent = () => {
   }
 
   if (prodIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={prodError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', prodError);
     return;
   }
 

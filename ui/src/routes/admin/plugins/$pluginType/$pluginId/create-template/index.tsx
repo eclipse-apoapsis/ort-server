@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
 function optionTypeToZodType(type: PluginOptionType): ZodType {
@@ -149,14 +149,7 @@ const CreateTemplate = () => {
       },
       onError(error) {
         const apiError = error as ApiError;
-        toast.error(error.message, {
-          description: <ToastError error={apiError} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
+        toastError(error.message, apiError);
       },
     });
 

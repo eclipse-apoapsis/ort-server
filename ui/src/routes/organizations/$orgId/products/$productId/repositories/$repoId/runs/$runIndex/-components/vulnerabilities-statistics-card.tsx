@@ -24,13 +24,12 @@ import { JobStatus, VulnerabilityRating } from '@/api';
 import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
-import { ToastError } from '@/components/toast-error';
 import {
   getStatusFontColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
   jobIncluded?: boolean;
@@ -64,14 +63,7 @@ export const VulnerabilitiesStatisticsCard = ({
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
 

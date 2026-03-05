@@ -26,7 +26,6 @@ import { z } from 'zod';
 
 import { postProductInfrastructureServiceMutation } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -56,7 +55,7 @@ import {
 import { capitalize } from '@/helpers/capitalize';
 import { useSecrets } from '@/hooks/use-secrets';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
@@ -92,14 +91,7 @@ const CreateInfrastructureServicePage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

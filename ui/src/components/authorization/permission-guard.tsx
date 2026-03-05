@@ -21,8 +21,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 export interface PermissionGuardProps {
   children: ReactNode;
@@ -51,14 +50,7 @@ export const PermissionGuard = ({
 
   useEffect(() => {
     if (error) {
-      toast.error('Unable to load permissions', {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError('Unable to load permissions', error);
     }
   }, [error]);
 

@@ -27,7 +27,6 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { JobDurations } from '@/components/charts/job-durations';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -42,7 +41,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -77,14 +76,7 @@ const RepositoryRunsComponent = () => {
   }
 
   if (repoIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={repoError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', repoError);
     return;
   }
 

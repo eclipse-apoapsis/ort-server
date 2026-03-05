@@ -35,7 +35,6 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { zRepositoryType } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -61,7 +60,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { MoveRepository } from '../../-components/move-repository';
 
@@ -104,14 +103,7 @@ const RepositorySettingsPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 
@@ -149,14 +141,7 @@ const RepositorySettingsPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

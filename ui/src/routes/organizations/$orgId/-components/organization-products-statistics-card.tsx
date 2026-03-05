@@ -24,7 +24,6 @@ import { Files, PlusIcon } from 'lucide-react';
 import { getOrganizationProductsOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -33,7 +32,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useOrganizationPermission } from '@/hooks/use-authorization';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 type OrganizationProductsStatisticsCardProps = {
   orgId: string;
@@ -68,14 +67,7 @@ export const OrganizationProductsStatisticsCard = ({
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
 

@@ -33,7 +33,6 @@ import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -57,7 +56,7 @@ import { Input } from '@/components/ui/input';
 import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
   username: z.string().trim().min(1),
@@ -92,14 +91,7 @@ const CreateUser = () => {
         });
       },
       onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
+        toastError(error.message, error);
       },
     });
 
@@ -121,14 +113,7 @@ const CreateUser = () => {
       });
     },
     onError(error) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 
@@ -170,14 +155,7 @@ const CreateUser = () => {
   }
 
   if (orgIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={orgError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', orgError);
     return;
   }
 

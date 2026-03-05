@@ -29,7 +29,6 @@ import {
   setConfigByKeyMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
-import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Card,
@@ -55,7 +54,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast.ts';
+import { toast, toastError } from '@/lib/toast';
 
 // In both URL fields, a valid URL or an empty string is accepted
 const formSchema = z.object({
@@ -105,14 +104,7 @@ export function HomeIconForm() {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 
@@ -130,14 +122,7 @@ export function HomeIconForm() {
         });
       },
       onError(error) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
+        toastError(error.message, error);
       },
     });
 
@@ -167,14 +152,7 @@ export function HomeIconForm() {
   }
 
   if (isHomeIconError || isHomeIconDarkError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={homeIconError || homeIconDarkError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', homeIconError || homeIconDarkError);
     return;
   }
 

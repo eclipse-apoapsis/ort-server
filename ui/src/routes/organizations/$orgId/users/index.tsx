@@ -33,7 +33,6 @@ import {
   getOrganizationUsersQueryKey,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -60,7 +59,7 @@ import {
 } from '@/components/ui/select';
 import { mapGroupSchemaToOrganizationRole } from '@/helpers/role-helpers.ts';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { OrganizationUsersTable } from './-components/organization-users-table';
 
@@ -105,14 +104,7 @@ const ManageUsers = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

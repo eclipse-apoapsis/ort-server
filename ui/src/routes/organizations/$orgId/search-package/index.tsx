@@ -40,7 +40,6 @@ import { DataTable } from '@/components/data-table/data-table';
 import { RegexForm } from '@/components/form/regex-form';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
-import { ToastError } from '@/components/toast-error';
 import {
   Card,
   CardContent,
@@ -50,7 +49,7 @@ import {
 } from '@/components/ui/card';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -232,14 +231,7 @@ function SearchPackageComponent() {
   });
 
   if (isRunsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={runsError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', runsError);
   }
 
   return (

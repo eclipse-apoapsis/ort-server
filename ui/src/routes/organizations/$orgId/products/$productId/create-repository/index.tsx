@@ -28,7 +28,6 @@ import { postRepositoryMutation } from '@/api/@tanstack/react-query.gen';
 import { zRepositoryType } from '@/api/zod.gen';
 import { asOptionalField } from '@/components/form/as-optional-field.ts';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -55,7 +54,7 @@ import {
 } from '@/components/ui/select';
 import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 
 const formSchema = z.object({
@@ -88,14 +87,7 @@ const CreateRepositoryPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

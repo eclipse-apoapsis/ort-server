@@ -35,7 +35,6 @@ import {
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
-import { ToastError } from '@/components/toast-error.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -69,7 +68,7 @@ import {
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { queryClient } from '@/lib/query-client.ts';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { Route as LayoutRoute } from '@/routes/admin/plugins/route.tsx';
 
 type PluginTemplateCardProps = {
@@ -119,14 +118,7 @@ const PluginTemplateCard = ({
           },
           onError: (error: unknown) => {
             const apiError = error as ApiError;
-            toast.error('Failed to disable template globally', {
-              description: <ToastError error={apiError} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
+            toastError('Failed to disable template globally', apiError);
           },
         }
       );
@@ -155,14 +147,7 @@ const PluginTemplateCard = ({
           },
           onError: (error: unknown) => {
             const apiError = error as ApiError;
-            toast.error('Failed to enable template globally', {
-              description: <ToastError error={apiError} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
+            toastError('Failed to enable template globally', apiError);
           },
         }
       );
@@ -194,14 +179,7 @@ const PluginTemplateCard = ({
         },
         onError: (error: unknown) => {
           const apiError = error as ApiError;
-          toast.error('Failed to delete template', {
-            description: <ToastError error={apiError} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
+          toastError('Failed to delete template', apiError);
         },
       }
     );
@@ -224,14 +202,7 @@ const PluginTemplateCard = ({
     },
     onError: (error) => {
       const apiError = error as ApiError;
-      toast.error('Failed to add organization to template', {
-        description: <ToastError error={apiError} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError('Failed to add organization to template', apiError);
     },
   });
 
@@ -252,14 +223,7 @@ const PluginTemplateCard = ({
     },
     onError: (error) => {
       const apiError = error as ApiError;
-      toast.error('Failed to remove organization from template', {
-        description: <ToastError error={apiError} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError('Failed to remove organization from template', apiError);
     },
   });
 
@@ -474,14 +438,7 @@ const PluginTemplatesComponent = () => {
   }
 
   if (pluginTemplatesIsError) {
-    toast.error('Failed to load plugin templates', {
-      description: <ToastError error={pluginTemplatesError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Failed to load plugin templates', pluginTemplatesError);
     return;
   }
 
@@ -490,14 +447,7 @@ const PluginTemplatesComponent = () => {
   }
 
   if (orgIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={orgError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', orgError);
     return;
   }
 

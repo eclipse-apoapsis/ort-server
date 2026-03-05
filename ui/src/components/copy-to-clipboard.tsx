@@ -30,9 +30,13 @@ import {
 
 type CopyToClipboardProps = {
   copyText: string;
+  tooltipContentClassName?: string;
 };
 
-export const CopyToClipboard = ({ copyText }: CopyToClipboardProps) => {
+export const CopyToClipboard = ({
+  copyText,
+  tooltipContentClassName,
+}: CopyToClipboardProps) => {
   const [isCopied, setIsCopied] = useState(false);
 
   async function copyTextToClipboard(text: string) {
@@ -56,8 +60,8 @@ export const CopyToClipboard = ({ copyText }: CopyToClipboardProps) => {
         <TooltipTrigger asChild>
           <Button
             variant='ghost'
-            size='sm'
             type='button'
+            size='sm'
             onClick={handleCopyClick}
           >
             <span className='fg-slate-300'>
@@ -65,7 +69,7 @@ export const CopyToClipboard = ({ copyText }: CopyToClipboardProps) => {
             </span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className={tooltipContentClassName}>
           {isCopied ? 'Copied!' : 'Copy to clipboard'}
         </TooltipContent>
       </Tooltip>

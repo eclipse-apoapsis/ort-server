@@ -40,7 +40,6 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
-import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,7 +56,7 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
   statusSearchParameterSchema,
@@ -282,14 +281,7 @@ const RunsComponent = () => {
   });
 
   if (error) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
   const totalRuns = runs?.pagination.totalCount;

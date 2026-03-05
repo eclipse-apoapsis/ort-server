@@ -22,8 +22,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const RunRedirectComponent = () => {
   const params = Route.useParams();
@@ -52,14 +51,7 @@ const RunRedirectComponent = () => {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
 

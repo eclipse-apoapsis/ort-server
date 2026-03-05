@@ -26,7 +26,6 @@ import { z } from 'zod';
 
 import { postProductSecretMutation } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -44,7 +43,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string().trim().min(1),
@@ -68,14 +67,7 @@ const CreateProductSecretPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 
