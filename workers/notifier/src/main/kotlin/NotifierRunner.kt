@@ -98,7 +98,7 @@ class NotifierRunner(
             workerContext.resolvedConfigurationContext,
             Path(notifierConfig.notifierRules)
         )
-        notifier.run(script)
+        notifier.runScript(script)
     }
 }
 

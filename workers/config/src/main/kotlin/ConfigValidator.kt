@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.constructorArgs
 import kotlin.script.experimental.api.scriptsInstancesSharing
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
@@ -50,7 +51,7 @@ class ConfigValidator private constructor(
 
     /** The service to access the admin configuration. */
     private val adminConfigService: AdminConfigService
-) : ScriptRunner() {
+) : ScriptRunner<ConfigValidationResult>() {
     companion object {
         /**
          * Constant for the source of an issue that is generated if the validation script fails to compile.
@@ -121,18 +122,22 @@ class ConfigValidator private constructor(
         scriptsInstancesSharing(true)
     }
 
+    override fun runScript(script: SourceCode): ConfigValidationResult {
+        val executedScript = run(script).scriptInstance as ValidationScriptTemplate
+
+        return when (val result = executedScript.validationResult) {
+            is ConfigValidationResultFailure -> result
+            is ConfigValidationResultSuccess -> result.validateAdminConfig()
+        }
+    }
+
     /**
      * Validate the parameters of the ORT run from the current context by executing the given [script]. Return the
      * result of this script. If the script execution fails, return a failure result as well with the information
      * available about the failure.
      */
     fun validate(script: String): ConfigValidationResult = runCatching {
-        val executedScript = runScript(script).scriptInstance as ValidationScriptTemplate
-
-        when (val result = executedScript.validationResult) {
-            is ConfigValidationResultFailure -> result
-            is ConfigValidationResultSuccess -> result.validateAdminConfig()
-        }
+        runScript(script)
     }.getOrElse { exception ->
         createScriptErrorResult(script, exception)
     }

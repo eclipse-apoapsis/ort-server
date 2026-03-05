@@ -90,7 +90,7 @@ class NotifierRunnerTest : WordSpec({
                     EqMatcher(ortResult),
                     EqMatcher(ortNotifierConfig),
                     OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
-                ).run(any())
+                ).runScript(any<String>())
             } returns mockk()
 
             val runner = NotifierRunner(createAdminConfigService())
@@ -105,7 +105,7 @@ class NotifierRunnerTest : WordSpec({
                     EqMatcher(ortResult),
                     EqMatcher(ortNotifierConfig),
                     OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
-                ).run(script.readText())
+                ).runScript(script.readText())
             }
         }
 
@@ -123,7 +123,7 @@ class NotifierRunnerTest : WordSpec({
                     EqMatcher(ortResult),
                     EqMatcher(ortNotifierConfig),
                     OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
-                ).run(any())
+                ).runScript(any<String>())
             } returns mockk()
 
             val runner = NotifierRunner(createAdminConfigService(disabledAdminConfig))
@@ -138,7 +138,7 @@ class NotifierRunnerTest : WordSpec({
                     EqMatcher(ortResult),
                     EqMatcher(ortNotifierConfig),
                     OfTypeMatcher<DefaultResolutionProvider>(DefaultResolutionProvider::class)
-                ).run(any())
+                ).runScript(any<String>())
             }
         }
     }
