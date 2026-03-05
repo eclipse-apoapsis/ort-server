@@ -30,7 +30,6 @@ import {
 } from '@/components/form/runs-filter-form';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { RunDuration } from '@/components/run-duration';
-import { ToastError } from '@/components/toast-error';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartConfig,
@@ -47,7 +46,7 @@ import {
   convertDurationToHms,
   getDurationChartData,
 } from '@/helpers/calculate-duration';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const chartConfig = {
   infrastructure: {
@@ -141,14 +140,7 @@ export const JobDurations = ({
   }
 
   if (runsIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={runsError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', runsError);
     return;
   }
 

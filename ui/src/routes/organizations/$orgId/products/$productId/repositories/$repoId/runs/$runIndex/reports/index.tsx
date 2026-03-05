@@ -22,7 +22,6 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,7 +33,7 @@ import {
 import { config } from '@/config';
 import { formatFileSize } from '@/helpers/format-file-size';
 import { useUser } from '@/hooks/use-user.ts';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const API_URL = config.API_URL;
 
@@ -86,14 +85,7 @@ const ReportComponent = () => {
       // Clean up by revoking the URL
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error('Unable to download report', {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError('Unable to download report', error);
     }
   };
 

@@ -28,7 +28,6 @@ import { z } from 'zod';
 import { postRepositoryRunMutation } from '@/api/@tanstack/react-query.gen';
 import { getPluginsForRepository, getRepositoryRun } from '@/api/sdk.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
-import { ToastError } from '@/components/toast-error';
 import { InlineCode } from '@/components/typography.tsx';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';
 import { EvaluatorFields } from '../../-components/evaluator-fields';
@@ -119,14 +118,7 @@ const CreateRunPage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

@@ -38,7 +38,6 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button-variants';
 import {
@@ -54,7 +53,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { paginationSearchParameterSchema } from '@/schemas';
 
@@ -79,14 +78,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 
@@ -234,14 +226,7 @@ const InfrastructureServices = () => {
   }
 
   if (repositoryIsError || infraIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={repositoryError || infraError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', repositoryError || infraError);
     return;
   }
 

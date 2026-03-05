@@ -27,7 +27,6 @@ import {
   getInstalledPluginsOptions,
   getInstalledPluginsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
-import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
   CardContent,
@@ -38,7 +37,7 @@ import {
 import { Switch } from '@/components/ui/switch.tsx';
 import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client.ts';
-import { toast } from '@/lib/toast.ts';
+import { toast, toastError } from '@/lib/toast';
 
 type PluginListCardProps = {
   title: string;
@@ -73,14 +72,7 @@ const PluginListCard = ({
           },
           onError(error: unknown) {
             const apiError = error as ApiError;
-            toast.error(apiError.message, {
-              description: <ToastError error={apiError} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
+            toastError(apiError.message, apiError);
           },
         }
       );
@@ -98,14 +90,7 @@ const PluginListCard = ({
           },
           onError(error: unknown) {
             const apiError = error as ApiError;
-            toast.error(apiError.message, {
-              description: <ToastError error={apiError} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
+            toastError(apiError.message, apiError);
           },
         }
       );

@@ -27,8 +27,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
 import { StatisticsCard } from '@/components/statistics-card';
-import { ToastError } from '@/components/toast-error';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const OverviewContent = () => {
   const {
@@ -58,16 +57,10 @@ const OverviewContent = () => {
   });
 
   if (orgIsError || runsIsError || activeRunsIsError) {
-    toast.error('Unable to load data', {
-      description: (
-        <ToastError error={orgIsError || runsIsError || activeRunsIsError} />
-      ),
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError(
+      'Unable to load data',
+      orgIsError || runsIsError || activeRunsIsError
+    );
   }
 
   return (

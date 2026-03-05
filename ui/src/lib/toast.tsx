@@ -17,6 +17,28 @@
  * License-Filename: LICENSE
  */
 
+import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 
+import { ToastCancelButtons, ToastError } from '@/components/toast-error';
+
 export { toast };
+
+function errorToText(error: unknown): string {
+  if (error instanceof AxiosError) {
+    const message = error.response?.data.message || error.message;
+    const cause = error.response?.data.cause;
+    return [message, cause].filter(Boolean).join('\n');
+  }
+  return 'An unknown error occurred.\nPlease try again.';
+}
+
+export function toastError(title: string, error: unknown): void {
+  const id = Math.random().toString(36).slice(2);
+  toast.error(title, {
+    id,
+    description: <ToastError error={error} />,
+    duration: Infinity,
+    cancel: <ToastCancelButtons toastId={id} copyText={errorToText(error)} />,
+  });
+}

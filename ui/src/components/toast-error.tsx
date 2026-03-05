@@ -18,10 +18,36 @@
  */
 
 import { AxiosError } from 'axios';
+import { toast } from 'sonner';
+
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
+import { Button } from '@/components/ui/button';
 
 type ToastErrorProps = {
   error: unknown;
 };
+
+export const ToastCancelButtons = ({
+  toastId,
+  copyText,
+}: {
+  toastId: string | number;
+  copyText: string;
+}) => (
+  <div className='ml-auto flex flex-col items-center gap-1'>
+    <CopyToClipboard
+      copyText={copyText}
+      tooltipContentClassName='z-[1000000000]'
+    />
+    <Button
+      variant='secondary'
+      size='xs'
+      onClick={() => toast.dismiss(toastId)}
+    >
+      Dismiss
+    </Button>
+  </div>
+);
 
 export const ToastError = ({ error }: ToastErrorProps) => {
   let message;

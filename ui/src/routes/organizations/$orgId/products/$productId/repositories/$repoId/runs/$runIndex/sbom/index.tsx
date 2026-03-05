@@ -27,7 +27,6 @@ import CycloneDXLight from '@/assets/cyclonedx-logo-white.svg';
 import SPDX from '@/assets/spdx-logo-color.svg';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { useTheme } from '@/components/theme-provider-context';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -38,7 +37,7 @@ import {
 import { config } from '@/config';
 import { formatFileSize } from '@/helpers/format-file-size';
 import { useUser } from '@/hooks/use-user.ts';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const API_URL = config.API_URL;
 
@@ -95,14 +94,7 @@ const SBOMComponent = () => {
       // Clean up by revoking the URL
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error('Unable to download report', {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError('Unable to download report', error);
     }
   };
 

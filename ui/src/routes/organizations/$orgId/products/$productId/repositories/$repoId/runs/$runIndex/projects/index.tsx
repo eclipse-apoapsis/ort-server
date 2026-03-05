@@ -44,7 +44,6 @@ import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { RenderProperty } from '@/components/render-property';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -56,7 +55,7 @@ import {
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
@@ -422,14 +421,7 @@ const ProjectsComponent = () => {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
 

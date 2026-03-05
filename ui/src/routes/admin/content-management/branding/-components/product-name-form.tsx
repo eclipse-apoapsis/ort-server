@@ -29,7 +29,6 @@ import {
   setConfigByKeyMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
-import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Card,
@@ -55,7 +54,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast.ts';
+import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
   productName: z.string().min(1, 'Product name is required'),
@@ -95,14 +94,7 @@ export function ProductNameForm() {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 
@@ -123,14 +115,7 @@ export function ProductNameForm() {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
 

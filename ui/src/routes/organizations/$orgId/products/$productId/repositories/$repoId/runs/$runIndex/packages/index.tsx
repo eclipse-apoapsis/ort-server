@@ -45,7 +45,6 @@ import { DependencyPaths } from '@/components/dependency-paths';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { PackageCuration } from '@/components/package-curation';
 import { RenderProperty } from '@/components/render-property';
-import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
   AccordionContent,
@@ -73,7 +72,7 @@ import {
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
@@ -515,14 +514,7 @@ const PackagesComponent = () => {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
   const filtersInUse =

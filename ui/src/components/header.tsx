@@ -32,7 +32,6 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Siblings } from '@/components/siblings';
 import { useTheme } from '@/components/theme-provider-context';
-import { ToastError } from '@/components/toast-error';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Breadcrumb,
@@ -58,7 +57,7 @@ import {
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { setCustomFavicon } from '@/helpers/set-custom-favicon';
 import { useUser } from '@/hooks/use-user';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const PRODUCT_NAME = 'ORT Server';
 
@@ -196,23 +195,10 @@ export const Header = () => {
     isProductNameError ||
     isFaviconError
   ) {
-    toast.error('Unable to load data', {
-      description: (
-        <ToastError
-          error={
-            homeIconError ||
-            homeIconDarkError ||
-            productNameError ||
-            faviconError
-          }
-        />
-      ),
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError(
+      'Unable to load data',
+      homeIconError || homeIconDarkError || productNameError || faviconError
+    );
     return;
   }
 

@@ -48,7 +48,6 @@ import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Resolutions } from '@/components/resolutions';
-import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
   AccordionContent,
@@ -86,7 +85,7 @@ import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   externalIdSearchParameterSchema,
   ItemResolved,
@@ -537,14 +536,7 @@ const VulnerabilitiesComponent = () => {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
   const filtersInUse = table.getState().columnFilters.length > 0;

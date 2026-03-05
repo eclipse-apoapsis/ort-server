@@ -29,7 +29,6 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { OptionalValueLong } from '@/api/types.gen';
 import { MoveDialog } from '@/components/move-dialog';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -46,7 +45,7 @@ import {
 } from '@/components/ui/popover';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
 interface MoveRepositoryProps {
@@ -102,14 +101,7 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

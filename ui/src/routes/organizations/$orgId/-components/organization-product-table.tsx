@@ -34,8 +34,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from '../products/$productId/-components/last-job-status';
 import { LastRunDate } from '../products/$productId/-components/last-run-date';
@@ -265,14 +264,7 @@ export const OrganizationProductTable = () => {
   }
 
   if (prodIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={prodError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', prodError);
     return;
   }
 

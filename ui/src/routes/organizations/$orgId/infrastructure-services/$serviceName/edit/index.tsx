@@ -31,7 +31,6 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -58,7 +57,7 @@ import {
 } from '@/components/ui/select';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -105,14 +104,7 @@ const EditInfrastructureServicePage = () => {
       });
     },
     onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError(error.message, error);
     },
   });
 

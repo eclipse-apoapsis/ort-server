@@ -32,7 +32,6 @@ import { Organization } from '@/api';
 import { getOrganizationsOptions } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,7 +46,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsSuperuser } from '@/hooks/use-authorization';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   filterByNameSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -157,14 +156,7 @@ export const IndexPage = () => {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
 

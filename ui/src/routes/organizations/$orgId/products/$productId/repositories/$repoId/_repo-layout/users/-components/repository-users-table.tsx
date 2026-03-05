@@ -36,7 +36,6 @@ import {
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
-import { ToastError } from '@/components/toast-error.tsx';
 import {
   Tooltip,
   TooltipContent,
@@ -46,7 +45,7 @@ import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx'
 import { mapUserGroupToRepositoryRole } from '@/helpers/role-helpers.ts';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast.ts';
+import { toast, toastError } from '@/lib/toast';
 
 const columnHelper = createColumnHelper<UserWithGroups>();
 
@@ -119,14 +118,7 @@ const columns = [
             });
           },
           onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
+            toastError(error.message, error);
           },
         });
 
@@ -140,14 +132,7 @@ const columns = [
             });
           },
           onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
+            toastError(error.message, error);
           },
         });
 
@@ -215,14 +200,10 @@ const columns = [
             description: `User "${row.original.user.username}" removed from the repository successfully.`,
           });
         } catch (error) {
-          toast.error('Failed to remove the user from repository', {
-            description: <ToastError error={error as ApiError} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
+          toastError(
+            'Failed to remove the user from repository',
+            error as ApiError
+          );
         }
       }
 

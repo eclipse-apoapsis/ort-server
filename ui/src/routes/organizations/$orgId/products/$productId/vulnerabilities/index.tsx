@@ -44,7 +44,6 @@ import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -69,7 +68,7 @@ import {
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   externalIdSearchParameterSchema,
   markedSearchParameterSchema,
@@ -442,14 +441,7 @@ const ProductVulnerabilitiesComponent = () => {
   }
 
   if (isError || totIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error || totError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error || totError);
     return;
   }
   const filtersInUse =

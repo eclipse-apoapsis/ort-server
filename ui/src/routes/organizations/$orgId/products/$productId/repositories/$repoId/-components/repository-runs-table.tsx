@@ -48,7 +48,6 @@ import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { Sha1Component } from '@/components/sha1-component';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
-import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
   AccordionContent,
@@ -67,7 +66,7 @@ import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { isJobFinished } from '@/helpers/job-helpers';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
-import { toast } from '@/lib/toast';
+import { toast, toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
 type RepositoryTableProps = {
@@ -287,14 +286,7 @@ const columns = [
           });
         },
         onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
+          toastError(error.message, error);
         },
       });
 
@@ -420,14 +412,7 @@ export const RepositoryRunsTable = ({
   }
 
   if (runsIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={runsError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', runsError);
     return;
   }
 

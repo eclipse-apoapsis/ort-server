@@ -47,7 +47,6 @@ import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Resolutions } from '@/components/resolutions';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
-import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
   AccordionContent,
@@ -73,7 +72,7 @@ import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 import {
   IssueCategory,
   issueCategorySchema,
@@ -469,14 +468,7 @@ const IssuesComponent = () => {
   }
 
   if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
+    toastError('Unable to load data', error);
     return;
   }
   const filtersInUse = table.getState().columnFilters.length > 0;

@@ -24,7 +24,6 @@ import { useState } from 'react';
 
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -41,7 +40,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { config } from '@/config';
 import { useUser } from '@/hooks/use-user.ts';
-import { toast } from '@/lib/toast';
+import { toastError } from '@/lib/toast';
 
 const API_URL = config.API_URL;
 
@@ -95,14 +94,7 @@ const ReportComponent = () => {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error('Unable to download logs', {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
+      toastError('Unable to download logs', error);
     } finally {
       setIsPending(false);
     }
