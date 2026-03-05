@@ -264,7 +264,7 @@ const InfrastructureServices = () => {
                     repoId: params.repoId,
                   }}
                 >
-                  New infrastructure service
+                  Add infrastructure service
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>

@@ -222,7 +222,7 @@ const OrganizationSecrets = () => {
                   to='/organizations/$orgId/secrets/create-secret'
                   params={{ orgId: params.orgId }}
                 >
-                  New secret
+                  Add secret
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>

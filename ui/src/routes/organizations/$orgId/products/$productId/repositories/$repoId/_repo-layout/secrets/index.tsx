@@ -367,7 +367,7 @@ const RepositorySecrets = () => {
                       repoId: params.repoId,
                     }}
                   >
-                    New secret
+                    Add secret
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
@@ -418,7 +418,7 @@ const RepositorySecrets = () => {
                       productId: params.productId,
                     }}
                   >
-                    Manage Product Secrets
+                    Manage product secrets
                   </Link>
                 </Button>
               </TooltipTrigger>
@@ -467,7 +467,7 @@ const RepositorySecrets = () => {
                       orgId: params.orgId,
                     }}
                   >
-                    Manage Organization Secrets
+                    Manage organization secrets
                   </Link>
                 </Button>
               </TooltipTrigger>
