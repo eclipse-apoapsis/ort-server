@@ -134,7 +134,7 @@ class EvaluatorRunner(
             resolutionProvider = resolutionProvider
         )
 
-        val evaluatorRun = evaluator.run(script)
+        val evaluatorRun = evaluator.runScript(script)
 
         val resolvedItems = resolveResolutionsWithMappings(
             issues = emptyList(),
