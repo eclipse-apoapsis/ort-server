@@ -24,13 +24,40 @@ import { ToastCancelButtons, ToastError } from '@/components/toast-error';
 
 export { toast };
 
-function errorToText(error: unknown): string {
+function wordWrap(text: string, width = 75): string {
+  return text
+    .split('\n')
+    .map((line) => {
+      if (line.length <= width) return line;
+      const words = line.split(' ');
+      const lines: string[] = [];
+      let current = '';
+      for (const word of words) {
+        if (current.length + (current ? 1 : 0) + word.length > width) {
+          if (current) lines.push(current);
+          current = word;
+        } else {
+          current = current ? `${current} ${word}` : word;
+        }
+      }
+      if (current) lines.push(current);
+      return lines.join('\n');
+    })
+    .join('\n');
+}
+
+function errorToText(title: string, error: unknown): string {
   if (error instanceof AxiosError) {
     const message = error.response?.data.message || error.message;
     const cause = error.response?.data.cause;
-    return [message, cause].filter(Boolean).join('\n');
+    const parts = [
+      `Title:\n${wordWrap(title)}`,
+      `Message:\n${wordWrap(message)}`,
+    ];
+    if (cause) parts.push(`Cause:\n${wordWrap(cause)}`);
+    return parts.join('\n\n');
   }
-  return 'An unknown error occurred.\nPlease try again.';
+  return `Title:\n${wordWrap(title)}\n\nMessage:\nAn unknown error occurred.\n\nCause:\nPlease try again.`;
 }
 
 export function toastError(title: string, error: unknown): void {
@@ -39,6 +66,8 @@ export function toastError(title: string, error: unknown): void {
     id,
     description: <ToastError error={error} />,
     duration: Infinity,
-    cancel: <ToastCancelButtons toastId={id} copyText={errorToText(error)} />,
+    cancel: (
+      <ToastCancelButtons toastId={id} copyText={errorToText(title, error)} />
+    ),
   });
 }
