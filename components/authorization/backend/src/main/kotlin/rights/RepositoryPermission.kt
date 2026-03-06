@@ -45,6 +45,6 @@ enum class RepositoryPermission {
     /** Permission to trigger an [OrtRun] for the [Repository]. */
     TRIGGER_ORT_RUN,
 
-    /** Permission to delete the [Repository]. */
+    /** Permission to delete the [Repository], or to delete an [OrtRun] from it. */
     DELETE
 }
