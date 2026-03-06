@@ -272,6 +272,11 @@ const columns = [
         'TRIGGER_ORT_RUN'
       );
 
+      const { isAllowed: canDeleteRun } = useRepositoryPermission(
+        row.original.repositoryId,
+        'DELETE'
+      );
+
       const { mutateAsync: deleteRun } = useMutation({
         ...deleteRepositoryRunMutation(),
         onSuccess() {
@@ -370,6 +375,7 @@ const columns = [
             }
             uiComponent={<DeleteIconButton />}
             onDelete={handleDelete}
+            disabled={canDeleteRun === false}
           />
         </div>
       );

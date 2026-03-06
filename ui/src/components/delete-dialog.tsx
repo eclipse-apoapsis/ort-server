@@ -18,7 +18,13 @@
  */
 
 import { Loader2, OctagonAlert } from 'lucide-react';
-import { ReactNode, useEffect, useState } from 'react';
+import {
+  cloneElement,
+  isValidElement,
+  ReactNode,
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   AlertDialog,
@@ -76,6 +82,12 @@ interface DeleteDialogProps {
    * The title of the delete dialog.
    */
   title?: string;
+
+  /**
+   * Whether the delete action is disabled (e.g. due to insufficient permissions).
+   * When true, the uiComponent is rendered as disabled and the dialog cannot be opened.
+   */
+  disabled?: boolean;
 }
 
 export const DeleteDialog = ({
@@ -86,11 +98,22 @@ export const DeleteDialog = ({
   onDelete,
   tooltip,
   title,
+  disabled,
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const isDeleteDisabled = thingId ? input !== thingId : false;
+
+  const triggerElement =
+    disabled && isValidElement(uiComponent)
+      ? cloneElement(
+          uiComponent as React.ReactElement<{ disabled?: boolean }>,
+          {
+            disabled: true,
+          }
+        )
+      : uiComponent;
 
   // Reset the input field whenever the dialog is opened/closed
   useEffect(() => {
@@ -103,9 +126,17 @@ export const DeleteDialog = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
-          <AlertDialogTrigger asChild>{uiComponent}</AlertDialogTrigger>
+          {disabled ? (
+            <span className='inline-flex cursor-not-allowed'>
+              {triggerElement}
+            </span>
+          ) : (
+            <AlertDialogTrigger asChild>{uiComponent}</AlertDialogTrigger>
+          )}
         </TooltipTrigger>
-        <TooltipContent>{tooltip || 'Delete'}</TooltipContent>
+        <TooltipContent>
+          {disabled ? 'Insufficient permissions.' : tooltip || 'Delete'}
+        </TooltipContent>
       </Tooltip>
       {/* Adding the preventDefault will prevent focusing on the trigger after closing the modal (which would cause the tooltip to show) */}
       <AlertDialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
