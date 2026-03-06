@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.Authentica
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.resolutionRoutes
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.secretsCompositionRoutes
@@ -59,6 +60,7 @@ fun Application.configureRouting() {
                 pluginManagerRoutes(get(), get(), get())
                 products()
                 repositories()
+                resolutionRoutes(get())
                 runs()
                 searchRoutes(get())
                 secretsCompositionRoutes(get(), get())

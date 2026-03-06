@@ -42,10 +42,22 @@ dependencies {
     implementation(libs.kotlinResult)
     implementation(libs.kotlinxSerializationJson)
 
+    routesImplementation(projects.components.authorization.authorizationBackend)
+    routesImplementation(projects.shared.apiMappings)
+    routesImplementation(projects.shared.ktorUtils)
+
+    routesImplementation(ktorLibs.server.core)
+
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(projects.components.authorization.authorizationBackend)
 
+    testImplementation(ktorLibs.serialization.kotlinx.json)
+    testImplementation(ktorLibs.server.auth)
+    testImplementation(ktorLibs.server.contentNegotiation)
+    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.mockk)
 }
