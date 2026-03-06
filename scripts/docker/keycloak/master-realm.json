@@ -107,15 +107,7 @@
       "admin-cli" : [ ],
       "ort-server-backend" : [ ],
       "account-console" : [ ],
-      "ort-server" : [ {
-        "id" : "fe1e8021-77fc-463b-a069-da14ec5494db",
-        "name" : "superuser",
-        "description" : "This role is auto-generated, do not edit or remove.",
-        "composite" : false,
-        "clientRole" : true,
-        "containerId" : "6c48dfc4-9788-462c-ae28-4f3ce383f6a2",
-        "attributes" : { }
-      } ],
+      "ort-server" : [ ],
       "broker" : [ {
         "id" : "4cb48d75-ccb3-4c81-aa90-9f3d4c9f0c41",
         "name" : "read-token",
@@ -365,9 +357,7 @@
     "subGroups" : [ ],
     "attributes" : { },
     "realmRoles" : [ ],
-    "clientRoles" : {
-      "ort-server" : [ "superuser" ]
-    }
+    "clientRoles" : { }
   } ],
   "defaultRole" : {
     "id" : "14f10c6b-ccbf-456e-b268-cc868fbbfaa4",
@@ -706,6 +696,7 @@
       "client.secret.creation.time" : "1772808256",
       "backchannel.logout.session.required" : "true",
       "standard.token.exchange.enabled" : "false",
+      "post.logout.redirect.uris" : "+",
       "oauth2.device.authorization.grant.enabled" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false",
       "dpop.bound.access.tokens" : "false"
@@ -1478,7 +1469,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-full-name-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "oidc-full-name-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper" ]
       }
     }, {
       "id" : "a4421fad-fa91-4f93-95bb-65ab2ec54e7a",
@@ -1513,7 +1504,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "oidc-full-name-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper" ]
       }
     }, {
       "id" : "d3349d9b-0a14-435b-bbc9-eface1c6b5cf",
