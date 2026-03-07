@@ -17,17 +17,29 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+plugins {
+    id("ort-server-kotlin-multiplatform-conventions")
+    id("ort-server-publication-conventions")
 
-/**
- * Possible reasons for resolving a vulnerability using a [VulnerabilityResolution].
- */
-enum class VulnerabilityResolutionReason {
-    CANT_FIX_VULNERABILITY,
-    INEFFECTIVE_VULNERABILITY,
-    INVALID_MATCH_VULNERABILITY,
-    MITIGATED_VULNERABILITY,
-    NOT_A_VULNERABILITY,
-    WILL_NOT_FIX_VULNERABILITY,
-    WORKAROUND_FOR_VULNERABILITY
+    // Apply third-party plugins.
+    alias(libs.plugins.kotlinSerialization)
+}
+
+group = "org.eclipse.apoapsis.ortserver.components.resolutions"
+
+kotlin {
+    linuxX64()
+    macosArm64()
+    macosX64()
+    mingwX64()
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(projects.shared.apiModel)
+
+                implementation(libs.kotlinxSerializationJson)
+            }
+        }
+    }
 }
