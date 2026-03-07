@@ -173,21 +173,20 @@ services:
       - "${ORT_SERVER_CORE_PORT:-8080}:8080"
       - "5000:5000"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       PORT: 8080
       UI_HOSTS: "localhost:5173,localhost:8080,localhost:8082"
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
+      KEYCLOAK_API_USER: "" # Set to empty to overwrite default value and force use of client credentials flow.
+      KEYCLOAK_CLIENT_ID: ort-server-backend
       JWT_URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       SECRETS_PROVIDER_NAME: fileBased
       FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
       GRAPHITE_HOST: "graphite"
@@ -221,48 +220,33 @@ services:
     ports:
       - "5010:5010"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres:5432"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_RECEIVER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_RECEIVER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_RECEIVER_TRANSPORT_PASSWORD: admin
       ADVISOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ADVISOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ADVISOR_SENDER_TRANSPORT_QUEUE_NAME: advisor_queue
-      ADVISOR_SENDER_TRANSPORT_USERNAME: admin
-      ADVISOR_SENDER_TRANSPORT_PASSWORD: admin
       ANALYZER_SENDER_TRANSPORT_TYPE: rabbitMQ
       ANALYZER_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ANALYZER_SENDER_TRANSPORT_QUEUE_NAME: analyzer_queue
-      ANALYZER_SENDER_TRANSPORT_USERNAME: admin
-      ANALYZER_SENDER_TRANSPORT_PASSWORD: admin
       CONFIG_SENDER_TRANSPORT_TYPE: rabbitMQ
       CONFIG_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       CONFIG_SENDER_TRANSPORT_QUEUE_NAME: config_queue
-      CONFIG_SENDER_TRANSPORT_USERNAME: admin
-      CONFIG_SENDER_TRANSPORT_PASSWORD: admin
       EVALUATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       EVALUATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       EVALUATOR_SENDER_TRANSPORT_QUEUE_NAME: evaluator_queue
-      EVALUATOR_SENDER_TRANSPORT_USERNAME: admin
-      EVALUATOR_SENDER_TRANSPORT_PASSWORD: admin
       REPORTER_SENDER_TRANSPORT_TYPE: rabbitMQ
       REPORTER_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       REPORTER_SENDER_TRANSPORT_QUEUE_NAME: reporter_queue
-      REPORTER_SENDER_TRANSPORT_USERNAME: admin
-      REPORTER_SENDER_TRANSPORT_PASSWORD: admin
       SCANNER_SENDER_TRANSPORT_TYPE: rabbitMQ
       SCANNER_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       SCANNER_SENDER_TRANSPORT_QUEUE_NAME: scanner_queue
-      SCANNER_SENDER_TRANSPORT_USERNAME: admin
-      SCANNER_SENDER_TRANSPORT_PASSWORD: admin
       ORCHESTRATOR_SECRET_PROVIDER: secret-file
       ORCHESTRATOR_SECRET_FILES: /mnt/secrets.properties
     volumes:
@@ -288,25 +272,20 @@ services:
     ports:
       - "5040:5040"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       ADVISOR_CONFIG_FILE_PROVIDER: local-config
       ADVISOR_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       ADVISOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       ADVISOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ADVISOR_RECEIVER_TRANSPORT_QUEUE_NAME: advisor_queue
-      ADVISOR_RECEIVER_TRANSPORT_USERNAME: admin
-      ADVISOR_RECEIVER_TRANSPORT_PASSWORD: admin
       ADVISOR_SECRET_PROVIDER: secret-file
       ADVISOR_SECRET_FILES: /mnt/secrets.properties
       SECRETS_PROVIDER_NAME: fileBased
@@ -338,25 +317,20 @@ services:
     ports:
       - "5030:5030"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       ANALYZER_CONFIG_FILE_PROVIDER: local-config
       ANALYZER_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       ANALYZER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       ANALYZER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ANALYZER_RECEIVER_TRANSPORT_QUEUE_NAME: analyzer_queue
-      ANALYZER_RECEIVER_TRANSPORT_USERNAME: admin
-      ANALYZER_RECEIVER_TRANSPORT_PASSWORD: admin
       ANALYZER_SECRET_PROVIDER: secret-file
       ANALYZER_SECRET_FILES: /mnt/secrets.properties
       SECRETS_PROVIDER_NAME: fileBased
@@ -388,24 +362,20 @@ services:
     ports:
       - "5020:5020"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       CONFIG_CONFIG_FILE_PROVIDER: local-config
       CONFIG_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       CONFIG_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       CONFIG_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       CONFIG_RECEIVER_TRANSPORT_QUEUE_NAME: config_queue
-      CONFIG_RECEIVER_TRANSPORT_USERNAME: admin
-      CONFIG_RECEIVER_TRANSPORT_PASSWORD: admin
       CONFIG_SECRET_PROVIDER: secret-file
       CONFIG_SECRET_FILES: /mnt/secrets.properties
       SECRETS_PROVIDER_NAME: fileBased
@@ -437,25 +407,20 @@ services:
     ports:
       - "5060:5060"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       EVALUATOR_CONFIG_FILE_PROVIDER: local-config
       EVALUATOR_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       EVALUATOR_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       EVALUATOR_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       EVALUATOR_RECEIVER_TRANSPORT_QUEUE_NAME: evaluator_queue
-      EVALUATOR_RECEIVER_TRANSPORT_USERNAME: admin
-      EVALUATOR_RECEIVER_TRANSPORT_PASSWORD: admin
       EVALUATOR_SECRET_PROVIDER: secret-file
       EVALUATOR_SECRET_FILES: /mnt/secrets.properties
       SECRETS_PROVIDER_NAME: fileBased
@@ -487,25 +452,20 @@ services:
     ports:
       - "5070:5070"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       REPORTER_CONFIG_FILE_PROVIDER: local-config
       REPORTER_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       REPORTER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       REPORTER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       REPORTER_RECEIVER_TRANSPORT_QUEUE_NAME: reporter_queue
-      REPORTER_RECEIVER_TRANSPORT_USERNAME: admin
-      REPORTER_RECEIVER_TRANSPORT_PASSWORD: admin
       REPORTER_SECRET_PROVIDER: secret-file
       REPORTER_SECRET_FILES: /mnt/secrets.properties
       SECRETS_PROVIDER_NAME: fileBased
@@ -537,25 +497,20 @@ services:
     ports:
       - "5050:5050"
     environment:
+      ALLOW_SECRETS_FROM_CONFIG: false
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
       DB_NAME: ort_server
       DB_SCHEMA: ort_server
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
       DB_SSL_MODE: disable
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
-      ORCHESTRATOR_SENDER_TRANSPORT_USERNAME: admin
-      ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD: admin
       SCANNER_CONFIG_FILE_PROVIDER: local-config
       SCANNER_CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       SCANNER_RECEIVER_TRANSPORT_TYPE: rabbitMQ
       SCANNER_RECEIVER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       SCANNER_RECEIVER_TRANSPORT_QUEUE_NAME: scanner_queue
-      SCANNER_RECEIVER_TRANSPORT_USERNAME: admin
-      SCANNER_RECEIVER_TRANSPORT_PASSWORD: admin
       SCANNER_SECRET_PROVIDER: secret-file
       SCANNER_SECRET_FILES: /mnt/secrets.properties
       SECRETS_PROVIDER_NAME: fileBased
