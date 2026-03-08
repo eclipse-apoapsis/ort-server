@@ -78,17 +78,15 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
                 return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
             }
 
-            val issueRowsById = fetchIssueRowsById(ortRunIssueIds)
+            val issueRows = fetchIssueRows(ortRunIssueIds)
             val resolutionsByOrtRunIssueId = fetchResolutionsByOrtRunIssueId(ortRunIssueIds)
 
-            val identifierIds = ortRunIssueIds
-                .mapNotNull { issueRowsById[it]?.getOrNull(OrtRunsIssuesTable.identifierId)?.value }
-                .distinct()
+            val identifierIds = issueRows
+                .mapNotNullTo(mutableSetOf()) { it.getOrNull(OrtRunsIssuesTable.identifierId)?.value }
 
             val purlByIdentifierId = getPurlByIdentifierIdForOrtRun(ortRunId, identifierIds)
             val issues = assembleIssues(
-                ortRunIssueIds,
-                issueRowsById,
+                issueRows,
                 resolutionsByOrtRunIssueId,
                 purlByIdentifierId
             )
@@ -156,7 +154,7 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
         return query.map { it[OrtRunsIssuesTable.id].value }
     }
 
-    private fun fetchIssueRowsById(ortRunIssueIds: List<Long>): Map<Long, ResultRow> =
+    private fun fetchIssueRows(ortRunIssueIds: List<Long>): List<ResultRow> =
         OrtRunsIssuesTable
             .innerJoin(IssuesTable, { issueId }, { id })
             .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
@@ -175,7 +173,7 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
                 IdentifiersTable.version
             )
             .where { OrtRunsIssuesTable.id inList ortRunIssueIds }
-            .associateBy { it[OrtRunsIssuesTable.id].value }
+            .sortedBy { ortRunIssueIds.indexOf(it[OrtRunsIssuesTable.id].value) }
 
     private fun fetchResolutionsByOrtRunIssueId(
         ortRunIssueIds: List<Long>
@@ -201,14 +199,12 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
             )
 
     private fun assembleIssues(
-        ortRunIssueIds: List<Long>,
-        issueRowsById: Map<Long, ResultRow>,
+        issueRows: List<ResultRow>,
         resolutionsByOrtRunIssueId: Map<Long, List<IssueResolution>>,
         purlByIdentifierId: Map<Long, String>
     ): List<Issue> =
-        ortRunIssueIds.map { ortRunIssueId ->
-            val row = issueRowsById.getValue(ortRunIssueId)
-
+        issueRows.map { row ->
+            val ortRunIssueId = row[OrtRunsIssuesTable.id].value
             val type = row.getOrNull(IdentifiersTable.type)
             val namespace = row.getOrNull(IdentifiersTable.namespace)
             val name = row.getOrNull(IdentifiersTable.name)
