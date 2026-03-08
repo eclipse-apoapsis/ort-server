@@ -81,17 +81,15 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
                 return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
             }
 
-            val ruleViolationRowsById = fetchRuleViolationRowsById(ruleViolationIds)
+            val ruleViolationRows = fetchRuleViolationRows(ruleViolationIds)
             val resolutionsByRuleViolationId = fetchResolutionsByRuleViolationId(ortRunId, ruleViolationIds)
 
-            val identifierIds = ruleViolationIds
-                .mapNotNull { ruleViolationRowsById[it]?.getOrNull(RuleViolationsTable.identifierId)?.value }
-                .distinct()
+            val identifierIds = ruleViolationRows
+                .mapNotNullTo(mutableSetOf()) { it.getOrNull(RuleViolationsTable.identifierId)?.value }
 
             val purlByIdentifierId = getPurlByIdentifierIdForOrtRun(ortRunId, identifierIds)
             val ruleViolations = assembleRuleViolations(
-                ruleViolationIds,
-                ruleViolationRowsById,
+                ruleViolationRows,
                 resolutionsByRuleViolationId,
                 purlByIdentifierId
             )
@@ -142,7 +140,7 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         return query.map { it[RuleViolationsTable.id].value }
     }
 
-    private fun fetchRuleViolationRowsById(ruleViolationIds: List<Long>): Map<Long, ResultRow> =
+    private fun fetchRuleViolationRows(ruleViolationIds: List<Long>): List<ResultRow> =
         RuleViolationsTable
             .join(IdentifiersTable, JoinType.LEFT, RuleViolationsTable.identifierId, IdentifiersTable.id)
             .select(
@@ -160,7 +158,7 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
                 IdentifiersTable.version
             )
             .where { RuleViolationsTable.id inList ruleViolationIds }
-            .associateBy { it[RuleViolationsTable.id].value }
+            .sortedBy { ruleViolationIds.indexOf(it[RuleViolationsTable.id].value) }
 
     private fun fetchResolutionsByRuleViolationId(
         ortRunId: Long,
@@ -190,14 +188,12 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
             )
 
     private fun assembleRuleViolations(
-        ruleViolationIds: List<Long>,
-        ruleViolationRowsById: Map<Long, ResultRow>,
+        ruleViolationRows: List<ResultRow>,
         resolutionsByRuleViolationId: Map<Long, List<RuleViolationResolution>>,
         purlByIdentifierId: Map<Long, String>
     ): List<RuleViolation> =
-        ruleViolationIds.map { ruleViolationId ->
-            val row = ruleViolationRowsById.getValue(ruleViolationId)
-
+        ruleViolationRows.map { row ->
+            val ruleViolationId = row[RuleViolationsTable.id].value
             val type = row.getOrNull(IdentifiersTable.type)
             val namespace = row.getOrNull(IdentifiersTable.namespace)
             val name = row.getOrNull(IdentifiersTable.name)
