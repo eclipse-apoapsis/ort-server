@@ -205,21 +205,16 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
     ): List<Issue> =
         issueRows.map { row ->
             val ortRunIssueId = row[OrtRunsIssuesTable.id].value
-            val type = row.getOrNull(IdentifiersTable.type)
-            val namespace = row.getOrNull(IdentifiersTable.namespace)
-            val name = row.getOrNull(IdentifiersTable.name)
-            val version = row.getOrNull(IdentifiersTable.version)
-            val identifier = type?.let { safeType ->
-                namespace?.let { safeNamespace ->
-                    name?.let { safeName ->
-                        version?.let { safeVersion ->
-                            Identifier(safeType, safeNamespace, safeName, safeVersion)
-                        }
-                    }
-                }
-            }
+            val identifierId = row[OrtRunsIssuesTable.identifierId]?.value
 
-            val identifierId = row.getOrNull(OrtRunsIssuesTable.identifierId)?.value
+            val identifier = identifierId?.let {
+                Identifier(
+                    type = row[IdentifiersTable.type],
+                    namespace = row[IdentifiersTable.namespace],
+                    name = row[IdentifiersTable.name],
+                    version = row[IdentifiersTable.version]
+                )
+            }
 
             Issue(
                 timestamp = row[OrtRunsIssuesTable.timestamp],

@@ -194,22 +194,16 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
     ): List<RuleViolation> =
         ruleViolationRows.map { row ->
             val ruleViolationId = row[RuleViolationsTable.id].value
-            val type = row.getOrNull(IdentifiersTable.type)
-            val namespace = row.getOrNull(IdentifiersTable.namespace)
-            val name = row.getOrNull(IdentifiersTable.name)
-            val version = row.getOrNull(IdentifiersTable.version)
+            val identifierId = row[RuleViolationsTable.identifierId]?.value
 
-            val identifier = type?.let { safeType ->
-                namespace?.let { safeNamespace ->
-                    name?.let { safeName ->
-                        version?.let { safeVersion ->
-                            Identifier(safeType, safeNamespace, safeName, safeVersion)
-                        }
-                    }
-                }
+            val identifier = identifierId?.let {
+                Identifier(
+                    type = row[IdentifiersTable.type],
+                    namespace = row[IdentifiersTable.namespace],
+                    name = row[IdentifiersTable.name],
+                    version = row[IdentifiersTable.version]
+                )
             }
-
-            val identifierId = row.getOrNull(RuleViolationsTable.identifierId)?.value
 
             RuleViolation(
                 rule = row[RuleViolationsTable.rule],
