@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
-import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -133,11 +132,10 @@ internal class AnalyzerWorker(
             )
 
             // Apply resolutions using the common function.
-            val resolvedItems = resolveResolutionsWithMappings(
+            val resolvedItems = resolutionProvider.matchResolutions(
                 issues = allIssues,
                 ruleViolations = emptyList(),
-                vulnerabilities = emptyList(),
-                resolutionProvider = resolutionProvider
+                vulnerabilities = emptyList()
             )
 
             // Calculate unresolved issues for logging.

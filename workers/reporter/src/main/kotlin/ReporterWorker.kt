@@ -34,7 +34,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
-import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -130,11 +129,10 @@ internal class ReporterWorker(
                 RepositoryId(ortRun.repositoryId)
             )
 
-            val resolvedReporterItems = resolveResolutionsWithMappings(
+            val resolvedReporterItems = resolutionProvider.matchResolutions(
                 issues = reporterIssuesAsOrt,
                 ruleViolations = emptyList(),
-                vulnerabilities = emptyList(),
-                resolutionProvider = resolutionProvider
+                vulnerabilities = emptyList()
             )
 
             db.dbQuery {

@@ -23,7 +23,10 @@ import com.github.michaelbull.result.get
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
@@ -37,7 +40,7 @@ import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 /**
- * An implementation of [ResolutionProvider] that combines the [Resolutions] from different sources.
+ * An implementation of [ResolutionProvider] that combines the [Resolutions] from different [sources][ResolutionSource].
  */
 class OrtServerResolutionProvider(
     /** The [Resolutions] from the global configuration file. */
@@ -109,4 +112,39 @@ class OrtServerResolutionProvider(
 
     override fun getResolutionsFor(vulnerability: Vulnerability) =
         allResolutions.vulnerabilities.filter { it.matches(vulnerability) }
+
+    /**
+     * Return a [ResolvedItemsResult] that maps the provided [issues], [ruleViolations], and [vulnerabilities] to their
+     * matching resolutions from this provider. This is similar to ORT's `ConfigurationResolver.resolveResolutions()`,
+     * but returns the full mappings instead of just the distinct resolutions.
+     */
+    fun matchResolutions(
+        issues: List<Issue>,
+        ruleViolations: List<RuleViolation>,
+        vulnerabilities: List<Vulnerability>
+    ): ResolvedItemsResult {
+        val issueResolutions = issues
+            .associateWith { getResolutionsFor(it) }
+            .filterValues { it.isNotEmpty() }
+
+        val ruleViolationResolutions = ruleViolations
+            .associateWith { getResolutionsFor(it) }
+            .filterValues { it.isNotEmpty() }
+
+        val vulnerabilityResolutions = vulnerabilities
+            .associateWith { getResolutionsFor(it) }
+            .filterValues { it.isNotEmpty() }
+
+        return ResolvedItemsResult(
+            issues = issueResolutions.map { (issue, resolutions) ->
+                issue.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+            }.toMap(),
+            ruleViolations = ruleViolationResolutions.map { (violation, resolutions) ->
+                violation.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+            }.toMap(),
+            vulnerabilities = vulnerabilityResolutions.map { (vulnerability, resolutions) ->
+                vulnerability.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+            }.toMap()
+        )
+    }
 }

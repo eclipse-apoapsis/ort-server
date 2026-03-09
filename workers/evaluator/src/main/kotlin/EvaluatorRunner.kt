@@ -28,7 +28,6 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
-import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.evaluator.Evaluator
@@ -142,11 +141,10 @@ class EvaluatorRunner(
 
         val evaluatorRun = evaluator.runScript(script)
 
-        val resolvedItems = resolveResolutionsWithMappings(
+        val resolvedItems = resolutionProvider.matchResolutions(
             issues = emptyList(),
             ruleViolations = evaluatorRun.violations,
-            vulnerabilities = emptyList(),
-            resolutionProvider = resolutionProvider
+            vulnerabilities = emptyList()
         )
 
         return EvaluatorRunnerResult(

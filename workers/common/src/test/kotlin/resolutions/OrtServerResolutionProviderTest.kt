@@ -23,6 +23,8 @@ import com.github.michaelbull.result.Ok
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.should
 
 import io.mockk.every
@@ -38,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolut
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason as ServerVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.Issue
@@ -403,6 +406,275 @@ class OrtServerResolutionProviderTest : WordSpec({
             )
 
             provider.getResolutionsFor(vulnerability) should containExactlyInAnyOrder(expectedMatchingResolutions)
+        }
+    }
+
+    "matchResolutions" should {
+        "return matching issue resolutions" {
+            val globalResolutions = Resolutions(
+                issues = listOf(
+                    IssueResolution(
+                        message = "match-1",
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching global issue resolution 1"
+                    ),
+                    IssueResolution(
+                        message = "match-2",
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching global issue resolution 2"
+                    )
+                )
+            )
+
+            val repositoryConfigurationResolutions = Resolutions(
+                issues = listOf(
+                    IssueResolution(
+                        message = "match-1",
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching repository configuration issue resolution 1"
+                    ),
+                    IssueResolution(
+                        message = "match-2",
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching repository configuration issue resolution 2"
+                    )
+                )
+            )
+
+            val managedResolutions = Resolutions(
+                issues = listOf(
+                    IssueResolution(
+                        message = "match-1",
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching managed issue resolution 1"
+                    ),
+                    IssueResolution(
+                        message = "match-2",
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching managed issue resolution 2"
+                    )
+                )
+            )
+
+            val provider = OrtServerResolutionProvider(
+                globalResolutions = globalResolutions,
+                repositoryConfigurationResolutions = repositoryConfigurationResolutions,
+                managedResolutions = managedResolutions
+            )
+
+            val issue1 = Issue(source = "source", message = "match-1")
+            val issue2 = Issue(source = "source", message = "match-2")
+
+            val expectedResolutionsForIssue1 = listOf(
+                globalResolutions.issues[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                repositoryConfigurationResolutions.issues[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                managedResolutions.issues[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+            )
+
+            val expectedResolutionsForIssue2 = listOf(
+                globalResolutions.issues[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                repositoryConfigurationResolutions.issues[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                managedResolutions.issues[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+            )
+
+            val matchResult = provider.matchResolutions(listOf(issue1, issue2), emptyList(), emptyList())
+
+            matchResult.issues should containExactly(
+                issue1.mapToModel() to expectedResolutionsForIssue1,
+                issue2.mapToModel() to expectedResolutionsForIssue2
+            )
+        }
+
+        "return matching rule violation resolutions" {
+            val globalResolutions = Resolutions(
+                ruleViolations = listOf(
+                    RuleViolationResolution(
+                        message = "match-1",
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching global rule violation resolution 1"
+                    ),
+                    RuleViolationResolution(
+                        message = "match-2",
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching global rule violation resolution 2"
+                    )
+                )
+            )
+
+            val repositoryConfigurationResolutions = Resolutions(
+                ruleViolations = listOf(
+                    RuleViolationResolution(
+                        message = "match-1",
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching repository configuration rule violation resolution 1"
+                    ),
+                    RuleViolationResolution(
+                        message = "match-2",
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching repository configuration rule violation resolution 2"
+                    )
+                )
+            )
+
+            val managedResolutions = Resolutions(
+                ruleViolations = listOf(
+                    RuleViolationResolution(
+                        message = "match-1",
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching managed rule violation resolution 1"
+                    ),
+                    RuleViolationResolution(
+                        message = "match-2",
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching managed rule violation resolution 2"
+                    )
+                )
+            )
+
+            val provider = OrtServerResolutionProvider(
+                globalResolutions = globalResolutions,
+                repositoryConfigurationResolutions = repositoryConfigurationResolutions,
+                managedResolutions = managedResolutions
+            )
+
+            val ruleViolation1 = RuleViolation(
+                rule = "rule",
+                pkg = null,
+                license = null,
+                licenseSources = enumSetOf(),
+                severity = Severity.WARNING,
+                message = "match-1",
+                howToFix = ""
+            )
+
+            val ruleViolation2 = RuleViolation(
+                rule = "rule",
+                pkg = null,
+                license = null,
+                licenseSources = enumSetOf(),
+                severity = Severity.WARNING,
+                message = "match-2",
+                howToFix = ""
+            )
+
+            val expectedResolutionsForRuleViolation1 = listOf(
+                globalResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                repositoryConfigurationResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                managedResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+            )
+
+            val expectedResolutionsForRuleViolation2 = listOf(
+                globalResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                repositoryConfigurationResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                managedResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+            )
+
+            val matchResult =
+                provider.matchResolutions(emptyList(), listOf(ruleViolation1, ruleViolation2), emptyList())
+
+            matchResult.ruleViolations should containExactly(
+                ruleViolation1.mapToModel() to expectedResolutionsForRuleViolation1,
+                ruleViolation2.mapToModel() to expectedResolutionsForRuleViolation2
+            )
+        }
+
+        "return matching vulnerability resolutions" {
+            val globalResolutions = Resolutions(
+                vulnerabilities = listOf(
+                    VulnerabilityResolution(
+                        id = "match-1",
+                        reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                        comment = "matching global vulnerability resolution 1"
+                    ),
+                    VulnerabilityResolution(
+                        id = "match-2",
+                        reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                        comment = "matching global vulnerability resolution 2"
+                    )
+                )
+            )
+
+            val repositoryConfigurationResolutions = Resolutions(
+                vulnerabilities = listOf(
+                    VulnerabilityResolution(
+                        id = "match-1",
+                        reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                        comment = "matching repository configuration vulnerability resolution 1"
+                    ),
+                    VulnerabilityResolution(
+                        id = "match-2",
+                        reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                        comment = "matching repository configuration vulnerability resolution 2"
+                    )
+                )
+            )
+
+            val managedResolutions = Resolutions(
+                vulnerabilities = listOf(
+                    VulnerabilityResolution(
+                        id = "match-1",
+                        reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                        comment = "matching managed vulnerability resolution 1"
+                    ),
+                    VulnerabilityResolution(
+                        id = "match-2",
+                        reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
+                        comment = "matching managed vulnerability resolution 2"
+                    )
+                )
+            )
+
+            val provider = OrtServerResolutionProvider(
+                globalResolutions = globalResolutions,
+                repositoryConfigurationResolutions = repositoryConfigurationResolutions,
+                managedResolutions = managedResolutions
+            )
+
+            val vulnerability1 = Vulnerability(id = "match-1", references = emptyList())
+            val vulnerability2 = Vulnerability(id = "match-2", references = emptyList())
+
+            val expectedResolutionsForVulnerability1 = listOf(
+                globalResolutions.vulnerabilities[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                repositoryConfigurationResolutions.vulnerabilities[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                managedResolutions.vulnerabilities[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+            )
+
+            val expectedResolutionsForVulnerability2 = listOf(
+                globalResolutions.vulnerabilities[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                repositoryConfigurationResolutions.vulnerabilities[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                managedResolutions.vulnerabilities[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+            )
+
+            val matchResult =
+                provider.matchResolutions(emptyList(), emptyList(), listOf(vulnerability1, vulnerability2))
+
+            matchResult.vulnerabilities should containExactly(
+                vulnerability1.mapToModel() to expectedResolutionsForVulnerability1,
+                vulnerability2.mapToModel() to expectedResolutionsForVulnerability2
+            )
+        }
+
+        "not include items without matching resolutions" {
+            val provider = OrtServerResolutionProvider(Resolutions(), Resolutions(), Resolutions())
+
+            val issue = Issue(source = "source", message = "no match")
+            val ruleViolation = RuleViolation(
+                rule = "rule",
+                pkg = null,
+                license = null,
+                licenseSources = enumSetOf(),
+                severity = Severity.WARNING,
+                message = "no match",
+                howToFix = ""
+            )
+            val vulnerability = Vulnerability(id = "no match", references = emptyList())
+
+            val matchResult =
+                provider.matchResolutions(listOf(issue), listOf(ruleViolation), listOf(vulnerability))
+
+            matchResult.issues should beEmpty()
+            matchResult.ruleViolations should beEmpty()
+            matchResult.vulnerabilities should beEmpty()
         }
     }
 })
