@@ -123,28 +123,34 @@ class OrtServerResolutionProvider(
         ruleViolations: List<RuleViolation>,
         vulnerabilities: List<Vulnerability>
     ): ResolvedItemsResult {
-        val issueResolutions = issues
-            .associateWith { getResolutionsFor(it) }
-            .filterValues { it.isNotEmpty() }
+        fun <T> resolutionSources(selector: (Resolutions) -> List<T>) = listOf(
+            selector(globalResolutions) to ResolutionSource.GLOBAL_FILE,
+            selector(repositoryConfigurationResolutions) to ResolutionSource.REPOSITORY_FILE,
+            selector(managedResolutions) to ResolutionSource.SERVER
+        )
 
-        val ruleViolationResolutions = ruleViolations
-            .associateWith { getResolutionsFor(it) }
-            .filterValues { it.isNotEmpty() }
+        val issueResolutions = issues.associateWith { issue ->
+            resolutionSources { it.issues }.flatMap { (resolutions, source) ->
+                resolutions.filter { it.matches(issue) }.map { it.mapToModel(source) }
+            }
+        }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
 
-        val vulnerabilityResolutions = vulnerabilities
-            .associateWith { getResolutionsFor(it) }
-            .filterValues { it.isNotEmpty() }
+        val ruleViolationResolutions = ruleViolations.associateWith { violation ->
+            resolutionSources { it.ruleViolations }.flatMap { (resolutions, source) ->
+                resolutions.filter { it.matches(violation) }.map { it.mapToModel(source) }
+            }
+        }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
+
+        val vulnerabilityResolutions = vulnerabilities.associateWith { vulnerability ->
+            resolutionSources { it.vulnerabilities }.flatMap { (resolutions, source) ->
+                resolutions.filter { it.matches(vulnerability) }.map { it.mapToModel(source) }
+            }
+        }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
 
         return ResolvedItemsResult(
-            issues = issueResolutions.map { (issue, resolutions) ->
-                issue.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
-            }.toMap(),
-            ruleViolations = ruleViolationResolutions.map { (violation, resolutions) ->
-                violation.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
-            }.toMap(),
-            vulnerabilities = vulnerabilityResolutions.map { (vulnerability, resolutions) ->
-                vulnerability.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
-            }.toMap()
+            issues = issueResolutions,
+            ruleViolations = ruleViolationResolutions,
+            vulnerabilities = vulnerabilityResolutions
         )
     }
 }
