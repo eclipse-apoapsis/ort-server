@@ -22,5 +22,6 @@ package org.eclipse.apoapsis.ortserver.model.runs.repository
 data class RuleViolationResolution(
     val message: String,
     val reason: RuleViolationResolutionReason,
-    val comment: String
+    val comment: String,
+    val source: ResolutionSource
 )

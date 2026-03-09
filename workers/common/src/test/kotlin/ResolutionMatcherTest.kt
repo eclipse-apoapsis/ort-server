@@ -32,6 +32,7 @@ import java.time.Instant
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
@@ -131,25 +132,29 @@ class ResolutionMatcherTest : WordSpec({
     val expectedIssueResolution1 = IssueResolution(
         message = ".*resolve dependency.*",
         reason = IssueResolutionReason.CANT_FIX_ISSUE,
-        comment = "Known issue with this dependency."
+        comment = "Known issue with this dependency.",
+        source = ResolutionSource.REPOSITORY_FILE
     )
 
     val expectedIssueResolution2 = IssueResolution(
         message = "Timeout.*",
         reason = IssueResolutionReason.SCANNER_ISSUE,
-        comment = "Scanner timeout is acceptable."
+        comment = "Scanner timeout is acceptable.",
+        source = ResolutionSource.REPOSITORY_FILE
     )
 
     val expectedRuleViolationResolution1 = RuleViolationResolution(
         message = ".*unknown license.*",
         reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-        comment = "License will be added later."
+        comment = "License will be added later.",
+        source = ResolutionSource.REPOSITORY_FILE
     )
 
     val expectedVulnerabilityResolution1 = VulnerabilityResolution(
         externalId = "CVE-2023-0001",
         reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-        comment = "Not exploitable in our context."
+        comment = "Not exploitable in our context.",
+        source = ResolutionSource.REPOSITORY_FILE
     )
 
     "resolveResolutionsWithMappings" should {

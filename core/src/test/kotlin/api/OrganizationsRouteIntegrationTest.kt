@@ -95,6 +95,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
@@ -1674,17 +1675,20 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val issueResolution = IssueResolution(
                     message = "Issue",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Cannot fix this issue"
+                    comment = "Cannot fix this issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = "CVE-2020-2346",
                     reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-                    comment = "Ineffective in our context"
+                    comment = "Ineffective in our context",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val ruleViolationResolution = RuleViolationResolution(
                     message = "rule1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Exception applies"
+                    comment = "Exception applies",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 // Resolve items from repo2RunId (issue and vulnerability)

@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ModelVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason as ModelVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -435,7 +436,8 @@ class AdvisorWorkerTest : StringSpec({
         val serviceResolution = ModelVulnerabilityResolution(
             externalId = advisorVulnerability.id,
             reason = ModelVulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-            comment = "Resolved via service."
+            comment = "Resolved via service.",
+            source = ResolutionSource.REPOSITORY_FILE
         )
 
         val ortResult = OrtResult.EMPTY.copy(

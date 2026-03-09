@@ -170,7 +170,8 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
                 ResolvedRuleViolationsTable.ruleViolationId,
                 RuleViolationResolutionsTable.message,
                 RuleViolationResolutionsTable.reason,
-                RuleViolationResolutionsTable.comment
+                RuleViolationResolutionsTable.comment,
+                RuleViolationResolutionsTable.resolutionSource
             )
             .where {
                 (ResolvedRuleViolationsTable.ortRunId eq ortRunId) and
@@ -182,7 +183,8 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
                     RuleViolationResolution(
                         message = it[RuleViolationResolutionsTable.message],
                         reason = it[RuleViolationResolutionsTable.reason],
-                        comment = it[RuleViolationResolutionsTable.comment]
+                        comment = it[RuleViolationResolutionsTable.comment],
+                        source = it[RuleViolationResolutionsTable.resolutionSource]
                     )
                 }
             )

@@ -33,6 +33,7 @@ import java.io.ByteArrayInputStream
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ServerVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason as ServerVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
@@ -122,7 +123,8 @@ class OrtServerResolutionProviderTest : WordSpec({
                                 ServerVulnerabilityResolution(
                                     externalId = "match",
                                     reason = ServerVulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
-                                    comment = "matching managed vulnerability resolution"
+                                    comment = "matching managed vulnerability resolution",
+                                    source = ResolutionSource.REPOSITORY_FILE
                                 )
                             )
                         )

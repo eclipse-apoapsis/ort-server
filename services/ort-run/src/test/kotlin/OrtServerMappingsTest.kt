@@ -72,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
@@ -512,21 +513,24 @@ class OrtServerMappingsTest : WordSpec({
                         IssueResolution(
                             message = issue.message,
                             reason = IssueResolutionReason.SCANNER_ISSUE,
-                            comment = "Test issue resolution."
+                            comment = "Test issue resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     ),
                     ruleViolations = listOf(
                         RuleViolationResolution(
                             message = ".*",
                             reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
-                            comment = "Test rule violation resolution."
+                            comment = "Test rule violation resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     ),
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
                             externalId = vulnerability.externalId,
                             reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-                            comment = "Test vulnerability resolution."
+                            comment = "Test vulnerability resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 ),
@@ -588,21 +592,24 @@ class OrtServerMappingsTest : WordSpec({
                         IssueResolution(
                             message = issue.message,
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "Test issue resolution."
+                            comment = "Test issue resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     ),
                     ruleViolations = listOf(
                         RuleViolationResolution(
                             message = ".*",
                             reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                            comment = "Test rule violation resolution."
+                            comment = "Test rule violation resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     ),
                     vulnerabilities = listOf(
                         VulnerabilityResolution(
                             externalId = vulnerability.externalId,
                             reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
-                            comment = "Test vulnerability resolution."
+                            comment = "Test vulnerability resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 )

@@ -66,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
@@ -597,7 +598,8 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             val vulnerabilityResolution = VulnerabilityResolution(
                 externalId = "CVE-2023-12345",
                 reason = VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY,
-                comment = "Not applicable"
+                comment = "Not applicable",
+                source = ResolutionSource.REPOSITORY_FILE
             )
 
             val resolvedItems = ResolvedItemsResult(
@@ -696,7 +698,8 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             val sharedResolution = IssueResolution(
                 message = ".*test issue.*",
                 reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                comment = "Matches multiple issues"
+                comment = "Matches multiple issues",
+                source = ResolutionSource.REPOSITORY_FILE
             )
 
             val resolvedItems = ResolvedItemsResult(
@@ -743,7 +746,8 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             val sharedResolution = RuleViolationResolution(
                 message = ".*",
                 reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                comment = "Matches multiple violations"
+                comment = "Matches multiple violations",
+                source = ResolutionSource.REPOSITORY_FILE
             )
 
             val resolvedItems = ResolvedItemsResult(
@@ -803,7 +807,8 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             val sharedResolution = VulnerabilityResolution(
                 externalId = "CVE-2023-.*",
                 reason = VulnerabilityResolutionReason.WILL_NOT_FIX_VULNERABILITY,
-                comment = "Matches multiple vulnerabilities"
+                comment = "Matches multiple vulnerabilities",
+                source = ResolutionSource.REPOSITORY_FILE
             )
 
             val resolvedItems = ResolvedItemsResult(
@@ -966,35 +971,41 @@ private val packageCurations2 = ResolvedPackageCurations(
 private val issueResolution1 = IssueResolution(
     message = "issue1",
     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-    comment = "comment1"
+    comment = "comment1",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val issueResolution2 = IssueResolution(
     message = "issue2",
     reason = IssueResolutionReason.SCANNER_ISSUE,
-    comment = "comment2"
+    comment = "comment2",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val ruleViolationResolution1 = RuleViolationResolution(
     message = "ruleViolation1",
     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-    comment = "comment1"
+    comment = "comment1",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val ruleViolationResolution2 = RuleViolationResolution(
     message = "ruleViolation2",
     reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
-    comment = "comment2"
+    comment = "comment2",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val vulnerabilityResolution1 = VulnerabilityResolution(
     externalId = "vulnerability1",
     reason = VulnerabilityResolutionReason.CANT_FIX_VULNERABILITY,
-    comment = "comment1"
+    comment = "comment1",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val vulnerabilityResolution2 = VulnerabilityResolution(
     externalId = "vulnerability2",
     reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-    comment = "comment2"
+    comment = "comment2",
+    source = ResolutionSource.REPOSITORY_FILE
 )

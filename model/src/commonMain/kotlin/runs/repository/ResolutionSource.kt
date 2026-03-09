@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-import kotlinx.serialization.Serializable
+/** An enum that defines the different sources from which a resolution can originate. */
+enum class ResolutionSource {
+    /** The resolution is defined in the global configuration file. */
+    GLOBAL_FILE,
 
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ResolutionSource
+    /** The resolution is defined in the repository configuration file. */
+    REPOSITORY_FILE,
 
-@Serializable
-data class IssueResolution(
-    val message: String,
-    val reason: IssueResolutionReason,
-    val comment: String,
-    val source: ResolutionSource
-)
+    /** The resolution is managed by the server. */
+    SERVER
+}

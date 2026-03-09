@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsR
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
@@ -284,7 +285,7 @@ class EvaluatorWorkerTest : StringSpec({
                     message = ".*",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Test rule violation resolution."
-                ).mapToModel()
+                ).mapToModel(ResolutionSource.REPOSITORY_FILE)
             )
         }.mapKeys { (violation, _) -> violation.mapToModel() }
 

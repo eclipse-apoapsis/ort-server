@@ -184,7 +184,8 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
                 ResolvedIssuesTable.ortRunIssueId,
                 IssueResolutionsTable.message,
                 IssueResolutionsTable.reason,
-                IssueResolutionsTable.comment
+                IssueResolutionsTable.comment,
+                IssueResolutionsTable.resolutionSource
             )
             .where { ResolvedIssuesTable.ortRunIssueId inList ortRunIssueIds }
             .groupBy(
@@ -193,7 +194,8 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
                     IssueResolution(
                         message = it[IssueResolutionsTable.message],
                         reason = it[IssueResolutionsTable.reason],
-                        comment = it[IssueResolutionsTable.comment]
+                        comment = it[IssueResolutionsTable.comment],
+                        source = it[IssueResolutionsTable.resolutionSource]
                     )
                 }
             )

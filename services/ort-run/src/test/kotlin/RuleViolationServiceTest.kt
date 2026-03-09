@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 
@@ -147,7 +148,8 @@ class RuleViolationServiceTest : WordSpec() {
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "This is resolved"
+                    comment = "This is resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 // Match violations to resolutions by pattern and store
@@ -402,7 +404,8 @@ class RuleViolationServiceTest : WordSpec() {
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "This is resolved"
+                    comment = "This is resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -424,17 +427,20 @@ class RuleViolationServiceTest : WordSpec() {
                 val resolution1 = RuleViolationResolution(
                     message = "Message-1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Resolved"
+                    comment = "Resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val resolution2 = RuleViolationResolution(
                     message = "Message-2",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Resolved"
+                    comment = "Resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val resolution3 = RuleViolationResolution(
                     message = "Message-3",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Resolved"
+                    comment = "Resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -474,7 +480,8 @@ class RuleViolationServiceTest : WordSpec() {
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Resolved"
+                    comment = "Resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -499,7 +506,8 @@ class RuleViolationServiceTest : WordSpec() {
                 val resolution = RuleViolationResolution(
                     message = "Message-2",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Resolved"
+                    comment = "Resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -526,7 +534,8 @@ class RuleViolationServiceTest : WordSpec() {
                 val resolution = RuleViolationResolution(
                     message = "Message-1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Resolved"
+                    comment = "Resolved",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(

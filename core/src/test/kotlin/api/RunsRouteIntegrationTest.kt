@@ -133,6 +133,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
@@ -728,7 +729,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = ".*CVE-2021-12.*", // Matching RegEx
                     reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-                    comment = "This is ineffective because of some reasons."
+                    comment = "This is ineffective because of some reasons.",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 // Match the vulnerability to its resolution
@@ -804,7 +806,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = ".*CVE-2021-12.*", // Matching RegEx
                     reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-                    comment = "This is ineffective because of some reasons."
+                    comment = "This is ineffective because of some reasons.",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 // Match the vulnerability to its resolution
@@ -2173,17 +2176,20 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val issueResolution = IssueResolution(
                     message = "Issue 1",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Cannot fix this issue"
+                    comment = "Cannot fix this issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val vulnerabilityResolution = VulnerabilityResolution(
                     externalId = "CVE-2021-1234",
                     reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-                    comment = "Ineffective in our context"
+                    comment = "Ineffective in our context",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val ruleViolationResolution = RuleViolationResolution(
                     message = "z-Rule-1",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                    comment = "Exception applies"
+                    comment = "Exception applies",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 // Mark specific items as resolved

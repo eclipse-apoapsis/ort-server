@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
@@ -37,6 +38,7 @@ object IssueResolutionsTable : LongIdTable("issue_resolutions") {
     val message = text("message")
     val reason = enumerationByName<IssueResolutionReason>("reason")
     val comment = text("comment")
+    val resolutionSource = enumerationByName<ResolutionSource>("source")
 }
 
 class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
@@ -45,7 +47,8 @@ class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
             find {
                 IssueResolutionsTable.message eq issueResolution.message and
                         (IssueResolutionsTable.reason eq issueResolution.reason) and
-                        (IssueResolutionsTable.comment eq issueResolution.comment)
+                        (IssueResolutionsTable.comment eq issueResolution.comment) and
+                        (IssueResolutionsTable.resolutionSource eq issueResolution.source)
             }.firstOrNull()
 
         fun getOrPut(issueResolution: IssueResolution): IssueResolutionDao =
@@ -53,12 +56,14 @@ class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
                 message = issueResolution.message
                 reason = issueResolution.reason
                 comment = issueResolution.comment
+                source = issueResolution.source
             }
     }
 
     var message by IssueResolutionsTable.message
     var reason by IssueResolutionsTable.reason
     var comment by IssueResolutionsTable.comment
+    var source by IssueResolutionsTable.resolutionSource
 
-    fun mapToModel() = IssueResolution(message, reason, comment)
+    fun mapToModel() = IssueResolution(message, reason, comment, source)
 }
