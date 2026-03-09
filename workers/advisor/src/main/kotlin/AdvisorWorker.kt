@@ -30,7 +30,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
-import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
+import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
@@ -86,10 +86,11 @@ internal class AdvisorWorker(
             val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
             val allVulnerabilities = advisorRun.results.values.flatten().flatMap { it.vulnerabilities }
 
-            val resolutionProvider = workerContext.createResolutionProvider(
-                RepositoryId(ortRun.repositoryId),
-                ortResult,
+            val resolutionProvider = OrtServerResolutionProvider.create(
+                workerContext,
                 adminConfigService,
+                ortResult.repository.config.resolutions,
+                RepositoryId(ortRun.repositoryId),
                 vulnerabilityResolutionService
             )
 

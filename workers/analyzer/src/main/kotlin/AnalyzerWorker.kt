@@ -33,8 +33,8 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
-import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
@@ -125,10 +125,11 @@ internal class AnalyzerWorker(
             // IMPORTANT: Use getAnalyzerIssues() to get ONLY analyzer issues, not all issues.
             val allIssues = ortResult.getAnalyzerIssues().values.flatten()
 
-            val resolutionProvider = context.createResolutionProvider(
-                RepositoryId(ortRun.repositoryId),
-                ortResult,
-                adminConfigService
+            val resolutionProvider = OrtServerResolutionProvider.create(
+                context,
+                adminConfigService,
+                ortResult.repository.config.resolutions,
+                RepositoryId(ortRun.repositoryId)
             )
 
             // Apply resolutions using the common function.

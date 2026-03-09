@@ -26,8 +26,8 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsR
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.createResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.resolveResolutionsWithMappings
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -117,10 +117,11 @@ class EvaluatorRunner(
 
         val resolvedOrtResult = ortResult.setPackageConfigurations(packageConfigurationProvider)
 
-        val resolutionProvider = workerContext.createResolutionProvider(
-            RepositoryId(workerContext.ortRun.repositoryId),
-            resolvedOrtResult,
-            adminConfigService
+        val resolutionProvider = OrtServerResolutionProvider.create(
+            workerContext,
+            adminConfigService,
+            repositoryConfigurationResolutions = ortResult.repository.config.resolutions,
+            RepositoryId(workerContext.ortRun.repositoryId)
         )
 
         // TODO: Make the hardcoded values below configurable.
