@@ -466,15 +466,15 @@ class OrtServerResolutionProviderTest : WordSpec({
             val issue2 = Issue(source = "source", message = "match-2")
 
             val expectedResolutionsForIssue1 = listOf(
-                globalResolutions.issues[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                globalResolutions.issues[0].mapToModel(ResolutionSource.GLOBAL_FILE),
                 repositoryConfigurationResolutions.issues[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
-                managedResolutions.issues[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                managedResolutions.issues[0].mapToModel(ResolutionSource.SERVER)
             )
 
             val expectedResolutionsForIssue2 = listOf(
-                globalResolutions.issues[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                globalResolutions.issues[1].mapToModel(ResolutionSource.GLOBAL_FILE),
                 repositoryConfigurationResolutions.issues[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
-                managedResolutions.issues[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                managedResolutions.issues[1].mapToModel(ResolutionSource.SERVER)
             )
 
             val matchResult = provider.matchResolutions(listOf(issue1, issue2), emptyList(), emptyList())
@@ -558,15 +558,15 @@ class OrtServerResolutionProviderTest : WordSpec({
             )
 
             val expectedResolutionsForRuleViolation1 = listOf(
-                globalResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                globalResolutions.ruleViolations[0].mapToModel(ResolutionSource.GLOBAL_FILE),
                 repositoryConfigurationResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
-                managedResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                managedResolutions.ruleViolations[0].mapToModel(ResolutionSource.SERVER)
             )
 
             val expectedResolutionsForRuleViolation2 = listOf(
-                globalResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                globalResolutions.ruleViolations[1].mapToModel(ResolutionSource.GLOBAL_FILE),
                 repositoryConfigurationResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
-                managedResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                managedResolutions.ruleViolations[1].mapToModel(ResolutionSource.SERVER)
             )
 
             val matchResult =
@@ -634,15 +634,15 @@ class OrtServerResolutionProviderTest : WordSpec({
             val vulnerability2 = Vulnerability(id = "match-2", references = emptyList())
 
             val expectedResolutionsForVulnerability1 = listOf(
-                globalResolutions.vulnerabilities[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                globalResolutions.vulnerabilities[0].mapToModel(ResolutionSource.GLOBAL_FILE),
                 repositoryConfigurationResolutions.vulnerabilities[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
-                managedResolutions.vulnerabilities[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                managedResolutions.vulnerabilities[0].mapToModel(ResolutionSource.SERVER)
             )
 
             val expectedResolutionsForVulnerability2 = listOf(
-                globalResolutions.vulnerabilities[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                globalResolutions.vulnerabilities[1].mapToModel(ResolutionSource.GLOBAL_FILE),
                 repositoryConfigurationResolutions.vulnerabilities[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
-                managedResolutions.vulnerabilities[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                managedResolutions.vulnerabilities[1].mapToModel(ResolutionSource.SERVER)
             )
 
             val matchResult =
