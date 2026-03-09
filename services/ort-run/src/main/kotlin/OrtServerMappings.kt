@@ -177,15 +177,15 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason as OrtRul
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason as OrtScopeExcludeReason
-import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.config.snippet.Choice
 import org.ossreviewtoolkit.model.config.snippet.Given
-import org.ossreviewtoolkit.model.config.snippet.Provenance as OrtProvenance
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoice
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
+import org.ossreviewtoolkit.model.config.snippet.SnippetChoices as OrtSnippetChoices
+import org.ossreviewtoolkit.model.config.snippet.SnippetProvenance
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtVulnerabilityReference
 import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
@@ -515,7 +515,7 @@ fun ProvenanceResolutionResult.mapToOrt() =
     )
 
 fun ProvenanceSnippetChoices.mapToOrt() = OrtSnippetChoices(
-    provenance = OrtProvenance(url = provenance.url),
+    provenance = SnippetProvenance(url = provenance.url),
     choices = choices.map(SnippetChoice::mapToOrt)
 )
 
