@@ -39,6 +39,8 @@ repositories {
 dependencies {
     implementation(projects.components.adminConfig.adminConfigApiModel)
 
+    implementation(projects.dao)
+
     implementation(libs.exposedCore)
     implementation(libs.exposedJdbc)
     implementation(libs.exposedKotlinDatetime)

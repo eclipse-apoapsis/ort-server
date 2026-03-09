@@ -43,6 +43,7 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.QueryParameter
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
@@ -223,3 +224,10 @@ fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, valu
         ComparisonOperator.NOT_IN -> this notInList values
         else -> throw IllegalArgumentException("Unsupported operator for collections")
     }
+
+/**
+ * Creates an enumeration column with the specified [name], for storing enums of type [T] by their name. The maximum
+ * length for enum names is limited to 1024 characters.
+ */
+inline fun <reified T : Enum<T>> Table.enumerationByName(name: String) =
+    enumerationByName(name, 1024, T::class)

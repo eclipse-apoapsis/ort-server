@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
+
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -28,7 +30,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 object ConfigTable : Table("config_table") {
-    val key = enumerationByName<ConfigKey>("key", 255)
+    val key = enumerationByName<ConfigKey>("key")
     val isEnabled = bool("is_enabled").default(false)
     val value = text("value")
     val updatedAt = timestamp("updated_at")

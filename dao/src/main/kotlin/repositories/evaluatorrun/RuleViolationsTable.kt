@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
@@ -40,7 +41,7 @@ object RuleViolationsTable : SortableTable("rule_violations") {
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val license = text("license").nullable()
     val licenseSources = text("license_sources").nullable()
-    val severity = enumerationByName<Severity>("severity", 128).sortable()
+    val severity = enumerationByName<Severity>("severity").sortable()
     val message = text("message")
     val howToFix = text("how_to_fix")
 }

@@ -24,6 +24,7 @@ import kotlin.time.Instant
 import org.eclipse.apoapsis.ortserver.dao.utils.DigestFunction
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -42,7 +43,7 @@ import org.jetbrains.exposed.v1.jdbc.Query
 object IssuesTable : SortableTable("issues") {
     val issueSource = text("source")
     val message = text("message")
-    val severity = enumerationByName<Severity>("severity", 128)
+    val severity = enumerationByName<Severity>("severity")
     val affectedPath = text("affected_path").nullable()
 }
 
