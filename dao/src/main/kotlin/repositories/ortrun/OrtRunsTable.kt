@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
@@ -79,7 +80,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val resolvedJobConfigContext = text("resolved_job_config_context").nullable()
     val vcsId = reference("vcs_id", VcsInfoTable).nullable()
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable).nullable()
-    val status = enumerationByName<OrtRunStatus>("status", 128)
+    val status = enumerationByName<OrtRunStatus>("status")
     val finishedAt = timestamp("finished_at").nullable()
     val path = text("path").nullable()
     val traceId = text("trace_id").nullable()

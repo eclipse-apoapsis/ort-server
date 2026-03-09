@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
@@ -41,7 +42,7 @@ object NotifierJobsTable : LongIdTable("notifier_jobs") {
     val startedAt = timestamp("started_at").nullable()
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<NotifierJobConfiguration>("configuration")
-    val status = enumerationByName<JobStatus>("status", 128)
+    val status = enumerationByName<JobStatus>("status")
     val errorMessage = text("error_message").nullable()
 }
 

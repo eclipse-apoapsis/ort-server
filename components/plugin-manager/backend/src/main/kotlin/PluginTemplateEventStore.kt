@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
 import org.jetbrains.exposed.v1.core.CustomFunction
@@ -193,7 +194,7 @@ class PluginTemplateEventStore(private val db: Database) {
 /** A table to store plugin template events. */
 internal object PluginTemplateEvents : Table("plugin_template_events") {
     val name = text("name")
-    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
     val version = long("version")
     val payload = jsonb<PluginTemplateEventPayload>("payload")
@@ -207,7 +208,7 @@ internal object PluginTemplateEvents : Table("plugin_template_events") {
  * A table to ensure that only a single template with the same [pluginType] and [pluginId] can exist per organization.
  */
 internal object PluginTemplateOrganizationAssignments : Table("plugin_template_organization_assignments") {
-    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
     val organizationId = long("organization_id")
     val template_name = text("template_name")
@@ -217,7 +218,7 @@ internal object PluginTemplateOrganizationAssignments : Table("plugin_template_o
 
 internal object PluginTemplatesReadModel : Table("plugin_templates_read_model") {
     val name = text("name")
-    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
     val options = jsonb<List<PluginOptionTemplate>>("options")
     val isGlobal = bool("is_global")

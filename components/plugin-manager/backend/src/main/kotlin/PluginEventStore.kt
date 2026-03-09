@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -93,7 +94,7 @@ class PluginEventStore(private val db: Database) {
  * A table to store plugin events.
  */
 internal object PluginEvents : Table("plugin_events") {
-    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
     val version = long("version")
     val payload = jsonb<PluginEventPayload>("payload")
@@ -104,7 +105,7 @@ internal object PluginEvents : Table("plugin_events") {
 }
 
 internal object PluginsReadModel : Table("plugins_read_model") {
-    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
     val enabled = bool("enabled").default(false)
 
