@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -132,12 +133,14 @@ class IssueServiceTest : WordSpec() {
                         IssueResolution(
                             message = "dependency not found.*",
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "This is a known issue with the external dependency repository"
+                            comment = "This is a known issue with the external dependency repository",
+                            source = ResolutionSource.REPOSITORY_FILE
                         ),
                         IssueResolution(
                             message = "timeout while scanning.*",
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "Timeout issues are acceptable for this type of scanning"
+                            comment = "Timeout issues are acceptable for this type of scanning",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 )
@@ -187,7 +190,8 @@ class IssueServiceTest : WordSpec() {
                         IssueResolution(
                             message = "dependency not found.*",
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "This is a known issue with the external dependency repository"
+                            comment = "This is a known issue with the external dependency repository",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 )
@@ -227,7 +231,8 @@ class IssueServiceTest : WordSpec() {
                         IssueResolution(
                             message = "dependency not found.*",
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "This is a known issue with the external dependency repository"
+                            comment = "This is a known issue with the external dependency repository",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 )
@@ -268,7 +273,8 @@ class IssueServiceTest : WordSpec() {
                         IssueResolution(
                             message = "dependency not found.*",
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "This is a known issue with the external dependency repository"
+                            comment = "This is a known issue with the external dependency repository",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 )
@@ -620,7 +626,8 @@ class IssueServiceTest : WordSpec() {
                         IssueResolution(
                             message = "dependency not found.*",
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                            comment = "Known"
+                            comment = "Known",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     )
                 )
@@ -790,7 +797,8 @@ class IssueServiceTest : WordSpec() {
                 val resolutionToApply = IssueResolution(
                     message = "dependency not found.*",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "This is a known issue"
+                    comment = "This is a known issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -830,12 +838,14 @@ class IssueServiceTest : WordSpec() {
                 val resolution1 = IssueResolution(
                     message = "dependency not found.*",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Known issue"
+                    comment = "Known issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
                 val resolution2 = IssueResolution(
                     message = "timeout error",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Known issue"
+                    comment = "Known issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -888,7 +898,8 @@ class IssueServiceTest : WordSpec() {
                 val resolution = IssueResolution(
                     message = "issue 1",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Known issue"
+                    comment = "Known issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -939,7 +950,8 @@ class IssueServiceTest : WordSpec() {
                 val resolution = IssueResolution(
                     message = "dependency not found.*",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Known issue"
+                    comment = "Known issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(
@@ -989,7 +1001,8 @@ class IssueServiceTest : WordSpec() {
                 val resolution = IssueResolution(
                     message = "warning issue",
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                    comment = "Known issue"
+                    comment = "Known issue",
+                    source = ResolutionSource.REPOSITORY_FILE
                 )
 
                 fixtures.resolvedConfigurationRepository.addResolutions(

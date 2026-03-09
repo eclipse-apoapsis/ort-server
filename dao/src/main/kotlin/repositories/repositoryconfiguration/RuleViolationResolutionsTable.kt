@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 
@@ -38,6 +39,7 @@ object RuleViolationResolutionsTable : LongIdTable("rule_violation_resolutions")
     val message = text("message")
     val reason = enumerationByName<RuleViolationResolutionReason>("reason")
     val comment = text("comment")
+    val resolutionSource = enumerationByName<ResolutionSource>("source")
 }
 
 class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
@@ -47,7 +49,8 @@ class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
         ): RuleViolationResolutionDao? = find {
             RuleViolationResolutionsTable.message eq ruleViolationResolution.message and
                     (RuleViolationResolutionsTable.reason eq ruleViolationResolution.reason) and
-                    (RuleViolationResolutionsTable.comment eq ruleViolationResolution.comment)
+                    (RuleViolationResolutionsTable.comment eq ruleViolationResolution.comment) and
+                    (RuleViolationResolutionsTable.resolutionSource eq ruleViolationResolution.source)
         }.firstOrNull()
 
         fun getOrPut(ruleViolationResolution: RuleViolationResolution): RuleViolationResolutionDao =
@@ -55,12 +58,14 @@ class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
                 message = ruleViolationResolution.message
                 reason = ruleViolationResolution.reason
                 comment = ruleViolationResolution.comment
+                source = ruleViolationResolution.source
             }
     }
 
     var message by RuleViolationResolutionsTable.message
     var reason by RuleViolationResolutionsTable.reason
     var comment by RuleViolationResolutionsTable.comment
+    var source by RuleViolationResolutionsTable.resolutionSource
 
-    fun mapToModel() = RuleViolationResolution(message, reason, comment)
+    fun mapToModel() = RuleViolationResolution(message, reason, comment, source)
 }

@@ -303,7 +303,8 @@ fun ApiIssue.mapToModel() =
         resolutions = resolutions.map { it.mapToModel() }
     )
 
-fun IssueResolution.mapToApi() = ApiIssueResolution(message = message, reason = reason.mapToApi(), comment = comment)
+fun IssueResolution.mapToApi() =
+    ApiIssueResolution(message = message, reason = reason.mapToApi(), comment = comment, source = source.mapToApi())
 
 fun IssueResolutionReason.mapToApi() = when (this) {
     IssueResolutionReason.BUILD_TOOL_ISSUE -> ApiIssueResolutionReason.BUILD_TOOL_ISSUE
@@ -312,7 +313,7 @@ fun IssueResolutionReason.mapToApi() = when (this) {
 }
 
 fun ApiIssueResolution.mapToModel() =
-    IssueResolution(message = message, reason = reason.mapToModel(), comment = comment)
+    IssueResolution(message = message, reason = reason.mapToModel(), comment = comment, source = source.mapToModel())
 
 fun ApiIssueResolutionReason.mapToModel() = when (this) {
     ApiIssueResolutionReason.BUILD_TOOL_ISSUE -> IssueResolutionReason.BUILD_TOOL_ISSUE
@@ -836,7 +837,8 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
 fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(
     message = message,
     reason = reason.mapToApi(),
-    comment = comment
+    comment = comment,
+    source = source.mapToApi()
 )
 
 fun RuleViolationResolutionReason.mapToApi() = when (this) {

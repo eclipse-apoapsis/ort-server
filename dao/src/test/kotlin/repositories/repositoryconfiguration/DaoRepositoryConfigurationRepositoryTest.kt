@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
@@ -199,19 +200,22 @@ private val scopeExclude = ScopeExclude(
 private val issueResolution = IssueResolution(
     message = "issue message",
     reason = IssueResolutionReason.CANT_FIX_ISSUE,
-    comment = "Test issue resolution."
+    comment = "Test issue resolution.",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val ruleViolationResolution = RuleViolationResolution(
     message = "rule violation message",
     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-    comment = "Test rule violation resolution."
+    comment = "Test rule violation resolution.",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val vulnerabilityResolution = VulnerabilityResolution(
     externalId = "vulnerability id",
     reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-    comment = "Test vulnerability resolution."
+    comment = "Test vulnerability resolution.",
+    source = ResolutionSource.REPOSITORY_FILE
 )
 
 private val packageCurationData = PackageCurationData(

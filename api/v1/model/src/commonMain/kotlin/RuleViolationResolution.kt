@@ -21,9 +21,12 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ResolutionSource
+
 @Serializable
 data class RuleViolationResolution(
     val message: String,
     val reason: RuleViolationResolutionReason,
-    val comment: String
+    val comment: String,
+    val source: ResolutionSource
 )

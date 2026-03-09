@@ -63,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ResolutionSource
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolution
@@ -303,7 +304,8 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                                     VulnerabilityResolution(
                                         externalId = "CVE-2021-1234",
                                         reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
-                                        comment = "A comment why the vulnerability can be resolved."
+                                        comment = "A comment why the vulnerability can be resolved.",
+                                        source = ResolutionSource.REPOSITORY_FILE
                                     )
                                 ),
                                 advisor = AdvisorDetails(name = "VulnerableCode"),
@@ -391,7 +393,8 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                                         message =
                                             "The declared license '.*' could not be mapped to a valid SPDX expression.",
                                         reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
-                                        comment = "A comment why the rule violation can be resolved."
+                                        comment = "A comment why the rule violation can be resolved.",
+                                        source = ResolutionSource.REPOSITORY_FILE
                                     )
                                 )
                             )

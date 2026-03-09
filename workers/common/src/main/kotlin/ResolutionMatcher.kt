@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common
 
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 
 import org.ossreviewtoolkit.model.Issue
@@ -54,13 +55,13 @@ fun resolveResolutionsWithMappings(
 
     return ResolvedItemsResult(
         issues = issueResolutions.map { (issue, resolutions) ->
-            issue.mapToModel() to resolutions.map { it.mapToModel() }
+            issue.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
         }.toMap(),
         ruleViolations = ruleViolationResolutions.map { (violation, resolutions) ->
-            violation.mapToModel() to resolutions.map { it.mapToModel() }
+            violation.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
         }.toMap(),
         vulnerabilities = vulnerabilityResolutions.map { (vulnerability, resolutions) ->
-            vulnerability.mapToModel() to resolutions.map { it.mapToModel() }
+            vulnerability.mapToModel() to resolutions.map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
         }.toMap()
     )
 }

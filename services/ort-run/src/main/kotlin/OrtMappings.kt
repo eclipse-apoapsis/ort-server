@@ -71,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
@@ -287,10 +288,11 @@ fun OrtIncludes.mapToModel() = Includes(
     paths = paths.map(OrtPathInclude::mapToModel)
 )
 
-fun OrtIssueResolution.mapToModel() = IssueResolution(
+fun OrtIssueResolution.mapToModel(source: ResolutionSource) = IssueResolution(
     message = message,
     reason = reason.mapToModel(),
-    comment = comment
+    comment = comment,
+    source = source
 )
 
 fun OrtIssueResolutionReason.mapToModel() = when (this) {
@@ -477,17 +479,17 @@ fun OrtRepositoryConfiguration.mapToModel(ortRunId: Long) = RepositoryConfigurat
     analyzerConfig = analyzer?.mapToModel(),
     excludes = excludes.mapToModel(),
     includes = includes.mapToModel(),
-    resolutions = resolutions.mapToModel(),
+    resolutions = resolutions.mapToModel(ResolutionSource.REPOSITORY_FILE),
     curations = curations.mapToModel(),
     packageConfigurations = packageConfigurations.map(OrtPackageConfiguration::mapToModel),
     licenseChoices = licenseChoices.mapToModel(),
     provenanceSnippetChoices = snippetChoices.map(OrtSnippetChoices::mapToModel)
 )
 
-fun OrtResolutions.mapToModel() = Resolutions(
-    issues = issues.map(OrtIssueResolution::mapToModel),
-    ruleViolations = ruleViolations.map(OrtRuleViolationResolution::mapToModel),
-    vulnerabilities = vulnerabilities.map(OrtVulnerabilityResolution::mapToModel)
+fun OrtResolutions.mapToModel(source: ResolutionSource) = Resolutions(
+    issues = issues.map { it.mapToModel(source) },
+    ruleViolations = ruleViolations.map { it.mapToModel(source) },
+    vulnerabilities = vulnerabilities.map { it.mapToModel(source) }
 )
 
 fun OrtResolvedPackageCurations.mapToModel() =
@@ -512,10 +514,11 @@ fun OrtRuleViolation.mapToModel() = RuleViolation(
     licenseSources = licenseSources.mapTo(mutableSetOf()) { it.mapToModel() }
 )
 
-fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(
+fun OrtRuleViolationResolution.mapToModel(source: ResolutionSource) = RuleViolationResolution(
     message = message,
     reason = reason.mapToModel(),
-    comment = comment
+    comment = comment,
+    source = source
 )
 
 fun OrtRuleViolationResolutionReason.mapToModel() = when (this) {
@@ -662,10 +665,11 @@ fun OrtVulnerabilityReference.mapToModel() =
         vector = vector
     )
 
-fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(
+fun OrtVulnerabilityResolution.mapToModel(source: ResolutionSource) = VulnerabilityResolution(
     externalId = id,
     reason = reason.mapToModel(),
-    comment = comment
+    comment = comment,
+    source = source
 )
 
 fun OrtVulnerabilityResolutionReason.mapToModel() = when (this) {

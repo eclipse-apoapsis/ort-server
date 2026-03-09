@@ -99,6 +99,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReaso
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.CopyrightFinding
@@ -840,7 +841,8 @@ class OrtRunServiceTest : WordSpec({
             val issueResolution = IssueResolution(
                 message = "message",
                 reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                comment = "comment"
+                comment = "comment",
+                source = ResolutionSource.REPOSITORY_FILE
             )
             val dummyIssue = Issue(
                 timestamp = Clock.System.now(),
@@ -1411,7 +1413,8 @@ class OrtRunServiceTest : WordSpec({
             val issueResolution = IssueResolution(
                 message = "message",
                 reason = IssueResolutionReason.CANT_FIX_ISSUE,
-                comment = "comment"
+                comment = "comment",
+                source = ResolutionSource.REPOSITORY_FILE
             )
             val issue = Issue(
                 timestamp = Clock.System.now(),
