@@ -28,6 +28,7 @@ group = "org.eclipse.apoapsis.ortserver.services"
 dependencies {
     api(projects.api.v1.apiV1Mapping)
     api(projects.api.v1.apiV1Model)
+    api(projects.components.resolutions.resolutionsBackend)
     api(projects.dao)
     api(projects.model)
     api(projects.services.hierarchyService)
@@ -41,6 +42,7 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.storage.storageSpi))
 
+    testImplementation(projects.components.authorization.authorizationBackend)
     testImplementation(projects.shared.ortTestData)
 
     testImplementation(libs.kotestRunnerJunit5)
