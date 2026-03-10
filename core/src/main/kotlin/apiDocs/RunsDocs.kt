@@ -300,7 +300,7 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                                 ),
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
                                 rating = VulnerabilityRating.HIGH,
-                                listOf(
+                                resolutions = listOf(
                                     VulnerabilityResolution(
                                         externalId = "CVE-2021-1234",
                                         reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
