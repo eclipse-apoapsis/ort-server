@@ -38,7 +38,7 @@ val getCliOidcConfig: RouteConfig.() -> Unit = {
                 example("Get the OIDC configuration required for the ORT Server CLI") {
                     value = OidcConfig(
                         accessTokenUrl = "https://auth.example.com/auth/realms/master/protocol/openid-connect/token",
-                        clientId = "ort-server-api"
+                        clientId = "ort-server-cli"
                     )
                 }
             }

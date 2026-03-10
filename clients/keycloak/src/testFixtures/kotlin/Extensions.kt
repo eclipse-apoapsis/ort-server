@@ -114,6 +114,13 @@ fun KeycloakContainer.createJwtConfigMapForTestRealm() =
         "jwt.roleCacheLifetimeSeconds" to "0"
     )
 
+fun KeycloakContainer.createCliConfigMapForTestRealm() =
+    mapOf(
+        "cli.keycloakBaseUrl" to authServerUrl,
+        "cli.keycloakRealm" to TEST_REALM,
+        "cli.keycloakClientId" to TEST_CLIENT
+    )
+
 /**
  * Create an audience mapper that adds the provided [audience] to the access token.
  */
