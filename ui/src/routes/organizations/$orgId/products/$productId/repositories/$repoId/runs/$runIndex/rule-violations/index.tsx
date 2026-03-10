@@ -110,9 +110,9 @@ const RuleViolationCard = ({
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center'>
-          {ruleViolation.purl ? (
-            <Tooltip>
-              <TooltipTrigger>
+          <Tooltip>
+            <TooltipTrigger>
+              {ruleViolation.purl ? (
                 <Link
                   className='font-semibold text-blue-400 hover:underline'
                   to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
@@ -126,17 +126,29 @@ const RuleViolationCard = ({
                 >
                   <BreakableString text={id} />
                 </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                Inspect the package details in packages table
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <div className='font-semibold'>
-              <BreakableString text={id || 'No ID available'} />
-            </div>
-          )}
-          <CopyToClipboard copyText={id || ''} />
+              ) : (
+                <Link
+                  className='font-semibold text-blue-400 hover:underline'
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects'
+                  params={{
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                    runIndex: params.runIndex,
+                  }}
+                  search={{ projectId: id }}
+                >
+                  <BreakableString text={id} />
+                </Link>
+              )}
+            </TooltipTrigger>
+            <TooltipContent>
+              {ruleViolation.purl
+                ? 'Inspect the package details in packages table'
+                : 'Inspect the project details in projects table'}
+            </TooltipContent>
+          </Tooltip>
+          <CopyToClipboard copyText={id} />
         </div>
         <Badge
           className='bg-blue-300 whitespace-nowrap text-black'

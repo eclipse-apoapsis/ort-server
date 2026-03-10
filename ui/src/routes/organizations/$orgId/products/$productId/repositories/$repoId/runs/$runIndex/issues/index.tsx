@@ -18,7 +18,7 @@
  */
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
   ExpandedState,
@@ -41,6 +41,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
@@ -62,6 +63,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getIssueCategory } from '@/helpers/get-issue-category';
 import {
   getIssueSeverityBackgroundColor,
@@ -94,6 +100,7 @@ const columnHelper = createColumnHelper<Issue>();
 
 // Component to render a single issue card in the list.
 const IssueCard = ({ issue }: { issue: Issue }) => {
+  const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
     packageIdType === 'PURL' && issue.purl
@@ -103,8 +110,46 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='font-semibold'>
-          <BreakableString text={id || 'No ID available'} />
+        <div className='flex items-center'>
+          <Tooltip>
+            <TooltipTrigger>
+              {issue.purl ? (
+                <Link
+                  className='font-semibold text-blue-400 hover:underline'
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+                  params={{
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                    runIndex: params.runIndex,
+                  }}
+                  search={{ pkgId: id, marked: '0' }}
+                >
+                  <BreakableString text={id} />
+                </Link>
+              ) : (
+                <Link
+                  className='font-semibold text-blue-400 hover:underline'
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects'
+                  params={{
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                    runIndex: params.runIndex,
+                  }}
+                  search={{ projectId: id }}
+                >
+                  <BreakableString text={id} />
+                </Link>
+              )}
+            </TooltipTrigger>
+            <TooltipContent>
+              {issue.purl
+                ? 'Inspect the package details in packages table'
+                : 'Inspect the project details in projects table'}
+            </TooltipContent>
+          </Tooltip>
+          <CopyToClipboard copyText={id} />
         </div>
         <Badge
           className='bg-blue-300 whitespace-nowrap text-black'
