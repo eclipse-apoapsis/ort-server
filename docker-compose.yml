@@ -183,7 +183,7 @@ services:
       DB_SSL_MODE: disable
       KEYCLOAK_API_USER: "" # Set to empty to overwrite default value and force use of client credentials flow.
       KEYCLOAK_CLIENT_ID: ort-server-backend
-      CLI_KEYCLOAK_CLIENT_ID: ort-server
+      JWT_AUDIENCE: ort-server-api
       JWT_URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
