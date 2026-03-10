@@ -27,8 +27,8 @@ export const env = createEnv({
     VITE_API_URL: z.string().default('http://localhost:8080'),
     VITE_AUTHORITY: z.string().default('http://localhost:8081/realms/master'),
     VITE_UI_URL: z.string().default('http://localhost:5173/'),
-    // Client IDs for the Keycloak clients
-    VITE_CLIENT_ID: z.string().default('ort-server-ui-dev'),
+    // Client ID for the Keycloak client
+    VITE_CLIENT_ID: z.string().default('ort-server-ui'),
     VITE_RUN_POLL_INTERVAL: z.coerce.number().default(10000),
     VITE_OIDC_LOG_LEVEL: z
       .enum(['NONE', 'ERROR', 'WARN', 'INFO'])
