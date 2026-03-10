@@ -669,7 +669,7 @@
     "id" : "d15453a9-42d2-4428-b9c7-95deb823b230",
     "clientId" : "ort-server-backend",
     "name" : "ORT Server Backend",
-    "description" : "Use by the ORT Server backend to manage the realm.",
+    "description" : "Used by the ORT Server backend to manage the realm.",
     "rootUrl" : "",
     "adminUrl" : "",
     "baseUrl" : "",
