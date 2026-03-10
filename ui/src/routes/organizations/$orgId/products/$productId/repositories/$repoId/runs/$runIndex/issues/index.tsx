@@ -137,7 +137,7 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
                     repoId: params.repoId,
                     runIndex: params.runIndex,
                   }}
-                  search={{ projectId: id }}
+                  search={{ projectId: id, marked: id }}
                 >
                   <BreakableString text={id} />
                 </Link>

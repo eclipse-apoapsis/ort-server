@@ -414,6 +414,7 @@ const ProjectsComponent = () => {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
+    getRowId: (row) => identifierToString(row.identifier),
   });
 
   if (isPending) {
