@@ -41,17 +41,12 @@ fun Route.authentication() = route("auth") {
 
     route("oidc-config/cli") {
         get(getCliOidcConfig) {
-            val accessTokenUrl = applicationConfig.propertyOrNull("keycloak.accessTokenUrl")?.getString() ?: run {
-                val baseUrl = applicationConfig.property("keycloak.baseUrl").getString()
-                val realm = applicationConfig.property("keycloak.realm").getString()
+            val baseUrl = applicationConfig.property("cli.keycloakBaseUrl").getString()
+            val realm = applicationConfig.property("cli.keycloakRealm").getString()
+            val clientId = applicationConfig.property("cli.keycloakClientId").getString()
 
-                "$baseUrl/realms/$realm/protocol/openid-connect/token"
-            }
-
-            val oidcConfig = OidcConfig(
-                accessTokenUrl = accessTokenUrl,
-                clientId = applicationConfig.property("jwt.audience").getString()
-            )
+            val accessTokenUrl = "$baseUrl/realms/$realm/protocol/openid-connect/token"
+            val oidcConfig = OidcConfig(accessTokenUrl = accessTokenUrl, clientId = clientId)
 
             call.respond(HttpStatusCode.OK, oidcConfig.mapToApi())
         }

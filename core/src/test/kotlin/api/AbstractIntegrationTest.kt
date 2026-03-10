@@ -33,6 +33,7 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createCliConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
@@ -75,6 +76,7 @@ abstract class AbstractIntegrationTest(
 
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
+    private val cliConfig = keycloak.createCliConfigMapForTestRealm()
 
     val secretErrorPath = "error-path"
 
@@ -85,7 +87,7 @@ abstract class AbstractIntegrationTest(
         "${SecretStorage.CONFIG_PREFIX}.${SecretsProviderFactoryForTesting.ERROR_PATH_PROPERTY}" to secretErrorPath
     )
 
-    private val additionalConfig = keycloakConfig + jwtConfig + secretsConfig
+    private val additionalConfig = keycloakConfig + jwtConfig + cliConfig + secretsConfig
 
     private val superuserClientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
         user = SUPERUSER.username.value,
