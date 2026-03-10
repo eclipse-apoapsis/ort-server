@@ -308,6 +308,14 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                                         source = ResolutionSource.REPOSITORY_FILE
                                     )
                                 ),
+                                unappliedResolutions = listOf(
+                                    VulnerabilityResolution(
+                                        externalId = "CVE-2021-1234",
+                                        reason = VulnerabilityResolutionReason.NOT_A_VULNERABILITY,
+                                        comment = "A comment why the vulnerability is not a vulnerability.",
+                                        source = ResolutionSource.SERVER
+                                    )
+                                ),
                                 advisor = AdvisorDetails(name = "VulnerableCode"),
                                 purl = "pkg:maven/org.namespace/name@1.0"
                             )
