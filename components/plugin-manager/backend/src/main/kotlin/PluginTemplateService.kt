@@ -22,12 +22,12 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
-import com.github.michaelbull.result.fold
 import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.map
-import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.toErrorIfNull
 import com.github.michaelbull.result.toResultOr
+import com.github.michaelbull.result.tryFold
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
@@ -211,7 +211,7 @@ class PluginTemplateService(
             ?: return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
 
         pluginService.getPlugins().filter { it.enabled }
-            .fold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
+            .tryFold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
                 getTemplateForOrganization(plugin.type, plugin.id, organizationId).map { template ->
                     acc + PreconfiguredPluginDescriptor(
                         id = plugin.id,
@@ -349,7 +349,7 @@ class PluginTemplateService(
         pluginConfigs: Map<PluginType, Map<String, ResolvablePluginConfig>>,
         organizationId: Long
     ): PluginConfigValidationResult {
-        validateOrganizationExists(organizationId).onFailure { error ->
+        validateOrganizationExists(organizationId).onErr { error ->
             return PluginConfigValidationResult(listOf(error.message))
         }
 
