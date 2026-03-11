@@ -24,7 +24,44 @@ export type ItemWithResolutions =
   | RuleViolation
   | VulnerabilityWithDetails;
 
+export function isVulnerabilityItem(
+  item: ItemWithResolutions
+): item is VulnerabilityWithDetails {
+  return 'vulnerability' in item;
+}
+
+export function getAppliedVulnerabilityResolutions(
+  item: VulnerabilityWithDetails
+) {
+  return item.resolutions.filter(
+    (resolution) => resolution.externalId === item.vulnerability.externalId
+  );
+}
+
+export function getUnappliedVulnerabilityResolutions(
+  item: VulnerabilityWithDetails
+) {
+  return item.unappliedResolutions.filter(
+    (resolution) => resolution.externalId === item.vulnerability.externalId
+  );
+}
+
+export function hasVulnerabilityResolutionActivity(
+  item: VulnerabilityWithDetails
+) {
+  return (
+    getAppliedVulnerabilityResolutions(item).length > 0 ||
+    getUnappliedVulnerabilityResolutions(item).length > 0
+  );
+}
+
 export function getResolvedStatus(item: ItemWithResolutions) {
+  if (isVulnerabilityItem(item)) {
+    return getAppliedVulnerabilityResolutions(item).length > 0
+      ? 'Resolved'
+      : 'Unresolved';
+  }
+
   return item.resolutions && item.resolutions.length > 0
     ? 'Resolved'
     : 'Unresolved';
