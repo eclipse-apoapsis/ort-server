@@ -31,7 +31,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import z from 'zod';
 
 import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
@@ -82,7 +82,10 @@ import {
 } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { getResolvedStatus } from '@/helpers/resolutions';
+import {
+  getResolvedStatus,
+  hasVulnerabilityResolutionActivity,
+} from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
@@ -175,81 +178,6 @@ const VulnerabilityCard = ({
         </Badge>
       </div>
     </div>
-  );
-};
-
-const renderSubComponent = ({
-  row,
-}: {
-  row: Row<VulnerabilityWithDetails>;
-}) => {
-  const vulnerability = row.original.vulnerability;
-  const hasResolutions = getResolvedStatus(row.original) === 'Resolved';
-
-  return (
-    <Accordion
-      type='multiple'
-      className='w-full'
-      defaultValue={hasResolutions ? ['resolutions'] : ['details']}
-    >
-      <AccordionItem value='resolutions'>
-        <AccordionTrigger className='font-semibold'>
-          Resolutions
-        </AccordionTrigger>
-        <AccordionContent>
-          <Resolutions item={row.original} />
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value='details'>
-        <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
-        <AccordionContent>
-          <div className='flex flex-col gap-4'>
-            <VulnerabilityMetrics vulnerability={vulnerability} />
-            <div className='font-semibold'>Description</div>
-            <MarkdownRenderer
-              markdown={vulnerability.description || 'No description available'}
-            />
-            <div className='mt-2 text-lg font-semibold'>
-              Links to vulnerability references
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Severity</TableHead>
-                  <TableHead>Scoring system</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Vector</TableHead>
-                  <TableHead>Link</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vulnerability.references
-                  .sort((refA, refB) => (refB.score ?? 0) - (refA.score ?? 0))
-                  .map((reference, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{reference.severity || '-'}</TableCell>
-                      <TableCell>{reference.scoringSystem || '-'}</TableCell>
-                      <TableCell>{reference.score || '-'}</TableCell>
-                      <TableCell>{reference.vector || '-'}</TableCell>
-                      <TableCell>
-                        {
-                          <Link
-                            className='font-semibold break-all text-blue-400 hover:underline'
-                            to={reference.url}
-                            target='_blank'
-                          >
-                            {reference.url}
-                          </Link>
-                        }
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
   );
 };
 
@@ -496,6 +424,92 @@ const VulnerabilitiesComponent = () => {
       query: { limit: ALL_ITEMS },
     }),
   });
+
+  const renderSubComponent = useCallback(
+    ({ row }: { row: Row<VulnerabilityWithDetails> }) => {
+      const vulnerability = row.original.vulnerability;
+      const hasAnyResolution = hasVulnerabilityResolutionActivity(row.original);
+
+      return (
+        <Accordion
+          type='multiple'
+          className='w-full'
+          defaultValue={
+            hasAnyResolution ? ['resolutions'] : ['resolutions', 'details']
+          }
+        >
+          <AccordionItem value='resolutions'>
+            <AccordionTrigger className='font-semibold'>
+              {hasAnyResolution ? 'Resolutions' : 'Create a resolution'}
+            </AccordionTrigger>
+            <AccordionContent>
+              <Resolutions
+                item={row.original}
+                repositoryId={params.repoId}
+                runId={ortRun.id}
+              />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value='details'>
+            <AccordionTrigger className='font-semibold'>
+              Details
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className='flex flex-col gap-4'>
+                <VulnerabilityMetrics vulnerability={vulnerability} />
+                <div className='font-semibold'>Description</div>
+                <MarkdownRenderer
+                  markdown={
+                    vulnerability.description || 'No description available'
+                  }
+                />
+                <div className='mt-2 text-lg font-semibold'>
+                  Links to vulnerability references
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Severity</TableHead>
+                      <TableHead>Scoring system</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Vector</TableHead>
+                      <TableHead>Link</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vulnerability.references
+                      .sort(
+                        (refA, refB) => (refB.score ?? 0) - (refA.score ?? 0)
+                      )
+                      .map((reference, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{reference.severity || '-'}</TableCell>
+                          <TableCell>
+                            {reference.scoringSystem || '-'}
+                          </TableCell>
+                          <TableCell>{reference.score || '-'}</TableCell>
+                          <TableCell>{reference.vector || '-'}</TableCell>
+                          <TableCell>
+                            <Link
+                              className='font-semibold break-all text-blue-400 hover:underline'
+                              to={reference.url}
+                              target='_blank'
+                            >
+                              {reference.url}
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      );
+    },
+    [params.repoId, ortRun.id]
+  );
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}
