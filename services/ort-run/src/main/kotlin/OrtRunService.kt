@@ -24,6 +24,7 @@ import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
@@ -502,7 +503,7 @@ class OrtRunService(
             config = analyzerRun.config,
             projects = analyzerRun.projects,
             packages = analyzerRun.packages,
-            issues = analyzerRun.issues,
+            issues = analyzerRun.issues + AnalyzerRunDao.collectDependencyGraphIssues(analyzerRun.dependencyGraphs),
             dependencyGraphs = analyzerRun.dependencyGraphs,
             shortestDependencyPaths = shortestDependencyPaths
         )

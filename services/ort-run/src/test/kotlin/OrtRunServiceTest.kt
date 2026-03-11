@@ -52,6 +52,7 @@ import kotlinx.coroutines.delay
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
@@ -82,6 +83,8 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsR
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphNode
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -1052,6 +1055,34 @@ class OrtRunServiceTest : WordSpec({
 
     "storeAnalyzerRun" should {
         "store the run correctly" {
+            val analyzerIssue = Issue(
+                timestamp = Clock.System.now().minus(1.minutes).toDatabasePrecision(),
+                source = "TestAnalyzer",
+                message = "some error message",
+                severity = Severity.WARNING
+            )
+
+            val graphIssue = Issue(
+                timestamp = Instant.parse("2023-03-23T12:49:37Z"),
+                source = "Maven",
+                message = "Could not resolve package",
+                severity = Severity.ERROR
+            )
+            val pkgId = Identifier("Maven", "com.example", "test", "3.11.9")
+            val graph = DependencyGraph(
+                packages = listOf(pkgId),
+                nodes = listOf(
+                    DependencyGraphNode(
+                        pkg = 0,
+                        fragment = 0,
+                        linkage = "DYNAMIC",
+                        issues = listOf(graphIssue)
+                    )
+                ),
+                edges = emptySet(),
+                scopes = emptyMap()
+            )
+
             val analyzerRun = AnalyzerRun(
                 id = 1L,
                 analyzerJobId = fixtures.analyzerJob.id,
@@ -1074,13 +1105,21 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 projects = emptySet(),
                 packages = emptySet(),
-                issues = emptyList(),
-                dependencyGraphs = emptyMap()
+                issues = listOf(analyzerIssue),
+                dependencyGraphs = mapOf("Maven" to graph)
             )
 
             service.storeAnalyzerRun(analyzerRun)
 
-            fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe analyzerRun
+            val expectedIssues = listOf(
+                analyzerIssue.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE),
+                graphIssue.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE, identifier = pkgId)
+            )
+            val expectedRun = analyzerRun.copy(issues = expectedIssues)
+            fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe expectedRun
+
+            val issuesService = IssueService(db, service)
+            issuesService.listForOrtRunId(fixtures.ortRun.id).data should containExactlyInAnyOrder(expectedIssues)
         }
     }
 
@@ -1389,7 +1428,7 @@ class OrtRunServiceTest : WordSpec({
                     .where { ResolvedConfigurationsTable.ortRunId eq fixtures.ortRun.id }
                     .associate { row ->
                         (row[PackageCurationProviderConfigsTable.name] to row[ResolvedPackageCurationsTable.rank]) to
-                            row[ResolvedPackageCurationsTable.id].value
+                                row[ResolvedPackageCurationsTable.id].value
                     }
             }
 
