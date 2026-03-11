@@ -52,6 +52,7 @@ import kotlinx.coroutines.delay
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
@@ -1050,6 +1051,17 @@ class OrtRunServiceTest : WordSpec({
 
     "storeAnalyzerRun" should {
         "store the run correctly" {
+            val issues = listOf(
+                Issue(
+                    timestamp = Clock.System.now().minus(1.minutes).toDatabasePrecision(),
+                    source = "TestAnalyzer",
+                    message = "some error message",
+                    severity = Severity.WARNING,
+                    identifier = Identifier("type", "namespace", "name", "version"),
+                    worker = AnalyzerRunDao.ISSUE_WORKER_TYPE
+                )
+            )
+
             val analyzerRun = AnalyzerRun(
                 id = 1L,
                 analyzerJobId = fixtures.analyzerJob.id,
@@ -1076,9 +1088,10 @@ class OrtRunServiceTest : WordSpec({
                 dependencyGraphs = emptyMap()
             )
 
-            service.storeAnalyzerRun(analyzerRun)
+            service.storeAnalyzerRun(analyzerRun, issues = issues)
 
-            fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe analyzerRun
+            val expectedRun = analyzerRun.copy(issues = issues)
+            fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe expectedRun
         }
     }
 

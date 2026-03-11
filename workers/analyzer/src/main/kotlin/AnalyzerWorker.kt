@@ -21,10 +21,12 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -40,6 +42,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
@@ -123,7 +127,8 @@ internal class AnalyzerWorker(
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
             // IMPORTANT: Use getAnalyzerIssues() to get ONLY analyzer issues, not all issues.
-            val allIssues = ortResult.getAnalyzerIssues().values.flatten()
+            val analyzerIssues = ortResult.getAnalyzerIssues()
+            val allIssues = analyzerIssues.values.flatten()
 
             val resolutionProvider = context.createResolutionProvider(
                 RepositoryId(ortRun.repositoryId),
@@ -163,7 +168,11 @@ internal class AnalyzerWorker(
 
             db.dbQuery {
                 getValidAnalyzerJob(jobId)
-                ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
+                ortRunService.storeAnalyzerRun(
+                    analyzerRun.mapToModel(jobId),
+                    shortestPathsByIdentifier,
+                    collectIssues(analyzerIssues)
+                )
                 ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
             }
 
@@ -212,3 +221,12 @@ internal class AnalyzerWorker(
 }
 
 private class AnalyzerException(message: String) : Exception(message)
+
+/**
+ * Transform the given [Map] with [analyzerIssues] from ORT into a [List] of [Issue]s to be stored for the current run.
+ */
+private fun collectIssues(analyzerIssues: Map<OrtIdentifier, Collection<OrtIssue>>): List<Issue> =
+    analyzerIssues.entries.flatMap { e ->
+        val id = e.key.mapToModel()
+        e.value.map { it.mapToModel(id, AnalyzerRunDao.ISSUE_WORKER_TYPE) }
+    }

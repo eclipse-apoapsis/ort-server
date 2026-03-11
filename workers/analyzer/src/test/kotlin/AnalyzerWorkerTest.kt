@@ -64,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_SECONDS
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -144,7 +145,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -212,7 +213,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -280,7 +281,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns job
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -348,7 +349,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns job
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -404,7 +405,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -534,7 +535,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -633,7 +634,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -713,7 +714,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), capture(associationsSlot)) } just runs
@@ -780,7 +781,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -835,13 +836,110 @@ class AnalyzerWorkerTest : StringSpec({
         }
     }
 
+    "All issues should be stored" {
+        val issue1 = Issue(
+            timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+            source = "analyzer",
+            message = "Analyzer issue",
+            severity = Severity.ERROR
+        )
+        val issue2 = Issue(
+            timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS + 77).toJavaInstant(),
+            source = "analyzer",
+            message = "Another Analyzer issue",
+            severity = Severity.WARNING
+        )
+        val issue3 = Issue(
+            timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS + 99).toJavaInstant(),
+            source = "analyzer",
+            message = "One more Analyzer issue",
+            severity = Severity.HINT
+        )
+
+        val resolvedItemsSlot = slot<ResolvedItemsResult>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
+            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            coEvery { findInfrastructureServicesForRepository(context, null) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
+        }
+
+        val pkgId1 = Identifier("Maven:com.example:package:1.0")
+        val pkgId2 = Identifier("Maven:com.example:other-package:1.1")
+        val ortResult = OrtTestData.result.copy(
+            analyzer = OrtTestData.result.analyzer?.copy(
+                result = OrtTestData.result.analyzer?.result!!.copy(
+                    issues = mapOf(
+                        pkgId1 to listOf(issue1, issue2),
+                        pkgId2 to listOf(issue3)
+                    )
+                )
+            )
+        )
+
+        val runnerMock = mockk<AnalyzerRunner> {
+            coEvery { run(any(), any(), any(), any()) } answers { ortResult }
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockPluginService(),
+            mockk(relaxed = true)
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.FinishedWithIssues
+
+            val expectedIssues = listOf(
+                issue1.mapToModel(pkgId1.mapToModel(), "analyzer"),
+                issue2.mapToModel(pkgId1.mapToModel(), "analyzer"),
+                issue3.mapToModel(pkgId2.mapToModel(), "analyzer")
+            )
+            coVerify {
+                ortRunService.storeAnalyzerRun(any(), any(), expectedIssues)
+            }
+        }
+    }
+
     "A 'finished with issues' result should be returned if the analyzer run finished with issues" {
         val ortRunService = mockk<OrtRunService> {
             every { getAnalyzerJob(any()) } returns analyzerJob
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -905,7 +1003,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
@@ -985,7 +1083,7 @@ class AnalyzerWorkerTest : StringSpec({
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeAnalyzerRun(any(), any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
             every { storePackageCurationAssociations(any(), any()) } just runs
