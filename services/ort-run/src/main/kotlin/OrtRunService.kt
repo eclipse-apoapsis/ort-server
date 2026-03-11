@@ -488,11 +488,12 @@ class OrtRunService(
     }
 
     /**
-     * Store the provided [analyzerRun].
+     * Store the provided [analyzerRun] with the given [shortestDependencyPaths] and [issues].
      */
     fun storeAnalyzerRun(
         analyzerRun: AnalyzerRun,
-        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
+        issues: List<Issue> = emptyList()
     ) {
         analyzerRunRepository.create(
             analyzerJobId = analyzerRun.analyzerJobId,
@@ -502,7 +503,7 @@ class OrtRunService(
             config = analyzerRun.config,
             projects = analyzerRun.projects,
             packages = analyzerRun.packages,
-            issues = analyzerRun.issues,
+            issues = issues,
             dependencyGraphs = analyzerRun.dependencyGraphs,
             shortestDependencyPaths = shortestDependencyPaths
         )
