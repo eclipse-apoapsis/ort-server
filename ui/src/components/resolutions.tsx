@@ -17,7 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { ItemWithResolutions } from '@/helpers/resolutions';
 
 type ResolutionsProps = {
@@ -31,7 +33,15 @@ export function Resolutions({ item }: ResolutionsProps) {
         item.resolutions.map((resolution) => (
           <Card>
             <CardHeader>
-              <CardTitle>{resolution.reason}</CardTitle>
+              <CardTitle className='flex justify-between'>
+                <div>{resolution.reason}</div>
+                <Badge
+                  variant='small'
+                  className={getIssueSeverityBackgroundColor('HINT')}
+                >
+                  {resolution.source}
+                </Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className='flex flex-col gap-2'>
               <div className='italic'>{resolution.comment}</div>
