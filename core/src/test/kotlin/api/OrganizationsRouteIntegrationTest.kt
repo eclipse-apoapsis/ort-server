@@ -52,7 +52,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
-import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
@@ -65,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWith
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole as ApiOrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
@@ -1135,7 +1135,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedSearchResponse(
                     listOf(
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability1.mapToApi(),
                             identifier = identifier1.mapToApi(),
                             purl = pkg1.purl,
@@ -1143,7 +1143,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run1Id, run3Id, run4Id, run6Id),
                             repositoriesCount = 4
                         ),
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = identifier2.mapToApi(),
                             purl = pkg2.purl,
@@ -1151,7 +1151,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run3Id, run6Id),
                             repositoriesCount = 2
                         ),
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = identifier3.mapToApi(),
                             purl = pkg3.purl,
@@ -1159,7 +1159,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run6Id),
                             repositoriesCount = 1
                         ),
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run1Vulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
                             purl = pkg1.purl,
@@ -1167,7 +1167,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run1Id),
                             repositoriesCount = 1
                         ),
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run4Vulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
                             purl = pkg1.purl,
@@ -1312,7 +1312,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedSearchResponse(
                     listOf(
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run2Vulnerability.mapToApi(),
                             identifier = pkg1.identifier.mapToApi(),
                             purl = pkg1.purl,
@@ -1320,7 +1320,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run2Id),
                             repositoriesCount = 1
                         ),
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability1.mapToApi(),
                             identifier = pkg1.identifier.mapToApi(),
                             purl = pkg1.purl,
@@ -1483,7 +1483,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedSearchResponse(
                     listOf(
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run2Vulnerability.mapToApi(),
                             identifier = pkg2.identifier.mapToApi(),
                             purl = pkg2.purl,
@@ -1491,7 +1491,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run2Id),
                             repositoriesCount = 1
                         ),
-                        OrganizationVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = pkg2.identifier.mapToApi(),
                             purl = pkg2.purl,
