@@ -67,7 +67,6 @@ import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
@@ -226,7 +225,7 @@ fun Route.products() = route("products/{productId}") {
                 vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel(), filters.mapToModel())
 
             val pagedSearchResponse = vulnerabilities
-                .mapToApi(VulnerabilityWithStats::mapToApi)
+                .mapToApi { it }
                 .toSearchResponse(filters)
 
             call.respond(HttpStatusCode.OK, pagedSearchResponse)
@@ -302,10 +301,7 @@ fun Route.products() = route("products/{productId}") {
                 }
 
                 val vulnerabilitiesByRating = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
-                    vulnerabilityService
-                        .countUnresolvedByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
-                        .map
-                        .mapKeys { it.key.mapToApi() }
+                    vulnerabilityService.countUnresolvedByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob).map
                 } else {
                     null
                 }
@@ -317,10 +313,7 @@ fun Route.products() = route("products/{productId}") {
                 }
 
                 val vulnerabilitiesByRatingTotal = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
-                    vulnerabilityService
-                        .countByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
-                        .map
-                        .mapKeys { it.key.mapToApi() }
+                    vulnerabilityService.countByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob).map
                 } else {
                     null
                 }
