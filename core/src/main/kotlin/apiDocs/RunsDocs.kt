@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -301,11 +302,12 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
                                 rating = VulnerabilityRating.HIGH,
                                 resolutions = listOf(
-                                    VulnerabilityResolution(
+                                    AppliedVulnerabilityResolution(
                                         externalId = "CVE-2021-1234",
                                         reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
                                         comment = "A comment why the vulnerability can be resolved.",
-                                        source = ResolutionSource.REPOSITORY_FILE
+                                        source = ResolutionSource.REPOSITORY_FILE,
+                                        isDeleted = false
                                     )
                                 ),
                                 unappliedResolutions = listOf(
