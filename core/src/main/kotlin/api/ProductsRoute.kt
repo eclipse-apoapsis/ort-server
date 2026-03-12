@@ -67,7 +67,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
@@ -226,7 +226,7 @@ fun Route.products() = route("products/{productId}") {
                 vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel(), filters.mapToModel())
 
             val pagedSearchResponse = vulnerabilities
-                .mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+                .mapToApi(VulnerabilityWithStats::mapToApi)
                 .toSearchResponse(filters)
 
             call.respond(HttpStatusCode.OK, pagedSearchResponse)

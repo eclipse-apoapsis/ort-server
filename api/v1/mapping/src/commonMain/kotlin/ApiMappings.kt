@@ -135,8 +135,8 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -766,7 +766,7 @@ fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
 
 fun VulnerabilityRating.mapToApi() = ApiVulnerabilityRating.valueOf(name)
 
-fun VulnerabilityWithAccumulatedData.mapToApi() = ApiProductVulnerability(
+fun VulnerabilityWithStats.mapToApi() = ApiProductVulnerability(
     vulnerability = vulnerability.mapToApi(),
     identifier = identifier.mapToApi(),
     purl = purl,

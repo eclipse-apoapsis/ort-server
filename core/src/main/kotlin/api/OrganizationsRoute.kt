@@ -68,7 +68,7 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
@@ -264,7 +264,7 @@ fun Route.organizations() = route("organizations") {
                 )
 
                 val pagedSearchResponse = vulnerabilities
-                    .mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+                    .mapToApi(VulnerabilityWithStats::mapToApi)
                     .toSearchResponse(filters)
 
                 call.respond(HttpStatusCode.OK, pagedSearchResponse)
