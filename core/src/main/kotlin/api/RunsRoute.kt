@@ -76,7 +76,6 @@ import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
@@ -235,7 +234,7 @@ fun Route.runs() = route("runs") {
                         filters.mapToModel()
                     )
 
-                val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithDetails::mapToApi)
+                val pagedResponse = vulnerabilitiesForOrtRun.mapToApi { it }
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
             }
@@ -364,9 +363,7 @@ fun Route.runs() = route("runs") {
                 }
 
                 val vulnerabilitiesByRating = if (advisorJobInFinishedState) {
-                    vulnerabilityService.countUnresolvedByRatingForOrtRunIds(
-                        ortRun.id
-                    ).map.mapKeys { it.key.mapToApi() }
+                    vulnerabilityService.countUnresolvedByRatingForOrtRunIds(ortRun.id).map
                 } else {
                     null
                 }
@@ -378,7 +375,7 @@ fun Route.runs() = route("runs") {
                 }
 
                 val vulnerabilitiesByRatingTotal = if (advisorJobInFinishedState) {
-                    vulnerabilityService.countByRatingForOrtRunIds(ortRun.id).map.mapKeys { it.key.mapToApi() }
+                    vulnerabilityService.countByRatingForOrtRunIds(ortRun.id).map
                 } else {
                     null
                 }

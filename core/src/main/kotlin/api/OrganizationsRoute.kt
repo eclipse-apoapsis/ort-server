@@ -68,7 +68,6 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
@@ -264,7 +263,7 @@ fun Route.organizations() = route("organizations") {
                 )
 
                 val pagedSearchResponse = vulnerabilities
-                    .mapToApi(VulnerabilityWithStats::mapToApi)
+                    .mapToApi { it }
                     .toSearchResponse(filters)
 
                 call.respond(HttpStatusCode.OK, pagedSearchResponse)
@@ -343,7 +342,6 @@ fun Route.organizations() = route("organizations") {
                         vulnerabilityService
                             .countUnresolvedByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
                             .map
-                            .mapKeys { it.key.mapToApi() }
                     } else {
                         null
                     }
@@ -355,10 +353,7 @@ fun Route.organizations() = route("organizations") {
                     }
 
                     val vulnerabilitiesByRatingTotal = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
-                        vulnerabilityService
-                            .countByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
-                            .map
-                            .mapKeys { it.key.mapToApi() }
+                        vulnerabilityService.countByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob).map
                     } else {
                         null
                     }

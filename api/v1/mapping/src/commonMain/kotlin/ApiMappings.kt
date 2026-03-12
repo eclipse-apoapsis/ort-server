@@ -89,8 +89,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters as ApiVu
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters as ApiVulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails as ApiVulnerabilityWithDetails
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithStats as ApiVulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -135,8 +133,6 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -612,17 +608,6 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 
 fun AdvisorDetails.mapToApi() = ApiAdvisorDetails(name = name)
 
-fun VulnerabilityWithDetails.mapToApi() =
-    ApiVulnerabilityWithDetails(
-        vulnerability = vulnerability.mapToApi(),
-        identifier = identifier.mapToApi(),
-        rating = rating.mapToApi(),
-        resolutions = resolutions.map { it.mapToApi() },
-        unappliedResolutions = unappliedResolutions.map { it.mapToApi() },
-        advisor = advisor.mapToApi(),
-        purl = purl
-    )
-
 fun Vulnerability.mapToApi() = ApiVulnerability(
     externalId = externalId,
     summary = summary,
@@ -765,15 +750,6 @@ fun UserGroup.mapToApi() = ApiUserGroup.valueOf(name)
 fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
 
 fun VulnerabilityRating.mapToApi() = ApiVulnerabilityRating.valueOf(name)
-
-fun VulnerabilityWithStats.mapToApi() = ApiVulnerabilityWithStats(
-    vulnerability = vulnerability.mapToApi(),
-    identifier = identifier.mapToApi(),
-    purl = purl,
-    rating = rating.mapToApi(),
-    ortRunIds = ortRunIds,
-    repositoriesCount = repositoriesCount
-)
 
 fun SubmoduleFetchStrategy.mapToApi() = when (this) {
     SubmoduleFetchStrategy.DISABLED -> ApiSubmoduleFetchStrategy.DISABLED

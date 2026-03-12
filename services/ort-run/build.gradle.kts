@@ -33,6 +33,8 @@ dependencies {
     api(projects.model)
     api(projects.services.hierarchyService)
     api(projects.services.reportStorageService)
+    api(projects.shared.apiMappings)
+    api(projects.shared.apiModel)
 
     api(ortLibs.model)
     api(ortLibs.scanner)
