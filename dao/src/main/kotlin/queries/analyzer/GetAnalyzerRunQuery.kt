@@ -25,6 +25,8 @@ import org.eclipse.apoapsis.ortserver.dao.queries.ortrun.GetIssuesForOrtRunQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
@@ -65,8 +67,9 @@ private fun loadAnalyzerRun(resultRow: ResultRow): AnalyzerRun {
     val config = checkNotNull(GetAnalyzerConfigurationForAnalyzerRunQuery(analyzerRunId).execute())
     val projects = GetProjectsForAnalyzerRunQuery(analyzerRunId).execute()
     val packages = GetPackagesForAnalyzerRunQuery(analyzerRunId).execute()
-    val ortRunId = checkNotNull(GetOrtRunIdForAnalyzerJobQuery(analyzerJobId).execute())
-    val issues = GetIssuesForOrtRunQuery(ortRunId, AnalyzerRunDao.ISSUE_WORKER_TYPE).execute()
+
+    val dependencyGraphs = resultRow[AnalyzerRunsTable.dependencyGraphs].dependencyGraphs
+    val issues = loadAnalyzerRunIssues(analyzerJobId, dependencyGraphs)
 
     return AnalyzerRun(
         id = analyzerRunId,
@@ -78,6 +81,19 @@ private fun loadAnalyzerRun(resultRow: ResultRow): AnalyzerRun {
         projects = projects,
         packages = packages,
         issues = issues,
-        dependencyGraphs = resultRow[AnalyzerRunsTable.dependencyGraphs].dependencyGraphs
+        dependencyGraphs = dependencyGraphs
     )
+}
+
+/**
+ * Load the [Issue]s of the [AnalyzerRun] for the given [analyzerJobId]. When storing an Analyzer run, issues
+ * associated with dependency graph nodes are also written to the `issues` database table, so that they can be queried
+ * easily like all other issues. When reconstructing an ORT result, these issues need to be removed again, as there
+ * would be otherwise duplicates.
+ */
+private fun loadAnalyzerRunIssues(analyzerJobId: Long, dependencyGraphs: Map<String, DependencyGraph>): List<Issue> {
+    val ortRunId = checkNotNull(GetOrtRunIdForAnalyzerJobQuery(analyzerJobId).execute())
+    val issues = GetIssuesForOrtRunQuery(ortRunId, AnalyzerRunDao.ISSUE_WORKER_TYPE).execute()
+
+    return issues - AnalyzerRunDao.collectDependencyGraphIssues(dependencyGraphs)
 }

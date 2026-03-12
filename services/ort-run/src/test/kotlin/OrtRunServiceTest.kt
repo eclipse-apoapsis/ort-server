@@ -25,6 +25,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.nulls.beNull
@@ -1111,15 +1112,15 @@ class OrtRunServiceTest : WordSpec({
 
             service.storeAnalyzerRun(analyzerRun)
 
-            val expectedIssues = listOf(
-                analyzerIssue.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE),
-                graphIssue.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE, identifier = pkgId)
-            )
-            val expectedRun = analyzerRun.copy(issues = expectedIssues)
+            val expectedAnalyzerIssue = analyzerIssue.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE)
+            val expectedGraphIssue = graphIssue.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE, identifier = pkgId)
+            val expectedRun = analyzerRun.copy(issues = listOf(expectedAnalyzerIssue))
             fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe expectedRun
 
             val issuesService = IssueService(db, service)
-            issuesService.listForOrtRunId(fixtures.ortRun.id).data should containExactlyInAnyOrder(expectedIssues)
+            issuesService.listForOrtRunId(fixtures.ortRun.id).data should containExactlyInAnyOrder(
+                listOf(expectedAnalyzerIssue, expectedGraphIssue)
+            )
         }
     }
 
@@ -1558,6 +1559,86 @@ class OrtRunServiceTest : WordSpec({
         "contain common labels" {
             service.generateOrtResult(fixtures.ortRun, failIfRepoInfoMissing = false).let { ortResult ->
                 ortResult.labels shouldContain ("runId" to fixtures.ortRun.id.toString())
+            }
+        }
+
+        "filter out issues from the dependency graph" {
+            val pkgId = Identifier("Maven", "org.apache.commons", "commons-configuration2", "2.13.0")
+            val analyzerIssue = Issue(
+                timestamp = Clock.System.now().minus(1.minutes).toDatabasePrecision(),
+                source = "TestAnalyzer",
+                message = "some error message",
+                severity = Severity.WARNING,
+                identifier = pkgId,
+                worker = AnalyzerRunDao.ISSUE_WORKER_TYPE
+            )
+            val graphIssue = Issue(
+                timestamp = Clock.System.now().minus(2.minutes).toDatabasePrecision(),
+                source = "Maven",
+                message = "Could not resolve package.",
+                severity = Severity.ERROR,
+                identifier = pkgId,
+                worker = AnalyzerRunDao.ISSUE_WORKER_TYPE
+            )
+
+            val dependencyGraph = DependencyGraph(
+                packages = listOf(pkgId),
+                nodes = listOf(
+                    DependencyGraphNode(
+                        pkg = 0,
+                        fragment = 0,
+                        linkage = "DYNAMIC",
+                        issues = listOf(graphIssue)
+                    )
+                ),
+                edges = emptySet(),
+                scopes = emptyMap()
+            )
+
+            val analyzerRun = AnalyzerRun(
+                id = 1L,
+                analyzerJobId = fixtures.analyzerJob.id,
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                environment = Environment(
+                    ortVersion = "1.0.0",
+                    javaVersion = "17",
+                    os = "Linux",
+                    processors = 8,
+                    maxMemory = 16.gibibytes,
+                    variables = emptyMap()
+                ),
+                config = AnalyzerConfiguration(
+                    allowDynamicVersions = true,
+                    enabledPackageManagers = emptyList(),
+                    disabledPackageManagers = null,
+                    packageManagers = null,
+                    skipExcluded = true
+                ),
+                projects = emptySet(),
+                packages = emptySet(),
+                issues = listOf(analyzerIssue, graphIssue),
+                dependencyGraphs = mapOf("Maven" to dependencyGraph)
+            )
+
+            val vcsInfo = createVcsInfo("https://example.com/repo.git")
+            val processedVcsInfo = createVcsInfo("https://example.com/repo-processed.git")
+            val nestedVcsInfo1 = createVcsInfo("https://example.com/repo-nested-1.git")
+            val nestedVcsInfo2 = createVcsInfo("https://example.com/repo-nested-2.git")
+
+            val ortRun = createOrtRun(
+                db,
+                vcsInfo,
+                processedVcsInfo,
+                nestedVcsInfo1,
+                nestedVcsInfo2,
+                fixtures
+            )
+            service.storeAnalyzerRun(analyzerRun)
+
+            val ortResult = service.generateOrtResult(ortRun)
+            ortResult.analyzer?.result?.issues?.get(pkgId.mapToOrt()).orEmpty().shouldBeSingleton {
+                it shouldBe analyzerIssue.mapToOrt()
             }
         }
     }
