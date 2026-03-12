@@ -31,7 +31,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { ProductVulnerability, VulnerabilityRating } from '@/api';
+import { VulnerabilityRating, VulnerabilityWithStats } from '@/api';
 import {
   getProductOptions,
   getProductVulnerabilitiesOptions,
@@ -81,13 +81,13 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<ProductVulnerability>();
+const columnHelper = createColumnHelper<VulnerabilityWithStats>();
 
 // Component to render a single vulnerability card in the list.
 const VulnerabilityCard = ({
   vulnerability,
 }: {
-  vulnerability: ProductVulnerability;
+  vulnerability: VulnerabilityWithStats;
 }) => {
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
@@ -139,7 +139,7 @@ const VulnerabilityCard = ({
   );
 };
 
-const renderSubComponent = ({ row }: { row: Row<ProductVulnerability> }) => {
+const renderSubComponent = ({ row }: { row: Row<VulnerabilityWithStats> }) => {
   const vulnerability = row.original.vulnerability;
 
   return (
