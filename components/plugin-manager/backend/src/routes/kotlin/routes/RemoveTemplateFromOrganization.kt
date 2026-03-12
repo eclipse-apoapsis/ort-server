@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
+import com.github.michaelbull.result.onErr
+import com.github.michaelbull.result.onOk
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -86,9 +86,9 @@ internal fun Route.removeTemplateFromOrganization(
     val templateName = call.requireParameter("templateName")
     val organizationId = call.requireIdParameter("organizationId")
 
-    pluginTemplateService.removeOrganization(templateName, pluginType, pluginId, organizationId, userId).onSuccess {
+    pluginTemplateService.removeOrganization(templateName, pluginType, pluginId, organizationId, userId).onOk {
         call.respond(HttpStatusCode.OK, "Template removed from organization successfully.")
-    }.onFailure {
+    }.onErr {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
             is TemplateError.InvalidState -> call.respond(HttpStatusCode.BadRequest, it.message)

@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
+import com.github.michaelbull.result.onErr
+import com.github.michaelbull.result.onOk
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -96,9 +96,9 @@ internal fun Route.getTemplate(
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
 
-    pluginTemplateService.getTemplate(templateName, pluginType, pluginId).onSuccess {
+    pluginTemplateService.getTemplate(templateName, pluginType, pluginId).onOk {
         call.respond(HttpStatusCode.OK, it)
-    }.onFailure {
+    }.onErr {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
             is TemplateError.InvalidState -> call.respond(HttpStatusCode.BadRequest, it.message)

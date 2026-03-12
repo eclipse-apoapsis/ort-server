@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
+import com.github.michaelbull.result.onErr
+import com.github.michaelbull.result.onOk
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -79,9 +79,9 @@ internal fun Route.disableGlobalTemplate(
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
 
-    pluginTemplateService.disableGlobal(templateName, pluginType, pluginId, userId).onSuccess {
+    pluginTemplateService.disableGlobal(templateName, pluginType, pluginId, userId).onOk {
         call.respond(HttpStatusCode.OK, "Global plugin template disabled successfully.")
-    }.onFailure {
+    }.onErr {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
             is TemplateError.InvalidState -> call.respond(HttpStatusCode.BadRequest, it.message)
