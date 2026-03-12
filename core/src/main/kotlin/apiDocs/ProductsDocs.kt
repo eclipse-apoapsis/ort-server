@@ -37,7 +37,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
-import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
@@ -49,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
@@ -320,11 +320,11 @@ val getProductVulnerabilities: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.OK to {
-            jsonBody<PagedSearchResponse<ProductVulnerability, VulnerabilityForRunsFilters>> {
+            jsonBody<PagedSearchResponse<VulnerabilityWithStats, VulnerabilityForRunsFilters>> {
                 example("Get vulnerabilities for product") {
                     value = PagedSearchResponse(
                         listOf(
-                            ProductVulnerability(
+                            VulnerabilityWithStats(
                                 vulnerability = Vulnerability(
                                     externalId = "CVE-2021-1234",
                                     summary = "A vulnerability",

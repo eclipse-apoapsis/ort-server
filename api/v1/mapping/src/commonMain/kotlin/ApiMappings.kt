@@ -62,7 +62,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration a
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability as ApiProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact as ApiRemoteArtifact
@@ -91,6 +90,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters a
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails as ApiVulnerabilityWithDetails
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithStats as ApiVulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -766,7 +766,7 @@ fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
 
 fun VulnerabilityRating.mapToApi() = ApiVulnerabilityRating.valueOf(name)
 
-fun VulnerabilityWithStats.mapToApi() = ApiProductVulnerability(
+fun VulnerabilityWithStats.mapToApi() = ApiVulnerabilityWithStats(
     vulnerability = vulnerability.mapToApi(),
     identifier = identifier.mapToApi(),
     purl = purl,

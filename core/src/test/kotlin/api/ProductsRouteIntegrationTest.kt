@@ -67,7 +67,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
-import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -80,6 +79,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWith
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithStats
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole as ApiProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
@@ -801,7 +801,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedSearchResponse(
                     listOf(
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
                             purl = pkg1.purl,
@@ -809,7 +809,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run1Id, run3Id),
                             repositoriesCount = 2
                         ),
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability.mapToApi(),
                             identifier = identifier2.mapToApi(),
                             purl = pkg2.purl,
@@ -817,7 +817,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run3Id),
                             repositoriesCount = 1
                         ),
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run1Vulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
                             purl = pkg1.purl,
@@ -960,7 +960,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedSearchResponse(
                     listOf(
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = pkg2.identifier.mapToApi(),
                             purl = pkg2.purl,
@@ -968,7 +968,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run1Id, run2Id),
                             repositoriesCount = 2
                         ),
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run1Vulnerability.mapToApi(),
                             identifier = pkg2.identifier.mapToApi(),
                             purl = pkg2.purl,
@@ -1119,7 +1119,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedSearchResponse(
                     listOf(
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = pkg2.identifier.mapToApi(),
                             purl = pkg2.purl,
@@ -1127,7 +1127,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             ortRunIds = listOf(run1Id, run2Id),
                             repositoriesCount = 2
                         ),
-                        ProductVulnerability(
+                        VulnerabilityWithStats(
                             vulnerability = run1Vulnerability.mapToApi(),
                             identifier = pkg2.identifier.mapToApi(),
                             purl = pkg2.purl,
