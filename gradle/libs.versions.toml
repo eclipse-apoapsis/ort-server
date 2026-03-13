@@ -57,6 +57,7 @@ mockk = "1.14.9"
 mordant = "3.0.2"
 okio = "3.17.0"
 postgres = "42.7.10"
+springSecurityCrypto = "7.0.3"
 qpidJmsClient = "2.10.0"
 rabbitMq = "5.29.0"
 schemaKenerator = "2.6.0"
@@ -123,6 +124,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mordantCoroutines = { module =  "com.github.ajalt.mordant:mordant-coroutines", version.ref = "mordant" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+springSecurityCrypto = { module = "org.springframework.security:spring-security-crypto", version.ref = "springSecurityCrypto" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
 s3 = { module = "aws.sdk.kotlin:s3", version.ref = "awsSdk" }
