@@ -120,8 +120,8 @@ importers:
         specifier: 10.1.0
         version: 10.1.0(@types/react@19.2.14)(react@19.2.4)
       react-oidc-context:
-        specifier: 3.3.0
-        version: 3.3.0(oidc-client-ts@3.5.0)(react@19.2.4)
+        specifier: 3.3.1
+        version: 3.3.1(oidc-client-ts@3.5.0)(react@19.2.4)
       recharts:
         specifier: 3.8.0
         version: 3.8.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-is@18.3.1)(react@19.2.4)(redux@5.0.1)
@@ -2973,8 +2973,8 @@ packages:
       '@types/react': '>=18'
       react: '>=18'
 
-  react-oidc-context@3.3.0:
-    resolution: {integrity: sha512-302T/ma4AOVAxrHdYctDSKXjCq9KNHT564XEO2yOPxRfxEP58xa4nz+GQinNl8x7CnEXECSM5JEjQJk3Cr5BvA==}
+  react-oidc-context@3.3.1:
+    resolution: {integrity: sha512-/Azvm9W4DhhOtSDBE73kFInh1b6zZRRfILKbgmk2syExMF0PCYJOn/dGdOOi2BFX8x0rCeUe45NXHU+/+xDcrQ==}
     engines: {node: '>=18'}
     peerDependencies:
       oidc-client-ts: ^3.1.0
@@ -6204,7 +6204,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-oidc-context@3.3.0(oidc-client-ts@3.5.0)(react@19.2.4):
+  react-oidc-context@3.3.1(oidc-client-ts@3.5.0)(react@19.2.4):
     dependencies:
       oidc-client-ts: 3.5.0
       react: 19.2.4
