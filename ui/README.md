@@ -86,3 +86,16 @@ The Docker image can be configured by the following environment variables:
 | `UI_BASEPATH`  | `/`                                   | The base path of the UI.             |
 | `UI_AUTHORITY` | `http://localhost:8081/realms/master` | The URL of the Keycloak realm.       |
 | `UI_CLIENT_ID` | `ort-server-ui`                       | The client ID of the UI in Keycloak. |
+
+### Read-only Root Filesystem
+
+The image supports running with a read-only root filesystem (e.g. in OpenShift).
+The following directories must be writable and should be mounted as `emptyDir` volumes:
+
+| Path                    | Purpose                                 |
+| ----------------------- | --------------------------------------- |
+| `/etc/nginx/conf.d`     | Generated nginx config.                 |
+| `/var/cache/nginx`      | nginx cache.                            |
+| `/var/log/nginx`        | nginx logs.                             |
+| `/usr/share/nginx/html` | Serving directory populated at startup. |
+| `/var/run`              | nginx PID file.                         |

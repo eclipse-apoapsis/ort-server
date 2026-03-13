@@ -40,19 +40,26 @@ RUN pnpm run build
 # Stage 2: Serve the app with nginx.
 FROM nginx:1.29-alpine@sha256:f46cb72c7df02710e693e863a983ac42f6a9579058a59a35f1ae36c9958e4ce0
 
-# Copy the build output to the nginx html directory.
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy the build output to a template directory. The entrypoint script will copy the files to /usr/share/nginx/html at
+# startup, allowing the serving directory to be a writable volume mount.
+COPY --from=build /app/dist /usr/share/nginx/html-template
 
-# Copy custom nginx configuration.
-COPY docker/nginx.conf.template /etc/nginx/conf.d/default.conf.template
+# Copy custom nginx configuration to /etc/nginx/. The entrypoint script will copy the file to
+# /etc/nginx/conf.d/default.conf at startup, allowing /etc/nginx/conf.d to be a writable volume mount.
+COPY docker/nginx.conf.template /etc/nginx/default.conf.template
 
 # Copy entrypoint script.
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Make sure the user executing the container has access rights to the directories required by nginx.
-RUN chgrp -R 0 /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html /etc/nginx/conf.d \
-    && chmod -R g+rwX /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html /etc/nginx/conf.d
+# The template directory only needs to be readable by the group.
+RUN chgrp -R 0 /usr/share/nginx/html-template \
+    && chmod -R g+rX /usr/share/nginx/html-template
+
+# nginx needs to write to these directories at runtime.
+RUN chgrp -R 0 /var/cache/nginx /var/run /var/log/nginx \
+    && chmod -R g+rwX /var/cache/nginx /var/run /var/log/nginx
 
 # Expose port 8080.
 EXPOSE 8080

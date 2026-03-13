@@ -24,6 +24,9 @@
 : "${UI_CLIENT_ID:=ort-server-ui}"
 : "${UI_URL:=http://localhost:8082/}"
 
+# Copy template files to the serving directory. This allows the serving directory to be a writable volume mount.
+cp -r /usr/share/nginx/html-template/. /usr/share/nginx/html/
+
 # Replace placeholders with actual environment variables in JavaScript files.
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_API_URL_PLACEHOLDER#$UI_API_URL#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_AUTHORITY_PLACEHOLDER#$UI_AUTHORITY#g" {} +
@@ -33,8 +36,7 @@ find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_URL_PLACEHOLDE
 
 # Replace placeholders with actual environment variables in the nginx configuration.
 export UI_BASEPATH
-envsubst '${UI_BASEPATH}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
-rm /etc/nginx/conf.d/default.conf.template
+envsubst '${UI_BASEPATH}' < /etc/nginx/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Add base path to assets references in index.html.
 sed -i "s|/assets/|${UI_BASEPATH}assets/|g" /usr/share/nginx/html/index.html
