@@ -78,7 +78,7 @@ Currently, the UI only supports the "Standard flow" which corresponds to the "Au
 - _Client authentication:_ Disabled
 - _Authentication flow:_ Standard flow
 - _PKCE method:_ S256
-- _Client scopes:_ `email`, `profile`, `ort-server-api-access`
+- _Client scopes:_ `basic`, `email`, `profile`, `ort-server-api-access`
 - _Valid redirect URIs:_ The URL where the UI is hosted followed by `/*`, for example `http://localhost:8082/*`.
 - _Web origins:_ Use `+` to allow all valid redirect URIs.
 
@@ -99,7 +99,7 @@ Currently, the CLI only supports the "Direct access grants" flow which correspon
 - _Default client ID:_ `ort-server-cli`
 - _Client authentication:_ Disabled
 - _Authentication flow:_ Direct access grants
-- _Client scopes:_ `email`, `profile`, `ort-server-api-access`, `offline_access`
+- _Client scopes:_ `basic`, `email`, `profile`, `ort-server-api-access`, `offline_access`
 
 The remaining default scopes are not required and can be removed to minimize the token size.
 

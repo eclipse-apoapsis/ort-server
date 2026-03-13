@@ -751,7 +751,7 @@
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "profile", "ort-server-api-access", "email" ],
+    "defaultClientScopes" : [ "profile", "ort-server-api-access", "basic", "email" ],
     "optionalClientScopes" : [ "offline_access" ]
   }, {
     "id" : "559d3c4a-ed70-4a36-b4b4-32d798ee6262",
@@ -805,7 +805,7 @@
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "profile", "ort-server-api-access", "email" ],
+    "defaultClientScopes" : [ "profile", "ort-server-api-access", "basic", "email" ],
     "optionalClientScopes" : [ ]
   }, {
     "id" : "115c6dcc-fcba-460c-95bb-f2ad93a2aba3",
