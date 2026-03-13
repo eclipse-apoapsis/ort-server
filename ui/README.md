@@ -74,7 +74,7 @@ To build it manually, run the following steps from the root of the repository:
 To run the Docker image, use the following command:
 
 ```shell
-docker run --rm -p 8082:80 ort-server-ui
+docker run --rm -p 8082:8080 ort-server-ui
 ```
 
 The Docker image can be configured by the following environment variables:
