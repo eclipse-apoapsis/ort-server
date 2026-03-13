@@ -49,7 +49,7 @@
     "cmdk": "1.1.1",
     "debounce": "3.0.0",
     "lucide-react": "0.577.0",
-    "oidc-client-ts": "3.4.1",
+    "oidc-client-ts": "3.5.0",
     "packageurl-js": "2.0.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
