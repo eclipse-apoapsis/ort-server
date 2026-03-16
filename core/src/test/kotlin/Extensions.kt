@@ -29,7 +29,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.util.appendIfNameAbsent
-import io.ktor.utils.io.KtorDsl
 
 import kotlinx.serialization.json.Json
 
@@ -37,7 +36,6 @@ import kotlinx.serialization.json.Json
  * Create a client with [JSON ContentNegotiation][json] installed and default content type set to `application/json`.
  * Can be further configured with [block].
  */
-@KtorDsl
 fun ApplicationTestBuilder.createJsonClient(
     json: Json = Json,
     block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit = {}
