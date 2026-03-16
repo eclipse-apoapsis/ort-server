@@ -35,7 +35,7 @@ buildConfig {
 kotlin {
     linuxX64()
     macosArm64()
-    macosX64()
+    @Suppress("deprecation") macosX64()
     mingwX64()
 
     sourceSets {

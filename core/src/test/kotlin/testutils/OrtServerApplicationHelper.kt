@@ -25,7 +25,6 @@ import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.config.mergeWith
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import io.ktor.utils.io.KtorDsl
 
 import io.mockk.mockk
 
@@ -40,7 +39,6 @@ import org.koin.core.context.stopKoin
  * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
  * merged with [additionalConfigs]. The [additionalConfigs] take precedence over the [config].
  */
-@KtorDsl
 fun ortServerTestApplication(
     db: Database? = null,
     config: TestConfig = TestConfig.Default,
