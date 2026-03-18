@@ -48,6 +48,10 @@ COPY --from=build /app/dist /usr/share/nginx/html-template
 # /etc/nginx/conf.d/default.conf at startup, allowing /etc/nginx/conf.d to be a writable volume mount.
 COPY docker/nginx.conf.template /etc/nginx/default.conf.template
 
+# Configure nginx to run as non-root user for OpenShift compatibility
+RUN sed -i 's/user  nginx;//g' /etc/nginx/nginx.conf \
+    && sed -i 's|/var/run/nginx.pid|/tmp/nginx.pid|g' /etc/nginx/nginx.conf
+
 # Copy entrypoint script.
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
@@ -58,8 +62,13 @@ RUN chgrp -R 0 /usr/share/nginx/html-template \
     && chmod -R g+rX /usr/share/nginx/html-template
 
 # nginx needs to write to these directories at runtime.
-RUN chgrp -R 0 /var/cache/nginx /var/run /var/log/nginx \
-    && chmod -R g+rwX /var/cache/nginx /var/run /var/log/nginx
+RUN chgrp -R 0 /var/cache/nginx /var/run /var/log/nginx /etc/nginx/conf.d \
+    && chmod -R g+rwX /var/cache/nginx /var/run /var/log/nginx /etc/nginx/conf.d
+
+# Make /usr/share/nginx/html writable for the group so the entrypoint can copy files there.
+RUN mkdir -p /usr/share/nginx/html \
+    && chgrp -R 0 /usr/share/nginx/html \
+    && chmod -R g+rwX /usr/share/nginx/html
 
 # Expose port 8080.
 EXPOSE 8080
