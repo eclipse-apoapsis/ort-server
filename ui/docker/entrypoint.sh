@@ -25,7 +25,12 @@
 : "${UI_URL:=http://localhost:8082/}"
 
 # Copy template files to the serving directory. This allows the serving directory to be a writable volume mount.
-cp -r /usr/share/nginx/html-template/. /usr/share/nginx/html/
+# Clear the directory first if it exists and has content. This is needed to gracefully deal with restarts of the
+# container.
+if [ -d /usr/share/nginx/html ] && [ "$(ls -A /usr/share/nginx/html)" ]; then
+  rm -rf /usr/share/nginx/html/*
+fi
+cp -r /usr/share/nginx/html-template/* /usr/share/nginx/html/
 
 # Replace placeholders with actual environment variables in JavaScript files.
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_API_URL_PLACEHOLDER#$UI_API_URL#g" {} +
