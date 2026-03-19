@@ -21,13 +21,13 @@ package org.eclipse.apoapsis.ortserver.components.resolutions.routes
 
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.createVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.deleteVulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.updateVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.patchVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.postVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 
 fun Route.resolutionRoutes(vulnerabilityResolutionService: VulnerabilityResolutionService) {
-    createVulnerabilityResolution(vulnerabilityResolutionService)
     deleteVulnerabilityResolution(vulnerabilityResolutionService)
-    updateVulnerabilityResolution(vulnerabilityResolutionService)
+    patchVulnerabilityResolution(vulnerabilityResolutionService)
+    postVulnerabilityResolution(vulnerabilityResolutionService)
 }

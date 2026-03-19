@@ -25,17 +25,17 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  createVulnerabilityResolutionMutation,
   deleteVulnerabilityResolutionMutation,
   getRunVulnerabilitiesQueryKey,
-  updateVulnerabilityResolutionMutation,
+  patchVulnerabilityResolutionMutation,
+  postVulnerabilityResolutionMutation,
 } from '@/api/@tanstack/react-query.gen';
 import {
   AppliedVulnerabilityResolution,
   VulnerabilityResolution,
 } from '@/api/types.gen';
 import {
-  zCreateVulnerabilityResolution,
+  zPostVulnerabilityResolution,
   zVulnerabilityResolutionReason,
 } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -75,7 +75,7 @@ import {
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 
-type ResolutionFormValues = z.infer<typeof zCreateVulnerabilityResolution>;
+type ResolutionFormValues = z.infer<typeof zPostVulnerabilityResolution>;
 type ResolutionItem =
   | NonNullable<ItemWithResolutions['resolutions']>[number]
   | VulnerabilityResolution;
@@ -152,14 +152,14 @@ function ResolutionForm({
   const queryClient = useQueryClient();
 
   const form = useForm<ResolutionFormValues>({
-    resolver: zodResolver(zCreateVulnerabilityResolution),
+    resolver: zodResolver(zPostVulnerabilityResolution),
     defaultValues,
   });
 
   const { mutateAsync, isPending } = useMutation({
     ...(mode === 'create'
-      ? createVulnerabilityResolutionMutation()
-      : updateVulnerabilityResolutionMutation()),
+      ? postVulnerabilityResolutionMutation()
+      : patchVulnerabilityResolutionMutation()),
     onSuccess() {
       queryClient.invalidateQueries({
         queryKey: getRunVulnerabilitiesQueryKey({
