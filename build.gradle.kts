@@ -161,3 +161,13 @@ tasks.register("buildAllImages") {
 
     dependsOn(buildAllWorkerImages, tinyJibDocker, uiDockerBuild)
 }
+
+// Automatically accept the Gradle Build Scan ToS when running in CI, to allow build scans to be published.
+if (System.getenv("CI") == "true") {
+    extensions.findByName("develocity")?.withGroovyBuilder {
+        getProperty("buildScan")?.withGroovyBuilder {
+            setProperty("termsOfUseUrl", "https://gradle.com/terms-of-service")
+            setProperty("termsOfUseAgree", "yes")
+        }
+    }
+}
