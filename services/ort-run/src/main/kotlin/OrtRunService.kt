@@ -488,11 +488,15 @@ class OrtRunService(
     }
 
     /**
-     * Store the provided [analyzerRun].
+     * Store the provided [analyzerRun] with the given [shortestDependencyPaths] and [issues]. The collection of
+     * [issues] is expected to contain all issues that are associated with the analyzer run, including those that are
+     * related to the dependency graph. They are assigned to the current run, so that they can be retrieved easily and
+     * in an efficient way.
      */
     fun storeAnalyzerRun(
         analyzerRun: AnalyzerRun,
-        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
+        issues: List<Issue> = emptyList()
     ) {
         analyzerRunRepository.create(
             analyzerJobId = analyzerRun.analyzerJobId,
@@ -502,7 +506,7 @@ class OrtRunService(
             config = analyzerRun.config,
             projects = analyzerRun.projects,
             packages = analyzerRun.packages,
-            issues = analyzerRun.issues,
+            issues = issues,
             dependencyGraphs = analyzerRun.dependencyGraphs,
             shortestDependencyPaths = shortestDependencyPaths
         )
