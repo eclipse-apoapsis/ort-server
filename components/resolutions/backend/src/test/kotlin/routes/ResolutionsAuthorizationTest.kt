@@ -28,8 +28,8 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.resolutions.CreateVulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.components.resolutions.UpdateVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.PatchVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.PostVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -72,7 +72,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
         )
     }
 
-    "CreateVulnerabilityResolution" should {
+    "PostVulnerabilityResolution" should {
         "require RepositoryPermission.MANAGE_RESOLUTIONS" {
             requestShouldRequireRole(
                 routes = { resolutionRoutes(vulnerabilityResolutionService) },
@@ -82,7 +82,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
             ) {
                 post("/repositories/${repositoryId.value}/resolutions/vulnerabilities/CVE-2021-1234") {
                     setBody(
-                        CreateVulnerabilityResolution(
+                        PostVulnerabilityResolution(
                             comment = "This is not a vulnerability.",
                             reason = VulnerabilityResolutionReason.NOT_A_VULNERABILITY
                         )
@@ -105,7 +105,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "UpdateVulnerabilityResolution" should {
+    "PatchVulnerabilityResolution" should {
         "require RepositoryPermission.MANAGE_RESOLUTIONS" {
             requestShouldRequireRole(
                 routes = { resolutionRoutes(vulnerabilityResolutionService) },
@@ -115,7 +115,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
             ) {
                 patch("/repositories/${repositoryId.value}/resolutions/vulnerabilities/CVE-2021-1234") {
                     setBody(
-                        UpdateVulnerabilityResolution(
+                        PatchVulnerabilityResolution(
                             comment = "This is not a vulnerability.",
                             reason = VulnerabilityResolutionReason.NOT_A_VULNERABILITY
                         )
