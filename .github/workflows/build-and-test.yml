@@ -83,7 +83,7 @@ jobs:
         key: ${{ steps.get-kotlin-plugin-info.outputs.info }}
 
     - name: Build CLI - ${{ matrix.target.name }}
-      run: ./gradlew --stacktrace cli:${{ matrix.target.task }}
+      run: ./gradlew --scan --stacktrace cli:${{ matrix.target.task }}
 
     - name: Rename CLI binary
       shell: bash
@@ -142,7 +142,7 @@ jobs:
       uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
     - name: Run tests
-      run: ./gradlew test allTests -Dkotest.tags='!Authorization & !Integration'
+      run: ./gradlew --scan test allTests -Dkotest.tags='!Authorization & !Integration'
 
     - name: Create Test Summary
       uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
@@ -169,7 +169,7 @@ jobs:
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Run authorization tests
-        run: ./gradlew test allTests -Dkotest.tags='Authorization'
+        run: ./gradlew --scan test allTests -Dkotest.tags='Authorization'
 
       - name: Create Test Summary
         uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
@@ -196,7 +196,7 @@ jobs:
       uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
     - name: Run integration tests
-      run: ./gradlew test allTests -Dkotest.tags='Integration'
+      run: ./gradlew --scan test allTests -Dkotest.tags='Integration'
 
     - name: Create Test Summary
       uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
