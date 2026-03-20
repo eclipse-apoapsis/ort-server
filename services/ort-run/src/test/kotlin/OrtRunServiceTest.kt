@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import com.github.michaelbull.result.Ok
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
@@ -38,6 +40,7 @@ import io.mockk.Runs
 import io.mockk.andThenJust
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
@@ -50,6 +53,7 @@ import kotlin.time.Instant
 
 import kotlinx.coroutines.delay
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
@@ -1117,7 +1121,13 @@ class OrtRunServiceTest : WordSpec({
             val expectedRun = analyzerRun.copy(issues = listOf(expectedAnalyzerIssue))
             fixtures.analyzerRunRepository.getByJobId(fixtures.analyzerJob.id) shouldBe expectedRun
 
-            val issuesService = IssueService(db, service)
+            val issuesService = IssueService(
+                db,
+                service,
+                mockk<IssueResolutionService> {
+                    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+                }
+            )
             issuesService.listForOrtRunId(fixtures.ortRun.id).data should containExactlyInAnyOrder(
                 listOf(expectedAnalyzerIssue, expectedGraphIssue)
             )

@@ -23,6 +23,7 @@ import kotlin.time.Instant
 
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
 
 /**
@@ -51,8 +52,11 @@ data class Issue(
     /** The worker which caused this issue if available. */
     val worker: String? = null,
 
-    /** The [IssueResolution]s that have been applied to this issue. */
-    val resolutions: List<IssueResolution> = emptyList(),
+    /** The [AppliedIssueResolution]s that have been applied to this [Issue]. */
+    val resolutions: List<AppliedIssueResolution> = emptyList(),
+
+    /** The [IssueResolution]s that have been created after this run and will apply to this [Issue] in future runs. */
+    val unappliedResolutions: List<IssueResolution> = emptyList(),
 
     /**
      * The purl of the [Package] this issue is related to. Null if the issue originates from a [Project] or elsewhere.

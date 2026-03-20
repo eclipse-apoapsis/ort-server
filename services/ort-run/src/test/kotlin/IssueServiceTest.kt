@@ -35,13 +35,17 @@ import io.mockk.mockk
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
@@ -49,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
@@ -57,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -66,6 +72,7 @@ class IssueServiceTest : WordSpec() {
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
+    private lateinit var issueResolutionService: IssueResolutionService
     private lateinit var service: IssueService
 
     init {
@@ -95,7 +102,24 @@ class IssueServiceTest : WordSpec() {
                 mockk()
             )
 
-            service = IssueService(db, ortRunService)
+            issueResolutionService = IssueResolutionService(
+                db = db,
+                eventStore = IssueResolutionEventStore(db),
+                repositoryService = RepositoryService(
+                    db = db,
+                    ortRunRepository = fixtures.ortRunRepository,
+                    repositoryRepository = fixtures.repositoryRepository,
+                    analyzerJobRepository = fixtures.analyzerJobRepository,
+                    advisorJobRepository = fixtures.advisorJobRepository,
+                    scannerJobRepository = fixtures.scannerJobRepository,
+                    evaluatorJobRepository = fixtures.evaluatorJobRepository,
+                    reporterJobRepository = fixtures.reporterJobRepository,
+                    notifierJobRepository = fixtures.notifierJobRepository,
+                    authorizationService = mockk()
+                )
+            )
+
+            service = IssueService(db, ortRunService, issueResolutionService)
         }
 
         "listForOrtRunId" should {
@@ -162,6 +186,116 @@ class IssueServiceTest : WordSpec() {
 
                 val unresolvedIssue = result.data.single { "unresolved npm issue" in it.message }
                 unresolvedIssue.resolutions should beEmpty()
+            }
+
+            "return new resolutions which were created after the run" {
+                val repositoryId = fixtures.createRepository().id
+                val issue = Issue(
+                    timestamp = Clock.System.now(),
+                    source = "Analyzer",
+                    message = "dependency not found: example-lib",
+                    severity = Severity.ERROR
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(
+                    repositoryId = repositoryId,
+                    issues = listOf(issue),
+                    resolutions = Resolutions(
+                        issues = listOf(
+                            IssueResolution(
+                                message = "dependency not found.*",
+                                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                                comment = "Known upstream problem.",
+                                source = ResolutionSource.REPOSITORY_FILE
+                            )
+                        )
+                    )
+                )
+
+                issueResolutionService.createResolution(
+                    repositoryId = RepositoryId(repositoryId),
+                    message = "dependency not found.*",
+                    reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                    comment = "Tracked on the server.",
+                    createdBy = "user"
+                )
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 1
+                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                    AppliedIssueResolution(
+                        message = "dependency not found.*",
+                        messageHash = null,
+                        reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "Known upstream problem.",
+                        source = ResolutionSource.REPOSITORY_FILE,
+                        isDeleted = false
+                    )
+                )
+                result.data.single().unappliedResolutions shouldContainExactlyInAnyOrder listOf(
+                    IssueResolution(
+                        message = "dependency not found.*",
+                        messageHash = calculateResolutionMessageHash("dependency not found.*"),
+                        reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                        comment = "Tracked on the server.",
+                        source = ResolutionSource.SERVER
+                    )
+                )
+            }
+
+            "mark applied resolutions as deleted if they were deleted after the run" {
+                val repositoryId = fixtures.createRepository().id
+                val issue = Issue(
+                    timestamp = Clock.System.now(),
+                    source = "Analyzer",
+                    message = "dependency not found: example-lib",
+                    severity = Severity.ERROR
+                )
+
+                issueResolutionService.createResolution(
+                    repositoryId = RepositoryId(repositoryId),
+                    message = "dependency not found.*",
+                    reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                    comment = "Tracked on the server.",
+                    createdBy = "user"
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(
+                    repositoryId = repositoryId,
+                    issues = listOf(issue),
+                    resolutions = Resolutions(
+                        issues = listOf(
+                            IssueResolution(
+                                message = "dependency not found.*",
+                                reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                                comment = "Tracked on the server.",
+                                source = ResolutionSource.SERVER
+                            )
+                        )
+                    )
+                )
+
+                issueResolutionService.deleteResolutionByHash(
+                    repositoryId = RepositoryId(repositoryId),
+                    messageHash = calculateResolutionMessageHash("dependency not found.*"),
+                    deletedBy = "user"
+                )
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 1
+                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                    AppliedIssueResolution(
+                        message = "dependency not found.*",
+                        messageHash = calculateResolutionMessageHash("dependency not found.*"),
+                        reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                        comment = "Tracked on the server.",
+                        source = ResolutionSource.SERVER,
+                        isDeleted = true
+                    )
+                )
+                result.data.single().unappliedResolutions should beEmpty()
             }
 
             "filter resolved issues when issuesFilter.resolved is true" {

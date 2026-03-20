@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import com.github.michaelbull.result.getOr
+
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -27,12 +30,16 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -58,13 +65,17 @@ import org.jetbrains.exposed.v1.jdbc.select
 /**
  * A service to manage and get information about issues.
  */
-class IssueService(private val db: Database, private val ortRunService: OrtRunService) {
+class IssueService(
+    private val db: Database,
+    private val ortRunService: OrtRunService,
+    private val issueResolutionService: IssueResolutionService
+) {
     fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         issuesFilter: IssueFilter = IssueFilter()
     ): ListQueryResult<Issue> {
-        ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
+        val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
             "ORT run with ID $ortRunId not found."
         )
 
@@ -80,6 +91,8 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
 
             val issueRows = fetchIssueRows(ortRunIssueIds)
             val resolutionsByOrtRunIssueId = fetchResolutionsByOrtRunIssueId(ortRunIssueIds)
+            val serverResolutions = getServerResolutions(ortRun.repositoryId)
+            val unappliedResolutions = getUnappliedResolutions(serverResolutions, resolutionsByOrtRunIssueId)
 
             val identifierIds = issueRows
                 .mapNotNullTo(mutableSetOf()) { it.getOrNull(OrtRunsIssuesTable.identifierId)?.value }
@@ -88,6 +101,8 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
             val issues = assembleIssues(
                 issueRows,
                 resolutionsByOrtRunIssueId,
+                serverResolutions,
+                unappliedResolutions,
                 purlByIdentifierId
             )
 
@@ -177,12 +192,13 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
 
     private fun fetchResolutionsByOrtRunIssueId(
         ortRunIssueIds: List<Long>
-    ): Map<Long, List<IssueResolution>> =
+    ): Map<Long, List<AppliedIssueResolution>> =
         ResolvedIssuesTable
             .innerJoin(IssueResolutionsTable, { issueResolutionId }, { id })
             .select(
                 ResolvedIssuesTable.ortRunIssueId,
                 IssueResolutionsTable.message,
+                IssueResolutionsTable.messageHash,
                 IssueResolutionsTable.reason,
                 IssueResolutionsTable.comment,
                 IssueResolutionsTable.resolutionSource
@@ -191,18 +207,51 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
             .groupBy(
                 { it[ResolvedIssuesTable.ortRunIssueId].value },
                 {
-                    IssueResolution(
+                    AppliedIssueResolution(
                         message = it[IssueResolutionsTable.message],
+                        messageHash = if (it[IssueResolutionsTable.resolutionSource] == ResolutionSource.SERVER) {
+                            it[IssueResolutionsTable.messageHash]
+                                ?: calculateResolutionMessageHash(it[IssueResolutionsTable.message])
+                        } else {
+                            null
+                        },
                         reason = it[IssueResolutionsTable.reason],
                         comment = it[IssueResolutionsTable.comment],
-                        source = it[IssueResolutionsTable.resolutionSource]
+                        source = it[IssueResolutionsTable.resolutionSource],
+                        isDeleted = false
                     )
                 }
             )
 
+    private fun getServerResolutions(repositoryId: Long): List<IssueResolution> =
+        issueResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
+            .getOr(emptyList())
+
+    private fun getUnappliedResolutions(
+        serverResolutions: List<IssueResolution>,
+        resolutionsByOrtRunIssueId: Map<Long, List<AppliedIssueResolution>>
+    ): List<IssueResolution> {
+        val appliedServerResolutions = resolutionsByOrtRunIssueId.values.flatten()
+            .mapNotNullTo(mutableSetOf()) { resolution ->
+                resolution.takeIf { it.source == ResolutionSource.SERVER }?.let {
+                    IssueResolution(
+                        message = it.message,
+                        messageHash = it.messageHash,
+                        reason = it.reason,
+                        comment = it.comment,
+                        source = it.source
+                    )
+                }
+            }
+
+        return serverResolutions - appliedServerResolutions
+    }
+
     private fun assembleIssues(
         issueRows: List<ResultRow>,
-        resolutionsByOrtRunIssueId: Map<Long, List<IssueResolution>>,
+        resolutionsByOrtRunIssueId: Map<Long, List<AppliedIssueResolution>>,
+        serverResolutions: List<IssueResolution>,
+        unappliedResolutions: List<IssueResolution>,
         purlByIdentifierId: Map<Long, String>
     ): List<Issue> =
         issueRows.map { row ->
@@ -226,7 +275,19 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
                 affectedPath = row.getOrNull(IssuesTable.affectedPath),
                 identifier = identifier,
                 worker = row.getOrNull(OrtRunsIssuesTable.worker),
-                resolutions = resolutionsByOrtRunIssueId[ortRunIssueId].orEmpty(),
+                resolutions = resolutionsByOrtRunIssueId[ortRunIssueId].orEmpty().map { resolution ->
+                    resolution.copy(
+                        isDeleted = resolution.source == ResolutionSource.SERVER &&
+                            IssueResolution(
+                                message = resolution.message,
+                                messageHash = resolution.messageHash,
+                                reason = resolution.reason,
+                                comment = resolution.comment,
+                                source = resolution.source
+                            ) !in serverResolutions
+                    )
+                },
+                unappliedResolutions = unappliedResolutions,
                 purl = identifierId?.let { purlByIdentifierId[it] }
             )
         }

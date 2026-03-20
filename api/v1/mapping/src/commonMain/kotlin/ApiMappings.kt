@@ -284,6 +284,7 @@ fun Issue.mapToApi() =
         identifier = identifier?.mapToApi(),
         worker = worker,
         resolutions = resolutions.map { it.mapToApi() },
+        unappliedResolutions = unappliedResolutions.map { it.mapToApi() },
         purl = purl
     )
 
@@ -296,7 +297,8 @@ fun ApiIssue.mapToModel() =
         affectedPath = affectedPath,
         identifier = identifier?.mapToModel(),
         worker = worker,
-        resolutions = resolutions.map { it.mapToModel() }
+        resolutions = resolutions.map { it.mapToModel() },
+        unappliedResolutions = unappliedResolutions.map { it.mapToModel() }
     )
 
 fun ApiIssueResolution.mapToModel() =

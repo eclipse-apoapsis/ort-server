@@ -19,8 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.shared.apimappings
 
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution as ApiAppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution as ApiIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason as ApiIssueResolutionReason
 
@@ -30,6 +32,15 @@ fun IssueResolution.mapToApi() = ApiIssueResolution(
     reason = reason.mapToApi(),
     comment = comment,
     source = source.mapToApi()
+)
+
+fun AppliedIssueResolution.mapToApi() = ApiAppliedIssueResolution(
+    message = message,
+    messageHash = messageHash,
+    reason = reason.mapToApi(),
+    comment = comment,
+    source = source.mapToApi(),
+    isDeleted = isDeleted
 )
 
 fun IssueResolutionReason.mapToApi() = when (this) {
@@ -43,3 +54,12 @@ fun ApiIssueResolutionReason.mapToModel() = when (this) {
     ApiIssueResolutionReason.CANT_FIX_ISSUE -> IssueResolutionReason.CANT_FIX_ISSUE
     ApiIssueResolutionReason.SCANNER_ISSUE -> IssueResolutionReason.SCANNER_ISSUE
 }
+
+fun ApiAppliedIssueResolution.mapToModel() = AppliedIssueResolution(
+    message = message,
+    messageHash = messageHash,
+    reason = reason.mapToModel(),
+    comment = comment,
+    source = source.mapToModel(),
+    isDeleted = isDeleted
+)

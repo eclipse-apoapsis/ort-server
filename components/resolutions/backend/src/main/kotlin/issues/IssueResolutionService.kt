@@ -39,13 +39,13 @@ class IssueResolutionService(
     private val eventStore: IssueResolutionEventStore,
     private val repositoryService: RepositoryService
 ) {
-    internal fun createResolution(
+    fun createResolution(
         repositoryId: RepositoryId,
         message: String,
         reason: IssueResolutionReason,
         comment: String,
         createdBy: String
-    ): Result<IssueResolutionState, IssueResolutionError> = db.blockingQuery {
+    ): Result<Unit, IssueResolutionError> = db.blockingQuery {
         binding {
             validateRepositoryExists(repositoryId).bind()
             val messageHash = calculateResolutionMessageHash(message)
@@ -63,10 +63,8 @@ class IssueResolutionService(
                 ),
                 createdBy = createdBy
             )
-            val newState = state.apply(event)
 
             eventStore.appendEvent(event)
-            newState
         }
     }
 

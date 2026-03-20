@@ -76,19 +76,13 @@ class IssueResolutionServiceIntegrationTest : WordSpec({
                 reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
                 comment = "Tracked upstream.",
                 createdBy = "user"
-            ).shouldBeOk {
-                it.repositoryId shouldBe repositoryId
-                it.message shouldBe "Analyzer failed to parse manifest."
-                it.reason shouldBe IssueResolutionReason.BUILD_TOOL_ISSUE
-                it.comment shouldBe "Tracked upstream."
-                it.isDeleted shouldBe false
-                it.version shouldBe 1
-            }
+            ) should beOk()
 
             service.getResolutionsForRepository(repositoryId).shouldBeOk {
                 it should containExactly(
                     IssueResolution(
                         message = "Analyzer failed to parse manifest.",
+                        messageHash = calculateResolutionMessageHash("Analyzer failed to parse manifest."),
                         reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
                         comment = "Tracked upstream.",
                         source = ResolutionSource.SERVER
@@ -240,12 +234,14 @@ class IssueResolutionServiceIntegrationTest : WordSpec({
                 it should containExactly(
                     IssueResolution(
                         message = "Analyzer failed to parse manifest.",
+                        messageHash = calculateResolutionMessageHash("Analyzer failed to parse manifest."),
                         reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
                         comment = "Tracked upstream.",
                         source = ResolutionSource.SERVER
                     ),
                     IssueResolution(
                         message = "Scanner produced a false positive.",
+                        messageHash = calculateResolutionMessageHash("Scanner produced a false positive."),
                         reason = IssueResolutionReason.SCANNER_ISSUE,
                         comment = "Waiting for scanner fix.",
                         source = ResolutionSource.SERVER
@@ -283,6 +279,7 @@ class IssueResolutionServiceIntegrationTest : WordSpec({
                 it should containExactly(
                     IssueResolution(
                         message = "Analyzer failed to parse manifest.",
+                        messageHash = calculateResolutionMessageHash("Analyzer failed to parse manifest."),
                         reason = IssueResolutionReason.SCANNER_ISSUE,
                         comment = "Scanner fix pending.",
                         source = ResolutionSource.SERVER
