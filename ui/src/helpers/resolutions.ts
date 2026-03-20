@@ -30,6 +30,10 @@ export function isVulnerabilityItem(
   return 'vulnerability' in item;
 }
 
+export function isIssueItem(item: ItemWithResolutions): item is Issue {
+  return 'source' in item;
+}
+
 export function getAppliedVulnerabilityResolutions(
   item: VulnerabilityWithDetails
 ) {
@@ -55,6 +59,25 @@ export function hasVulnerabilityResolutionActivity(
   );
 }
 
+export function getAppliedIssueResolutions(item: Issue, repositoryId?: string) {
+  void repositoryId;
+
+  return item.resolutions ?? [];
+}
+
+export function getUnappliedIssueResolutions(item: Issue) {
+  return (item.unappliedResolutions ?? []).filter(
+    (resolution) => resolution.message === item.message
+  );
+}
+
+export function hasIssueResolutionActivity(item: Issue) {
+  return (
+    getAppliedIssueResolutions(item).length > 0 ||
+    getUnappliedIssueResolutions(item).length > 0
+  );
+}
+
 export function getResolvedStatus(item: ItemWithResolutions) {
   if (isVulnerabilityItem(item)) {
     return getAppliedVulnerabilityResolutions(item).length > 0
@@ -62,7 +85,42 @@ export function getResolvedStatus(item: ItemWithResolutions) {
       : 'Unresolved';
   }
 
+  if (isIssueItem(item)) {
+    return hasIssueResolutionActivity(item) ? 'Resolved' : 'Unresolved';
+  }
+
   return item.resolutions && item.resolutions.length > 0
     ? 'Resolved'
     : 'Unresolved';
+}
+
+// Unit tests.
+
+if (import.meta.vitest) {
+  const { describe, it, expect } = import.meta.vitest;
+
+  describe('getAppliedIssueResolutions', () => {
+    it('return applied server issue resolutions without re-filtering by message', () => {
+      const issue = {
+        source: 'Analyzer',
+        message: 'Rendered issue message',
+        resolutions: [
+          {
+            message:
+              'Persisted server resolution message that does not equal the rendered message',
+            messageHash: 'abc123',
+            reason: 'BUILD_TOOL_ISSUE',
+            comment: 'Persisted after rerun',
+            source: 'SERVER',
+            isDeleted: false,
+          },
+        ],
+        unappliedResolutions: [],
+      } as unknown as Issue;
+
+      expect(getAppliedIssueResolutions(issue)).toStrictEqual(
+        issue.resolutions ?? []
+      );
+    });
+  });
 }

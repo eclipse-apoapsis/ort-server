@@ -31,7 +31,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import z from 'zod';
 
 import { Issue, Severity } from '@/api';
@@ -75,7 +75,10 @@ import {
 } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { getResolvedStatus } from '@/helpers/resolutions';
+import {
+  getResolvedStatus,
+  hasIssueResolutionActivity,
+} from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
@@ -185,36 +188,6 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
         </Badge>
       </div>
     </div>
-  );
-};
-
-const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
-  const issue = row.original;
-  const hasResolutions = getResolvedStatus(issue) === 'Resolved';
-
-  return (
-    <Accordion
-      type='multiple'
-      className='w-full'
-      defaultValue={hasResolutions ? ['resolutions'] : ['details']}
-    >
-      <AccordionItem value='resolutions'>
-        <AccordionTrigger className='font-semibold'>
-          Resolutions
-        </AccordionTrigger>
-        <AccordionContent>
-          <Resolutions item={issue} />
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value='details'>
-        <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
-        <AccordionContent>
-          <div className='text-muted-foreground break-all whitespace-pre-line italic'>
-            {issue.message || 'No details.'}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
   );
 };
 
@@ -470,6 +443,47 @@ const IssuesComponent = () => {
       query: { limit: ALL_ITEMS },
     }),
   });
+
+  const renderSubComponent = useCallback(
+    ({ row }: { row: Row<Issue> }) => {
+      const issue = row.original;
+      const hasAnyResolution = hasIssueResolutionActivity(issue);
+
+      return (
+        <Accordion
+          type='multiple'
+          className='w-full'
+          defaultValue={
+            hasAnyResolution ? ['resolutions'] : ['resolutions', 'details']
+          }
+        >
+          <AccordionItem value='resolutions'>
+            <AccordionTrigger className='font-semibold'>
+              {hasAnyResolution ? 'Resolutions' : 'Create a resolution'}
+            </AccordionTrigger>
+            <AccordionContent>
+              <Resolutions
+                item={issue}
+                repositoryId={params.repoId}
+                runId={ortRun.id}
+              />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value='details'>
+            <AccordionTrigger className='font-semibold'>
+              Details
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className='text-muted-foreground break-all whitespace-pre-line italic'>
+                {issue.message || 'No details.'}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      );
+    },
+    [params.repoId, ortRun.id]
+  );
 
   // Control the expanded state of the subrows manually, so that when
   // a user arrives at the table view via a URL link with search parameter
