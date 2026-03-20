@@ -37,3 +37,9 @@ fun IssueResolutionReason.mapToApi() = when (this) {
     IssueResolutionReason.CANT_FIX_ISSUE -> ApiIssueResolutionReason.CANT_FIX_ISSUE
     IssueResolutionReason.SCANNER_ISSUE -> ApiIssueResolutionReason.SCANNER_ISSUE
 }
+
+fun ApiIssueResolutionReason.mapToModel() = when (this) {
+    ApiIssueResolutionReason.BUILD_TOOL_ISSUE -> IssueResolutionReason.BUILD_TOOL_ISSUE
+    ApiIssueResolutionReason.CANT_FIX_ISSUE -> IssueResolutionReason.CANT_FIX_ISSUE
+    ApiIssueResolutionReason.SCANNER_ISSUE -> IssueResolutionReason.SCANNER_ISSUE
+}
