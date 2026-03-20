@@ -60,7 +60,7 @@ fun Application.configureRouting() {
                 pluginManagerRoutes(get(), get(), get())
                 products()
                 repositories()
-                resolutionRoutes(get())
+                resolutionRoutes(get(), get())
                 runs()
                 searchRoutes(get())
                 secretsCompositionRoutes(get(), get())

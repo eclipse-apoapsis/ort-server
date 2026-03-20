@@ -24,6 +24,8 @@ import io.ktor.server.testing.ApplicationTestBuilder
 
 import io.mockk.mockk
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -31,25 +33,35 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 @Suppress("AbstractClassCanBeConcreteClass")
 abstract class ResolutionsIntegrationTest(body: ResolutionsIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
+    lateinit var issueResolutionService: IssueResolutionService
     lateinit var vulnerabilityResolutionService: VulnerabilityResolutionService
 
     init {
         beforeEach {
+            val repositoryService = RepositoryService(
+                db = dbExtension.db,
+                ortRunRepository = dbExtension.fixtures.ortRunRepository,
+                repositoryRepository = dbExtension.fixtures.repositoryRepository,
+                analyzerJobRepository = dbExtension.fixtures.analyzerJobRepository,
+                advisorJobRepository = dbExtension.fixtures.advisorJobRepository,
+                scannerJobRepository = dbExtension.fixtures.scannerJobRepository,
+                evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
+                reporterJobRepository = dbExtension.fixtures.reporterJobRepository,
+                notifierJobRepository = dbExtension.fixtures.notifierJobRepository,
+                authorizationService = mockk()
+            )
+
+            val issueResolutionEventStore = IssueResolutionEventStore(dbExtension.db)
+
+            issueResolutionService = IssueResolutionService(
+                db = dbExtension.db,
+                eventStore = issueResolutionEventStore,
+                repositoryService = repositoryService
+            )
             vulnerabilityResolutionService = VulnerabilityResolutionService(
                 db = dbExtension.db,
                 eventStore = VulnerabilityResolutionEventStore(dbExtension.db),
-                repositoryService = RepositoryService(
-                    db = dbExtension.db,
-                    ortRunRepository = dbExtension.fixtures.ortRunRepository,
-                    repositoryRepository = dbExtension.fixtures.repositoryRepository,
-                    analyzerJobRepository = dbExtension.fixtures.analyzerJobRepository,
-                    advisorJobRepository = dbExtension.fixtures.advisorJobRepository,
-                    scannerJobRepository = dbExtension.fixtures.scannerJobRepository,
-                    evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
-                    reporterJobRepository = dbExtension.fixtures.reporterJobRepository,
-                    notifierJobRepository = dbExtension.fixtures.notifierJobRepository,
-                    authorizationService = mockk()
-                )
+                repositoryService = repositoryService
             )
         }
 
@@ -59,7 +71,12 @@ abstract class ResolutionsIntegrationTest(body: ResolutionsIntegrationTest.() ->
     fun resolutionsTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { resolutionRoutes(vulnerabilityResolutionService) },
+        routes = {
+            resolutionRoutes(
+                issueResolutionService,
+                vulnerabilityResolutionService
+            )
+        },
         block = block
     )
 }
