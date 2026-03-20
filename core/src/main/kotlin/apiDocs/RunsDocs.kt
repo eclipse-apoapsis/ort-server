@@ -60,7 +60,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -236,7 +239,25 @@ val getRunIssues: RouteConfig.() -> Unit = {
                                 message = "An issue",
                                 severity = Severity.ERROR,
                                 source = "source",
-                                timestamp = CREATED_AT
+                                timestamp = CREATED_AT,
+                                resolutions = listOf(
+                                    AppliedIssueResolution(
+                                        message = "An issue",
+                                        messageHash = "stable-message-hash",
+                                        reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                                        comment = "Tracked upstream.",
+                                        source = ResolutionSource.SERVER,
+                                        isDeleted = false
+                                    )
+                                ),
+                                unappliedResolutions = listOf(
+                                    IssueResolution(
+                                        message = "A future issue",
+                                        reason = IssueResolutionReason.SCANNER_ISSUE,
+                                        comment = "Will apply on the next run.",
+                                        source = ResolutionSource.SERVER
+                                    )
+                                )
                             )
                         ),
                         PagingData(
