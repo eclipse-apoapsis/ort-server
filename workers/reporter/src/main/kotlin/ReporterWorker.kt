@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
@@ -53,7 +54,8 @@ internal class ReporterWorker(
     private val runner: ReporterRunner,
     private val ortRunService: OrtRunService,
     private val linkGenerator: ReportDownloadLinkGenerator,
-    private val adminConfigService: AdminConfigService
+    private val adminConfigService: AdminConfigService,
+    private val issueResolutionService: IssueResolutionService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidReporterJob(jobId)
@@ -126,7 +128,8 @@ internal class ReporterWorker(
                 context,
                 adminConfigService,
                 ortResult.repository.config.resolutions,
-                RepositoryId(ortRun.repositoryId)
+                RepositoryId(ortRun.repositoryId),
+                issueResolutionService
             )
 
             val resolvedReporterItems = resolutionProvider.matchResolutions(

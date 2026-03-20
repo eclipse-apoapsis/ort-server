@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import com.github.michaelbull.result.Ok
+
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -43,6 +45,7 @@ import java.time.Instant
 import kotlin.time.Clock
 import kotlin.time.toKotlinInstant
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
@@ -187,7 +190,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             environmentService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -332,7 +336,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             environmentService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -383,7 +388,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             mockk(),
             mockk(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -456,7 +462,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             environmentService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -523,7 +530,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             environmentService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -632,7 +640,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             environmentService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -747,7 +756,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             environmentService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -770,7 +780,8 @@ class ScannerWorkerTest : StringSpec({
             ortRunService,
             mockk(),
             mockk(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -796,4 +807,8 @@ private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextF
 private fun mockConfigManager() = mockk<ConfigManager> {
     every { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
+}
+
+private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
+    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }

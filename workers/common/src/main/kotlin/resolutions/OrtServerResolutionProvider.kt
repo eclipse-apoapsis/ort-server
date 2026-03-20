@@ -21,10 +21,14 @@ package org.eclipse.apoapsis.ortserver.workers.common.resolutions
 
 import com.github.michaelbull.result.get
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution as ServerIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ServerVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -49,39 +53,50 @@ class OrtServerResolutionProvider(
     /** The [Resolutions] from the repository configuration file. */
     private val repositoryConfigurationResolutions: Resolutions,
 
-    /** The [Resolutions] from the repository managed by the server. */
-    private val managedResolutions: Resolutions
+    /** The issue resolutions from the repository managed by the server. */
+    private val managedIssueResolutions: List<ServerIssueResolution>,
+
+    /** The vulnerability resolutions from the repository managed by the server. */
+    private val managedVulnerabilityResolutions: List<ServerVulnerabilityResolution>
 ) : ResolutionProvider {
-    private val allResolutions =
-        globalResolutions.merge(repositoryConfigurationResolutions).merge(managedResolutions)
+    private val allRuleViolationResolutions =
+        (globalResolutions.ruleViolations + repositoryConfigurationResolutions.ruleViolations).distinct()
+
+    private val allVulnerabilityResolutions =
+        (
+            globalResolutions.vulnerabilities + repositoryConfigurationResolutions.vulnerabilities +
+                managedVulnerabilityResolutions.map { it.mapToOrt() }
+        ).distinct()
 
     companion object {
         /**
          * Create a new instance of [OrtServerResolutionProvider]. The global [Resolutions] file is loaded using the
          * [context] and [adminConfigService]. Resolutions from the repository configuration file are passed as
          * [repositoryConfigurationResolutions]. Resolutions defined in the server [repository][repositoryId] are
-         * loaded using the [vulnerabilityResolutionService].
+         * loaded using the [vulnerabilityResolutionService] and [issueResolutionService].
          *
          * The [vulnerabilityResolutionService] is optional, as it is only required by the advisor worker which is the
-         * only one adding vulnerabilitie to the run.
+         * only one adding vulnerabilities to the run. The [issueResolutionService] is optional because the evaluator
+         * does not add issues to the run.
          */
         fun create(
             context: WorkerContext,
             adminConfigService: AdminConfigService,
             repositoryConfigurationResolutions: Resolutions,
             repositoryId: RepositoryId,
+            issueResolutionService: IssueResolutionService? = null,
             vulnerabilityResolutionService: VulnerabilityResolutionService? = null
         ): OrtServerResolutionProvider {
             val globalResolutions = context.loadGlobalResolutions(adminConfigService)
-            val repositoryResolutions = Resolutions(
-                vulnerabilities = vulnerabilityResolutionService?.getResolutionsForRepository(repositoryId)
-                    ?.get().orEmpty().map { it.mapToOrt() }
-            )
 
             return OrtServerResolutionProvider(
                 globalResolutions = globalResolutions,
                 repositoryConfigurationResolutions = repositoryConfigurationResolutions,
-                managedResolutions = repositoryResolutions
+                managedIssueResolutions = issueResolutionService?.getResolutionsForRepository(repositoryId)
+                    ?.get().orEmpty(),
+                managedVulnerabilityResolutions = vulnerabilityResolutionService
+                    ?.getResolutionsForRepository(repositoryId)
+                    ?.get().orEmpty()
             )
         }
 
@@ -105,13 +120,17 @@ class OrtServerResolutionProvider(
     }
 
     override fun getResolutionsFor(issue: Issue) =
-        allResolutions.issues.filter { it.matches(issue) }
+        globalResolutions.issues.filter { it.matches(issue) } +
+            repositoryConfigurationResolutions.issues.filter { it.matches(issue) } +
+            managedIssueResolutions.filter { resolution ->
+                checkNotNull(resolution.messageHash) == calculateResolutionMessageHash(issue.message)
+            }.map { it.mapToOrt() }
 
     override fun getResolutionsFor(violation: RuleViolation) =
-        allResolutions.ruleViolations.filter { it.matches(violation) }
+        allRuleViolationResolutions.filter { it.matches(violation) }
 
     override fun getResolutionsFor(vulnerability: Vulnerability) =
-        allResolutions.vulnerabilities.filter { it.matches(vulnerability) }
+        allVulnerabilityResolutions.filter { it.matches(vulnerability) }
 
     /**
      * Return a [ResolvedItemsResult] that maps the provided [issues], [ruleViolations], and [vulnerabilities] to their
@@ -123,27 +142,59 @@ class OrtServerResolutionProvider(
         ruleViolations: List<RuleViolation>,
         vulnerabilities: List<Vulnerability>
     ): ResolvedItemsResult {
-        fun <T> resolutionSources(selector: (Resolutions) -> List<T>) = listOf(
-            selector(globalResolutions) to ResolutionSource.GLOBAL_FILE,
-            selector(repositoryConfigurationResolutions) to ResolutionSource.REPOSITORY_FILE,
-            selector(managedResolutions) to ResolutionSource.SERVER
-        )
-
         val issueResolutions = issues.associateWith { issue ->
-            resolutionSources { it.issues }.flatMap { (resolutions, source) ->
-                resolutions.filter { it.matches(issue) }.map { it.mapToModel(source) }
+            buildList {
+                addAll(
+                    globalResolutions.issues
+                        .filter { it.matches(issue) }
+                        .map { it.mapToModel(ResolutionSource.GLOBAL_FILE) }
+                )
+                addAll(
+                    repositoryConfigurationResolutions.issues
+                        .filter { it.matches(issue) }
+                        .map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+                )
+                addAll(
+                    managedIssueResolutions.filter { resolution ->
+                        checkNotNull(resolution.messageHash) == calculateResolutionMessageHash(issue.message)
+                    }
+                        .map { it.copy(source = ResolutionSource.SERVER) }
+                )
             }
         }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
 
         val ruleViolationResolutions = ruleViolations.associateWith { violation ->
-            resolutionSources { it.ruleViolations }.flatMap { (resolutions, source) ->
-                resolutions.filter { it.matches(violation) }.map { it.mapToModel(source) }
+            buildList {
+                addAll(
+                    globalResolutions.ruleViolations
+                        .filter { it.matches(violation) }
+                        .map { it.mapToModel(ResolutionSource.GLOBAL_FILE) }
+                )
+                addAll(
+                    repositoryConfigurationResolutions.ruleViolations
+                        .filter { it.matches(violation) }
+                        .map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+                )
             }
         }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
 
         val vulnerabilityResolutions = vulnerabilities.associateWith { vulnerability ->
-            resolutionSources { it.vulnerabilities }.flatMap { (resolutions, source) ->
-                resolutions.filter { it.matches(vulnerability) }.map { it.mapToModel(source) }
+            buildList {
+                addAll(
+                    globalResolutions.vulnerabilities
+                        .filter { it.matches(vulnerability) }
+                        .map { it.mapToModel(ResolutionSource.GLOBAL_FILE) }
+                )
+                addAll(
+                    repositoryConfigurationResolutions.vulnerabilities
+                        .filter { it.matches(vulnerability) }
+                        .map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+                )
+                addAll(
+                    managedVulnerabilityResolutions
+                        .filter { it.mapToOrt().matches(vulnerability) }
+                        .map { it.copy(source = ResolutionSource.SERVER) }
+                )
             }
         }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
 
