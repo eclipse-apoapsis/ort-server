@@ -21,11 +21,16 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlin.time.Duration.Companion.days
 
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -159,5 +164,9 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
 
         singleOf(::ReporterRunner)
         singleOf(::ReporterWorker)
+        single<AuthorizationService> { DbAuthorizationService(get()) }
+        singleOf(::RepositoryService)
+        singleOf(::IssueResolutionEventStore)
+        singleOf(::IssueResolutionService)
     }
 }

@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -48,6 +49,7 @@ internal class AdvisorWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
     private val adminConfigService: AdminConfigService,
+    private val issueResolutionService: IssueResolutionService,
     private val vulnerabilityResolutionService: VulnerabilityResolutionService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
@@ -90,6 +92,7 @@ internal class AdvisorWorker(
                 adminConfigService,
                 ortResult.repository.config.resolutions,
                 RepositoryId(ortRun.repositoryId),
+                issueResolutionService,
                 vulnerabilityResolutionService
             )
 

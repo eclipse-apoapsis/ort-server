@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -51,7 +52,8 @@ class ScannerWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService,
-    private val adminConfigService: AdminConfigService
+    private val adminConfigService: AdminConfigService,
+    private val issueResolutionService: IssueResolutionService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortRun, ortResult) = db.dbQuery {
@@ -98,7 +100,8 @@ class ScannerWorker(
                 context,
                 adminConfigService,
                 ortResult.repository.config.resolutions,
-                RepositoryId(ortRun.repositoryId)
+                RepositoryId(ortRun.repositoryId),
+                issueResolutionService
             )
 
             // Apply resolutions using the common function.
