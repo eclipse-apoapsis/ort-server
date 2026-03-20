@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.shared.apimodel
 
-/**
- * Possible reasons for resolving an issue using an [IssueResolution].
- */
-enum class IssueResolutionReason {
-    BUILD_TOOL_ISSUE,
-    CANT_FIX_ISSUE,
-    SCANNER_ISSUE
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class IssueResolution(
+    val message: String,
+    val messageHash: String? = null,
+    val reason: IssueResolutionReason,
+    val comment: String,
+    val source: ResolutionSource
+)
