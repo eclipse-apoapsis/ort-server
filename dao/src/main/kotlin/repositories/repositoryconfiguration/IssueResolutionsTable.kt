@@ -65,5 +65,10 @@ class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     var comment by IssueResolutionsTable.comment
     var source by IssueResolutionsTable.resolutionSource
 
-    fun mapToModel() = IssueResolution(message, reason, comment, source)
+    fun mapToModel() = IssueResolution(
+        message = message,
+        reason = reason,
+        comment = comment,
+        source = source
+    )
 }

@@ -23,6 +23,8 @@ import kotlin.time.Instant
 
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
+
 /**
  * A data class describing an issue that occurred during an ORT run.
  */

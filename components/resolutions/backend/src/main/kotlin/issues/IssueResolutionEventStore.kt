@@ -124,6 +124,7 @@ class IssueResolutionEventStore(private val db: Database) {
     private fun ResultRow.toIssueResolution(): IssueResolution =
         IssueResolution(
             message = this[IssueResolutionsReadModel.message],
+            messageHash = this[IssueResolutionsReadModel.messageHash],
             reason = this[IssueResolutionsReadModel.reason],
             comment = this[IssueResolutionsReadModel.comment],
             source = ResolutionSource.SERVER
