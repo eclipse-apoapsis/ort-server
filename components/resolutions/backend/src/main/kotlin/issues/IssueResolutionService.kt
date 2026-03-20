@@ -168,7 +168,7 @@ class IssueResolutionService(
         }
 }
 
-internal sealed class IssueResolutionError(val message: String) {
+sealed class IssueResolutionError(val message: String) {
     class InvalidState(message: String) : IssueResolutionError(message)
 
     class RepositoryNotFound(repositoryId: RepositoryId) :

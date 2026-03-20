@@ -43,6 +43,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
@@ -147,6 +148,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = contextFactory,
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockVulnerabilityResolutionService()
         )
 
@@ -174,6 +176,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = mockContextFactory(),
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockVulnerabilityResolutionService()
         )
 
@@ -221,6 +224,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = contextFactory,
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockVulnerabilityResolutionService()
         )
 
@@ -279,6 +283,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = contextFactory,
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockVulnerabilityResolutionService()
         )
 
@@ -399,6 +404,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = contextFactory,
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockVulnerabilityResolutionService()
         )
 
@@ -503,6 +509,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = contextFactory,
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockVulnerabilityResolutionService(listOf(serviceResolution))
         )
 
@@ -528,6 +535,7 @@ class AdvisorWorkerTest : StringSpec({
             ortRunService = ortRunService,
             contextFactory = mockContextFactory(),
             adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
             vulnerabilityResolutionService = mockk()
         )
 
@@ -570,4 +578,8 @@ private fun mockVulnerabilityResolutionService(
     resolutions: List<ModelVulnerabilityResolution> = emptyList()
 ) = mockk<VulnerabilityResolutionService> {
     every { getResolutionsForRepository(any()) } returns Ok(resolutions)
+}
+
+private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
+    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }
