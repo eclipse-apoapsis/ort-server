@@ -138,7 +138,7 @@ export function RunsFilterForm({
                       />
                     </FormControl>
                     <FormLabel htmlFor='visible-runs' className='-ml-2'>
-                      visible runs
+                      runs on page
                     </FormLabel>
                   </FormItem>
 
