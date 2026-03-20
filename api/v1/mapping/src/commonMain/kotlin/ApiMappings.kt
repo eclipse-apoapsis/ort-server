@@ -36,8 +36,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as 
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as ApiFilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
-import org.eclipse.apoapsis.ortserver.api.v1.model.IssueResolution as ApiIssueResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.IssueResolutionReason as ApiIssueResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
@@ -160,6 +158,8 @@ import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
+import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution as ApiIssueResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason as ApiIssueResolutionReason
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
@@ -298,15 +298,6 @@ fun ApiIssue.mapToModel() =
         worker = worker,
         resolutions = resolutions.map { it.mapToModel() }
     )
-
-fun IssueResolution.mapToApi() =
-    ApiIssueResolution(message = message, reason = reason.mapToApi(), comment = comment, source = source.mapToApi())
-
-fun IssueResolutionReason.mapToApi() = when (this) {
-    IssueResolutionReason.BUILD_TOOL_ISSUE -> ApiIssueResolutionReason.BUILD_TOOL_ISSUE
-    IssueResolutionReason.CANT_FIX_ISSUE -> ApiIssueResolutionReason.CANT_FIX_ISSUE
-    IssueResolutionReason.SCANNER_ISSUE -> ApiIssueResolutionReason.SCANNER_ISSUE
-}
 
 fun ApiIssueResolution.mapToModel() =
     IssueResolution(message = message, reason = reason.mapToModel(), comment = comment, source = source.mapToModel())

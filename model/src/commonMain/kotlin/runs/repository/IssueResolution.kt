@@ -24,6 +24,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class IssueResolution(
     val message: String,
+    val messageHash: String? = null,
     val reason: IssueResolutionReason,
     val comment: String,
     val source: ResolutionSource
