@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
+import kotlin.collections.forEach
+
 import org.eclipse.apoapsis.ortserver.dao.queries.analyzer.GetAnalyzerRunForAnalyzerJob
 import org.eclipse.apoapsis.ortserver.dao.queries.analyzer.GetAnalyzerRunQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobDao
@@ -26,9 +28,12 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsT
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
@@ -60,6 +65,28 @@ class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
          * Constant for the _worker_ property value set for issues to mark them as created by the Analyzer.
          */
         const val ISSUE_WORKER_TYPE = "analyzer"
+
+        /**
+         * Obtain a [Set] with all [Issue]s recorded for the given [dependencyGraphs]. Make sure that these issues
+         * reference the right package and worker.
+         */
+        fun collectDependencyGraphIssues(dependencyGraphs: Map<String, DependencyGraph>): Set<Issue> {
+            val issues = mutableSetOf<Issue>()
+
+            dependencyGraphs.values.forEach { graph ->
+                graph.nodes.forEach { node ->
+                    node.issues.mapTo(issues) { issue ->
+                        issue.copy(
+                            timestamp = issue.timestamp.toDatabasePrecision(),
+                            identifier = graph.packages[node.pkg],
+                            worker = ISSUE_WORKER_TYPE
+                        )
+                    }
+                }
+            }
+
+            return issues
+        }
     }
 
     var analyzerJob by AnalyzerJobDao referencedOn AnalyzerRunsTable.analyzerJobId
