@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
@@ -36,6 +37,7 @@ import org.jetbrains.exposed.v1.dao.LongEntityClass
  */
 object IssueResolutionsTable : LongIdTable("issue_resolutions") {
     val message = text("message")
+    val messageHash = text("message_hash").nullable()
     val reason = enumerationByName<IssueResolutionReason>("reason")
     val comment = text("comment")
     val resolutionSource = enumerationByName<ResolutionSource>("source")
@@ -43,17 +45,28 @@ object IssueResolutionsTable : LongIdTable("issue_resolutions") {
 
 class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<IssueResolutionDao>(IssueResolutionsTable) {
-        fun findByIssueResolution(issueResolution: IssueResolution): IssueResolutionDao? =
-            find {
-                IssueResolutionsTable.message eq issueResolution.message and
-                        (IssueResolutionsTable.reason eq issueResolution.reason) and
-                        (IssueResolutionsTable.comment eq issueResolution.comment) and
-                        (IssueResolutionsTable.resolutionSource eq issueResolution.source)
+        fun findByIssueResolution(issueResolution: IssueResolution): IssueResolutionDao? {
+            val messageCondition = when (issueResolution.source) {
+                ResolutionSource.SERVER -> IssueResolutionsTable.messageHash eq issueResolution.messageHash
+                else -> IssueResolutionsTable.message eq issueResolution.message
+            }
+
+            return find {
+                messageCondition and
+                    (IssueResolutionsTable.reason eq issueResolution.reason) and
+                    (IssueResolutionsTable.comment eq issueResolution.comment) and
+                    (IssueResolutionsTable.resolutionSource eq issueResolution.source)
             }.firstOrNull()
+        }
 
         fun getOrPut(issueResolution: IssueResolution): IssueResolutionDao =
             findByIssueResolution(issueResolution) ?: new {
                 message = issueResolution.message
+                messageHash = if (issueResolution.source == ResolutionSource.SERVER) {
+                    issueResolution.messageHash ?: calculateResolutionMessageHash(issueResolution.message)
+                } else {
+                    null
+                }
                 reason = issueResolution.reason
                 comment = issueResolution.comment
                 source = issueResolution.source
@@ -61,12 +74,14 @@ class IssueResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     }
 
     var message by IssueResolutionsTable.message
+    var messageHash by IssueResolutionsTable.messageHash
     var reason by IssueResolutionsTable.reason
     var comment by IssueResolutionsTable.comment
     var source by IssueResolutionsTable.resolutionSource
 
     fun mapToModel() = IssueResolution(
         message = message,
+        messageHash = messageHash,
         reason = reason,
         comment = comment,
         source = source

@@ -33,6 +33,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
+import java.nio.charset.StandardCharsets
+
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -47,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
@@ -91,6 +94,8 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
         ortRunId = fixtures.ortRun.id
     }
+
+    val gradleInspectorFailureMessage = loadTestResource("resolvedconfiguration/gradle-inspector-failure-message.txt")
 
     "get" should {
         "return the resolved configuration" {
@@ -727,6 +732,132 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             storedResolvedIssues shouldHaveSize 2
         }
 
+        "persist long server issue resolutions without index row size errors" {
+            val longMessage = buildString {
+                append("Gradle Inspector failed to resolve dependencies for path 'orbeon-war/build.gradle': ")
+                repeat(150) { append("BuildOperationRunner\$1.execute(ClassReader.java:199) ") }
+            }
+            val issue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = longMessage,
+                severity = Severity.ERROR
+            )
+            val resolution = IssueResolution(
+                message = longMessage,
+                messageHash = "a".repeat(40),
+                reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                comment = "Test comment.",
+                source = ResolutionSource.SERVER
+            )
+
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue)
+            )
+
+            resolvedConfigurationRepository.addResolutions(
+                ortRunId,
+                ResolvedItemsResult(
+                    issues = mapOf(issue to listOf(resolution)),
+                    ruleViolations = emptyMap(),
+                    vulnerabilities = emptyMap()
+                )
+            )
+
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.issues should containExactly(resolution)
+
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues shouldHaveSize 1
+        }
+
+        "persist server issue resolutions for the exact Gradle inspector failure message" {
+            val exactFailureMessage = gradleInspectorFailureMessage
+            val issue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = exactFailureMessage,
+                severity = Severity.ERROR
+            )
+            val resolution = IssueResolution(
+                message = exactFailureMessage,
+                messageHash = calculateResolutionMessageHash(exactFailureMessage),
+                reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                comment = "Test comment.",
+                source = ResolutionSource.SERVER
+            )
+
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue)
+            )
+
+            resolvedConfigurationRepository.addResolutions(
+                ortRunId,
+                ResolvedItemsResult(
+                    issues = mapOf(issue to listOf(resolution)),
+                    ruleViolations = emptyMap(),
+                    vulnerabilities = emptyMap()
+                )
+            )
+
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.issues should containExactly(resolution)
+
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues shouldHaveSize 1
+        }
+
+        "persist server issue resolutions for a short deprecated package message" {
+            val exactFailureMessage = "deprecated connect@2.1.3: connect 2.x series is deprecated"
+            val issue = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = exactFailureMessage,
+                severity = Severity.ERROR
+            )
+            val resolution = IssueResolution(
+                message = exactFailureMessage,
+                messageHash = calculateResolutionMessageHash(exactFailureMessage),
+                reason = IssueResolutionReason.BUILD_TOOL_ISSUE,
+                comment = "Test comment.",
+                source = ResolutionSource.SERVER
+            )
+
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue)
+            )
+
+            resolvedConfigurationRepository.addResolutions(
+                ortRunId,
+                ResolvedItemsResult(
+                    issues = mapOf(issue to listOf(resolution)),
+                    ruleViolations = emptyMap(),
+                    vulnerabilities = emptyMap()
+                )
+            )
+
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.issues should containExactly(resolution)
+
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues shouldHaveSize 1
+        }
+
         "handle same resolution matching multiple rule violations without constraint violation" {
             // Create two rule violations via evaluator run
             val ruleViolation1 = fixtures.ruleViolation
@@ -910,6 +1041,11 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
         }
     }
 })
+
+private fun loadTestResource(path: String): String =
+    checkNotNull(DaoResolvedConfigurationRepositoryTest::class.java.classLoader.getResourceAsStream(path)) {
+        "Resource '$path' not found."
+    }.use { it.readBytes().toString(StandardCharsets.UTF_8) }
 
 private val identifier1 = Identifier("Maven", "org.example", "package1", "1.0")
 private val identifier2 = Identifier("Maven", "org.example", "package2", "1.0")

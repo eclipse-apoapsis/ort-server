@@ -61,9 +61,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
 import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryParameter
+import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
@@ -296,7 +297,10 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
             .where {
                 (OrtRunsIssuesTable.ortRunId eq ortRunId) and
                     (IssuesTable.issueSource eq issue.source) and
-                    (DigestFunction(IssuesTable.message) eq DigestFunction(stringLiteral(issue.message))) and
+                    (
+                        DigestFunction(IssuesTable.message) eq
+                            DigestFunction(QueryParameter(issue.message, TextColumnType()))
+                        ) and
                     (IssuesTable.severity eq issue.severity) and
                     (IssuesTable.affectedPath eq issue.affectedPath) and
                         (identifierId?.let { OrtRunsIssuesTable.identifierId eq it } ?: Op.TRUE)
