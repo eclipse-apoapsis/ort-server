@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pencil } from 'lucide-react';
-import { useState } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 
 import {
-  deleteIssueResolutionForRepositoryMutation,
-  deleteVulnerabilityResolutionMutation,
   getRunIssuesQueryKey,
   getRunVulnerabilitiesQueryKey,
   patchIssueResolutionForRepositoryMutation,
@@ -34,16 +31,12 @@ import {
   postVulnerabilityResolutionMutation,
 } from '@/api/@tanstack/react-query.gen';
 import {
-  AppliedIssueResolution,
-  AppliedVulnerabilityResolution,
-  IssueResolution,
   IssueResolutionReason,
   PatchIssueResolution,
   PatchVulnerabilityResolution,
   PostIssueResolution,
   PostVulnerabilityResolution,
   VulnerabilityResolutionReason,
-  VulnerabilityResolution,
 } from '@/api/types.gen';
 import {
   zIssueResolutionReason,
@@ -80,28 +73,16 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
-import {
-  getAppliedIssueResolutions,
-  getAppliedVulnerabilityResolutions,
-  getUnappliedIssueResolutions,
-  getUnappliedVulnerabilityResolutions,
-  hasIssueResolutionActivity,
-  hasVulnerabilityResolutionActivity,
-  isIssueItem,
-  isVulnerabilityItem,
-  ItemWithResolutions,
-} from '@/helpers/resolutions';
+
+import '@/helpers/resolutions';
+
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
-
-type ResolutionFormValues = {
-  comment: string;
-  reason: IssueResolutionReason | VulnerabilityResolutionReason;
-};
-type ResolutionItem =
-  | NonNullable<ItemWithResolutions['resolutions']>[number]
-  | IssueResolution
-  | VulnerabilityResolution;
+import {
+  ManagedResolutionContext,
+  ResolutionDisplayItem,
+  ResolutionFormValues,
+} from './utils';
 
 type ResolutionFormFieldsProps = {
   form: ReturnType<typeof useForm<ResolutionFormValues>>;
@@ -155,13 +136,6 @@ function ResolutionFormFields({
   );
 }
 
-type ManagedResolutionContext = {
-  itemType: 'issue' | 'vulnerability';
-  identifier: string;
-  repositoryId: string;
-  runId: number;
-};
-
 type ResolutionFormProps = {
   context: ManagedResolutionContext;
   mode: 'create' | 'edit';
@@ -170,7 +144,7 @@ type ResolutionFormProps = {
   onSuccess?: () => void;
 };
 
-function ResolutionForm({
+export function ResolutionForm({
   context,
   mode,
   defaultValues,
@@ -372,120 +346,6 @@ function ResolutionForm({
 
   return <CardContent>{formContent}</CardContent>;
 }
-
-type ResolutionDisplayItem = {
-  key: string;
-  resolution: ResolutionItem;
-  state: 'applied' | 'pending-create' | 'pending-update' | 'pending-delete';
-  showActions: boolean;
-};
-
-function getResolutionKey(
-  resolution:
-    | Pick<AppliedIssueResolution, 'message' | 'messageHash' | 'source'>
-    | Pick<AppliedVulnerabilityResolution, 'externalId' | 'source'>
-    | Pick<IssueResolution, 'message' | 'messageHash' | 'source'>
-    | Pick<VulnerabilityResolution, 'externalId' | 'source'>
-) {
-  if ('message' in resolution) {
-    return `${resolution.source}:${resolution.messageHash ?? resolution.message}`;
-  }
-
-  return `${resolution.source}:${resolution.externalId}`;
-}
-
-function getManagedDisplayItems(
-  appliedResolutions:
-    | AppliedIssueResolution[]
-    | AppliedVulnerabilityResolution[],
-  unappliedResolutions: IssueResolution[] | VulnerabilityResolution[],
-  canManage: boolean
-): ResolutionDisplayItem[] {
-  const unappliedBySource = new Map(
-    unappliedResolutions.map((resolution) => [
-      getResolutionKey(resolution),
-      resolution,
-    ])
-  );
-
-  const displayItems: ResolutionDisplayItem[] = [];
-
-  for (const resolution of appliedResolutions) {
-    const source = getResolutionKey(resolution);
-    const unappliedResolution = unappliedBySource.get(source);
-
-    displayItems.push({
-      key: `${source}:applied`,
-      resolution,
-      state:
-        resolution.isDeleted && !unappliedResolution
-          ? 'pending-delete'
-          : 'applied',
-      showActions: !resolution.isDeleted && !unappliedResolution && canManage,
-    });
-
-    if (unappliedResolution) {
-      displayItems.push({
-        key: `${source}:pending-update`,
-        resolution: unappliedResolution,
-        state: 'pending-update',
-        showActions: canManage,
-      });
-    }
-  }
-
-  for (const resolution of unappliedResolutions) {
-    if (
-      !appliedResolutions.some(
-        (applied) => getResolutionKey(applied) === getResolutionKey(resolution)
-      )
-    ) {
-      displayItems.push({
-        key: `${getResolutionKey(resolution)}:pending-create`,
-        resolution,
-        state: 'pending-create',
-        showActions: canManage,
-      });
-    }
-  }
-
-  return displayItems;
-}
-
-function getDisplayItems(
-  item: ItemWithResolutions,
-  canManage: boolean
-): ResolutionDisplayItem[] {
-  if (isVulnerabilityItem(item)) {
-    return getManagedDisplayItems(
-      getAppliedVulnerabilityResolutions(item),
-      getUnappliedVulnerabilityResolutions(item),
-      canManage
-    );
-  }
-
-  if (isIssueItem(item)) {
-    return getManagedDisplayItems(
-      getAppliedIssueResolutions(item),
-      getUnappliedIssueResolutions(item),
-      canManage
-    );
-  }
-
-  return (item.resolutions ?? []).map((resolution) => ({
-    key: resolution.source,
-    resolution,
-    state: 'applied',
-    showActions: false,
-  }));
-}
-
-type ResolutionsProps = {
-  item: ItemWithResolutions;
-  repositoryId?: string;
-  runId?: number;
-};
-
 type ResolutionCardProps = {
   displayItem: ResolutionDisplayItem;
   editingKey: string | null;
@@ -494,7 +354,7 @@ type ResolutionCardProps = {
   onDelete?: () => void;
 };
 
-function ResolutionCard({
+export function ResolutionCard({
   displayItem,
   editingKey,
   setEditingKey,
@@ -568,7 +428,7 @@ function ResolutionCard({
                   ? 'ID Matcher:'
                   : 'Message Matcher:'}
               </div>
-              <div className='text-muted-foreground flex-1 whitespace-pre-wrap'>
+              <div className='text-muted-foreground flex-1 break-all whitespace-pre-wrap'>
                 {'externalId' in resolution
                   ? resolution.externalId
                   : resolution.message}
@@ -594,192 +454,5 @@ function ResolutionCard({
         </CardContent>
       )}
     </Card>
-  );
-}
-
-function VulnerabilityResolutions({
-  item,
-  repositoryId,
-  runId,
-}: {
-  item: Extract<ItemWithResolutions, { vulnerability: unknown }>;
-  repositoryId: string;
-  runId: number;
-}) {
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  const context: ManagedResolutionContext = {
-    itemType: 'vulnerability',
-    identifier: item.vulnerability.externalId,
-    repositoryId,
-    runId,
-  };
-  const displayItems = getDisplayItems(item, true);
-  const hasAnyResolution = hasVulnerabilityResolutionActivity(item);
-
-  const { mutateAsync: deleteResolution } = useMutation({
-    ...deleteVulnerabilityResolutionMutation(),
-    onSuccess() {
-      queryClient.invalidateQueries({
-        queryKey: getRunVulnerabilitiesQueryKey({ path: { runId } }),
-      });
-      toast.info('Resolution deleted', {
-        description: 'Vulnerability resolution deleted successfully.',
-      });
-    },
-    onError(error: ApiError) {
-      toastError(error.message, error);
-    },
-  });
-
-  return (
-    <div className='flex flex-col gap-2'>
-      {displayItems.map((displayItem) => (
-        <ResolutionCard
-          key={displayItem.key}
-          displayItem={displayItem}
-          editingKey={editingKey}
-          setEditingKey={setEditingKey}
-          context={context}
-          onDelete={() =>
-            deleteResolution({
-              path: {
-                repositoryId: context.repositoryId,
-                externalId: context.identifier,
-              },
-            })
-          }
-        />
-      ))}
-      {!hasAnyResolution && (
-        <ResolutionForm
-          context={context}
-          mode='create'
-          defaultValues={{
-            comment: '',
-            reason: 'CANT_FIX_VULNERABILITY',
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-function IssueResolutions({
-  item,
-  repositoryId,
-  runId,
-}: {
-  item: Extract<ItemWithResolutions, { source: unknown }>;
-  repositoryId: string;
-  runId: number;
-}) {
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  const createContext: ManagedResolutionContext = {
-    itemType: 'issue',
-    identifier: item.message,
-    repositoryId,
-    runId,
-  };
-  const displayItems = getDisplayItems(item, true);
-  const hasAnyResolution = hasIssueResolutionActivity(item);
-
-  const { mutateAsync: deleteResolution } = useMutation({
-    ...deleteIssueResolutionForRepositoryMutation(),
-    onSuccess() {
-      queryClient.invalidateQueries({
-        queryKey: getRunIssuesQueryKey({ path: { runId } }),
-      });
-      toast.info('Resolution deleted', {
-        description: 'Issue resolution deleted successfully.',
-      });
-    },
-    onError(error: ApiError) {
-      toastError(error.message, error);
-    },
-  });
-
-  return (
-    <div className='flex flex-col gap-2'>
-      {displayItems.map((displayItem) => {
-        const messageHash =
-          'messageHash' in displayItem.resolution &&
-          displayItem.resolution.source === 'SERVER'
-            ? displayItem.resolution.messageHash
-            : undefined;
-        const context = messageHash
-          ? {
-              ...createContext,
-              identifier: messageHash,
-            }
-          : undefined;
-
-        return (
-          <ResolutionCard
-            key={displayItem.key}
-            displayItem={displayItem}
-            editingKey={editingKey}
-            setEditingKey={setEditingKey}
-            context={context}
-            onDelete={
-              context
-                ? () =>
-                    deleteResolution({
-                      path: {
-                        repositoryId: context.repositoryId,
-                        messageHash: context.identifier,
-                      },
-                    })
-                : undefined
-            }
-          />
-        );
-      })}
-      {!hasAnyResolution && (
-        <ResolutionForm
-          context={createContext}
-          mode='create'
-          defaultValues={{
-            comment: '',
-            reason: 'CANT_FIX_ISSUE',
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-export function Resolutions({ item, repositoryId, runId }: ResolutionsProps) {
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const displayItems = getDisplayItems(item, false);
-
-  if ('vulnerability' in item && repositoryId && runId !== undefined) {
-    return (
-      <VulnerabilityResolutions
-        item={item}
-        repositoryId={repositoryId}
-        runId={runId}
-      />
-    );
-  }
-
-  if (isIssueItem(item) && repositoryId && runId !== undefined) {
-    return (
-      <IssueResolutions item={item} repositoryId={repositoryId} runId={runId} />
-    );
-  }
-
-  return (
-    <div className='flex flex-col gap-2'>
-      {displayItems.map((displayItem) => (
-        <ResolutionCard
-          key={displayItem.key}
-          displayItem={displayItem}
-          editingKey={editingKey}
-          setEditingKey={setEditingKey}
-        />
-      ))}
-    </div>
   );
 }
