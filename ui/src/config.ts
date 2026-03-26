@@ -29,6 +29,8 @@ interface Config {
   oidcLogLevel: Log;
   authBaseUrl: string;
   realm: string;
+  accountProfileUrl: string;
+  accountPasswordUrl: string;
   pollInterval: number;
 }
 
@@ -65,6 +67,8 @@ const oidcLogLevel: Log = Log[
 // Configure Keycloak
 const authBaseUrl = AUTHORITY.split('/realms/')[0] || 'http://localhost:8081';
 const realm = AUTHORITY.split('/realms/')[1] || 'master';
+const accountProfileUrl = `${AUTHORITY}/account`;
+const accountPasswordUrl = `${accountProfileUrl}/account-security/signing-in`;
 
 // Polling interval for run status updates
 const pollInterval = RUN_POLL_INTERVAL;
@@ -76,5 +80,7 @@ export const config: Config = {
   oidcLogLevel,
   authBaseUrl,
   realm,
+  accountProfileUrl,
+  accountPasswordUrl,
   pollInterval,
 };

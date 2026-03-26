@@ -383,6 +383,9 @@ export const Header = () => {
               </>
             )}
             <DropdownMenuSeparator />
+            <Link to='/profile'>
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+            </Link>
             <Link to='/settings'>
               <DropdownMenuItem>Preferences</DropdownMenuItem>
             </Link>
