@@ -126,6 +126,26 @@ class S3StorageTest : WordSpec({
                 response.contentType shouldBe contentType
             }
         }
+
+        "add the key prefix if configured" {
+            val key = Key("object-key")
+            val data = "This is a test object for the S3 storage."
+            val contentType = "application/octet-stream"
+
+            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+
+            storage.write(key, data, contentType)
+
+            s3Client.getObject(
+                GetObjectRequest {
+                    bucket = TEST_BUCKET_NAME
+                    this.key = "prefix|${key.key}"
+                }
+            ) { response ->
+                response.body.shouldNotBeNull().decodeToString() shouldBe data
+                response.contentType shouldBe contentType
+            }
+        }
     }
 
     "read" should {
@@ -156,6 +176,26 @@ class S3StorageTest : WordSpec({
                 storage.read(Key("object-not-existing"))
             }
         }
+
+        "add the key prefix if configured" {
+            val key = Key("existingEntry")
+            val data = "The data from the storage."
+            val contentType = "application/octet-stream"
+
+            s3Client.putObject {
+                body = ByteStream.fromString(data)
+                bucket = TEST_BUCKET_NAME
+                this.contentType = contentType
+                this.key = "prefix|${key.key}"
+            }
+
+            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+
+            storage.read(key).use {
+                it.contentType shouldBe contentType
+                it.dataString shouldBe data
+            }
+        }
     }
 
     "contains" should {
@@ -171,6 +211,23 @@ class S3StorageTest : WordSpec({
             val storage = localStackContainer.createStorage()
 
             storage.write(key, "test-data")
+
+            storage.containsKey(key) shouldBe true
+        }
+
+        "add the key prefix if configured" {
+            val key = Key("existingEntry")
+            val data = "The data from the storage."
+            val contentType = "application/octet-stream"
+
+            s3Client.putObject {
+                body = ByteStream.fromString(data)
+                bucket = TEST_BUCKET_NAME
+                this.contentType = contentType
+                this.key = "prefix|${key.key}"
+            }
+
+            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
 
             storage.containsKey(key) shouldBe true
         }
@@ -193,6 +250,24 @@ class S3StorageTest : WordSpec({
 
             storage.delete(Key("object-not-existing")) shouldBe false
         }
+
+        "add the key prefix if configured" {
+            val key = Key("existingEntry")
+            val data = "The data from the storage."
+            val contentType = "application/octet-stream"
+
+            s3Client.putObject {
+                body = ByteStream.fromString(data)
+                bucket = TEST_BUCKET_NAME
+                this.contentType = contentType
+                this.key = "prefix|${key.key}"
+            }
+
+            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+
+            storage.delete(key) shouldBe true
+            storage.containsKey(key) shouldBe false
+        }
     }
 })
 
@@ -203,7 +278,11 @@ internal const val TEST_BUCKET_NAME = "test-bucket"
 /**
  * Create a [Storage] that is configured to use the [S3StorageProvider] implementation.
  */
-private fun LocalStackContainer.createStorage(region: String = S3_REGION, bucket: String = TEST_BUCKET_NAME): Storage {
+private fun LocalStackContainer.createStorage(
+    region: String = S3_REGION,
+    bucket: String = TEST_BUCKET_NAME,
+    keyPrefix: String? = null
+): Storage {
     val config = ConfigFactory.parseMap(
         mapOf(
             bucket to mapOf(
@@ -213,7 +292,12 @@ private fun LocalStackContainer.createStorage(region: String = S3_REGION, bucket
                 S3StorageProviderFactory.SECRET_KEY_PROPERTY to secretKey,
                 S3StorageProviderFactory.REGION_PROPERTY to region,
                 S3StorageProviderFactory.BUCKET_NAME_PROPERTY to bucket
-            )
+            ).let {
+                when {
+                    keyPrefix != null -> it + (S3StorageProviderFactory.KEY_PREFIX_PROPERTY to keyPrefix)
+                    else -> it
+                }
+            }
         )
     )
 

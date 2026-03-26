@@ -52,7 +52,10 @@ class S3StorageProvider(
     private val s3Client: S3Client,
 
     /** The name of the S3 bucket. */
-    private val bucketName: String?
+    private val bucketName: String?,
+
+    /** An optional prefix for the storage keys. */
+    private val keyPrefix: String?
 ) : StorageProvider {
     /**
      * Retrieve the data associated with the given [key] from the S3 bucket.
@@ -60,10 +63,10 @@ class S3StorageProvider(
     override suspend fun read(key: Key): StorageEntry = s3Client.getObject(
         GetObjectRequest {
             bucket = bucketName
-            this.key = key.key
+            this.key = prefixKey(key)
         }
     ) { response ->
-        val data = checkNotNull(response.body) { "No data found for ${key.key}." }
+        val data = checkNotNull(response.body) { "No data found for ${prefixKey(key)}." }
         val contentType = response.contentType
         val tempFile = createTempFile()
 
@@ -89,7 +92,7 @@ class S3StorageProvider(
                     bucket = bucketName
                     body = ByteStream.fromFile(tempFile.toFile())
                     this.contentType = contentType
-                    this.key = key.key
+                    this.key = prefixKey(key)
                     checksumSha256 = calculateSha256Checksum(tempFile.toFile())
                 }
             )
@@ -105,7 +108,7 @@ class S3StorageProvider(
         s3Client.headObject(
             HeadObjectRequest {
                 this.bucket = bucketName
-                this.key = key.key
+                this.key = prefixKey(key)
             }
         )
     }.isSuccess
@@ -117,11 +120,16 @@ class S3StorageProvider(
         runCatching {
             s3Client.deleteObject {
                 this.bucket = bucketName
-                this.key = key.key
+                this.key = prefixKey(key)
             }
         }.isSuccess
     } else {
         false
+    }
+
+    private fun prefixKey(key: Key) = when {
+        keyPrefix != null -> "$keyPrefix|${key.key}"
+        else -> key.key
     }
 }
 

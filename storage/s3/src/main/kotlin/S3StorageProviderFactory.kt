@@ -63,6 +63,11 @@ class S3StorageProviderFactory : StorageProviderFactory {
          * The name of the configuration property for the endpoint URL of the S3 storage.
          */
         const val ENDPOINT_URL_PROPERTY = "s3EndpointUrl"
+
+        /**
+         * An optional prefix for the storage keys. This can be used when different storage types share the same bucket.
+         */
+        const val KEY_PREFIX_PROPERTY = "s3KeyPrefix"
     }
 
     override val name: String = NAME
@@ -82,6 +87,10 @@ class S3StorageProviderFactory : StorageProviderFactory {
             logMode = LogMode.LogRequest + LogMode.LogResponse
         }
 
-        return S3StorageProvider(client, config.getStringOrNull(BUCKET_NAME_PROPERTY))
+        return S3StorageProvider(
+            s3Client = client,
+            bucketName = config.getStringOrNull(BUCKET_NAME_PROPERTY),
+            keyPrefix = config.getStringOrNull(KEY_PREFIX_PROPERTY)
+        )
     }
 }
