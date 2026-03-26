@@ -20,6 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pencil } from 'lucide-react';
+import { useState } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 
 import {
@@ -78,11 +79,70 @@ import '@/helpers/resolutions';
 
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
+import { cn } from '@/lib/utils';
 import {
   ManagedResolutionContext,
   ResolutionDisplayItem,
   ResolutionFormValues,
 } from './utils';
+
+const COLLAPSIBLE_MESSAGE_MAX_LINES = 4;
+const COLLAPSIBLE_MESSAGE_CHAR_THRESHOLD = 280;
+
+type ExpandableResolutionMessageProps = {
+  message: string;
+};
+
+function ExpandableResolutionMessage({
+  message,
+}: ExpandableResolutionMessageProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const lineCount = message.split(/\r?\n/).length;
+  const isCollapsible =
+    lineCount > COLLAPSIBLE_MESSAGE_MAX_LINES ||
+    message.length > COLLAPSIBLE_MESSAGE_CHAR_THRESHOLD;
+
+  if (!isCollapsible) {
+    return (
+      <div className='text-muted-foreground flex-1 break-all whitespace-pre-wrap'>
+        {message}
+      </div>
+    );
+  }
+
+  return (
+    <div className='flex min-w-0 flex-1 flex-col items-start gap-1'>
+      <div
+        className={cn(
+          'text-muted-foreground w-full break-all whitespace-pre-wrap',
+          !isExpanded && 'overflow-hidden'
+        )}
+        style={
+          !isExpanded
+            ? {
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: COLLAPSIBLE_MESSAGE_MAX_LINES,
+              }
+            : undefined
+        }
+      >
+        {message}
+      </div>
+      <Button
+        variant='ghost'
+        size='sm'
+        className='h-auto px-2 py-1 font-mono text-xs'
+        onClick={() => setIsExpanded((value) => !value)}
+        aria-expanded={isExpanded}
+        aria-label={isExpanded ? 'Collapse message' : 'Expand message'}
+      >
+        {isExpanded ? 'Hide' : '...'}
+      </Button>
+    </div>
+  );
+}
 
 type ResolutionFormFieldsProps = {
   form: ReturnType<typeof useForm<ResolutionFormValues>>;
@@ -428,10 +488,14 @@ export function ResolutionCard({
                   ? 'ID Matcher:'
                   : 'Message Matcher:'}
               </div>
-              <div className='text-muted-foreground flex-1 break-all whitespace-pre-wrap'>
-                {'externalId' in resolution
-                  ? resolution.externalId
-                  : resolution.message}
+              <div className='min-w-0 flex-1'>
+                {'externalId' in resolution ? (
+                  <div className='text-muted-foreground break-all whitespace-pre-wrap'>
+                    {resolution.externalId}
+                  </div>
+                ) : (
+                  <ExpandableResolutionMessage message={resolution.message} />
+                )}
               </div>
             </div>
           </div>
