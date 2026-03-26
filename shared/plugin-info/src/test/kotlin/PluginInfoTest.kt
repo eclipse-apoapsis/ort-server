@@ -52,7 +52,7 @@ class PluginInfoTest : WordSpec({
                 ),
                 TypedPluginId(
                     PluginId("VulnerableCode"),
-                    PluginType("org.ossreviewtoolkit.advisor.AdviceProviderFactory")
+                    PluginType("org.ossreviewtoolkit.plugins.advisors.api.AdviceProviderFactory")
                 ),
                 TypedPluginId(
                     PluginId("WebApp"),
@@ -84,7 +84,7 @@ class PluginInfoTest : WordSpec({
     "pluginTypes" should {
         "return a set with all known plugin types" {
             val expectedPluginTypes = setOf(
-                PluginType("org.ossreviewtoolkit.advisor.AdviceProviderFactory"),
+                PluginType("org.ossreviewtoolkit.plugins.advisors.api.AdviceProviderFactory"),
                 PluginType("org.ossreviewtoolkit.analyzer.PackageManagerFactory"),
                 PluginType(
                     "org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory"
@@ -103,7 +103,7 @@ class PluginInfoTest : WordSpec({
 
     "pluginsForType" should {
         "return the plugins of an existing type" {
-            val type = PluginType("org.ossreviewtoolkit.advisor.AdviceProviderFactory")
+            val type = PluginType("org.ossreviewtoolkit.plugins.advisors.api.AdviceProviderFactory")
             val expectedPluginIds = listOf(
                 TypedPluginId(PluginId("OSV"), type),
                 TypedPluginId(PluginId("VulnerableCode"), type)
