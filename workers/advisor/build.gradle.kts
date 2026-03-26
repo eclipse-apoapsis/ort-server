@@ -45,7 +45,7 @@ dependencies {
 
     implementation(libs.typesafeConfig)
     implementation(ortLibs.advisor)
-    implementation(platform(ortLibs.ortPlugins.advisors))
+    implementation(ortLibs.ortPlugins.advisors.api)
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))
