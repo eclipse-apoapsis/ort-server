@@ -100,8 +100,7 @@ class S3StorageTest : WordSpec({
                     this.key = key.key
                 }
             ) { response ->
-                response.body.shouldNotBeNull()
-                response.body!!.decodeToString() shouldBe data
+                response.body.shouldNotBeNull().decodeToString() shouldBe data
                 response.contentType shouldBe contentType
             }
         }
@@ -123,8 +122,7 @@ class S3StorageTest : WordSpec({
                     this.key = key.key
                 }
             ) { response ->
-                response.body.shouldNotBeNull()
-                response.body!!.decodeToString() shouldBe data
+                response.body.shouldNotBeNull().decodeToString() shouldBe data
                 response.contentType shouldBe contentType
             }
         }
