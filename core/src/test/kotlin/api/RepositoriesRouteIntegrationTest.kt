@@ -25,6 +25,7 @@ import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -45,6 +46,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.parameters
 
 import io.mockk.mockk
 
@@ -102,6 +104,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -744,6 +747,69 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 run.jobConfigs.parameters shouldBe parameters
                 run.jobConfigs.ruleSet shouldBe ruleSet
+            }
+        }
+
+        "resolve provided plugin secrets from the admin secrets" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val advisorJob = AdvisorJobConfiguration(
+                    advisors = listOf("VulnerableCode"),
+                    config = mapOf(
+                        "VulnerableCode" to PluginConfig(
+                            options = emptyMap(),
+                            secrets = mapOf("apiKey" to "VC_API_KEY")
+                        )
+                    )
+                )
+
+                val evaluatorJob = EvaluatorJobConfiguration(
+                    packageConfigurationProviders = listOf(
+                        ProviderPluginConfiguration(
+                            type = "DOS",
+                            secrets = mapOf("token" to "DOS_TOKEN")
+                        )
+                    )
+                )
+
+                val createRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = ApiJobConfigurations(
+                        analyzer = AnalyzerJobConfiguration(),
+                        advisor = advisorJob,
+                        evaluator = evaluatorJob
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+
+                val run = ortRunRepository.listForRepository(createdRepository.id).data.single()
+
+                run.jobConfigs.advisor.shouldNotBeNull {
+                    config.shouldNotBeNull {
+                        get("VulnerableCode").shouldNotBeNull {
+                            secrets["apiKey"].shouldNotBeNull {
+                                name shouldBe "VC_API_KEY"
+                                source shouldBe SecretSource.ADMIN
+                            }
+                        }
+                    }
+                }
+
+                run.jobConfigs.evaluator.shouldNotBeNull {
+                    packageConfigurationProviders.shouldBeSingleton {
+                        it.type shouldBe "DOS"
+                        it.secrets["token"].shouldNotBeNull {
+                            name shouldBe "DOS_TOKEN"
+                            source shouldBe SecretSource.ADMIN
+                        }
+                    }
+                }
             }
         }
 
