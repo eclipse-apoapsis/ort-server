@@ -28,39 +28,55 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.resolutions.PatchIssueResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.PatchVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.PostIssueResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.PostVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
+    lateinit var issueResolutionService: IssueResolutionService
     lateinit var vulnerabilityResolutionService: VulnerabilityResolutionService
     lateinit var hierarchyId: CompoundHierarchyId
     var repositoryId = RepositoryId(-1)
 
     beforeEach {
+        val repositoryService = RepositoryService(
+            db = dbExtension.db,
+            ortRunRepository = dbExtension.fixtures.ortRunRepository,
+            repositoryRepository = dbExtension.fixtures.repositoryRepository,
+            analyzerJobRepository = dbExtension.fixtures.analyzerJobRepository,
+            advisorJobRepository = dbExtension.fixtures.advisorJobRepository,
+            scannerJobRepository = dbExtension.fixtures.scannerJobRepository,
+            evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
+            reporterJobRepository = dbExtension.fixtures.reporterJobRepository,
+            notifierJobRepository = dbExtension.fixtures.notifierJobRepository,
+            authorizationService = mockk()
+        )
+
+        val issueResolutionEventStore = IssueResolutionEventStore(dbExtension.db)
+
+        issueResolutionService = IssueResolutionService(
+            db = dbExtension.db,
+            eventStore = issueResolutionEventStore,
+            repositoryService = repositoryService
+        )
         vulnerabilityResolutionService = VulnerabilityResolutionService(
             db = dbExtension.db,
             eventStore = VulnerabilityResolutionEventStore(dbExtension.db),
-            repositoryService = RepositoryService(
-                db = dbExtension.db,
-                ortRunRepository = dbExtension.fixtures.ortRunRepository,
-                repositoryRepository = dbExtension.fixtures.repositoryRepository,
-                analyzerJobRepository = dbExtension.fixtures.analyzerJobRepository,
-                advisorJobRepository = dbExtension.fixtures.advisorJobRepository,
-                scannerJobRepository = dbExtension.fixtures.scannerJobRepository,
-                evaluatorJobRepository = dbExtension.fixtures.evaluatorJobRepository,
-                reporterJobRepository = dbExtension.fixtures.reporterJobRepository,
-                notifierJobRepository = dbExtension.fixtures.notifierJobRepository,
-                authorizationService = mockk()
-            )
+            repositoryService = repositoryService
         )
 
         repositoryId = RepositoryId(dbExtension.fixtures.repository.id)
@@ -75,7 +91,12 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
     "PostVulnerabilityResolution" should {
         "require RepositoryPermission.MANAGE_RESOLUTIONS" {
             requestShouldRequireRole(
-                routes = { resolutionRoutes(vulnerabilityResolutionService) },
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
                 role = RepositoryRole.WRITER,
                 successStatus = HttpStatusCode.Created,
                 hierarchyId = hierarchyId
@@ -95,7 +116,12 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
     "DeleteVulnerabilityResolution" should {
         "require RepositoryPermission.MANAGE_RESOLUTIONS" {
             requestShouldRequireRole(
-                routes = { resolutionRoutes(vulnerabilityResolutionService) },
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
                 role = RepositoryRole.WRITER,
                 successStatus = HttpStatusCode.NotFound,
                 hierarchyId = hierarchyId
@@ -108,7 +134,12 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
     "PatchVulnerabilityResolution" should {
         "require RepositoryPermission.MANAGE_RESOLUTIONS" {
             requestShouldRequireRole(
-                routes = { resolutionRoutes(vulnerabilityResolutionService) },
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
                 role = RepositoryRole.WRITER,
                 successStatus = HttpStatusCode.NotFound,
                 hierarchyId = hierarchyId
@@ -118,6 +149,81 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                         PatchVulnerabilityResolution(
                             comment = "This is not a vulnerability.",
                             reason = VulnerabilityResolutionReason.NOT_A_VULNERABILITY
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    "PostIssueResolution" should {
+        "require RepositoryPermission.MANAGE_RESOLUTIONS" {
+            requestShouldRequireRole(
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.Created,
+                hierarchyId = hierarchyId
+            ) {
+                post("/repositories/${repositoryId.value}/resolutions/issues") {
+                    setBody(
+                        PostIssueResolution(
+                            message = "scanner-issue",
+                            comment = "This scanner issue is a known false positive.",
+                            reason = IssueResolutionReason.SCANNER_ISSUE
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    "DeleteIssueResolution" should {
+        "require RepositoryPermission.MANAGE_RESOLUTIONS" {
+            requestShouldRequireRole(
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = hierarchyId
+            ) {
+                delete(
+                    "/repositories/${repositoryId.value}/resolutions/issues/" +
+                            calculateResolutionMessageHash("scanner-issue")
+                )
+            }
+        }
+    }
+
+    "PatchIssueResolution" should {
+        "require RepositoryPermission.MANAGE_RESOLUTIONS" {
+            requestShouldRequireRole(
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = hierarchyId
+            ) {
+                patch(
+                    "/repositories/${repositoryId.value}/resolutions/issues/" +
+                            calculateResolutionMessageHash("scanner-issue")
+                ) {
+                    setBody(
+                        PatchIssueResolution(
+                            comment = "This issue is caused by an upstream build tool defect.",
+                            reason = IssueResolutionReason.BUILD_TOOL_ISSUE
                         )
                     )
                 }

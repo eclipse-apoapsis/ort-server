@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.dao.utils
 
-import kotlinx.serialization.Serializable
+import java.security.MessageDigest
 
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ResolutionSource
+private const val RESOLUTION_MESSAGE_HASH_ALGORITHM = "SHA-1"
 
-@Serializable
-data class IssueResolution(
-    val message: String,
-    val reason: IssueResolutionReason,
-    val comment: String,
-    val source: ResolutionSource
-)
+/**
+ * Calculate the stable technical identifier for a resolution from the exact matcher [message].
+ */
+@OptIn(ExperimentalStdlibApi::class)
+fun calculateResolutionMessageHash(message: String): String =
+    MessageDigest.getInstance(RESOLUTION_MESSAGE_HASH_ALGORITHM)
+        .digest(message.toByteArray())
+        .toHexString()

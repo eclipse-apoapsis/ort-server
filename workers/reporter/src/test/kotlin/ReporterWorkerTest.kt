@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
+import com.github.michaelbull.result.Ok
+
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
@@ -40,6 +42,7 @@ import java.io.File
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
@@ -199,7 +202,8 @@ class ReporterWorkerTest : StringSpec({
             runner,
             ortRunService,
             linkGenerator,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -233,7 +237,8 @@ class ReporterWorkerTest : StringSpec({
             mockk(),
             ortRunService,
             mockk(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -318,7 +323,8 @@ class ReporterWorkerTest : StringSpec({
             runner,
             ortRunService,
             linkGenerator,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -413,7 +419,8 @@ class ReporterWorkerTest : StringSpec({
             runner,
             ortRunService,
             linkGenerator,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -506,7 +513,8 @@ class ReporterWorkerTest : StringSpec({
             runner,
             ortRunService,
             linkGenerator,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -533,7 +541,8 @@ class ReporterWorkerTest : StringSpec({
             mockk(),
             ortRunService,
             mockk(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -573,7 +582,8 @@ class ReporterWorkerTest : StringSpec({
             mockk<ReporterRunner>(),
             ortRunService,
             mockk(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -591,4 +601,8 @@ class ReporterWorkerTest : StringSpec({
 private fun mockConfigManager() = mockk<ConfigManager> {
     every { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
+}
+
+private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
+    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }

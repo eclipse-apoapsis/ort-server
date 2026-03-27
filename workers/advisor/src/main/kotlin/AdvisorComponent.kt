@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
@@ -105,6 +107,8 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
 
         single<AuthorizationService> { DbAuthorizationService(get()) }
         singleOf(::RepositoryService)
+        singleOf(::IssueResolutionEventStore)
+        singleOf(::IssueResolutionService)
         singleOf(::VulnerabilityResolutionEventStore)
         singleOf(::VulnerabilityResolutionService)
 

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import com.github.michaelbull.result.Ok
+
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.AssertionErrorBuilder
@@ -48,6 +50,7 @@ import kotlin.time.toJavaInstant
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -184,7 +187,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -248,7 +252,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -316,7 +321,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -387,7 +393,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             pluginService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -453,7 +460,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             pluginService,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -478,7 +486,8 @@ class AnalyzerWorkerTest : StringSpec({
             mockk(),
             mockk(),
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -503,7 +512,8 @@ class AnalyzerWorkerTest : StringSpec({
             mockk(),
             mockk(),
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -603,7 +613,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -693,7 +704,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -750,7 +762,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -821,7 +834,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -889,7 +903,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -969,7 +984,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -1027,7 +1043,8 @@ class AnalyzerWorkerTest : StringSpec({
             contextFactory,
             envService,
             mockPluginService(),
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockIssueResolutionService()
         )
 
         mockkTransaction {
@@ -1067,4 +1084,8 @@ private fun mockPluginService() = mockk<PluginService> {
 private fun mockConfigManager() = mockk<ConfigManager> {
     every { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
+}
+
+private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
+    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }

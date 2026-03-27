@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -54,7 +55,8 @@ internal class AnalyzerWorker(
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService,
     private val pluginService: PluginService,
-    private val adminConfigService: AdminConfigService
+    private val adminConfigService: AdminConfigService,
+    private val issueResolutionService: IssueResolutionService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAnalyzerJob(jobId)
@@ -128,7 +130,8 @@ internal class AnalyzerWorker(
                 context,
                 adminConfigService,
                 ortResult.repository.config.resolutions,
-                RepositoryId(ortRun.repositoryId)
+                RepositoryId(ortRun.repositoryId),
+                issueResolutionService
             )
 
             // Apply resolutions using the common function.

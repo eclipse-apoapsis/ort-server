@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 /**
  * Possible reasons for resolving an issue using an [IssueResolution].
