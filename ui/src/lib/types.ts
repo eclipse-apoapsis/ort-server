@@ -189,6 +189,10 @@ export const packageManagers = [
     label: 'SBT (Scala)',
   },
   {
+    id: 'SPDX',
+    label: 'SPDX 3 Document',
+  },
+  {
     id: 'SpdxDocumentFile',
     label: 'SPDX Document File',
   },

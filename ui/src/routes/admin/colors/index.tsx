@@ -143,7 +143,7 @@ const ColorsComponent = () => {
               <TableRow>
                 <TableCell>C/C++</TableCell>
                 <TableCell className='flex gap-2'>
-                  {['Bazel', 'Conan', 'SpdxDocumentFile'].map((p) => (
+                  {['Bazel', 'Conan', 'SPDX', 'SpdxDocumentFile'].map((p) => (
                     <Badge
                       className={`border ${getEcosystemBackgroundColor(p)}`}
                     >
