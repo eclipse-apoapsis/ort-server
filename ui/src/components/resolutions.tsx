@@ -118,7 +118,7 @@ function ResolutionFormFields({ form }: ResolutionFormFieldsProps) {
           <FormItem>
             <FormLabel>Comment</FormLabel>
             <FormControl>
-              <Input {...field} placeholder='Add a comment...' />
+              <Input {...field} placeholder='(optional)' />
             </FormControl>
             <FormMessage />
           </FormItem>
