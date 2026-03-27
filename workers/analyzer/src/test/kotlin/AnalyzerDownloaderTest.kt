@@ -43,8 +43,8 @@ import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.api.PluginConfig
-import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitCommand
 import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
+import org.ossreviewtoolkit.utils.common.ProcessCapture
 
 class AnalyzerDownloaderTest : WordSpec({
     val downloader = AnalyzerDownloader()
@@ -57,7 +57,7 @@ class AnalyzerDownloaderTest : WordSpec({
 
             result.initRevision shouldBe "main"
 
-            with(GitCommand.run(result.directory, "branch", "--show-current").requireSuccess()) {
+            with(ProcessCapture("git", "branch", "--show-current", workingDir = result.directory).requireSuccess()) {
                 stdout.trim() shouldBe "main"
             }
         }
