@@ -214,6 +214,8 @@ export function getEcosystemBackgroundColor(
       return 'bg-fuchsia-400';
     case 'SBT':
       return 'bg-sky-400';
+    case 'SPDX':
+      return 'bg-zinc-400';
     case 'SpdxDocumentFile':
       return 'bg-zinc-400';
     case 'Stack':
