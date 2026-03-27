@@ -118,7 +118,7 @@ function ResolutionFormFields({ form }: ResolutionFormFieldsProps) {
           <FormItem>
             <FormLabel>Comment</FormLabel>
             <FormControl>
-              <Input {...field} placeholder='Add a comment...' />
+              <Input {...field} placeholder='(optional)' />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -347,11 +347,11 @@ function ResolutionCard({
   const isEditing = editingKey === key;
   const pendingLabel =
     state === 'pending-create'
-      ? 'Created: pending rerun'
+      ? 'Created: Pending rerun'
       : state === 'pending-update'
-        ? 'Updated: pending rerun'
+        ? 'Updated: Pending rerun'
         : state === 'pending-delete'
-          ? 'Deleted: pending rerun'
+          ? 'Deleted: Pending rerun'
           : null;
 
   return (
