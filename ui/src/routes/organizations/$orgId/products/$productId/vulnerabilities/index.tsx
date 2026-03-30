@@ -61,6 +61,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import {
   convertToBackendSorting,
@@ -86,8 +91,12 @@ const columnHelper = createColumnHelper<VulnerabilityWithStats>();
 // Component to render a single vulnerability card in the list.
 const VulnerabilityCard = ({
   vulnerability,
+  organizationId,
+  productId,
 }: {
   vulnerability: VulnerabilityWithStats;
+  organizationId: string;
+  productId: string;
 }) => {
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
@@ -115,14 +124,29 @@ const VulnerabilityCard = ({
         <div className='text-muted-foreground wrap-break-word italic'>
           {vulnerability.vulnerability.summary || 'No summary available'}
         </div>
-        <div className='flex gap-1'>
-          <div className='font-semibold'>{vulnerability.repositoriesCount}</div>
-          <div className='text-muted-foreground'>
-            {vulnerability.repositoriesCount === 1
-              ? 'repository'
-              : 'repositories'}
-          </div>
-        </div>
+        <Tooltip>
+          <TooltipTrigger>
+            <Link
+              className='flex gap-1 text-blue-400 hover:underline'
+              to='/organizations/$orgId/products/$productId/search-package'
+              params={{
+                orgId: organizationId,
+                productId: productId,
+              }}
+              search={{ pkgId: id }}
+            >
+              <div className='font-semibold'>
+                {vulnerability.repositoriesCount}
+              </div>
+              <div>
+                {vulnerability.repositoriesCount === 1
+                  ? 'repository'
+                  : 'repositories'}
+              </div>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Show affected repositories</TooltipContent>
+        </Tooltip>
       </div>
 
       <div className='flex gap-2'>
@@ -245,7 +269,13 @@ const ProductVulnerabilitiesComponent = () => {
       }),
       columnHelper.display({
         id: 'card',
-        cell: ({ row }) => <VulnerabilityCard vulnerability={row.original} />,
+        cell: ({ row }) => (
+          <VulnerabilityCard
+            vulnerability={row.original}
+            organizationId={params.orgId}
+            productId={params.productId}
+          />
+        ),
       }),
       columnHelper.accessor(
         (vuln) => {
@@ -318,7 +348,7 @@ const ProductVulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }),
     ],
-    [navigate, packageIdType, search]
+    [navigate, packageIdType, params.orgId, params.productId, search]
   );
 
   const pageIndex = useMemo(
