@@ -212,28 +212,32 @@ class PluginTemplateService(
         val organizationId = repositoryRepository.get(repositoryId.value)?.organizationId?.let { OrganizationId(it) }
             ?: return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
 
-        pluginService.getPlugins().filter { it.enabled }
+        pluginService.getPlugins().filter { it.availability != PluginAvailability.DISABLED }
             .tryFold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
                 getTemplateForOrganization(plugin.type, plugin.id, organizationId).map { template ->
-                    acc + PreconfiguredPluginDescriptor(
-                        id = plugin.id,
-                        type = plugin.type,
-                        displayName = plugin.displayName,
-                        description = plugin.description,
-                        options = plugin.options.map { option ->
-                            val templateOption = template?.options?.find { it.option == option.name }
+                    if (plugin.availability == PluginAvailability.RESTRICTED && template == null) {
+                        acc
+                    } else {
+                        acc + PreconfiguredPluginDescriptor(
+                            id = plugin.id,
+                            type = plugin.type,
+                            displayName = plugin.displayName,
+                            description = plugin.description,
+                            options = plugin.options.map { option ->
+                                val templateOption = template?.options?.find { it.option == option.name }
 
-                            PreconfiguredPluginOption(
-                                name = option.name,
-                                description = option.description,
-                                type = option.type,
-                                defaultValue = templateOption?.value ?: option.defaultValue,
-                                isFixed = templateOption?.isFinal == true,
-                                isNullable = option.isNullable,
-                                isRequired = option.isRequired
-                            )
-                        }
-                    )
+                                PreconfiguredPluginOption(
+                                    name = option.name,
+                                    description = option.description,
+                                    type = option.type,
+                                    defaultValue = templateOption?.value ?: option.defaultValue,
+                                    isFixed = templateOption?.isFinal == true,
+                                    isNullable = option.isNullable,
+                                    isRequired = option.isRequired
+                                )
+                            }
+                        )
+                    }
                 }
             }
     }
@@ -369,7 +373,7 @@ class PluginTemplateService(
                     return@forEach
                 }
 
-                if (!pluginService.isEnabled(pluginType, pluginId)) {
+                if (pluginService.getAvailability(pluginType, pluginId) == PluginAvailability.DISABLED) {
                     errors += "The plugin with type '$pluginType' and ID '$pluginId' is disabled by the administrators."
                     return@forEach
                 }
@@ -380,6 +384,10 @@ class PluginTemplateService(
                 }
 
                 if (template == null) {
+                    if (pluginService.getAvailability(pluginType, pluginId) == PluginAvailability.RESTRICTED) {
+                        errors += "The plugin with type '$pluginType' and ID '$pluginId' is is disabled for this " +
+                                "organization by the administrators."
+                    }
                     return@forEach
                 }
 

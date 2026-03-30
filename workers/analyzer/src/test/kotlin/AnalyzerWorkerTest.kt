@@ -47,6 +47,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
@@ -1076,7 +1077,7 @@ private fun mockPluginService() = mockk<PluginService> {
             displayName = ortDescriptor.displayName,
             description = ortDescriptor.description,
             options = emptyList(),
-            enabled = true
+            availability = PluginAvailability.ENABLED
         )
     }
 }

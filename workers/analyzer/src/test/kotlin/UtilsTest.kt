@@ -30,6 +30,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
@@ -86,18 +87,36 @@ class UtilsTest : WordSpec({
     }
 
     "getDefaultPackageManagers()" should {
-        "return all enabled package managers" {
+        "return all enabled and restricted package managers" {
             val pluginService = mockk<PluginService> {
                 every { getPlugins() } returns listOf(
-                    PluginDescriptor("Maven", PluginType.PACKAGE_MANAGER, "Maven", "description", enabled = false),
-                    PluginDescriptor("NPM", PluginType.PACKAGE_MANAGER, "NPM", "description", enabled = true),
-                    PluginDescriptor("OSV", PluginType.ADVISOR, "OSV", "description", enabled = true)
+                    PluginDescriptor(
+                        "Maven",
+                        PluginType.PACKAGE_MANAGER,
+                        "Maven",
+                        "description",
+                        availability = PluginAvailability.DISABLED
+                    ),
+                    PluginDescriptor(
+                        "NPM",
+                        PluginType.PACKAGE_MANAGER,
+                        "NPM",
+                        "description",
+                        availability = PluginAvailability.RESTRICTED
+                    ),
+                    PluginDescriptor(
+                        "PNPM",
+                        PluginType.PACKAGE_MANAGER,
+                        "PNPM",
+                        "description",
+                        availability = PluginAvailability.ENABLED
+                    )
                 )
             }
 
             val defaultPackageManagers = getDefaultPackageManagers(pluginService)
 
-            defaultPackageManagers should containExactlyInAnyOrder("NPM")
+            defaultPackageManagers should containExactlyInAnyOrder("NPM", "PNPM")
         }
     }
 })

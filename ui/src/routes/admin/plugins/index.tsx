@@ -20,13 +20,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { PluginDescriptor } from '@/api';
+import { PluginAvailability, PluginDescriptor } from '@/api';
 import {
   disablePluginMutation,
   enablePluginMutation,
   getInstalledPluginsOptions,
   getInstalledPluginsQueryKey,
+  restrictPluginMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { PluginAvailabilityToggle } from '@/components/plugin-availability-toggle';
 import {
   Card,
   CardContent,
@@ -34,7 +36,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card.tsx';
-import { Switch } from '@/components/ui/switch.tsx';
 import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast, toastError } from '@/lib/toast';
@@ -50,49 +51,54 @@ const PluginListCard = ({
   description,
   plugins,
 }: PluginListCardProps) => {
-  const { mutateAsync: enablePlugin } = useMutation({
+  const { mutateAsync: enablePlugin, isPending: isEnabling } = useMutation({
     ...enablePluginMutation(),
   });
-  const { mutateAsync: disablePlugin } = useMutation({
+  const { mutateAsync: disablePlugin, isPending: isDisabling } = useMutation({
     ...disablePluginMutation(),
   });
+  const { mutateAsync: restrictPlugin, isPending: isRestricting } = useMutation(
+    {
+      ...restrictPluginMutation(),
+    }
+  );
 
-  const handleToggle = (plugin: PluginDescriptor) => {
-    if (plugin.enabled) {
-      disablePlugin(
-        { path: { pluginType: plugin.type, pluginId: plugin.id } },
-        {
-          onSuccess: () => {
-            toast.info('Disable Plugin', {
-              description: `Plugin "${plugin.displayName}" disabled successfully.`,
-            });
-            queryClient.invalidateQueries({
-              queryKey: getInstalledPluginsQueryKey(),
-            });
-          },
-          onError(error: unknown) {
-            const apiError = error as ApiError;
-            toastError(apiError.message, apiError);
-          },
-        }
+  const isMutating = isEnabling || isDisabling || isRestricting;
+
+  const handleAvailabilityChange = (
+    plugin: PluginDescriptor,
+    availability: PluginAvailability
+  ) => {
+    const path = { pluginType: plugin.type, pluginId: plugin.id };
+
+    const onSuccess = (label: string) => {
+      toast.info(`Plugin ${label}`, {
+        description: `Plugin "${plugin.displayName}" is now ${label.toLowerCase()}.`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getInstalledPluginsQueryKey(),
+      });
+    };
+
+    const onError = (error: unknown) => {
+      const apiError = error as ApiError;
+      toastError(apiError.message, apiError);
+    };
+
+    if (availability === 'ENABLED') {
+      enablePlugin(
+        { path },
+        { onSuccess: () => onSuccess('Enabled'), onError }
+      );
+    } else if (availability === 'RESTRICTED') {
+      restrictPlugin(
+        { path },
+        { onSuccess: () => onSuccess('Restricted'), onError }
       );
     } else {
-      enablePlugin(
-        { path: { pluginType: plugin.type, pluginId: plugin.id } },
-        {
-          onSuccess: () => {
-            toast.info('Enable Plugin', {
-              description: `Plugin "${plugin.displayName}" enabled successfully.`,
-            });
-            queryClient.invalidateQueries({
-              queryKey: getInstalledPluginsQueryKey(),
-            });
-          },
-          onError(error: unknown) {
-            const apiError = error as ApiError;
-            toastError(apiError.message, apiError);
-          },
-        }
+      disablePlugin(
+        { path },
+        { onSuccess: () => onSuccess('Disabled'), onError }
       );
     }
   };
@@ -111,10 +117,12 @@ const PluginListCard = ({
                 <CardTitle>{plugin.displayName}</CardTitle>
                 <CardDescription>{plugin.description}</CardDescription>
               </div>
-              <Switch
-                className='data-[state=checked]:bg-green-500'
-                checked={plugin.enabled}
-                onCheckedChange={() => handleToggle(plugin)}
+              <PluginAvailabilityToggle
+                availability={plugin.availability}
+                onAvailabilityChange={(availability) =>
+                  handleAvailabilityChange(plugin, availability)
+                }
+                disabled={isMutating}
               />
             </CardHeader>
             <CardContent>

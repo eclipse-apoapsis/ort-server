@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -58,6 +59,11 @@ fun getIdentifierToShortestPathsMap(
 fun getDefaultPackageManagers(pluginService: PluginService): List<String> {
     val ortDefaultPackageManagers = AnalyzerConfiguration().enabledPackageManagers
     return pluginService.getPlugins()
-        .filter { it.type == PluginType.PACKAGE_MANAGER && it.enabled && it.id in ortDefaultPackageManagers }
+        .filter {
+            it.type == PluginType.PACKAGE_MANAGER &&
+                    // TODO: Validate if restricted plugins are available in the current organization.
+                    it.availability != PluginAvailability.DISABLED &&
+                    it.id in ortDefaultPackageManagers
+        }
         .map { it.id }
 }

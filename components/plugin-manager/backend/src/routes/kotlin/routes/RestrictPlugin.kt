@@ -1,0 +1,91 @@
+/*
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
+
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginRestricted
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+
+internal fun Route.restrictPlugin(eventStore: PluginEventStore) =
+    post("admin/plugins/{pluginType}/{pluginId}/restrict", {
+        operationId = "RestrictPlugin"
+        summary = "Restrict an ORT plugin to organizations with a template"
+        description = "Restrict an ORT plugin to make it available only to organizations that have a plugin " +
+                "template assigned."
+        tags = listOf("Plugins")
+
+        request {
+            pathParameter<String>("pluginType") {
+                description = "The type of the plugin to restrict."
+                required = true
+            }
+
+            pathParameter<String>("pluginId") {
+                description = "The ID of the plugin to restrict."
+                required = true
+            }
+        }
+
+        response {
+            HttpStatusCode.Accepted to {
+                description = "The plugin was restricted successfully."
+            }
+
+            HttpStatusCode.NotFound to {
+                description = "The plugin was not found."
+            }
+
+            HttpStatusCode.NotModified to {
+                description = "The plugin is already restricted."
+            }
+        }
+    }, requireSuperuser()) {
+        val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
+        val pluginId = normalizePluginId(pluginType, call.requireParameter("pluginId"))
+
+        if (pluginId == null) {
+            call.respond(HttpStatusCode.NotFound)
+            return@post
+        }
+
+        val userId = requirePrincipal().userId
+
+        val plugin = eventStore.getPlugin(pluginType, pluginId)
+
+        if (plugin.availability == PluginAvailability.RESTRICTED) {
+            call.respond(HttpStatusCode.NotModified)
+        } else {
+            val nextVersion = plugin.version + 1
+            val newEvent = PluginEvent(pluginType, pluginId, nextVersion, PluginRestricted, userId)
+            eventStore.appendEvent(newEvent)
+            call.respond(HttpStatusCode.Accepted)
+        }
+    }
