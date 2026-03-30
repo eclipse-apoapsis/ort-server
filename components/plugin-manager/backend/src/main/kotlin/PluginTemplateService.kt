@@ -33,6 +33,8 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -58,7 +60,7 @@ class PluginTemplateService(
         templateName: String,
         pluginType: PluginType,
         pluginId: String,
-        organizationId: Long,
+        organizationId: OrganizationId,
         userId: String
     ): Result<Unit, TemplateError> =
         db.blockingQuery {
@@ -205,9 +207,9 @@ class PluginTemplateService(
     }
 
     internal fun getPluginsForRepository(
-        repositoryId: Long
+        repositoryId: RepositoryId
     ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.blockingQuery {
-        val organizationId = repositoryRepository.get(repositoryId)?.organizationId
+        val organizationId = repositoryRepository.get(repositoryId.value)?.organizationId?.let { OrganizationId(it) }
             ?: return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
 
         pluginService.getPlugins().filter { it.enabled }
@@ -259,7 +261,7 @@ class PluginTemplateService(
     internal fun getTemplateForOrganization(
         pluginType: PluginType,
         pluginId: String,
-        organizationId: Long
+        organizationId: OrganizationId
     ): Result<PluginTemplate?, TemplateError> = db.blockingQuery {
         validatePlugin(pluginType, pluginId)
             .map { normalizedPluginId ->
@@ -283,7 +285,7 @@ class PluginTemplateService(
         templateName: String,
         pluginType: PluginType,
         pluginId: String,
-        organizationId: Long,
+        organizationId: OrganizationId,
         userId: String
     ): Result<Unit, TemplateError> =
         db.blockingQuery {
@@ -347,7 +349,7 @@ class PluginTemplateService(
      */
     fun validatePluginConfigs(
         pluginConfigs: Map<PluginType, Map<String, ResolvablePluginConfig>>,
-        organizationId: Long
+        organizationId: OrganizationId
     ): PluginConfigValidationResult {
         validateOrganizationExists(organizationId).onErr { error ->
             return PluginConfigValidationResult(listOf(error.message))
@@ -468,9 +470,9 @@ class PluginTemplateService(
     }
 
     /** Validate that the organization with the given [organizationId] exists. */
-    private fun validateOrganizationExists(organizationId: Long): Result<Unit, TemplateError> =
+    private fun validateOrganizationExists(organizationId: OrganizationId): Result<Unit, TemplateError> =
         runBlocking {
-            if (organizationRepository.get(organizationId) == null) {
+            if (organizationRepository.get(organizationId.value) == null) {
                 TemplateError.NotFound("No organization with ID '$organizationId' found.").toErr()
             } else {
                 Ok(Unit)

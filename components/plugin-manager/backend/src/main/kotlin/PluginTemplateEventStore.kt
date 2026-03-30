@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -154,7 +155,7 @@ class PluginTemplateEventStore(private val db: Database) {
                             functionName = "array_append",
                             columnType = PluginTemplatesReadModel.organizationIds.columnType,
                             PluginTemplatesReadModel.organizationIds,
-                            longLiteral(pluginTemplateEvent.payload.organizationId)
+                            longLiteral(pluginTemplateEvent.payload.organizationId.value)
                         )
                     )
                 }
@@ -172,7 +173,7 @@ class PluginTemplateEventStore(private val db: Database) {
                             functionName = "array_remove",
                             columnType = PluginTemplatesReadModel.organizationIds.columnType,
                             PluginTemplatesReadModel.organizationIds,
-                            longLiteral(pluginTemplateEvent.payload.organizationId)
+                            longLiteral(pluginTemplateEvent.payload.organizationId.value)
                         )
                     )
                 }
@@ -210,7 +211,7 @@ internal object PluginTemplateEvents : Table("plugin_template_events") {
 internal object PluginTemplateOrganizationAssignments : Table("plugin_template_organization_assignments") {
     val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
-    val organizationId = long("organization_id")
+    val organizationId = long("organization_id").transform({ OrganizationId(it) }, { it.value })
     val template_name = text("template_name")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId, organizationId)

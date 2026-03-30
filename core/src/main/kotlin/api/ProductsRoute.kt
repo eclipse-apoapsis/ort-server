@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -396,7 +397,7 @@ fun Route.products() = route("products/{productId}") {
                 pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
                     pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
                 },
-                organizationId = product.organizationId
+                organizationId = OrganizationId(product.organizationId)
             )
 
             if (!validationResult.isValid) {

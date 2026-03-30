@@ -25,6 +25,8 @@ import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+
 internal data class PluginTemplateEvent(
     val name: String,
     val pluginType: PluginType,
@@ -59,11 +61,11 @@ internal class OptionsUpdated(
 @Serializable
 @SerialName("OrganizationAdded")
 internal class OrganizationAdded(
-    val organizationId: Long
+    val organizationId: OrganizationId
 ) : PluginTemplateEventPayload
 
 @Serializable
 @SerialName("OrganizationRemoved")
 internal class OrganizationRemoved(
-    val organizationId: Long
+    val organizationId: OrganizationId
 ) : PluginTemplateEventPayload

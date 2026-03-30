@@ -32,6 +32,7 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
@@ -92,7 +93,7 @@ class AddTemplateToOrganizationIntegrationTest : PluginManagerIntegrationTest({
         "return BadRequest if the template is already assigned to the organization" {
             pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.addOrganization("template1", pluginType, pluginId, 1, "test-user")
+                pluginTemplateService.addOrganization("template1", pluginType, pluginId, OrganizationId(1), "test-user")
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1" +

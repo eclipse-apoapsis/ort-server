@@ -37,20 +37,22 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.mapToApi
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
 class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
-    var organizationId = -1L
-    var repositoryId = -1L
+    var organizationId = OrganizationId(-1L)
+    var repositoryId = RepositoryId(-1L)
 
     val pluginType = PluginType.ADVISOR
     val pluginDescriptor = VulnerableCodeFactory.descriptor
     val pluginId = pluginDescriptor.id
 
     beforeEach {
-        organizationId = dbExtension.fixtures.organization.id
-        repositoryId = dbExtension.fixtures.repository.id
+        organizationId = OrganizationId(dbExtension.fixtures.organization.id)
+        repositoryId = RepositoryId(dbExtension.fixtures.repository.id)
     }
 
     "GetPluginsForRepository" should {
@@ -58,7 +60,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
             pluginManagerTestApplication { client ->
                 val allPlugins = pluginService.getPlugins().map { it.type to it.id }
 
-                val response = client.get("/repositories/$repositoryId/plugins")
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val responsePlugins = response.body<List<PreconfiguredPluginDescriptor>>().map { it.type to it.id }
@@ -71,7 +73,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
             pluginManagerTestApplication { client ->
                 client.post("/admin/plugins/$pluginType/$pluginId/disable")
 
-                val response = client.get("/repositories/$repositoryId/plugins")
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<PreconfiguredPluginDescriptor>>().map { it.id } shouldNotContain pluginId
@@ -80,7 +82,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
 
         "return correct values for plugins without templates" {
             pluginManagerTestApplication { client ->
-                val response = client.get("/repositories/$repositoryId/plugins")
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<PreconfiguredPluginDescriptor>>()
@@ -133,7 +135,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
                     userId = "user"
                 ).isOk shouldBe true
 
-                val response = client.get("/repositories/$repositoryId/plugins")
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<PreconfiguredPluginDescriptor>>()
@@ -176,7 +178,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
                     userId = "user"
                 ).isOk shouldBe true
 
-                val response = client.get("/repositories/$repositoryId/plugins")
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<PreconfiguredPluginDescriptor>>()
@@ -243,7 +245,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
                     userId = "user"
                 ).isOk shouldBe true
 
-                val response = client.get("/repositories/$repositoryId/plugins")
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<PreconfiguredPluginDescriptor>>()
