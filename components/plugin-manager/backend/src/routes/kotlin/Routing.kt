@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplates
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.removeTemplateFromOrganization
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.restrictPlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.updateTemplateOptions
 
 /** Add routes for all plugin-manager endpoints. */
@@ -53,5 +54,6 @@ fun Route.pluginManagerRoutes(
     getTemplate(pluginTemplateService)
     getTemplates(pluginTemplateService)
     removeTemplateFromOrganization(pluginTemplateService)
+    restrictPlugin(eventStore)
     updateTemplateOptions(pluginTemplateService)
 }

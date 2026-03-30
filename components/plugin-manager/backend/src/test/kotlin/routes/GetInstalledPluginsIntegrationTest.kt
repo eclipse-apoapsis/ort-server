@@ -31,12 +31,14 @@ import io.ktor.http.HttpStatusCode
 
 import kotlin.enums.enumEntries
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
+import org.ossreviewtoolkit.plugins.scanners.scancode.ScanCodeFactory
 
 class GetInstalledPluginsIntegrationTest : PluginManagerIntegrationTest({
     "GetInstalledPlugins" should {
@@ -52,21 +54,30 @@ class GetInstalledPluginsIntegrationTest : PluginManagerIntegrationTest({
             }
         }
 
-        "return if plugins are enabled or disabled" {
+        "return the availability of plugins" {
             pluginManagerTestApplication { client ->
                 val npmType = PluginType.PACKAGE_MANAGER
                 val npmId = NpmFactory.descriptor.id
+                val scanCodeType = PluginType.SCANNER
+                val scanCodeId = ScanCodeFactory.descriptor.id
                 val vulnerableCodeType = PluginType.ADVISOR
                 val vulnerableCodeId = VulnerableCodeFactory.descriptor.id
 
                 client.post("/admin/plugins/$npmType/$npmId/disable") shouldHaveStatus HttpStatusCode.Accepted
+                client.post("/admin/plugins/$scanCodeType/$scanCodeId/restrict") shouldHaveStatus
+                        HttpStatusCode.Accepted
+
                 val response = client.get("/admin/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val descriptors = response.body<List<PluginDescriptor>>()
 
-                descriptors.find { it.type == npmType && it.id == npmId }?.enabled shouldBe false
-                descriptors.find { it.type == vulnerableCodeType && it.id == vulnerableCodeId }?.enabled shouldBe true
+                descriptors.find { it.type == npmType && it.id == npmId }
+                    ?.availability shouldBe PluginAvailability.DISABLED
+                descriptors.find { it.type == scanCodeType && it.id == scanCodeId }
+                    ?.availability shouldBe PluginAvailability.RESTRICTED
+                descriptors.find { it.type == vulnerableCodeType && it.id == vulnerableCodeId }
+                    ?.availability shouldBe PluginAvailability.ENABLED
             }
         }
     }

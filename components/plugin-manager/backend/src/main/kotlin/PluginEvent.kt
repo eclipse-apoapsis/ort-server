@@ -47,3 +47,8 @@ internal object PluginEnabled : PluginEventPayload()
 @Serializable
 @SerialName("PluginDisabled")
 internal object PluginDisabled : PluginEventPayload()
+
+/** The payload for a plugin restricted event. */
+@Serializable
+@SerialName("PluginRestricted")
+internal object PluginRestricted : PluginEventPayload()

@@ -66,7 +66,7 @@ class PluginEventStore(private val db: Database) {
                 PluginsReadModel.upsert {
                     it[pluginType] = pluginEvent.pluginType
                     it[pluginId] = pluginEvent.pluginId
-                    it[enabled] = false
+                    it[availability] = PluginAvailability.DISABLED
                 }
             }
 
@@ -74,7 +74,15 @@ class PluginEventStore(private val db: Database) {
                 PluginsReadModel.upsert {
                     it[pluginType] = pluginEvent.pluginType
                     it[pluginId] = pluginEvent.pluginId
-                    it[enabled] = true
+                    it[availability] = PluginAvailability.ENABLED
+                }
+            }
+
+            is PluginRestricted -> {
+                PluginsReadModel.upsert {
+                    it[pluginType] = pluginEvent.pluginType
+                    it[pluginId] = pluginEvent.pluginId
+                    it[availability] = PluginAvailability.RESTRICTED
                 }
             }
         }
@@ -107,7 +115,7 @@ internal object PluginEvents : Table("plugin_events") {
 internal object PluginsReadModel : Table("plugins_read_model") {
     val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
-    val enabled = bool("enabled").default(false)
+    val availability = enumerationByName<PluginAvailability>("availability")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId)
 }
