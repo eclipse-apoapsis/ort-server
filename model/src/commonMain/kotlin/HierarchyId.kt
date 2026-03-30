@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.model
 
 import java.util.EnumSet
 
+import kotlinx.serialization.Serializable
+
 /**
  * A sealed interface for a [value] that describes an ID within a specific hierarchy.
  */
@@ -32,18 +34,21 @@ sealed interface HierarchyId {
  * An ID for an [Organization].
  */
 @JvmInline
+@Serializable
 value class OrganizationId(override val value: Long) : HierarchyId
 
 /**
  * An ID for a [Product].
  */
 @JvmInline
+@Serializable
 value class ProductId(override val value: Long) : HierarchyId
 
 /**
  * An ID for a [Repository].
  */
 @JvmInline
+@Serializable
 value class RepositoryId(override val value: Long) : HierarchyId
 
 /**
