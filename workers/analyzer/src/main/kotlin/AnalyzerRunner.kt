@@ -289,7 +289,7 @@ class AnalyzerRunner(
 
         logger.info(
             "Searching for definitions files of the following enabled package manager(s): " +
-                    enabledPackageManagers.joinToString().ifEmpty { "<None>" }
+                    enabledPackageManagers.joinToString { it.descriptor.id }.ifEmpty { "<None>" }
         )
 
         val info = analyzer.findManagedFiles(inputDir, enabledPackageManagers, repositoryConfiguration)
