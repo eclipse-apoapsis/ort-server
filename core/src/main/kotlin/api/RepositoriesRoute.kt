@@ -66,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -169,7 +170,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
                         pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
                     },
-                    organizationId = it.organizationId
+                    organizationId = OrganizationId(it.organizationId)
                 )
 
                 if (!validationResult.isValid) {

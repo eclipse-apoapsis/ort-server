@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+
 /** The current state of a plugin template based on the [applied][apply] events. */
 internal class PluginTemplateState(
     val name: String,
@@ -31,7 +33,7 @@ internal class PluginTemplateState(
     var isGlobal: Boolean = false
         private set
 
-    var organizationIds: List<Long> = emptyList()
+    var organizationIds: List<OrganizationId> = emptyList()
         private set
 
     var isDeleted: Boolean = false

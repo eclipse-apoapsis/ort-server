@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSup
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -84,7 +85,7 @@ internal fun Route.addTemplateToOrganization(
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
-    val organizationId = call.requireIdParameter("organizationId")
+    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
 
     pluginTemplateService.addOrganization(templateName, pluginType, pluginId, organizationId, userId).onOk {
         call.respond(HttpStatusCode.OK, "Template added to organization successfully.")

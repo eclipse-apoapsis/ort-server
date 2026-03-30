@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 internal fun Route.getPluginsForRepository(
@@ -96,7 +97,7 @@ internal fun Route.getPluginsForRepository(
         }
     }
 }, requirePermission(RepositoryPermission.READ)) {
-    val repositoryId = call.requireIdParameter("repositoryId")
+    val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
 
     pluginTemplateService.getPluginsForRepository(repositoryId).onOk {
         call.respond(HttpStatusCode.OK, it)

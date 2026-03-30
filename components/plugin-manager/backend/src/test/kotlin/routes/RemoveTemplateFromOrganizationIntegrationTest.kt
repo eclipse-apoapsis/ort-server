@@ -33,23 +33,24 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
 class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTest({
-    var organizationId: Long = 0
+    var organizationId = OrganizationId(0)
 
     val pluginType = PluginType.ADVISOR
     val pluginId = OssIndexFactory.descriptor.id
 
     beforeEach {
-        organizationId = dbExtension.fixtures.createOrganization().id
+        organizationId = OrganizationId(dbExtension.fixtures.createOrganization().id)
     }
 
     "RemoveTemplateFromOrganization" should {
         "remove a template from an organization if it exists" {
             pluginManagerTestApplication { client ->
-                val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
+                val organizationId2 = OrganizationId(dbExtension.fixtures.createOrganization(name = "org2").id)
 
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId, "test-user")
@@ -57,14 +58,14 @@ class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTe
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1" +
-                            "/removeFromOrganization?organizationId=$organizationId"
+                            "/removeFromOrganization?organizationId=${organizationId.value}"
                 ) shouldHaveStatus HttpStatusCode.OK
 
                 val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)
                 result.isOk shouldBe true
 
                 val template = result.get().shouldNotBeNull()
-                template.organizationIds should containExactly(organizationId2)
+                template.organizationIds should containExactly(organizationId2.value)
             }
         }
 
@@ -94,7 +95,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTe
 
                 client.post(
                     "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1" +
-                            "/removeFromOrganization?organizationId=$organizationId"
+                            "/removeFromOrganization?organizationId=${organizationId.value}"
                 ) shouldHaveStatus HttpStatusCode.OK
 
                 val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)

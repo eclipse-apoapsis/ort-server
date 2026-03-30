@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplatesReadModel
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.Query
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.Op
@@ -35,14 +36,14 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 internal class GetPluginTemplateForOrganizationQuery(
     val pluginType: PluginType,
     val pluginId: String,
-    val organizationId: Long
+    val organizationId: OrganizationId
 ) : Query<PluginTemplate?> {
     override fun execute(): PluginTemplate? {
         val template = PluginTemplatesReadModel
             .selectAll()
             .where { PluginTemplatesReadModel.pluginType eq pluginType }
             .andWhere { PluginTemplatesReadModel.pluginId eq pluginId }
-            .andWhere { organizationId inArray PluginTemplatesReadModel.organizationIds }
+            .andWhere { organizationId.value inArray PluginTemplatesReadModel.organizationIds }
             .singleOrNull()
             ?: PluginTemplatesReadModel
                 .selectAll()
