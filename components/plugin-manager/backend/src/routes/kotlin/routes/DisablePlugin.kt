@@ -26,6 +26,7 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDisabled
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
@@ -77,7 +78,7 @@ internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plu
 
     val plugin = eventStore.getPlugin(pluginType, pluginId)
 
-    if (!plugin.isEnabled()) {
+    if (plugin.availability == PluginAvailability.DISABLED) {
         call.respond(HttpStatusCode.NotModified)
     } else {
         val nextVersion = plugin.version + 1

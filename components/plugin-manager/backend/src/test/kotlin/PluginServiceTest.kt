@@ -43,27 +43,33 @@ class PluginServiceTest : WordSpec({
         pluginService = PluginService(dbExtension.db)
     }
 
-    "isEnabled" should {
-        "return true if the plugin was never disabled" {
-            pluginService.isEnabled(pluginType, pluginId) shouldBe true
+    "getAvailability" should {
+        "return ENABLED if the plugin was never disabled" {
+            pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.ENABLED
         }
 
-        "return true if the plugin was disabled and enabled again" {
+        "return ENABLED if the plugin was disabled and enabled again" {
             pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
             pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 2, PluginEnabled, "user"))
 
-            pluginService.isEnabled(pluginType, pluginId) shouldBe true
+            pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.ENABLED
         }
 
         "normalize the plugin ID" {
-            pluginService.isEnabled(pluginType, pluginId.lowercase()) shouldBe true
-            pluginService.isEnabled(pluginType, pluginId.uppercase()) shouldBe true
+            pluginService.getAvailability(pluginType, pluginId.lowercase()) shouldBe PluginAvailability.ENABLED
+            pluginService.getAvailability(pluginType, pluginId.uppercase()) shouldBe PluginAvailability.ENABLED
         }
 
-        "return false if the plugin was disabled" {
+        "return DISABLED if the plugin was disabled" {
             pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
 
-            pluginService.isEnabled(pluginType, pluginId) shouldBe false
+            pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.DISABLED
+        }
+
+        "return RESTRICTED if the plugin was restricted" {
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginRestricted, "user"))
+
+            pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.RESTRICTED
         }
     }
 
@@ -91,12 +97,19 @@ class PluginServiceTest : WordSpec({
             }
         }
 
-        "return if a plugin is enabled" {
-            pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }.enabled shouldBe true
+        "return the availability of a plugin" {
+            pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }
+                .availability shouldBe PluginAvailability.ENABLED
 
-            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginRestricted, "user"))
 
-            pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }.enabled shouldBe false
+            pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }
+                .availability shouldBe PluginAvailability.RESTRICTED
+
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 2, PluginDisabled, "user"))
+
+            pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }
+                .availability shouldBe PluginAvailability.DISABLED
         }
     }
 })

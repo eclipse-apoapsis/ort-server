@@ -23,13 +23,13 @@ import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
 import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
 import org.ossreviewtoolkit.plugins.api.PluginOptionType as OrtPluginOptionType
 
-internal fun OrtPluginDescriptor.mapToApi(type: PluginType, enabled: Boolean) = PluginDescriptor(
+internal fun OrtPluginDescriptor.mapToApi(type: PluginType, availability: PluginAvailability) = PluginDescriptor(
     id = id,
     type = type,
     displayName = displayName,
     description = description,
     options = options.map { it.mapToApi() },
-    enabled = enabled
+    availability = availability
 )
 
 internal fun OrtPluginOption.mapToApi() = PluginOption(
