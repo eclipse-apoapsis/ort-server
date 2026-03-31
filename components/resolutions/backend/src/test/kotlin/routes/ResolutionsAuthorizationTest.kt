@@ -29,11 +29,15 @@ import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.resolutions.PatchIssueResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.PatchRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.PatchVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.PostIssueResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.PostRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.PostVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
@@ -43,11 +47,13 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
     lateinit var issueResolutionService: IssueResolutionService
+    lateinit var ruleViolationResolutionService: RuleViolationResolutionService
     lateinit var vulnerabilityResolutionService: VulnerabilityResolutionService
     lateinit var hierarchyId: CompoundHierarchyId
     var repositoryId = RepositoryId(-1)
@@ -73,6 +79,11 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
             eventStore = issueResolutionEventStore,
             repositoryService = repositoryService
         )
+        ruleViolationResolutionService = RuleViolationResolutionService(
+            db = dbExtension.db,
+            eventStore = RuleViolationResolutionEventStore(dbExtension.db),
+            repositoryService = repositoryService
+        )
         vulnerabilityResolutionService = VulnerabilityResolutionService(
             db = dbExtension.db,
             eventStore = VulnerabilityResolutionEventStore(dbExtension.db),
@@ -94,6 +105,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 routes = {
                     resolutionRoutes(
                         issueResolutionService,
+                        ruleViolationResolutionService,
                         vulnerabilityResolutionService
                     )
                 },
@@ -119,6 +131,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 routes = {
                     resolutionRoutes(
                         issueResolutionService,
+                        ruleViolationResolutionService,
                         vulnerabilityResolutionService
                     )
                 },
@@ -137,6 +150,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 routes = {
                     resolutionRoutes(
                         issueResolutionService,
+                        ruleViolationResolutionService,
                         vulnerabilityResolutionService
                     )
                 },
@@ -162,6 +176,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 routes = {
                     resolutionRoutes(
                         issueResolutionService,
+                        ruleViolationResolutionService,
                         vulnerabilityResolutionService
                     )
                 },
@@ -188,6 +203,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 routes = {
                     resolutionRoutes(
                         issueResolutionService,
+                        ruleViolationResolutionService,
                         vulnerabilityResolutionService
                     )
                 },
@@ -209,6 +225,7 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 routes = {
                     resolutionRoutes(
                         issueResolutionService,
+                        ruleViolationResolutionService,
                         vulnerabilityResolutionService
                     )
                 },
@@ -224,6 +241,84 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                         PatchIssueResolution(
                             comment = "This issue is caused by an upstream build tool defect.",
                             reason = IssueResolutionReason.BUILD_TOOL_ISSUE
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    "PostRuleViolationResolution" should {
+        "require RepositoryPermission.MANAGE_RESOLUTIONS" {
+            requestShouldRequireRole(
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        ruleViolationResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.Created,
+                hierarchyId = hierarchyId
+            ) {
+                post("/repositories/${repositoryId.value}/resolutions/rule-violations") {
+                    setBody(
+                        PostRuleViolationResolution(
+                            message = "A rule violation message.",
+                            comment = "This rule violation is a known exception.",
+                            reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    "DeleteRuleViolationResolution" should {
+        "require RepositoryPermission.MANAGE_RESOLUTIONS" {
+            requestShouldRequireRole(
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        ruleViolationResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = hierarchyId
+            ) {
+                delete(
+                    "/repositories/${repositoryId.value}/resolutions/rule-violations/" +
+                            calculateResolutionMessageHash("A rule violation message.")
+                )
+            }
+        }
+    }
+
+    "PatchRuleViolationResolution" should {
+        "require RepositoryPermission.MANAGE_RESOLUTIONS" {
+            requestShouldRequireRole(
+                routes = {
+                    resolutionRoutes(
+                        issueResolutionService,
+                        ruleViolationResolutionService,
+                        vulnerabilityResolutionService
+                    )
+                },
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = hierarchyId
+            ) {
+                patch(
+                    "/repositories/${repositoryId.value}/resolutions/rule-violations/" +
+                            calculateResolutionMessageHash("A rule violation message.")
+                ) {
+                    setBody(
+                        PatchRuleViolationResolution(
+                            comment = "This rule violation is accepted because of dynamic linking.",
+                            reason = RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
                         )
                     )
                 }
