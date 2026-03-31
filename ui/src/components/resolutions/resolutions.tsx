@@ -22,6 +22,7 @@ import { useState } from 'react';
 import {
   isIssueItem,
   isRuleViolationItem,
+  isVulnerabilityItem,
   ItemWithResolutions,
 } from '@/helpers/resolutions';
 import { IssueResolutions } from './issue-resolutions';
@@ -40,7 +41,7 @@ export function Resolutions({ item, repositoryId, runId }: ResolutionsProps) {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const displayItems = getDisplayItems(item, false);
 
-  if ('vulnerability' in item && repositoryId && runId !== undefined) {
+  if (isVulnerabilityItem(item) && repositoryId && runId !== undefined) {
     return (
       <VulnerabilityResolutions
         item={item}
