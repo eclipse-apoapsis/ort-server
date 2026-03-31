@@ -25,26 +25,35 @@ import { Resolver, useForm } from 'react-hook-form';
 
 import {
   getRunIssuesQueryKey,
+  getRunRuleViolationsQueryKey,
   getRunVulnerabilitiesQueryKey,
   patchIssueResolutionForRepositoryMutation,
+  patchRuleViolationResolutionForRepositoryMutation,
   patchVulnerabilityResolutionMutation,
   postIssueResolutionForRepositoryMutation,
+  postRuleViolationResolutionForRepositoryMutation,
   postVulnerabilityResolutionMutation,
 } from '@/api/@tanstack/react-query.gen';
 import {
   IssueResolutionReason,
   PatchIssueResolution,
+  PatchRuleViolationResolution,
   PatchVulnerabilityResolution,
   PostIssueResolution,
+  PostRuleViolationResolution,
   PostVulnerabilityResolution,
+  RuleViolationResolutionReason,
   VulnerabilityResolutionReason,
 } from '@/api/types.gen';
 import {
   zIssueResolutionReason,
   zPatchIssueResolution,
+  zPatchRuleViolationResolution,
   zPatchVulnerabilityResolution,
   zPostIssueResolution,
+  zPostRuleViolationResolution,
   zPostVulnerabilityResolution,
+  zRuleViolationResolutionReason,
   zVulnerabilityResolutionReason,
 } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -213,16 +222,23 @@ export function ResolutionForm({
 }: ResolutionFormProps) {
   const queryClient = useQueryClient();
   const isIssue = context.itemType === 'issue';
+  const isRuleViolation = context.itemType === 'rule-violation';
   const reasonOptions = isIssue
     ? zIssueResolutionReason.options
-    : zVulnerabilityResolutionReason.options;
+    : isRuleViolation
+      ? zRuleViolationResolutionReason.options
+      : zVulnerabilityResolutionReason.options;
   const schema = isIssue
     ? mode === 'create'
       ? zPostIssueResolution.omit({ message: true })
       : zPatchIssueResolution
-    : mode === 'create'
-      ? zPostVulnerabilityResolution
-      : zPatchVulnerabilityResolution;
+    : isRuleViolation
+      ? mode === 'create'
+        ? zPostRuleViolationResolution.omit({ message: true })
+        : zPatchRuleViolationResolution
+      : mode === 'create'
+        ? zPostVulnerabilityResolution
+        : zPatchVulnerabilityResolution;
 
   const form = useForm<ResolutionFormValues>({
     resolver: zodResolver(schema) as Resolver<ResolutionFormValues>,
@@ -307,13 +323,56 @@ export function ResolutionForm({
     },
   });
 
+  const ruleViolationCreateMutation = useMutation({
+    ...postRuleViolationResolutionForRepositoryMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getRunRuleViolationsQueryKey({
+          path: { runId: context.runId },
+        }),
+      });
+      toast.info(
+        mode === 'create' ? 'Resolution created' : 'Resolution updated',
+        {
+          description:
+            mode === 'create'
+              ? 'Rule violation resolution created successfully.'
+              : 'Rule violation resolution updated successfully.',
+        }
+      );
+    },
+    onError(error: ApiError) {
+      toastError(error.message, error);
+    },
+  });
+  const ruleViolationUpdateMutation = useMutation({
+    ...patchRuleViolationResolutionForRepositoryMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getRunRuleViolationsQueryKey({
+          path: { runId: context.runId },
+        }),
+      });
+      toast.info('Resolution updated', {
+        description: 'Rule violation resolution updated successfully.',
+      });
+    },
+    onError(error: ApiError) {
+      toastError(error.message, error);
+    },
+  });
+
   const isPending = isIssue
     ? mode === 'create'
       ? issueCreateMutation.isPending
       : issueUpdateMutation.isPending
-    : mode === 'create'
-      ? vulnerabilityCreateMutation.isPending
-      : vulnerabilityUpdateMutation.isPending;
+    : isRuleViolation
+      ? mode === 'create'
+        ? ruleViolationCreateMutation.isPending
+        : ruleViolationUpdateMutation.isPending
+      : mode === 'create'
+        ? vulnerabilityCreateMutation.isPending
+        : vulnerabilityUpdateMutation.isPending;
 
   const onSubmit = async (values: ResolutionFormValues) => {
     if (isIssue) {
@@ -338,6 +397,30 @@ export function ResolutionForm({
             comment: values.comment,
             reason: values.reason as IssueResolutionReason,
           } satisfies PatchIssueResolution,
+        });
+      }
+    } else if (isRuleViolation) {
+      if (mode === 'create') {
+        await ruleViolationCreateMutation.mutateAsync({
+          path: {
+            repositoryId: context.repositoryId,
+          },
+          body: {
+            comment: values.comment,
+            message: context.identifier,
+            reason: values.reason as RuleViolationResolutionReason,
+          } satisfies PostRuleViolationResolution,
+        });
+      } else {
+        await ruleViolationUpdateMutation.mutateAsync({
+          path: {
+            repositoryId: context.repositoryId,
+            messageHash: context.identifier,
+          },
+          body: {
+            comment: values.comment,
+            reason: values.reason as RuleViolationResolutionReason,
+          } satisfies PatchRuleViolationResolution,
         });
       }
     } else {
