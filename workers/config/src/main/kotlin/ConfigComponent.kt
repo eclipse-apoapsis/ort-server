@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
@@ -75,5 +76,6 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
 
     private fun configModule(): Module = module {
         singleOf(::ConfigWorker)
+        singleOf(::PluginService)
     }
 }

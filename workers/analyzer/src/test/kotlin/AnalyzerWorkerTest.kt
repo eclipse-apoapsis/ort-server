@@ -47,10 +47,6 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
@@ -76,7 +72,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactor
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 
-import org.ossreviewtoolkit.analyzer.PackageManagerFactory
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
@@ -187,7 +182,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -252,7 +246,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -321,7 +314,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -343,10 +335,9 @@ class AnalyzerWorkerTest : StringSpec({
 
     "AnalyzerRunner should be invoked correctly with an environment config from the job configuration" {
         val envConfig = mockk<EnvironmentConfig>()
-        val pluginService = mockPluginService()
         val jobConfig = AnalyzerJobConfiguration(
             environmentConfig = envConfig,
-            enabledPackageManagers = getDefaultPackageManagers(pluginService)
+            enabledPackageManagers = listOf("Maven")
         )
         val job = analyzerJob.copy(configuration = jobConfig)
 
@@ -393,7 +384,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            pluginService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -438,16 +428,13 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns resolvedEnvConfig
         }
 
-        val pluginService = mockPluginService()
-        val analyzerConfig =
-            analyzerJob.configuration.copy(enabledPackageManagers = getDefaultPackageManagers(pluginService))
         val testException = IllegalStateException("AnalyzerRunner test exception")
         val runner = mockk<AnalyzerRunner> {
             coEvery {
                 run(
                     context,
                     any(),
-                    analyzerConfig,
+                    analyzerJob.configuration,
                     resolvedEnvConfig
                 )
             } throws testException
@@ -460,7 +447,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            pluginService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -486,7 +472,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             mockk(),
             mockk(),
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -512,7 +497,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             mockk(),
             mockk(),
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -613,7 +597,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -704,7 +687,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -762,7 +744,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -834,7 +815,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -903,7 +883,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -984,7 +963,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -1043,7 +1021,6 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
@@ -1065,20 +1042,6 @@ private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextF
         coEvery { withContext(analyzerJob.ortRunId, capture(slot)) } coAnswers {
             slot.captured(context)
         }
-    }
-}
-
-private fun mockPluginService() = mockk<PluginService> {
-    every { getPlugins() } returns PackageManagerFactory.ALL.values.map { packageManagerFactory ->
-        val ortDescriptor = packageManagerFactory.descriptor
-        PluginDescriptor(
-            id = ortDescriptor.id,
-            type = PluginType.PACKAGE_MANAGER,
-            displayName = ortDescriptor.displayName,
-            description = ortDescriptor.description,
-            options = emptyList(),
-            availability = PluginAvailability.ENABLED
-        )
     }
 }
 

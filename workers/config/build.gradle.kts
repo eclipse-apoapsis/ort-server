@@ -32,7 +32,20 @@ plugins {
 
 group = "org.eclipse.apoapsis.ortserver.workers"
 
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.gradle.org/gradle/libs-releases/")
+        }
+
+        filter {
+            includeGroup("org.gradle")
+        }
+    }
+}
+
 dependencies {
+    implementation(projects.components.pluginManager.pluginManagerBackend)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
@@ -52,7 +65,9 @@ dependencies {
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
+    runtimeOnly(platform(ortLibs.ortPlugins.packageManagers))
 
+    testImplementation(projects.components.pluginManager.pluginManagerBackend)
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))

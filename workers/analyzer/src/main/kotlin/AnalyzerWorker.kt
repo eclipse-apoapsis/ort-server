@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -54,7 +53,6 @@ internal class AnalyzerWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService,
-    private val pluginService: PluginService,
     private val adminConfigService: AdminConfigService,
     private val issueResolutionService: IssueResolutionService
 ) {
@@ -104,18 +102,13 @@ internal class AnalyzerWorker(
 
             ortRunService.updateResolvedRevision(ortRun.id, downloadResult.resolvedRevision)
 
-            // Set the default package managers if none are configured, because the runner might be executed in a
-            // separate process which cannot access the database.
-            val jobConfiguration = job.configuration.takeUnless { it.enabledPackageManagers.isNullOrEmpty() }
-                ?: job.configuration.copy(enabledPackageManagers = getDefaultPackageManagers(pluginService))
-
             val resolvedEnvConfig = environmentService.setUpEnvironment(
                 context,
                 downloadResult.directory,
                 envConfigFromJob,
                 repositoryServices
             )
-            val ortResult = runner.run(context, downloadResult.directory, jobConfiguration, resolvedEnvConfig)
+            val ortResult = runner.run(context, downloadResult.directory, job.configuration, resolvedEnvConfig)
 
             ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
             ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)

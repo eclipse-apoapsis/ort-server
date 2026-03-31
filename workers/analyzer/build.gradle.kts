@@ -50,7 +50,6 @@ repositories {
 dependencies {
     implementation(projects.api.v1.apiV1Model)
     implementation(projects.components.authorization.authorizationBackend)
-    implementation(projects.components.pluginManager.pluginManagerBackend)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.services.adminConfigService)

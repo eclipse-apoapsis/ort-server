@@ -20,20 +20,11 @@
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
-import io.mockk.mockk
-
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
@@ -83,40 +74,6 @@ class UtilsTest : WordSpec({
                 scope shouldBe "dependencies"
                 path shouldHaveSize 3
             }
-        }
-    }
-
-    "getDefaultPackageManagers()" should {
-        "return all enabled and restricted package managers" {
-            val pluginService = mockk<PluginService> {
-                every { getPlugins() } returns listOf(
-                    PluginDescriptor(
-                        "Maven",
-                        PluginType.PACKAGE_MANAGER,
-                        "Maven",
-                        "description",
-                        availability = PluginAvailability.DISABLED
-                    ),
-                    PluginDescriptor(
-                        "NPM",
-                        PluginType.PACKAGE_MANAGER,
-                        "NPM",
-                        "description",
-                        availability = PluginAvailability.RESTRICTED
-                    ),
-                    PluginDescriptor(
-                        "PNPM",
-                        PluginType.PACKAGE_MANAGER,
-                        "PNPM",
-                        "description",
-                        availability = PluginAvailability.ENABLED
-                    )
-                )
-            }
-
-            val defaultPackageManagers = getDefaultPackageManagers(pluginService)
-
-            defaultPackageManagers should containExactlyInAnyOrder("NPM", "PNPM")
         }
     }
 })
