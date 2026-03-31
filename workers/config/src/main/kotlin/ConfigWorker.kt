@@ -19,9 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -49,7 +51,10 @@ class ConfigWorker(
     private val contextFactory: WorkerContextFactory,
 
     /** The service to access the admin configuration. */
-    private val adminConfigService: AdminConfigService
+    private val adminConfigService: AdminConfigService,
+
+    /** The service for accessing plugin information. */
+    private val pluginService: PluginService
 ) {
     companion object {
         /** Constant for the path to the script that validates and transforms parameters. */
@@ -81,6 +86,10 @@ class ConfigWorker(
                 resolvedJobConfigContext.name
             )
 
+            // Resolve the default package managers before the validation script runs so the script can see and
+            // potentially override them.
+            val baseConfigs = resolveDefaultPackageManagers(context.ortRun.jobConfigs)
+
             // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it
             //       configurable.
             val validationScriptExists = context.configManager.containsFile(
@@ -96,7 +105,7 @@ class ConfigWorker(
                     VALIDATION_SCRIPT_PATH
                 )
                 val validator = ConfigValidator.create(
-                    createValidationWorkerContext(context, resolvedJobConfigContext),
+                    createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs),
                     adminConfigService
                 )
                 val validationResult = validator.validate(validationScript)
@@ -122,7 +131,7 @@ class ConfigWorker(
                 logger.info("Skipping validation as no script exists.")
 
                 RunResult.Success to Triple(
-                    context.ortRun.jobConfigs.asPresent(),
+                    baseConfigs.asPresent(),
                     OptionalValue.Absent,
                     OptionalValue.Absent
                 )
@@ -146,19 +155,39 @@ class ConfigWorker(
 
     /**
      * Create a [WorkerContext] that delegates to the given [context], but returns the provided
-     * [resolvedJobConfigContext]. This is needed because the [WorkerContext.ortRun] object contained in the original
-     * [WorkerContext] does not have the resolved configuration context yet; it is updated at the end of the worker
-     * execution. However, the config validation script needs the right configuration context.
+     * [resolvedJobConfigContext] and [baseConfigs]. This is needed because the [WorkerContext.ortRun] object contained
+     * in the original [WorkerContext] does not have the resolved configuration context yet; it is updated at the end
+     * of the worker execution. However, the config validation script needs the right configuration context. The
+     * [baseConfigs] override ensures the script sees the pre-resolved job configurations, including the default
+     * package managers.
      */
     private fun createValidationWorkerContext(
         context: WorkerContext,
-        resolvedJobConfigContext: Context
+        resolvedJobConfigContext: Context,
+        baseConfigs: JobConfigurations
     ): WorkerContext {
-        val runWithConfigContext = context.ortRun.copy(resolvedJobConfigContext = resolvedJobConfigContext.name)
+        val runWithConfigContext = context.ortRun.copy(
+            resolvedJobConfigContext = resolvedJobConfigContext.name,
+            jobConfigs = baseConfigs
+        )
 
         return object : WorkerContext by context {
             override val ortRun: OrtRun
                 get() = runWithConfigContext
         }
+    }
+
+    /**
+     * Return a copy of the given [jobConfigs] with the default package managers filled in for the analyzer
+     * configuration if [AnalyzerJobConfiguration.enabledPackageManagers][org.eclipse.apoapsis.ortserver.model
+     * .AnalyzerJobConfiguration.enabledPackageManagers] is null or empty.
+     */
+    private fun resolveDefaultPackageManagers(jobConfigs: JobConfigurations): JobConfigurations {
+        if (!jobConfigs.analyzer.enabledPackageManagers.isNullOrEmpty()) return jobConfigs
+
+        val defaults = getDefaultPackageManagers(pluginService)
+        return jobConfigs.copy(
+            analyzer = jobConfigs.analyzer.copy(enabledPackageManagers = defaults)
+        )
     }
 }

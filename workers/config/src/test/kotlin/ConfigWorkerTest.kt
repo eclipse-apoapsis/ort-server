@@ -35,10 +35,15 @@ import io.mockk.verify
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -75,7 +80,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -105,7 +110,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -134,7 +139,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error should beInstanceOf<IllegalArgumentException>()
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
@@ -159,7 +164,7 @@ class ConfigWorkerTest : StringSpec({
         val configManager = mockConfigManager()
         every { configManager.getFileAsString(any(), any()) } throws configException
 
-        val worker = ConfigWorker(mockk(), mockk(), contextFactory, mockk())
+        val worker = ConfigWorker(mockk(), mockk(), contextFactory, mockk(), mockPluginService())
         when (val result = worker.testRun()) {
             is RunResult.Failed -> result.error shouldBe configException
             else -> AssertionErrorBuilder.fail("Unexpected result: $result")
@@ -179,7 +184,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
             worker.testRun() shouldBe RunResult.Success
 
             val slotContext = mutableListOf<WorkerContext>()
@@ -199,10 +204,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "A missing validation script should be ignored" {
-        val (contextFactory, context, configManager) = mockContext(validationScriptExists = false)
-
-        val resolvedConfig = mockk<JobConfigurations>()
-        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues, validationLabels))
+        val (contextFactory, _, configManager) = mockContext(validationScriptExists = false)
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
@@ -211,10 +213,12 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
             worker.testRun() shouldBe RunResult.Success
 
-            val expectedJobConfigs = context.ortRun.jobConfigs
+            val expectedJobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(enabledPackageManagers = DEFAULT_PACKAGE_MANAGERS)
+            )
 
             verify {
                 configManager.resolveContext(Context(ORIGINAL_CONTEXT))
@@ -225,6 +229,60 @@ class ConfigWorkerTest : StringSpec({
                     resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent()
                 )
             }
+        }
+    }
+
+    "Default package managers should be injected into the context passed to the validation script" {
+        val (contextFactory, _, _) = mockContext()
+
+        val resolvedConfig = mockk<JobConfigurations>()
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
+
+        val ortRunRepository = mockk<OrtRunRepository> {
+            every {
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any())
+            } returns mockk()
+        }
+
+        mockkTransaction {
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
+            worker.testRun() shouldBe RunResult.Success
+
+            val slotContext = mutableListOf<WorkerContext>()
+            verify {
+                ConfigValidator.create(capture(slotContext), any())
+            }
+
+            val capturedContext = slotContext.last()
+            capturedContext.ortRun.jobConfigs.analyzer.enabledPackageManagers shouldBe DEFAULT_PACKAGE_MANAGERS
+        }
+    }
+
+    "Existing package managers should not be overwritten by defaults" {
+        val existingManagers = listOf("Maven")
+        val jobConfig = AnalyzerJobConfiguration(enabledPackageManagers = existingManagers)
+        val (contextFactory, _, _) = mockContext(jobConfigs = JobConfigurations(analyzer = jobConfig))
+
+        val resolvedConfig = mockk<JobConfigurations>()
+        mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
+
+        val ortRunRepository = mockk<OrtRunRepository> {
+            every {
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any())
+            } returns mockk()
+        }
+
+        mockkTransaction {
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService())
+            worker.testRun() shouldBe RunResult.Success
+
+            val slotContext = mutableListOf<WorkerContext>()
+            verify {
+                ConfigValidator.create(capture(slotContext), any())
+            }
+
+            val capturedContext = slotContext.last()
+            capturedContext.ortRun.jobConfigs.analyzer.enabledPackageManagers shouldBe existingManagers
         }
     }
 })
@@ -241,6 +299,9 @@ private const val RESOLVED_CONTEXT = "theResolvedConfigurationContext"
 /** Simulated script to perform parameter validation and transformation. */
 private const val PARAMETERS_SCRIPT = "Script to validate parameters"
 
+/** The package managers returned by the mock plugin service. */
+private val DEFAULT_PACKAGE_MANAGERS = listOf("NPM", "Maven")
+
 /** A list with validation issues to be returned by the mock validator. */
 private val validationIssues = listOf(
     Issue(Clock.System.now(), "ConfigWorkerTest", "Test message", Severity.ERROR)
@@ -251,11 +312,13 @@ private val validationLabels = mapOf("validated" to "yes", "test" to "true")
 
 /**
  * Create a mock context factory together with a mock context that is returned by the factory. Prepare the mocks to
- * return typical answers. Use the given [orgConfigContext] for the [OrtRun.jobConfigContext] property.
+ * return typical answers. Use the given [orgConfigContext] for the [OrtRun.jobConfigContext] property and the given
+ * [jobConfigs] as the job configurations.
  */
 private fun mockContext(
     orgConfigContext: String? = ORIGINAL_CONTEXT,
     validationScriptExists: Boolean = true,
+    jobConfigs: JobConfigurations = JobConfigurations(),
     configureConfigManager: ConfigManager.() -> Unit = {}
 ): Triple<WorkerContextFactory, WorkerContext, ConfigManager> {
     val run = OrtRun(
@@ -267,7 +330,7 @@ private fun mockContext(
         revision = "main",
         path = null,
         createdAt = Clock.System.now(),
-        jobConfigs = JobConfigurations(),
+        jobConfigs = jobConfigs,
         resolvedJobConfigs = null,
         status = OrtRunStatus.ACTIVE,
         finishedAt = null,
@@ -326,6 +389,15 @@ private fun mockConfigManager(validationScriptExists: Boolean = true): ConfigMan
     } returns PARAMETERS_SCRIPT
 
     every { resolveContext(any()) } returns Context(RESOLVED_CONTEXT)
+}
+
+/**
+ * Create a mock [PluginService] that returns [DEFAULT_PACKAGE_MANAGERS] as the enabled package managers.
+ */
+private fun mockPluginService(): PluginService = mockk {
+    every { getPlugins() } returns DEFAULT_PACKAGE_MANAGERS.map { id ->
+        PluginDescriptor(id, PluginType.PACKAGE_MANAGER, id, "", availability = PluginAvailability.ENABLED)
+    }
 }
 
 /**
