@@ -43,6 +43,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { TooltipIfTruncated } from '@/components/tooltip-if-truncated';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -68,9 +69,7 @@ const columns = [
   columnHelper.accessor('user.username', {
     header: 'Username',
     cell: ({ row }) => (
-      <div className='overflow-hidden text-ellipsis'>
-        {row.original.user.username}
-      </div>
+      <TooltipIfTruncated text={row.original.user.username ?? ''} />
     ),
   }),
   columnHelper.accessor('user.firstName', {
@@ -84,9 +83,7 @@ const columns = [
   columnHelper.accessor('user.email', {
     header: 'Email address',
     cell: ({ row }) => (
-      <div className='overflow-hidden text-ellipsis'>
-        {row.original.user.email}
-      </div>
+      <TooltipIfTruncated text={row.original.user.email ?? ''} />
     ),
   }),
   columnHelper.accessor('isSuperuser', {
