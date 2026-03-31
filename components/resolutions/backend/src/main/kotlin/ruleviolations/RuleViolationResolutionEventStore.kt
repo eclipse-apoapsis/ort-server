@@ -22,15 +22,21 @@ package org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 
 /** A store for [RuleViolationResolutionEvent]s. */
 class RuleViolationResolutionEventStore(private val db: Database) {
@@ -52,6 +58,8 @@ class RuleViolationResolutionEventStore(private val db: Database) {
             it[createdBy] = event.createdBy
             it[createdAt] = event.createdAt
         }
+
+        updateReadModel(event)
     }
 
     internal fun getRuleViolationResolution(repositoryId: RepositoryId, messageHash: String) =
@@ -62,6 +70,50 @@ class RuleViolationResolutionEventStore(private val db: Database) {
             ).applyAll(events)
         }
 
+    internal fun getResolutionsForRepository(
+        repositoryId: RepositoryId
+    ): List<RuleViolationResolution> = db.blockingQuery {
+        RuleViolationResolutionsReadModel
+            .selectAll()
+            .where { RuleViolationResolutionsReadModel.repositoryId eq repositoryId }
+            .map { it.toRuleViolationResolution() }
+    }
+
+    private fun updateReadModel(ruleViolationResolutionEvent: RuleViolationResolutionEvent) {
+        when (ruleViolationResolutionEvent.payload) {
+            is Created -> {
+                RuleViolationResolutionsReadModel.insert {
+                    it[repositoryId] = ruleViolationResolutionEvent.repositoryId
+                    it[messageHash] = ruleViolationResolutionEvent.messageHash
+                    it[message] = ruleViolationResolutionEvent.payload.message
+                    it[reason] = ruleViolationResolutionEvent.payload.reason
+                    it[comment] = ruleViolationResolutionEvent.payload.comment
+                }
+            }
+
+            is Deleted -> {
+                RuleViolationResolutionsReadModel.deleteWhere {
+                    (RuleViolationResolutionsReadModel.repositoryId eq ruleViolationResolutionEvent.repositoryId) and
+                            (RuleViolationResolutionsReadModel.messageHash eq ruleViolationResolutionEvent.messageHash)
+                }
+            }
+
+            is Updated -> {
+                RuleViolationResolutionsReadModel.update(where = {
+                    (RuleViolationResolutionsReadModel.repositoryId eq ruleViolationResolutionEvent.repositoryId) and
+                            (RuleViolationResolutionsReadModel.messageHash eq ruleViolationResolutionEvent.messageHash)
+                }) {
+                    if (ruleViolationResolutionEvent.payload.reason != null) {
+                        it[reason] = ruleViolationResolutionEvent.payload.reason
+                    }
+                    if (ruleViolationResolutionEvent.payload.comment != null) {
+                        it[comment] = ruleViolationResolutionEvent.payload.comment
+                    }
+                }
+            }
+        }
+    }
+
     private fun ResultRow.toRuleViolationResolutionEvent() = RuleViolationResolutionEvent(
         repositoryId = this[RuleViolationResolutionEvents.repositoryId],
         messageHash = this[RuleViolationResolutionEvents.messageHash],
@@ -70,6 +122,14 @@ class RuleViolationResolutionEventStore(private val db: Database) {
         createdBy = this[RuleViolationResolutionEvents.createdBy],
         createdAt = this[RuleViolationResolutionEvents.createdAt]
     )
+
+    private fun ResultRow.toRuleViolationResolution(): RuleViolationResolution =
+        RuleViolationResolution(
+            message = this[RuleViolationResolutionsReadModel.message],
+            reason = this[RuleViolationResolutionsReadModel.reason],
+            comment = this[RuleViolationResolutionsReadModel.comment],
+            source = ResolutionSource.SERVER
+        )
 }
 
 internal object RuleViolationResolutionEvents : Table("rule_violation_resolution_events") {
@@ -81,4 +141,14 @@ internal object RuleViolationResolutionEvents : Table("rule_violation_resolution
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(repositoryId, messageHash, version)
+}
+
+internal object RuleViolationResolutionsReadModel : Table("rule_violation_resolutions_read_model") {
+    val repositoryId = long("repository_id").transform({ RepositoryId(it) }, { it.value })
+    val messageHash = text("message_hash")
+    val message = text("message")
+    val reason = text("reason").transform({ enumValueOf<RuleViolationResolutionReason>(it) }, { it.name })
+    val comment = text("comment")
+
+    override val primaryKey = PrimaryKey(repositoryId, messageHash)
 }
