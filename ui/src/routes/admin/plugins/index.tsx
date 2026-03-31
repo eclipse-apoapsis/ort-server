@@ -29,6 +29,7 @@ import {
   restrictPluginMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { PluginAvailabilityToggle } from '@/components/plugin-availability-toggle';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -126,15 +127,17 @@ const PluginListCard = ({
               />
             </CardHeader>
             <CardContent>
-              <Link
-                to={'/admin/plugins/$pluginType/$pluginId'}
-                params={{
-                  pluginType: plugin.type,
-                  pluginId: plugin.id,
-                }}
-              >
-                Manage Templates
-              </Link>
+              <Button variant='link' asChild className='h-auto p-0'>
+                <Link
+                  to={'/admin/plugins/$pluginType/$pluginId'}
+                  params={{
+                    pluginType: plugin.type,
+                    pluginId: plugin.id,
+                  }}
+                >
+                  Manage Templates
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         ))}
