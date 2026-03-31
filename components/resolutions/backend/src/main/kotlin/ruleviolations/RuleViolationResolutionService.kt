@@ -121,7 +121,7 @@ class RuleViolationResolutionService(
         }
     }
 
-    internal fun getResolutionsForRepository(
+    fun getResolutionsForRepository(
         repositoryId: RepositoryId
     ): Result<List<RuleViolationResolution>, RuleViolationResolutionError> = db.blockingQuery {
         binding {
@@ -170,7 +170,7 @@ class RuleViolationResolutionService(
         }
 }
 
-internal sealed class RuleViolationResolutionError(val message: String) {
+sealed class RuleViolationResolutionError(val message: String) {
     class InvalidState(message: String) : RuleViolationResolutionError(message)
 
     class RepositoryNotFound(repositoryId: RepositoryId) :

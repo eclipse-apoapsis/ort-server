@@ -33,6 +33,7 @@ import io.mockk.mockk
 import java.io.ByteArrayInputStream
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
@@ -40,6 +41,8 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution as ServerIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason as ServerIssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution as ServerRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason as ServerRuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ServerVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason as ServerVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
@@ -139,6 +142,20 @@ class OrtServerResolutionProviderTest : WordSpec({
                             )
                         )
             }
+            val ruleViolationResolutionService = mockk<RuleViolationResolutionService> {
+                every { getResolutionsForRepository(repositoryId) } returns
+                        Ok(
+                            listOf(
+                                ServerRuleViolationResolution(
+                                    message = "match",
+                                    messageHash = calculateResolutionMessageHash("match"),
+                                    reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                                    comment = "matching managed rule violation resolution",
+                                    source = ResolutionSource.SERVER
+                                )
+                            )
+                        )
+            }
             val vulnerabilityResolutionService = mockk<VulnerabilityResolutionService> {
                 every { getResolutionsForRepository(repositoryId) } returns
                         Ok(
@@ -159,7 +176,8 @@ class OrtServerResolutionProviderTest : WordSpec({
                 repositoryConfigurationResolutions,
                 repositoryId,
                 issueResolutionService,
-                vulnerabilityResolutionService
+                vulnerabilityResolutionService,
+                ruleViolationResolutionService
             )
 
             // Validate issue resolutions.
@@ -206,6 +224,11 @@ class OrtServerResolutionProviderTest : WordSpec({
                     message = "match",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "matching repository configuration rule violation resolution"
+                ),
+                RuleViolationResolution(
+                    message = "match",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "matching managed rule violation resolution"
                 )
             )
 
@@ -285,6 +308,66 @@ class OrtServerResolutionProviderTest : WordSpec({
                         )
                     )
         }
+
+        "match managed rule violation resolutions by message hash even when the message is not a valid literal regex" {
+            val context = mockk<WorkerContext> {
+                every { ortRun } returns mockk(relaxed = true) {
+                    every { resolvedJobConfigs } returns null
+                }
+
+                every { configManager } returns mockk {
+                    every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
+                            ByteArrayInputStream("{}\n".toByteArray())
+                }
+            }
+
+            val adminConfigService = mockk<AdminConfigService> {
+                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+            }
+
+            val repositoryId = RepositoryId(1)
+            val literalMessage = "BuildOperationRunner\$1.execute(ClassReader.java:199)"
+            val ruleViolationResolutionService = mockk<RuleViolationResolutionService> {
+                every { getResolutionsForRepository(repositoryId) } returns
+                        Ok(
+                            listOf(
+                                ServerRuleViolationResolution(
+                                    message = literalMessage,
+                                    messageHash = calculateResolutionMessageHash(literalMessage),
+                                    reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                                    comment = "matching managed rule violation resolution",
+                                    source = ResolutionSource.SERVER
+                                )
+                            )
+                        )
+            }
+
+            val provider = OrtServerResolutionProvider.create(
+                context,
+                adminConfigService,
+                repositoryConfigurationResolutions = Resolutions(),
+                repositoryId = repositoryId,
+                ruleViolationResolutionService = ruleViolationResolutionService
+            )
+
+            provider.getResolutionsFor(
+                RuleViolation(
+                    rule = "rule",
+                    pkg = null,
+                    license = null,
+                    licenseSources = enumSetOf(),
+                    severity = Severity.WARNING,
+                    message = literalMessage,
+                    howToFix = ""
+                )
+            ) should containExactlyInAnyOrder(
+                RuleViolationResolution(
+                    message = literalMessage,
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "matching managed rule violation resolution"
+                )
+            )
+        }
     }
 
     "getResolutionsFor" should {
@@ -353,6 +436,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                         source = ResolutionSource.SERVER
                     )
                 ),
+                managedRuleViolationResolutions = emptyList(),
                 managedVulnerabilityResolutions = emptyList()
             )
 
@@ -402,6 +486,22 @@ class OrtServerResolutionProviderTest : WordSpec({
                 globalResolutions = globalResolutions,
                 repositoryConfigurationResolutions = repositoryConfigurationResolutions,
                 managedIssueResolutions = emptyList(),
+                managedRuleViolationResolutions = listOf(
+                    ServerRuleViolationResolution(
+                        message = "match",
+                        messageHash = calculateResolutionMessageHash("match"),
+                        reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching managed rule violation resolution",
+                        source = ResolutionSource.SERVER
+                    ),
+                    ServerRuleViolationResolution(
+                        message = "no match",
+                        messageHash = calculateResolutionMessageHash("no match"),
+                        reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "non-matching managed rule violation resolution",
+                        source = ResolutionSource.SERVER
+                    )
+                ),
                 managedVulnerabilityResolutions = emptyList()
             )
 
@@ -417,7 +517,12 @@ class OrtServerResolutionProviderTest : WordSpec({
 
             val expectedMatchingResolutions = listOf(
                 globalResolutions.ruleViolations.first(),
-                repositoryConfigurationResolutions.ruleViolations.first()
+                repositoryConfigurationResolutions.ruleViolations.first(),
+                RuleViolationResolution(
+                    message = "match",
+                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "matching managed rule violation resolution"
+                )
             )
 
             provider.getResolutionsFor(ruleViolation) should containExactlyInAnyOrder(expectedMatchingResolutions)
@@ -473,6 +578,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                 globalResolutions = globalResolutions,
                 repositoryConfigurationResolutions = repositoryConfigurationResolutions,
                 managedIssueResolutions = emptyList(),
+                managedRuleViolationResolutions = emptyList(),
                 managedVulnerabilityResolutions = managedResolutions.vulnerabilities.map {
                     ServerVulnerabilityResolution(
                         externalId = it.id,
@@ -546,6 +652,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                         source = ResolutionSource.SERVER
                     )
                 ),
+                managedRuleViolationResolutions = emptyList(),
                 managedVulnerabilityResolutions = emptyList()
             )
 
@@ -619,6 +726,22 @@ class OrtServerResolutionProviderTest : WordSpec({
                 globalResolutions = globalResolutions,
                 repositoryConfigurationResolutions = repositoryConfigurationResolutions,
                 managedIssueResolutions = emptyList(),
+                managedRuleViolationResolutions = listOf(
+                    ServerRuleViolationResolution(
+                        message = "match-1",
+                        messageHash = calculateResolutionMessageHash("match-1"),
+                        reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching managed rule violation resolution 1",
+                        source = ResolutionSource.SERVER
+                    ),
+                    ServerRuleViolationResolution(
+                        message = "match-2",
+                        messageHash = calculateResolutionMessageHash("match-2"),
+                        reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching managed rule violation resolution 2",
+                        source = ResolutionSource.SERVER
+                    )
+                ),
                 managedVulnerabilityResolutions = emptyList()
             )
 
@@ -644,12 +767,26 @@ class OrtServerResolutionProviderTest : WordSpec({
 
             val expectedResolutionsForRuleViolation1 = listOf(
                 globalResolutions.ruleViolations[0].mapToModel(ResolutionSource.GLOBAL_FILE),
-                repositoryConfigurationResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                repositoryConfigurationResolutions.ruleViolations[0].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                ServerRuleViolationResolution(
+                    message = "match-1",
+                    messageHash = calculateResolutionMessageHash("match-1"),
+                    reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "matching managed rule violation resolution 1",
+                    source = ResolutionSource.SERVER
+                )
             )
 
             val expectedResolutionsForRuleViolation2 = listOf(
                 globalResolutions.ruleViolations[1].mapToModel(ResolutionSource.GLOBAL_FILE),
-                repositoryConfigurationResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE)
+                repositoryConfigurationResolutions.ruleViolations[1].mapToModel(ResolutionSource.REPOSITORY_FILE),
+                ServerRuleViolationResolution(
+                    message = "match-2",
+                    messageHash = calculateResolutionMessageHash("match-2"),
+                    reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "matching managed rule violation resolution 2",
+                    source = ResolutionSource.SERVER
+                )
             )
 
             val matchResult =
@@ -711,6 +848,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                 globalResolutions = globalResolutions,
                 repositoryConfigurationResolutions = repositoryConfigurationResolutions,
                 managedIssueResolutions = emptyList(),
+                managedRuleViolationResolutions = emptyList(),
                 managedVulnerabilityResolutions = managedResolutions.vulnerabilities.map {
                     ServerVulnerabilityResolution(
                         externalId = it.id,
@@ -750,6 +888,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                 globalResolutions = Resolutions(),
                 repositoryConfigurationResolutions = Resolutions(),
                 managedIssueResolutions = emptyList(),
+                managedRuleViolationResolutions = emptyList(),
                 managedVulnerabilityResolutions = emptyList()
             )
 

@@ -38,15 +38,20 @@ import io.mockk.verify
 
 import java.io.File
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution as ServerRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason as ServerRuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.config.RuleSet
@@ -89,7 +94,10 @@ class EvaluatorRunnerTest : WordSpec({
     afterEach { unmockkAll() }
 
     val adminConfigService = mockk<AdminConfigService>()
-    val runner = EvaluatorRunner(mockk(), adminConfigService)
+    val ruleViolationResolutionService = mockk<RuleViolationResolutionService> {
+        every { getResolutionsForRepository(any()) } returns com.github.michaelbull.result.Ok(emptyList())
+    }
+    val runner = EvaluatorRunner(mockk(), adminConfigService, ruleViolationResolutionService)
 
     "run" should {
         "return an EvaluatorRun with one rule violation" {
@@ -290,6 +298,41 @@ class EvaluatorRunnerTest : WordSpec({
                 issues should beEmpty()
                 vulnerabilities should beEmpty()
             }
+        }
+
+        "load managed rule violation resolutions from the server" {
+            adminConfigService.initRuleSet(testRuleSet)
+
+            val message = "This is an example RuleViolation for test cases."
+            every { ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(1)) } returns
+                    com.github.michaelbull.result.Ok(
+                        listOf(
+                            ServerRuleViolationResolution(
+                                message = message,
+                                messageHash = org.eclipse.apoapsis.ortserver.dao.utils
+                                    .calculateResolutionMessageHash(message),
+                                reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                                comment = "managed resolution",
+                                source = ResolutionSource.SERVER
+                            )
+                        )
+                    )
+
+            val result = runner.run(
+                OrtResult.EMPTY,
+                EvaluatorJobConfiguration(),
+                createWorkerContext()
+            )
+
+            result.resolvedItems.ruleViolations.values.flatten() should containExactly(
+                ServerRuleViolationResolution(
+                    message = message,
+                    messageHash = org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash(message),
+                    reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                    comment = "managed resolution",
+                    source = ResolutionSource.SERVER
+                )
+            )
         }
     }
 })
