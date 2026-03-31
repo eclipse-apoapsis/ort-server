@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -58,7 +59,10 @@ class EvaluatorRunner(
     private val fileArchiver: FileArchiver,
 
     /** The service for obtaining the admin configuration. */
-    private val adminConfigService: AdminConfigService
+    private val adminConfigService: AdminConfigService,
+
+    /** The service for obtaining rule violation resolutions managed by the server. */
+    private val ruleViolationResolutionService: RuleViolationResolutionService
 ) {
     /**
      * Invoke the [Evaluator] for the current ORT run.
@@ -120,7 +124,8 @@ class EvaluatorRunner(
             workerContext,
             adminConfigService,
             repositoryConfigurationResolutions = ortResult.repository.config.resolutions,
-            RepositoryId(workerContext.ortRun.repositoryId)
+            repositoryId = RepositoryId(workerContext.ortRun.repositoryId),
+            ruleViolationResolutionService = ruleViolationResolutionService
         )
 
         // TODO: Make the hardcoded values below configurable.
