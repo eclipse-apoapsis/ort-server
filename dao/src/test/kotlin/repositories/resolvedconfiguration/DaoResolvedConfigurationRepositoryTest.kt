@@ -570,6 +570,46 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
             resolvedConfiguration.resolutions.ruleViolations should containExactly(ruleViolationResolution1)
         }
 
+        "persist server rule violation resolutions by message hash" {
+            val ruleViolation = fixtures.ruleViolation.copy(
+                message = "A long server-managed rule violation message that should be keyed by hash."
+            )
+            val resolution = RuleViolationResolution(
+                message = ruleViolation.message,
+                messageHash = calculateResolutionMessageHash(ruleViolation.message),
+                reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                comment = "Test comment.",
+                source = ResolutionSource.SERVER
+            )
+
+            fixtures.evaluatorRunRepository.create(
+                evaluatorJobId = fixtures.evaluatorJob.id,
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                environment = Environment.EMPTY,
+                violations = listOf(ruleViolation)
+            )
+
+            resolvedConfigurationRepository.addResolutions(
+                ortRunId,
+                ResolvedItemsResult(
+                    issues = emptyMap(),
+                    ruleViolations = mapOf(ruleViolation to listOf(resolution)),
+                    vulnerabilities = emptyMap()
+                )
+            )
+
+            val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
+            resolvedConfiguration.resolutions.ruleViolations should containExactly(resolution)
+
+            val storedResolvedViolations = dbExtension.db.dbQuery {
+                ResolvedRuleViolationsTable.selectAll()
+                    .where { ResolvedRuleViolationsTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedViolations shouldHaveSize 1
+        }
+
         "store resolved vulnerabilities with their mappings" {
             // Create a vulnerability via advisor run
             val vulnerability = Vulnerability(
