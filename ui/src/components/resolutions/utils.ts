@@ -19,29 +19,38 @@
 
 import {
   AppliedIssueResolution,
+  AppliedRuleViolationResolution,
   AppliedVulnerabilityResolution,
   IssueResolution,
   IssueResolutionReason,
+  RuleViolationResolution,
+  RuleViolationResolutionReason,
   VulnerabilityResolution,
   VulnerabilityResolutionReason,
 } from '@/api/types.gen';
 import {
   getAppliedIssueResolutions,
+  getAppliedRuleViolationResolutions,
   getAppliedVulnerabilityResolutions,
   getUnappliedIssueResolutions,
+  getUnappliedRuleViolationResolutions,
   getUnappliedVulnerabilityResolutions,
   isIssueItem,
+  isRuleViolationItem,
   isVulnerabilityItem,
   ItemWithResolutions,
 } from '@/helpers/resolutions';
 
 export type ResolutionFormValues = {
   comment: string;
-  reason: IssueResolutionReason | VulnerabilityResolutionReason;
+  reason:
+    | IssueResolutionReason
+    | RuleViolationResolutionReason
+    | VulnerabilityResolutionReason;
 };
 
 export type ManagedResolutionContext = {
-  itemType: 'issue' | 'vulnerability';
+  itemType: 'issue' | 'rule-violation' | 'vulnerability';
   identifier: string;
   repositoryId: string;
   runId: number;
@@ -50,6 +59,7 @@ export type ManagedResolutionContext = {
 type ResolutionItem =
   | NonNullable<ItemWithResolutions['resolutions']>[number]
   | IssueResolution
+  | RuleViolationResolution
   | VulnerabilityResolution;
 
 export type ResolutionDisplayItem = {
@@ -64,7 +74,7 @@ export function getManagedResolutionContext(
   displayItem: ResolutionDisplayItem
 ): ManagedResolutionContext | undefined {
   if (
-    context.itemType === 'issue' &&
+    (context.itemType === 'issue' || context.itemType === 'rule-violation') &&
     'messageHash' in displayItem.resolution &&
     displayItem.resolution.source === 'SERVER' &&
     displayItem.resolution.messageHash
@@ -81,8 +91,10 @@ export function getManagedResolutionContext(
 function getResolutionIdentityKey(
   resolution:
     | Pick<AppliedIssueResolution, 'message' | 'messageHash' | 'source'>
+    | Pick<AppliedRuleViolationResolution, 'message' | 'messageHash' | 'source'>
     | Pick<AppliedVulnerabilityResolution, 'externalId' | 'source'>
     | Pick<IssueResolution, 'message' | 'messageHash' | 'source'>
+    | Pick<RuleViolationResolution, 'message' | 'messageHash' | 'source'>
     | Pick<VulnerabilityResolution, 'externalId' | 'source'>
 ) {
   if ('message' in resolution) {
@@ -97,8 +109,12 @@ function getResolutionIdentityKey(
 function getManagedDisplayItems(
   appliedResolutions:
     | AppliedIssueResolution[]
+    | AppliedRuleViolationResolution[]
     | AppliedVulnerabilityResolution[],
-  unappliedResolutions: IssueResolution[] | VulnerabilityResolution[],
+  unappliedResolutions:
+    | IssueResolution[]
+    | RuleViolationResolution[]
+    | VulnerabilityResolution[],
   canManage: boolean
 ): ResolutionDisplayItem[] {
   const unappliedBySource = new Map(
@@ -174,12 +190,15 @@ export function getDisplayItems(
     );
   }
 
-  return (item.resolutions ?? []).map((resolution) => ({
-    key: resolution.source,
-    resolution,
-    state: 'applied',
-    showActions: false,
-  }));
+  if (isRuleViolationItem(item)) {
+    return getManagedDisplayItems(
+      getAppliedRuleViolationResolutions(item),
+      getUnappliedRuleViolationResolutions(item),
+      canManage
+    );
+  }
+
+  return [];
 }
 
 // Unit tests.
