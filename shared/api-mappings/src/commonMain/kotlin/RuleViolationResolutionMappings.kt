@@ -19,8 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.shared.apimappings
 
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedRuleViolationResolution as ApiAppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolution as ApiRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason as ApiRuleViolationResolutionReason
 
@@ -30,6 +32,15 @@ fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(
     reason = reason.mapToApi(),
     comment = comment,
     source = source.mapToApi()
+)
+
+fun AppliedRuleViolationResolution.mapToApi() = ApiAppliedRuleViolationResolution(
+    message = message,
+    messageHash = messageHash,
+    reason = reason.mapToApi(),
+    comment = comment,
+    source = source.mapToApi(),
+    isDeleted = isDeleted
 )
 
 fun RuleViolationResolutionReason.mapToApi() = when (this) {
@@ -63,3 +74,12 @@ fun ApiRuleViolationResolutionReason.mapToModel() = when (this) {
 
     ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION -> RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
 }
+
+fun ApiAppliedRuleViolationResolution.mapToModel() = AppliedRuleViolationResolution(
+    message = message,
+    messageHash = messageHash,
+    reason = reason.mapToModel(),
+    comment = comment,
+    source = source.mapToModel(),
+    isDeleted = isDeleted
+)

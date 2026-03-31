@@ -644,6 +644,7 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     message = message,
     howToFix = howToFix,
     resolutions = resolutions.map { it.mapToApi() },
+    unappliedResolutions = unappliedResolutions.map { it.mapToApi() },
     purl = purl
 )
 

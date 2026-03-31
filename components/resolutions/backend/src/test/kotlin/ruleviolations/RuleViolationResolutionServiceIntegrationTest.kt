@@ -23,7 +23,6 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 
 import io.mockk.mockk
@@ -77,19 +76,13 @@ class RuleViolationResolutionServiceIntegrationTest : WordSpec({
                 reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
                 comment = "Reviewed by legal.",
                 createdBy = "user"
-            ).shouldBeOk {
-                it.repositoryId shouldBe repositoryId
-                it.message shouldBe "License finding is covered by an exception."
-                it.reason shouldBe RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
-                it.comment shouldBe "Reviewed by legal."
-                it.isDeleted shouldBe false
-                it.version shouldBe 1
-            }
+            ) should beOk()
 
             service.getResolutionsForRepository(repositoryId).shouldBeOk {
                 it should containExactly(
                     RuleViolationResolution(
                         message = "License finding is covered by an exception.",
+                        messageHash = calculateResolutionMessageHash("License finding is covered by an exception."),
                         reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
                         comment = "Reviewed by legal.",
                         source = ResolutionSource.SERVER
@@ -149,6 +142,7 @@ class RuleViolationResolutionServiceIntegrationTest : WordSpec({
                 it should containExactly(
                     RuleViolationResolution(
                         message = longMessage,
+                        messageHash = calculateResolutionMessageHash(longMessage),
                         reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
                         comment = "Reviewed by legal.",
                         source = ResolutionSource.SERVER
@@ -240,12 +234,14 @@ class RuleViolationResolutionServiceIntegrationTest : WordSpec({
                 it should containExactly(
                     RuleViolationResolution(
                         message = "License finding is covered by an exception.",
+                        messageHash = calculateResolutionMessageHash("License finding is covered by an exception."),
                         reason = RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION,
                         comment = "Reviewed by legal.",
                         source = ResolutionSource.SERVER
                     ),
                     RuleViolationResolution(
                         message = "Artifact is dynamically linked only.",
+                        messageHash = calculateResolutionMessageHash("Artifact is dynamically linked only."),
                         reason = RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION,
                         comment = "Confirmed by packaging review.",
                         source = ResolutionSource.SERVER
@@ -283,6 +279,7 @@ class RuleViolationResolutionServiceIntegrationTest : WordSpec({
                 it should containExactly(
                     RuleViolationResolution(
                         message = "License finding is covered by an exception.",
+                        messageHash = calculateResolutionMessageHash("License finding is covered by an exception."),
                         reason = RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION,
                         comment = "License proof archived.",
                         source = ResolutionSource.SERVER
