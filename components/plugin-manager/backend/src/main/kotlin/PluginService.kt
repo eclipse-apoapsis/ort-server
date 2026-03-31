@@ -32,19 +32,19 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
  */
 class PluginService(private val db: Database) {
     /**
-     * Returns `true` if the plugin with the given [pluginType] and [pluginId] is installed and  enabled, `false`
-     * otherwise.
+     * Returns the [PluginAvailability] of the plugin with the given [pluginType] and [pluginId]. Returns
+     * [PluginAvailability.DISABLED] if the plugin is not installed.
      */
-    fun isEnabled(pluginType: PluginType, pluginId: String): Boolean {
-        val normalizedPluginId = normalizePluginId(pluginType, pluginId) ?: return false
+    fun getAvailability(pluginType: PluginType, pluginId: String): PluginAvailability {
+        val normalizedPluginId = normalizePluginId(pluginType, pluginId) ?: return PluginAvailability.DISABLED
 
         return db.blockingQuery {
-            PluginsReadModel.select(PluginsReadModel.enabled)
+            PluginsReadModel.select(PluginsReadModel.availability)
                 .where {
                     PluginsReadModel.pluginType eq pluginType and
                             (PluginsReadModel.pluginId eq normalizedPluginId)
                 }
-                .firstOrNull()?.get(PluginsReadModel.enabled) ?: true
+                .firstOrNull()?.get(PluginsReadModel.availability) ?: PluginAvailability.ENABLED
         }
     }
 
@@ -57,48 +57,49 @@ class PluginService(private val db: Database) {
      * Returns the [PluginDescriptor]s for all installed ORT plugins.
      */
     fun getPlugins(): List<PluginDescriptor> {
-        val pluginInfo = mutableMapOf<PluginType, MutableMap<String, Boolean>>()
+        val pluginInfo = mutableMapOf<PluginType, MutableMap<String, PluginAvailability>>()
 
         db.blockingQuery {
             PluginsReadModel.selectAll().forEach {
                 val pluginType = it[PluginsReadModel.pluginType]
                 val pluginId = it[PluginsReadModel.pluginId]
-                val enabled = it[PluginsReadModel.enabled]
+                val availability = it[PluginsReadModel.availability]
 
-                pluginInfo.getOrPut(pluginType) { mutableMapOf() }[pluginId] = enabled
+                pluginInfo.getOrPut(pluginType) { mutableMapOf() }[pluginId] = availability
             }
         }
 
-        fun isPluginEnabled(pluginType: PluginType, pluginId: String) = pluginInfo[pluginType]?.get(pluginId) ?: true
+        fun pluginAvailability(pluginType: PluginType, pluginId: String) =
+            pluginInfo[pluginType]?.get(pluginId) ?: PluginAvailability.ENABLED
 
         val advisors = getInstalledPlugins(PluginType.ADVISOR).map {
-            it.mapToApi(PluginType.ADVISOR, isPluginEnabled(PluginType.ADVISOR, it.id))
+            it.mapToApi(PluginType.ADVISOR, pluginAvailability(PluginType.ADVISOR, it.id))
         }
 
         val packageConfigurationProviders = getInstalledPlugins(PluginType.PACKAGE_CONFIGURATION_PROVIDER).map {
             it.mapToApi(
                 PluginType.PACKAGE_CONFIGURATION_PROVIDER,
-                isPluginEnabled(PluginType.PACKAGE_CONFIGURATION_PROVIDER, it.id)
+                pluginAvailability(PluginType.PACKAGE_CONFIGURATION_PROVIDER, it.id)
             )
         }
 
         val packageCurationProviders = getInstalledPlugins(PluginType.PACKAGE_CURATION_PROVIDER).map {
             it.mapToApi(
                 PluginType.PACKAGE_CURATION_PROVIDER,
-                isPluginEnabled(PluginType.PACKAGE_CURATION_PROVIDER, it.id)
+                pluginAvailability(PluginType.PACKAGE_CURATION_PROVIDER, it.id)
             )
         }
 
         val packageManagers = getInstalledPlugins(PluginType.PACKAGE_MANAGER).map {
-            it.mapToApi(PluginType.PACKAGE_MANAGER, isPluginEnabled(PluginType.PACKAGE_MANAGER, it.id))
+            it.mapToApi(PluginType.PACKAGE_MANAGER, pluginAvailability(PluginType.PACKAGE_MANAGER, it.id))
         }
 
         val reporters = getInstalledPlugins(PluginType.REPORTER).map {
-            it.mapToApi(PluginType.REPORTER, isPluginEnabled(PluginType.REPORTER, it.id))
+            it.mapToApi(PluginType.REPORTER, pluginAvailability(PluginType.REPORTER, it.id))
         }
 
         val scanners = getInstalledPlugins(PluginType.SCANNER).map {
-            it.mapToApi(PluginType.SCANNER, isPluginEnabled(PluginType.SCANNER, it.id))
+            it.mapToApi(PluginType.SCANNER, pluginAvailability(PluginType.SCANNER, it.id))
         }
 
         return advisors +

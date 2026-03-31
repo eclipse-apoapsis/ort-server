@@ -33,6 +33,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.workers"
 
 dependencies {
+    implementation(projects.components.pluginManager.pluginManagerBackend)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
@@ -53,6 +54,7 @@ dependencies {
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
+    testImplementation(projects.components.pluginManager.pluginManagerBackend)
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))

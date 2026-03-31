@@ -25,6 +25,7 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
@@ -59,7 +60,7 @@ internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admi
                                     isRequired = false
                                 )
                             ),
-                            enabled = true
+                            availability = PluginAvailability.ENABLED
                         ),
                         PluginDescriptor(
                             id = "NPM",
@@ -76,7 +77,7 @@ internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admi
                                     isRequired = false
                                 )
                             ),
-                            enabled = false
+                            availability = PluginAvailability.DISABLED
                         )
                     )
                 }

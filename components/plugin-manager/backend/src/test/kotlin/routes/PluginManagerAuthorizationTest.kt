@@ -169,6 +169,17 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "RestrictPlugin" should {
+        "require the superuser role" {
+            requestShouldRequireSuperuser(
+                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                successStatus = HttpStatusCode.Accepted
+            ) {
+                post("/admin/plugins/$pluginType/$pluginId/restrict")
+            }
+        }
+    }
+
     "UpdateTemplateOptions" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(

@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -77,6 +78,70 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<PreconfiguredPluginDescriptor>>().map { it.id } shouldNotContain pluginId
+            }
+        }
+
+        "not include restricted plugins without a template" {
+            pluginManagerTestApplication { client ->
+                client.post("/admin/plugins/$pluginType/$pluginId/restrict")
+
+                val response = client.get("/repositories/$repositoryId/plugins")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<PreconfiguredPluginDescriptor>>().map { it.id } shouldNotContain pluginId
+            }
+        }
+
+        "include restricted plugins with an organization template" {
+            pluginManagerTestApplication { client ->
+                client.post("/admin/plugins/$pluginType/$pluginId/restrict")
+
+                pluginTemplateService.create(
+                    templateName = "template",
+                    pluginType = pluginType,
+                    pluginId = pluginId,
+                    userId = "user",
+                    options = emptyList()
+                ).isOk shouldBe true
+
+                pluginTemplateService.addOrganization(
+                    templateName = "template",
+                    pluginType = pluginType,
+                    pluginId = pluginId,
+                    organizationId = organizationId,
+                    userId = "user"
+                ).isOk shouldBe true
+
+                val response = client.get("/repositories/$repositoryId/plugins")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<PreconfiguredPluginDescriptor>>().map { it.id } shouldContain pluginId
+            }
+        }
+
+        "include restricted plugins with a global template" {
+            pluginManagerTestApplication { client ->
+                client.post("/admin/plugins/$pluginType/$pluginId/restrict")
+
+                pluginTemplateService.create(
+                    templateName = "template",
+                    pluginType = pluginType,
+                    pluginId = pluginId,
+                    userId = "user",
+                    options = emptyList()
+                ).isOk shouldBe true
+
+                pluginTemplateService.enableGlobal(
+                    templateName = "template",
+                    pluginType = pluginType,
+                    pluginId = pluginId,
+                    userId = "user"
+                ).isOk shouldBe true
+
+                val response = client.get("/repositories/$repositoryId/plugins")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<PreconfiguredPluginDescriptor>>().map { it.id } shouldContain pluginId
             }
         }
 

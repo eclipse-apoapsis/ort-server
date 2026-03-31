@@ -19,18 +19,18 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
-internal enum class PluginState { ENABLED, DISABLED }
-
 internal class Plugin {
-    private var state: PluginState = PluginState.ENABLED
+    var availability: PluginAvailability = PluginAvailability.ENABLED
+      private set
 
     var version: Long = 0
         private set
 
     fun apply(event: PluginEvent) = apply {
-        state = when (event.payload) {
-            is PluginEnabled -> PluginState.ENABLED
-            is PluginDisabled -> PluginState.DISABLED
+        availability = when (event.payload) {
+            is PluginEnabled -> PluginAvailability.ENABLED
+            is PluginDisabled -> PluginAvailability.DISABLED
+            is PluginRestricted -> PluginAvailability.RESTRICTED
         }
         version = event.version
     }
@@ -38,6 +38,4 @@ internal class Plugin {
     fun applyAll(events: List<PluginEvent>) = apply {
         events.forEach { apply(it) }
     }
-
-    fun isEnabled(): Boolean = state == PluginState.ENABLED
 }
