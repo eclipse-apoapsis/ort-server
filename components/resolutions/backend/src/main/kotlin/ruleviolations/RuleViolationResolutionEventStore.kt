@@ -126,6 +126,7 @@ class RuleViolationResolutionEventStore(private val db: Database) {
     private fun ResultRow.toRuleViolationResolution(): RuleViolationResolution =
         RuleViolationResolution(
             message = this[RuleViolationResolutionsReadModel.message],
+            messageHash = this[RuleViolationResolutionsReadModel.messageHash],
             reason = this[RuleViolationResolutionsReadModel.reason],
             comment = this[RuleViolationResolutionsReadModel.comment],
             source = ResolutionSource.SERVER

@@ -50,8 +50,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Project
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
@@ -68,6 +66,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ResolutionSource
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolution
