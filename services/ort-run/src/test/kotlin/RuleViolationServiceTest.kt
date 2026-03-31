@@ -19,7 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import com.github.michaelbull.result.Ok
+
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -27,16 +30,20 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.every
 import io.mockk.mockk
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
@@ -46,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
@@ -59,6 +67,7 @@ class RuleViolationServiceTest : WordSpec() {
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
+    private lateinit var ruleViolationResolutionService: RuleViolationResolutionService
     private lateinit var service: RuleViolationService
 
     init {
@@ -88,7 +97,11 @@ class RuleViolationServiceTest : WordSpec() {
                 mockk()
             )
 
-            service = RuleViolationService(db, ortRunService)
+            ruleViolationResolutionService = mockk {
+                every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+            }
+
+            service = RuleViolationService(db, ortRunService, ruleViolationResolutionService)
         }
 
         "listForOrtRunId" should {
@@ -182,6 +195,130 @@ class RuleViolationServiceTest : WordSpec() {
                 resultsUnresolved shouldHaveSize 2
                 resultsUnresolved[0].rule shouldBe "Rule-2"
                 resultsUnresolved[1].rule shouldBe "Rule-3-no-id"
+            }
+
+            "return new resolutions which were created after the run" {
+                val repositoryId = fixtures.createRepository().id
+                val ruleViolation = RuleViolation(
+                    rule = "Rule-1",
+                    id = Identifier("Maven", "com.example", "example-lib", "1.0.0"),
+                    license = "License-1",
+                    licenseSources = setOf(LicenseSource.CONCLUDED),
+                    severity = Severity.ERROR,
+                    message = "dependency not found: example-lib",
+                    howToFix = "Fix the dependency"
+                )
+
+                val ortRun = createRuleViolationEntries(
+                    repositoryId = repositoryId,
+                    ruleViolations = listOf(ruleViolation)
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(
+                            ruleViolation to listOf(
+                                RuleViolationResolution(
+                                    message = "dependency not found.*",
+                                    reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                                    comment = "Known upstream problem.",
+                                    source = ResolutionSource.REPOSITORY_FILE
+                                )
+                            )
+                        )
+                    )
+                )
+
+                every {
+                    ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
+                } returns Ok(
+                    listOf(
+                        RuleViolationResolution(
+                            message = "dependency not found.*",
+                            messageHash = calculateResolutionMessageHash("dependency not found.*"),
+                            reason = RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION,
+                            comment = "Tracked on the server.",
+                            source = ResolutionSource.SERVER
+                        )
+                    )
+                )
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 1
+                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                    AppliedRuleViolationResolution(
+                        message = "dependency not found.*",
+                        messageHash = null,
+                        reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "Known upstream problem.",
+                        source = ResolutionSource.REPOSITORY_FILE,
+                        isDeleted = false
+                    )
+                )
+                result.data.single().unappliedResolutions shouldContainExactlyInAnyOrder listOf(
+                    RuleViolationResolution(
+                        message = "dependency not found.*",
+                        messageHash = calculateResolutionMessageHash("dependency not found.*"),
+                        reason = RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION,
+                        comment = "Tracked on the server.",
+                        source = ResolutionSource.SERVER
+                    )
+                )
+            }
+
+            "mark applied resolutions as deleted if they were deleted after the run" {
+                val repositoryId = fixtures.createRepository().id
+                val ruleViolation = RuleViolation(
+                    rule = "Rule-1",
+                    id = Identifier("Maven", "com.example", "example-lib", "1.0.0"),
+                    license = "License-1",
+                    licenseSources = setOf(LicenseSource.CONCLUDED),
+                    severity = Severity.ERROR,
+                    message = "dependency not found: example-lib",
+                    howToFix = "Fix the dependency"
+                )
+
+                val ortRun = createRuleViolationEntries(
+                    repositoryId = repositoryId,
+                    ruleViolations = listOf(ruleViolation)
+                )
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    ResolvedItemsResult(
+                        ruleViolations = mapOf(
+                            ruleViolation to listOf(
+                                RuleViolationResolution(
+                                    message = "dependency not found.*",
+                                    reason = RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION,
+                                    comment = "Tracked on the server.",
+                                    source = ResolutionSource.SERVER
+                                )
+                            )
+                        )
+                    )
+                )
+
+                every {
+                    ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
+                } returns Ok(emptyList())
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data shouldHaveSize 1
+                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                    AppliedRuleViolationResolution(
+                        message = "dependency not found.*",
+                        messageHash = calculateResolutionMessageHash("dependency not found.*"),
+                        reason = RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION,
+                        comment = "Tracked on the server.",
+                        source = ResolutionSource.SERVER,
+                        isDeleted = true
+                    )
+                )
+                result.data.single().unappliedResolutions should beEmpty()
             }
 
             "return purl for rule violations that stemmed from packages" {

@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.runs
 
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 
 /**
@@ -33,7 +34,8 @@ data class RuleViolation(
     val severity: Severity,
     val message: String,
     val howToFix: String,
-    val resolutions: List<RuleViolationResolution> = emptyList(),
+    val resolutions: List<AppliedRuleViolationResolution> = emptyList(),
+    val unappliedResolutions: List<RuleViolationResolution> = emptyList(),
     /**
      * The purl of the [Package] this rule violation stems from. Null if the rule violation comes from a [Project] or
      * elsewhere.

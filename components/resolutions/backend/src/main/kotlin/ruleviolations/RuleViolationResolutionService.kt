@@ -39,13 +39,13 @@ class RuleViolationResolutionService(
     private val eventStore: RuleViolationResolutionEventStore,
     private val repositoryService: RepositoryService
 ) {
-    internal fun createResolution(
+    fun createResolution(
         repositoryId: RepositoryId,
         message: String,
         reason: RuleViolationResolutionReason,
         comment: String,
         createdBy: String
-    ): Result<RuleViolationResolutionState, RuleViolationResolutionError> = db.blockingQuery {
+    ): Result<Unit, RuleViolationResolutionError> = db.blockingQuery {
         binding {
             validateRepositoryExists(repositoryId).bind()
             val messageHash = calculateResolutionMessageHash(message)
@@ -63,14 +63,12 @@ class RuleViolationResolutionService(
                 ),
                 createdBy = createdBy
             )
-            val newState = state.apply(event)
 
             eventStore.appendEvent(event)
-            newState
         }
     }
 
-    internal fun updateResolutionByHash(
+    fun updateResolutionByHash(
         repositoryId: RepositoryId,
         messageHash: String,
         reason: RuleViolationResolutionReason?,
@@ -99,7 +97,7 @@ class RuleViolationResolutionService(
         }
     }
 
-    internal fun deleteResolutionByHash(
+    fun deleteResolutionByHash(
         repositoryId: RepositoryId,
         messageHash: String,
         deletedBy: String

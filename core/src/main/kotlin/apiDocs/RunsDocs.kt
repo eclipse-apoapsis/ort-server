@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
@@ -419,13 +420,24 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                                     |Documentation in how to configure curations in the `.ort.yml` file can be found
                                     |[here](https://oss-review-toolkit.org/ort/docs/configuration/ort-yml).
                                     """.trimMargin(),
-                                listOf(
-                                    RuleViolationResolution(
+                                resolutions = listOf(
+                                    AppliedRuleViolationResolution(
                                         message =
                                             "The declared license '.*' could not be mapped to a valid SPDX expression.",
                                         reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                                         comment = "A comment why the rule violation can be resolved.",
-                                        source = ResolutionSource.REPOSITORY_FILE
+                                        source = ResolutionSource.REPOSITORY_FILE,
+                                        isDeleted = false
+                                    )
+                                ),
+                                unappliedResolutions = listOf(
+                                    RuleViolationResolution(
+                                        message =
+                                            "The declared license '.*' could not be mapped to a valid SPDX expression.",
+                                        messageHash = "4f91c6a7d2dca0f5fd8f2e791ec0a31b66e6f0fc",
+                                        reason = RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION,
+                                        comment = "A server-managed rule violation resolution for future runs.",
+                                        source = ResolutionSource.SERVER
                                     )
                                 )
                             )
