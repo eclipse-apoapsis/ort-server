@@ -47,3 +47,19 @@ fun RuleViolationResolutionReason.mapToApi() = when (this) {
 
     RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION -> ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
 }
+
+fun ApiRuleViolationResolutionReason.mapToModel() = when (this) {
+    ApiRuleViolationResolutionReason.CANT_FIX_EXCEPTION -> RuleViolationResolutionReason.CANT_FIX_EXCEPTION
+
+    ApiRuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION ->
+        RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
+
+    ApiRuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION -> RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
+
+    ApiRuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION ->
+        RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION
+
+    ApiRuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION -> RuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION
+
+    ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION -> RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
+}
