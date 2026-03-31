@@ -67,5 +67,10 @@ class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     var comment by RuleViolationResolutionsTable.comment
     var source by RuleViolationResolutionsTable.resolutionSource
 
-    fun mapToModel() = RuleViolationResolution(message, reason, comment, source)
+    fun mapToModel() = RuleViolationResolution(
+        message = message,
+        reason = reason,
+        comment = comment,
+        source = source
+    )
 }

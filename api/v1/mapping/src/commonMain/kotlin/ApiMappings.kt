@@ -69,8 +69,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Repository as ApiRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters as ApiRuleViolationFilters
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution as ApiRuleViolationResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolutionReason as ApiRuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
@@ -160,6 +158,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution as ApiIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason as ApiIssueResolutionReason
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolution as ApiRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason as ApiRuleViolationResolutionReason
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
@@ -308,6 +308,31 @@ fun ApiIssueResolutionReason.mapToModel() = when (this) {
     ApiIssueResolutionReason.BUILD_TOOL_ISSUE -> IssueResolutionReason.BUILD_TOOL_ISSUE
     ApiIssueResolutionReason.CANT_FIX_ISSUE -> IssueResolutionReason.CANT_FIX_ISSUE
     ApiIssueResolutionReason.SCANNER_ISSUE -> IssueResolutionReason.SCANNER_ISSUE
+}
+
+fun ApiRuleViolationResolution.mapToModel() =
+    RuleViolationResolution(
+        message = message,
+        messageHash = messageHash,
+        reason = reason.mapToModel(),
+        comment = comment,
+        source = source.mapToModel()
+    )
+
+fun ApiRuleViolationResolutionReason.mapToModel() = when (this) {
+    ApiRuleViolationResolutionReason.CANT_FIX_EXCEPTION -> RuleViolationResolutionReason.CANT_FIX_EXCEPTION
+
+    ApiRuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION ->
+        RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
+
+    ApiRuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION -> RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
+
+    ApiRuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION ->
+        RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION
+
+    ApiRuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION -> RuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION
+
+    ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION -> RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
 }
 
 fun Severity.mapToApi() = when (this) {
@@ -803,33 +828,6 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
     sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
     labels = labels
 )
-
-fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(
-    message = message,
-    reason = reason.mapToApi(),
-    comment = comment,
-    source = source.mapToApi()
-)
-
-fun RuleViolationResolutionReason.mapToApi() = when (this) {
-    RuleViolationResolutionReason.CANT_FIX_EXCEPTION ->
-        ApiRuleViolationResolutionReason.CANT_FIX_EXCEPTION
-
-    RuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION ->
-        ApiRuleViolationResolutionReason.DYNAMIC_LINKAGE_EXCEPTION
-
-    RuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION ->
-        ApiRuleViolationResolutionReason.EXAMPLE_OF_EXCEPTION
-
-    RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION ->
-        ApiRuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION
-
-    RuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION ->
-        ApiRuleViolationResolutionReason.NOT_MODIFIED_EXCEPTION
-
-    RuleViolationResolutionReason.PATENT_GRANT_EXCEPTION ->
-        ApiRuleViolationResolutionReason.PATENT_GRANT_EXCEPTION
-}
 
 fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
     type = type?.mapToApi(),
