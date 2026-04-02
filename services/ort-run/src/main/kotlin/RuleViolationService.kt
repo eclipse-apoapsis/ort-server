@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import com.github.michaelbull.result.getOr
+
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -29,12 +32,16 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRule
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RuleViolationResolutionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -61,13 +68,17 @@ import org.jetbrains.exposed.v1.jdbc.select
 /**
  * A service to interact with rule violations.
  */
-class RuleViolationService(private val db: Database, private val ortRunService: OrtRunService) {
+class RuleViolationService(
+    private val db: Database,
+    private val ortRunService: OrtRunService,
+    private val ruleViolationResolutionService: RuleViolationResolutionService
+) {
     fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         ruleViolationFilter: RuleViolationFilters = RuleViolationFilters()
     ): ListQueryResult<RuleViolation> {
-        ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
+        val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
             "ORT run with ID $ortRunId not found."
         )
 
@@ -83,6 +94,8 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
 
             val ruleViolationRows = fetchRuleViolationRows(ruleViolationIds)
             val resolutionsByRuleViolationId = fetchResolutionsByRuleViolationId(ortRunId, ruleViolationIds)
+            val serverResolutions = getServerResolutions(ortRun.repositoryId)
+            val unappliedResolutions = getUnappliedResolutions(serverResolutions, resolutionsByRuleViolationId)
 
             val identifierIds = ruleViolationRows
                 .mapNotNullTo(mutableSetOf()) { it.getOrNull(RuleViolationsTable.identifierId)?.value }
@@ -91,6 +104,8 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
             val ruleViolations = assembleRuleViolations(
                 ruleViolationRows,
                 resolutionsByRuleViolationId,
+                serverResolutions,
+                unappliedResolutions,
                 purlByIdentifierId
             )
 
@@ -163,12 +178,13 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
     private fun fetchResolutionsByRuleViolationId(
         ortRunId: Long,
         ruleViolationIds: List<Long>
-    ): Map<Long, List<RuleViolationResolution>> =
+    ): Map<Long, List<AppliedRuleViolationResolution>> =
         ResolvedRuleViolationsTable
             .innerJoin(RuleViolationResolutionsTable, { ruleViolationResolutionId }, { id })
             .select(
                 ResolvedRuleViolationsTable.ruleViolationId,
                 RuleViolationResolutionsTable.message,
+                RuleViolationResolutionsTable.messageHash,
                 RuleViolationResolutionsTable.reason,
                 RuleViolationResolutionsTable.comment,
                 RuleViolationResolutionsTable.resolutionSource
@@ -180,18 +196,53 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
             .groupBy(
                 { it[ResolvedRuleViolationsTable.ruleViolationId].value },
                 {
-                    RuleViolationResolution(
+                    AppliedRuleViolationResolution(
                         message = it[RuleViolationResolutionsTable.message],
+                        messageHash = if (
+                            it[RuleViolationResolutionsTable.resolutionSource] == ResolutionSource.SERVER
+                        ) {
+                            it[RuleViolationResolutionsTable.messageHash]
+                                ?: calculateResolutionMessageHash(it[RuleViolationResolutionsTable.message])
+                        } else {
+                            null
+                        },
                         reason = it[RuleViolationResolutionsTable.reason],
                         comment = it[RuleViolationResolutionsTable.comment],
-                        source = it[RuleViolationResolutionsTable.resolutionSource]
+                        source = it[RuleViolationResolutionsTable.resolutionSource],
+                        isDeleted = false
                     )
                 }
             )
 
+    private fun getServerResolutions(repositoryId: Long): List<RuleViolationResolution> =
+        ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
+            .getOr(emptyList())
+
+    private fun getUnappliedResolutions(
+        serverResolutions: List<RuleViolationResolution>,
+        resolutionsByRuleViolationId: Map<Long, List<AppliedRuleViolationResolution>>
+    ): List<RuleViolationResolution> {
+        val appliedServerResolutions = resolutionsByRuleViolationId.values.flatten()
+            .mapNotNullTo(mutableSetOf()) { resolution ->
+                resolution.takeIf { it.source == ResolutionSource.SERVER }?.let {
+                    RuleViolationResolution(
+                        message = it.message,
+                        messageHash = it.messageHash,
+                        reason = it.reason,
+                        comment = it.comment,
+                        source = it.source
+                    )
+                }
+            }
+
+        return serverResolutions - appliedServerResolutions
+    }
+
     private fun assembleRuleViolations(
         ruleViolationRows: List<ResultRow>,
-        resolutionsByRuleViolationId: Map<Long, List<RuleViolationResolution>>,
+        resolutionsByRuleViolationId: Map<Long, List<AppliedRuleViolationResolution>>,
+        serverResolutions: List<RuleViolationResolution>,
+        unappliedResolutions: List<RuleViolationResolution>,
         purlByIdentifierId: Map<Long, String>
     ): List<RuleViolation> =
         ruleViolationRows.map { row ->
@@ -215,7 +266,19 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
                 severity = row[RuleViolationsTable.severity],
                 message = row[RuleViolationsTable.message],
                 howToFix = row[RuleViolationsTable.howToFix],
-                resolutions = resolutionsByRuleViolationId[ruleViolationId].orEmpty(),
+                resolutions = resolutionsByRuleViolationId[ruleViolationId].orEmpty().map { resolution ->
+                    resolution.copy(
+                        isDeleted = resolution.source == ResolutionSource.SERVER &&
+                            RuleViolationResolution(
+                                message = resolution.message,
+                                messageHash = resolution.messageHash,
+                                reason = resolution.reason,
+                                comment = resolution.comment,
+                                source = resolution.source
+                            ) !in serverResolutions
+                    )
+                },
+                unappliedResolutions = unappliedResolutions,
                 purl = identifierId?.let { purlByIdentifierId[it] }
             )
         }

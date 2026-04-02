@@ -26,6 +26,8 @@ import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionEventStore
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -34,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 @Suppress("AbstractClassCanBeConcreteClass")
 abstract class ResolutionsIntegrationTest(body: ResolutionsIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
     lateinit var issueResolutionService: IssueResolutionService
+    lateinit var ruleViolationResolutionService: RuleViolationResolutionService
     lateinit var vulnerabilityResolutionService: VulnerabilityResolutionService
 
     init {
@@ -58,6 +61,11 @@ abstract class ResolutionsIntegrationTest(body: ResolutionsIntegrationTest.() ->
                 eventStore = issueResolutionEventStore,
                 repositoryService = repositoryService
             )
+            ruleViolationResolutionService = RuleViolationResolutionService(
+                db = dbExtension.db,
+                eventStore = RuleViolationResolutionEventStore(dbExtension.db),
+                repositoryService = repositoryService
+            )
             vulnerabilityResolutionService = VulnerabilityResolutionService(
                 db = dbExtension.db,
                 eventStore = VulnerabilityResolutionEventStore(dbExtension.db),
@@ -74,6 +82,7 @@ abstract class ResolutionsIntegrationTest(body: ResolutionsIntegrationTest.() ->
         routes = {
             resolutionRoutes(
                 issueResolutionService,
+                ruleViolationResolutionService,
                 vulnerabilityResolutionService
             )
         },

@@ -50,8 +50,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Project
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
@@ -61,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
@@ -68,6 +67,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ResolutionSource
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolution
@@ -419,13 +420,24 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                                     |Documentation in how to configure curations in the `.ort.yml` file can be found
                                     |[here](https://oss-review-toolkit.org/ort/docs/configuration/ort-yml).
                                     """.trimMargin(),
-                                listOf(
-                                    RuleViolationResolution(
+                                resolutions = listOf(
+                                    AppliedRuleViolationResolution(
                                         message =
                                             "The declared license '.*' could not be mapped to a valid SPDX expression.",
                                         reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                                         comment = "A comment why the rule violation can be resolved.",
-                                        source = ResolutionSource.REPOSITORY_FILE
+                                        source = ResolutionSource.REPOSITORY_FILE,
+                                        isDeleted = false
+                                    )
+                                ),
+                                unappliedResolutions = listOf(
+                                    RuleViolationResolution(
+                                        message =
+                                            "The declared license '.*' could not be mapped to a valid SPDX expression.",
+                                        messageHash = "4f91c6a7d2dca0f5fd8f2e791ec0a31b66e6f0fc",
+                                        reason = RuleViolationResolutionReason.LICENSE_ACQUIRED_EXCEPTION,
+                                        comment = "A server-managed rule violation resolution for future runs.",
+                                        source = ResolutionSource.SERVER
                                     )
                                 )
                             )

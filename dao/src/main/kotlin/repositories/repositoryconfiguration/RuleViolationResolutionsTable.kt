@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
+import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
@@ -37,6 +38,7 @@ import org.jetbrains.exposed.v1.dao.LongEntityClass
  */
 object RuleViolationResolutionsTable : LongIdTable("rule_violation_resolutions") {
     val message = text("message")
+    val messageHash = text("message_hash").nullable()
     val reason = enumerationByName<RuleViolationResolutionReason>("reason")
     val comment = text("comment")
     val resolutionSource = enumerationByName<ResolutionSource>("source")
@@ -44,18 +46,33 @@ object RuleViolationResolutionsTable : LongIdTable("rule_violation_resolutions")
 
 class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<RuleViolationResolutionDao>(RuleViolationResolutionsTable) {
-        fun findByRuleViolationResolutionDao(
+        fun findByRuleViolationResolution(
             ruleViolationResolution: RuleViolationResolution
-        ): RuleViolationResolutionDao? = find {
-            RuleViolationResolutionsTable.message eq ruleViolationResolution.message and
+        ): RuleViolationResolutionDao? {
+            val messageCondition = when (ruleViolationResolution.source) {
+                ResolutionSource.SERVER ->
+                    RuleViolationResolutionsTable.messageHash eq ruleViolationResolution.messageHash
+
+                else -> RuleViolationResolutionsTable.message eq ruleViolationResolution.message
+            }
+
+            return find {
+                messageCondition and
                     (RuleViolationResolutionsTable.reason eq ruleViolationResolution.reason) and
                     (RuleViolationResolutionsTable.comment eq ruleViolationResolution.comment) and
                     (RuleViolationResolutionsTable.resolutionSource eq ruleViolationResolution.source)
-        }.firstOrNull()
+            }.firstOrNull()
+        }
 
         fun getOrPut(ruleViolationResolution: RuleViolationResolution): RuleViolationResolutionDao =
-            findByRuleViolationResolutionDao(ruleViolationResolution) ?: new {
+            findByRuleViolationResolution(ruleViolationResolution) ?: new {
                 message = ruleViolationResolution.message
+                messageHash = if (ruleViolationResolution.source == ResolutionSource.SERVER) {
+                    ruleViolationResolution.messageHash
+                        ?: calculateResolutionMessageHash(ruleViolationResolution.message)
+                } else {
+                    null
+                }
                 reason = ruleViolationResolution.reason
                 comment = ruleViolationResolution.comment
                 source = ruleViolationResolution.source
@@ -63,9 +80,16 @@ class RuleViolationResolutionDao(id: EntityID<Long>) : LongEntity(id) {
     }
 
     var message by RuleViolationResolutionsTable.message
+    var messageHash by RuleViolationResolutionsTable.messageHash
     var reason by RuleViolationResolutionsTable.reason
     var comment by RuleViolationResolutionsTable.comment
     var source by RuleViolationResolutionsTable.resolutionSource
 
-    fun mapToModel() = RuleViolationResolution(message, reason, comment, source)
+    fun mapToModel() = RuleViolationResolution(
+        message = message,
+        messageHash = messageHash,
+        reason = reason,
+        comment = comment,
+        source = source
+    )
 }

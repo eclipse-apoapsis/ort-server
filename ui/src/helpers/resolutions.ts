@@ -30,8 +30,14 @@ export function isVulnerabilityItem(
   return 'vulnerability' in item;
 }
 
+export function isRuleViolationItem(
+  item: ItemWithResolutions
+): item is RuleViolation {
+  return 'rule' in item;
+}
+
 export function isIssueItem(item: ItemWithResolutions): item is Issue {
-  return 'source' in item;
+  return 'source' in item && !isRuleViolationItem(item);
 }
 
 export function getAppliedVulnerabilityResolutions(
@@ -78,20 +84,41 @@ export function hasIssueResolutionActivity(item: Issue) {
   );
 }
 
-export function getResolvedStatus(item: ItemWithResolutions) {
+export function getAppliedRuleViolationResolutions(item: RuleViolation) {
+  return item.resolutions ?? [];
+}
+
+export function getUnappliedRuleViolationResolutions(item: RuleViolation) {
+  return (item.unappliedResolutions ?? []).filter(
+    (resolution) => resolution.message === item.message
+  );
+}
+
+export function hasRuleViolationResolutionActivity(item: RuleViolation) {
+  return (
+    getAppliedRuleViolationResolutions(item).length > 0 ||
+    getUnappliedRuleViolationResolutions(item).length > 0
+  );
+}
+
+export function getResolvedStatus(
+  item: ItemWithResolutions
+): 'Resolved' | 'Unresolved' {
   if (isVulnerabilityItem(item)) {
     return getAppliedVulnerabilityResolutions(item).length > 0
       ? 'Resolved'
       : 'Unresolved';
   }
 
+  if (isRuleViolationItem(item)) {
+    return hasRuleViolationResolutionActivity(item) ? 'Resolved' : 'Unresolved';
+  }
+
   if (isIssueItem(item)) {
     return hasIssueResolutionActivity(item) ? 'Resolved' : 'Unresolved';
   }
 
-  return item.resolutions && item.resolutions.length > 0
-    ? 'Resolved'
-    : 'Unresolved';
+  return 'Unresolved';
 }
 
 // Unit tests.

@@ -180,6 +180,22 @@ export const Header = () => {
     runMatch,
   ]);
 
+  // Set the favicon based on the configuration, if enabled. If the configuration is not enabled
+  // or the URL is invalid, fall back to the default favicon.
+  useEffect(() => {
+    if (isFaviconPending || isFaviconError) return;
+    if (dbFavicon?.isEnabled) {
+      setCustomFavicon(dbFavicon.value ?? '');
+    } else {
+      setCustomFavicon();
+    }
+  }, [
+    dbFavicon?.isEnabled,
+    dbFavicon?.value,
+    isFaviconPending,
+    isFaviconError,
+  ]);
+
   if (
     isHomeIconPending ||
     isHomeIconDarkPending ||
@@ -219,15 +235,6 @@ export const Header = () => {
     }
   } else {
     homeIconSrc = homeIcon;
-  }
-
-  // Set the favicon based on the fetched data. Fall back to default favicon
-  // in case of errors or missing values.
-  if (dbFavicon.isEnabled) {
-    setCustomFavicon(dbFavicon.value ?? '');
-  } else {
-    // If the favicon is not enabled, fall back to the default favicon
-    setCustomFavicon();
   }
 
   return (

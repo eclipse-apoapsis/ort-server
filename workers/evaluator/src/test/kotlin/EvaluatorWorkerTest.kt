@@ -39,6 +39,7 @@ import java.time.Instant as JavaInstant
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
@@ -176,7 +177,7 @@ class EvaluatorWorkerTest : StringSpec({
         val worker =
             EvaluatorWorker(
                 mockk(),
-                EvaluatorRunner(mockk(), mockk()),
+                EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()),
                 ortRunService,
                 mockk()
             )
@@ -223,7 +224,7 @@ class EvaluatorWorkerTest : StringSpec({
         }
         val contextFactory = mockContextFactory(context)
 
-        val runner = spyk(EvaluatorRunner(mockk(), mockk()))
+        val runner = spyk(EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
             OrtTestData.evaluatorRun, emptyList(), ResolvedItemsResult.EMPTY
         )
@@ -285,11 +286,11 @@ class EvaluatorWorkerTest : StringSpec({
                     message = ".*",
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "Test rule violation resolution."
-                ).mapToModel(ResolutionSource.REPOSITORY_FILE)
+                ).mapToModel(ResolutionSource.SERVER)
             )
         }.mapKeys { (violation, _) -> violation.mapToModel() }
 
-        val runner = spyk(EvaluatorRunner(mockk(), mockk()))
+        val runner = spyk(EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
             OrtTestData.evaluatorRun,
             emptyList(),
@@ -322,7 +323,7 @@ class EvaluatorWorkerTest : StringSpec({
         val worker =
             EvaluatorWorker(
                 mockk(),
-                EvaluatorRunner(mockk(), mockk()),
+                EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()),
                 ortRunService,
                 mockk()
             )

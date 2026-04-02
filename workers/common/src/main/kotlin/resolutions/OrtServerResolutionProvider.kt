@@ -22,12 +22,14 @@ package org.eclipse.apoapsis.ortserver.workers.common.resolutions
 import com.github.michaelbull.result.get
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution as ServerIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution as ServerRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ServerVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
@@ -56,12 +58,12 @@ class OrtServerResolutionProvider(
     /** The issue resolutions from the repository managed by the server. */
     private val managedIssueResolutions: List<ServerIssueResolution>,
 
+    /** The rule violation resolutions from the repository managed by the server. */
+    private val managedRuleViolationResolutions: List<ServerRuleViolationResolution>,
+
     /** The vulnerability resolutions from the repository managed by the server. */
     private val managedVulnerabilityResolutions: List<ServerVulnerabilityResolution>
 ) : ResolutionProvider {
-    private val allRuleViolationResolutions =
-        (globalResolutions.ruleViolations + repositoryConfigurationResolutions.ruleViolations).distinct()
-
     private val allVulnerabilityResolutions =
         (
             globalResolutions.vulnerabilities + repositoryConfigurationResolutions.vulnerabilities +
@@ -73,11 +75,13 @@ class OrtServerResolutionProvider(
          * Create a new instance of [OrtServerResolutionProvider]. The global [Resolutions] file is loaded using the
          * [context] and [adminConfigService]. Resolutions from the repository configuration file are passed as
          * [repositoryConfigurationResolutions]. Resolutions defined in the server [repository][repositoryId] are
-         * loaded using the [vulnerabilityResolutionService] and [issueResolutionService].
+         * loaded using the [vulnerabilityResolutionService], [ruleViolationResolutionService], and
+         * [issueResolutionService].
          *
          * The [vulnerabilityResolutionService] is optional, as it is only required by the advisor worker which is the
          * only one adding vulnerabilities to the run. The [issueResolutionService] is optional because the evaluator
-         * does not add issues to the run.
+         * does not add issues to the run. The [ruleViolationResolutionService] is optional because only the evaluator
+         * worker adds rule violations to the run.
          */
         fun create(
             context: WorkerContext,
@@ -85,7 +89,8 @@ class OrtServerResolutionProvider(
             repositoryConfigurationResolutions: Resolutions,
             repositoryId: RepositoryId,
             issueResolutionService: IssueResolutionService? = null,
-            vulnerabilityResolutionService: VulnerabilityResolutionService? = null
+            vulnerabilityResolutionService: VulnerabilityResolutionService? = null,
+            ruleViolationResolutionService: RuleViolationResolutionService? = null
         ): OrtServerResolutionProvider {
             val globalResolutions = context.loadGlobalResolutions(adminConfigService)
 
@@ -95,6 +100,9 @@ class OrtServerResolutionProvider(
                 managedIssueResolutions = issueResolutionService?.getResolutionsForRepository(repositoryId)
                     ?.get().orEmpty(),
                 managedVulnerabilityResolutions = vulnerabilityResolutionService
+                    ?.getResolutionsForRepository(repositoryId)
+                    ?.get().orEmpty(),
+                managedRuleViolationResolutions = ruleViolationResolutionService
                     ?.getResolutionsForRepository(repositoryId)
                     ?.get().orEmpty()
             )
@@ -127,7 +135,11 @@ class OrtServerResolutionProvider(
             }.map { it.mapToOrt() }
 
     override fun getResolutionsFor(violation: RuleViolation) =
-        allRuleViolationResolutions.filter { it.matches(violation) }
+        globalResolutions.ruleViolations.filter { it.matches(violation) } +
+            repositoryConfigurationResolutions.ruleViolations.filter { it.matches(violation) } +
+            managedRuleViolationResolutions.filter { resolution ->
+                checkNotNull(resolution.messageHash) == calculateResolutionMessageHash(violation.message)
+            }.map { it.mapToOrt() }
 
     override fun getResolutionsFor(vulnerability: Vulnerability) =
         allVulnerabilityResolutions.filter { it.matches(vulnerability) }
@@ -174,6 +186,11 @@ class OrtServerResolutionProvider(
                     repositoryConfigurationResolutions.ruleViolations
                         .filter { it.matches(violation) }
                         .map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+                )
+                addAll(
+                    managedRuleViolationResolutions.filter { resolution ->
+                        checkNotNull(resolution.messageHash) == calculateResolutionMessageHash(violation.message)
+                    }.map { it.copy(source = ResolutionSource.SERVER) }
                 )
             }
         }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }

@@ -17,16 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.components.resolutions
 
-/**
- * Possible reasons for resolving a rule violation using a [RuleViolationResolution].
- */
-enum class RuleViolationResolutionReason {
-    CANT_FIX_EXCEPTION,
-    DYNAMIC_LINKAGE_EXCEPTION,
-    EXAMPLE_OF_EXCEPTION,
-    LICENSE_ACQUIRED_EXCEPTION,
-    NOT_MODIFIED_EXCEPTION,
-    PATENT_GRANT_EXCEPTION
-}
+import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason
+
+@Serializable
+data class PatchRuleViolationResolution(
+    val reason: RuleViolationResolutionReason? = null,
+    val comment: String? = null
+)

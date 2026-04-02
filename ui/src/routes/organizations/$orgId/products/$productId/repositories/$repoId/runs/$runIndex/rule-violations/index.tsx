@@ -31,7 +31,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import z from 'zod';
 
 import { RuleViolation, Severity } from '@/api';
@@ -74,7 +74,10 @@ import {
 } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { getResolvedStatus } from '@/helpers/resolutions';
+import {
+  getResolvedStatus,
+  hasRuleViolationResolutionActivity,
+} from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import {
@@ -185,55 +188,6 @@ const RuleViolationCard = ({
         </div>
       </div>
     </div>
-  );
-};
-
-const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
-  const ruleViolation = row.original;
-  const hasResolutions = getResolvedStatus(ruleViolation) === 'Resolved';
-
-  return (
-    <Accordion
-      type='multiple'
-      className='w-full'
-      defaultValue={hasResolutions ? ['resolutions'] : ['details']}
-    >
-      <AccordionItem value='resolutions'>
-        <AccordionTrigger className='font-semibold'>
-          Resolutions
-        </AccordionTrigger>
-        <AccordionContent>
-          <Resolutions item={row.original} />
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value='details'>
-        <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
-        <AccordionContent>
-          <div className='flex flex-col gap-4'>
-            <div>{ruleViolation.message}</div>
-            <div className='grid grid-cols-8 gap-2'>
-              <div className='col-span-2 font-semibold'>License:</div>
-              <div className='col-span-6'>
-                <FormattedValue value={ruleViolation.license} />
-              </div>
-              <div className='col-span-2 font-semibold'>License sources:</div>
-              <div className='col-span-6'>
-                <FormattedValue
-                  value={
-                    ruleViolation.licenseSources &&
-                    ruleViolation.licenseSources.length > 0
-                      ? ruleViolation.licenseSources.join(', ')
-                      : null
-                  }
-                />
-              </div>
-              <div className='col-span-2 font-semibold'>How to fix:</div>
-            </div>
-            <MarkdownRenderer markdown={ruleViolation.howToFix} />
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
   );
 };
 
@@ -440,6 +394,69 @@ const RuleViolationsComponent = () => {
       query: { limit: ALL_ITEMS },
     }),
   });
+
+  const renderSubComponent = useCallback(
+    ({ row }: { row: Row<RuleViolation> }) => {
+      const ruleViolation = row.original;
+      const hasAnyResolution =
+        hasRuleViolationResolutionActivity(ruleViolation);
+
+      return (
+        <Accordion
+          type='multiple'
+          className='w-full'
+          defaultValue={
+            hasAnyResolution ? ['resolutions'] : ['resolutions', 'details']
+          }
+        >
+          <AccordionItem value='resolutions'>
+            <AccordionTrigger className='font-semibold'>
+              {hasAnyResolution ? 'Resolutions' : 'Create a resolution'}
+            </AccordionTrigger>
+            <AccordionContent>
+              <Resolutions
+                item={ruleViolation}
+                repositoryId={params.repoId}
+                runId={ortRun.id}
+              />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value='details'>
+            <AccordionTrigger className='font-semibold'>
+              Details
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className='flex flex-col gap-4'>
+                <div>{ruleViolation.message}</div>
+                <div className='grid grid-cols-8 gap-2'>
+                  <div className='col-span-2 font-semibold'>License:</div>
+                  <div className='col-span-6'>
+                    <FormattedValue value={ruleViolation.license} />
+                  </div>
+                  <div className='col-span-2 font-semibold'>
+                    License sources:
+                  </div>
+                  <div className='col-span-6'>
+                    <FormattedValue
+                      value={
+                        ruleViolation.licenseSources &&
+                        ruleViolation.licenseSources.length > 0
+                          ? ruleViolation.licenseSources.join(', ')
+                          : null
+                      }
+                    />
+                  </div>
+                  <div className='col-span-2 font-semibold'>How to fix:</div>
+                </div>
+                <MarkdownRenderer markdown={ruleViolation.howToFix} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      );
+    },
+    [params.repoId, ortRun.id]
+  );
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}

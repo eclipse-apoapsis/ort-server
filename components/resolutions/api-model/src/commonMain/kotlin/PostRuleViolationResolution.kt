@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model.runs.repository
+package org.eclipse.apoapsis.ortserver.components.resolutions
 
-data class RuleViolationResolution(
+import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.shared.apimodel.RuleViolationResolutionReason
+
+@Serializable
+data class PostRuleViolationResolution(
     val message: String,
-    val messageHash: String? = null,
     val reason: RuleViolationResolutionReason,
-    val comment: String,
-    val source: ResolutionSource
+    val comment: String
 )

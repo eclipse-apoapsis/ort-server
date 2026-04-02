@@ -25,18 +25,26 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolut
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.issues.deleteIssueResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.issues.patchIssueResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.issues.postIssueResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.ruleviolations.deleteRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.ruleviolations.patchRuleViolationResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.ruleviolations.postRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.deleteVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.patchVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.postVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 
 fun Route.resolutionRoutes(
     issueResolutionService: IssueResolutionService,
+    ruleViolationResolutionService: RuleViolationResolutionService,
     vulnerabilityResolutionService: VulnerabilityResolutionService
 ) {
     deleteIssueResolution(issueResolutionService)
     patchIssueResolution(issueResolutionService)
     postIssueResolution(issueResolutionService)
+    deleteRuleViolationResolution(ruleViolationResolutionService)
+    patchRuleViolationResolution(ruleViolationResolutionService)
+    postRuleViolationResolution(ruleViolationResolutionService)
     deleteVulnerabilityResolution(vulnerabilityResolutionService)
     patchVulnerabilityResolution(vulnerabilityResolutionService)
     postVulnerabilityResolution(vulnerabilityResolutionService)

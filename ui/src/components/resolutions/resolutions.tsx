@@ -19,8 +19,14 @@
 
 import { useState } from 'react';
 
-import { isIssueItem, ItemWithResolutions } from '@/helpers/resolutions';
+import {
+  isIssueItem,
+  isRuleViolationItem,
+  isVulnerabilityItem,
+  ItemWithResolutions,
+} from '@/helpers/resolutions';
 import { IssueResolutions } from './issue-resolutions';
+import { RuleViolationResolutions } from './rule-violation-resolutions';
 import { ResolutionCard } from './shared';
 import { getDisplayItems } from './utils';
 import { VulnerabilityResolutions } from './vulnerability-resolutions';
@@ -35,7 +41,7 @@ export function Resolutions({ item, repositoryId, runId }: ResolutionsProps) {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const displayItems = getDisplayItems(item, false);
 
-  if ('vulnerability' in item && repositoryId && runId !== undefined) {
+  if (isVulnerabilityItem(item) && repositoryId && runId !== undefined) {
     return (
       <VulnerabilityResolutions
         item={item}
@@ -48,6 +54,16 @@ export function Resolutions({ item, repositoryId, runId }: ResolutionsProps) {
   if (isIssueItem(item) && repositoryId && runId !== undefined) {
     return (
       <IssueResolutions item={item} repositoryId={repositoryId} runId={runId} />
+    );
+  }
+
+  if (isRuleViolationItem(item) && repositoryId && runId !== undefined) {
+    return (
+      <RuleViolationResolutions
+        item={item}
+        repositoryId={repositoryId}
+        runId={runId}
+      />
     );
   }
 

@@ -47,6 +47,7 @@ private const val ARGS = "run \"all tests\" fast"
 private const val SECRET_MOUNTS =
     "secret1->/mnt/sec1|sub1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other | sub2\""
 private const val PVC_MOUNTS = "pvc1->/mnt/pvc1,R \"pvc2->/path/with/white space,W\" \"pvc3 -> /mnt/other,r\""
+private const val EMPTY_DIR_MOUNTS = "dir1->/mnt/dir1 \"dir2->/path/with/white space\" \"dir3 -> /mnt/other\""
 private const val LABELS = "label1=value1 , label2 = value2"
 private const val SERVICE_ACCOUNT = "test_service_account"
 
@@ -75,6 +76,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             "$keyPrefix.enableDebugLogging" to "true",
             "$keyPrefix.mountSecrets" to SECRET_MOUNTS,
             "$keyPrefix.mountPvcs" to PVC_MOUNTS,
+            "$keyPrefix.mountEmptyDirs" to EMPTY_DIR_MOUNTS,
             "$keyPrefix.labels" to LABELS,
             "$keyPrefix.annotationVariables" to annotationVariables.keys.joinToString(),
             "$keyPrefix.serviceAccount" to SERVICE_ACCOUNT
@@ -105,6 +107,11 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
                 PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
                 PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
                 PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
+            )
+            emptyDirVolumes shouldContainInOrder listOf(
+                EmptyDirVolumeMount("dir1", "/mnt/dir1"),
+                EmptyDirVolumeMount("dir2", "/path/with/white space"),
+                EmptyDirVolumeMount("dir3", "/mnt/other")
             )
             labels shouldContainExactly mapOf(
                 "label1" to "value1",
@@ -190,6 +197,27 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
             PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
             PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
+        )
+    }
+
+    "Invalid empty dir mount declarations are ignored" {
+        val keyPrefix = "analyzer.sender"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.mountEmptyDirs" to "$EMPTY_DIR_MOUNTS plus invalid empty dir mounts->"
+        )
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+
+        sender.config.emptyDirVolumes shouldContainInOrder listOf(
+            EmptyDirVolumeMount("dir1", "/mnt/dir1"),
+            EmptyDirVolumeMount("dir2", "/path/with/white space"),
+            EmptyDirVolumeMount("dir3", "/mnt/other")
         )
     }
 
