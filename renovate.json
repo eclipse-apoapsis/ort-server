@@ -1,19 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigestsToSemver",
-    ":semanticCommitScopeDisabled",
-    ":semanticCommitTypeAll(deps)"
+    "github>eclipse-apoapsis/renovate"
   ],
-  "dependencyDashboard": false,
-  "labels": ["dependencies"],
   "packageRules": [
-    {
-      "description": "Automerge non-major updates",
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
-    },
     {
       "matchDatasources": ["npm"],
       "rangeStrategy": "pin"
@@ -54,6 +44,5 @@
       "matchPackageNames": ["io.kubernetes:client-java-extended", "io.kubernetes:client-java"],
       "allowedVersions": "!/.*-legacy$/"
     }
-  ],
-  "prHourlyLimit": 5
+  ]
 }
