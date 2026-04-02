@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.models.V1EmptyDirVolumeSource
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
@@ -181,6 +182,10 @@ internal class KubernetesMessageSender<T : Any>(
                         .claimName(volumeMount.claimName)
                         .readOnly(volumeMount.readOnly)
                 )
+        } + msgConfig.emptyDirVolumes.map { volumeMount ->
+            V1Volume()
+                .name(volumeMount.name)
+                .emptyDir(V1EmptyDirVolumeSource())
         }
 
     /**
@@ -198,6 +203,10 @@ internal class KubernetesMessageSender<T : Any>(
                 .name("$PVC_VOLUME_PREFIX${index + 1}")
                 .mountPath(volumeMount.mountPath)
                 .readOnly(volumeMount.readOnly)
+        } + msgConfig.emptyDirVolumes.map { volumeMount ->
+            V1VolumeMount()
+                .name(volumeMount.name)
+                .mountPath(volumeMount.mountPath)
         }
 
     /**

@@ -62,6 +62,15 @@ data class PvcVolumeMount(
     val readOnly: Boolean
 )
 
+/** A data class defining a volume mount for an empty dir. */
+data class EmptyDirVolumeMount(
+    /** The name of the empty dir volume. */
+    val name: String,
+
+    /** The path where the volume is mounted into the pod. */
+    val mountPath: String
+)
+
 /**
  * A configuration class used by the sender part of the Kubernetes Transport implementation.
  *
@@ -99,6 +108,9 @@ data class KubernetesSenderConfig(
 
     /** A list with [PvcVolumeMount]s to be added to the new pod. */
     val pvcVolumes: List<PvcVolumeMount> = emptyList(),
+
+    /** A list with [EmptyDirVolumeMount]s to be added to the new pod. */
+    val emptyDirVolumes: List<EmptyDirVolumeMount> = emptyList(),
 
     /**
      * A list of labels to add to the new pod. The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted
@@ -189,6 +201,16 @@ data class KubernetesSenderConfig(
         private const val MOUNT_PVCS_PROPERTY = "mountPvcs"
 
         /**
+         * The name of the configuration property that defined volume mounts based on empty dirs. This is especially
+         * useful to mount writeable directories in environments that enforce read-only root filesystems. The value of
+         * the property consists of a number of mount declarations separated by whitespace. If a mount declaration
+         * contains whitespace itself, it must be surrounded by quotes. A single mount declaration has the form
+         * _name->path_, where _name_ is the name of the empty dir volume and _path_ is the path in the filesystem of
+         * the pod where the volume will be mounted.
+         */
+        private const val MOUNT_EMPTYDIRS_PROPERTY = "mountEmptyDirs"
+
+        /**
          * The name of the configuration property defining the labels to add to new pods. The value of this property is
          * interpreted as a comma-separated list of labels, ignoring whitespace around the labels. Each label must have
          * the format _key=value_. The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted automatically by
@@ -263,6 +285,8 @@ data class KubernetesSenderConfig(
         /** A regular expression to parse a PVC-based volume mount declaration. */
         private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
 
+        private val mountEmptyDirDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+)""")
+
         /** A regular expression to split the list of labels. */
         private val splitLabelsRegex = splitRegex(LIST_SEPARATOR)
 
@@ -287,6 +311,7 @@ data class KubernetesSenderConfig(
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
                 secretVolumes = config.parseSecretVolumeMounts(),
                 pvcVolumes = config.parsePvcVolumeMounts(),
+                emptyDirVolumes = config.parseEmptyDirVolumeMounts(),
                 labels = createLabels(config.getStringOrDefault(LABELS_PROPERTY, "")),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
@@ -345,6 +370,12 @@ data class KubernetesSenderConfig(
             toVolumeMounts(MOUNT_PVCS_PROPERTY, mountPvcDeclarationRegex) { match ->
                 val (claimName, mountPath, readOnly) = match.destructured
                 PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r")
+            }
+
+        private fun Config.parseEmptyDirVolumeMounts(): List<EmptyDirVolumeMount> =
+            toVolumeMounts(MOUNT_EMPTYDIRS_PROPERTY, mountEmptyDirDeclarationRegex) { match ->
+                val (name, mountPath) = match.destructured
+                EmptyDirVolumeMount(name, mountPath)
             }
 
         /**
