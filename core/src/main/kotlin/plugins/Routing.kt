@@ -29,6 +29,7 @@ import io.ktor.server.routing.routing
 import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
+import org.eclipse.apoapsis.ortserver.components.dependencygraph.dependencyGraphRoutes
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.licensefindings.licenseFindingRoutes
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
@@ -61,6 +62,7 @@ fun Application.configureRouting() {
                     admin()
                     adminConfigRoutes(get())
                     authorizationRoutes()
+                    dependencyGraphRoutes(get(), get(), get(), get())
                     infrastructureServicesRoutes(get())
                     licenseFindingRoutes(get(), get())
                     organizations()
