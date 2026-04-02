@@ -261,7 +261,9 @@ class Fixtures(private val db: Database) {
             vcsProcessed = VcsInfo(RepositoryType.GIT, "https://example.com/git", "revision", ""),
             description = "",
             homepageUrl = "https://example.com",
-            scopeNames = setOf("compileClasspath", "runtimeClasspath")
+            scopeNames = setOf("compileClasspath", "runtimeClasspath"),
+            detectedLicenses = emptySet(),
+            effectiveLicense = null
         )
 
     fun createAnalyzerRun(
@@ -355,7 +357,9 @@ class Fixtures(private val db: Database) {
             "https://example.com/git",
             "revision",
             "path"
-        )
+        ),
+        detectedLicenses: Set<String> = emptySet(),
+        effectiveLicense: String? = null
     ) = Package(
         identifier = identifier,
         purl = "pkg:${identifier.type}/${identifier.namespace}/${identifier.name}@${identifier.version}",
@@ -370,6 +374,8 @@ class Fixtures(private val db: Database) {
         vcs = vcs,
         vcsProcessed = vcsProcessed,
         isMetadataOnly = false,
-        isModified = false
+        isModified = false,
+        detectedLicenses = detectedLicenses,
+        effectiveLicense = effectiveLicense
     )
 }

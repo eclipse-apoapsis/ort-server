@@ -62,6 +62,8 @@ object PackagesTable : SortableTable("packages") {
     val isMetadataOnly = bool("is_metadata_only").default(false)
     val isModified = bool("is_modified").default(false)
     val sourceCodeOrigins = text("source_code_origins").nullable()
+    val detectedLicenses = text("detected_licenses").nullable()
+    val effectiveLicense = text("effective_license").nullable()
 }
 
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {
@@ -185,6 +187,8 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
             ProcessedDeclaredLicensesTable.packageId
 
     var sourceCodeOrigins by PackagesTable.sourceCodeOrigins
+    var detectedLicenses by PackagesTable.detectedLicenses
+    var effectiveLicense by PackagesTable.effectiveLicense
     val labels by PackageLabelDao referrersOn PackageLabelsTable.packageId
 
     fun mapToModel() = Package(
@@ -206,6 +210,12 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
             ?.split(",")
             ?.filterNot { it.isEmpty() }
             ?.map { SourceCodeOrigin.valueOf(it) },
-        labels = labels.associate { it.key to it.value }
+        labels = labels.associate { it.key to it.value },
+        detectedLicenses = detectedLicenses
+            ?.split(",")
+            ?.filterNot { it.isEmpty() }
+            ?.toSet()
+            .orEmpty(),
+        effectiveLicense = effectiveLicense
     )
 }

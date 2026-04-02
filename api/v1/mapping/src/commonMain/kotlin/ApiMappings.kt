@@ -809,7 +809,9 @@ fun Package.mapToApi(
     shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
     curations = curations,
     sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
-    labels = labels
+    labels = labels,
+    detectedLicenses = detectedLicenses,
+    effectiveLicense = effectiveLicense
 )
 
 fun PackageCurationData.mapToApi() = ApiPackageCurationData(
@@ -859,7 +861,9 @@ fun Project.mapToApi() = ApiProject(
     vcsProcessed = vcsProcessed.mapToApi(),
     description = description,
     homepageUrl = homepageUrl,
-    scopeNames = scopeNames
+    scopeNames = scopeNames,
+    detectedLicenses = detectedLicenses,
+    effectiveLicense = effectiveLicense
 )
 
 fun UserDisplayName.mapToApi() = ApiUserDisplayName(username = username, fullName = fullName)

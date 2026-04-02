@@ -211,6 +211,9 @@ private fun insertProject(
 
     createProcessedDeclaredLicense(project.processedDeclaredLicense, projectDao = projectDao)
 
+    projectDao.detectedLicenses = project.detectedLicenses.joinToString(",").takeIf { it.isNotEmpty() }
+    projectDao.effectiveLicense = project.effectiveLicense
+
     return projectDao
 }
 
@@ -283,6 +286,9 @@ private fun insertPackage(
     }
 
     createProcessedDeclaredLicense(pkg.processedDeclaredLicense, pkgDao = pkgDao)
+
+    pkgDao.detectedLicenses = pkg.detectedLicenses.joinToString(",").takeIf { it.isNotEmpty() }
+    pkgDao.effectiveLicense = pkg.effectiveLicense
 
     return pkgDao
 }
