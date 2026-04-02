@@ -74,7 +74,7 @@ class KubernetesMessageSenderTest : StringSpec({
             jobEnvironment.keys shouldNotContainAll listOf("_", "HOME", "PATH", "PWD")
 
             val mounts = volumeMounts.orEmpty()
-            mounts shouldHaveSize 4
+            mounts shouldHaveSize 6
             with(mounts[0]) {
                 readOnly shouldBe true
                 name shouldBe "secret-volume-1"
@@ -97,6 +97,14 @@ class KubernetesMessageSenderTest : StringSpec({
                 name shouldBe "pvc-volume-2"
                 mountPath shouldBe "/mnt/data"
             }
+            with(mounts[4]) {
+                name shouldBe "dir1"
+                mountPath shouldBe "/mnt/dir1"
+            }
+            with(mounts[5]) {
+                name shouldBe "dir2"
+                mountPath shouldBe "/mnt/dir2"
+            }
         }
 
         job.spec?.backoffLimit shouldBe senderConfig.backoffLimit
@@ -107,12 +115,14 @@ class KubernetesMessageSenderTest : StringSpec({
             .map { it.name } shouldContainOnly listOf(senderConfig.imagePullSecret)
 
         val volumes = job.spec?.template?.spec?.volumes.orEmpty()
-        volumes shouldHaveSize 4
+        volumes shouldHaveSize 6
         volumes.map { it.name } shouldContainExactly listOf(
             "secret-volume-1",
             "secret-volume-2",
             "pvc-volume-1",
-            "pvc-volume-2"
+            "pvc-volume-2",
+            "dir1",
+            "dir2"
         )
         val secrets = volumes.mapNotNull { it.secret?.secretName }
         secrets shouldContainExactly listOf("secretService", "topSecret")
@@ -280,6 +290,7 @@ private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSend
         "imagePullSecret" to "image_pull_secret",
         "mountSecrets" to "secretService->/mnt/secret topSecret->/mnt/top/secret|sub-secret",
         "mountPvcs" to "pvc1->/mnt/readOnly,R pvc2->/mnt/data,W",
+        "mountEmptyDirs" to "dir1->/mnt/dir1 dir2->/mnt/dir2",
         "labels" to "label1=value1,label2=value2,ort-worker=invalid,run-id=invalid,trace-id-0=invalid",
         "annotationVariables" to "v1,v2",
         "serviceAccountName" to "test_service_account"
