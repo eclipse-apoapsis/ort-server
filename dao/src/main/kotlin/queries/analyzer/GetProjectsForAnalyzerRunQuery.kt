@@ -120,7 +120,13 @@ class GetProjectsForAnalyzerRunQuery(
                 vcsProcessed = vcsProcessed,
                 description = resultRow[ProjectsTable.description],
                 homepageUrl = resultRow[ProjectsTable.homepageUrl],
-                scopeNames = scopeNamesByProjectId[projectId].orEmpty()
+                scopeNames = scopeNamesByProjectId[projectId].orEmpty(),
+                detectedLicenses = resultRow[ProjectsTable.detectedLicenses]
+                    ?.split(",")
+                    ?.filterNot { it.isEmpty() }
+                    ?.toSet()
+                    .orEmpty(),
+                effectiveLicense = resultRow[ProjectsTable.effectiveLicense]
             )
         }
     }
