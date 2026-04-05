@@ -119,6 +119,12 @@ class ScannerWorkerTest : StringSpec({
         every { analyzerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
+        mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.ScannerWorkerKt")
+        every { buildLicenseInfoResolver(any(), any(), any()) } returns mockk(relaxed = true)
+
+        mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.LicenseComputationKt")
+        every { computeAndStoreLicenses(any(), any(), any()) } just runs
+
         val ortRunService = mockk<OrtRunService> {
             every { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
@@ -191,7 +197,8 @@ class ScannerWorkerTest : StringSpec({
             contextFactory,
             environmentService,
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -222,6 +229,12 @@ class ScannerWorkerTest : StringSpec({
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { analyzerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+
+        mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.ScannerWorkerKt")
+        every { buildLicenseInfoResolver(any(), any(), any()) } returns mockk(relaxed = true)
+
+        mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.LicenseComputationKt")
+        every { computeAndStoreLicenses(any(), any(), any()) } just runs
 
         val ortRunService = mockk<OrtRunService> {
             every { createScannerRun(any()) } returns mockk {
@@ -337,7 +350,8 @@ class ScannerWorkerTest : StringSpec({
             contextFactory,
             environmentService,
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -389,7 +403,8 @@ class ScannerWorkerTest : StringSpec({
             mockk(),
             mockk(),
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -415,6 +430,12 @@ class ScannerWorkerTest : StringSpec({
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { analyzerRun.mapToOrt() } returns mockk()
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+
+        mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.ScannerWorkerKt")
+        every { buildLicenseInfoResolver(any(), any(), any()) } returns mockk(relaxed = true)
+
+        mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.LicenseComputationKt")
+        every { computeAndStoreLicenses(any(), any(), any()) } just runs
 
         val ortRunService = mockk<OrtRunService> {
             every { createScannerRun(any()) } returns mockk {
@@ -463,7 +484,8 @@ class ScannerWorkerTest : StringSpec({
             contextFactory,
             environmentService,
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -531,7 +553,8 @@ class ScannerWorkerTest : StringSpec({
             contextFactory,
             environmentService,
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -641,7 +664,8 @@ class ScannerWorkerTest : StringSpec({
             contextFactory,
             environmentService,
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -757,7 +781,8 @@ class ScannerWorkerTest : StringSpec({
             contextFactory,
             environmentService,
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -781,7 +806,8 @@ class ScannerWorkerTest : StringSpec({
             mockk(),
             mockk(),
             mockk(relaxed = true),
-            mockIssueResolutionService()
+            mockIssueResolutionService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
