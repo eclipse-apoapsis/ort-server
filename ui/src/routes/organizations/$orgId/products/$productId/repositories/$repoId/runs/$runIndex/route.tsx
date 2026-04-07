@@ -24,6 +24,7 @@ import {
   CalendarCheck,
   Eye,
   Files,
+  FileText,
   FolderKanban,
   ListCheck,
   Logs,
@@ -64,14 +65,15 @@ const Layout = () => {
           },
           icon: () => <Scale className='h-4 w-4' />,
         },
-        // This menu option is temporarily disabled until the license findings page is implemented.
-        // The code is still left here as a bookmark/reminder for future implementation.
-        //{
-        //  title: 'License Findings',
-        //  to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
-        //  params,
-        //  icon: () => <FileText className='h-4 w-4' />,
-        //},
+        {
+          title: 'Detected Licenses',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
+          params,
+          search: {
+            sortBy: [{ id: 'packageCount', desc: true }],
+          },
+          icon: () => <FileText className='h-4 w-4' />,
+        },
         {
           title: 'Vulnerabilities',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',

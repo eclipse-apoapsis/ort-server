@@ -88,9 +88,30 @@ export const productPaginationSearchParameterSchema = z.object({
   productPageSize: z.number().optional(),
 });
 
+export const packagePaginationSearchParameterSchema = z.object({
+  packagePage: z.number().optional(),
+  packagePageSize: z.number().optional(),
+});
+
+export const findingsPaginationSearchParameterSchema = z.object({
+  findingsPage: z.number().optional(),
+  findingsPageSize: z.number().optional(),
+});
+
 // sortBy needs to be of form "columnId.asc" or "columnId.desc"
 export const sortingSearchParameterSchema = z.object({
   sortBy: z
+    .array(
+      z.object({
+        id: z.string(),
+        desc: z.boolean(),
+      })
+    )
+    .optional(),
+});
+
+export const packageSortingSearchParameterSchema = z.object({
+  packageSortBy: z
     .array(
       z.object({
         id: z.string(),
@@ -116,6 +137,10 @@ export const packageIdentifierSearchParameterSchema = z.object({
   pkgId: z.string().optional(),
 });
 
+export const packageIdSearchParameterSchema = z.object({
+  packageId: z.string().optional(),
+});
+
 export const projectIdentifierSearchParameterSchema = z.object({
   projectId: z.string().optional(),
 });
@@ -127,6 +152,14 @@ export const definitionFilePathSearchParameterSchema = z.object({
 // Refine validates that the license texts are unique.
 export const declaredLicenseSearchParameterSchema = z.object({
   declaredLicense: z
+    .array(z.string())
+    .refine((items) => new Set(items).size === items.length)
+    .optional(),
+});
+
+// Refine validates that the license texts are unique.
+export const detectedLicenseSearchParameterSchema = z.object({
+  detectedLicense: z
     .array(z.string())
     .refine((items) => new Set(items).size === items.length)
     .optional(),
