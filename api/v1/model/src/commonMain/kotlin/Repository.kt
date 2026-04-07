@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import io.konform.validation.Validation
+import io.konform.validation.constraints.pattern
 
 import io.ktor.http.parseUrl
 
@@ -48,12 +49,17 @@ data class Repository(
     /** The url to the repository. */
     val url: String,
 
+    /** The name of the repository. */
+    val name: String? = null,
+
     /** The description of the repository. */
     val description: String? = null
 ) {
     companion object {
         const val INVALID_URL_MESSAGE = "The repository URL is malformed."
         const val USER_INFO_MESSAGE = "The repository URL must not contain userinfo."
+        val NAME_PATTERN_REGEX = Product.NAME_PATTERN_REGEX
+        const val NAME_PATTERN_MESSAGE = Product.NAME_PATTERN_MESSAGE
 
         fun isValidUrl(url: String): Boolean = parseUrl(url)?.host?.isValidHost() ?: false
 
@@ -73,6 +79,7 @@ private fun String.isValidHost() = all { it.isLetterOrDigit() || it == '.' || it
 data class PostRepository(
     val type: RepositoryType,
     val url: String,
+    val name: String? = null,
     val description: String? = null
 ) {
     companion object {
@@ -87,6 +94,10 @@ data class PostRepository(
                         !Repository.hasUserInfo(it)
                     } hint Repository.USER_INFO_MESSAGE
                 }
+
+                PostRepository::name ifPresent {
+                    pattern(Repository.NAME_PATTERN_REGEX) hint Repository.NAME_PATTERN_MESSAGE
+                }
             }.invoke(obj)
         }
     }
@@ -99,6 +110,7 @@ data class PostRepository(
 data class PatchRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
     val url: OptionalValue<String> = OptionalValue.Absent,
+    val name: OptionalValue<String?> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent,
 
     /**
@@ -124,6 +136,15 @@ data class PatchRepository(
                             is OptionalValue.Absent -> true
                         }
                     } hint Repository.USER_INFO_MESSAGE
+                }
+
+                PatchRepository::name {
+                    constrain("must match the expected pattern '${Repository.NAME_PATTERN_REGEX.pattern}'") {
+                        when (it) {
+                            is OptionalValue.Present -> it.value?.matches(Repository.NAME_PATTERN_REGEX) ?: true
+                            is OptionalValue.Absent -> true
+                        }
+                    } hint Repository.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
         }
