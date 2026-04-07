@@ -46,11 +46,18 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
-    override fun create(type: RepositoryType, url: String, productId: Long, description: String?) = db.blockingQuery {
+    override fun create(
+        type: RepositoryType,
+        url: String,
+        productId: Long,
+        name: String?,
+        description: String?
+    ) = db.blockingQuery {
         RepositoryDao.new {
             this.type = type.name
             this.url = url
             this.productId = productId
+            this.name = name
             this.description = description
         }.mapToModel()
     }
@@ -93,6 +100,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         id: Long,
         type: OptionalValue<RepositoryType>,
         url: OptionalValue<String>,
+        name: OptionalValue<String?>,
         description: OptionalValue<String?>,
         productId: OptionalValue<Long>
     ) = db.blockingQuery {
@@ -100,6 +108,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
 
         type.ifPresent { repository.type = it.name }
         url.ifPresent { repository.url = it }
+        name.ifPresent { repository.name = it }
         description.ifPresent { repository.description = it }
         productId.ifPresent { repository.productId = it }
 
