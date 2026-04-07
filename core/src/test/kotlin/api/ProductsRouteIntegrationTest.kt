@@ -299,8 +299,22 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
-                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
+                        Repository(
+                            id = createdRepository1.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url1,
+                            description = description
+                        ),
+                        Repository(
+                            id = createdRepository2.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url2,
+                            description = description
+                        )
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -364,8 +378,22 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
-                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
+                        Repository(
+                            id = createdRepository1.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url1,
+                            description = description
+                        ),
+                        Repository(
+                            id = createdRepository2.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url2,
+                            description = description
+                        )
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -406,12 +434,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveBody PagedResponse(
                     listOf(
                         Repository(
-                            createdRepository2.id,
-                            orgId,
-                            createdProduct.id,
-                            type.mapToApi(),
-                            url2,
-                            description
+                            id = createdRepository2.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url2,
+                            description = description
                         )
                     ),
                     PagingData(
@@ -437,14 +465,26 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git", "description")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    name = "repository-name",
+                    description = "description"
+                )
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody
-                    Repository(1, orgId, createdProduct.id, repository.type, repository.url, repository.description)
+                response shouldHaveBody Repository(
+                    id = 1,
+                    organizationId = orgId,
+                    productId = createdProduct.id,
+                    type = repository.type,
+                    url = repository.url,
+                    name = repository.name,
+                    description = repository.description
+                )
             }
         }
 
@@ -452,7 +492,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://git hub.com/org/repo.git")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://git hub.com/org/repo.git"
+                )
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -469,7 +512,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://user:password@github.com")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://user:password@github.com"
+                )
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -489,7 +535,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 createdProduct.hierarchyId(),
                 HttpStatusCode.Created
             ) {
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git"
+                )
                 post("/api/v1/products/${createdProduct.id}/repositories") { setBody(repository) }
             }
         }

@@ -167,14 +167,16 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
     val repositoryType = RepositoryType.GIT
     val repositoryUrl = "https://example.org/repo.git"
+    val repositoryName = "repo-name"
     val repositoryDescription = "description"
 
     suspend fun createRepository(
         type: RepositoryType = repositoryType,
         url: String = repositoryUrl,
         prodId: Long = productId,
+        name: String? = repositoryName,
         description: String? = repositoryDescription
-    ) = productService.createRepository(type, url, prodId, description)
+    ) = productService.createRepository(type, url, prodId, description, name)
 
     fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
@@ -193,15 +195,15 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/repositories/${createdRepository.id}")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody
-                    Repository(
-                        createdRepository.id,
-                        orgId,
-                        productId,
-                        repositoryType.mapToApi(),
-                        repositoryUrl,
-                        repositoryDescription
-                    )
+                response shouldHaveBody Repository(
+                    id = createdRepository.id,
+                    organizationId = orgId,
+                    productId = productId,
+                    type = repositoryType.mapToApi(),
+                    url = repositoryUrl,
+                    name = repositoryName,
+                    description = repositoryDescription
+                )
             }
         }
 
@@ -219,9 +221,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val createdRepository = createRepository()
 
                 val updateRepository = PatchRepository(
-                    ApiRepositoryType.SUBVERSION.asPresent(),
-                    "https://svn.example.com/repos/org/repo/trunk".asPresent(),
-                    "updateDescription".asPresent()
+                    type = ApiRepositoryType.SUBVERSION.asPresent(),
+                    url = "https://svn.example.com/repos/org/repo/trunk".asPresent(),
+                    name = "updated-repository-name".asPresent(),
+                    description = "updateDescription".asPresent()
                 )
 
                 val response = superuserClient.patch("/api/v1/repositories/${createdRepository.id}") {
@@ -230,12 +233,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Repository(
-                    createdRepository.id,
-                    orgId,
-                    productId,
-                    updateRepository.type.valueOrThrow,
-                    updateRepository.url.valueOrThrow,
-                    updateRepository.description.valueOrThrow
+                    id = createdRepository.id,
+                    organizationId = orgId,
+                    productId = productId,
+                    type = updateRepository.type.valueOrThrow,
+                    url = updateRepository.url.valueOrThrow,
+                    name = updateRepository.name.valueOrThrow,
+                    description = updateRepository.description.valueOrThrow
                 )
             }
         }
@@ -245,8 +249,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val createRepository = createRepository()
 
                 val repository = PatchRepository(
-                    ApiRepositoryType.SUBVERSION.asPresent(),
-                    "ht tps://github.com/org/repo.git".asPresent()
+                    type = ApiRepositoryType.SUBVERSION.asPresent(),
+                    url = "ht tps://github.com/org/repo.git".asPresent()
                 )
 
                 val response = superuserClient.patch("/api/v1/repositories/${createRepository.id}") {
@@ -266,8 +270,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val createRepository = createRepository()
 
                 val repository = PatchRepository(
-                    ApiRepositoryType.SUBVERSION.asPresent(),
-                    "https://user:password@github.com".asPresent()
+                    type = ApiRepositoryType.SUBVERSION.asPresent(),
+                    url = "https://user:password@github.com".asPresent()
                 )
 
                 val response = superuserClient.patch("/api/v1/repositories/${createRepository.id}") {
@@ -286,8 +290,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             val createdRepository = createRepository()
             requestShouldRequireRole(RepositoryRole.WRITER, createdRepository.hierarchyId()) {
                 val updateRepository = PatchRepository(
-                    ApiRepositoryType.SUBVERSION.asPresent(),
-                    "https://svn.example.com/repos/org/repo/trunk".asPresent()
+                    type = ApiRepositoryType.SUBVERSION.asPresent(),
+                    url = "https://svn.example.com/repos/org/repo/trunk".asPresent()
                 )
                 patch("/api/v1/repositories/${createdRepository.id}") { setBody(updateRepository) }
             }
@@ -314,12 +318,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Repository(
-                    createdRepository.id,
-                    orgId,
-                    newProduct.id,
-                    createdRepository.type.mapToApi(),
-                    createdRepository.url,
-                    createdRepository.description
+                    id = createdRepository.id,
+                    organizationId = orgId,
+                    productId = newProduct.id,
+                    type = createdRepository.type.mapToApi(),
+                    url = createdRepository.url,
+                    name = createdRepository.name,
+                    description = createdRepository.description
                 )
 
                 // Test that role assignments on the old compound hierarchy ID have been removed.
