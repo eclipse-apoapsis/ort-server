@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthori
 import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakUserService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
@@ -188,6 +189,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::ContentManagementService)
     singleOf(::InfrastructureServiceService)
     singleOf(::IssueService)
+    singleOf(::LicenseFindingService)
     single { LogFileService.create(get()) }
     singleOf(::OrchestratorService)
     singleOf(::OrganizationService)
