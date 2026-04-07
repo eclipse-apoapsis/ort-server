@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
+import org.eclipse.apoapsis.ortserver.components.licensefindings.licenseFindingRoutes
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.resolutionRoutes
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
@@ -56,6 +57,7 @@ fun Application.configureRouting() {
                 adminConfigRoutes(get())
                 authorizationRoutes()
                 infrastructureServicesRoutes(get())
+                licenseFindingRoutes(get(), get())
                 organizations()
                 pluginManagerRoutes(get(), get(), get())
                 products()

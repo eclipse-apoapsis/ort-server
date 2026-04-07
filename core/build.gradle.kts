@@ -75,6 +75,12 @@ dependencies {
             requireCapability("$group:routes")
         }
     }
+    implementation(projects.components.licenseFindings.licenseFindingsBackend)
+    implementation(projects.components.licenseFindings.licenseFindingsBackend) {
+        capabilities {
+            requireCapability("$group:routes:$version")
+        }
+    }
     implementation(projects.components.pluginManager.pluginManagerBackend)
     implementation(projects.components.pluginManager.pluginManagerBackend) {
         capabilities {
