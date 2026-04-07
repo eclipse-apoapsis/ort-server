@@ -279,18 +279,22 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val name1 = "repo1"
+                val name2 = "repo2"
                 val description = "description"
 
                 val createdRepository1 = productService.createRepository(
                     type = type,
                     url = url1,
                     productId = createdProduct.id,
+                    name = name1,
                     description = description
                 )
                 val createdRepository2 = productService.createRepository(
                     type = type,
                     url = url2,
                     productId = createdProduct.id,
+                    name = name2,
                     description = description
                 )
 
@@ -299,8 +303,24 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
-                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
+                        Repository(
+                            id = createdRepository1.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url1,
+                            name = name1,
+                            description = description
+                        ),
+                        Repository(
+                            id = createdRepository2.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url2,
+                            name = name2,
+                            description = description
+                        )
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -319,24 +339,29 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val name1 = "repo1"
+                val name2 = "repo2"
                 val description = "description"
 
                 val createdRepository1 = productService.createRepository(
                     type = type,
                     url = url1,
                     productId = createdProduct.id,
+                    name = name1,
                     description = description
                 )
                 val createdRepository2 = productService.createRepository(
                     type = type,
                     url = url2,
                     productId = createdProduct.id,
+                    name = name2,
                     description = description
                 )
                 productService.createRepository(
                     type = type,
                     url = "https://example.com/hidden-repo.git",
                     productId = createdProduct.id,
+                    name = "hidden-repo",
                     description = "You cannot see me"
                 )
 
@@ -364,8 +389,24 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
-                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
+                        Repository(
+                            id = createdRepository1.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url1,
+                            name = name1,
+                            description = description
+                        ),
+                        Repository(
+                            id = createdRepository2.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url2,
+                            name = name2,
+                            description = description
+                        )
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -384,18 +425,22 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val name1 = "repo1"
+                val name2 = "repo2"
                 val description = "description"
 
                 productService.createRepository(
                     type = type,
                     url = url1,
                     productId = createdProduct.id,
+                    name = name1,
                     description = description
                 )
                 val createdRepository2 = productService.createRepository(
                     type = type,
                     url = url2,
                     productId = createdProduct.id,
+                    name = name2,
                     description = description
                 )
 
@@ -406,12 +451,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveBody PagedResponse(
                     listOf(
                         Repository(
-                            createdRepository2.id,
-                            orgId,
-                            createdProduct.id,
-                            type.mapToApi(),
-                            url2,
-                            description
+                            id = createdRepository2.id,
+                            organizationId = orgId,
+                            productId = createdProduct.id,
+                            type = type.mapToApi(),
+                            url = url2,
+                            name = name2,
+                            description = description
                         )
                     ),
                     PagingData(
@@ -437,14 +483,79 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git", "description")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    name = "repository-name",
+                    description = "description"
+                )
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody
-                    Repository(1, orgId, createdProduct.id, repository.type, repository.url, repository.description)
+                response shouldHaveBody Repository(
+                    id = 1,
+                    organizationId = orgId,
+                    productId = createdProduct.id,
+                    type = repository.type,
+                    url = repository.url,
+                    name = repository.name,
+                    description = repository.description
+                )
+            }
+        }
+
+        "create repositories with the same url if their names differ" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val repository1 = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    name = "repository-name-1",
+                    description = "description"
+                )
+                val repository2 = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    name = "repository-name-2",
+                    description = "description"
+                )
+
+                superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository1)
+                } shouldHaveStatus HttpStatusCode.Created
+
+                val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository2)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+                response.body<Repository>().name shouldBe repository2.name
+            }
+        }
+
+        "respond with 'Conflict' if the repository's url and name already exist" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    name = "repository-name",
+                    description = "description"
+                )
+
+                superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository)
+                } shouldHaveStatus HttpStatusCode.Created
+
+                val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Conflict
             }
         }
 
@@ -452,7 +563,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://git hub.com/org/repo.git")
+                val repository = PostRepository(type = ApiRepositoryType.GIT, url = "https://git hub.com/org/repo.git")
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -469,7 +580,28 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://user:password@github.com")
+                val repository = PostRepository(type = ApiRepositoryType.GIT, url = "https://user:password@github.com")
+                val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
+                    setBody(repository)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Request validation has failed."
+                body.cause shouldContain "Validation failed for PostRepository"
+            }
+        }
+
+        "respond with 'Bad Request' if the repository's name contains invalid characters" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://github.com/org/repo.git",
+                    name = "invalid<name"
+                )
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -489,7 +621,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 createdProduct.hierarchyId(),
                 HttpStatusCode.Created
             ) {
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://example.com/repo.git"
+                )
                 post("/api/v1/products/${createdProduct.id}/repositories") { setBody(repository) }
             }
         }
@@ -694,17 +829,21 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "return vulnerabilities across repositories in the product found in latest successful advisor jobs" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val repositoryName1 = "repo"
+                val repositoryName2 = "repo2"
                 val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.org/repo.git",
                     productId = productId,
+                    name = repositoryName1,
                     description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.org/repo2.git",
                     productId = productId,
+                    name = repositoryName2,
                     description = description
                 ).id
 
@@ -1671,17 +1810,21 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "trigger ORT runs for repositories in the product" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val repositoryName1 = "repo1"
+                val repositoryName2 = "repo2"
                 val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo1.git",
                     productId = productId,
+                    name = repositoryName1,
                     description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo2.git",
                     productId = productId,
+                    name = repositoryName2,
                     description = description
                 ).id
 
@@ -1953,23 +2096,29 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "create ORT runs when 'repositoryFailedIds' is set and the last runs of all repositories failed" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val repositoryName1 = "repo1"
+                val repositoryName2 = "repo2"
+                val repositoryName3 = "repo3"
                 val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo1.git",
                     productId = productId,
+                    name = repositoryName1,
                     description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo2.git",
                     productId = productId,
+                    name = repositoryName2,
                     description = description
                 ).id
                 val repository3Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo3.git",
                     productId = productId,
+                    name = repositoryName3,
                     description = description
                 ).id
 
@@ -2017,23 +2166,29 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "return 'Conflict' when 'repositoryFailedIds' is used and the latest run for a repository did not fail" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val repositoryName1 = "repo1"
+                val repositoryName2 = "repo2"
+                val repositoryName3 = "repo3"
                 val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo1.git",
                     productId = productId,
+                    name = repositoryName1,
                     description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo2.git",
                     productId = productId,
+                    name = repositoryName2,
                     description = description
                 ).id
                 val repository3Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo3.git",
                     productId = productId,
+                    name = repositoryName3,
                     description = description
                 ).id
 

@@ -191,6 +191,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             type = RepositoryType.GIT,
             url = "https://example.org/repo.git",
             productId = productId,
+            name = "repo",
             description = "description"
         ).id
         hierarchyId = CompoundHierarchyId.forRepository(
@@ -1536,6 +1537,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     type = RepositoryType.GIT,
                     url = "https://example2.org/repo.git",
                     productId = productId2,
+                    name = "repo2",
                     description = "description"
                 ).id
 

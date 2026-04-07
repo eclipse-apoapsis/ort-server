@@ -163,14 +163,16 @@ val getProductRepositories: RouteConfig.() -> Unit = {
                                 organizationId = 2,
                                 productId = 3,
                                 type = RepositoryType.GIT,
-                                url = "https://example.com/first/repo.git"
+                                url = "https://example.com/first/repo.git",
+                                name = "first-repo"
                             ),
                             Repository(
                                 id = 2,
                                 organizationId = 3,
                                 productId = 4,
                                 type = RepositoryType.SUBVERSION,
-                                url = "https://example.com/second/repo"
+                                url = "https://example.com/second/repo",
+                                name = "second-repo"
                             )
                         ),
                         PagingData(
@@ -199,7 +201,8 @@ val postRepository: RouteConfig.() -> Unit = {
             example("Create repository") {
                 value = PostRepository(
                     type = RepositoryType.GIT,
-                    url = "https://example.com/namspace/repo.git"
+                    url = "https://example.com/namspace/repo.git",
+                    name = "repo"
                 )
             }
         }
@@ -215,7 +218,8 @@ val postRepository: RouteConfig.() -> Unit = {
                         organizationId = 2,
                         productId = 3,
                         type = RepositoryType.GIT,
-                        url = "https://example.com/namspace/repo.git"
+                        url = "https://example.com/namspace/repo.git",
+                        name = "repo"
                     )
                 }
             }

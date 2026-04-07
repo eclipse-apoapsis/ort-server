@@ -158,6 +158,7 @@ fun Route.products() = route("products/{productId}") {
                 createRepository.type.mapToModel(),
                 createRepository.url,
                 id,
+                createRepository.name,
                 createRepository.description
             ).mapToApi()
 

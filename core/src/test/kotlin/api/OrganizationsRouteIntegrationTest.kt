@@ -637,6 +637,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     RepositoryType.GIT,
                     "https://example.com/repo.git",
                     createdProduct2.id,
+                    null,
                     null
                 )
                 val productInOtherOrg = organizationService.createProduct(

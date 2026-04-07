@@ -236,7 +236,8 @@ val getRepository: RouteConfig.() -> Unit = {
                         organizationId = 2,
                         productId = 3,
                         type = RepositoryType.GIT,
-                        url = "https://example.com/org/repo.git"
+                        url = "https://example.com/org/repo.git",
+                        name = "repo"
                     )
                 }
             }
@@ -260,6 +261,7 @@ val patchRepository: RouteConfig.() -> Unit = {
                 value = PatchRepository(
                     type = RepositoryType.GIT_REPO.asPresent(),
                     url = "https://example.com/org/updated-repo.git".asPresent(),
+                    name = "updated-repo".asPresent(),
                     description = "Updated repository description.".asPresent(),
                     productId = 42L.asPresent()
                 )
@@ -278,6 +280,7 @@ val patchRepository: RouteConfig.() -> Unit = {
                         productId = 3,
                         type = RepositoryType.GIT_REPO,
                         url = "https://example.com/org/updated-repo.git",
+                        name = "updated-repo",
                         description = "Updated repository description."
                     )
                 }

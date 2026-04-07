@@ -73,6 +73,7 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
             type = RepositoryType.GIT,
             url = "https://example.org/repo.git",
             productId = productId,
+            name = "repo",
             description = "description"
         ).id
     }
