@@ -294,6 +294,23 @@ class RepositoryServiceTest : WordSpec({
             service.getRepository(repository.id) shouldBe updatedRepository
         }
 
+        "update the repository name" {
+            val service = createService()
+
+            val repository = fixtures.createRepository(
+                url = "https://example.com/name-update-service.git",
+                name = null
+            )
+
+            val updatedRepository = service.updateRepository(
+                repositoryId = repository.id,
+                name = "Updated repository name".asPresent()
+            )
+
+            updatedRepository.name shouldBe "Updated repository name"
+            service.getRepository(repository.id)?.name shouldBe "Updated repository name"
+        }
+
         "remove role assignments for the repository when moving it to another product" {
             val service = createService()
 
