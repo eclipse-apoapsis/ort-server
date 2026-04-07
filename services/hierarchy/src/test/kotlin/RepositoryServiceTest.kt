@@ -277,6 +277,7 @@ class RepositoryServiceTest : WordSpec({
             val repository = fixtures.createRepository(
                 type = RepositoryType.GIT,
                 url = "https://example.com/repo.git",
+                name = "Initial repository name",
                 description = "Initial description"
             )
 
@@ -284,11 +285,13 @@ class RepositoryServiceTest : WordSpec({
                 repositoryId = repository.id,
                 type = RepositoryType.MERCURIAL.asPresent(),
                 url = "https://example.com/updated-repo.git".asPresent(),
+                name = "Updated repository name".asPresent(),
                 description = "Updated description".asPresent()
             )
 
             updatedRepository.type shouldBe RepositoryType.MERCURIAL
             updatedRepository.url shouldBe "https://example.com/updated-repo.git"
+            updatedRepository.name shouldBe "Updated repository name"
             updatedRepository.description shouldBe "Updated description"
 
             service.getRepository(repository.id) shouldBe updatedRepository

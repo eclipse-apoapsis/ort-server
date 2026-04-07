@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -30,6 +31,7 @@ import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
@@ -40,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -84,6 +87,73 @@ class ProductServiceTest : WordSpec({
             fixtures.repositoryRepository.listForProduct(product.id).totalCount shouldBe 0
             fixtures.ortRunRepository.listForRepository(repo1.id).totalCount shouldBe 0
             fixtures.ortRunRepository.listForRepository(repo2.id).totalCount shouldBe 0
+        }
+    }
+
+    "createRepository" should {
+        "create a repository" {
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+            val product = fixtures.createProduct(name = "Named Product")
+
+            val repository = service.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/named-service-repo.git",
+                productId = product.id,
+                description = "Repository description",
+                name = "Repository name"
+            )
+
+            repository.productId shouldBe product.id
+            repository.name shouldBe "Repository name"
+            repository.description shouldBe "Repository description"
+            repositoryRepository.get(repository.id)?.name shouldBe "Repository name"
+        }
+
+        "allow creating repositories with the same url if their names differ" {
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+            val product = fixtures.createProduct(name = "Named Product")
+
+            val repository1 = service.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/shared-url.git",
+                productId = product.id,
+                name = "Repository name 1",
+                description = "Repository description"
+            )
+            val repository2 = service.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/shared-url.git",
+                productId = product.id,
+                name = "Repository name 2",
+                description = "Repository description"
+            )
+
+            repository1.url shouldBe repository2.url
+            repository1.name shouldBe "Repository name 1"
+            repository2.name shouldBe "Repository name 2"
+        }
+
+        "reject creating repositories with the same url and name" {
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+            val product = fixtures.createProduct(name = "Named Product")
+
+            service.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/shared-url.git",
+                productId = product.id,
+                name = "Repository name",
+                description = "Repository description"
+            )
+
+            shouldThrow<UniqueConstraintException> {
+                service.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/shared-url.git",
+                    productId = product.id,
+                    name = "Repository name",
+                    description = "Repository description"
+                )
+            }
         }
     }
 
