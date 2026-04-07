@@ -49,7 +49,12 @@ data class Repository(
     val url: String,
 
     /**
-    * The description of the repository.
-    * */
+     * The name of the repository.
+     */
+    val name: String? = null,
+
+    /**
+     * The description of the repository.
+     */
     val description: String? = null
 )

@@ -146,7 +146,13 @@ class RepositoryService(
             }
         }
 
-        repositoryRepository.update(repositoryId, type, url, description, productId).also {
+        repositoryRepository.update(
+            id = repositoryId,
+            type = type,
+            url = url,
+            description = description,
+            productId = productId
+        ).also {
             if (isMove) {
                 runBlocking {
                     // Because of the change in the hierarchical structure, role assignments may now be inconsistent.
