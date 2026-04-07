@@ -65,7 +65,7 @@ class ProductService(
         productId: Long,
         description: String?
     ): Repository = db.dbQuery {
-        repositoryRepository.create(type, url, productId, description)
+        repositoryRepository.create(type, url, productId, description = description)
     }
 
     /**

@@ -38,6 +38,7 @@ object RepositoriesTable : SortableTable("repositories") {
 
     val type = text("type").sortable()
     val url = text("url").sortable()
+    val name = text("name").nullable()
     val description = text("description").nullable()
 }
 
@@ -49,6 +50,7 @@ class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
 
     var type by RepositoriesTable.type
     var url by RepositoriesTable.url
+    var name by RepositoriesTable.name
     var description by RepositoriesTable.description
 
     fun mapToModel() = Repository(
@@ -57,6 +59,7 @@ class RepositoryDao(id: EntityID<Long>) : LongEntity(id) {
         productId = product.id.value,
         type = RepositoryType.forName(type),
         url = url,
+        name = name,
         description = description
     )
 }
