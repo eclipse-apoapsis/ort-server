@@ -45,7 +45,7 @@ export const Route = createFileRoute(
       repositoryId
     );
 
-    context.breadcrumbs.repo = repo.url;
+    context.breadcrumbs.repo = repo.name || repo.url;
     context.permissions.repository = repositoryPermissions;
   },
   component: Layout,
