@@ -42,6 +42,7 @@ import {
 import { BreakableString } from '@/components/breakable-string';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
+import { SpdxExpressionBadgeGroup } from '@/components/licenses';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { RenderProperty } from '@/components/render-property';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,14 @@ import {
 const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Project>();
+
+const LicenseList = ({ licenses }: { licenses: string[] }) => (
+  <div className='flex flex-wrap gap-1'>
+    {licenses.map((license) => (
+      <SpdxExpressionBadgeGroup key={license} expression={license} />
+    ))}
+  </div>
+);
 
 // Component to render a single project card in the list.
 const ProjectCard = ({ project }: { project: Project }) => {
@@ -109,9 +118,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
       {declaredLicenses.length > 0 ? (
         <div className='flex gap-2 text-sm'>
           <div className='font-semibold'>Declared License: </div>
-          <div className='text-muted-foreground wrap-break-word'>
-            {declaredLicenses.join(', ')}
-          </div>
+          <LicenseList licenses={declaredLicenses} />
         </div>
       ) : (
         <div className='text-muted-foreground italic'>No declared license</div>
@@ -136,20 +143,31 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
       <div>
         <div className='font-semibold'>Processed Declared License</div>
         <div className='ml-2'>
-          <RenderProperty
-            label='SPDX expression'
-            value={project.processedDeclaredLicense.spdxExpression}
-          />
+          <div className='space-y-1'>
+            <div className='text-sm font-semibold'>SPDX expression</div>
+            {project.processedDeclaredLicense.spdxExpression ? (
+              <SpdxExpressionBadgeGroup
+                expression={project.processedDeclaredLicense.spdxExpression}
+              />
+            ) : (
+              <div className='text-muted-foreground italic'>No value</div>
+            )}
+          </div>
           <RenderProperty
             label='Mapped licenses'
             value={project.processedDeclaredLicense.mappedLicenses}
             type='keyvalue'
           />
-          <RenderProperty
-            label='Unmapped licenses'
-            value={project.processedDeclaredLicense.unmappedLicenses}
-            type='array'
-          />
+          <div className='space-y-1'>
+            <div className='text-sm font-semibold'>Unmapped licenses</div>
+            {project.processedDeclaredLicense.unmappedLicenses.length > 0 ? (
+              <LicenseList
+                licenses={project.processedDeclaredLicense.unmappedLicenses}
+              />
+            ) : (
+              <div className='text-muted-foreground italic'>No value</div>
+            )}
+          </div>
         </div>
       </div>
 
