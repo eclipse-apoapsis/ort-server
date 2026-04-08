@@ -42,6 +42,7 @@ import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
+import { SpdxExpressionBadgeGroup } from '@/components/licenses';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { PackageCuration } from '@/components/package-curation';
 import { RenderProperty } from '@/components/render-property';
@@ -88,6 +89,14 @@ const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Package>();
 
+const LicenseList = ({ licenses }: { licenses: string[] }) => (
+  <div className='flex flex-wrap gap-1'>
+    {licenses.map((license) => (
+      <SpdxExpressionBadgeGroup key={license} expression={license} />
+    ))}
+  </div>
+);
+
 // Component to render a single package card in the list.
 const PackageCard = ({ pkg }: { pkg: Package }) => {
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
@@ -123,7 +132,7 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
       {declaredLicenses.length > 0 ? (
         <div className='flex gap-2 text-sm'>
           <div className='text-muted-foreground'>Declared License:</div>
-          <div className='wrap-break-word'>{declaredLicenses.join(',')}</div>
+          <LicenseList licenses={declaredLicenses} />
         </div>
       ) : (
         <div className='text-muted-foreground italic'>No declared license</div>
