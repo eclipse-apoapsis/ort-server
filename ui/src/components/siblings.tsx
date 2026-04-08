@@ -224,7 +224,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                     }}
                   >
                     <div className='grid w-full grid-cols-6 items-center gap-2'>
-                      <div className='col-span-5'>{repo.url}</div>
+                      <div className='col-span-5'>{repo.name || repo.url}</div>
                       {repo.id === Number(params.repoId) && (
                         <Check className='ml-auto h-4 w-4' />
                       )}
