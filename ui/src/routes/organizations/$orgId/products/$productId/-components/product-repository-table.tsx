@@ -97,7 +97,7 @@ export const ProductRepositoryTable = () => {
                 repoId: row.original.id.toString(),
               }}
             >
-              {row.original.url}
+              {row.original.name || row.original.url}
             </Link>
             <div className='text-muted-foreground text-sm md:inline'>
               {row.original.type}
