@@ -55,12 +55,12 @@ interface RepositoryRepository {
     fun getHierarchy(id: Long): Hierarchy
 
     /**
-     * List all repositories according to the given [parameters]. Optionally, a [urlFilter] on the repository URL and a
-     * [hierarchyFilter] can be provided.
+     * List all repositories according to the given [parameters]. Optionally, a [filter] on the repository name or URL
+     * and a [hierarchyFilter] can be provided.
      */
     fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        urlFilter: FilterParameter? = null,
+        filter: FilterParameter? = null,
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Repository>
 

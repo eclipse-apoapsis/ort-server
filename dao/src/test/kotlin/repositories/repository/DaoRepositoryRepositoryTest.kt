@@ -176,7 +176,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         fixtures.createRepository(url = "https://example.com/repo3.git")
         fixtures.createRepository(url = "https://example.com/repo4.git")
 
-        repositoryRepository.list(urlFilter = FilterParameter("repository.git$")) shouldBe ListQueryResult(
+        repositoryRepository.list(filter = FilterParameter("repository.git$")) shouldBe ListQueryResult(
             data = listOf(
                 Repository(
                     id = repo1.id,
@@ -211,7 +211,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
             url = "https://subdomain.example.com/repo.git"
         )
 
-        val result = repositoryRepository.list(urlFilter = FilterParameter("example\\.com"))
+        val result = repositoryRepository.list(filter = FilterParameter("example\\.com"))
 
         result shouldBe ListQueryResult(
             data = listOf(
@@ -242,6 +242,23 @@ class DaoRepositoryRepositoryTest : StringSpec({
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 3
+        )
+    }
+
+    "list should filter by repository name as well as url" {
+        val namedRepository = fixtures.createRepository(
+            url = "https://example.com/repo1.git",
+            name = "Internal tools"
+        )
+        fixtures.createRepository(
+            url = "https://example.com/repo2.git",
+            name = "Customer portal"
+        )
+
+        repositoryRepository.list(filter = FilterParameter("^Internal")) shouldBe ListQueryResult(
+            data = listOf(namedRepository),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 1
         )
     }
 
@@ -481,6 +498,38 @@ class DaoRepositoryRepositoryTest : StringSpec({
                     ),
                     params = parameters,
                     totalCount = 2
+                )
+    }
+
+    "listForProduct should filter by repository name as well as url" {
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("url", OrderDirection.DESCENDING)),
+            limit = 10
+        )
+
+        val otherProd = fixtures.createProduct(name = "otherProduct")
+
+        val namedRepository = fixtures.createRepository(
+            url = "https://example.com/repo1.git",
+            productId = productId,
+            name = "Repository display name"
+        )
+        fixtures.createRepository(
+            url = "https://example.com/repo2.git",
+            productId = productId,
+            name = "Another repository"
+        )
+        fixtures.createRepository(
+            url = "https://example.com/repo3.git",
+            productId = otherProd.id,
+            name = "Repository display name"
+        )
+
+        repositoryRepository.listForProduct(productId, parameters, FilterParameter("^Repository display")) shouldBe
+                ListQueryResult(
+                    data = listOf(namedRepository),
+                    params = parameters,
+                    totalCount = 1
                 )
     }
 

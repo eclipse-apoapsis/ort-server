@@ -147,7 +147,7 @@ val getProductRepositories: RouteConfig.() -> Unit = {
         standardListQueryParameters()
 
         queryParameter<String>("filter") {
-            description = "A regular expression to filter repositories by URL."
+            description = "A regular expression to filter repositories by name or URL."
         }
     }
 
