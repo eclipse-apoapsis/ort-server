@@ -229,6 +229,23 @@ class DaoRepositoryRepositoryTest : StringSpec({
         )
     }
 
+    "list should filter by repository name as well as url" {
+        val namedRepository = fixtures.createRepository(
+            url = "https://example.com/repo1.git",
+            name = "Internal tools"
+        )
+        fixtures.createRepository(
+            url = "https://example.com/repo2.git",
+            name = "Customer portal"
+        )
+
+        repositoryRepository.list(urlFilter = FilterParameter("^Internal")) shouldBe ListQueryResult(
+            data = listOf(namedRepository),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 1
+        )
+    }
+
     "list should apply a hierarchy filter on repository level" {
         val repo1 = fixtures.createRepository(url = "https://example.com/repo1.git")
         val repo1Id = CompoundHierarchyId.forRepository(
@@ -455,6 +472,38 @@ class DaoRepositoryRepositoryTest : StringSpec({
                     ),
                     params = parameters,
                     totalCount = 2
+                )
+    }
+
+    "listForProduct should filter by repository name as well as url" {
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("url", OrderDirection.DESCENDING)),
+            limit = 10
+        )
+
+        val otherProd = fixtures.createProduct(name = "otherProduct")
+
+        val namedRepository = fixtures.createRepository(
+            url = "https://example.com/repo1.git",
+            productId = productId,
+            name = "Repository display name"
+        )
+        fixtures.createRepository(
+            url = "https://example.com/repo2.git",
+            productId = productId,
+            name = "Another repository"
+        )
+        fixtures.createRepository(
+            url = "https://example.com/repo3.git",
+            productId = otherProd.id,
+            name = "Repository display name"
+        )
+
+        repositoryRepository.listForProduct(productId, parameters, FilterParameter("^Repository display")) shouldBe
+                ListQueryResult(
+                    data = listOf(namedRepository),
+                    params = parameters,
+                    totalCount = 1
                 )
     }
 

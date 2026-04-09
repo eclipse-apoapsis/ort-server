@@ -36,11 +36,15 @@ import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
+import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
@@ -75,7 +79,8 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun list(parameters: ListQueryParameters, urlFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
         db.blockingQuery {
             val urlCondition = urlFilter?.let {
-                RepositoriesTable.url.applyIRegex(it.value)
+                RepositoriesTable.url.applyIRegex(it.value) or
+                    repositoryNameExpression().applyIRegex(it.value)
             } ?: Op.TRUE
 
             val builder = hierarchyFilter.apply(urlCondition) { level, ids, _ ->
@@ -87,14 +92,17 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
 
     override fun listForProduct(productId: Long, parameters: ListQueryParameters, filter: FilterParameter?) =
         db.blockingQuery {
-        RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
-            if (filter !== null) {
-                RepositoriesTable.productId eq productId and RepositoriesTable.url.applyIRegex(filter.value)
-            } else {
-                RepositoriesTable.productId eq productId
+            RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
+                if (filter != null) {
+                    RepositoriesTable.productId eq productId and (
+                        RepositoriesTable.url.applyIRegex(filter.value) or
+                            repositoryNameExpression().applyIRegex(filter.value)
+                    )
+                } else {
+                    RepositoriesTable.productId eq productId
+                }
             }
         }
-    }
 
     override fun update(
         id: Long,
@@ -120,6 +128,9 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun deleteByProduct(productId: Long): Int = db.blockingQuery {
         RepositoriesTable.deleteWhere { RepositoriesTable.productId eq productId }
     }
+
+    private fun repositoryNameExpression() =
+        CustomFunction<String>("coalesce", TextColumnType(), RepositoriesTable.name, stringLiteral(""))
 }
 
 /**

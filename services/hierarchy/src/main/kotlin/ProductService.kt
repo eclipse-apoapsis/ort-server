@@ -105,7 +105,7 @@ class ProductService(
 
     /**
      * List all repositories for a [product][productId] that are visible to a specific [user][userId] according to the
-     * given [parameters] and [urlFilter].
+     * given [parameters] and [urlFilter], which is applied to the repository name or URL.
      */
     suspend fun listRepositoriesForProductAndUser(
         productId: Long,
