@@ -80,42 +80,48 @@ export const ProductRepositoryTable = () => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('url', {
-        id: 'repository',
-        header: 'Repositories',
-        size: 300,
-        cell: ({ row }) => (
-          <>
-            <Link
-              className='block font-semibold text-blue-400 hover:underline'
-              to={
-                '/organizations/$orgId/products/$productId/repositories/$repoId'
-              }
-              params={{
-                orgId: row.original.organizationId.toString(),
-                productId: row.original.productId.toString(),
-                repoId: row.original.id.toString(),
-              }}
-            >
-              {row.original.name || row.original.url}
-            </Link>
-            <div className='text-muted-foreground text-sm md:inline'>
-              {row.original.type}
-              {row.original.description ? ` | ${row.original.description}` : ''}
-            </div>
-          </>
-        ),
-        meta: {
-          filter: {
-            filterVariant: 'regex',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, filter: value },
-              });
+      columnHelper.accessor(
+        (repository) => `${repository.name ?? ''} ${repository.url}`.trim(),
+        {
+          id: 'repository',
+          header: 'Repositories',
+          size: 300,
+          cell: ({ row }) => (
+            <>
+              <Link
+                className='block font-semibold text-blue-400 hover:underline'
+                to={
+                  '/organizations/$orgId/products/$productId/repositories/$repoId'
+                }
+                params={{
+                  orgId: row.original.organizationId.toString(),
+                  productId: row.original.productId.toString(),
+                  repoId: row.original.id.toString(),
+                }}
+              >
+                {row.original.name && <div>{row.original.name}</div>}
+                <div>{row.original.url}</div>
+              </Link>
+              <div className='text-muted-foreground text-sm md:inline'>
+                {row.original.type}
+                {row.original.description
+                  ? ` | ${row.original.description}`
+                  : ''}
+              </div>
+            </>
+          ),
+          meta: {
+            filter: {
+              filterVariant: 'regex',
+              setFilterValue: (value: string | undefined) => {
+                navigate({
+                  search: { ...search, page: 1, filter: value },
+                });
+              },
             },
           },
-        },
-      }),
+        }
+      ),
       columnHelper.display({
         id: 'runs',
         header: 'Runs',

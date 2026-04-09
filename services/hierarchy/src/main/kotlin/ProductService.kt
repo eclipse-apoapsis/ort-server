@@ -105,17 +105,21 @@ class ProductService(
 
     /**
      * List all repositories for a [product][productId] that are visible to a specific [user][userId] according to the
-     * given [parameters] and [urlFilter].
+     * given [parameters] and [filter], which is applied to the repository name or URL.
      */
     suspend fun listRepositoriesForProductAndUser(
         productId: Long,
         userId: String,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        urlFilter: FilterParameter? = null
+        filter: FilterParameter? = null
     ): ListQueryResult<Repository> = getProduct(productId)?.let { product ->
-        val filter = authorizationService.filterHierarchyIds(userId, RepositoryRole.READER, ProductId(product.id))
+        val hierarchyFilter = authorizationService.filterHierarchyIds(
+            userId,
+            RepositoryRole.READER,
+            ProductId(product.id)
+        )
         db.dbQuery {
-            repositoryRepository.list(parameters, urlFilter, filter)
+            repositoryRepository.list(parameters, filter, hierarchyFilter)
         }
     } ?: ListQueryResult(emptyList(), parameters, 0)
 
