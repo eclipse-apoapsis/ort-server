@@ -122,13 +122,15 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
             variant='outline'
             role='combobox'
             aria-expanded={orgOpen}
-            className='w-[200px] justify-between'
+            className='w-[240px] justify-between gap-2'
           >
-            {selectedOrg ? selectedOrg.name : 'Select organization'}
+            <span className='min-w-0 truncate text-left'>
+              {selectedOrg ? selectedOrg.name : 'Select organization'}
+            </span>
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-[200px] p-0'>
+        <PopoverContent className='w-auto max-w-[min(32rem,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0'>
           <Command>
             <CommandInput placeholder='Search organization...' />
             <CommandList>
@@ -151,7 +153,7 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
                         selectedOrgId === org.id ? 'opacity-100' : 'opacity-0'
                       )}
                     />
-                    {org.name}
+                    <span className='truncate'>{org.name}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -165,14 +167,16 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
             variant='outline'
             role='combobox'
             aria-expanded={productOpen}
-            className='w-[200px] justify-between'
+            className='w-[240px] justify-between gap-2'
             disabled={selectedOrgId === null}
           >
-            {selectedProduct ? selectedProduct.name : 'Select product'}
+            <span className='min-w-0 truncate text-left'>
+              {selectedProduct ? selectedProduct.name : 'Select product'}
+            </span>
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-[200px] p-0'>
+        <PopoverContent className='w-auto max-w-[min(32rem,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0'>
           <Command>
             <CommandInput placeholder='Search product...' />
             <CommandList>
@@ -197,7 +201,7 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
                           : 'opacity-0'
                       )}
                     />
-                    {product.name}
+                    <span className='truncate'>{product.name}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
