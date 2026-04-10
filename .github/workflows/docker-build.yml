@@ -141,7 +141,7 @@ jobs:
         echo "PUSH_IMAGE=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
 
     - name: Build worker base image
-      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
       with:
         context: docker
         file: docker/Base.Dockerfile
@@ -151,7 +151,7 @@ jobs:
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
-      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
@@ -256,7 +256,7 @@ jobs:
           type=raw,value=latest,enable=${{ env.IS_RELEASE }}
 
     - name: Build and push base image to registry
-      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
       with:
         context: docker
         file: docker/Base.Dockerfile
