@@ -325,6 +325,7 @@ class Fixtures(private val db: Database) {
         results = results
     )
 
+    @Suppress("LongParameterList")
     fun generatePackage(
         identifier: Identifier,
         authors: Set<String> = emptySet(),

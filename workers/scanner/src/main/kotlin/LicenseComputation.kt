@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackageDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier

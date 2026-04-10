@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 
@@ -34,6 +34,7 @@ import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.LicenseFinding
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RemoteArtifact
 import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
@@ -42,8 +43,6 @@ import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
-import org.ossreviewtoolkit.model.licenses.LicenseView
-import org.ossreviewtoolkit.model.OrtResult
 
 class LicenseComputationTest : StringSpec({
     "computeDetectedLicenses should aggregate licenses across multiple provenances" {

@@ -40,8 +40,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolu
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.ossreviewtoolkit.model.OrtResult
 
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
@@ -211,7 +211,7 @@ internal fun buildLicenseInfoResolver(
         context = context.resolvedConfigurationContext
     )
 
-    val licenseClassifications = context.configManager.readConfigFileValueWithDefault(
+    context.configManager.readConfigFileValueWithDefault(
         path = null,
         defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
         fallbackValue = LicenseClassifications(),
