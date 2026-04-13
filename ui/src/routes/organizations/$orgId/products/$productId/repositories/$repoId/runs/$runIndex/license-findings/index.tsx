@@ -18,36 +18,45 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import z from 'zod';
 
+import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+  detectedLicenseSearchParameterSchema,
+  findingsPaginationSearchParameterSchema,
+  packageIdSearchParameterSchema,
+  packagePaginationSearchParameterSchema,
+  packageSortingSearchParameterSchema,
+  paginationSearchParameterSchema,
+  sortingSearchParameterSchema,
+} from '@/schemas';
+import { LicenseFindingsView } from './-components/license-findings-view';
 
-const LicenseFindingsComponent = () => {
-  return (
-    <Card className='h-fit'>
-      <CardHeader>
-        <CardTitle>License Findings</CardTitle>
-        <CardDescription>
-          License and copyright findings of the project.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Label className='font-semibold'>Not implemented yet.</Label>
-      </CardContent>
-    </Card>
-  );
-};
+const licenseFindingsSearchSchema = z.object({
+  ...paginationSearchParameterSchema.shape,
+  ...sortingSearchParameterSchema.shape,
+  ...detectedLicenseSearchParameterSchema.shape,
+  ...packagePaginationSearchParameterSchema.shape,
+  ...findingsPaginationSearchParameterSchema.shape,
+  ...packageSortingSearchParameterSchema.shape,
+  ...packageIdSearchParameterSchema.shape,
+});
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/'
 )({
-  component: LicenseFindingsComponent,
+  validateSearch: licenseFindingsSearchSchema,
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getRepositoryRunOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
+  },
+  component: LicenseFindingsView,
   pendingComponent: LoadingIndicator,
 });

@@ -57,6 +57,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
+import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingService
+import org.eclipse.apoapsis.ortserver.components.licensefindings.licenseFindingRoutes
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunIssues
@@ -112,6 +114,7 @@ fun Route.runs() = route("runs") {
     val packageService by inject<PackageService>()
     val projectService by inject<ProjectService>()
     val ortRunService by inject<OrtRunService>()
+    val licenseFindingService by inject<LicenseFindingService>()
 
     /**
      * Return a special [AuthorizationChecker] that checks for the given [permission] on the repository to which a
@@ -162,6 +165,8 @@ fun Route.runs() = route("runs") {
     }
 
     route("{runId}") {
+        licenseFindingRoutes(licenseFindingService, requireRunPermission())
+
         get(getRun, requireRunPermission()) {
             val ortRun = call.ortRun
 
