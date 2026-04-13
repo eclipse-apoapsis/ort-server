@@ -55,7 +55,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
  * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
 open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
-    private val postgres = PostgreSQLContainer("postgres:14").apply {
+    private val postgres = PostgreSQLContainer("postgres:15").apply {
         startupAttempts = 1
     }
 
