@@ -30,5 +30,7 @@ data class Project(
     val vcsProcessed: VcsInfo,
     val description: String,
     val homepageUrl: String,
-    val scopeNames: Set<String>
+    val scopeNames: Set<String>,
+    val detectedLicenses: Set<String> = emptySet(),
+    val effectiveLicense: String? = null
 )

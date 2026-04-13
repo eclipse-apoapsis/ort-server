@@ -53,6 +53,8 @@ object ProjectsTable : SortableTable("projects") {
     val definitionFilePath = text("definition_file_path")
     val description = text("description")
     val homepageUrl = text("homepage_url")
+    val detectedLicenses = text("detected_licenses").nullable()
+    val effectiveLicense = text("effective_license").nullable()
 }
 
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
@@ -134,6 +136,9 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     val processedDeclaredLicense by ProcessedDeclaredLicenseDao backReferencedOn
             ProcessedDeclaredLicensesTable.projectId
 
+    var detectedLicenses by ProjectsTable.detectedLicenses
+    var effectiveLicense by ProjectsTable.effectiveLicense
+
     fun mapToModel() = Project(
         identifier = identifier.mapToModel(),
         cpe = cpe,
@@ -145,6 +150,12 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
         vcsProcessed = vcsProcessed.mapToModel(),
         description = description,
         homepageUrl = homepageUrl,
-        scopeNames = scopeNames.mapTo(mutableSetOf(), ProjectScopeDao::name)
+        scopeNames = scopeNames.mapTo(mutableSetOf(), ProjectScopeDao::name),
+        detectedLicenses = detectedLicenses
+            ?.split(",")
+            ?.filterNot { it.isEmpty() }
+            ?.toSet()
+            .orEmpty(),
+        effectiveLicense = effectiveLicense
     )
 }
