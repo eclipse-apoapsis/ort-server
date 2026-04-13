@@ -48,6 +48,9 @@ data class Repository(
     /** The url to the repository. */
     val url: String,
 
+    /** The name of the repository. */
+    val name: String? = null,
+
     /** The description of the repository. */
     val description: String? = null
 ) {
@@ -73,6 +76,7 @@ private fun String.isValidHost() = all { it.isLetterOrDigit() || it == '.' || it
 data class PostRepository(
     val type: RepositoryType,
     val url: String,
+    val name: String? = null,
     val description: String? = null
 ) {
     companion object {
@@ -99,6 +103,7 @@ data class PostRepository(
 data class PatchRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
     val url: OptionalValue<String> = OptionalValue.Absent,
+    val name: OptionalValue<String?> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent,
 
     /**

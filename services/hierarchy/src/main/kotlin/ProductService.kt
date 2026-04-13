@@ -63,9 +63,16 @@ class ProductService(
         type: RepositoryType,
         url: String,
         productId: Long,
-        description: String?
+        description: String?,
+        name: String? = null
     ): Repository = db.dbQuery {
-        repositoryRepository.create(type, url, productId, description)
+        repositoryRepository.create(
+            type = type,
+            url = url,
+            productId = productId,
+            name = name,
+            description = description
+        )
     }
 
     /**
@@ -98,7 +105,7 @@ class ProductService(
 
     /**
      * List all repositories for a [product][productId] that are visible to a specific [user][userId] according to the
-     * given [parameters] and [urlFilter].
+     * given [parameters] and [urlFilter], which is applied to the repository name or URL.
      */
     suspend fun listRepositoriesForProductAndUser(
         productId: Long,

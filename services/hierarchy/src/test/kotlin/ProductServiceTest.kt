@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -84,6 +85,26 @@ class ProductServiceTest : WordSpec({
             fixtures.repositoryRepository.listForProduct(product.id).totalCount shouldBe 0
             fixtures.ortRunRepository.listForRepository(repo1.id).totalCount shouldBe 0
             fixtures.ortRunRepository.listForRepository(repo2.id).totalCount shouldBe 0
+        }
+    }
+
+    "createRepository" should {
+        "create a repository with a name" {
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+            val product = fixtures.createProduct(name = "Named Product")
+
+            val repository = service.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/named-service-repo.git",
+                productId = product.id,
+                description = "Repository description",
+                name = "Repository name"
+            )
+
+            repository.productId shouldBe product.id
+            repository.name shouldBe "Repository name"
+            repository.description shouldBe "Repository description"
+            repositoryRepository.get(repository.id)?.name shouldBe "Repository name"
         }
     }
 

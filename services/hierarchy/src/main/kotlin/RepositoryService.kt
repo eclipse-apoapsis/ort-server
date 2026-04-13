@@ -137,7 +137,8 @@ class RepositoryService(
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
         url: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent,
-        productId: OptionalValue<Long> = OptionalValue.Absent
+        productId: OptionalValue<Long> = OptionalValue.Absent,
+        name: OptionalValue<String?> = OptionalValue.Absent
     ): Repository = db.dbQuery {
         var isMove = false
         productId.ifPresent { newProductId ->
@@ -146,7 +147,14 @@ class RepositoryService(
             }
         }
 
-        repositoryRepository.update(repositoryId, type, url, description, productId).also {
+        repositoryRepository.update(
+            id = repositoryId,
+            type = type,
+            url = url,
+            name = name,
+            description = description,
+            productId = productId
+        ).also {
             if (isMove) {
                 runBlocking {
                     // Because of the change in the hierarchical structure, role assignments may now be inconsistent.

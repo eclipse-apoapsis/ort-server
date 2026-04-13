@@ -82,32 +82,35 @@ const RepositoryRunsComponent = () => {
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-        <Card className='col-span-1 md:col-span-3'>
-          <CardHeader>
-            <CardTitle>
-              <span className='font-normal'>
-                {getRepositoryTypeLabel(repo.type)} repository
-              </span>{' '}
-              <Link
-                className='font-semibold break-all hover:text-blue-400 hover:underline'
-                to={repo.url}
-                target='_blank'
-              >
-                {repo.url}
-              </Link>
-            </CardTitle>
-            <CardDescription>{repo.description}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>
-              Repository ID: <span className='font-bold'>{repo.id}</span>
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <div className='flex justify-between'>
+              <span>{repo.name}</span>
+              <div>
+                <span className='text-sm font-normal'>
+                  {getRepositoryTypeLabel(repo.type)} repository
+                </span>{' '}
+                <Link
+                  className='text-sm font-semibold break-all hover:text-blue-400 hover:underline'
+                  to={repo.url}
+                  target='_blank'
+                >
+                  {repo.url}
+                </Link>
+              </div>
+            </div>
+          </CardTitle>
+          <CardDescription>
+            <div className='flex justify-between'>
+              {repo.description}
+              <div>
+                Repository ID: <span className='font-bold'>{repo.id}</span>
+              </div>
+            </div>
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <JobDurations
         repoId={params.repoId}
         pageIndex={pageIndex}

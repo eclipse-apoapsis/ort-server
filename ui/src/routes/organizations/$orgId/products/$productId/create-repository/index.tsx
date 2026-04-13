@@ -25,8 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postRepositoryMutation } from '@/api/@tanstack/react-query.gen';
-import { zRepositoryType } from '@/api/zod.gen';
-import { asOptionalField } from '@/components/form/as-optional-field.ts';
+import { zRepository, zRepositoryType } from '@/api/zod.gen';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,10 +56,11 @@ import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 
-const formSchema = z.object({
-  url: z.url(),
-  description: asOptionalField(z.string().min(1)),
-  type: zRepositoryType,
+const formSchema = zRepository.pick({
+  description: true,
+  name: true,
+  type: true,
+  url: true,
 });
 
 const CreateRepositoryPage = () => {
@@ -94,6 +94,8 @@ const CreateRepositoryPage = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      description: '',
+      name: '',
       url: '',
       type: 'GIT',
     },
@@ -103,9 +105,10 @@ const CreateRepositoryPage = () => {
     await mutateAsync({
       path: { productId: Number.parseInt(params.productId) },
       body: {
-        url: values.url,
         description: values.description,
+        name: values.name,
         type: values.type,
+        url: values.url,
       },
     });
   }
@@ -126,6 +129,19 @@ const CreateRepositoryPage = () => {
                   <FormLabel>URL</FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='name'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <OptionalInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

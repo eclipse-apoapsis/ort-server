@@ -515,6 +515,7 @@ fun Repository.mapToApi() = ApiRepository(
     productId = productId,
     type = type.mapToApi(),
     url = url,
+    name = name,
     description = description
 )
 

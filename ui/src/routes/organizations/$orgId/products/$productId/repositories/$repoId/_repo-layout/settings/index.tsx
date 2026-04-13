@@ -33,8 +33,9 @@ import {
   getRepositoryOptions,
   patchRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
-import { zRepositoryType } from '@/api/zod.gen';
+import { zRepository, zRepositoryType } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
+import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -64,10 +65,11 @@ import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { MoveRepository } from '../../-components/move-repository';
 
-const formSchema = z.object({
-  url: z.string(),
-  description: z.string().optional(),
-  type: zRepositoryType,
+const formSchema = zRepository.pick({
+  description: true,
+  name: true,
+  type: true,
+  url: true,
 });
 
 const RepositorySettingsPage = () => {
@@ -110,8 +112,9 @@ const RepositorySettingsPage = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      url: repository.url,
       description: repository.description || '',
+      name: repository.name || '',
+      url: repository.url,
       type: repository.type,
     },
   });
@@ -122,9 +125,10 @@ const RepositorySettingsPage = () => {
         repositoryId: repository.id,
       },
       body: {
-        url: values.url,
         description: values.description,
+        name: values.name,
         type: values.type,
+        url: values.url,
       },
     });
   }
@@ -177,12 +181,25 @@ const RepositorySettingsPage = () => {
               />
               <FormField
                 control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <OptionalInput {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name='description'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <OptionalInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
