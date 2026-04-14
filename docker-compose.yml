@@ -565,7 +565,7 @@ services:
     command: logstash -f /usr/share/logstash/pipeline/ --config.reload.automatic
 
   grafana:
-    image: grafana/grafana:12.4
+    image: grafana/grafana:13.0
     ports:
       - "3200:3000"
     restart: unless-stopped
