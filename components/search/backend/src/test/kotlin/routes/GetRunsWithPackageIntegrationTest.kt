@@ -48,7 +48,6 @@ import ort.eclipse.apoapsis.ortserver.components.search.createRunWithCuratedPurl
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackageForPurlSearch
 import ort.eclipse.apoapsis.ortserver.components.search.toApiIdentifier
-import ort.eclipse.apoapsis.ortserver.components.search.toCoordinates
 import ort.eclipse.apoapsis.ortserver.components.search.toPurl
 
 private const val SEARCH_ROUTE = "/search/package"
