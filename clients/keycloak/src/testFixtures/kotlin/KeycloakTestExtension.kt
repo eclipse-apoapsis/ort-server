@@ -63,7 +63,7 @@ class KeycloakTestExtension(
     private val realm: RealmRepresentation = testRealm,
     private val createRealmPerTest: Boolean = false
 ) : MountableExtension<Keycloak, KeycloakContainer>, AfterSpecListener, BeforeEachListener, AfterEachListener {
-    private val keycloak = KeycloakContainer()
+    private val keycloak = KeycloakContainer("quay.io/keycloak/keycloak:26.6.0")
 
     private lateinit var configureRealm: Keycloak.() -> Unit
 
