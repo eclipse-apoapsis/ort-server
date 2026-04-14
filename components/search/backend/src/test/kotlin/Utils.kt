@@ -117,8 +117,6 @@ fun createRunWithPackageForPurlSearch(
     )
 }
 
-fun Identifier.toCoordinates(): String = "$type:$namespace:$name:$version"
-
 fun Identifier.toPurl(): String = "pkg:$type/$namespace/$name@$version"
 
 fun Identifier.toApiIdentifier(): ApiIdentifier = ApiIdentifier(type, namespace, name, version)
