@@ -93,7 +93,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         databaseModule(),
         ortRunServiceModule(),
         workerContextModule(),
-        buildEnvironmentModule()
+        buildEnvironmentModule(includePackageManagerGenerators = true)
     )
 
     private fun analyzerModule(): Module = module {

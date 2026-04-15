@@ -34,8 +34,11 @@ import org.koin.dsl.module
 /**
  * Return a [Module] with bean definitions that provide an [EnvironmentService] instance and its dependencies. This
  * module can be used by worker implementations that need to set up a build environment.
+ *
+ * If [includePackageManagerGenerators] is `true`, generators for package manager-specific configuration files are
+ * included.
  */
-fun buildEnvironmentModule(): Module = module {
+fun buildEnvironmentModule(includePackageManagerGenerators: Boolean = false): Module = module {
     single<SecretRepository> { DaoSecretRepository(get()) }
 
     singleOf(::EnvironmentDefinitionFactory)
@@ -45,16 +48,19 @@ fun buildEnvironmentModule(): Module = module {
         EnvironmentService(
             get(),
             get(),
-            listOf(
-                ConanGenerator(),
-                GitConfigGenerator.create(get()),
-                GitCredentialsGenerator(),
-                GradleInitGenerator(),
-                MavenSettingsGenerator(),
-                NpmRcGenerator(),
-                NuGetGenerator(),
-                YarnRcGenerator()
-            ),
+            buildList {
+                add(GitConfigGenerator.create(get()))
+                add(GitCredentialsGenerator())
+
+                if (includePackageManagerGenerators) {
+                    add(ConanGenerator())
+                    add(GradleInitGenerator())
+                    add(MavenSettingsGenerator())
+                    add(NpmRcGenerator())
+                    add(NuGetGenerator())
+                    add(YarnRcGenerator())
+                }
+            },
             get(),
             get()
         )
