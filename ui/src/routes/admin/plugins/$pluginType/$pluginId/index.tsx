@@ -236,7 +236,7 @@ const PluginTemplateCard = ({
         <div>
           Global Template
           <Switch
-            className='ml-2 data-[state:checked]:bg-green-500'
+            className='ml-2 data-[state=checked]:bg-green-500'
             checked={template.isGlobal}
             onCheckedChange={() => toggleIsGlobal()}
           />
