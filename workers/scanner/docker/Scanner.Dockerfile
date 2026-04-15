@@ -64,7 +64,8 @@ ARG SCANCODE_VERSION=32.5.0
 # Install Askalono
 RUN curl -LOs https://github.com/amzn/askalono/releases/download/$ASKALONO_VERSION/askalono-Linux.zip && \
     mkdir /opt/askalono && \
-    unzip askalono-Linux.zip -d /opt/askalono
+    unzip askalono-Linux.zip -d /opt/askalono && \
+    rm askalono-Linux.zip
 
 ENV PATH=$PATH:/opt/askalono
 
