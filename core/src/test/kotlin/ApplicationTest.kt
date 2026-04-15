@@ -45,6 +45,7 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 fun Application.testModule(db: Database) {
     configureKoin(db, authorizationService = mockk())
     configureTestAuthentication()
+    configureRateLimit()
     configureStatusPages()
     configureRouting()
     configureSerialization()
@@ -59,6 +60,7 @@ fun Application.testModule(db: Database) {
 fun Application.testAuthModule(db: Database) {
     configureKoin(db)
     configureAuthentication(get(), get())
+    configureRateLimit()
     configureStatusPages()
     configureRouting()
     configureSerialization()

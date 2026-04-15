@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
+import io.ktor.server.plugins.ratelimit.RateLimitName
+import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
@@ -49,25 +51,29 @@ import org.koin.ktor.ext.get
 fun Application.configureRouting() {
     routing {
         route("api/v1") {
-            authentication()
-            healthChecks()
-            downloads()
+            rateLimit(RateLimitName("public")) {
+                authentication()
+                healthChecks()
+                downloads()
+            }
             authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
-                admin()
-                adminConfigRoutes(get())
-                authorizationRoutes()
-                infrastructureServicesRoutes(get())
-                licenseFindingRoutes(get(), get())
-                organizations()
-                pluginManagerRoutes(get(), get(), get())
-                products()
-                repositories()
-                resolutionRoutes(get(), get(), get())
-                runs()
-                searchRoutes(get())
-                secretsCompositionRoutes(get(), get())
-                secretsRoutes(get(), get())
-                versions()
+                rateLimit(RateLimitName("authorized")) {
+                    admin()
+                    adminConfigRoutes(get())
+                    authorizationRoutes()
+                    infrastructureServicesRoutes(get())
+                    licenseFindingRoutes(get(), get())
+                    organizations()
+                    pluginManagerRoutes(get(), get(), get())
+                    products()
+                    repositories()
+                    resolutionRoutes(get(), get(), get())
+                    runs()
+                    searchRoutes(get())
+                    secretsCompositionRoutes(get(), get())
+                    secretsRoutes(get(), get())
+                    versions()
+                }
             }
         }
     }
