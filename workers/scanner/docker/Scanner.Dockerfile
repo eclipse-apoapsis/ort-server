@@ -84,6 +84,8 @@ RUN rbenv install $RUBY_VERSION -v \
     && rbenv global $RUBY_VERSION \
     && gem install licensee:$LICENSEE_VERSION
 
+WORKDIR $HOME
+
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
     pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
