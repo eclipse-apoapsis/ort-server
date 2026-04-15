@@ -63,6 +63,10 @@ fun Application.configureOpenApi() {
         // Don't show the routes providing the custom json-schemas.
         pathFilter = { _, url -> url.firstOrNull() != "schemas" }
 
+        // Ignore internal RateLimit route selectors to prevent them from appearing in Swagger.
+        // This excludes routes like /api/v1/(RateLimit public)/liveness
+        ignoredRouteSelectorClassNames = setOf("io.ktor.server.plugins.ratelimit.RateLimitRouteSelector")
+
         security {
             defaultSecuritySchemeNames = listOf(AuthenticationProviders.TOKEN_PROVIDER)
             defaultUnauthorizedResponse {
