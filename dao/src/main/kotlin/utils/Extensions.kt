@@ -184,7 +184,7 @@ fun <T> SizedIterable<T>.apply(
 /**
  * Convert this [OrderDirection] constant to the corresponding [SortOrder].
  */
-private fun OrderDirection.toSortOrder(): SortOrder =
+fun OrderDirection.toSortOrder(): SortOrder =
     when (this) {
         OrderDirection.ASCENDING -> SortOrder.ASC
         OrderDirection.DESCENDING -> SortOrder.DESC
