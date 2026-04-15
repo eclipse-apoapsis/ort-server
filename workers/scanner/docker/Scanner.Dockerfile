@@ -49,6 +49,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     pkg-config \
     python3 \
     python3-pip \
+    python3-venv \
     sudo \
     unzip \
     xz-utils \
@@ -88,7 +89,8 @@ WORKDIR $HOME
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
-    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+    python3 -m venv /opt/scancode && \
+    /opt/scancode/bin/pip install --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
 
-ENV PATH="/home/ort/.local/bin:${PATH}"
+ENV PATH="/opt/scancode/bin:${PATH}"
