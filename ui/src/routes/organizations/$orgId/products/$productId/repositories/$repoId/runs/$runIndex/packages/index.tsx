@@ -77,6 +77,7 @@ import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
+  isDirectDependencySearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   PackageIdType,
@@ -335,6 +336,10 @@ const PackagesComponent = () => {
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const packageId = search.pkgId;
   const declaredLicense = search.declaredLicense;
+  const isDirectDependency =
+    search.isDirectDependency === undefined
+      ? undefined
+      : search.isDirectDependency === 'true';
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const { data: ortRun } = useSuspenseQuery({
@@ -377,6 +382,7 @@ const PackagesComponent = () => {
           ? { identifier: packageId }
           : { purl: packageId }),
         processedDeclaredLicense: declaredLicense?.join(','),
+        isDirectDependency,
       },
     }),
   });
@@ -428,6 +434,28 @@ const PackagesComponent = () => {
     // All (hidden) columns that are used for filtering/sorting the main column.
     // They don't render any data, but need to retain their accessor logic, and
     // any special sorting and filtering logic.
+    columnHelper.accessor(() => search.isDirectDependency, {
+      id: 'isDirectDependency',
+      header: 'Dependency Type',
+      meta: {
+        filter: {
+          filterVariant: 'single-select',
+          selectOptions: [
+            { label: 'Direct', value: 'true' },
+            { label: 'Transitive', value: 'false' },
+          ],
+          setSelected: (value: 'true' | 'false' | undefined) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                isDirectDependency: value,
+              },
+            });
+          },
+        },
+      },
+    }),
     columnHelper.accessor(
       (pkg) => {
         if (packageIdType === 'ORT_ID') {
@@ -502,11 +530,13 @@ const PackagesComponent = () => {
       sorting: search.sortBy,
       expanded: expanded,
       columnFilters: [
+        { id: 'isDirectDependency', value: search.isDirectDependency },
         { id: columnId, value: packageId },
         { id: 'processedDeclaredLicense', value: declaredLicense },
       ],
       // Always hide the columns that are used for filtering/sorting only.
       columnVisibility: {
+        isDirectDependency: false,
         [columnId]: false,
         processedDeclaredLicense: false,
       },
@@ -583,6 +613,7 @@ export const Route = createFileRoute(
     ...sortingSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...declaredLicenseSearchParameterSchema.shape,
+    ...isDirectDependencySearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {
