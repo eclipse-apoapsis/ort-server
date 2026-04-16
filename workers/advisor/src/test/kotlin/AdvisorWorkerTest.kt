@@ -64,7 +64,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
-import org.ossreviewtoolkit.model.AdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorDetails
 import org.ossreviewtoolkit.model.AdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun
@@ -81,7 +80,6 @@ import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference
-import org.ossreviewtoolkit.utils.common.enumSetOf
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
@@ -354,16 +352,12 @@ class AdvisorWorkerTest : StringSpec({
                 results = sortedMapOf(
                     Identifier("Maven:com.example:package:1.0") to listOf(
                         AdvisorResult(
-                            advisor = AdvisorDetails(
-                                name = "VulnerableCode",
-                                capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
-                            ),
+                            advisor = AdvisorDetails(name = "VulnerableCode"),
                             summary = AdvisorSummary(
                                 startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                                 issues = listOf(advisorIssue)
                             ),
-                            defects = emptyList(),
                             vulnerabilities = listOf(advisorVulnerability)
                         )
                     )
@@ -459,16 +453,12 @@ class AdvisorWorkerTest : StringSpec({
                 results = sortedMapOf(
                     Identifier("Maven:com.example:package:1.0") to listOf(
                         AdvisorResult(
-                            advisor = AdvisorDetails(
-                                name = "VulnerableCode",
-                                capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
-                            ),
+                            advisor = AdvisorDetails(name = "VulnerableCode"),
                             summary = AdvisorSummary(
                                 startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                                 issues = emptyList()
                             ),
-                            defects = emptyList(),
                             vulnerabilities = listOf(advisorVulnerability)
                         )
                     )

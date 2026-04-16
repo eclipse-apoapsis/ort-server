@@ -25,7 +25,6 @@ import java.net.URI
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
-import org.ossreviewtoolkit.model.AdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorDetails
 import org.ossreviewtoolkit.model.AdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun
@@ -449,16 +448,12 @@ object OrtTestData {
     val advisorResults = sortedMapOf(
         pkgIdentifier to listOf(
             AdvisorResult(
-                advisor = AdvisorDetails(
-                    name = "VulnerableCode",
-                    capabilities = enumSetOf(AdvisorCapability.VULNERABILITIES)
-                ),
+                advisor = AdvisorDetails(name = "VulnerableCode"),
                 summary = AdvisorSummary(
                     startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                     endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
                     issues = listOf(issue)
                 ),
-                defects = emptyList(),
                 vulnerabilities = listOf(vulnerability)
             )
         )
