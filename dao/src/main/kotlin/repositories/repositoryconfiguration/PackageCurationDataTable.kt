@@ -76,7 +76,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                         it.declaredLicenseMappings
                             .associate { pair -> pair.license to pair.spdxLicense } == data.declaredLicenseMapping &&
                         it.sourceCodeOrigins
-                            ?.split(",")
+                            ?.split(',')
                             ?.filterNot { origin -> origin.isEmpty() }
                             ?.map { origin -> SourceCodeOrigin.valueOf(origin) } == data.sourceCodeOrigins &&
                         it.labels.associate { label -> label.key to label.value } == data.labels
@@ -147,7 +147,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
         isModified = isModified,
         declaredLicenseMapping = declaredLicenseMappings.associate { it.license to it.spdxLicense },
         sourceCodeOrigins = sourceCodeOrigins
-            ?.split(",")
+            ?.split(',')
             ?.filterNot { it.isEmpty() }
             ?.map { SourceCodeOrigin.valueOf(it) },
         labels = labels.associate { it.key to it.value }
