@@ -21,11 +21,13 @@ import {
   Column,
   RegexFilter,
   SelectFilter,
+  SingleSelectFilter,
   TextFilter,
 } from '@tanstack/react-table';
 
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
+import { FilterSingleSelect } from '@/components/data-table/filter-single-select';
 import { FilterText } from '@/components/data-table/filter-text';
 
 interface DataTableFilterProps<TData, TValue> {
@@ -79,6 +81,23 @@ export function DataTableFilter<TData, TValue>({
         showTitle={showTitle}
         options={selectOptions}
         selected={(columnFilterValue as TValue[]) ?? []}
+        setSelected={setSelected}
+        align={align}
+      />
+    );
+  }
+
+  if (filterVariant === 'single-select') {
+    const { selectOptions, setSelected } = column.columnDef.meta
+      ?.filter as SingleSelectFilter<TValue>;
+    const align = column.columnDef.meta?.filter?.align;
+
+    return (
+      <FilterSingleSelect
+        title={title}
+        showTitle={showTitle}
+        options={selectOptions}
+        selected={columnFilterValue as TValue | undefined}
         setSelected={setSelected}
         align={align}
       />
