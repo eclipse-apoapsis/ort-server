@@ -104,7 +104,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.UnknownProvenance
 
-import org.ossreviewtoolkit.model.AdvisorCapability as OrtAdvisorCapability
 import org.ossreviewtoolkit.model.AdvisorDetails as OrtAdvisorDetails
 import org.ossreviewtoolkit.model.AdvisorResult as OrtAdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
@@ -206,16 +205,12 @@ fun AdvisorConfiguration.mapToOrt() =
 
 fun AdvisorResult.mapToOrt() =
     OrtAdvisorResult(
-        advisor = OrtAdvisorDetails(
-            name = advisorName,
-            capabilities = enumSetOf(OrtAdvisorCapability.VULNERABILITIES)
-        ),
+        advisor = OrtAdvisorDetails(name = advisorName),
         summary = OrtAdvisorSummary(
             startTime = startTime.toJavaInstant(),
             endTime = endTime.toJavaInstant(),
             issues = issues.map(Issue::mapToOrt)
         ),
-        defects = emptyList(),
         vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt)
     )
 
