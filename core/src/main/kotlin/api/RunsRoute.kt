@@ -524,7 +524,8 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
     PackageFilters(
         identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        processedDeclaredLicense = processedDeclaredLicense()
+        processedDeclaredLicense = processedDeclaredLicense(),
+        isDirectDependency = parameters["isDirectDependency"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
 /**

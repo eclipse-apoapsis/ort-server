@@ -492,6 +492,11 @@ val getRunPackages: RouteConfig.() -> Unit = {
                     "license expressions, e.g. '-,MIT'."
         }
 
+        queryParameter<Boolean>("isDirectDependency") {
+            description = "Filter packages by dependency type. true = direct, false = transitive, omit for all."
+            required = false
+        }
+
         standardListQueryParameters()
     }
 
@@ -575,7 +580,8 @@ val getRunPackages: RouteConfig.() -> Unit = {
                             processedDeclaredLicense = FilterOperatorAndValue(
                                 operator = ComparisonOperator.IN,
                                 value = setOf("Apache-2.0")
-                            )
+                            ),
+                            isDirectDependency = true
                         )
                     )
                 }

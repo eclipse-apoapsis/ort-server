@@ -28,6 +28,7 @@ import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.file.aFile
@@ -1350,6 +1351,116 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "example3")
                 )
+            }
+        }
+
+        "allow filtering by direct dependencies" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+
+                val project = dbExtension.fixtures.getProject()
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId = analyzerJob.id,
+                    projects = setOf(project),
+                    packages = setOf(
+                        dbExtension.fixtures.generatePackage(identifier1),
+                        dbExtension.fixtures.generatePackage(identifier2)
+                    ),
+                    issues = emptyList(),
+                    dependencyGraphs = emptyMap(),
+                    shortestDependencyPaths = mapOf(
+                        identifier1 to listOf(
+                            ShortestDependencyPath(
+                                project.identifier,
+                                "compileClassPath",
+                                emptyList()
+                            )
+                        ),
+                        identifier2 to listOf(
+                            ShortestDependencyPath(
+                                project.identifier,
+                                "compileClassPath",
+                                listOf(identifier1)
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages?isDirectDependency=true")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                packages.data.map { it.identifier } shouldContainExactly listOf(identifier1.mapToApi())
+                packages.filters shouldBe PackageFilters(isDirectDependency = true)
+            }
+        }
+
+        "allow filtering by transitive dependencies" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+
+                val project = dbExtension.fixtures.getProject()
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId = analyzerJob.id,
+                    projects = setOf(project),
+                    packages = setOf(
+                        dbExtension.fixtures.generatePackage(identifier1),
+                        dbExtension.fixtures.generatePackage(identifier2)
+                    ),
+                    issues = emptyList(),
+                    dependencyGraphs = emptyMap(),
+                    shortestDependencyPaths = mapOf(
+                        identifier1 to listOf(
+                            ShortestDependencyPath(
+                                project.identifier,
+                                "compileClassPath",
+                                emptyList()
+                            )
+                        ),
+                        identifier2 to listOf(
+                            ShortestDependencyPath(
+                                project.identifier,
+                                "compileClassPath",
+                                listOf(identifier1)
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages?isDirectDependency=false")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                packages.data.map { it.identifier } shouldContainExactly listOf(identifier2.mapToApi())
+                packages.filters shouldBe PackageFilters(isDirectDependency = false)
             }
         }
 
