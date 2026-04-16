@@ -203,7 +203,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
         isMetadataOnly = isMetadataOnly,
         isModified = isModified,
         sourceCodeOrigins = sourceCodeOrigins
-            ?.split(",")
+            ?.split(',')
             ?.filterNot { it.isEmpty() }
             ?.map { SourceCodeOrigin.valueOf(it) },
         labels = labels.associate { it.key to it.value }
