@@ -157,6 +157,10 @@ export const declaredLicenseSearchParameterSchema = z.object({
     .optional(),
 });
 
+export const isDirectDependencySearchParameterSchema = z.object({
+  isDirectDependency: z.enum(['true', 'false']).optional(),
+});
+
 // Refine validates that the license texts are unique.
 export const detectedLicenseSearchParameterSchema = z.object({
   detectedLicense: z
