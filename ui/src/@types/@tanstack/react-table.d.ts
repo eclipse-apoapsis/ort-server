@@ -55,6 +55,21 @@ declare module '@tanstack/react-table' {
     align?: 'start' | 'end' | 'center';
   };
 
+  type SingleSelectFilter<TValue> = {
+    filterVariant: 'single-select';
+    selectOptions: {
+      label: string;
+      value: TValue;
+      icon?: React.ComponentType<{ className?: string }>;
+    }[];
+    setSelected: (selected: TValue | undefined) => void;
+    align?: 'start' | 'end' | 'center';
+  };
+
   // Define the Filter type as a union of the filter variants
-  type Filter = TextFilter | SelectFilter<TValue>;
+  type Filter =
+    | TextFilter
+    | RegexFilter
+    | SelectFilter<TValue>
+    | SingleSelectFilter<TValue>;
 }
