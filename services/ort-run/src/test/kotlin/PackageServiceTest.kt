@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+@Suppress("LargeClass")
 class PackageServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
@@ -509,6 +510,104 @@ class PackageServiceTest : WordSpec() {
                     identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0").mapToApi()
                     processedDeclaredLicense.spdxExpression shouldBe "MIT"
                 }
+            }
+
+            "allow filtering by direct dependencies" {
+                val project = fixtures.getProject()
+                val directIdentifier = Identifier("Maven", "com.example", "direct", "1.0")
+                val transitiveIdentifier = Identifier("Maven", "com.example", "transitive", "1.0")
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    projects = setOf(project),
+                    packages = setOf(
+                        fixtures.generatePackage(directIdentifier),
+                        fixtures.generatePackage(transitiveIdentifier)
+                    ),
+                    shortestPaths = mapOf(
+                        directIdentifier to listOf(
+                            ShortestDependencyPath(project.identifier, "compileClasspath", emptyList())
+                        ),
+                        transitiveIdentifier to listOf(
+                            ShortestDependencyPath(project.identifier, "compileClasspath", listOf(directIdentifier))
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(isDirectDependency = true)
+                )
+
+                results.totalCount shouldBe 1
+                results.data.shouldBeSingleton {
+                    it.identifier shouldBe directIdentifier.mapToApi()
+                }
+            }
+
+            "allow filtering by transitive dependencies" {
+                val project = fixtures.getProject()
+                val directIdentifier = Identifier("Maven", "com.example", "direct", "1.0")
+                val transitiveIdentifier = Identifier("Maven", "com.example", "transitive", "1.0")
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    projects = setOf(project),
+                    packages = setOf(
+                        fixtures.generatePackage(directIdentifier),
+                        fixtures.generatePackage(transitiveIdentifier)
+                    ),
+                    shortestPaths = mapOf(
+                        directIdentifier to listOf(
+                            ShortestDependencyPath(project.identifier, "compileClasspath", emptyList())
+                        ),
+                        transitiveIdentifier to listOf(
+                            ShortestDependencyPath(project.identifier, "compileClasspath", listOf(directIdentifier))
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(isDirectDependency = false)
+                )
+
+                results.totalCount shouldBe 1
+                results.data.shouldBeSingleton {
+                    it.identifier shouldBe transitiveIdentifier.mapToApi()
+                }
+            }
+
+            "not change results when isDirectDependency is null" {
+                val project = fixtures.getProject()
+                val directIdentifier = Identifier("Maven", "com.example", "direct", "1.0")
+                val transitiveIdentifier = Identifier("Maven", "com.example", "transitive", "1.0")
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    projects = setOf(project),
+                    packages = setOf(
+                        fixtures.generatePackage(directIdentifier),
+                        fixtures.generatePackage(transitiveIdentifier)
+                    ),
+                    shortestPaths = mapOf(
+                        directIdentifier to listOf(
+                            ShortestDependencyPath(project.identifier, "compileClasspath", emptyList())
+                        ),
+                        transitiveIdentifier to listOf(
+                            ShortestDependencyPath(project.identifier, "compileClasspath", listOf(directIdentifier))
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(isDirectDependency = null)
+                )
+
+                results.totalCount shouldBe 2
+                results.data.map { it.identifier.mapToModel() } shouldContainInOrder listOf(
+                    directIdentifier,
+                    transitiveIdentifier
+                )
             }
 
             "apply curations and include applied curations" {

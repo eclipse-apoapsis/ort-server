@@ -46,8 +46,11 @@ import org.jetbrains.exposed.v1.core.Count
 import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.TextColumnType
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.core.notInList
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -115,6 +118,26 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                         query.andWhere { ProcessedDeclaredLicensesTable.spdxExpression notInList filter.value }
 
                     else -> {}
+                }
+            }
+
+            filters.isDirectDependency?.let { filter ->
+                 // The subquery keeps the existing query shape unchanged and applies the new filter as an
+                 // existence check, rather than joining a one-to-many-per-package table into the main query,
+                 // because extending the main join tree would duplicate package rows and make counting,
+                 // pagination, and sorting more fragile.
+                val directPackageIdsSubquery = ShortestDependencyPathsTable
+                    .innerJoin(AnalyzerRunsTable)
+                    .innerJoin(AnalyzerJobsTable)
+                    .select(ShortestDependencyPathsTable.packageId)
+                    .where {
+                        (AnalyzerJobsTable.ortRunId eq ortRunId) and
+                            (ShortestDependencyPathsTable.path eq emptyList())
+                    }
+
+                when (filter) {
+                    true -> query.andWhere { PackagesTable.id inSubQuery directPackageIdsSubquery }
+                    false -> query.andWhere { not(PackagesTable.id inSubQuery directPackageIdsSubquery) }
                 }
             }
 
