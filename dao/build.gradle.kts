@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.model)
     implementation(projects.utils.config)
+    implementation(projects.utils.system)
 
     api(libs.exposedDao)
     api(libs.exposedJdbc)
