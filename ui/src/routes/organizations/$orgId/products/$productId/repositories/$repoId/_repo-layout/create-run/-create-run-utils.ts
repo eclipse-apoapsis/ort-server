@@ -154,12 +154,18 @@ const createPluginConfigSchema = (plugin: PreconfiguredPluginDescriptor) => {
 };
 
 export const createRunFormSchema = (
-  advisorPlugins: PreconfiguredPluginDescriptor[]
+  advisorPlugins: PreconfiguredPluginDescriptor[],
+  scannerPlugins: PreconfiguredPluginDescriptor[]
 ) => {
   const advisorConfigSchema: Record<string, z.ZodTypeAny> = {};
 
   advisorPlugins.forEach((plugin) => {
     advisorConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
+  });
+
+  const scannerConfigSchema: Record<string, z.ZodTypeAny> = {};
+  scannerPlugins.forEach((plugin) => {
+    scannerConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
   });
 
   return z.object({
@@ -233,12 +239,32 @@ export const createRunFormSchema = (
             ctx
           );
         }),
-      scanner: z.object({
-        enabled: z.boolean(),
-        skipConcluded: z.boolean(),
-        skipExcluded: z.boolean(),
-        keepAliveWorker: z.boolean(),
-      }),
+      scanner: z
+        .object({
+          enabled: z.boolean(),
+          skipConcluded: z.boolean(),
+          skipExcluded: z.boolean(),
+          keepAliveWorker: z.boolean(),
+          scanners: z.array(z.string()),
+          scannerScopes: z.record(
+            z.string(),
+            z.enum(['both', 'packages', 'projects']).optional()
+          ),
+          config: z.object(scannerConfigSchema).optional(),
+        })
+        .superRefine((data, ctx) => {
+          validateRequiredPluginOptions(
+            scannerPlugins,
+            data.scanners,
+            data.config as
+              | Record<
+                  string,
+                  Record<string, Record<string, unknown>> | undefined
+                >
+              | undefined,
+            ctx
+          );
+        }),
       evaluator: z.object({
         enabled: z.boolean(),
         ruleSet: z.string().optional(),
@@ -387,6 +413,66 @@ function mergePluginConfigs(
   return merged;
 }
 
+/**
+ * Reconstruct the UI scanner selection (scanners list + per-scanner scope) from
+ * the API's `scanners` and `projectScanners` fields.
+ *
+ * API semantics:
+ * - If `projectScanners` is null/empty, `scanners` scan both projects and packages.
+ * - Otherwise `scanners` scan packages only, and `projectScanners` scan projects only.
+ *   A scanner appearing in both lists scans both.
+ */
+function reconstructScannerSelection(
+  apiScanners: string[] | null | undefined,
+  apiProjectScanners: string[] | null | undefined,
+  baseDefaults: {
+    scanners: string[];
+    scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
+    config: Record<string, PluginConfig>;
+  },
+  scannerPluginDefaultValues: Record<string, PluginConfig>
+): {
+  scanners: string[];
+  scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
+  config: Record<string, PluginConfig>;
+} {
+  const hasProjectScannerOverride =
+    apiProjectScanners != null && apiProjectScanners.length > 0;
+
+  if (!apiScanners && !hasProjectScannerOverride) {
+    return {
+      scanners: baseDefaults.scanners,
+      scannerScopes: baseDefaults.scannerScopes,
+      config: baseDefaults.config,
+    };
+  }
+
+  const allScannerIds = Array.from(
+    new Set([...(apiScanners ?? []), ...(apiProjectScanners ?? [])])
+  );
+
+  const scannerScopes: Record<string, 'both' | 'packages' | 'projects'> = {};
+  for (const id of allScannerIds) {
+    const inScanners = apiScanners?.includes(id) ?? false;
+    const inProjectScanners = apiProjectScanners?.includes(id) ?? false;
+    if (!hasProjectScannerOverride) {
+      scannerScopes[id] = 'both';
+    } else if (inScanners && inProjectScanners) {
+      scannerScopes[id] = 'both';
+    } else if (inProjectScanners) {
+      scannerScopes[id] = 'projects';
+    } else {
+      scannerScopes[id] = 'packages';
+    }
+  }
+
+  return {
+    scanners: allScannerIds,
+    scannerScopes,
+    config: mergePluginConfigs(undefined, scannerPluginDefaultValues),
+  };
+}
+
 function getPluginDefaultValues(plugins: PreconfiguredPluginDescriptor[]) {
   return plugins.reduce(
     (acc, plugin) => {
@@ -417,6 +503,7 @@ function getPluginDefaultValues(plugins: PreconfiguredPluginDescriptor[]) {
 export function defaultValues(
   ortRun: OrtRun | null,
   advisorPlugins: PreconfiguredPluginDescriptor[],
+  scannerPlugins: PreconfiguredPluginDescriptor[],
   isSuperuser: boolean
 ): z.infer<ReturnType<typeof createRunFormSchema>> {
   /**
@@ -466,6 +553,7 @@ export function defaultValues(
     : false;
 
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
+  const scannerPluginDefaultValues = getPluginDefaultValues(scannerPlugins);
 
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
@@ -524,6 +612,9 @@ export function defaultValues(
         skipConcluded: true,
         skipExcluded: true,
         keepAliveWorker: false,
+        scanners: ['ScanCode'],
+        scannerScopes: { ScanCode: 'both' as const },
+        config: scannerPluginDefaultValues,
       },
       evaluator: {
         enabled: true,
@@ -629,6 +720,12 @@ export function defaultValues(
             keepAliveWorker:
               (ortRun.jobConfigs.scanner?.keepAliveWorker && isSuperuser) ||
               baseDefaults.jobConfigs.scanner.keepAliveWorker,
+            ...reconstructScannerSelection(
+              ortRun.jobConfigs.scanner?.scanners ?? null,
+              ortRun.jobConfigs.scanner?.projectScanners ?? null,
+              baseDefaults.jobConfigs.scanner,
+              scannerPluginDefaultValues
+            ),
           },
           evaluator: {
             enabled:
@@ -886,12 +983,50 @@ export function formValuesToPayload(
   //
 
   const scannerConfig = values.jobConfigs.scanner.enabled
-    ? {
-        createMissingArchives: true,
-        skipConcluded: values.jobConfigs.scanner.skipConcluded,
-        skipExcluded: values.jobConfigs.scanner.skipExcluded,
-        keepAliveWorker: values.jobConfigs.scanner.keepAliveWorker || undefined,
-      }
+    ? (() => {
+        const allScanners = values.jobConfigs.scanner.scanners;
+        const scopes = values.jobConfigs.scanner.scannerScopes;
+        // When any scanner is set to 'packages' or 'projects', both lists must be
+        // populated explicitly (because an empty projectScanners means "all scanners
+        // scan everything"). Scanners set to 'both' (or with no explicit scope) must
+        // therefore appear in *both* lists whenever the override is active.
+        const hasProjectScannerOverride = allScanners.some(
+          (s) => scopes[s] === 'projects' || scopes[s] === 'packages'
+        );
+        // 'both' / undefined / 'packages' → goes into scanners (package scanning)
+        const packageScanners = allScanners.filter(
+          (s) => !scopes[s] || scopes[s] === 'both' || scopes[s] === 'packages'
+        );
+        // 'both' / undefined / 'projects' → goes into projectScanners (project scanning)
+        // Only populated when the override is active; otherwise omitted so that the
+        // backend treats every scanner in `scanners` as scanning both.
+        const projectScanners = hasProjectScannerOverride
+          ? allScanners.filter(
+              (s) =>
+                !scopes[s] || scopes[s] === 'both' || scopes[s] === 'projects'
+            )
+          : undefined;
+        return {
+          createMissingArchives: true,
+          skipConcluded: values.jobConfigs.scanner.skipConcluded,
+          skipExcluded: values.jobConfigs.scanner.skipExcluded,
+          keepAliveWorker:
+            values.jobConfigs.scanner.keepAliveWorker || undefined,
+          // When the projectScanners override is active but no scanners scan packages,
+          // send an explicit empty array so the backend does not fall back to its
+          // default ["ScanCode"] (which it applies when the field is absent/null).
+          scanners: hasProjectScannerOverride
+            ? packageScanners
+            : packageScanners.length > 0
+              ? packageScanners
+              : undefined,
+          projectScanners,
+          config: createPluginPayload(
+            values.jobConfigs.scanner.config,
+            allScanners
+          ),
+        };
+      })()
     : undefined;
 
   //

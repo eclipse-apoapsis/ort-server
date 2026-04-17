@@ -84,6 +84,8 @@ const CreateRunPage = () => {
     plugins?.data?.filter((plugin) => plugin.type === 'ADVISOR') || [];
   const reporterPlugins =
     plugins?.data?.filter((plugin) => plugin.type === 'REPORTER') || [];
+  const scannerPlugins =
+    plugins?.data?.filter((plugin) => plugin.type === 'SCANNER') || [];
 
   type AccordionSection =
     | 'analyzer'
@@ -126,13 +128,14 @@ const CreateRunPage = () => {
     },
   });
 
-  const formSchema = createRunFormSchema(advisorPlugins);
+  const formSchema = createRunFormSchema(advisorPlugins, scannerPlugins);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues(
       ortRun?.data ?? null,
       advisorPlugins,
+      scannerPlugins,
       isSuperuser
     ),
   });
@@ -443,6 +446,8 @@ const CreateRunPage = () => {
                 form={form}
                 value='scanner'
                 onToggle={() => toggleAccordionOpen('scanner')}
+                scannerPlugins={scannerPlugins}
+                secrets={secrets.data || []}
                 isSuperuser={isSuperuser}
               />
               <EvaluatorFields
