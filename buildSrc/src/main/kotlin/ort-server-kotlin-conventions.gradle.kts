@@ -73,6 +73,14 @@ tasks.withType<Detekt>().configureEach {
     exclude {
         "/build/generated/" in it.file.absoluteFile.invariantSeparatorsPath
     }
+
+    reports {
+        // Disable these as they have issues with Gradle task output caching due to contained timestamps.
+        html.required = false
+        markdown.required = false
+
+        sarif.required = true
+    }
 }
 
 tasks.register("detektAll") {
