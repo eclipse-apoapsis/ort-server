@@ -32,17 +32,32 @@ import io.kotest.matchers.shouldBe
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.SCANNER_VERSION
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createArtifactProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createIssue
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRemoteArtifact
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRepositoryProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createScanResult
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createVcsInfo
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.scannerMatcher
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.withoutRelations
+
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 
@@ -51,6 +66,70 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
     private lateinit var scanResultStorage: OrtServerScanResultStorage
     private lateinit var scannerRun: ScannerRun
+
+    /**
+     * Create a [PackageProvenanceDao] for the given [artifact] and associate it with [scannerRun].
+     * [namespace] allows creating multiple distinct packages that share the same artifact.
+     */
+    private fun createPackageProvenanceForArtifact(
+        scannerRun: ScannerRun,
+        artifact: RemoteArtifact,
+        namespace: String = "com.example"
+    ): PackageProvenanceDao =
+        dbExtension.db.blockingQuery {
+            val identifier = IdentifierDao.getOrPut(
+                Identifier(type = "Maven", namespace = namespace, name = "lib", version = "1.0")
+            )
+            val artifactDao = RemoteArtifactDao.getOrPut(artifact)
+            val provenance = PackageProvenanceDao.new {
+                this.identifier = identifier
+                this.artifact = artifactDao
+            }
+            ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRun.id, provenance.id.value)
+            provenance
+        }
+
+    /**
+     * Create a [PackageProvenanceDao] for the given [vcsInfo] and associate it with [scannerRun].
+     */
+    private fun createPackageProvenanceForVcs(
+        scannerRun: ScannerRun,
+        vcsInfo: VcsInfo
+    ): PackageProvenanceDao =
+        dbExtension.db.blockingQuery {
+            val identifier = IdentifierDao.getOrPut(
+                Identifier(type = "Maven", namespace = "com.example", name = "lib", version = "1.0")
+            )
+            val vcsDao = VcsInfoDao.getOrPut(vcsInfo)
+            val provenance = PackageProvenanceDao.new {
+                this.identifier = identifier
+                this.vcs = vcsDao
+                this.resolvedRevision = vcsInfo.revision
+            }
+            ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRun.id, provenance.id.value)
+            provenance
+        }
+
+    /**
+     * Assert that [ScanResultPackageProvenancesTable] contains a row linking [scanResult] to [packageProvenance].
+     * [run] defaults to the test's [scannerRun].
+     */
+    private fun verifyJunctionRow(
+        scanResult: OrtScanResult,
+        packageProvenance: PackageProvenanceDao,
+        run: ScannerRun = scannerRun
+    ) {
+        dbExtension.db.blockingQuery {
+            val scanResultDao = ScannerRunDao[run.id].scanResults.first {
+                it.scannerName == scanResult.scanner.name
+            }
+            val count = ScanResultPackageProvenancesTable.selectAll().where {
+                (ScanResultPackageProvenancesTable.scanResultId eq scanResultDao.id) and
+                        (ScanResultPackageProvenancesTable.packageProvenanceId eq packageProvenance.id)
+            }.count()
+            count shouldBe 1L
+        }
+    }
 
     /**
      * Return a [Set] with the IDs of all scan summaries assigned to a scan result.
@@ -325,6 +404,58 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContain matchingScanResult.withoutRelations()
                 readResult shouldNotContain notMatchingScanResult
+            }
+        }
+
+        "write" should {
+            "link a new artifact-provenance scan result to the matching package provenance" {
+                val remoteArtifact = createRemoteArtifact()
+                val packageProvenance = createPackageProvenanceForArtifact(scannerRun, remoteArtifact)
+                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
+
+                scanResultStorage.write(scanResult)
+
+                verifyJunctionRow(scanResult, packageProvenance)
+            }
+
+            "link a new VCS-provenance scan result to the matching package provenance" {
+                val vcsInfo = createVcsInfo()
+                val packageProvenance = createPackageProvenanceForVcs(scannerRun, vcsInfo)
+                val scanResult =
+                    createScanResult("ScanCode", createIssue("source"), createRepositoryProvenance(vcsInfo))
+
+                scanResultStorage.write(scanResult)
+
+                verifyJunctionRow(scanResult, packageProvenance)
+            }
+
+            "link a cached (reused) scan result to the new scanner run's package provenance" {
+                val remoteArtifact = createRemoteArtifact()
+                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
+
+                // Write in run 1 (no package provenance yet — no junction row expected).
+                scanResultStorage.write(scanResult)
+
+                // Start run 2, add a package provenance, then read (cache hit path).
+                val scannerRun2 = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
+                val storage2 = OrtServerScanResultStorage(dbExtension.db, scannerRun2.id)
+                val packageProvenance = createPackageProvenanceForArtifact(scannerRun2, remoteArtifact)
+
+                storage2.write(scanResult)
+
+                verifyJunctionRow(scanResult, packageProvenance, scannerRun2)
+            }
+
+            "link a scan result to all package provenances sharing the same artifact URL" {
+                val remoteArtifact = createRemoteArtifact()
+                val provenance1 = createPackageProvenanceForArtifact(scannerRun, remoteArtifact, namespace = "com.a")
+                val provenance2 = createPackageProvenanceForArtifact(scannerRun, remoteArtifact, namespace = "com.b")
+                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
+
+                scanResultStorage.write(scanResult)
+
+                verifyJunctionRow(scanResult, provenance1)
+                verifyJunctionRow(scanResult, provenance2)
             }
         }
 
