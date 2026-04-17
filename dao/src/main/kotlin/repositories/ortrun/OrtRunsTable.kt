@@ -86,6 +86,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val traceId = text("trace_id").nullable()
     val environmentConfigPath = text("environment_config_path").nullable()
     val userDisplayName = reference("user_id", UserDisplayNamesTable.id).nullable()
+    val ortServerVersion = text("ort_server_version").nullable()
 
     /** Get the id of the analyzer run for the given ORT run [id]. Returns `null` if no run is found. */
     fun getAnalyzerRunIdById(id: Long): Long? =
@@ -120,6 +121,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
     var environmentConfigPath by OrtRunsTable.environmentConfigPath
     var userDisplayName by UserDisplayNameDao optionalReferencedOn OrtRunsTable.userDisplayName
+    var ortServerVersion by OrtRunsTable.ortServerVersion
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
@@ -154,7 +156,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         resolvedJobConfigContext = resolvedJobConfigContext,
         traceId = traceId,
         environmentConfigPath = environmentConfigPath,
-        userDisplayName = userDisplayName?.mapToModel()
+        userDisplayName = userDisplayName?.mapToModel(),
+        ortServerVersion = ortServerVersion
     )
 
     /**
@@ -187,7 +190,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
             jobConfigContext = jobConfigContext,
             resolvedJobConfigContext = resolvedJobConfigContext,
             environmentConfigPath = environmentConfigPath,
-            userDisplayName = userDisplayName?.mapToModel()
+            userDisplayName = userDisplayName?.mapToModel(),
+            ortServerVersion = ortServerVersion
         )
     }
 }

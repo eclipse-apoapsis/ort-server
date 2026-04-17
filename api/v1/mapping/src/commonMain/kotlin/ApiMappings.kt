@@ -426,7 +426,8 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         resolvedJobConfigContext = resolvedJobConfigContext,
         environmentConfigPath = environmentConfigPath,
         traceId = traceId,
-        userDisplayName = userDisplayName?.mapToApi()
+        userDisplayName = userDisplayName?.mapToApi(),
+        ortServerVersion = ortServerVersion
     )
 
 fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
@@ -447,7 +448,8 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
         environmentConfigPath = environmentConfigPath,
-        userDisplayName = userDisplayName?.mapToApi()
+        userDisplayName = userDisplayName?.mapToApi(),
+        ortServerVersion = ortServerVersion
     )
 
 fun OrtRunSummary.mapToApi() =
@@ -468,7 +470,8 @@ fun OrtRunSummary.mapToApi() =
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
         environmentConfigPath = environmentConfigPath,
-        userDisplayName = userDisplayName?.mapToApi()
+        userDisplayName = userDisplayName?.mapToApi(),
+        ortServerVersion = ortServerVersion
     )
 
 fun JobSummaries.mapToApi() =

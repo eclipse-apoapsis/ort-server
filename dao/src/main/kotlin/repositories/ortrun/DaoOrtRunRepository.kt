@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
@@ -100,6 +101,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.traceId = traceId
             this.environmentConfigPath = environmentConfigPath
             this.userDisplayName = UserDisplayNameDao.insertOrUpdate(userDisplayName)
+            this.ortServerVersion = ORT_SERVER_VERSION
         }.mapToModel()
     }
 

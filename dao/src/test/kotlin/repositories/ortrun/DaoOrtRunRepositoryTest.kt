@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select
@@ -143,7 +144,8 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 repositoryConfigId = null,
                 issues = emptyList(),
                 traceId = traceId,
-                environmentConfigPath = environmentConfigPath
+                environmentConfigPath = environmentConfigPath,
+                ortServerVersion = ORT_SERVER_VERSION
             )
         }
 

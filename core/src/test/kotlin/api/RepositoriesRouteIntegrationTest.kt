@@ -121,6 +121,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.valueOrThrow
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 @Suppress("LargeClass")
@@ -772,6 +773,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 run.jobConfigs.parameters shouldBe parameters
                 run.jobConfigs.ruleSet shouldBe ruleSet
+
+                run.ortServerVersion shouldBe ORT_SERVER_VERSION
             }
         }
 

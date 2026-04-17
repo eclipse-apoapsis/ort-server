@@ -137,7 +137,12 @@ data class OrtRun(
     /**
      * The display name of the user that triggered the scan.
      */
-    val userDisplayName: UserDisplayName? = null
+    val userDisplayName: UserDisplayName? = null,
+
+    /**
+     * The version of the ORT Server that was active when this run was created.
+     */
+    val ortServerVersion: String? = null
 )
 
 /**
