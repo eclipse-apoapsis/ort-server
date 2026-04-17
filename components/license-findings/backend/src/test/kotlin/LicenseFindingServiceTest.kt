@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsSca
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
@@ -71,6 +72,17 @@ class LicenseFindingServiceTest : WordSpec() {
         }
 
         "getDetectedLicensesForRun" should {
+            "return empty list when no junction table rows exist" {
+                val result = service.getDetectedLicensesForRun(
+                    seed.otherOrtRunId + 999L,
+                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null
+                )
+
+                result.totalCount shouldBe 0
+                result.data.shouldBeEmpty()
+            }
+
             "return all licenses with package counts sorted by license ascending" {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
@@ -150,6 +162,19 @@ class LicenseFindingServiceTest : WordSpec() {
         }
 
         "getPackagesWithDetectedLicenseForRun" should {
+            "return empty list when no junction table rows exist" {
+                val result = service.getPackagesWithDetectedLicenseForRun(
+                    seed.otherOrtRunId + 999L,
+                    "Apache-2.0",
+                    ListQueryParameters(sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    null,
+                    null
+                )
+
+                result.totalCount shouldBe 0
+                result.data.shouldBeEmpty()
+            }
+
             "return the package that has the given license" {
                 val result = service.getPackagesWithDetectedLicenseForRun(
                     seed.ortRunId,
@@ -258,6 +283,18 @@ class LicenseFindingServiceTest : WordSpec() {
         }
 
         "getLicenseFindingsForRun" should {
+            "return empty list with zero totalCount when no junction table rows exist" {
+                val result = service.getLicenseFindingsForRun(
+                    seed.otherOrtRunId + 999L,
+                    "Apache-2.0",
+                    seed.artifactIdentifier.toCoordinates(),
+                    ListQueryParameters(sortFields = listOf(OrderField("path", OrderDirection.ASCENDING)))
+                )
+
+                result.totalCount shouldBe 0
+                result.data.shouldBeEmpty()
+            }
+
             "return findings for the given license and package sorted by path" {
                 val result = service.getLicenseFindingsForRun(
                     seed.ortRunId,
@@ -406,13 +443,17 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
         val otherScannerJob = fixtures.createScannerJob(otherOrtRun.id)
         val otherScannerRun = fixtures.scannerRunRepository.create(otherScannerJob.id)
 
-        createPackageProvenance(scannerRun.id, artifactIdentifier, artifact = artifactProvenance)
-        createPackageProvenance(scannerRun.id, vcsIdentifier, vcs = vcsProvenance)
-        createPackageProvenance(otherScannerRun.id, otherIdentifier, artifact = otherArtifactProvenance)
+        val artifactPackageProvenance =
+            createPackageProvenance(scannerRun.id, artifactIdentifier, artifact = artifactProvenance)
+        val vcsPackageProvenance =
+            createPackageProvenance(scannerRun.id, vcsIdentifier, vcs = vcsProvenance)
+        val otherPackageProvenance =
+            createPackageProvenance(otherScannerRun.id, otherIdentifier, artifact = otherArtifactProvenance)
 
         createArtifactScanResult(
             scannerRun.id,
             artifactProvenance,
+            artifactPackageProvenance.id.value,
             listOf(
                 FindingSeed("Apache-2.0", "LICENSE", 1, 10, 99f),
                 FindingSeed("Apache-2.0", "docs/NOTICE.Apache", 11, 18, 87.5f),
@@ -422,6 +463,7 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
         createVcsScanResult(
             scannerRun.id,
             vcsProvenance,
+            vcsPackageProvenance.id.value,
             listOf(
                 FindingSeed("Apache-2.0", "THIRD-PARTY.txt", 4, 8, 90f),
                 FindingSeed("MIT", "src/main/resources/license.txt", 5, 7, 91.5f)
@@ -430,6 +472,7 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
         createArtifactScanResult(
             otherScannerRun.id,
             otherArtifactProvenance,
+            otherPackageProvenance.id.value,
             listOf(FindingSeed("Zlib", "COPYING", 1, 20, 100f))
         )
     }
@@ -459,7 +502,7 @@ private fun createPackageProvenance(
     identifier: Identifier,
     artifact: RemoteArtifact? = null,
     vcs: VcsInfo? = null
-) {
+): PackageProvenanceDao {
     val provenance = PackageProvenanceDao.new {
         this.identifier = IdentifierDao.getOrPut(identifier)
         this.artifact = artifact?.let(RemoteArtifactDao::getOrPut)
@@ -471,11 +514,13 @@ private fun createPackageProvenance(
     }
 
     ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRunId, provenance.id.value)
+    return provenance
 }
 
 private fun createArtifactScanResult(
     scannerRunId: Long,
     artifact: RemoteArtifact,
+    packageProvenanceId: Long,
     findings: List<FindingSeed>
 ) {
     val scanSummary = createScanSummary(findings)
@@ -495,11 +540,13 @@ private fun createArtifactScanResult(
     }
 
     ScannerRunsScanResultsTable.insertIfNotExists(scannerRunId, scanResult.id.value)
+    ScanResultPackageProvenancesTable.insertIfNotExists(scanResult.id.value, packageProvenanceId)
 }
 
 private fun createVcsScanResult(
     scannerRunId: Long,
     vcs: VcsInfo,
+    packageProvenanceId: Long,
     findings: List<FindingSeed>
 ) {
     val scanSummary = createScanSummary(findings)
@@ -519,6 +566,7 @@ private fun createVcsScanResult(
     }
 
     ScannerRunsScanResultsTable.insertIfNotExists(scannerRunId, scanResult.id.value)
+    ScanResultPackageProvenancesTable.insertIfNotExists(scanResult.id.value, packageProvenanceId)
 }
 
 private fun createScanSummary(findings: List<FindingSeed>): ScanSummaryDao {

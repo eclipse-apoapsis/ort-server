@@ -28,21 +28,18 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnaly
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.toSortOrder
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
-import org.jetbrains.exposed.v1.core.Alias
 import org.jetbrains.exposed.v1.core.Count
 import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.Join
@@ -53,9 +50,7 @@ import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.min
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
@@ -76,14 +71,14 @@ class LicenseFindingService(private val db: Database) {
         parameters: ListQueryParameters,
         licenseFilter: String?
     ): ListQueryResult<DetectedLicense> = db.blockingQuery {
-        val ctx = buildQueryContext(includeAnalyzerData = false)
+        val ctx = buildQueryContext()
         val packageCount = Count(IdentifiersTable.id, distinct = true)
         // Window function gives the total group count in the same query, avoiding running the query twice.
         val totalCount = Count(LicenseFindingsTable.license).over()
 
         val query = ctx.join
             .select(LicenseFindingsTable.license, packageCount, totalCount)
-            .where { (ScannerJobsTable.ortRunId eq ortRunId) and ctx.provenanceCondition() }
+            .where { ScannerJobsTable.ortRunId eq ortRunId }
             .groupBy(LicenseFindingsTable.license)
 
         licenseFilter?.let { query.andWhere { LicenseFindingsTable.license.applyILike(it) } }
@@ -128,10 +123,26 @@ class LicenseFindingService(private val db: Database) {
         purlFilter: String?
     ): ListQueryResult<PackageIdentifier> = db.blockingQuery {
         val ctx = buildQueryContext()
-        val purl = PackagesTable.purl.min().alias("purl")
+
+        // Lateral subquery: fetch one purl per identifier for the current ORT run. Each ORT run has at most one
+        // analyzer run, so LIMIT 1 is a safety net rather than a meaningful filter.
+        val purlSubquery = PackagesTable
+            .join(PackagesAnalyzerRunsTable, JoinType.INNER, PackagesTable.id, PackagesAnalyzerRunsTable.packageId)
+            .join(AnalyzerRunsTable, JoinType.INNER, PackagesAnalyzerRunsTable.analyzerRunId, AnalyzerRunsTable.id)
+            .join(AnalyzerJobsTable, JoinType.INNER, AnalyzerRunsTable.analyzerJobId, AnalyzerJobsTable.id)
+            .select(PackagesTable.purl)
+            .where {
+                (PackagesTable.identifierId eq PackageProvenancesTable.identifierId) and
+                        (AnalyzerJobsTable.ortRunId eq ortRunId)
+            }
+            .limit(1)
+            .alias("purl_sub")
+
+        val join = ctx.join.join(purlSubquery, JoinType.LEFT, lateral = true) { Op.TRUE }
+        val purl = purlSubquery[PackagesTable.purl].min().alias("purl")
         val totalCount = Count(IdentifiersTable.type).over()
 
-        val query = ctx.join
+        val query = join
             .select(
                 IdentifiersTable.type,
                 IdentifiersTable.namespace,
@@ -142,8 +153,7 @@ class LicenseFindingService(private val db: Database) {
             )
             .where {
                 (ScannerJobsTable.ortRunId eq ortRunId) and
-                    (LicenseFindingsTable.license eq license) and
-                    ctx.provenanceCondition()
+                        (LicenseFindingsTable.license eq license)
             }
             .groupBy(
                 IdentifiersTable.type,
@@ -153,7 +163,7 @@ class LicenseFindingService(private val db: Database) {
             )
 
         identifierFilter?.let { query.andWhere { identifierExpression().applyILike(it) } }
-        purlFilter?.let { query.andWhere { PackagesTable.purl.applyILike(it) } }
+        purlFilter?.let { query.andWhere { purlSubquery[PackagesTable.purl].applyILike(it) } }
 
         parameters.sortFields.forEach { orderField ->
             val sortOrder = orderField.direction.toSortOrder()
@@ -200,27 +210,25 @@ class LicenseFindingService(private val db: Database) {
         identifier: String,
         parameters: ListQueryParameters
     ): ListQueryResult<LicenseFinding> = db.blockingQuery {
-        val ctx = buildQueryContext(includeAnalyzerData = false)
+        val ctx = buildQueryContext()
+        val totalCount = Count(LicenseFindingsTable.path).over()
 
-        fun findingsQuery() = ctx.join
+        val query = ctx.join
             .select(
                 LicenseFindingsTable.path,
                 LicenseFindingsTable.startLine,
                 LicenseFindingsTable.endLine,
                 LicenseFindingsTable.score,
                 ScanResultsTable.scannerName,
-                ScanResultsTable.scannerVersion
+                ScanResultsTable.scannerVersion,
+                totalCount
             )
             .where {
                 (ScannerJobsTable.ortRunId eq ortRunId) and
-                    (LicenseFindingsTable.license eq license) and
-                    (identifierExpression() eq identifier) and
-                    ctx.provenanceCondition()
+                        (LicenseFindingsTable.license eq license) and
+                        (identifierExpression() eq identifier)
             }
             .withDistinct()
-
-        val totalCount = findingsQuery().count()
-        val query = findingsQuery()
 
         parameters.sortFields.forEach { orderField ->
             val sortOrder = orderField.direction.toSortOrder()
@@ -256,88 +264,39 @@ class LicenseFindingService(private val db: Database) {
                 )
             },
             params = parameters,
-            totalCount = totalCount
+            totalCount = rows.firstOrNull()?.get(totalCount) ?: 0L
         )
     }
 }
 
-private class QueryContext(
-    val join: Join,
-    private val artifactAlias: Alias<RemoteArtifactsTable>,
-    private val vcsAlias: Alias<VcsInfoTable>
-) {
-    fun provenanceCondition(): Op<Boolean> =
-        (
-            ScanResultsTable.artifactUrl.isNotNull() and
-                (ScanResultsTable.artifactUrl eq artifactAlias[RemoteArtifactsTable.url]) and
-                (ScanResultsTable.artifactHash eq artifactAlias[RemoteArtifactsTable.hashValue]) and
-                (ScanResultsTable.artifactHashAlgorithm eq artifactAlias[RemoteArtifactsTable.hashAlgorithm])
-            ) or (
-            ScanResultsTable.vcsUrl.isNotNull() and
-                (ScanResultsTable.vcsType eq vcsAlias[VcsInfoTable.type]) and
-                (ScanResultsTable.vcsUrl eq vcsAlias[VcsInfoTable.url]) and
-                (ScanResultsTable.vcsRevision eq vcsAlias[VcsInfoTable.revision]) and
-                (vcsAlias[VcsInfoTable.path] eq stringLiteral(""))
-            )
-}
+private class QueryContext(val join: Join)
 
 /**
- * Build the common query context for license findings queries.
- *
- * The [includeAnalyzerData] flag controls whether the four `LEFT JOIN`s for purl lookup are included.
- * Set it to `false` when the purl is not needed, as `packages_analyzer_runs` is a junction table that
- * multiplies rows by the number of analyzer runs a package has been part of, forcing expensive
- * `COUNT(DISTINCT)` to compensate.
+ * Build the common query context for license findings queries. Joins through the
+ * [ScanResultPackageProvenancesTable] junction table to guarantee correct provenance matching at the
+ * DB level.
  */
-private fun buildQueryContext(includeAnalyzerData: Boolean = true): QueryContext {
-    val artifactAlias = RemoteArtifactsTable.alias("artifact")
-    val vcsAlias = VcsInfoTable.alias("vcs")
-
-    val baseJoin = LicenseFindingsTable
+private fun buildQueryContext(): QueryContext {
+    val join = LicenseFindingsTable
         .innerJoin(ScanSummariesTable)
         .join(ScanResultsTable, JoinType.INNER, ScanSummariesTable.id, ScanResultsTable.scanSummaryId)
         .join(
-            ScannerRunsScanResultsTable,
-            JoinType.INNER,
-            ScanResultsTable.id,
-            ScannerRunsScanResultsTable.scanResultId
+            ScanResultPackageProvenancesTable, JoinType.INNER,
+            ScanResultsTable.id, ScanResultPackageProvenancesTable.scanResultId
         )
-        .join(ScannerRunsTable, JoinType.INNER, ScannerRunsScanResultsTable.scannerRunId, ScannerRunsTable.id)
+        .join(
+            PackageProvenancesTable, JoinType.INNER,
+            ScanResultPackageProvenancesTable.packageProvenanceId, PackageProvenancesTable.id
+        )
+        .join(
+            ScannerRunsPackageProvenancesTable, JoinType.INNER,
+            PackageProvenancesTable.id, ScannerRunsPackageProvenancesTable.packageProvenanceId
+        )
+        .join(ScannerRunsTable, JoinType.INNER, ScannerRunsPackageProvenancesTable.scannerRunId, ScannerRunsTable.id)
         .join(ScannerJobsTable, JoinType.INNER, ScannerRunsTable.scannerJobId, ScannerJobsTable.id)
-        .join(
-            ScannerRunsPackageProvenancesTable,
-            JoinType.INNER,
-            ScannerRunsTable.id,
-            ScannerRunsPackageProvenancesTable.scannerRunId
-        )
-        .join(
-            PackageProvenancesTable,
-            JoinType.INNER,
-            ScannerRunsPackageProvenancesTable.packageProvenanceId,
-            PackageProvenancesTable.id
-        )
         .join(IdentifiersTable, JoinType.INNER, PackageProvenancesTable.identifierId, IdentifiersTable.id)
-        .join(artifactAlias, JoinType.LEFT, PackageProvenancesTable.artifactId, artifactAlias[RemoteArtifactsTable.id])
-        .join(vcsAlias, JoinType.LEFT, PackageProvenancesTable.vcsId, vcsAlias[VcsInfoTable.id])
 
-    val join = if (includeAnalyzerData) {
-        baseJoin
-            .join(AnalyzerJobsTable, JoinType.LEFT) {
-                AnalyzerJobsTable.ortRunId eq ScannerJobsTable.ortRunId
-            }
-            .join(AnalyzerRunsTable, JoinType.LEFT) { AnalyzerRunsTable.analyzerJobId eq AnalyzerJobsTable.id }
-            .join(PackagesAnalyzerRunsTable, JoinType.LEFT) {
-                PackagesAnalyzerRunsTable.analyzerRunId eq AnalyzerRunsTable.id
-            }
-            .join(PackagesTable, JoinType.LEFT) {
-                (PackagesTable.id eq PackagesAnalyzerRunsTable.packageId) and
-                    (PackagesTable.identifierId eq PackageProvenancesTable.identifierId)
-            }
-    } else {
-        baseJoin
-    }
-
-    return QueryContext(join, artifactAlias, vcsAlias)
+    return QueryContext(join)
 }
 
 private fun identifierExpression() = CustomFunction<String>(
