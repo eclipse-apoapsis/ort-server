@@ -70,6 +70,7 @@ data class PluginOption(
     val name: String,
     val description: String,
     val type: PluginOptionType,
+    val enumEntries: List<String>?,
     val defaultValue: String?,
     val isNullable: Boolean,
     val isRequired: Boolean

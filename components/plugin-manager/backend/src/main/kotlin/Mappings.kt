@@ -37,6 +37,11 @@ internal fun OrtPluginOption.mapToApi() = PluginOption(
     name = name,
     description = description,
     type = type.mapToApi(),
+    enumEntries = enumEntries?.map {
+        // Prefer `alternativeName` if available, because it is used when `name` is not nicely readable because of Java
+        // naming conventions.
+        it.alternativeName ?: it.name
+    },
     defaultValue = defaultValue,
     isNullable = isNullable,
     isRequired = isRequired
