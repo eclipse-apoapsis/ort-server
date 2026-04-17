@@ -19,6 +19,8 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
+import { PreconfiguredPluginDescriptor, Secret } from '@/api';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
   AccordionItem,
@@ -38,6 +40,8 @@ type ScannerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
   value: string;
   onToggle: () => void;
+  scannerPlugins: PreconfiguredPluginDescriptor[];
+  secrets: Secret[];
   isSuperuser: boolean;
 };
 
@@ -45,6 +49,8 @@ export const ScannerFields = ({
   form,
   value,
   onToggle,
+  scannerPlugins,
+  secrets,
   isSuperuser,
 }: ScannerFieldsProps) => {
   return (
@@ -107,6 +113,22 @@ export const ScannerFields = ({
                 </FormControl>
               </FormItem>
             )}
+          />
+          <PluginMultiSelectField
+            form={form}
+            name='jobConfigs.scanner.scanners'
+            configName='jobConfigs.scanner.config'
+            scannerScopeName='jobConfigs.scanner.scannerScopes'
+            label='Enabled scanners'
+            description={
+              <>
+                Select the scanners enabled for this run. Use the scope toggle
+                to control whether a scanner runs on projects, packages, or
+                both.
+              </>
+            }
+            plugins={scannerPlugins}
+            secrets={secrets}
           />
           {isSuperuser && (
             <FormField

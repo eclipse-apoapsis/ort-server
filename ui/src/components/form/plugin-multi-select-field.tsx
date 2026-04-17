@@ -49,7 +49,10 @@ import {
   SelectValue,
 } from '@/components/ui/select.tsx';
 import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group.tsx';
 import { cn } from '@/lib/utils';
+
+export type ScannerScope = 'both' | 'packages' | 'projects';
 
 type PluginMultiSelectFieldProps<
   TFieldValues extends FieldValues,
@@ -58,6 +61,13 @@ type PluginMultiSelectFieldProps<
   form: UseFormReturn<TFieldValues, TName>;
   name: TName;
   configName: TName;
+  /**
+   * Optional field path for a `Record<string, ScannerScope>` value. When provided,
+   * a scope toggle ("Both" / "Packages only" / "Projects only") is shown next to
+   * each enabled plugin so the user can control whether the scanner runs on packages,
+   * projects, or both.
+   */
+  scannerScopeName?: TName;
   label?: string;
   description?: React.ReactNode;
   plugins: readonly PreconfiguredPluginDescriptor[];
@@ -72,6 +82,7 @@ export const PluginMultiSelectField = <
   form,
   name,
   configName,
+  scannerScopeName,
   label,
   description,
   plugins,
@@ -117,6 +128,33 @@ export const PluginMultiSelectField = <
                   // so this type cast is safe.
                   enabledItems as FieldPathValue<TFieldValues, TName>
                 );
+                if (scannerScopeName) {
+                  if (checked) {
+                    plugins.forEach((plugin) => {
+                      const scopePath =
+                        `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>;
+                      if (!form.getValues(scopePath)) {
+                        form.setValue(
+                          scopePath,
+                          'both' as FieldPathValue<
+                            TFieldValues,
+                            Path<TFieldValues>
+                          >
+                        );
+                      }
+                    });
+                  } else {
+                    plugins.forEach((plugin) => {
+                      form.setValue(
+                        `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>,
+                        undefined as FieldPathValue<
+                          TFieldValues,
+                          Path<TFieldValues>
+                        >
+                      );
+                    });
+                  }
+                }
               }}
             />
             <Label htmlFor='check-all-items' className='font-bold'>
@@ -133,13 +171,37 @@ export const PluginMultiSelectField = <
                 <Checkbox
                   checked={field.value?.includes(plugin.id)}
                   onCheckedChange={(checked) => {
-                    return checked
-                      ? field.onChange([...field.value, plugin.id])
-                      : field.onChange(
-                          field.value?.filter(
-                            (value: string) => value !== plugin.id
-                          )
+                    if (checked) {
+                      field.onChange([...field.value, plugin.id]);
+                      if (scannerScopeName) {
+                        const scopePath =
+                          `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>;
+                        if (!form.getValues(scopePath)) {
+                          form.setValue(
+                            scopePath,
+                            'both' as FieldPathValue<
+                              TFieldValues,
+                              Path<TFieldValues>
+                            >
+                          );
+                        }
+                      }
+                    } else {
+                      field.onChange(
+                        field.value?.filter(
+                          (value: string) => value !== plugin.id
+                        )
+                      );
+                      if (scannerScopeName) {
+                        form.setValue(
+                          `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>,
+                          undefined as FieldPathValue<
+                            TFieldValues,
+                            Path<TFieldValues>
+                          >
                         );
+                      }
+                    }
                   }}
                 />
               </FormControl>
@@ -151,6 +213,49 @@ export const PluginMultiSelectField = <
                   <FormDescription className='pb-4'>
                     {plugin.description}
                   </FormDescription>
+                )}
+                {scannerScopeName && field.value?.includes(plugin.id) && (
+                  <FormField
+                    control={form.control}
+                    name={
+                      `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>
+                    }
+                    render={({ field: scopeField }) => (
+                      <FormItem className='mb-2 flex flex-col space-y-1'>
+                        <FormControl>
+                          <ToggleGroup
+                            type='single'
+                            variant='outline'
+                            value={(scopeField.value as ScannerScope) ?? 'both'}
+                            onValueChange={(value) => {
+                              if (value)
+                                scopeField.onChange(value as ScannerScope);
+                            }}
+                            className='gap-0 self-start'
+                          >
+                            <ToggleGroupItem
+                              value='both'
+                              className='rounded-r-none text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white'
+                            >
+                              Both
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                              value='packages'
+                              className='-ml-px rounded-none text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white'
+                            >
+                              Packages only
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                              value='projects'
+                              className='-ml-px rounded-l-none text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white'
+                            >
+                              Projects only
+                            </ToggleGroupItem>
+                          </ToggleGroup>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                 )}
                 {field.value?.includes(plugin.id) &&
                   plugin.options.map((option) => (
