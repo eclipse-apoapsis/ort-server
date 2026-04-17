@@ -84,6 +84,48 @@ function optionTypeToZodType(type: PluginOptionType): ZodType {
   }
 }
 
+/**
+ * A superRefine validator that checks required options only for plugins that are actually
+ * selected. Intended to be used with z.object(...).superRefine() on any job config object
+ * that has a `config` map and a list of selected plugin IDs.
+ *
+ * @param plugins - All available plugin descriptors for this job type.
+ * @param selectedPluginIds - The plugin IDs currently selected by the user.
+ * @param config - The raw config map from the form data.
+ * @param ctx - The Zod refinement context.
+ */
+function validateRequiredPluginOptions(
+  plugins: PreconfiguredPluginDescriptor[],
+  selectedPluginIds: string[],
+  config:
+    | Record<string, Record<string, Record<string, unknown>> | undefined>
+    | undefined,
+  ctx: z.RefinementCtx
+): void {
+  for (const plugin of plugins) {
+    if (!selectedPluginIds.includes(plugin.id)) continue;
+
+    const pluginConfig = config?.[plugin.id];
+
+    for (const option of plugin.options ?? []) {
+      if (!option.isRequired) continue;
+
+      const section = option.type === 'SECRET' ? 'secrets' : 'options';
+      const value = pluginConfig?.[section]?.[option.name];
+
+      if (value === undefined || value === null || value === '') {
+        ctx.addIssue({
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'undefined',
+          path: ['config', plugin.id, section, option.name],
+          message: `Required option "${option.name}" is missing for "${plugin.displayName}".`,
+        });
+      }
+    }
+  }
+}
+
 const createPluginConfigSchema = (plugin: PreconfiguredPluginDescriptor) => {
   const optionsSchema: Record<string, z.ZodTypeAny> = {};
   const secretsSchema: Record<string, z.ZodTypeAny> = {};
@@ -93,9 +135,8 @@ const createPluginConfigSchema = (plugin: PreconfiguredPluginDescriptor) => {
     if (option.isNullable) {
       schema = schema.nullable();
     }
-    if (!option.isRequired) {
-      schema = schema.optional();
-    }
+    // Always make optional in the base schema; required checks are done in superRefine.
+    schema = schema.optional();
 
     if (option.type == 'SECRET') {
       secretsSchema[option.name] = schema;
@@ -171,13 +212,27 @@ export const createRunFormSchema = (
             return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
           }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
       }),
-      advisor: z.object({
-        enabled: z.boolean(),
-        skipExcluded: z.boolean(),
-        keepAliveWorker: z.boolean(),
-        advisors: z.array(z.string()),
-        config: z.object(advisorConfigSchema).optional(),
-      }),
+      advisor: z
+        .object({
+          enabled: z.boolean(),
+          skipExcluded: z.boolean(),
+          keepAliveWorker: z.boolean(),
+          advisors: z.array(z.string()),
+          config: z.object(advisorConfigSchema).optional(),
+        })
+        .superRefine((data, ctx) => {
+          validateRequiredPluginOptions(
+            advisorPlugins,
+            data.advisors,
+            data.config as
+              | Record<
+                  string,
+                  Record<string, Record<string, unknown>> | undefined
+                >
+              | undefined,
+            ctx
+          );
+        }),
       scanner: z.object({
         enabled: z.boolean(),
         skipConcluded: z.boolean(),
