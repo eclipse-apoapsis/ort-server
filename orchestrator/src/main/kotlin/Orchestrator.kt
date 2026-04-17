@@ -24,7 +24,6 @@ import java.sql.Connection
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
-import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
@@ -53,7 +52,6 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
@@ -448,25 +446,10 @@ class Orchestrator(
      * Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job.
      */
     private fun cleanupJobs(ortRunId: Long) {
-        ortRunRepository.get(ortRunId)?.let { ortRun ->
-            ortRunRepository.update(
-                id = ortRunId,
-                jobConfigs = OptionalValue.Present(cleanupJobConfigs(ortRun.jobConfigs)),
-                resolvedJobConfigs = ortRun.resolvedJobConfigs?.let {
-                    OptionalValue.Present(cleanupJobConfigs(it))
-                } ?: OptionalValue.Absent
-            )
-        }
-
         workerJobRepositories.notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
             workerJobRepositories.notifierJobRepository.deleteMailRecipients(notifierJob.id)
         }
     }
-
-    private fun cleanupJobConfigs(jobConfigs: JobConfigurations) = jobConfigs.copy(
-        notifier = jobConfigs.notifier?.copy(recipientAddresses = emptyList()),
-        parameters = jobConfigs.parameters - "recipientAddresses"
-    )
 }
 
 /**

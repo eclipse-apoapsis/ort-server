@@ -1633,20 +1633,6 @@ class OrchestratorTest : WordSpec() {
                 }
 
                 verify(exactly = 1) {
-                    // Verify the deletion of email addresses from the ORT run parameters.
-                    ortRunRepository.update(
-                        id = withArg { it shouldBe notifierJob.ortRunId },
-                        jobConfigs = withArg {
-                            it.verifyOptionalValue(
-                                ortRun.jobConfigs.copy(
-                                    notifier = ortRun.jobConfigs.notifier?.copy(
-                                            recipientAddresses = emptyList()
-                                        )
-                                    )
-                                )
-                        }
-                    )
-
                     // Verify the deletion of the email addresses from the notifier jobs table.
                     notifierJobRepository.deleteMailRecipients(notifierJob.id)
 
