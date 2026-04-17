@@ -27,29 +27,37 @@ import kotlin.time.toKotlinInstant
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
 import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao.Companion.matchesRemoteArtifact
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao.Companion.matchesVcsInfo
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
 import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
+import org.jetbrains.exposed.v1.jdbc.select
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Issue
@@ -265,6 +273,68 @@ class OrtServerScanResultStorage(
             scannerRunId = scannerRunId,
             scanResultId = scanResultDao.id.value
         )
+        linkScanResultToPackageProvenances(scanResultDao)
+    }
+
+    /**
+     * For the given [scanResultDao], find all package provenances in this scanner run whose artifact or VCS matches
+     * the scan result's provenance and record direct links in [ScanResultPackageProvenancesTable].
+     *
+     * The lookup is scoped to [scannerRunId] via [ScannerRunsPackageProvenancesTable], so it only touches the
+     * package provenances of this run — not the global table.
+     */
+    private fun linkScanResultToPackageProvenances(scanResultDao: ScanResultDao) {
+        val provenanceMatchCondition: Op<Boolean> =
+            if (scanResultDao.artifactUrl != null) {
+                val url = requireNotNull(scanResultDao.artifactUrl)
+                val hash = requireNotNull(scanResultDao.artifactHash)
+                val hashAlgorithm = requireNotNull(scanResultDao.artifactHashAlgorithm)
+                val artifactId = RemoteArtifactsTable
+                    .select(RemoteArtifactsTable.id)
+                    .where {
+                        (RemoteArtifactsTable.url eq url) and
+                                (RemoteArtifactsTable.hashValue eq hash) and
+                                (RemoteArtifactsTable.hashAlgorithm eq hashAlgorithm)
+                    }
+                    .singleOrNull()
+                    ?.get(RemoteArtifactsTable.id)
+                    ?: return
+
+                PackageProvenancesTable.artifactId eq artifactId
+            } else {
+                val type = requireNotNull(scanResultDao.vcsType)
+                val url = requireNotNull(scanResultDao.vcsUrl)
+                val revision = requireNotNull(scanResultDao.vcsRevision)
+                val vcsId = VcsInfoTable
+                    .select(VcsInfoTable.id)
+                    .where {
+                        (VcsInfoTable.type eq type) and
+                                (VcsInfoTable.url eq url) and
+                                (VcsInfoTable.revision eq revision) and
+                                (VcsInfoTable.path eq "")
+                    }
+                    .singleOrNull()
+                    ?.get(VcsInfoTable.id)
+                    ?: return
+
+                PackageProvenancesTable.vcsId eq vcsId
+            }
+
+        val matchingProvenanceIds =
+            (PackageProvenancesTable innerJoin ScannerRunsPackageProvenancesTable)
+                .select(PackageProvenancesTable.id)
+                .where {
+                    (ScannerRunsPackageProvenancesTable.scannerRunId eq scannerRunId) and
+                            provenanceMatchCondition
+                }
+                .map { it[PackageProvenancesTable.id].value }
+
+        matchingProvenanceIds.forEach { ppId ->
+            ScanResultPackageProvenancesTable.insertIfNotExists(
+                scanResultId = scanResultDao.id.value,
+                packageProvenanceId = ppId
+            )
+        }
     }
 }
 
