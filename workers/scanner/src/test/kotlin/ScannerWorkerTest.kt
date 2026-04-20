@@ -123,7 +123,7 @@ class ScannerWorkerTest : StringSpec({
         every { buildLicenseInfoResolver(any(), any(), any()) } returns mockk(relaxed = true)
 
         mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.LicenseComputationKt")
-        every { computeAndStoreLicenses(any(), any(), any()) } just runs
+        every { computeAndStoreLicenses(any(), any()) } just runs
 
         val ortRunService = mockk<OrtRunService> {
             every { createScannerRun(any()) } returns mockk {
@@ -234,7 +234,7 @@ class ScannerWorkerTest : StringSpec({
         every { buildLicenseInfoResolver(any(), any(), any()) } returns mockk(relaxed = true)
 
         mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.LicenseComputationKt")
-        every { computeAndStoreLicenses(any(), any(), any()) } just runs
+        every { computeAndStoreLicenses(any(), any()) } just runs
 
         val ortRunService = mockk<OrtRunService> {
             every { createScannerRun(any()) } returns mockk {
@@ -435,7 +435,7 @@ class ScannerWorkerTest : StringSpec({
         every { buildLicenseInfoResolver(any(), any(), any()) } returns mockk(relaxed = true)
 
         mockkStatic("org.eclipse.apoapsis.ortserver.workers.scanner.LicenseComputationKt")
-        every { computeAndStoreLicenses(any(), any(), any()) } just runs
+        every { computeAndStoreLicenses(any(), any()) } just runs
 
         val ortRunService = mockk<OrtRunService> {
             every { createScannerRun(any()) } returns mockk {

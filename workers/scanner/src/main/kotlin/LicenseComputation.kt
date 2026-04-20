@@ -30,24 +30,27 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.jetbrains.exposed.v1.core.eq
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
+import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.licenses.LicenseView
 
 /**
- * Compute detected licenses for a package or project by aggregating license findings across all scan results
- * for the given [id]. Returns the union of all license strings found in all provenances.
+ * Compute detected licenses for a package or project using the [licenseInfoResolver].
+ *
+ * Returns the set of licenses with [LicenseSource.DETECTED], which respects LicenseFindingCuration and PathExclude
+ * from PackageConfiguration.
  */
 fun computeDetectedLicenses(
-    scannerRun: ScannerRun,
+    licenseInfoResolver: LicenseInfoResolver,
     id: OrtIdentifier
-): Set<String> =
-    scannerRun.getAllScanResults()[id]
-        .orEmpty()
-        .flatMap { scanResult -> scanResult.summary.licenseFindings }
-        .map { licenseFinding -> licenseFinding.license.toString() }
+): Set<String> {
+    val resolvedLicenseInfo = licenseInfoResolver.resolveLicenseInfo(id)
+    return resolvedLicenseInfo.licenses
+        .filter { it.sources.any { source -> source == LicenseSource.DETECTED } }
+        .map { it.license.toString() }
         .toSet()
+}
 
 /**
  * Compute the effective license for a package or project using the [licenseInfoResolver].
@@ -66,19 +69,17 @@ fun computeEffectiveLicense(
 
 /**
  * Compute detected and effective licenses for all packages and projects in the [ortResult] and store them in the
- * database. Uses the [scannerRun] to aggregate detected licenses across all provenances and the
- * [licenseInfoResolver] to compute effective licenses.
+ * database. Uses the [licenseInfoResolver] to compute both detected and effective licenses with curations applied.
  */
 fun computeAndStoreLicenses(
     ortResult: OrtResult,
-    scannerRun: ScannerRun,
     licenseInfoResolver: LicenseInfoResolver
 ) {
     for (curatedPackage in ortResult.getPackages()) {
         val id = curatedPackage.metadata.id
         val modelId = id.mapToModel()
 
-        val detectedLicenses = computeDetectedLicenses(scannerRun, id)
+        val detectedLicenses = computeDetectedLicenses(licenseInfoResolver, id)
         val effectiveLicense = computeEffectiveLicense(licenseInfoResolver, id)
 
         if (detectedLicenses.isNotEmpty() || effectiveLicense != null) {
@@ -90,7 +91,7 @@ fun computeAndStoreLicenses(
         val id = project.id
         val modelId = id.mapToModel()
 
-        val detectedLicenses = computeDetectedLicenses(scannerRun, id)
+        val detectedLicenses = computeDetectedLicenses(licenseInfoResolver, id)
         val effectiveLicense = computeEffectiveLicense(licenseInfoResolver, id)
 
         if (detectedLicenses.isNotEmpty() || effectiveLicense != null) {

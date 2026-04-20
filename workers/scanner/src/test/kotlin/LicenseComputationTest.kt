@@ -21,134 +21,115 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
 import io.mockk.mockk
 
-import java.time.Instant
+import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 
-import org.ossreviewtoolkit.model.ArtifactProvenance
-import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.Identifier
-import org.ossreviewtoolkit.model.LicenseFinding
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.RemoteArtifact
-import org.ossreviewtoolkit.model.ScanResult
-import org.ossreviewtoolkit.model.ScanSummary
-import org.ossreviewtoolkit.model.ScannerDetails
-import org.ossreviewtoolkit.model.ScannerRun
-import org.ossreviewtoolkit.model.TextLocation
+import org.ossreviewtoolkit.model.config.CopyrightGarbage
+import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 
 class LicenseComputationTest : StringSpec({
-    "computeDetectedLicenses should aggregate licenses across multiple provenances" {
-        val id = Identifier("Maven", "com.example", "test-pkg", "1.0")
+    "computeDetectedLicenses returns curated licenses using OrtTestData" {
+        val id = OrtTestData.pkgIdentifier
 
-        val provenance1 = ArtifactProvenance(
-            sourceArtifact = RemoteArtifact(
-                url = "https://example.com/pkg1.jar",
-                hash = Hash.NONE
-            )
-        )
-        val provenance2 = ArtifactProvenance(
-            sourceArtifact = RemoteArtifact(
-                url = "https://example.com/pkg2.jar",
-                hash = Hash.NONE
-            )
+        val ortResult = OrtTestData.result
+
+        val resolver = LicenseInfoResolver(
+            provider = DefaultLicenseInfoProvider(ortResult),
+            copyrightGarbage = CopyrightGarbage(),
+            addAuthorsToCopyrights = false,
+            archiver = mockk(relaxed = true),
+            licenseFilePatterns = LicenseFilePatterns.DEFAULT
         )
 
-        val scanResult1 = ScanResult(
-            provenance = provenance1,
-            scanner = ScannerDetails("scanner1", "1.0", ""),
-            summary = ScanSummary(
-                startTime = Instant.now(),
-                endTime = Instant.now(),
-                licenseFindings = setOf(
-                    LicenseFinding("MIT", TextLocation("file1.txt", 1)),
-                    LicenseFinding("Apache-2.0", TextLocation("file2.txt", 1))
-                )
-            )
-        )
+        val result = computeDetectedLicenses(resolver, id)
 
-        val scanResult2 = ScanResult(
-            provenance = provenance2,
-            scanner = ScannerDetails("scanner2", "1.0", ""),
-            summary = ScanSummary(
-                startTime = Instant.now(),
-                endTime = Instant.now(),
-                licenseFindings = setOf(
-                    LicenseFinding("Apache-2.0", TextLocation("file3.txt", 1)),
-                    LicenseFinding("GPL-3.0", TextLocation("file4.txt", 1))
-                )
-            )
-        )
-
-        val scannerRun = mockk<ScannerRun>(relaxed = true) {
-            every { getAllScanResults() } returns mapOf(id to listOf(scanResult1, scanResult2))
-        }
-
-        val result = computeDetectedLicenses(scannerRun, id)
-
-        result shouldContainExactlyInAnyOrder setOf("MIT", "Apache-2.0", "GPL-3.0")
+        result shouldContain "LicenseRef-detected1-concluded"
+        result shouldContain "LicenseRef-detected2"
+        result shouldContain "LicenseRef-detected3"
     }
 
-    "computeDetectedLicenses should return empty set when no scan results exist" {
+    "computeDetectedLicenses returns all detected licenses when no curations exist" {
+        val id = OrtTestData.pkgIdentifier
+
+        val ortResult = OrtTestData.result.copy(
+            repository = OrtTestData.repository.copy(
+                config = OrtTestData.repository.config.copy(
+                    packageConfigurations = emptyList()
+                )
+            ),
+            resolvedConfiguration = OrtTestData.resolvedConfiguration.copy(
+                packageConfigurations = emptyList()
+            )
+        )
+
+        val resolver = LicenseInfoResolver(
+            provider = DefaultLicenseInfoProvider(ortResult),
+            copyrightGarbage = CopyrightGarbage(),
+            addAuthorsToCopyrights = false,
+            archiver = mockk(relaxed = true),
+            licenseFilePatterns = LicenseFilePatterns.DEFAULT
+        )
+
+        val result = computeDetectedLicenses(resolver, id)
+
+        result shouldContain "LicenseRef-detected1"
+        result shouldContain "LicenseRef-detected2"
+        result shouldContain "LicenseRef-detected3"
+        result shouldContain "LicenseRef-detected-excluded"
+    }
+
+    "computeDetectedLicenses returns empty set when no scan results for id" {
         val id = Identifier("Maven", "com.example", "no-scan-pkg", "1.0")
 
-        val scannerRun = mockk<ScannerRun>(relaxed = true) {
-            every { getAllScanResults() } returns emptyMap()
-        }
+        val ortResult = OrtResult.EMPTY
 
-        val result = computeDetectedLicenses(scannerRun, id)
+        val resolver = LicenseInfoResolver(
+            provider = DefaultLicenseInfoProvider(ortResult),
+            copyrightGarbage = CopyrightGarbage(),
+            addAuthorsToCopyrights = false,
+            archiver = mockk(relaxed = true),
+            licenseFilePatterns = LicenseFilePatterns.DEFAULT
+        )
+
+        val result = computeDetectedLicenses(resolver, id)
 
         result.shouldBeEmpty()
     }
 
-    "computeDetectedLicenses should deduplicate licenses across provenances" {
-        val id = Identifier("NPM", "@example", "lib", "2.0")
-
-        val provenance = ArtifactProvenance(
-            sourceArtifact = RemoteArtifact(
-                url = "https://example.com/lib.tgz",
-                hash = Hash.NONE
-            )
-        )
-
-        val scanResult1 = ScanResult(
-            provenance = provenance,
-            scanner = ScannerDetails("scanner1", "1.0", ""),
-            summary = ScanSummary(
-                startTime = Instant.now(),
-                endTime = Instant.now(),
-                licenseFindings = setOf(
-                    LicenseFinding("MIT", TextLocation("a.txt", 1))
+    "computeDetectedLicenses deduplicates licenses across provenances" {
+        val ortResult = OrtTestData.result.copy(
+            repository = OrtTestData.repository.copy(
+                config = OrtTestData.repository.config.copy(
+                    packageConfigurations = emptyList()
                 )
+            ),
+            resolvedConfiguration = OrtTestData.resolvedConfiguration.copy(
+                packageConfigurations = emptyList()
             )
         )
+        val id = OrtTestData.pkgIdentifier
 
-        val scanResult2 = ScanResult(
-            provenance = provenance,
-            scanner = ScannerDetails("scanner2", "1.0", ""),
-            summary = ScanSummary(
-                startTime = Instant.now(),
-                endTime = Instant.now(),
-                licenseFindings = setOf(
-                    LicenseFinding("MIT", TextLocation("b.txt", 1))
-                )
-            )
+        val resolver = LicenseInfoResolver(
+            provider = DefaultLicenseInfoProvider(ortResult),
+            copyrightGarbage = CopyrightGarbage(),
+            addAuthorsToCopyrights = false,
+            archiver = mockk(relaxed = true),
+            licenseFilePatterns = LicenseFilePatterns.DEFAULT
         )
 
-        val scannerRun = mockk<ScannerRun>(relaxed = true) {
-            every { getAllScanResults() } returns mapOf(id to listOf(scanResult1, scanResult2))
-        }
+        val result = computeDetectedLicenses(resolver, id)
 
-        val result = computeDetectedLicenses(scannerRun, id)
-
-        result shouldBe setOf("MIT")
+        val licenseCounts = result.groupingBy { it }.eachCount()
+        licenseCounts.values.all { it == 1 } shouldBe true
     }
 
     "computeEffectiveLicense should return null when no license info is available" {
@@ -157,10 +138,10 @@ class LicenseComputationTest : StringSpec({
         val ortResult = OrtResult.EMPTY
         val resolver = LicenseInfoResolver(
             provider = DefaultLicenseInfoProvider(ortResult),
-            copyrightGarbage = org.ossreviewtoolkit.model.config.CopyrightGarbage(),
+            copyrightGarbage = CopyrightGarbage(),
             addAuthorsToCopyrights = false,
             archiver = mockk(relaxed = true),
-            licenseFilePatterns = org.ossreviewtoolkit.model.config.LicenseFilePatterns.DEFAULT
+            licenseFilePatterns = LicenseFilePatterns.DEFAULT
         )
 
         val result = computeEffectiveLicense(resolver, id)

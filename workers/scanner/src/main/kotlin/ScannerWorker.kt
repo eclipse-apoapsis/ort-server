@@ -111,7 +111,6 @@ class ScannerWorker(
             db.dbQuery {
                 computeAndStoreLicenses(
                     ortResult = ortResult,
-                    scannerRun = scannerRunResult.scannerRun,
                     licenseInfoResolver = licenseInfoResolver
                 )
             }
