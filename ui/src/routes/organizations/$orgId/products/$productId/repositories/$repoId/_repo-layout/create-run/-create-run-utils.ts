@@ -68,7 +68,12 @@ const environmentVariableSchema = z.object({
 function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
-      return z.boolean();
+      // Preprocess to coerce string representations ("true"/"false") that may
+      // come from default values or API re-run data into actual booleans.
+      return z.preprocess((val) => {
+        if (typeof val === 'string') return val === 'true';
+        return val;
+      }, z.boolean());
     case 'INTEGER':
       return z.coerce.string();
     case 'LONG':
@@ -78,7 +83,16 @@ function optionTypeToZodType(type: PluginOptionType): ZodType {
     case 'STRING':
       return z.string();
     case 'STRING_LIST':
-      return z.array(z.string());
+      // Preprocess to coerce a comma-separated string into an array, handling
+      // string representations that may come from default values or API re-run data.
+      return z.preprocess((val) => {
+        if (typeof val === 'string')
+          return val
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        return val;
+      }, z.array(z.string()));
     default:
       throw new Error(`Unsupported option type: ${type}`);
   }
@@ -476,20 +490,35 @@ function reconstructScannerSelection(
 function getPluginDefaultValues(plugins: PreconfiguredPluginDescriptor[]) {
   return plugins.reduce(
     (acc, plugin) => {
-      const options: Record<string, string> = {};
+      const options: Record<string, string | boolean | string[]> = {};
       const secrets: Record<string, string> = {};
 
       plugin.options?.forEach((option) => {
         if (option.defaultValue !== undefined) {
           if (option.type === 'SECRET') {
             secrets[option.name] = String(option.defaultValue);
+          } else if (option.type === 'BOOLEAN') {
+            options[option.name] = option.defaultValue === 'true';
+          } else if (option.type === 'STRING_LIST') {
+            options[option.name] =
+              typeof option.defaultValue === 'string'
+                ? option.defaultValue
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                : [];
           } else {
             options[option.name] = String(option.defaultValue);
           }
         }
       });
 
-      acc[plugin.id] = { options: options, secrets: secrets };
+      // Cast to PluginConfig: the API type uses string maps, but the form
+      // schema and Zod preprocessing handle boolean/array values correctly.
+      acc[plugin.id] = {
+        options: options as { [key: string]: string },
+        secrets: secrets,
+      };
       return acc;
     },
     {} as Record<string, PluginConfig>
