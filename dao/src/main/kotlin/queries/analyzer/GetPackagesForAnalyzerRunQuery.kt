@@ -149,7 +149,13 @@ class GetPackagesForAnalyzerRunQuery(
                 vcs = vcs,
                 vcsProcessed = vcsProcessed,
                 isMetadataOnly = resultRow[PackagesTable.isMetadataOnly],
-                isModified = resultRow[PackagesTable.isModified]
+                isModified = resultRow[PackagesTable.isModified],
+                detectedLicenses = resultRow[PackagesTable.detectedLicenses]
+                    ?.split(',')
+                    ?.filterNot { it.isEmpty() }
+                    ?.toSet()
+                    .orEmpty(),
+                effectiveLicense = resultRow[PackagesTable.effectiveLicense]
             )
         }
     }

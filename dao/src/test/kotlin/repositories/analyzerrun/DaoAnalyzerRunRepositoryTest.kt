@@ -143,6 +143,38 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         dbExtension.db.dbQuery { ProjectsTable.selectAll().count() } shouldBe 1
     }
 
+    "create should deduplicate packages when license fields differ" {
+        val pkg1 = createPackage(1).copy(
+            detectedLicenses = setOf("MIT"),
+            effectiveLicense = "MIT"
+        )
+        val pkg2 = createPackage(1).copy(
+            detectedLicenses = setOf("Apache-2.0"),
+            effectiveLicense = "Apache-2.0"
+        )
+
+        analyzerRunRepository.create(analyzerJobId, analyzerRun.copy(packages = setOf(pkg1)))
+        analyzerRunRepository.create(analyzerJobId, analyzerRun.copy(packages = setOf(pkg2)))
+
+        dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 1
+    }
+
+    "create should deduplicate projects when license fields differ" {
+        val project1 = project.copy(
+            detectedLicenses = setOf("MIT"),
+            effectiveLicense = "MIT"
+        )
+        val project2 = project.copy(
+            detectedLicenses = setOf("Apache-2.0"),
+            effectiveLicense = "Apache-2.0"
+        )
+
+        analyzerRunRepository.create(analyzerJobId, analyzerRun.copy(projects = setOf(project1)))
+        analyzerRunRepository.create(analyzerJobId, analyzerRun.copy(projects = setOf(project2)))
+
+        dbExtension.db.dbQuery { ProjectsTable.selectAll().count() } shouldBe 1
+    }
+
     "create should handle unique constraint violations" {
         val txCount = 64
         withContext(Dispatchers.IO) {

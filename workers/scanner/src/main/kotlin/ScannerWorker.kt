@@ -31,15 +31,27 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.CopyrightGarbage
+import org.ossreviewtoolkit.model.config.LicenseFilePatterns
+import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
+import org.ossreviewtoolkit.model.licenses.LicenseClassifications
+import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
+import org.ossreviewtoolkit.model.utils.FileArchiver
+import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
 import org.slf4j.LoggerFactory
@@ -53,7 +65,8 @@ class ScannerWorker(
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService,
     private val adminConfigService: AdminConfigService,
-    private val issueResolutionService: IssueResolutionService
+    private val issueResolutionService: IssueResolutionService,
+    private val fileArchiver: FileArchiver
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortRun, ortResult) = db.dbQuery {
@@ -92,6 +105,16 @@ class ScannerWorker(
             }
 
             val scannerRunResult = runner.run(context, ortResult, scannerJob.configuration, scannerRunId)
+
+            val licenseInfoResolver = buildLicenseInfoResolver(ortResult, context, fileArchiver)
+
+            db.dbQuery {
+                computeAndStoreLicenses(
+                    ortResult = ortResult,
+                    scannerRun = scannerRunResult.scannerRun,
+                    licenseInfoResolver = licenseInfoResolver
+                )
+            }
 
             val issues = scannerRunResult.extractIssues()
             val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
@@ -171,4 +194,35 @@ private fun OrtScannerResult.extractIssues(): Set<Issue> {
             issue.mapToModel(identifier = idsByProvenance[provenance], worker = "scanner")
         }
     }
+}
+
+/**
+ * Build a [LicenseInfoResolver] using the same pattern as [EvaluatorRunner] and [ReporterRunner].
+ */
+internal fun buildLicenseInfoResolver(
+    ortResult: OrtResult,
+    context: WorkerContext,
+    fileArchiver: FileArchiver
+): LicenseInfoResolver {
+    val copyrightGarbage = context.configManager.readConfigFileValueWithDefault(
+        path = null,
+        defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
+        fallbackValue = CopyrightGarbage(),
+        context = context.resolvedConfigurationContext
+    )
+
+    context.configManager.readConfigFileValueWithDefault(
+        path = null,
+        defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
+        fallbackValue = LicenseClassifications(),
+        context = context.resolvedConfigurationContext
+    )
+
+    return LicenseInfoResolver(
+        provider = DefaultLicenseInfoProvider(ortResult),
+        copyrightGarbage = copyrightGarbage,
+        addAuthorsToCopyrights = true,
+        archiver = fileArchiver,
+        licenseFilePatterns = LicenseFilePatterns.DEFAULT
+    )
 }

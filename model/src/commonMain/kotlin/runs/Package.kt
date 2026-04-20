@@ -38,7 +38,9 @@ data class Package(
     val isMetadataOnly: Boolean = false,
     val isModified: Boolean = false,
     val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
-    val labels: Map<String, String> = emptyMap()
+    val labels: Map<String, String> = emptyMap(),
+    val detectedLicenses: Set<String> = emptySet(),
+    val effectiveLicense: String? = null
 )
 
 /**
