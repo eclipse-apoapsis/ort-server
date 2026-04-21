@@ -96,8 +96,8 @@ importers:
         specifier: 5.0.0
         version: 5.0.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(@docusaurus/utils-validation@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@docusaurus/utils@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/json-schema@7.0.15)(react@19.2.5)
       docusaurus-theme-openapi-docs:
-        specifier: 5.0.0
-        version: 5.0.0(@docusaurus/theme-common@3.10.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/react@19.2.8)(docusaurus-plugin-openapi-docs@5.0.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(@docusaurus/utils-validation@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@docusaurus/utils@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/json-schema@7.0.15)(react@19.2.5))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(sass@1.94.2)(webpack@5.103.0))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(redux@5.0.1)(webpack@5.103.0)
+        specifier: 5.0.1
+        version: 5.0.1(@docusaurus/theme-common@3.10.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/react@19.2.8)(docusaurus-plugin-openapi-docs@5.0.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(@docusaurus/utils-validation@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@docusaurus/utils@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/json-schema@7.0.15)(react@19.2.5))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(sass@1.94.2)(webpack@5.103.0))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(redux@5.0.1)(webpack@5.103.0)
       prism-react-renderer:
         specifier: 2.4.1
         version: 2.4.1(react@19.2.5)
@@ -3306,8 +3306,8 @@ packages:
       '@docusaurus/core': ^2.0.0-beta || ^3.0.0-alpha
       sass: ^1.30.0
 
-  docusaurus-theme-openapi-docs@5.0.0:
-    resolution: {integrity: sha512-5JXaBUCopCFsq0rpcl79UFziHuj7+FhhYxuqwf0GsyDa513Ns7db3d5ULUgfUg1qehCj9jJ9JIQpZUQEnX7aJw==}
+  docusaurus-theme-openapi-docs@5.0.1:
+    resolution: {integrity: sha512-bVeb7hOqog9LKVrJzYXdNJ7/0N22lk0VE22QK+naAn5GuAvYo41JmpXW9hqLIPkEp2UbexTHoPW9SYVdUsyvvw==}
     engines: {node: '>=14'}
     peerDependencies:
       '@docusaurus/theme-common': ^3.10.0
@@ -4964,10 +4964,6 @@ packages:
   picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
-
-  picomatch@4.0.3:
-    resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
-    engines: {node: '>=12'}
 
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
@@ -10841,7 +10837,7 @@ snapshots:
       - sass-embedded
       - webpack
 
-  docusaurus-theme-openapi-docs@5.0.0(@docusaurus/theme-common@3.10.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/react@19.2.8)(docusaurus-plugin-openapi-docs@5.0.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(@docusaurus/utils-validation@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@docusaurus/utils@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/json-schema@7.0.15)(react@19.2.5))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(sass@1.94.2)(webpack@5.103.0))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(redux@5.0.1)(webpack@5.103.0):
+  docusaurus-theme-openapi-docs@5.0.1(@docusaurus/theme-common@3.10.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/react@19.2.8)(docusaurus-plugin-openapi-docs@5.0.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(@docusaurus/utils-validation@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@docusaurus/utils@3.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/json-schema@7.0.15)(react@19.2.5))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(sass@1.94.2)(webpack@5.103.0))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(redux@5.0.1)(webpack@5.103.0):
     dependencies:
       '@docusaurus/theme-common': 3.10.0(@docusaurus/plugin-content-docs@3.10.0(@mdx-js/react@3.1.1(@types/react@19.2.8)(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@hookform/error-message': 2.0.1(react-dom@19.2.5(react@19.2.5))(react-hook-form@7.66.1(react@19.2.5))(react@19.2.5)
@@ -11175,9 +11171,9 @@ snapshots:
     dependencies:
       websocket-driver: 0.7.4
 
-  fdir@6.5.0(picomatch@4.0.3):
+  fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
-      picomatch: 4.0.3
+      picomatch: 4.0.4
 
   feed@4.2.2:
     dependencies:
@@ -12922,8 +12918,6 @@ snapshots:
 
   picomatch@2.3.1: {}
 
-  picomatch@4.0.3: {}
-
   picomatch@4.0.4: {}
 
   pirates@4.0.7: {}
@@ -14324,8 +14318,8 @@ snapshots:
 
   tinyglobby@0.2.15:
     dependencies:
-      fdir: 6.5.0(picomatch@4.0.3)
-      picomatch: 4.0.3
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
 
   tinypool@1.1.1: {}
 
