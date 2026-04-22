@@ -25,6 +25,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpSend
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.expectSuccess
@@ -138,6 +139,11 @@ class VaultSecretsProvider(
                         ignoreUnknownKeys = true
                     }
                 )
+            }
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = config.timeout.inWholeMilliseconds
+                socketTimeoutMillis = config.timeout.inWholeMilliseconds
             }
 
             install(HttpRequestRetry) {

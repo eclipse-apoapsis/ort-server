@@ -21,9 +21,13 @@ package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import com.typesafe.config.Config
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
+import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
@@ -54,7 +58,10 @@ data class VaultConfiguration(
      * of multiple tenants. In an environment that uses namespaces, it is necessary to pass the target namespace as
      * a header when sending requests to the Vault service. If this property is not *null*, such a header is added.
      */
-    val namespace: String? = null
+    val namespace: String? = null,
+
+    /** The timeout to be applied to all HTTP requests against the Vault service. */
+    val timeout: Duration = DEFAULT_TIMEOUT
 ) {
     companion object {
         /** Name of the configuration property for the URI of the Vault service. */
@@ -75,8 +82,14 @@ data class VaultConfiguration(
         /** Name of the configuration property defining the namespace to be passed to the vault service. */
         private const val NAMESPACE_PROPERTY = "vaultNamespace"
 
+        /** Name of the configuration property defining the timeout for HTTP requests in seconds. */
+        private const val TIMEOUT_PROPERTY = "vaultHttpTimeoutSec"
+
         /** The default path prefix under which the KV Secrets Engine is available. */
         private const val DEFAULT_PREFIX = "secret"
+
+        /** The default timeout for HTTP requests to the Vault service. */
+        val DEFAULT_TIMEOUT = 10.seconds
 
         /** The separator for hierarchical paths. */
         private const val PATH_SEPARATOR = "/"
@@ -92,7 +105,8 @@ data class VaultConfiguration(
             ),
             rootPath = getOptionalRootPath(configManager),
             prefix = getOptionalPrefix(configManager),
-            namespace = configManager.getStringOrNull(NAMESPACE_PROPERTY)
+            namespace = configManager.getStringOrNull(NAMESPACE_PROPERTY),
+            timeout = configManager.getLongOrDefault(TIMEOUT_PROPERTY, DEFAULT_TIMEOUT.inWholeSeconds).seconds
         )
 
         /**
