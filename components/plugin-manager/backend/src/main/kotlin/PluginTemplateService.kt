@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
@@ -392,7 +393,7 @@ class PluginTemplateService(
                 }
 
                 // Check if option is set which is fixed by a template.
-                (config.options.keys + config.secrets.keys).forEach { option ->
+                (config.options + config.secrets).forEach { (option, value) ->
                     val pluginOption = descriptor.options.find { it.name == option }
 
                     if (pluginOption == null) {
@@ -402,7 +403,12 @@ class PluginTemplateService(
 
                     val templateOption = template.options.find { it.option == option }
 
-                    if (templateOption?.isFinal == true) {
+                    val configValue = when (value) {
+                        is ResolvableSecret -> value.name
+                        else -> value
+                    }
+
+                    if (templateOption?.isFinal == true && configValue != templateOption.value) {
                         errors += "The plugin option '$option' for the plugin with type '$pluginType' and ID " +
                                 "'$pluginId' is set to a fixed value by the server administrators and cannot be" +
                                 " changed."
