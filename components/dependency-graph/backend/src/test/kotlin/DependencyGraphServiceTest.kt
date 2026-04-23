@@ -40,6 +40,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot as ModelDep
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier as ModelIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -414,6 +416,107 @@ class DependencyGraphServiceTest : WordSpec() {
                     )
                 )
             }
+
+            "sort dependency graphs by name ascending by default" {
+                fixtures.createAnalyzerRun(
+                    projects = setOf(
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("Maven", "com.example", "root", "1.0")
+                        ).copy(scopeNames = setOf("compile", "test")),
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("Maven", "com.example", "zeta", "1.0")
+                        ).copy(scopeNames = setOf("runtime"))
+                    ),
+                    dependencyGraphs = mapOf("Maven" to createSortableModelDependencyGraph())
+                )
+
+                val graph = requireNotNull(service.getDependencyGraphs(fixtures.ortRun.id).graphs["Maven"])
+
+                graph.projectGroups.map { it.projectLabel } shouldBe listOf(
+                    "Maven:com.example:root:1.0",
+                    "Maven:com.example:zeta:1.0"
+                )
+                graph.projectGroups[0].scopes.map { it.scopeName } shouldBe
+                    listOf("com.example:root:1.0:compile", "com.example:root:1.0:test")
+                graph.edges shouldBe listOf(
+                    DependencyGraphEdge(from = 0, to = 1),
+                    DependencyGraphEdge(from = 0, to = 3)
+                )
+            }
+
+            "apply multi-sort globally to project groups and scopes only" {
+                fixtures.createAnalyzerRun(
+                    projects = setOf(
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("Maven", "com.example", "root", "1.0")
+                        ).copy(scopeNames = setOf("compile", "test")),
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("Maven", "com.example", "zeta", "1.0")
+                        ).copy(scopeNames = setOf("runtime"))
+                    ),
+                    dependencyGraphs = mapOf("Maven" to createSortableModelDependencyGraph())
+                )
+
+                val graph = requireNotNull(
+                    service.getDependencyGraphs(
+                        fixtures.ortRun.id,
+                        listOf(
+                            OrderField("packageCount", OrderDirection.DESCENDING),
+                            OrderField("name", OrderDirection.DESCENDING)
+                        )
+                    ).graphs["Maven"]
+                )
+
+                graph.projectGroups.map { it.projectLabel } shouldBe listOf(
+                    "Maven:com.example:root:1.0",
+                    "Maven:com.example:zeta:1.0"
+                )
+                graph.projectGroups[0].scopes.map { it.scopeName } shouldBe listOf(
+                    "com.example:root:1.0:test",
+                    "com.example:root:1.0:compile"
+                )
+                graph.edges shouldBe listOf(
+                    DependencyGraphEdge(from = 0, to = 1),
+                    DependencyGraphEdge(from = 0, to = 3)
+                )
+            }
+
+            "apply descending name sorting globally across all package managers" {
+                fixtures.createAnalyzerRun(
+                    projects = setOf(
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("Maven", "com.example", "root", "1.0")
+                        ).copy(scopeNames = setOf("compile", "test")),
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("Maven", "com.example", "zeta", "1.0")
+                        ).copy(scopeNames = setOf("runtime")),
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("NPM", "example", "root", "1.0")
+                        ).copy(scopeNames = setOf("compile", "test")),
+                        fixtures.getProject(
+                            identifier = ModelIdentifier("NPM", "example", "zeta", "1.0")
+                        ).copy(scopeNames = setOf("runtime"))
+                    ),
+                    dependencyGraphs = mapOf(
+                        "Maven" to createSortableModelDependencyGraph(type = "Maven", namespace = "com.example"),
+                        "NPM" to createSortableModelDependencyGraph(type = "NPM", namespace = "example")
+                    )
+                )
+
+                val graphs = service.getDependencyGraphs(
+                    fixtures.ortRun.id,
+                    listOf(OrderField("name", OrderDirection.DESCENDING))
+                ).graphs
+
+                requireNotNull(graphs["Maven"]).projectGroups.map { it.projectLabel } shouldBe listOf(
+                    "Maven:com.example:zeta:1.0",
+                    "Maven:com.example:root:1.0"
+                )
+                requireNotNull(graphs["NPM"]).projectGroups.map { it.projectLabel } shouldBe listOf(
+                    "NPM:example:zeta:1.0",
+                    "NPM:example:root:1.0"
+                )
+            }
         }
     }
 }
@@ -440,4 +543,37 @@ private fun createModelDependencyGraph(
     nodes = nodes,
     edges = edges,
     scopes = scopes
+)
+
+private fun createSortableModelDependencyGraph(
+    type: String = "Maven",
+    namespace: String = "com.example"
+) = ModelDependencyGraph(
+    packages = listOf(
+        ModelIdentifier(type, namespace, "root", "1.0"),
+        ModelIdentifier(type, namespace, "beta", "1.0"),
+        ModelIdentifier(type, namespace, "zeta", "1.0"),
+        ModelIdentifier(type, namespace, "alpha", "1.0")
+    ),
+    nodes = listOf(
+        ModelDependencyGraphNode(pkg = 0, fragment = 0, linkage = "PROJECT_DYNAMIC", issues = emptyList()),
+        ModelDependencyGraphNode(pkg = 1, fragment = 1, linkage = "DYNAMIC", issues = emptyList()),
+        ModelDependencyGraphNode(pkg = 2, fragment = 2, linkage = "PROJECT_DYNAMIC", issues = emptyList()),
+        ModelDependencyGraphNode(pkg = 3, fragment = 3, linkage = "STATIC", issues = emptyList())
+    ),
+    edges = linkedSetOf(
+        ModelDependencyGraphEdge(from = 0, to = 1),
+        ModelDependencyGraphEdge(from = 0, to = 3)
+    ),
+    scopes = linkedMapOf(
+        "$namespace:zeta:1.0:runtime" to listOf(
+            ModelDependencyGraphRoot(root = 2, fragment = 2)
+        ),
+        "$namespace:root:1.0:test" to listOf(
+            ModelDependencyGraphRoot(root = 0, fragment = 0)
+        ),
+        "$namespace:root:1.0:compile" to listOf(
+            ModelDependencyGraphRoot(root = 0, fragment = 0)
+        )
+    )
 )

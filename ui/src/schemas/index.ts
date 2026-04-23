@@ -199,3 +199,20 @@ export const filterByNameSearchParameterSchema = z.object({
 export const jobSearchParameterSchema = z.object({
   job: zJobs.keyof().optional(),
 });
+
+// Sort fields supported by the dependency graph endpoint.
+export const dependencyGraphSortFieldSchema = z.enum(['name', 'packageCount']);
+export type DependencyGraphSortField = z.infer<
+  typeof dependencyGraphSortFieldSchema
+>;
+
+export const dependencyGraphSortSearchParameterSchema = z.object({
+  sortBy: z
+    .array(
+      z.object({
+        id: dependencyGraphSortFieldSchema,
+        desc: z.boolean(),
+      })
+    )
+    .optional(),
+});

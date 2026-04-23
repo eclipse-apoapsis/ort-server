@@ -41,18 +41,22 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph as ModelDependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier as ModelIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Project as ModelProject
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
-import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 
 class DependencyGraphService(private val db: Database) {
-    fun getDependencyGraphs(ortRunId: Long): DependencyGraphs = db.blockingQuery {
+    fun getDependencyGraphs(
+        ortRunId: Long,
+        sortFields: List<OrderField> = DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS
+    ): DependencyGraphs = db.blockingQuery {
         val analyzerRun = AnalyzerRunDao.find {
             AnalyzerRunsTable.analyzerJobId inSubQuery AnalyzerJobsTable
                 .select(AnalyzerJobsTable.id)
@@ -67,20 +71,22 @@ class DependencyGraphService(private val db: Database) {
                     projects = analyzerRun.projects
                         .filter { it.identifier.type == managerName }
                         .map { it.mapToModel() },
-                    purlByIdentifier = purlByIdentifier
+                    purlByIdentifier = purlByIdentifier,
+                    sortFields = sortFields
                 )
             }
         )
     }
 }
 
-private fun ModelDependencyGraph.toApiModel(
+internal fun ModelDependencyGraph.toApiModel(
     projects: Collection<ModelProject>,
-    purlByIdentifier: Map<ModelIdentifier, String>
+    purlByIdentifier: Map<ModelIdentifier, String>,
+    sortFields: List<OrderField>
 ): DependencyGraph {
     val adjacency = buildAdjacencyMap()
     val packageCounts = PackageCountCalculator(this, adjacency)
-    val projectGroups = createProjectGroups(projects, packageCounts)
+    val projectGroups = createProjectGroups(projects, packageCounts, sortFields)
     val allRootNodeIndexes = projectGroups
         .flatMap { it.scopes }
         .flatMap { it.rootNodeIndexes }
@@ -97,13 +103,20 @@ private fun ModelDependencyGraph.toApiModel(
                 packageCount = packageCounts.countForNode(index)
             )
         },
-        edges = edges.map { DependencyGraphEdge(it.from, it.to) },
+        edges = edges.map { edge -> DependencyGraphEdge(edge.from, edge.to) },
         projectGroups = projectGroups,
         packageCount = packageCounts.countForRoots(allRootNodeIndexes).takeIf { it > 0 }
     )
 }
 
-private fun getPurlByIdentifierForOrtRun(ortRunId: Long): Map<ModelIdentifier, String> {
+private fun ModelIdentifier.toApiModel() = Identifier(
+    type = type,
+    namespace = namespace,
+    name = name,
+    version = version
+)
+
+internal fun getPurlByIdentifierForOrtRun(ortRunId: Long): Map<ModelIdentifier, String> {
     val basePurlsByIdentifierId = PackagesTable
         .innerJoin(PackagesAnalyzerRunsTable)
         .innerJoin(AnalyzerRunsTable)
@@ -156,14 +169,7 @@ private fun getPurlByIdentifierForOrtRun(ortRunId: Long): Map<ModelIdentifier, S
     }
 }
 
-private fun ModelIdentifier.toApiModel() = Identifier(
-    type = type,
-    namespace = namespace,
-    name = name,
-    version = version
-)
-
-private fun org.jetbrains.exposed.v1.core.ResultRow.toModelIdentifier() = ModelIdentifier(
+private fun ResultRow.toModelIdentifier() = ModelIdentifier(
     type = this[IdentifiersTable.type],
     namespace = this[IdentifiersTable.namespace],
     name = this[IdentifiersTable.name],
@@ -172,7 +178,8 @@ private fun org.jetbrains.exposed.v1.core.ResultRow.toModelIdentifier() = ModelI
 
 private fun ModelDependencyGraph.createProjectGroups(
     projects: Collection<ModelProject>,
-    packageCounts: PackageCountCalculator
+    packageCounts: PackageCountCalculator,
+    sortFields: List<OrderField>
 ): List<DependencyGraphProjectGroup> {
     val packageNodeIndexMap = buildPackageNodeIndexMap()
     val projectLabelsByQualifiedScopeProject = projects.associate { project ->
@@ -201,13 +208,10 @@ private fun ModelDependencyGraph.createProjectGroups(
                         packageCount = packageCounts.countForRoots(rootNodeIndexes).takeIf { it > 0 }
                     )
                 }
-                .sortedBy { it.scopeName }
+                .sortScopes(sortFields)
         }
 
-    return (
-        groupsByProjectLabel.keys +
-            projects.map { it.identifier.toCoordinates() }
-        )
+    return (groupsByProjectLabel.keys + projects.map { it.identifier.toCoordinates() })
         .distinct()
         .map { projectLabel ->
             val scopes = groupsByProjectLabel[projectLabel].orEmpty()
@@ -218,7 +222,7 @@ private fun ModelDependencyGraph.createProjectGroups(
                 packageCount = packageCounts.countForRoots(scopes.flatMap { it.rootNodeIndexes }).takeIf { it > 0 }
             )
         }
-        .sortedBy { it.projectLabel }
+        .sortProjectGroups(sortFields)
 }
 
 private fun ModelDependencyGraph.buildAdjacencyMap(): Map<Int, List<Int>> =
@@ -227,7 +231,7 @@ private fun ModelDependencyGraph.buildAdjacencyMap(): Map<Int, List<Int>> =
 private fun ModelDependencyGraph.buildPackageNodeIndexMap(): Map<Int, List<Int>> =
     nodes.withIndex().groupBy(keySelector = { it.value.pkg }, valueTransform = { it.index })
 
-private class PackageCountCalculator(
+internal class PackageCountCalculator(
     private val graph: ModelDependencyGraph,
     private val adjacency: Map<Int, List<Int>>
 ) {

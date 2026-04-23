@@ -148,6 +148,42 @@ class GetDependencyGraphIntegrationTest : DependencyGraphIntegrationTest({
             }
         }
 
+        "apply global multi-sort from query parameters" {
+            dbExtension.fixtures.createAnalyzerRun(
+                projects = setOf(
+                    dbExtension.fixtures.getProject(
+                        identifier = ModelIdentifier("Maven", "com.example", "root", "1.0")
+                    ).copy(scopeNames = setOf("compile", "test")),
+                    dbExtension.fixtures.getProject(
+                        identifier = ModelIdentifier("Maven", "com.example", "zeta", "1.0")
+                    ).copy(scopeNames = setOf("runtime"))
+                ),
+                dependencyGraphs = mapOf("Maven" to createSortableModelDependencyGraph())
+            )
+
+            dependencyGraphTestApplication { client ->
+                val response = client.get(
+                    "/runs/${dbExtension.fixtures.ortRun.id}/dependency-graph?sort=-packageCount,-name"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val graph = requireNotNull(response.body<DependencyGraphs>().graphs["Maven"])
+                graph.projectGroups.map { it.projectLabel } shouldBe listOf(
+                    "Maven:com.example:root:1.0",
+                    "Maven:com.example:zeta:1.0"
+                )
+                graph.projectGroups[0].scopes.map { it.scopeName } shouldBe listOf(
+                    "com.example:root:1.0:test",
+                    "com.example:root:1.0:compile"
+                )
+                graph.edges shouldBe listOf(
+                    DependencyGraphEdge(from = 0, to = 1),
+                    DependencyGraphEdge(from = 0, to = 3)
+                )
+            }
+        }
+
         "return an empty graphs map when analyzer run has no dependency graphs" {
             dbExtension.fixtures.createAnalyzerRun()
 
@@ -183,6 +219,36 @@ private fun createModelDependencyGraph() = ModelDependencyGraph(
         ModelDependencyGraphEdge(from = 0, to = 1)
     ),
     scopes = mapOf(
+        "com.example:root:1.0:compile" to listOf(
+            ModelDependencyGraphRoot(root = 0, fragment = 0)
+        )
+    )
+)
+
+private fun createSortableModelDependencyGraph() = ModelDependencyGraph(
+    packages = listOf(
+        ModelIdentifier("Maven", "com.example", "root", "1.0"),
+        ModelIdentifier("Maven", "com.example", "beta", "1.0"),
+        ModelIdentifier("Maven", "com.example", "zeta", "1.0"),
+        ModelIdentifier("Maven", "com.example", "alpha", "1.0")
+    ),
+    nodes = listOf(
+        ModelDependencyGraphNode(pkg = 0, fragment = 0, linkage = "PROJECT_DYNAMIC", issues = emptyList()),
+        ModelDependencyGraphNode(pkg = 1, fragment = 1, linkage = "DYNAMIC", issues = emptyList()),
+        ModelDependencyGraphNode(pkg = 2, fragment = 2, linkage = "PROJECT_DYNAMIC", issues = emptyList()),
+        ModelDependencyGraphNode(pkg = 3, fragment = 3, linkage = "STATIC", issues = emptyList())
+    ),
+    edges = linkedSetOf(
+        ModelDependencyGraphEdge(from = 0, to = 1),
+        ModelDependencyGraphEdge(from = 0, to = 3)
+    ),
+    scopes = linkedMapOf(
+        "com.example:zeta:1.0:runtime" to listOf(
+            ModelDependencyGraphRoot(root = 2, fragment = 2)
+        ),
+        "com.example:root:1.0:test" to listOf(
+            ModelDependencyGraphRoot(root = 0, fragment = 0)
+        ),
         "com.example:root:1.0:compile" to listOf(
             ModelDependencyGraphRoot(root = 0, fragment = 0)
         )

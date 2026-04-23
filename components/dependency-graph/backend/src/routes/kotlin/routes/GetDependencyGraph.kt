@@ -31,9 +31,13 @@ import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphProjectGroup
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphScope
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphs
+import org.eclipse.apoapsis.ortserver.components.dependencygraph.backend.DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.backend.DependencyGraphService
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.processSortParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardSortQueryParameter
 
 internal fun Route.getRunDependencyGraph(service: DependencyGraphService, checker: AuthorizationChecker) =
     get({
@@ -45,6 +49,8 @@ internal fun Route.getRunDependencyGraph(service: DependencyGraphService, checke
             pathParameter<Long>("runId") {
                 description = "The ID of the ORT run."
             }
+
+            standardSortQueryParameter()
         }
 
         response {
@@ -98,5 +104,10 @@ internal fun Route.getRunDependencyGraph(service: DependencyGraphService, checke
             }
         }
     }, checker) {
-        call.respond(HttpStatusCode.OK, service.getDependencyGraphs(call.requireIdParameter("runId")))
+        val sortFields = call.request.queryParameters["sort"]
+            ?.let(::processSortParameter)
+            ?.map { it.mapToModel() }
+            ?: DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS
+
+        call.respond(HttpStatusCode.OK, service.getDependencyGraphs(call.requireIdParameter("runId"), sortFields))
     }

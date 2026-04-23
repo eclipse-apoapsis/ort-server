@@ -19,7 +19,13 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { ChevronRight, X } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
+  ChevronUp,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import type { DependencyGraph } from '@/api';
@@ -44,8 +50,14 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Toggle } from '@/components/ui/toggle';
+import { convertToBackendSorting } from '@/helpers/handle-multisort';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
+import {
+  dependencyGraphSortSearchParameterSchema,
+  type DependencyGraphSortField,
+} from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import {
   buildAdjacencyMap,
@@ -55,6 +67,106 @@ import {
 } from './-components/dependency-graph-utils';
 import { DependencyTreeNode } from './-components/dependency-tree-node';
 import { HighlightedMatch } from './-components/highlighted-match';
+
+type SortDirection = 'asc' | 'desc';
+
+const SortChip = ({
+  label,
+  direction,
+  priority,
+  onToggle,
+}: {
+  label: string;
+  direction: SortDirection | null;
+  priority?: number;
+  onToggle: () => void;
+}) => {
+  const Icon =
+    direction === 'asc'
+      ? ChevronUp
+      : direction === 'desc'
+        ? ChevronDown
+        : ChevronsUpDown;
+
+  return (
+    <Toggle
+      size='sm'
+      pressed={direction !== null}
+      onPressedChange={onToggle}
+      aria-label={`Sort by ${label}`}
+      className='gap-1.5'
+    >
+      <Icon className={cn('size-3.5', direction !== null && 'text-blue-500')} />
+      {label}
+      {priority !== undefined && (
+        <span className='text-muted-foreground text-xs'>{priority}</span>
+      )}
+    </Toggle>
+  );
+};
+
+const SortControls = ({ className }: { className?: string }) => {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  const sortFields: { id: DependencyGraphSortField; label: string }[] = [
+    { id: 'name', label: 'Name' },
+    { id: 'packageCount', label: 'Packages' },
+  ];
+
+  const getSortDirection = (
+    id: DependencyGraphSortField
+  ): SortDirection | null => {
+    const entry = search.sortBy?.find((s) => s.id === id);
+    if (!entry) return null;
+    return entry.desc ? 'desc' : 'asc';
+  };
+
+  const getSortPriority = (
+    id: DependencyGraphSortField
+  ): number | undefined => {
+    if (!search.sortBy || search.sortBy.length <= 1) return undefined;
+    const index = search.sortBy.findIndex((s) => s.id === id);
+    return index === -1 ? undefined : index + 1;
+  };
+
+  const toggleSort = (id: DependencyGraphSortField) => {
+    const current = getSortDirection(id);
+    let newSortBy = search.sortBy ?? [];
+
+    if (current === null) {
+      newSortBy = [...newSortBy, { id, desc: false }];
+    } else if (current === 'asc') {
+      newSortBy = newSortBy.map((s) =>
+        s.id === id ? { ...s, desc: true } : s
+      );
+    } else {
+      newSortBy = newSortBy.filter((s) => s.id !== id);
+    }
+
+    navigate({
+      search: {
+        ...search,
+        sortBy: newSortBy.length === 0 ? undefined : newSortBy,
+      },
+    });
+  };
+
+  return (
+    <div className={cn('flex items-center gap-1.5', className)}>
+      <span className='text-muted-foreground text-sm'>Sort:</span>
+      {sortFields.map(({ id, label }) => (
+        <SortChip
+          key={id}
+          label={label}
+          direction={getSortDirection(id)}
+          priority={getSortPriority(id)}
+          onToggle={() => toggleSort(id)}
+        />
+      ))}
+    </div>
+  );
+};
 
 const PackageCountBadge = ({ count }: { count?: number | null }) => {
   if (count == null) return null;
@@ -277,6 +389,7 @@ const ManagerDependenciesTab = ({
 
 const DependenciesComponent = () => {
   const params = Route.useParams();
+  const search = Route.useSearch();
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -292,6 +405,9 @@ const DependenciesComponent = () => {
       path: {
         runId: ortRun.id,
       },
+      query: {
+        sort: convertToBackendSorting(search.sortBy),
+      },
     }),
   });
 
@@ -304,7 +420,10 @@ const DependenciesComponent = () => {
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>Dependency Graphs</CardTitle>
-        <CardDescription>Dependency graphs of the ORT run.</CardDescription>
+        <CardDescription>
+          The dependency graphs per ecosystem as discovered during the run. The
+          number of unique packages per ecosystem is shown in each tab.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {managerEntries.length === 0 ? (
@@ -313,18 +432,21 @@ const DependenciesComponent = () => {
           </div>
         ) : (
           <Tabs defaultValue={defaultManager} className='gap-4'>
-            <TabsList className='h-auto w-full justify-start gap-1 overflow-x-auto'>
-              {managerEntries.map(([managerName, graph]) => (
-                <TabsTrigger
-                  key={managerName}
-                  value={managerName}
-                  className='flex-none gap-2'
-                >
-                  {managerName}
-                  <PackageCountBadge count={graph.packageCount} />
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className='flex flex-wrap items-center gap-4'>
+              <TabsList className='h-auto justify-start gap-1 overflow-x-auto'>
+                {managerEntries.map(([managerName, graph]) => (
+                  <TabsTrigger
+                    key={managerName}
+                    value={managerName}
+                    className='flex-none gap-2'
+                  >
+                    {managerName}
+                    <PackageCountBadge count={graph.packageCount} />
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <SortControls className='ml-auto' />
+            </div>
 
             {managerEntries.map(([managerName, graph]) => (
               <ManagerDependenciesTab
@@ -343,6 +465,7 @@ const DependenciesComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/'
 )({
+  validateSearch: dependencyGraphSortSearchParameterSchema,
   loader: async ({ context: { queryClient }, params }) => {
     const ortRun = await queryClient.fetchQuery({
       ...getRepositoryRunOptions({
