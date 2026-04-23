@@ -38,6 +38,17 @@ inline fun <reified T> ResponseConfig.jsonBody(noinline block: SimpleBodyConfig.
     }
 
 /**
+ * Generate documentation for the standard sort query parameter.
+ */
+fun RequestConfig.standardSortQueryParameter() {
+    queryParameter<String>("sort") {
+        description = "Comma-separated list of fields by which the result is sorted. The listed fields must be " +
+                "supported by the endpoint. Putting a minus ('-') before a field name, reverts the sort order " +
+                "for this field. If not specified, a default sort field and sort order is used."
+    }
+}
+
+/**
  * Generate documentation for standard list query parameters.
  */
 fun RequestConfig.standardListQueryParameters() {
@@ -48,9 +59,5 @@ fun RequestConfig.standardListQueryParameters() {
         description = "The offset of the first item in the result. Together with 'limit', this can be used to " +
                 "implement paging."
     }
-    queryParameter<String>("sort") {
-        description = "Comma-separated list of fields by which the result is sorted. The listed fields must be " +
-                "supported by the endpoint. Putting a minus ('-') before a field name, reverts the sort order " +
-                "for this field. If not specified, a default sort field and sort order is used."
-    }
+    standardSortQueryParameter()
 }

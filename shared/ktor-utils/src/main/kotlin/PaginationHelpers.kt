@@ -51,7 +51,7 @@ fun ApplicationCall.pagingOptions(defaultSortProperty: SortProperty): PagingOpti
  * property, it can have one of the prefixes "+" for ascending or "-" for descending. If no prefix is provided,
  * ascending is assumed.
  */
-private fun processSortParameter(sort: String): List<SortProperty> {
+fun processSortParameter(sort: String): List<SortProperty> {
     val fields = sort.split(',')
 
     return fields.map(String::toSortProperty)
