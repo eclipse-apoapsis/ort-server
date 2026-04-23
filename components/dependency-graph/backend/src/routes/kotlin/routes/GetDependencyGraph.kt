@@ -23,7 +23,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationChecker
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphEdge
@@ -31,12 +30,24 @@ import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphProjectGroup
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphScope
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphs
+import org.eclipse.apoapsis.ortserver.components.dependencygraph.backend.DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.backend.DependencyGraphService
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.processSortParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardSortQueryParameter
 
-internal fun Route.getRunDependencyGraph(service: DependencyGraphService, checker: AuthorizationChecker) =
-    get({
+internal fun Route.getRunDependencyGraph(
+    service: DependencyGraphService,
+    ortRunRepository: OrtRunRepository,
+    analyzerJobRepository: AnalyzerJobRepository,
+    analyzerRunRepository: AnalyzerRunRepository
+) =
+    get("runs/{runId}/dependency-graph", {
         operationId = "getRunDependencyGraph"
         summary = "Get the dependency graphs for an ORT run"
         tags = listOf("Runs")
@@ -45,6 +56,8 @@ internal fun Route.getRunDependencyGraph(service: DependencyGraphService, checke
             pathParameter<Long>("runId") {
                 description = "The ID of the ORT run."
             }
+
+            standardSortQueryParameter()
         }
 
         response {
@@ -96,7 +109,24 @@ internal fun Route.getRunDependencyGraph(service: DependencyGraphService, checke
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "No analyzer run exists for the ORT run."
+            }
         }
-    }, checker) {
-        call.respond(HttpStatusCode.OK, service.getDependencyGraphs(call.requireIdParameter("runId")))
+    }, requireRunReadPermission(ortRunRepository)) {
+        val runId = call.requireIdParameter("runId")
+        val sortFields = call.request.queryParameters["sort"]
+            ?.let(::processSortParameter)
+            ?.map { it.mapToModel() }
+            ?: DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS
+
+        val analyzerJob = analyzerJobRepository.getForOrtRun(runId)
+        val analyzerRun = analyzerJob?.let { analyzerRunRepository.getByJobId(it.id) }
+
+        if (analyzerRun == null) {
+            call.respond(HttpStatusCode.NotFound)
+        } else {
+            call.respond(HttpStatusCode.OK, service.getDependencyGraphs(runId, sortFields))
+        }
     }
