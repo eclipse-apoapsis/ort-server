@@ -123,7 +123,7 @@ export const PluginMultiSelectField = <
               Enable/disable all
             </Label>
           </div>
-          <Separator />
+          <Separator className='my-2' />
           {plugins.map((plugin) => (
             <FormItem
               key={plugin.id}
@@ -143,7 +143,7 @@ export const PluginMultiSelectField = <
                   }}
                 />
               </FormControl>
-              <div className='flex flex-col'>
+              <div className='flex flex-col space-y-2'>
                 <FormLabel className='font-normal'>
                   {plugin.displayName}
                 </FormLabel>
@@ -161,10 +161,13 @@ export const PluginMultiSelectField = <
                         `${configName}.${plugin.id}.${option.type === 'SECRET' ? 'secrets' : 'options'}.${option.name}` as Path<TFieldValues>
                       }
                       render={({ field }) => (
-                        <FormItem className='flex flex-col space-y-1'>
-                          <FormLabel className='mt-2'>
+                        <FormItem className='ml-4 flex flex-col space-y-0.5 pb-4'>
+                          <FormLabel>
                             {option.name}
-                            <Badge className='ml-2 bg-blue-200 text-black'>
+                            <Badge
+                              variant='small'
+                              className='bg-blue-200 text-black'
+                            >
                               {option.type}
                             </Badge>
                           </FormLabel>

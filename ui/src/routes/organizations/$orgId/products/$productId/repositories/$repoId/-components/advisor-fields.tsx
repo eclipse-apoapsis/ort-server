@@ -76,7 +76,7 @@ export const AdvisorFields = ({
             name='jobConfigs.advisor.skipExcluded'
             render={({ field }) => (
               <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
-                <div className='space-y-0.5'>
+                <div className='space-y-2'>
                   <FormLabel>Skip excluded</FormLabel>
                   <FormDescription>
                     A flag to control whether excluded scopes and paths should
