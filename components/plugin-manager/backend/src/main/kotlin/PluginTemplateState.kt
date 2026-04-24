@@ -44,7 +44,12 @@ internal class PluginTemplateState(
 
     fun apply(event: PluginTemplateEvent) = apply {
         when (event.payload) {
-            is Deleted -> isDeleted = true
+            is Deleted -> {
+                options = emptyList()
+                isGlobal = false
+                organizationIds = emptyList()
+                isDeleted = true
+            }
 
             is GlobalDisabled -> isGlobal = false
 
