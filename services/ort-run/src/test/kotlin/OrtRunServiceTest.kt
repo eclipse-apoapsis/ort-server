@@ -61,6 +61,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDa
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.CuratedPackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.PackageCurationProviderConfigsTable
@@ -1131,6 +1133,77 @@ class OrtRunServiceTest : WordSpec({
             issuesService.listForOrtRunId(fixtures.ortRun.id).data should containExactlyInAnyOrder(
                 listOf(expectedAnalyzerIssue, expectedGraphIssue)
             )
+        }
+
+        "store the excluded status for packages and projects" {
+            val excludedProject = fixtures.getProject(Identifier("Gradle", "", "excluded-project", "1.0"))
+            val includedProject = fixtures.getProject(Identifier("Gradle", "", "included-project", "1.0"))
+            val excludedPackage = fixtures.generatePackage(
+                Identifier("Maven", "com.example", "excluded-package", "1.0")
+            )
+            val includedPackage = fixtures.generatePackage(
+                Identifier("Maven", "com.example", "included-package", "1.0")
+            )
+
+            val analyzerRun = fixtures.createAnalyzerRun(
+                projects = setOf(excludedProject, includedProject),
+                packages = setOf(excludedPackage, includedPackage)
+            )
+
+            service.storeAnalyzerRun(
+                analyzerRun,
+                excludedPackageIds = setOf(excludedPackage.identifier),
+                excludedProjectIds = setOf(excludedProject.identifier)
+            )
+
+            db.dbQuery {
+                val storedPackages = PackagesAnalyzerRunsTable
+                    .innerJoin(PackagesTable)
+                    .innerJoin(IdentifiersTable)
+                    .select(
+                        IdentifiersTable.type,
+                        IdentifiersTable.namespace,
+                        IdentifiersTable.name,
+                        IdentifiersTable.version,
+                        PackagesAnalyzerRunsTable.excluded
+                    )
+                    .associate { row ->
+                        Identifier(
+                            type = row[IdentifiersTable.type],
+                            namespace = row[IdentifiersTable.namespace],
+                            name = row[IdentifiersTable.name],
+                            version = row[IdentifiersTable.version]
+                        ) to row[PackagesAnalyzerRunsTable.excluded]
+                    }
+
+                val storedProjects = ProjectsAnalyzerRunsTable
+                    .innerJoin(ProjectsTable)
+                    .innerJoin(IdentifiersTable)
+                    .select(
+                        IdentifiersTable.type,
+                        IdentifiersTable.namespace,
+                        IdentifiersTable.name,
+                        IdentifiersTable.version,
+                        ProjectsAnalyzerRunsTable.excluded
+                    )
+                    .associate { row ->
+                        Identifier(
+                            type = row[IdentifiersTable.type],
+                            namespace = row[IdentifiersTable.namespace],
+                            name = row[IdentifiersTable.name],
+                            version = row[IdentifiersTable.version]
+                        ) to row[ProjectsAnalyzerRunsTable.excluded]
+                    }
+
+                storedPackages shouldBe mapOf(
+                    excludedPackage.identifier to true,
+                    includedPackage.identifier to false
+                )
+                storedProjects shouldBe mapOf(
+                    excludedProject.identifier to true,
+                    includedProject.identifier to false
+                )
+            }
         }
     }
 
