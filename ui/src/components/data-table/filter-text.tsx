@@ -18,7 +18,7 @@
  */
 
 import { Filter, XCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,11 +43,14 @@ export function FilterText({
   setFilterValue,
 }: FilterTextProps) {
   const [value, setValue] = useState(initialValue);
+  const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  useEffect(() => {
+  // Synchronize the local state with the external filter value during render (derived state pattern).
+  if (prevInitialValue !== initialValue) {
+    setPrevInitialValue(initialValue);
     setValue(initialValue);
-  }, [initialValue]);
+  }
 
   return (
     <Popover open={filterOpen} onOpenChange={setFilterOpen}>

@@ -24,7 +24,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,12 +61,14 @@ export function DataTablePagination({
 }: DataTablePaginationProps) {
   const navigate = useNavigate();
   const [page, setPage] = useState(currentPage);
+  const [prevCurrentPage, setPrevCurrentPage] = useState(currentPage);
 
   // The current page lives in the URL state, but a local state is used to handle the page input field.
-  // This effect synchronizes the local state with the URL state.
-  useEffect(() => {
+  // Synchronize the local state with the URL state during render (derived state pattern).
+  if (prevCurrentPage !== currentPage) {
+    setPrevCurrentPage(currentPage);
     setPage(currentPage);
-  }, [currentPage]);
+  }
 
   return (
     <div className='flex flex-col items-center justify-between gap-4 sm:flex-row sm:gap-6 lg:gap-8'>
