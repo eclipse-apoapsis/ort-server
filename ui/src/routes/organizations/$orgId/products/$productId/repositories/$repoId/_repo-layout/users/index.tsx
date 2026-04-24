@@ -44,6 +44,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -154,6 +155,9 @@ const ManageUsers = () => {
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Usernames are case-insensitive and stored in lowercase.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

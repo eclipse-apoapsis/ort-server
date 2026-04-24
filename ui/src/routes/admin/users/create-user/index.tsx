@@ -85,11 +85,6 @@ const CreateUser = () => {
   const { mutateAsync: createUser, isPending: isCreateUserPending } =
     useMutation({
       ...postUserMutation(),
-      onSuccess() {
-        toast.info('Create User', {
-          description: `User "${form.getValues().username}" created successfully.`,
-        });
-      },
       onError(error: ApiError) {
         toastError(error.message, error);
       },
@@ -127,9 +122,10 @@ const CreateUser = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const username = values.username.toLowerCase();
     await createUser({
       body: {
-        username: values.username,
+        username,
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
@@ -137,13 +133,16 @@ const CreateUser = () => {
         temporary: values.temporary,
       },
     });
+    toast.info('Create User', {
+      description: `User "${username}" created successfully.`,
+    });
     // Add the READER role to the user for each selected organization.
     await Promise.all(
       values.organizations.map((orgId) =>
         addUserToReaders({
           path: { organizationId: Number.parseInt(orgId), role: 'READER' },
           body: {
-            username: values.username,
+            username,
           },
         })
       )
@@ -183,7 +182,8 @@ const CreateUser = () => {
                     <Input {...field} autoFocus />
                   </FormControl>
                   <FormDescription>
-                    The username needs to be globally unique.
+                    The username needs to be globally unique. Usernames are
+                    case-insensitive and will be stored in lowercase.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
