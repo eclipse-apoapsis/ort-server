@@ -19,7 +19,7 @@
 # Gradle plugins
 buildConfigPlugin = "6.0.9"
 dependencyAnalysisPlugin = "3.9.0"
-detektPlugin = "2.0.0-alpha.2"
+detektPlugin = "2.0.0-alpha.3"
 gitSemverPlugin = "0.19.0"
 tinyJibPlugin = "0.3.4"
 kotlinPlugin = "2.3.21"

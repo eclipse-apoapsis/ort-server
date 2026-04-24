@@ -127,7 +127,7 @@ style:
     active: false
   ReturnCount:
     active: false
-  SpacingAfterPackageDeclaration:
+  SpacingAfterPackageAndImports:
     active: true
   ThrowsCount:
     max: 5
