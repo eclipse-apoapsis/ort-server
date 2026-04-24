@@ -61,6 +61,7 @@ private const val SERVICE_NAME = "TestInfrastructureService"
 private const val SERVICE_URL = "https://repo.example.org/infra/test"
 private const val SERVICE_DESC = "This is a test infrastructure service"
 
+@Suppress("LargeClass")
 class InfrastructureServiceServiceIntegrationTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
@@ -404,6 +405,218 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             )
 
             services.data shouldContainExactly expectedServices.take(4)
+        }
+    }
+
+    "listForSecret" should {
+        "return services at the same level referencing the secret" {
+            createInfrastructureService(createInfrastructureService(organization = organization))
+
+            val results = service.listForSecret(orgUserSecret.name, OrganizationId(organization.id))
+
+            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+        }
+
+        "return an empty list when no service references the secret" {
+            createInfrastructureService(createInfrastructureService(organization = organization))
+
+            val results = service.listForSecret("unrelated-secret", OrganizationId(organization.id))
+
+            results should beEmpty()
+        }
+
+        "return product services inheriting an org secret" {
+            val orgOnlySecret = createOrganizationSecret("org-only")
+            val productService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = orgOnlySecret.name,
+                passwordSecret = orgPassSecret.name,
+                product = product
+            )
+            createInfrastructureService(productService)
+
+            val results = service.listForSecret(orgOnlySecret.name, OrganizationId(organization.id))
+
+            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+        }
+
+        "not return product services when a product secret shadows the org secret" {
+            val productService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = prodUserSecret.name,
+                passwordSecret = prodPassSecret.name,
+                product = product
+            )
+            createInfrastructureService(productService)
+
+            val results = service.listForSecret(prodUserSecret.name, OrganizationId(organization.id))
+
+            results should beEmpty()
+        }
+
+        "return repo services inheriting an org secret" {
+            val orgOnlySecret = createOrganizationSecret("org-only")
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = orgOnlySecret.name,
+                passwordSecret = orgPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(orgOnlySecret.name, OrganizationId(organization.id))
+
+            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+        }
+
+        "not return repo services when a repo secret shadows the org secret" {
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = repoUserSecret.name,
+                passwordSecret = repoPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(repoUserSecret.name, OrganizationId(organization.id))
+
+            results should beEmpty()
+        }
+
+        "not return repo services when a product secret shields the org secret" {
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = prodUserSecret.name,
+                passwordSecret = prodPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(prodUserSecret.name, OrganizationId(organization.id))
+
+            results should beEmpty()
+        }
+
+        "return repo services inheriting a product secret" {
+            val prodOnlySecret = createProductSecret("prod-only")
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = prodOnlySecret.name,
+                passwordSecret = prodPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(prodOnlySecret.name, ProductId(product.id))
+
+            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+        }
+
+        "not return repo services when a repo secret shadows the product secret" {
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = repoUserSecret.name,
+                passwordSecret = repoPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(repoUserSecret.name, ProductId(product.id))
+
+            results should beEmpty()
+        }
+
+        "not return product services when an org secret shadows the product secret" {
+            val productService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = prodUserSecret.name,
+                passwordSecret = prodPassSecret.name,
+                product = product
+            )
+            createInfrastructureService(productService)
+
+            val results = service.listForSecret(prodUserSecret.name, ProductId(product.id))
+
+            results should beEmpty()
+        }
+
+        "return product services when no fallback secret exists at the org level" {
+            val prodOnlySecret = createProductSecret("prod-only")
+            val productService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = prodOnlySecret.name,
+                passwordSecret = prodPassSecret.name,
+                product = product
+            )
+            createInfrastructureService(productService)
+
+            val results = service.listForSecret(prodOnlySecret.name, ProductId(product.id))
+
+            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+        }
+
+        "not return repo services when a product secret shadows the repository secret" {
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = repoUserSecret.name,
+                passwordSecret = repoPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            // prodUserSecret has the same name "user" as repoUserSecret, so it serves as a fallback.
+            val results = service.listForSecret(repoUserSecret.name, RepositoryId(repository.id))
+
+            results should beEmpty()
+        }
+
+        "not return repo services when an org secret shadows the repository secret" {
+            val sharedName = "shared-secret"
+            createOrganizationSecret(sharedName)
+            createRepositorySecret(sharedName)
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = sharedName,
+                passwordSecret = repoPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(sharedName, RepositoryId(repository.id))
+
+            results should beEmpty()
+        }
+
+        "return repo services when no fallback secret exists for the repository secret" {
+            val repoOnlySecret = createRepositorySecret("repo-only")
+            val repoService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = repoOnlySecret.name,
+                passwordSecret = repoPassSecret.name,
+                repository = repository
+            )
+            createInfrastructureService(repoService)
+
+            val results = service.listForSecret(repoOnlySecret.name, RepositoryId(repository.id))
+
+            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+        }
+
+        "not return services from a different organization" {
+            val otherOrg = fixtures.createOrganization("other-org")
+            val otherOrgUserSecret = createOrganizationSecret("user", otherOrg.id)
+            val otherOrgPassSecret = createOrganizationSecret("pass", otherOrg.id)
+            val otherOrgService = createInfrastructureService(
+                SERVICE_NAME,
+                usernameSecret = otherOrgUserSecret.name,
+                passwordSecret = otherOrgPassSecret.name,
+                organization = otherOrg
+            )
+            createInfrastructureService(otherOrgService)
+
+            val results = service.listForSecret(orgUserSecret.name, OrganizationId(organization.id))
+
+            results should beEmpty()
         }
     }
 

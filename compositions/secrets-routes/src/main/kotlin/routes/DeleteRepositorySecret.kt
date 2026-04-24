@@ -66,7 +66,7 @@ internal fun Route.deleteRepositorySecret(
         return@delete
     }
 
-    val infrastructureServices = infrastructureServiceService.listForSecret(secret.name)
+    val infrastructureServices = infrastructureServiceService.listForSecret(secret.name, repositoryId)
     if (infrastructureServices.isNotEmpty()) {
         call.respondError(
             HttpStatusCode.Conflict,

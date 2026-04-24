@@ -25,6 +25,9 @@ import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -43,6 +46,8 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.notInSubQuery
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -214,14 +219,136 @@ class InfrastructureServiceService(
     }
 
     /**
-     * Return a list with the [InfrastructureService]s that are associated with the name of the given
-     * [Secret][secretName].
+     * Return a list with the [InfrastructureService]s referencing [secretName] at [id]'s hierarchy level,
+     * including lower-level services that would inherit the secret via hierarchy resolution.
      */
-    suspend fun listForSecret(secretName: String): List<InfrastructureService> = db.dbQuery {
+    suspend fun listForSecret(secretName: String, id: HierarchyId): List<InfrastructureService> = db.dbQuery {
+        val secretFilter = (InfrastructureServicesTable.usernameSecret eq secretName) or
+                (InfrastructureServicesTable.passwordSecret eq secretName)
+
         list(ListQueryParameters.DEFAULT) {
-            InfrastructureServicesTable.usernameSecret eq secretName or
-                    (InfrastructureServicesTable.passwordSecret eq secretName)
+            secretFilter and when (id) {
+                is OrganizationId -> servicesAffectedByOrgSecretDeletion(secretName, id)
+                is ProductId -> servicesAffectedByProductSecretDeletion(secretName, id)
+                is RepositoryId -> servicesAffectedByRepoSecretDeletion(secretName, id)
+            }
         }
+    }
+
+    /**
+     * Return the filter condition for services affected when an organization-level secret named [secretName] is
+     * deleted. Services at the product or repository level that have their own secret with the same name are
+     * excluded, as they would not be affected by the deletion.
+     */
+    private fun servicesAffectedByOrgSecretDeletion(secretName: String, id: OrganizationId): Op<Boolean> {
+        val productsInOrg = ProductsTable
+            .select(ProductsTable.id)
+            .where { ProductsTable.organizationId eq id.value }
+
+        val productsWithOwnSecret = SecretsTable
+            .select(SecretsTable.productId)
+            .where {
+                SecretsTable.productId.isNotNull() and
+                        (SecretsTable.name eq secretName) and
+                        (SecretsTable.productId inSubQuery productsInOrg)
+            }
+
+        val reposInOrg = RepositoriesTable
+            .select(RepositoriesTable.id)
+            .where { RepositoriesTable.productId inSubQuery productsInOrg }
+
+        val reposWithOwnSecret = SecretsTable
+            .select(SecretsTable.repositoryId)
+            .where {
+                SecretsTable.repositoryId.isNotNull() and
+                        (SecretsTable.name eq secretName) and
+                        (SecretsTable.repositoryId inSubQuery reposInOrg)
+            }
+
+        val reposShieldedByProductSecret = RepositoriesTable
+            .select(RepositoriesTable.id)
+            .where { RepositoriesTable.productId inSubQuery productsWithOwnSecret }
+
+        val productLevelCondition =
+            (InfrastructureServicesTable.productId inSubQuery productsInOrg) and
+                (InfrastructureServicesTable.productId notInSubQuery productsWithOwnSecret)
+
+        val repoLevelCondition =
+            (InfrastructureServicesTable.repositoryId inSubQuery reposInOrg) and
+                (InfrastructureServicesTable.repositoryId notInSubQuery reposWithOwnSecret) and
+                (InfrastructureServicesTable.repositoryId notInSubQuery reposShieldedByProductSecret)
+
+        return (InfrastructureServicesTable.organizationId eq id.value) or
+            productLevelCondition or
+            repoLevelCondition
+    }
+
+    /**
+     * Return the filter condition for services affected when a product-level secret named [secretName] is deleted.
+     * Returns [Op.FALSE] if a same-named secret exists at the organization level, as that secret would take over.
+     */
+    private fun servicesAffectedByProductSecretDeletion(secretName: String, id: ProductId): Op<Boolean> {
+        val productOrgId = ProductsTable
+            .select(ProductsTable.organizationId)
+            .where { ProductsTable.id eq id.value }
+
+        val orgFallbackExists = SecretsTable
+            .select(SecretsTable.name)
+            .where {
+                SecretsTable.organizationId.isNotNull() and
+                        (SecretsTable.name eq secretName) and
+                        (SecretsTable.organizationId inSubQuery productOrgId)
+            }
+            .any()
+
+        if (orgFallbackExists) return Op.FALSE
+
+        val reposInProduct = RepositoriesTable
+            .select(RepositoriesTable.id)
+            .where { RepositoriesTable.productId eq id.value }
+
+        val reposWithOwnSecret = SecretsTable
+            .select(SecretsTable.repositoryId)
+            .where {
+                SecretsTable.repositoryId.isNotNull() and
+                        (SecretsTable.name eq secretName) and
+                        (SecretsTable.repositoryId inSubQuery reposInProduct)
+            }
+
+        val repoLevelCondition =
+            (InfrastructureServicesTable.repositoryId inSubQuery reposInProduct) and
+                (InfrastructureServicesTable.repositoryId notInSubQuery reposWithOwnSecret)
+
+        return (InfrastructureServicesTable.productId eq id.value) or repoLevelCondition
+    }
+
+    /**
+     * Return the filter condition for services affected when a repository-level secret named [secretName] is deleted.
+     * Returns [Op.FALSE] if a same-named secret exists at the product or organization level, as that secret would
+     * take over.
+     */
+    private fun servicesAffectedByRepoSecretDeletion(secretName: String, id: RepositoryId): Op<Boolean> {
+        val repoProductId = RepositoriesTable
+            .select(RepositoriesTable.productId)
+            .where { RepositoriesTable.id eq id.value }
+
+        val productOrgId = ProductsTable
+            .select(ProductsTable.organizationId)
+            .where { ProductsTable.id inSubQuery repoProductId }
+
+        val productFallback =
+            SecretsTable.productId.isNotNull() and (SecretsTable.productId inSubQuery repoProductId)
+
+        val orgFallback =
+            SecretsTable.organizationId.isNotNull() and
+                (SecretsTable.organizationId inSubQuery productOrgId)
+
+        val fallbackSecretExists = SecretsTable
+            .select(SecretsTable.name)
+            .where { (SecretsTable.name eq secretName) and (productFallback or orgFallback) }
+            .any()
+
+        return if (fallbackSecretExists) Op.FALSE else InfrastructureServicesTable.repositoryId eq id.value
     }
 
     private fun getDaoForId(id: HierarchyId, name: String): InfrastructureServicesDao? =
