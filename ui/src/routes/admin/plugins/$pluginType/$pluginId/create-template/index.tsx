@@ -124,7 +124,7 @@ const CreateTemplate = () => {
         (acc, option) => {
           acc[option.name] = option.defaultValue ?? '';
           acc[`${option.name}_isFinal`] = false;
-          acc[`${option.name}_isNotSet`] = false;
+          acc[`${option.name}_isNotSet`] = true;
           return acc;
         },
         {} as Record<string, unknown>
