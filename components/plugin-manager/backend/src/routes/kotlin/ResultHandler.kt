@@ -24,8 +24,9 @@ import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.onOk
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
+
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 /**
  * Execute the given [onSuccess] block if the result is successful, otherwise respond with the appropriate HTTP status
@@ -36,9 +37,9 @@ internal suspend fun <V> Result<V, TemplateError>.handleTemplateResult(onSuccess
     onOk { onSuccess(it) }
     onErr {
         when (it) {
-            is TemplateError.InvalidPlugin -> context.call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.InvalidState -> context.call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.NotFound -> context.call.respond(HttpStatusCode.NotFound, it.message)
+            is TemplateError.InvalidPlugin -> context.call.respondError(HttpStatusCode.BadRequest, it.message)
+            is TemplateError.InvalidState -> context.call.respondError(HttpStatusCode.BadRequest, it.message)
+            is TemplateError.NotFound -> context.call.respondError(HttpStatusCode.NotFound, it.message)
         }
     }
 }
