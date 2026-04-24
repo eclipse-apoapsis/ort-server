@@ -18,13 +18,7 @@
  */
 
 import { Loader2, OctagonAlert } from 'lucide-react';
-import {
-  cloneElement,
-  isValidElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import { cloneElement, isValidElement, ReactNode, useState } from 'react';
 
 import {
   AlertDialog,
@@ -115,15 +109,14 @@ export const DeleteDialog = ({
         )
       : uiComponent;
 
-  // Reset the input field whenever the dialog is opened/closed
-  useEffect(() => {
-    if (open) {
-      setInput('');
-    }
-  }, [open]);
-
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (newOpen) setInput('');
+        setOpen(newOpen);
+      }}
+    >
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           {disabled ? (
