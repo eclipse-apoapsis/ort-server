@@ -1,0 +1,2 @@
+ALTER TABLE packages_analyzer_runs ADD COLUMN excluded BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE projects_analyzer_runs ADD COLUMN excluded BOOLEAN NOT NULL DEFAULT FALSE;
