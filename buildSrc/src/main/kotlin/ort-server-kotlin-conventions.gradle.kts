@@ -54,18 +54,18 @@ detekt {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    if (!name.startsWith("compileKotlin")) return@configureEach
-
-    val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
-
-    val optInRequirements = listOfNotNull(
-        "kotlinx.serialization.ExperimentalSerializationApi".takeIf { hasSerializationPlugin }
-    )
+    val serializationOptIn = libraries.elements.map { files ->
+        buildList {
+            if (files.any { it.asFile.name.startsWith("kotlinx-serialization-core") }) {
+                add("kotlinx.serialization.ExperimentalSerializationApi")
+            }
+        }
+    }
 
     compilerOptions {
         allWarningsAsErrors = true
         freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility")
-        optIn = optInRequirements
+        optIn = serializationOptIn
     }
 }
 
