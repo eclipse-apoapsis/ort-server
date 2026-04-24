@@ -68,7 +68,7 @@ class RabbitMqMessageSenderFactoryTest : StringSpec({
                 connection.createChannel().also {
                     it.queueDeclare(
                         /* queue = */ TEST_QUEUE_NAME,
-                        /* durable = */ false,
+                        /* durable = */ true,
                         /* exclusive = */ false,
                         /* autoDelete = */ false,
                         /* arguments = */ emptyMap()

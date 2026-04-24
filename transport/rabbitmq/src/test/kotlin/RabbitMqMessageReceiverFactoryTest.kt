@@ -51,7 +51,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
             val channel = connection.createChannel().also {
                 it.queueDeclare(
                     /* queue = */ TEST_QUEUE_NAME,
-                    /* durable = */ false,
+                    /* durable = */ true,
                     /* exclusive = */ false,
                     /* autoDelete = */ false,
                     /* arguments = */ emptyMap()
@@ -98,7 +98,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
             val channel = connection.createChannel().also {
                 it.queueDeclare(
                     /* queue = */ TEST_QUEUE_NAME,
-                    /* durable = */ false,
+                    /* durable = */ true,
                     /* exclusive = */ false,
                     /* autoDelete = */ false,
                     /* arguments = */ emptyMap()
@@ -140,7 +140,7 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
             val channel = connection.createChannel().also {
                 it.queueDeclare(
                     /* queue = */ TEST_QUEUE_NAME,
-                    /* durable = */ false,
+                    /* durable = */ true,
                     /* exclusive = */ false,
                     /* autoDelete = */ false,
                     /* arguments = */ emptyMap()
