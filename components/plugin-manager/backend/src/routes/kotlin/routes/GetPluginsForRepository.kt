@@ -19,9 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import com.github.michaelbull.result.onErr
-import com.github.michaelbull.result.onOk
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -34,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateSer
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginOption
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.handleTemplateResult
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
@@ -99,13 +96,7 @@ internal fun Route.getPluginsForRepository(
 }, requirePermission(RepositoryPermission.READ)) {
     val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
 
-    pluginTemplateService.getPluginsForRepository(repositoryId).onOk {
+    pluginTemplateService.getPluginsForRepository(repositoryId).handleTemplateResult {
         call.respond(HttpStatusCode.OK, it)
-    }.onErr {
-        when (it) {
-            is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.InvalidState -> call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.NotFound -> call.respond(HttpStatusCode.NotFound, it.message)
-        }
     }
 }

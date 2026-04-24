@@ -19,9 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import com.github.michaelbull.result.onErr
-import com.github.michaelbull.result.onOk
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -31,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.handleTemplateResult
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.enableGlobalTemplate(
@@ -79,13 +76,7 @@ internal fun Route.enableGlobalTemplate(
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
 
-    pluginTemplateService.enableGlobal(templateName, pluginType, pluginId, userId).onOk {
+    pluginTemplateService.enableGlobal(templateName, pluginType, pluginId, userId).handleTemplateResult {
         call.respond(HttpStatusCode.OK, "Global plugin template enabled successfully.")
-    }.onErr {
-        when (it) {
-            is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.InvalidState -> call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.NotFound -> call.respond(HttpStatusCode.NotFound, it.message)
-        }
     }
 }
