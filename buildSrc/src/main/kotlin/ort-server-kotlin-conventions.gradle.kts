@@ -64,7 +64,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
     compilerOptions {
         allWarningsAsErrors = true
-        freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility")
+        freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility", "-Xcontext-parameters")
         optIn = serializationOptIn
     }
 }

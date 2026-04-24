@@ -19,9 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import com.github.michaelbull.result.onErr
-import com.github.michaelbull.result.onOk
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -34,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTempl
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.handleTemplateResult
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -92,13 +89,7 @@ internal fun Route.createTemplate(
 
     val options = call.receive<List<PluginOptionTemplate>>()
 
-    pluginTemplateService.create(templateName, pluginType, pluginId, userId, options).onOk {
+    pluginTemplateService.create(templateName, pluginType, pluginId, userId, options).handleTemplateResult {
         call.respond(HttpStatusCode.OK, "Template created successfully.")
-    }.onErr {
-        when (it) {
-            is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.InvalidState -> call.respond(HttpStatusCode.BadRequest, it.message)
-            is TemplateError.NotFound -> call.respond(HttpStatusCode.NotFound, it.message)
-        }
     }
 }
