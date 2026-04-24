@@ -66,7 +66,7 @@ internal fun Route.deleteProductSecret(
         return@delete
     }
 
-    val infrastructureServices = infrastructureServiceService.listForSecret(secret.name)
+    val infrastructureServices = infrastructureServiceService.listForSecret(secret.name, productId)
     if (infrastructureServices.isNotEmpty()) {
         call.respondError(
             HttpStatusCode.Conflict,
