@@ -36,19 +36,19 @@ internal data class PluginEvent(
 
 /** The base class for all plugin event payloads. */
 @Serializable
-internal sealed class PluginEventPayload
+internal sealed interface PluginEventPayload
 
 /** The payload for a plugin enabled event. */
 @Serializable
 @SerialName("PluginEnabled")
-internal object PluginEnabled : PluginEventPayload()
+internal object PluginEnabled : PluginEventPayload
 
 /** The payload for a plugin disabled event. */
 @Serializable
 @SerialName("PluginDisabled")
-internal object PluginDisabled : PluginEventPayload()
+internal object PluginDisabled : PluginEventPayload
 
 /** The payload for a plugin restricted event. */
 @Serializable
 @SerialName("PluginRestricted")
-internal object PluginRestricted : PluginEventPayload()
+internal object PluginRestricted : PluginEventPayload

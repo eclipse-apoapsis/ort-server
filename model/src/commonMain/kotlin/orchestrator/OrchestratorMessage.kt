@@ -35,7 +35,7 @@ interface WorkerErrorMessage {
  * Base class for the hierarchy of messages that can be processed by the Orchestrator component.
  */
 @Serializable
-sealed class OrchestratorMessage
+sealed interface OrchestratorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Config worker.
@@ -44,7 +44,7 @@ sealed class OrchestratorMessage
 data class ConfigWorkerResult(
     /** The ID of the ORT run that was processed by the worker. */
     val ortRunId: Long
-) : OrchestratorMessage()
+) : OrchestratorMessage
 
 /**
  * A message notifying the Orchestrator about a failed job of the Config worker.
@@ -55,7 +55,7 @@ data class ConfigWorkerError(
     val ortRunId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerErrorMessage
+) : OrchestratorMessage, WorkerErrorMessage
 
 /**
  * A common interface for messages that are sent by workers to the Orchestrator. The interface allows access to the
@@ -75,7 +75,7 @@ data class AnalyzerWorkerResult(
     override val jobId: Long,
     /** if `true`, the result has issues over the threshold. */
     val hasIssues: Boolean = false
-) : OrchestratorMessage(), WorkerMessage
+) : OrchestratorMessage, WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Analyzer worker job.
@@ -86,7 +86,7 @@ data class AnalyzerWorkerError(
     override val jobId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
+) : OrchestratorMessage, WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Advisor Worker.
@@ -97,7 +97,7 @@ data class AdvisorWorkerResult(
     override val jobId: Long,
     /** if `true`, the result has issues over the threshold. */
     val hasIssues: Boolean = false
-) : OrchestratorMessage(), WorkerMessage
+) : OrchestratorMessage, WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Advisor worker job.
@@ -108,7 +108,7 @@ data class AdvisorWorkerError(
     override val jobId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
+) : OrchestratorMessage, WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Scanner Worker.
@@ -119,7 +119,7 @@ data class ScannerWorkerResult(
     override val jobId: Long,
     /** if `true`, the result has issues over the threshold. */
     val hasIssues: Boolean = false
-) : OrchestratorMessage(), WorkerMessage
+) : OrchestratorMessage, WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Scanner worker job.
@@ -130,7 +130,7 @@ data class ScannerWorkerError(
     override val jobId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
+) : OrchestratorMessage, WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Evaluator Worker.
@@ -141,7 +141,7 @@ data class EvaluatorWorkerResult(
     override val jobId: Long,
     /** if `true`, the result has issues over the threshold. */
     val hasIssues: Boolean = false
-) : OrchestratorMessage(), WorkerMessage
+) : OrchestratorMessage, WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Evaluator worker job.
@@ -152,7 +152,7 @@ data class EvaluatorWorkerError(
     override val jobId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
+) : OrchestratorMessage, WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Reporter Worker.
@@ -163,7 +163,7 @@ data class ReporterWorkerResult(
     override val jobId: Long,
     /** if `true`, the result has issues over the threshold. */
     val hasIssues: Boolean = false
-) : OrchestratorMessage(), WorkerMessage
+) : OrchestratorMessage, WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Reporter worker job.
@@ -174,7 +174,7 @@ data class ReporterWorkerError(
     override val jobId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
+) : OrchestratorMessage, WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Notifier Worker.
@@ -183,7 +183,7 @@ data class ReporterWorkerError(
 data class NotifierWorkerResult(
     /** The ID of the Notifier job, as it is stored in the database. */
     override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+) : OrchestratorMessage, WorkerMessage
 
 /**
  * A message notifying the Orchestrator about a failed Notifier worker job.
@@ -194,13 +194,13 @@ data class NotifierWorkerError(
     override val jobId: Long,
     /** The message of the error, if any. */
     override val errorMessage: String? = null
-) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
+) : OrchestratorMessage, WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a new ORT run.
  */
 @Serializable
-data class CreateOrtRun(val ortRun: OrtRun) : OrchestratorMessage()
+data class CreateOrtRun(val ortRun: OrtRun) : OrchestratorMessage
 
 /**
  * A message notifying the Orchestrator about a (critical) error of a worker. This error means that there was a
@@ -211,7 +211,7 @@ data class CreateOrtRun(val ortRun: OrtRun) : OrchestratorMessage()
 data class WorkerError(
     /** The name of the endpoint where the error has happened. */
     val endpointName: String
-) : OrchestratorMessage()
+) : OrchestratorMessage
 
 /**
  * A message notifying the Orchestrator about an ORT run for which scheduling of worker jobs has failed. It is
@@ -222,4 +222,4 @@ data class WorkerError(
 data class LostSchedule(
     /** The ID of ORT Run, where jobs schedule is missing. */
     val ortRunId: Long
-) : OrchestratorMessage()
+) : OrchestratorMessage
