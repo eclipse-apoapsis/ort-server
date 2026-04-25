@@ -47,10 +47,10 @@ class JsonSerializerTest : StringSpec({
 })
 
 @Serializable
-internal sealed class TestData
+internal sealed interface TestData
 
 @Serializable
-internal data class TestStringData(val data: String) : TestData()
+internal data class TestStringData(val data: String) : TestData
 
 @Serializable
-internal data class TestIntData(val data: Int) : TestData()
+internal data class TestIntData(val data: Int) : TestData
