@@ -27,6 +27,7 @@ import org.jetbrains.exposed.v1.core.Table
 object ProjectsAnalyzerRunsTable : Table("projects_analyzer_runs") {
     val projectId = reference("project_id", ProjectsTable)
     val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)
+    val excluded = bool("excluded")
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(projectId, analyzerRunId, name = "${tableName}_pkey")

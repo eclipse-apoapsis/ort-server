@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_SECONDS
@@ -77,7 +78,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 
 import org.ossreviewtoolkit.analyzer.PackageManagerFactory
-import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.Severity
@@ -592,7 +593,7 @@ class AnalyzerWorkerTest : StringSpec({
             ),
             analyzer = OrtTestData.result.analyzer?.copy(
                 result = OrtTestData.result.analyzer?.result!!.copy(
-                    issues = mapOf(Identifier("Maven:com.example:package:1.0") to listOf(analyzerIssue))
+                    issues = mapOf(OrtIdentifier("Maven:com.example:package:1.0") to listOf(analyzerIssue))
                 )
             ),
             scanner = OrtTestData.result.scanner?.copy(
@@ -688,7 +689,7 @@ class AnalyzerWorkerTest : StringSpec({
             ),
             analyzer = OrtTestData.result.analyzer?.copy(
                 result = OrtTestData.result.analyzer?.result!!.copy(
-                    issues = mapOf(Identifier("Maven:com.example:package:1.0") to listOf(analyzerIssue))
+                    issues = mapOf(OrtIdentifier("Maven:com.example:package:1.0") to listOf(analyzerIssue))
                 )
             )
         )
@@ -719,7 +720,7 @@ class AnalyzerWorkerTest : StringSpec({
 
     "Package curation associations should be stored after analyzer run" {
         val associationsSlot =
-            slot<Map<org.eclipse.apoapsis.ortserver.model.runs.Identifier, List<AppliedPackageCurationRef>>>()
+            slot<Map<Identifier, List<AppliedPackageCurationRef>>>()
 
         val ortRunService = mockk<OrtRunService> {
             every { getAnalyzerJob(any()) } returns analyzerJob
@@ -777,7 +778,7 @@ class AnalyzerWorkerTest : StringSpec({
             }
 
             associationsSlot.captured shouldBe mapOf(
-                org.eclipse.apoapsis.ortserver.model.runs.Identifier("Maven", "com.example", "package", "1.0") to
+                Identifier("Maven", "com.example", "package", "1.0") to
                     listOf(
                         AppliedPackageCurationRef(
                             providerName = ResolvedPackageCurations.REPOSITORY_CONFIGURATION_PROVIDER_ID,
@@ -847,6 +848,76 @@ class AnalyzerWorkerTest : StringSpec({
             verify(exactly = 0) {
                 ortRunService.storePackageCurationAssociations(any(), any())
             }
+        }
+    }
+
+    "Excluded packages and projects should be captured correctly" {
+        val excludedPackageIdsSlot = slot<Set<Identifier>>()
+        val excludedProjectIdsSlot = slot<Set<Identifier>>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every {
+                storeAnalyzerRun(any(), any(), capture(excludedPackageIdsSlot), capture(excludedProjectIdsSlot))
+            } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            coEvery { findInfrastructureServicesForRepository(context, null) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
+        }
+
+        val ortResultWithExcludedProject = OrtTestData.result.copy(
+            analyzer = OrtTestData.result.analyzer?.copy(
+                result = OrtTestData.result.analyzer?.result!!.copy(
+                    projects = setOf(OrtTestData.project.copy(definitionFilePath = "excluded/pom.xml"))
+                )
+            )
+        )
+
+        val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
+            coEvery { run(any(), any(), any(), any()) } returns ortResultWithExcludedProject
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockPluginService(),
+            mockk(relaxed = true),
+            mockIssueResolutionService()
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
+
+            excludedPackageIdsSlot.captured shouldBe setOf(Identifier("Maven", "com.example", "package", "1.0"))
+            excludedProjectIdsSlot.captured shouldBe setOf(Identifier("Maven", "com.example", "project", "1.0"))
         }
     }
 
@@ -961,7 +1032,7 @@ class AnalyzerWorkerTest : StringSpec({
                     analyzer = OrtTestData.result.analyzer?.copy(
                         result = OrtTestData.result.analyzer?.result!!.copy(
                             issues = mapOf(
-                                Identifier("Maven:com.example:package:1.0") to listOf(
+                                OrtIdentifier("Maven:com.example:package:1.0") to listOf(
                                     Issue(
                                         timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS)
                                             .toJavaInstant(),

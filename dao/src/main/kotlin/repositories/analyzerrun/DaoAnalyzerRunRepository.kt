@@ -62,7 +62,9 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
         packages: Set<Package>,
         issues: List<Issue>,
         dependencyGraphs: Map<String, DependencyGraph>,
-        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>>
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>>,
+        excludedPackageIds: Set<Identifier>,
+        excludedProjectIds: Set<Identifier>
     ): AnalyzerRun = db.blockingQuery {
         val jobDao = AnalyzerJobDao[analyzerJobId]
         val environmentDao = EnvironmentDao.getOrPut(environment)
@@ -77,10 +79,10 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
 
         createAnalyzerConfiguration(analyzerRun, config)
 
-        val projectsMap = projects.associate { it.identifier to createProject(analyzerRun, it) }
+        val projectsMap = projects.associate { it.identifier to createProject(analyzerRun, it, excludedProjectIds) }
 
         packages.forEach {
-            val pkgDao = createPackage(analyzerRun, it)
+            val pkgDao = createPackage(analyzerRun, it, excludedPackageIds)
 
             shortestDependencyPaths[it.identifier]?.forEach { shortestDependencyPath ->
                 projectsMap[shortestDependencyPath.projectIdentifier]?.also { projectDao ->
@@ -145,7 +147,11 @@ private fun createAnalyzerConfiguration(
     return analyzerConfigurationDao
 }
 
-private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): ProjectDao {
+private fun createProject(
+    analyzerRun: AnalyzerRunDao,
+    project: Project,
+    excludedProjectIds: Set<Identifier>
+): ProjectDao {
     val identifier = IdentifierDao.getOrPut(project.identifier)
 
     val vcs = VcsInfoDao.getOrPut(project.vcs)
@@ -161,6 +167,7 @@ private fun createProject(analyzerRun: AnalyzerRunDao, project: Project): Projec
     ProjectsAnalyzerRunsTable.insert {
         it[analyzerRunId] = analyzerRun.id
         it[projectId] = projectDao.id
+        it[excluded] = project.identifier in excludedProjectIds
     }
 
     return projectDao
@@ -214,7 +221,11 @@ private fun insertProject(
     return projectDao
 }
 
-private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao {
+private fun createPackage(
+    analyzerRun: AnalyzerRunDao,
+    pkg: Package,
+    excludedPackageIds: Set<Identifier>
+): PackageDao {
     val identifier = IdentifierDao.getOrPut(pkg.identifier)
 
     val vcs = VcsInfoDao.getOrPut(pkg.vcs)
@@ -235,6 +246,7 @@ private fun createPackage(analyzerRun: AnalyzerRunDao, pkg: Package): PackageDao
     PackagesAnalyzerRunsTable.insert {
         it[analyzerRunId] = analyzerRun.id
         it[packageId] = pkgDao.id
+        it[excluded] = pkg.identifier in excludedPackageIds
     }
 
     return pkgDao

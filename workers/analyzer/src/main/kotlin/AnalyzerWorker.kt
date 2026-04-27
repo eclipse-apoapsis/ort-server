@@ -123,6 +123,14 @@ internal class AnalyzerWorker(
             val analyzerRun = ortResult.analyzer
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
+            val excludedPackageIds = analyzerRun.result.packages
+                .filter { ortResult.isPackageExcluded(it.id) }
+                .mapTo(mutableSetOf()) { it.id.mapToModel() }
+
+            val excludedProjectIds = analyzerRun.result.projects
+                .filter { ortResult.isProjectExcluded(it.id) }
+                .mapTo(mutableSetOf()) { it.id.mapToModel() }
+
             // IMPORTANT: Use getAnalyzerIssues() to get ONLY analyzer issues, not all issues.
             val allIssues = ortResult.getAnalyzerIssues().values.flatten()
 
@@ -165,7 +173,12 @@ internal class AnalyzerWorker(
 
             db.dbQuery {
                 getValidAnalyzerJob(jobId)
-                ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
+                ortRunService.storeAnalyzerRun(
+                    analyzerRun.mapToModel(jobId),
+                    shortestPathsByIdentifier,
+                    excludedPackageIds,
+                    excludedProjectIds
+                )
                 ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
             }
 

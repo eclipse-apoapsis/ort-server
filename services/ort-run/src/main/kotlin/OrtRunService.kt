@@ -493,7 +493,9 @@ class OrtRunService(
      */
     fun storeAnalyzerRun(
         analyzerRun: AnalyzerRun,
-        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
+        excludedPackageIds: Set<Identifier> = emptySet(),
+        excludedProjectIds: Set<Identifier> = emptySet()
     ) {
         analyzerRunRepository.create(
             analyzerJobId = analyzerRun.analyzerJobId,
@@ -505,7 +507,9 @@ class OrtRunService(
             packages = analyzerRun.packages,
             issues = analyzerRun.issues + AnalyzerRunDao.collectDependencyGraphIssues(analyzerRun.dependencyGraphs),
             dependencyGraphs = analyzerRun.dependencyGraphs,
-            shortestDependencyPaths = shortestDependencyPaths
+            shortestDependencyPaths = shortestDependencyPaths,
+            excludedPackageIds = excludedPackageIds,
+            excludedProjectIds = excludedProjectIds
         )
     }
 

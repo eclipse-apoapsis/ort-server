@@ -181,6 +181,34 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         }
     }
 
+    "create should save excluded status for packages and projects" {
+        analyzerRunRepository.create(
+            analyzerJobId = analyzerJobId,
+            analyzerRun = analyzerRun,
+            excludedPackageIds = setOf(pkg.identifier),
+            excludedProjectIds = setOf(project.identifier)
+        )
+
+        dbExtension.db.dbQuery {
+            PackagesAnalyzerRunsTable.selectAll().single()[PackagesAnalyzerRunsTable.excluded] shouldBe true
+            ProjectsAnalyzerRunsTable.selectAll().single()[ProjectsAnalyzerRunsTable.excluded] shouldBe true
+        }
+    }
+
+    "create should save non-excluded status for packages and projects" {
+        analyzerRunRepository.create(
+            analyzerJobId = analyzerJobId,
+            analyzerRun = analyzerRun,
+            excludedPackageIds = emptySet(),
+            excludedProjectIds = emptySet()
+        )
+
+        dbExtension.db.dbQuery {
+            PackagesAnalyzerRunsTable.selectAll().single()[PackagesAnalyzerRunsTable.excluded] shouldBe false
+            ProjectsAnalyzerRunsTable.selectAll().single()[ProjectsAnalyzerRunsTable.excluded] shouldBe false
+        }
+    }
+
     "get should return null" {
         analyzerRunRepository.get(1L).shouldBeNull()
     }
@@ -189,7 +217,9 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
 private fun DaoAnalyzerRunRepository.create(
     analyzerJobId: Long,
     analyzerRun: AnalyzerRun,
-    shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+    shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
+    excludedPackageIds: Set<Identifier> = emptySet(),
+    excludedProjectIds: Set<Identifier> = emptySet()
 ) = create(
     analyzerJobId = analyzerJobId,
     startTime = analyzerRun.startTime,
@@ -200,7 +230,9 @@ private fun DaoAnalyzerRunRepository.create(
     packages = analyzerRun.packages,
     issues = analyzerRun.issues,
     dependencyGraphs = analyzerRun.dependencyGraphs,
-    shortestDependencyPaths = shortestDependencyPaths
+    shortestDependencyPaths = shortestDependencyPaths,
+    excludedPackageIds = excludedPackageIds,
+    excludedProjectIds = excludedProjectIds
 )
 
 private val analyzerConfiguration = AnalyzerConfiguration(

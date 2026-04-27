@@ -38,6 +38,7 @@ interface AnalyzerRunRepository {
     /**
      * Create an analyzer run.
      */
+    @Suppress("LongParameterList")
     fun create(
         analyzerJobId: Long,
         startTime: Instant,
@@ -48,7 +49,9 @@ interface AnalyzerRunRepository {
         packages: Set<Package>,
         issues: List<Issue>,
         dependencyGraphs: Map<String, DependencyGraph>,
-        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
+        excludedPackageIds: Set<Identifier> = emptySet(),
+        excludedProjectIds: Set<Identifier> = emptySet()
     ): AnalyzerRun
 
     /**
