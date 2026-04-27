@@ -57,6 +57,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
+import org.eclipse.apoapsis.ortserver.components.dependencygraph.backend.DependencyGraphService
+import org.eclipse.apoapsis.ortserver.components.dependencygraph.routes.dependencyGraphRoutes
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunIssues
@@ -110,6 +112,7 @@ fun Route.runs() = route("runs") {
     val vulnerabilityService by inject<VulnerabilityService>()
     val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
+    val dependencyGraphService by inject<DependencyGraphService>()
     val projectService by inject<ProjectService>()
     val ortRunService by inject<OrtRunService>()
 
@@ -286,6 +289,8 @@ fun Route.runs() = route("runs") {
                 }
             }
         }
+
+        dependencyGraphRoutes(dependencyGraphService, requireRunPermission())
 
         route("reporter/{fileName}") {
             val reportStorageService by inject<ReportStorageService>()
