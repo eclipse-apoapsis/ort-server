@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.logaccess.loki
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
-import org.eclipse.apoapsis.ortserver.utils.config.getIntOrNull
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
@@ -52,6 +51,9 @@ data class LokiConfig(
      */
     val limit: Int,
 
+    /** The timeout for requests sent to the Loki REST API in seconds. */
+    val timeoutSec: Int,
+
     /** An optional username for basic auth. */
     val username: String?,
 
@@ -63,13 +65,7 @@ data class LokiConfig(
      * will contain an additional header `X-Scope-OrgID` with this value.
      * See https://grafana.com/docs/loki/latest/operations/authentication/.
      */
-    val tenantId: String? = null,
-
-    /**
-     * An optional timeout for requests sent to the Loki REST API in seconds. If this is unspecified, the default
-     * timeout from the Ktor HTTP client is used.
-     */
-    val timeoutSec: Int? = null
+    val tenantId: String? = null
 ) {
     companion object {
         /** The configuration property that defines the root URL of the Loki server. */
@@ -96,6 +92,9 @@ data class LokiConfig(
         /** The default limit to be passed to the query endpoint. */
         private const val DEFAULT_LIMIT = 1000
 
+        /** The default timeout for Loki requests in seconds when no explicit timeout is configured. */
+        private const val DEFAULT_TIMEOUT_SEC = 30
+
         /**
          * Return a new instance of [LokiConfig] that has been initialized from the passed in [configManager].
          */
@@ -111,10 +110,10 @@ data class LokiConfig(
                 configManager.getString(SERVER_URL_PROPERTY),
                 configManager.getString(NAMESPACE_PROPERTY),
                 configManager.getIntOrDefault(LIMIT_PROPERTY, DEFAULT_LIMIT),
+                configManager.getIntOrDefault(TIMEOUT_SEC_PROPERTY, DEFAULT_TIMEOUT_SEC),
                 username,
                 password,
-                configManager.getStringOrNull(TENANT_PROPERTY),
-                configManager.getIntOrNull(TIMEOUT_SEC_PROPERTY)
+                configManager.getStringOrNull(TENANT_PROPERTY)
             )
         }
     }

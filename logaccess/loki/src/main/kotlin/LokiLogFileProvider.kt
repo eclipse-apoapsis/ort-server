@@ -63,9 +63,6 @@ class LokiLogFileProvider(
         /** The header to define the tenant ID in multi-tenant mode. */
         private const val TENANT_HEADER = "X-Scope-OrgID"
 
-        /** Default value for HTTP client timeout in seconds */
-        private const val HTTP_CLIENT_DEFAULT_TIMEOUT_SEC = 30
-
         private val logger = LoggerFactory.getLogger(LokiLogFileProvider::class.java)
 
         /**
@@ -200,7 +197,7 @@ class LokiLogFileProvider(
             }
 
             install(HttpTimeout) {
-                val httpClientTimeoutMillis = (config.timeoutSec ?: HTTP_CLIENT_DEFAULT_TIMEOUT_SEC) * 1000L
+                val httpClientTimeoutMillis = config.timeoutSec * 1000L
                 requestTimeoutMillis = httpClientTimeoutMillis
                 connectTimeoutMillis = httpClientTimeoutMillis
                 socketTimeoutMillis = httpClientTimeoutMillis

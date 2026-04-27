@@ -45,7 +45,7 @@ class LokiConfigTest : StringSpec({
             "lokiTimeoutSec" to timeout
         )
         val configManager = createConfigManager(configMap)
-        val expectedConfig = LokiConfig(SERVER_URL, NAMESPACE, limit, username, password, tenant, timeout.toInt())
+        val expectedConfig = LokiConfig(SERVER_URL, NAMESPACE, limit, timeout.toInt(), username, password, tenant)
 
         val lokiConfig = LokiConfig.create(configManager)
 
@@ -58,7 +58,7 @@ class LokiConfigTest : StringSpec({
             "lokiNamespace" to NAMESPACE
         )
         val configManager = createConfigManager(configMap)
-        val expectedConfig = LokiConfig(SERVER_URL, NAMESPACE, 1000, null, null)
+        val expectedConfig = LokiConfig(SERVER_URL, NAMESPACE, 1000, 30, null, null)
 
         val lokiConfig = LokiConfig.create(configManager)
 

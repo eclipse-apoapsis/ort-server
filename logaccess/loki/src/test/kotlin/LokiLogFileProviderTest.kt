@@ -308,6 +308,7 @@ private const val END_TIME_STR = "1700469046"
 private const val NAMESPACE = "ort_server_ns"
 private const val FILE_NAME = "result.log"
 private const val LIMIT = 100
+private const val TIMEOUT = 30
 private const val RUN_ID = 20231120152344L
 
 private const val LOG_VALUES_PLACEHOLDER = "<<log_values>>"
@@ -332,6 +333,7 @@ private fun WireMockServer.lokiConfig(): LokiConfig =
         serverUrl = lokiUrl(),
         namespace = NAMESPACE,
         limit = LIMIT,
+        timeoutSec = TIMEOUT,
         username = null,
         password = null
     )
