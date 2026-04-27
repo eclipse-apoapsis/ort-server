@@ -34,6 +34,7 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
@@ -42,9 +43,11 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 
 class DeleteRepositorySecretIntegrationTest : SecretsRoutesIntegrationTest({
     var repoId = 0L
+    var orgId = 0L
 
     beforeEach {
         repoId = dbExtension.fixtures.repository.id
+        orgId = dbExtension.fixtures.organization.id
     }
 
     "DeleteRepositorySecret" should {
@@ -94,6 +97,35 @@ class DeleteRepositorySecretIntegrationTest : SecretsRoutesIntegrationTest({
                         HttpStatusCode.InternalServerError
 
                 secretRepository.getByIdAndName(RepositoryId(repoId), secret.name) shouldBe secret
+            }
+        }
+
+        "not block deletion when a same-named secret at a different hierarchy level is referenced" {
+            secretsRoutesTestApplication { client ->
+                val secretName = "sharedName"
+                val repoSecret = secretRepository.createRepositorySecret(
+                    repoId,
+                    path = "repo-path",
+                    name = secretName
+                )
+                secretRepository.createOrganizationSecret(orgId, path = "org-path", name = secretName)
+
+                infrastructureServiceService.createForId(
+                    OrganizationId(orgId),
+                    name = "orgService",
+                    url = "http://example.org/service",
+                    description = null,
+                    usernameSecretRef = secretName,
+                    passwordSecretRef = secretName,
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
+                )
+
+                client.delete("/repositories/$repoId/secrets/$secretName") shouldHaveStatus
+                        HttpStatusCode.NoContent
+
+                secretRepository.getByIdAndName(RepositoryId(repoId), secretName) shouldBe null
+                val provider = SecretsProviderFactoryForTesting.instance()
+                provider.readSecret(Path(repoSecret.path)) should beNull()
             }
         }
     }

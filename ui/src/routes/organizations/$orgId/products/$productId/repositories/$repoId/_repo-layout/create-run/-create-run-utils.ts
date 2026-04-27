@@ -536,6 +536,23 @@ export function defaultValues(
   isSuperuser: boolean
 ): z.infer<ReturnType<typeof createRunFormSchema>> {
   /**
+   * Looks up a key in package manager options case-insensitively. Old runs (e.g. triggered via
+   * GitHub Actions) may have stored package manager names in all-caps (e.g. "SPDXDOCUMENTFILE"),
+   * so case-insensitive matching is needed to stay compatible when rerunning those old runs.
+   */
+  const findPackageManagerOptionsKey = (
+    options: Record<string, unknown> | undefined,
+    packageManagerId: string
+  ) => {
+    if (!options) return undefined;
+    const idLower = packageManagerId.toLowerCase();
+    const matchingKey = Object.keys(options).find(
+      (key) => key.toLowerCase() === idLower
+    );
+    return matchingKey ? options[matchingKey] : undefined;
+  };
+
+  /**
    * Constructs the default options for a package manager, either as a blank set of options
    * or from an earlier ORT run if rerun functionality is used.
    *
@@ -548,20 +565,30 @@ export function defaultValues(
     enabledByDefault: boolean = true
   ) => {
     if (ortRun) {
+      const enabledPackageManagers =
+        ortRun.jobConfigs.analyzer?.enabledPackageManagers;
+      const pmOptions = ortRun.jobConfigs.analyzer?.packageManagerOptions as
+        | Record<string, unknown>
+        | undefined;
+      const matchedOptions = findPackageManagerOptionsKey(
+        pmOptions,
+        packageManagerId
+      ) as
+        | {
+            mustRunAfter?: PackageManagerId[];
+            options?: Record<string, string>;
+          }
+        | undefined;
       return {
         enabled:
-          ortRun.jobConfigs.analyzer?.enabledPackageManagers === undefined
+          enabledPackageManagers === undefined
             ? enabledByDefault
-            : ortRun.jobConfigs.analyzer?.enabledPackageManagers?.includes(
-                packageManagerId
-              ) || false,
+            : enabledPackageManagers.some(
+                (pm) => pm.toLowerCase() === packageManagerId.toLowerCase()
+              ),
         mustRunAfter:
-          (ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
-            ?.mustRunAfter as PackageManagerId[]) || [],
-        options: convertMapToArray(
-          ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
-            ?.options || {}
-        ),
+          (matchedOptions?.mustRunAfter as PackageManagerId[]) || [],
+        options: convertMapToArray(matchedOptions?.options || {}),
       };
     }
     return {

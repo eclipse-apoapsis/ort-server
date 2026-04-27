@@ -215,12 +215,21 @@ class InfrastructureServiceService(
 
     /**
      * Return a list with the [InfrastructureService]s that are associated with the name of the given
-     * [Secret][secretName].
+     * [Secret][secretName] and the given hierarchy [id]. Only infrastructure services defined at the same hierarchy
+     * level as [id] are checked, because secrets with the same name at different hierarchy levels are independent
+     * secrets (different paths and values), so an infrastructure service at another level is not affected by
+     * deleting the secret at [id].
      */
-    suspend fun listForSecret(secretName: String): List<InfrastructureService> = db.dbQuery {
+    suspend fun listForSecret(secretName: String, id: HierarchyId): List<InfrastructureService> = db.dbQuery {
+        val hierarchyFilter = when (id) {
+            is OrganizationId -> InfrastructureServicesTable.organizationId eq id.value
+            is ProductId -> InfrastructureServicesTable.productId eq id.value
+            is RepositoryId -> InfrastructureServicesTable.repositoryId eq id.value
+        }
+        val secretFilter = InfrastructureServicesTable.usernameSecret eq secretName or
+                (InfrastructureServicesTable.passwordSecret eq secretName)
         list(ListQueryParameters.DEFAULT) {
-            InfrastructureServicesTable.usernameSecret eq secretName or
-                    (InfrastructureServicesTable.passwordSecret eq secretName)
+            secretFilter and hierarchyFilter
         }
     }
 
