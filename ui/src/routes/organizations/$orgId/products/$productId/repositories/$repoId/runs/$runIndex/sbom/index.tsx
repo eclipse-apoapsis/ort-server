@@ -185,9 +185,15 @@ const SBOMComponent = () => {
           </div>
 
           <CardContent className='text-muted-foreground text-sm'>
-            CycloneDX is a standard format for creating software Bill of
-            Materials (SBOMs) to improve software supply chain transparency and
-            security.
+            <a
+              href='https://cyclonedx.org/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              CycloneDX
+            </a>{' '}
+            is a standard format for creating software Bill of Materials (SBOMs)
+            to improve software supply chain transparency and security.
           </CardContent>
         </Card>
         <Card>
@@ -244,9 +250,15 @@ const SBOMComponent = () => {
           </div>
 
           <CardContent className='text-muted-foreground text-sm'>
-            System Package Data Exchange (SPDX) is an open standard capable of
-            representing systems with software components as SBOMs (Software
-            Bill of Materials).
+            <a
+              href='https://spdx.dev/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              System Package Data Exchange (SPDX)
+            </a>{' '}
+            is an open standard capable of representing systems with software
+            components as SBOMs (Software Bill of Materials).
           </CardContent>
         </Card>
       </div>
