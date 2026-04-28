@@ -41,5 +41,5 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.wiremockStandalone)
+    testImplementation(libs.wiremock)
 }

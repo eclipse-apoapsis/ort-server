@@ -43,5 +43,5 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(libs.typesafeConfig)
-    testImplementation(libs.wiremockStandalone)
+    testImplementation(libs.wiremock)
 }

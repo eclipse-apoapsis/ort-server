@@ -65,7 +65,7 @@ schemaKenerator = "2.7.2"
 slf4j = "2.0.17"
 testContainers = "2.0.5"
 typesafeConfig = "1.4.6"
-wiremock = "3.0.1"
+wiremock = "3.13.2"
 
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfigPlugin" }
@@ -143,7 +143,7 @@ testContainersPostgresql = { module = "org.testcontainers:testcontainers-postgre
 testContainersRabbitMq = { module = "org.testcontainers:testcontainers-rabbitmq", version.ref = "testContainers" }
 testContainersVault = { module = "org.testcontainers:testcontainers-vault", version.ref = "testContainers" }
 typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
-wiremockStandalone = { module = "com.github.tomakehurst:wiremock-standalone", version.ref = "wiremock" }
+wiremock = { module = "org.wiremock:wiremock", version.ref = "wiremock" }
 
 [bundles]
 flyway = ["flywayCore", "flywayPostgresql"]
