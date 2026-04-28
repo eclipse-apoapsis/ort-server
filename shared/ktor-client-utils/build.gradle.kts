@@ -27,6 +27,7 @@ group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
     api(ktorLibs.client.core)
+    api(libs.typesafeConfig)
 
     implementation(libs.slf4j)
 
@@ -36,4 +37,3 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.wiremock)
 }
-
