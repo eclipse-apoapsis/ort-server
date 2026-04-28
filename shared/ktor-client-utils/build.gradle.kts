@@ -29,9 +29,9 @@ dependencies {
     api(ktorLibs.client.core)
     api(libs.typesafeConfig)
 
+    implementation(ktorLibs.client.okhttp)
     implementation(libs.slf4j)
 
-    testImplementation(ktorLibs.client.okhttp)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
