@@ -67,6 +67,7 @@ class RateLimitHandlerTest : WordSpec({
 
     afterTest {
         unmockkAll()
+        ConfigFactory.invalidateCaches()
     }
 
     "installRateLimitHandling()" should {
@@ -275,7 +276,7 @@ class RateLimitHandlerTest : WordSpec({
         }
 
         "read default values from application.conf" {
-            val config = ConfigFactory.load()
+            val config = ConfigFactory.load().getConfig(HttpClientConfig.CONFIG_PATH)
 
             val rateLimitConfig = RateLimitConfig.create(config)
 
@@ -295,7 +296,9 @@ class RateLimitHandlerTest : WordSpec({
 
             withEnvironment(environment) {
                 ConfigFactory.invalidateCaches()
-                val rateLimitConfig = RateLimitConfig.create(ConfigFactory.load())
+                val rateLimitConfig = RateLimitConfig.create(
+                    ConfigFactory.load().getConfig(HttpClientConfig.CONFIG_PATH)
+                )
 
                 rateLimitConfig.maxRetries shouldBe 10
                 rateLimitConfig.defaultDelay shouldBe 2000.milliseconds
