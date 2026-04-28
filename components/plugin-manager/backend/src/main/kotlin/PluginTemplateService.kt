@@ -263,7 +263,7 @@ class PluginTemplateService(
      *  [organizationId]. This is either a template that is assigned to the organization, a global template if no
      *  template is assigned to the organization, or `null` if no template exists for the organization.
      */
-    internal fun getTemplateForOrganization(
+    fun getTemplateForOrganization(
         pluginType: PluginType,
         pluginId: String,
         organizationId: OrganizationId
@@ -571,7 +571,7 @@ class PluginTemplateService(
     }
 }
 
-internal sealed interface TemplateError {
+sealed interface TemplateError {
     val message: String
 
     data class InvalidPlugin(override val message: String) : TemplateError

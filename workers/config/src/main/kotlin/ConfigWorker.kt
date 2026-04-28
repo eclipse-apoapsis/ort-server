@@ -20,10 +20,12 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -54,7 +56,10 @@ class ConfigWorker(
     private val adminConfigService: AdminConfigService,
 
     /** The service for accessing plugin information. */
-    private val pluginService: PluginService
+    private val pluginService: PluginService,
+
+    /** The service for accessing plugin templates. */
+    private val pluginTemplateService: PluginTemplateService
 ) {
     companion object {
         /** Constant for the path to the script that validates and transforms parameters. */
@@ -88,7 +93,7 @@ class ConfigWorker(
 
             // Resolve the default package managers before the validation script runs so the script can see and
             // potentially override them.
-            val baseConfigs = resolveDefaultPackageManagers(context.ortRun.jobConfigs)
+            val baseConfigs = context.resolveDefaultPackageManagers(context.ortRun.jobConfigs)
 
             // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it
             //       configurable.
@@ -182,10 +187,14 @@ class ConfigWorker(
      * configuration if [AnalyzerJobConfiguration.enabledPackageManagers][org.eclipse.apoapsis.ortserver.model
      * .AnalyzerJobConfiguration.enabledPackageManagers] is null or empty.
      */
-    private fun resolveDefaultPackageManagers(jobConfigs: JobConfigurations): JobConfigurations {
+    private fun WorkerContext.resolveDefaultPackageManagers(jobConfigs: JobConfigurations): JobConfigurations {
         if (!jobConfigs.analyzer.enabledPackageManagers.isNullOrEmpty()) return jobConfigs
 
-        val defaults = getDefaultPackageManagers(pluginService)
+        val defaults = getDefaultPackageManagers(
+            pluginService,
+            pluginTemplateService,
+            OrganizationId(ortRun.organizationId)
+        )
 
         logger.info("Determined default package managers: $defaults")
 

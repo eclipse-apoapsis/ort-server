@@ -19,9 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import com.github.michaelbull.result.getOrElse
+
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 
@@ -29,15 +33,30 @@ import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
  * Returns the IDs of the package managers that are enabled by default. This includes package managers which are enabled
  * by default in ORT and which are enabled in the [pluginService].
  */
-fun getDefaultPackageManagers(pluginService: PluginService): List<String> {
+fun getDefaultPackageManagers(
+    pluginService: PluginService,
+    pluginTemplateService: PluginTemplateService,
+    organizationId: OrganizationId
+): List<String> {
     val ortDefaultPackageManagers = AnalyzerConfiguration().enabledPackageManagers
 
     return pluginService.getPlugins()
         .filter {
-            it.type == PluginType.PACKAGE_MANAGER &&
-                    // TODO: Validate if restricted plugins are available in the current organization.
-                    it.availability in listOf(PluginAvailability.ENABLED, PluginAvailability.RESTRICTED) &&
-                    it.id in ortDefaultPackageManagers
+            val isPluginEnabled by lazy {
+                when (it.availability) {
+                    PluginAvailability.ENABLED -> true
+
+                    PluginAvailability.DISABLED -> false
+
+                    PluginAvailability.RESTRICTED -> {
+                        // Add restricted package managers only if a template exists for the organization.
+                        pluginTemplateService.getTemplateForOrganization(it.type, it.id, organizationId)
+                            .getOrElse { null } != null
+                    }
+                }
+            }
+
+            it.type == PluginType.PACKAGE_MANAGER && it.id in ortDefaultPackageManagers && isPluginEnabled
         }
         .map { it.id }
 }

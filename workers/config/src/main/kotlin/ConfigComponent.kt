@@ -20,10 +20,16 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
+import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -37,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 /**
@@ -77,5 +84,10 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
     private fun configModule(): Module = module {
         singleOf(::ConfigWorker)
         singleOf(::PluginService)
+
+        singleOf(::DaoOrganizationRepository).bind<OrganizationRepository>()
+        singleOf(::DaoRepositoryRepository).bind<RepositoryRepository>()
+        singleOf(::PluginTemplateEventStore)
+        singleOf(::PluginTemplateService)
     }
 }

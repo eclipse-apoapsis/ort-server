@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import com.github.michaelbull.result.Ok
+
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
@@ -29,11 +31,14 @@ import io.mockk.mockk
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 class UtilsTest : WordSpec({
     "getDefaultPackageManagers()" should {
-        "return all enabled and restricted package managers that are ORT defaults" {
+        "return all enabled and restricted package managers available for an organization that are ORT defaults" {
             val pluginService = mockk<PluginService> {
                 every { getPlugins() } returns listOf(
                     PluginDescriptor(
@@ -58,6 +63,13 @@ class UtilsTest : WordSpec({
                         availability = PluginAvailability.ENABLED
                     ),
                     PluginDescriptor(
+                        "Yarn2",
+                        PluginType.PACKAGE_MANAGER,
+                        "Yarn2",
+                        "description",
+                        availability = PluginAvailability.RESTRICTED
+                    ),
+                    PluginDescriptor(
                         "OSV",
                         PluginType.ADVISOR,
                         "OSV",
@@ -67,7 +79,29 @@ class UtilsTest : WordSpec({
                 )
             }
 
-            val defaultPackageManagers = getDefaultPackageManagers(pluginService)
+            val pluginTemplateService = mockk<PluginTemplateService> {
+                every { getTemplateForOrganization(any(), any(), any()) } answers {
+                    // Return a template for NPM but not for Yarn2 to validate that only restricted plugins with a
+                    // template are added to the defaults.
+                    if (secondArg<String>() == "NPM") {
+                        Ok(
+                            PluginTemplate(
+                                name = "PNPM",
+                                pluginType = PluginType.PACKAGE_MANAGER,
+                                pluginId = "template content",
+                                options = emptyList(),
+                                isGlobal = false,
+                                organizationIds = listOf(1)
+                            )
+                        )
+                    } else {
+                        Ok(null)
+                    }
+                }
+            }
+
+            val defaultPackageManagers =
+                getDefaultPackageManagers(pluginService, pluginTemplateService, OrganizationId(1))
 
             defaultPackageManagers should containExactlyInAnyOrder("NPM", "PNPM")
         }
