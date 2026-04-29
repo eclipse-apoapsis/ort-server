@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnaly
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
@@ -294,6 +295,12 @@ private fun buildQueryContext(): QueryContext {
         )
         .join(ScannerRunsTable, JoinType.INNER, ScannerRunsPackageProvenancesTable.scannerRunId, ScannerRunsTable.id)
         .join(ScannerJobsTable, JoinType.INNER, ScannerRunsTable.scannerJobId, ScannerJobsTable.id)
+        // Ensures only scan results explicitly associated with the matched scanner run are returned,
+        // preventing results from a different scanner run that shares the same package provenance from leaking in.
+        .join(
+            ScannerRunsScanResultsTable, JoinType.INNER,
+            ScanResultsTable.id, ScannerRunsScanResultsTable.scanResultId
+        ) { ScannerRunsScanResultsTable.scannerRunId eq ScannerRunsTable.id }
         .join(IdentifiersTable, JoinType.INNER, PackageProvenancesTable.identifierId, IdentifiersTable.id)
 
     return QueryContext(join)

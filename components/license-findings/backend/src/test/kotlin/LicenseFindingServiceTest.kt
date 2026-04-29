@@ -109,6 +109,18 @@ class LicenseFindingServiceTest : WordSpec() {
                 result.data shouldContainExactly listOf(DetectedLicense("Apache-2.0", 2))
             }
 
+            "not include scan results from a different scanner run sharing the same package provenance" {
+                val cross = seedCrossRunData(fixtures, db)
+
+                val result = service.getDetectedLicensesForRun(
+                    cross.ortRunId2,
+                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null
+                )
+
+                result.data.map { it.license } shouldContainExactly listOf("MIT")
+            }
+
             "sort by packageCount descending without throwing" {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
@@ -265,6 +277,21 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
             }
 
+            "not include packages whose scan result belongs to a different scanner run" {
+                val cross = seedCrossRunData(fixtures, db)
+
+                val apacheResult = service.getPackagesWithDetectedLicenseForRun(
+                    cross.ortRunId2,
+                    "Apache-2.0",
+                    ListQueryParameters(sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    null,
+                    null
+                )
+
+                apacheResult.totalCount shouldBe 0
+                apacheResult.data.shouldBeEmpty()
+            }
+
             "sort by purl" {
                 val result = service.getPackagesWithDetectedLicenseForRun(
                     seed.ortRunId,
@@ -358,6 +385,20 @@ class LicenseFindingServiceTest : WordSpec() {
                     "Maven:com.example:missing:1.0",
                     ListQueryParameters(sortFields = listOf(OrderField("path", OrderDirection.ASCENDING)))
                 ).data.shouldBeEmpty()
+            }
+
+            "not return findings from a different scanner run sharing the same package provenance" {
+                val cross = seedCrossRunData(fixtures, db)
+
+                val result = service.getLicenseFindingsForRun(
+                    cross.ortRunId2,
+                    "Apache-2.0",
+                    cross.identifier.toCoordinates(),
+                    ListQueryParameters(sortFields = listOf(OrderField("path", OrderDirection.ASCENDING)))
+                )
+
+                result.totalCount shouldBe 0
+                result.data.shouldBeEmpty()
             }
 
             "not return findings from other ORT runs" {
@@ -487,6 +528,85 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
         vcsPurl = vcsPurl,
         otherPurl = otherPurl
     )
+}
+
+internal data class CrossRunSeedResult(
+    val ortRunId1: Long,
+    val ortRunId2: Long,
+    val identifier: Identifier
+)
+
+/**
+ * Seeds two ORT runs that share the same package provenance but use different scanners. Used to verify that
+ * results from the first run's scanner do not bleed into the second run's results.
+ *
+ * Run 1 uses "ScanCode" and finds "Apache-2.0". Run 2 uses "Licensee" and finds "MIT".
+ */
+internal fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedResult {
+    val identifier = Identifier("Maven", "com.example", "shared-package", "1.0")
+    val artifact = RemoteArtifact(
+        url = "https://example.com/shared-package-1.0.jar",
+        hashValue = "abcdef1234567890abcdef1234567890abcdef12",
+        hashAlgorithm = "SHA-1"
+    )
+
+    val ortRun1 = fixtures.createOrtRun()
+    val ortRun2 = fixtures.createOrtRun()
+
+    db.blockingQuery {
+        val scannerJob1 = fixtures.createScannerJob(ortRun1.id)
+        val scannerRun1 = fixtures.scannerRunRepository.create(scannerJob1.id)
+        val scannerJob2 = fixtures.createScannerJob(ortRun2.id)
+        val scannerRun2 = fixtures.scannerRunRepository.create(scannerJob2.id)
+
+        val packageProvenance = PackageProvenanceDao.new {
+            this.identifier = IdentifierDao.getOrPut(identifier)
+            this.artifact = RemoteArtifactDao.getOrPut(artifact)
+            this.vcs = null
+            this.resolvedRevision = null
+            this.clonedRevision = null
+            this.isFixedRevision = null
+            this.errorMessage = null
+        }
+        ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRun1.id, packageProvenance.id.value)
+        ScannerRunsPackageProvenancesTable.insertIfNotExists(scannerRun2.id, packageProvenance.id.value)
+
+        // Run 1: ScanCode finds Apache-2.0.
+        val scanResult1 = ScanResultDao.new {
+            artifactUrl = artifact.url
+            artifactHash = artifact.hashValue
+            artifactHashAlgorithm = artifact.hashAlgorithm
+            vcsType = null
+            vcsUrl = null
+            vcsRevision = null
+            this.scanSummary = createScanSummary(listOf(FindingSeed("Apache-2.0", "LICENSE", 1, 10, 99f)))
+            scannerName = "ScanCode"
+            scannerVersion = "32.0"
+            scannerConfiguration = ""
+            additionalScanResultData = null
+        }
+        ScannerRunsScanResultsTable.insertIfNotExists(scannerRun1.id, scanResult1.id.value)
+        ScanResultPackageProvenancesTable.insertIfNotExists(scanResult1.id.value, packageProvenance.id.value)
+
+        // Run 2: Licensee finds MIT on the same package provenance.
+        val scanResult2 = ScanResultDao.new {
+            artifactUrl = artifact.url
+            artifactHash = artifact.hashValue
+            artifactHashAlgorithm = artifact.hashAlgorithm
+            vcsType = null
+            vcsUrl = null
+            vcsRevision = null
+            this.scanSummary = createScanSummary(listOf(FindingSeed("MIT", "LICENSE", 1, 10, 98f)))
+            scannerName = "Licensee"
+            scannerVersion = "9.14"
+            scannerConfiguration = ""
+            additionalScanResultData = null
+        }
+        ScannerRunsScanResultsTable.insertIfNotExists(scannerRun2.id, scanResult2.id.value)
+        ScanResultPackageProvenancesTable.insertIfNotExists(scanResult2.id.value, packageProvenance.id.value)
+    }
+
+    return CrossRunSeedResult(ortRun1.id, ortRun2.id, identifier)
 }
 
 private data class FindingSeed(
