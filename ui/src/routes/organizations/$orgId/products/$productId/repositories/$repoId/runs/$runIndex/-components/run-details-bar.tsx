@@ -111,10 +111,11 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   // E.g., if on .../runs/5/config, navigating to run 4 should go to
   // .../runs/4/config instead of /runs/4.
   const buildRunPath = (runIndex: number) => {
-    return location.pathname.replace(
+    const pathname = location.pathname.replace(
       `/runs/${params.runIndex}`,
       `/runs/${runIndex}`
     );
+    return location.searchStr ? `${pathname}${location.searchStr}` : pathname;
   };
 
   return (
