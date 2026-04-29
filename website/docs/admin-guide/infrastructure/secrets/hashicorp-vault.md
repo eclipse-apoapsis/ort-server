@@ -56,3 +56,23 @@ This table contains a description of the supported configuration properties:
 | vaultNamespace | VAULT_NAMESPACE | The Enterprise version of HashiCorp Vault supports the [namespaces](https://developer.hashicorp.com/vault/docs/enterprise/namespaces) feature. It allows the clear separation of secrets from multiple tenants. If namespaces are enabled, requests to the Vault API must contain a specific header to select the current namespace. If this property is defined, the corresponding header is added.                                                                                                                                                                                                                     | **null**     | no     |
 
 Since the role ID and the secret ID are actually credentials to access the Vault service, they are obtained as secrets from the [ConfigManager](https://github.com/eclipse-apoapsis/ort-server/blob/main/config/README.md) under the same keys as listed in the table above.
+
+In addition to the properties listed in the table, the HTTP client used for communication with the Vault service can be configured. The corresponding settings are defined in a section named `vaultHttpClient` and cover aspects such as timeouts, retry logic, and rate limiting. All these settings are optional and default to the values configured for the standard HTTP client. The following fragment shows the corresponding section from the configuration file and also the environment variables that can be used to set the properties:
+
+```
+vaultHttpClient {
+  connectTimeoutMs = ${?VAULT_HTTP_CLIENT_CONNECT_TIMEOUT_MS}
+  socketTimeoutMs = ${?VAULT_HTTP_CLIENT_SOCKET_TIMEOUT_MS}
+  requestTimeoutMs = ${?VAULT_HTTP_CLIENT_REQUEST_TIMEOUT_MS}
+  maxRetries = ${?VAULT_HTTP_CLIENT_MAX_RETRIES}
+  retryDelayMs = ${?VAULT_HTTP_CLIENT_RETRY_DELAY_MS}
+  retryExponentialBackoff = ${?VAULT_HTTP_CLIENT_RETRY_EXPONENTIAL_BACKOFF}
+
+  rateLimit {
+    maxRetries = ${?VAULT_HTTP_CLIENT_RATE_LIMIT_MAX_RETRIES}
+    defaultDelayMs = ${?VAULT_HTTP_CLIENT_RATE_LIMIT_DEFAULT_DELAY_MS}
+    maxDelayMs = ${?VAULT_HTTP_CLIENT_RATE_LIMIT_MAX_DELAY_MS}
+    delayStrategy = ${?VAULT_HTTP_CLIENT_RATE_LIMIT_DELAY_STRATEGY}
+  }
+}
+```
