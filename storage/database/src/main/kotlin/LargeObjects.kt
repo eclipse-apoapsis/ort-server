@@ -45,7 +45,7 @@ private val logger = LoggerFactory.getLogger("LargeObjects")
 internal fun JdbcTransaction.storeLargeObject(data: InputStream): Long {
     val largeObjectManager = largeObjectManager(jdbcConnection())
 
-    val oid = largeObjectManager.createLO(LargeObjectManager.READWRITE)
+    val oid = largeObjectManager.createLO(LargeObjectManager.WRITE)
     largeObjectManager.open(oid, LargeObjectManager.WRITE).use { obj ->
         data.copyTo(obj.outputStream)
     }
