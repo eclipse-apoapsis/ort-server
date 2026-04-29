@@ -26,12 +26,14 @@ interface DataTableBodyProps<TData> {
   rows: Row<TData>[];
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
   columnSizing?: Record<string, number>;
+  columnCount: number;
 }
 
 export function DataTableBody<TData>({
   rows,
   renderSubComponent,
   columnSizing,
+  columnCount,
 }: DataTableBodyProps<TData>) {
   return (
     <TableBody>
@@ -72,7 +74,7 @@ export function DataTableBody<TData>({
         ))
       ) : (
         <TableRow>
-          <TableCell colSpan={rows.length || 1} className='h-24 text-center'>
+          <TableCell colSpan={columnCount || 1} className='h-24 text-center'>
             No results.
           </TableCell>
         </TableRow>

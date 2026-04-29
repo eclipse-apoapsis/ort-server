@@ -69,6 +69,7 @@ export function DataTableCards<TData>({
           rows={table.getRowModel().rows}
           renderSubComponent={renderSubComponent}
           columnSizing={columnSizing}
+          columnCount={table.getVisibleLeafColumns().length}
         />
       </Table>
       {table.getRowModel().rows?.length > 0 && (
