@@ -31,39 +31,14 @@ import {
   ReporterJobConfiguration,
 } from '@/api';
 import { zInfrastructureService } from '@/api/zod.gen';
+import { environmentDefinitionsSchema, PackageManagerId } from '@/lib/types';
 import {
-  environmentDefinitionsSchema,
-  PackageManagerId,
-  packageManagers,
-} from '@/lib/types';
-
-const keyValueSchema = z.object({
-  key: z.string(),
-  value: z.string(), // Allow empty values for now
-});
-
-const packageManagerOptionsSchema = z.object({
-  enabled: z.boolean(),
-  // An optional array of package manager IDs (as enums) that must run after the current one.
-  mustRunAfter: z
-    .array(
-      z.enum(Object.fromEntries(packageManagers.map((pm) => [pm.id, pm.id])))
-    )
-    .optional(),
-  options: z.array(keyValueSchema).optional(),
-});
-
-// Ensure that when environment variables are used, the name and value
-// are both non-empty strings, otherwise the Analyzer job will fail.
-//
-// The "value" field must be made both nullable and optional, to conform with
-// the API's EnvironmentVariableDeclaration, which defines the value as
-// string | null | undefined.
-const environmentVariableSchema = z.object({
-  name: z.string().min(1),
-  secretName: z.string().min(1).nullable().optional(),
-  value: z.string().min(1).nullable().optional(),
-});
+  convertArrayToMap,
+  convertMapToArray,
+  environmentVariableSchema,
+  keyValueSchema,
+  packageManagerOptionsSchema,
+} from './-components/form-primitives';
 
 function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
@@ -309,41 +284,6 @@ export const createRunFormSchema = (
 export type CreateRunFormValues = z.infer<
   ReturnType<typeof createRunFormSchema>
 >;
-
-/**
- * Converts an object map coming from the back-end to an array of key-value pairs.
- * This is useful for form handling where an array of objects is required.
- *
- * @param objectMap - The object map from the back-end.
- * @returns An array of key-value pairs.
- */
-const convertMapToArray = (objectMap: {
-  [key: string]: string;
-}): { key: string; value: string }[] => {
-  return Object.entries(objectMap).map(([key, value]) => ({
-    key,
-    value,
-  }));
-};
-
-/**
- * Converts an array of key-value pairs to an object map.
- * This is useful for converting form data back to the format expected by the back-end.
- *
- * @param keyValueArray - An array of key-value pairs.
- * @returns The object map.
- */
-const convertArrayToMap = (
-  keyValueArray: { key: string; value: string }[]
-): { [key: string]: string } => {
-  return keyValueArray.reduce(
-    (acc, { key, value }) => {
-      acc[key] = value;
-      return acc;
-    },
-    {} as { [key: string]: string }
-  );
-};
 
 // Define the type for the returned error messages with full paths
 type FlattenedError = {
