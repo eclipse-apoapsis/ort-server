@@ -34,6 +34,7 @@ export const DEFAULT_PAGE_SIZE = 10;
 interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  noResultsContent?: React.ReactNode;
   setCurrentPageOptions: (page: number) => LinkOptions;
   setPageSizeOptions: (pageSize: number) => LinkOptions;
   /**
@@ -48,6 +49,7 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
 export function DataTable<TData>({
   table,
   renderSubComponent,
+  noResultsContent,
   className,
   setCurrentPageOptions,
   setPageSizeOptions,
@@ -75,6 +77,7 @@ export function DataTable<TData>({
           renderSubComponent={renderSubComponent}
           columnSizing={columnSizing}
           columnCount={table.getVisibleLeafColumns().length}
+          noResultsContent={noResultsContent}
         />
       </Table>
       {table.getRowModel().rows?.length > 0 && (

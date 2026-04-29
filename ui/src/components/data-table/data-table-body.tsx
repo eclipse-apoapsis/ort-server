@@ -27,6 +27,7 @@ interface DataTableBodyProps<TData> {
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
   columnSizing?: Record<string, number>;
   columnCount: number;
+  noResultsContent?: React.ReactNode;
 }
 
 export function DataTableBody<TData>({
@@ -34,6 +35,7 @@ export function DataTableBody<TData>({
   renderSubComponent,
   columnSizing,
   columnCount,
+  noResultsContent,
 }: DataTableBodyProps<TData>) {
   return (
     <TableBody>
@@ -75,7 +77,9 @@ export function DataTableBody<TData>({
       ) : (
         <TableRow>
           <TableCell colSpan={columnCount || 1} className='h-24 text-center'>
-            No results.
+            {noResultsContent ?? (
+              <div className='text-muted-foreground text-sm'>No results.</div>
+            )}
           </TableCell>
         </TableRow>
       )}

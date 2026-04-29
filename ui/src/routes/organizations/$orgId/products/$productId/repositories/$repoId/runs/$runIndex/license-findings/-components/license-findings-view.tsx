@@ -251,6 +251,13 @@ export const LicenseFindingsView = () => {
     totalDetectedLicenses.pagination.totalCount !==
     detectedLicenseFindings.pagination.totalCount;
   const matching = `, ${detectedLicenseFindings.pagination.totalCount} matching filters`;
+  const scannerWasIncludedInRun = ortRun.jobs.scanner != null;
+  const noResultsContent = !scannerWasIncludedInRun ? (
+    <div className='text-muted-foreground text-sm'>
+      No detected licenses are available because the scanner job was not enabled
+      for this run.
+    </div>
+  ) : undefined;
 
   return (
     <Card className='h-fit'>
@@ -268,6 +275,7 @@ export const LicenseFindingsView = () => {
       <CardContent>
         <DataTable
           table={table}
+          noResultsContent={noResultsContent}
           renderSubComponent={({ row }) =>
             renderSubComponent({ row, runId: ortRun.id })
           }
