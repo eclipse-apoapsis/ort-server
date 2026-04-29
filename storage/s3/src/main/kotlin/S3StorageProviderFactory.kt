@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactory
+import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
@@ -65,6 +66,12 @@ class S3StorageProviderFactory : StorageProviderFactory {
         const val ENDPOINT_URL_PROPERTY = "s3EndpointUrl"
 
         /**
+         * The name of the configuration property to force adding the bucket name to the path instead of using it as a
+         * subdomain. This is required for some S3 compatible storages.
+         */
+        const val FORCE_PATH_STYLE_PROPERTY = "s3ForcePathStyle"
+
+        /**
          * An optional prefix for the storage keys. This can be used when different storage types share the same bucket.
          */
         const val KEY_PREFIX_PROPERTY = "s3KeyPrefix"
@@ -79,6 +86,7 @@ class S3StorageProviderFactory : StorageProviderFactory {
         val client = S3Client {
             region = config.getStringOrNull(REGION_PROPERTY)
             endpointUrl = Url.parse(config.getString(ENDPOINT_URL_PROPERTY))
+            forcePathStyle = config.getBooleanOrDefault(FORCE_PATH_STYLE_PROPERTY, false)
             credentialsProvider = StaticCredentialsProvider {
                 secretAccessKey = config.getSecret(Path(SECRET_KEY_PROPERTY))
                 accessKeyId = config.getSecret(Path(ACCESS_KEY_PROPERTY))
