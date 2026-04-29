@@ -21,11 +21,8 @@ package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpSend
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.expectSuccess
@@ -52,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultLoginResponse
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretData
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretResponse
+import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
@@ -126,7 +124,7 @@ class VaultSecretsProvider(
      * obtain a new client token if necessary.
      */
     private fun createClient(): HttpClient {
-        val client = HttpClient(OkHttp) {
+        val client = createHttpClient(VaultConfiguration.HTTP_CLIENT_OVERRIDES_PATH) {
             defaultRequest {
                 url(config.vaultUri)
                 config.namespace?.let { header(NAMESPACE_HEADER, it) }
@@ -139,16 +137,6 @@ class VaultSecretsProvider(
                         ignoreUnknownKeys = true
                     }
                 )
-            }
-
-            install(HttpTimeout) {
-                requestTimeoutMillis = config.timeout.inWholeMilliseconds
-                socketTimeoutMillis = config.timeout.inWholeMilliseconds
-            }
-
-            install(HttpRequestRetry) {
-                retryOnServerErrors(maxRetries = 3)
-                exponentialDelay()
             }
 
             expectSuccess = true
