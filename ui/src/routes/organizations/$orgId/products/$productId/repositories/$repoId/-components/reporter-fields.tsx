@@ -34,7 +34,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
+import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type ReporterFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;

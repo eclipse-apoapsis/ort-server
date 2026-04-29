@@ -62,7 +62,7 @@ import {
   npmAuthModes,
   npmEnvironmentDefinitions,
 } from '@/lib/types';
-import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
+import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import { PackageManagerField } from './package-manager-field';
 
 type AnalyzerFieldsProps = {

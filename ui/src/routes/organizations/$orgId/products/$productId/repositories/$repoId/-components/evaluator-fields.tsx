@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
+import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type EvaluatorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;

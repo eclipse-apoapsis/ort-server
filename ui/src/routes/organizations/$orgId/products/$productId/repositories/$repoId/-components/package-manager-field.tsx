@@ -42,7 +42,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { PackageManagerId, packageManagers } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
+import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type PackageManagerFieldProps = {
   form: UseFormReturn<CreateRunFormValues>;
