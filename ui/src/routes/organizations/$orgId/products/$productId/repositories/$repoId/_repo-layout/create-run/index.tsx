@@ -58,12 +58,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
-import { AdvisorFields } from '../../-components/advisor-fields';
-import { AnalyzerFields } from '../../-components/analyzer-fields';
-import { EvaluatorFields } from '../../-components/evaluator-fields';
-import { NotifierFields } from '../../-components/notifier-fields';
-import { ReporterFields } from '../../-components/reporter-fields';
-import { ScannerFields } from '../../-components/scanner-fields';
+import {
+  AdvisorFields,
+  AnalyzerFields,
+  EvaluatorFields,
+  NotifierFields,
+  ReporterFields,
+  ScannerFields,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 import {
   createRunFormSchema,
   CreateRunFormValues,

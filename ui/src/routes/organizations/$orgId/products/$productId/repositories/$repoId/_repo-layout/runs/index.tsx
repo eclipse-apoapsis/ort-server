@@ -43,9 +43,9 @@ import {
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
+import { RepositoryRunsTable } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
-import { RepositoryRunsTable } from '../../-components/repository-runs-table';
 
 const defaultPageSize = useTablePrefsStore.getState().repoPageSize;
 

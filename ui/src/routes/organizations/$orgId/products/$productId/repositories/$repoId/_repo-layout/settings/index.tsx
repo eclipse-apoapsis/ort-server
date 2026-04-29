@@ -63,7 +63,7 @@ import {
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
-import { MoveRepository } from '../../-components/move-repository';
+import { MoveRepository } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 
 const formSchema = zRepository.pick({
   description: true,
