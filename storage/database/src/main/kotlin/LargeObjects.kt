@@ -47,7 +47,9 @@ internal fun JdbcTransaction.storeLargeObject(data: InputStream): Long {
 
     val oid = largeObjectManager.createLO(LargeObjectManager.WRITE)
     largeObjectManager.open(oid, LargeObjectManager.WRITE).use { obj ->
-        data.copyTo(obj.outputStream)
+        obj.outputStream.use { out ->
+            data.copyTo(out)
+        }
     }
 
     return oid
