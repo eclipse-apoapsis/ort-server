@@ -28,6 +28,7 @@ import {
   getInstalledPluginsQueryKey,
   restrictPluginMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { PluginAvailabilityToggle } from '@/components/plugin-availability-toggle';
 import {
   Accordion,
@@ -39,7 +40,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card.tsx';
@@ -128,7 +128,10 @@ const PluginList = ({
             <CardHeader className='flex items-start justify-between'>
               <div>
                 <CardTitle>{plugin.displayName}</CardTitle>
-                <CardDescription>{plugin.description}</CardDescription>
+                <MarkdownRenderer
+                  markdown={plugin.description}
+                  className='mt-1.5 max-w-none'
+                />
               </div>
               <PluginAvailabilityToggle
                 availability={plugin.availability}

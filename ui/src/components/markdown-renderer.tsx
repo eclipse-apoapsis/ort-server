@@ -19,13 +19,19 @@
 
 import Markdown from 'react-markdown';
 
+import { cn } from '@/lib/utils';
+
 type MarkdownRendererProps = {
   markdown?: string;
+  className?: string;
 };
 
-export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
+export const MarkdownRenderer = ({
+  markdown,
+  className,
+}: MarkdownRendererProps) => {
   return (
-    <div className='prose dark:prose-invert text-sm'>
+    <div className={cn('prose dark:prose-invert text-sm', className)}>
       <Markdown
         components={{
           h1: ({ children }) => (
