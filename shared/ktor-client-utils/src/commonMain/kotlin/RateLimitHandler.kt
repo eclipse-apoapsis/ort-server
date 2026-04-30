@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.shared.ktorclientutils
 
-import com.typesafe.config.Config
-
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 import io.ktor.client.HttpClient
@@ -138,22 +136,6 @@ data class RateLimitConfig(
          * [StandardRateLimitStrategies] enum.
          */
         const val DELAY_STRATEGY_PROPERTY = "delayStrategy"
-
-        /**
-         * Return a [RateLimitConfig] instance that has been initialized from the values of the given [config].
-         */
-        fun create(config: Config): RateLimitConfig {
-            val rateLimitConfig = config.getConfig(CONFIG_PATH)
-
-            val maxRetries = rateLimitConfig.getInt(MAX_RETRIES_PROPERTY)
-            val defaultDelay = rateLimitConfig.getLong(DEFAULT_DELAY_PROPERTY).milliseconds
-            val maxDelay = rateLimitConfig.getLong(MAX_DELAY_PROPERTY).milliseconds
-            val delayStrategy = StandardRateLimitStrategies.valueOf(
-                rateLimitConfig.getString(DELAY_STRATEGY_PROPERTY)
-            )
-
-            return RateLimitConfig(maxRetries, defaultDelay, maxDelay, delayStrategy)
-        }
     }
 }
 

@@ -23,7 +23,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig as KtorHttpClientConfig
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 
@@ -39,7 +39,7 @@ fun createHttpClient(
 ): HttpClient {
     logger.debug { "Creating HttpClient with config: $config" }
 
-    return HttpClient(OkHttp) {
+    return HttpClient(CIO) {
         install(HttpTimeout) {
             connectTimeoutMillis = config.connectTimeout.inWholeMilliseconds
             socketTimeoutMillis = config.socketTimeout.inWholeMilliseconds
@@ -59,12 +59,3 @@ fun createHttpClient(
         additionalConfig()
     }.withRateLimitHandling(config.rateLimitConfig)
 }
-
-/**
- * Create an [HttpClient] using a [HttpClientConfig] loaded from the application configuration, optionally applying
- * the given [overridesPath]. Using this function, there is no need to construct an [HttpClientConfig] object
- * manually; all configuration settings are read from the application configuration. The [additionalConfig] block can
- * be used to install further plugins or override individual settings.
- */
-fun createHttpClient(overridesPath: String? = null, additionalConfig: KtorHttpClientConfig<*>.() -> Unit = {}) =
-    createHttpClient(HttpClientConfig.create(overridesPath), additionalConfig)

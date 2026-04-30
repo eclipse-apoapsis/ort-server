@@ -19,21 +19,53 @@
 
 plugins {
     // Apply precompiled plugins.
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-multiplatform-conventions")
     id("ort-server-publication-conventions")
 }
 
 group = "org.eclipse.apoapsis.ortserver.shared"
 
-dependencies {
-    api(ktorLibs.client.core)
-    api(libs.typesafeConfig)
+kotlin {
+    linuxX64()
+    macosArm64()
+    @Suppress("deprecation") macosX64()
+    mingwX64()
 
-    implementation(ktorLibs.client.okhttp)
-    implementation(libs.kotlinLogging)
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(ktorLibs.client.core)
+                implementation(ktorLibs.client.cio)
+                implementation(libs.kotlinLogging)
+            }
+        }
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.mockk)
-    testImplementation(libs.wiremock)
+        commonTest {
+            dependencies {
+                implementation(libs.kotestAssertionsCore)
+                implementation(libs.kotestFrameworkEngine)
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                api(libs.typesafeConfig)
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.kotestRunnerJunit5)
+                implementation(libs.mockk)
+                implementation(libs.wiremock)
+            }
+        }
+    }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+
+    // Required since Java 17, see: https://kotest.io/docs/next/extensions/system_extensions.html#system-environment
+    jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")
 }
