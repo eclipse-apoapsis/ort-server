@@ -23,6 +23,7 @@ detektPlugin = "2.0.0-alpha.3"
 gitSemverPlugin = "0.19.0"
 tinyJibPlugin = "0.3.4"
 kotlinPlugin = "2.3.21"
+kotlinLogging = "8.0.01"
 kotlinxCoroutines = "1.10.2"
 kotlinxSerialization = "1.11.0"
 kspPlugin = "2.3.7"
@@ -111,6 +112,7 @@ kotestFrameworkEngine = { module = "io.kotest:kotest-framework-engine", version.
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotlinBom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlinPlugin" }
 kotlinResult = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinResult" }
+kotlinLogging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesSlf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinxCoroutines" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
