@@ -321,6 +321,7 @@ class Fixtures(private val db: Database) {
                 )
             )
         ),
+        providerIssues = emptySet(),
         results = results
     )
 

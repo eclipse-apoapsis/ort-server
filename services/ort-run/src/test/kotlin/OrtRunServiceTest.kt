@@ -583,6 +583,7 @@ class OrtRunServiceTest : WordSpec({
                     variables = emptyMap()
                 ),
                 config = AdvisorConfiguration(emptyMap()),
+                providerIssues = setOf(providerIssue),
                 results = emptyMap()
             )
 
@@ -1051,6 +1052,7 @@ class OrtRunServiceTest : WordSpec({
                     variables = emptyMap()
                 ),
                 config = AdvisorConfiguration(emptyMap()),
+                providerIssues = setOf(providerIssue),
                 results = emptyMap()
             )
 
@@ -1936,3 +1938,11 @@ private val includes = Includes(listOf(pathInclude))
  * service under test.
  */
 private val repositoryConfigurationWithIncludes = OrtTestData.repository.config.copy(includes = includes)
+
+private val providerIssue = Issue(
+    timestamp = Clock.System.now().toDatabasePrecision(),
+    source = "Advisor",
+    message = "Failed to create provider 'OSS Index'",
+    severity = Severity.ERROR,
+    worker = "advisor"
+)

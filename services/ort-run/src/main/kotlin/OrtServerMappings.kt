@@ -220,6 +220,7 @@ fun AdvisorRun.mapToOrt() =
         endTime = endTime.toJavaInstant(),
         environment = environment.mapToOrt(),
         config = config.mapToOrt(),
+        providerIssues = providerIssues.mapTo(mutableSetOf()) { it.mapToOrt() },
         results = results.entries.associateTo(sortedMapOf()) {
             it.key.mapToOrt() to it.value.map(AdvisorResult::mapToOrt)
         }

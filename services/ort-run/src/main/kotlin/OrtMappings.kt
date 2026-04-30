@@ -197,6 +197,7 @@ fun OrtAdvisorRun.mapToModel(advisorJobId: Long) =
         endTime = endTime.toKotlinInstant(),
         environment = environment.mapToModel(),
         config = config.mapToModel(),
+        providerIssues = providerIssues.mapTo(mutableSetOf()) { it.mapToModel() },
         results = results.entries.associate { (k, v) ->
             k.mapToModel() to v.map { it.mapToModel() }
         }

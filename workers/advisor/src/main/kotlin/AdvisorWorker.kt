@@ -84,7 +84,11 @@ internal class AdvisorWorker(
                 ).advisor
             ) { "ORT Adviser failed to create a result." }
 
-            val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
+            val allIssues = buildList {
+                addAll(advisorRun.results.values.flatten().flatMap { it.summary.issues })
+                addAll(advisorRun.providerIssues)
+            }
+
             val allVulnerabilities = advisorRun.results.values.flatten().flatMap { it.vulnerabilities }
 
             val resolutionProvider = OrtServerResolutionProvider.create(

@@ -23,6 +23,7 @@ import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
@@ -40,6 +41,7 @@ interface AdvisorRunRepository {
         endTime: Instant,
         environment: Environment,
         config: AdvisorConfiguration,
+        providerIssues: Set<Issue>,
         results: Map<Identifier, List<AdvisorResult>>
     ): AdvisorRun
 

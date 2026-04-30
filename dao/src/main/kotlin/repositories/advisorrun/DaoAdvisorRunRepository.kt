@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
@@ -49,6 +50,7 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
         endTime: Instant,
         environment: Environment,
         config: AdvisorConfiguration,
+        providerIssues: Set<Issue>,
         results: Map<Identifier, List<AdvisorResult>>
     ): AdvisorRun = db.blockingQuery {
         val environmentDao = EnvironmentDao.getOrPut(environment)
@@ -88,6 +90,13 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
                     )
                 }
             }
+        }
+
+        providerIssues.forEach { issue ->
+            OrtRunIssueDao.createByIssue(
+                advisorJobDao.ortRun.id.value,
+                issue.copy(worker = AdvisorRunDao.ISSUE_WORKER_TYPE)
+            )
         }
 
         advisorRunDao.mapToModel()
