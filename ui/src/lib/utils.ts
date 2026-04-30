@@ -40,6 +40,10 @@ export function formatTimestamp(
   });
 }
 
+export function formatLineNumber(line: number) {
+  return line === -1 ? 'UNKNOWN' : line;
+}
+
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
 
@@ -55,5 +59,11 @@ if (import.meta.vitest) {
     expect(formatTimestamp('2024-06-11T13:07:45Z', 'UTC', 'fi-FI')).toBe(
       '11.06.2024 klo 13.07.45'
     );
+  });
+
+  it('formatLineNumber', () => {
+    expect(formatLineNumber(-1)).toBe('UNKNOWN');
+    expect(formatLineNumber(1)).toBe(1);
+    expect(formatLineNumber(0)).toBe(0);
   });
 }

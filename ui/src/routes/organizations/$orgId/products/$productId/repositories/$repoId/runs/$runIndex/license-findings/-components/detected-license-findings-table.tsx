@@ -31,6 +31,7 @@ import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { toastError } from '@/lib/toast';
+import { formatLineNumber } from '@/lib/utils';
 
 const findingColumnHelper = createColumnHelper<LicenseFinding>();
 const defaultPageSize = 10;
@@ -83,6 +84,7 @@ export const DetectedLicenseFindingsTable = ({
     findingColumnHelper.accessor('startLine', {
       id: 'startLine',
       header: 'Start Line',
+      cell: ({ row }) => formatLineNumber(row.original.startLine),
       meta: {
         widthPercentage: 10,
       },
@@ -90,6 +92,7 @@ export const DetectedLicenseFindingsTable = ({
     findingColumnHelper.accessor('endLine', {
       id: 'endLine',
       header: 'End Line',
+      cell: ({ row }) => formatLineNumber(row.original.endLine),
       meta: {
         widthPercentage: 10,
       },
