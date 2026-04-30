@@ -56,6 +56,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
+import { getPluginTypeLabel } from '@/lib/types';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
 function optionTypeToZodType(type: PluginOptionType): ZodType {
@@ -213,7 +214,7 @@ const CreateTemplate = () => {
         <CardTitle>Create Template</CardTitle>
         <CardDescription>
           Create a new plugin template for the {params.pluginId}{' '}
-          {params.pluginType} plugin.
+          {getPluginTypeLabel(params.pluginType)} plugin.
           <br />
           Options that are set to final can not be overwritten by the user.
           <br />

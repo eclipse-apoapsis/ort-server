@@ -19,7 +19,7 @@
 
 import { z } from 'zod';
 
-import { RepositoryType } from '@/api';
+import { PluginType, RepositoryType } from '@/api';
 import { zEnvironmentConfig } from '@/api/zod.gen';
 
 /**
@@ -237,6 +237,22 @@ export function getRepositoryTypeLabel(type: RepositoryType | string): string {
     return repositoryTypeLabels[type as RepositoryType];
   }
   return type ? `"${type}"` : 'Unset';
+}
+
+const pluginTypeLabels: Record<PluginType, string> = {
+  ADVISOR: 'Advisor',
+  PACKAGE_CONFIGURATION_PROVIDER: 'Package Configuration Provider',
+  PACKAGE_CURATION_PROVIDER: 'Package Curation Provider',
+  PACKAGE_MANAGER: 'Package Manager',
+  REPORTER: 'Reporter',
+  SCANNER: 'Scanner',
+};
+
+export function getPluginTypeLabel(type: PluginType | string): string {
+  if (type in pluginTypeLabels) {
+    return pluginTypeLabels[type as PluginType];
+  }
+  return type ? `"${type}"` : 'Unknown';
 }
 
 // Type and constant for color themes. New themes can be added to the project

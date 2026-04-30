@@ -69,6 +69,7 @@ import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast, toastError } from '@/lib/toast';
+import { getPluginTypeLabel } from '@/lib/types';
 import { Route as LayoutRoute } from '@/routes/admin/plugins/route.tsx';
 
 type PluginTemplateCardProps = {
@@ -463,7 +464,8 @@ const PluginTemplatesComponent = () => {
           {pluginId} Templates ({pluginTemplates.length})
         </CardTitle>
         <CardDescription>
-          Manage plugin templates for the {pluginId} {pluginType} plugin.
+          Manage plugin templates for the {pluginId}{' '}
+          {getPluginTypeLabel(pluginType)} plugin.
         </CardDescription>
         <div className='py-2'>
           <Tooltip>
