@@ -19,7 +19,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useRouter } from '@tanstack/react-router';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, ExternalLink } from 'lucide-react';
 
 import {
   getOrganizationProductsOptions,
@@ -28,6 +28,7 @@ import {
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,6 +111,11 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     enabled: entity === 'run' || !!params.repoId,
   });
 
+  const orgs = organizations?.data;
+  const prods = products?.data;
+  const repos = repositories?.data;
+  const runIndexes = runs?.data;
+
   const name =
     entity === 'organization'
       ? breadcrumbs.organization
@@ -119,10 +125,10 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           ? breadcrumbs.repo
           : breadcrumbs.run;
 
-  const orgs = organizations?.data;
-  const prods = products?.data;
-  const repos = repositories?.data;
-  const runIndexes = runs?.data;
+  const currentRepoUrl =
+    entity === 'repository'
+      ? repos?.find((r) => r.id === Number(params.repoId))?.url
+      : undefined;
 
   return (
     <BreadcrumbItem>
@@ -277,6 +283,13 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
       <BreadcrumbLink asChild>
         <Link to={pathName}>{name}</Link>
       </BreadcrumbLink>
+      {currentRepoUrl && (
+        <Button variant='ghost' size='icon' className='h-4 w-4' asChild>
+          <Link to={currentRepoUrl} target='_blank' rel='noopener noreferrer'>
+            <ExternalLink className='h-3 w-3 text-blue-400' />
+          </Link>
+        </Button>
+      )}
     </BreadcrumbItem>
   );
 };
