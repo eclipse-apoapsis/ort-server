@@ -417,6 +417,91 @@ class AdvisorWorkerTest : StringSpec({
         }
     }
 
+    "Resolved items should be stored for provider issues" {
+        val providerIssue = Issue(
+            timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+            source = "Advisor",
+            message = "Failed to create provider 'OSS Index'",
+            severity = Severity.ERROR
+        )
+
+        val ortResult = OrtResult.EMPTY.copy(
+            analyzer = OrtAnalyzerRun.EMPTY,
+            repository = OrtResult.EMPTY.repository.copy(
+                config = OrtResult.EMPTY.repository.config.copy(
+                    resolutions = Resolutions(
+                        issues = listOf(
+                            IssueResolution(
+                                message = providerIssue.message,
+                                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                                comment = "Provider issue resolution."
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val advisorRunResult = OrtResult.EMPTY.copy(
+            advisor = AdvisorRun(
+                startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                environment = OrtTestData.environment,
+                config = OrtTestData.advisorConfiguration,
+                providerIssues = setOf(providerIssue),
+                results = emptyMap()
+            )
+        )
+
+        val ortRun = mockOrtRun()
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val resolvedItemsSlot = slot<ResolvedItemsResult>()
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorJob(any()) } returns advisorJob
+            every { getAnalyzerRunForOrtRun(any()) } returns OrtTestData.analyzerRun.mapToModel(ANALYZER_JOB_ID)
+            every { startAdvisorJob(any()) } returns advisorJob
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { storeAdvisorRun(any()) } just runs
+            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+            every { this@mockk.configManager } returns mockConfigManager()
+            coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val runner = spyk(createRunner())
+        coEvery { runner.run(any(), any(), any()) } coAnswers { advisorRunResult }
+
+        val worker = AdvisorWorker(
+            db = mockk(),
+            runner = runner,
+            ortRunService = ortRunService,
+            contextFactory = contextFactory,
+            adminConfigService = mockk(relaxed = true),
+            issueResolutionService = mockIssueResolutionService(),
+            vulnerabilityResolutionService = mockVulnerabilityResolutionService()
+        )
+
+        mockkTransaction {
+            val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
+
+            val resolvedIssue = resolvedItemsSlot.captured.issues.keys.single()
+            resolvedIssue.message shouldBe providerIssue.message
+            resolvedIssue.source shouldBe providerIssue.source
+            resolvedIssue.severity.name shouldBe providerIssue.severity.name
+        }
+    }
+
     "Resolved items should be stored for vulnerabilities resolved via the VulnerabilityResolutionService" {
         val advisorVulnerability = Vulnerability(
             id = "CVE-2023-0002",

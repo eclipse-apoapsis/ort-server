@@ -353,6 +353,13 @@ class OrtServerMappingsTest : WordSpec({
 
             )
 
+            val providerIssue = Issue(
+                timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                source = "Advisor",
+                message = "Failed to create provider 'OSS Index'",
+                severity = Severity.ERROR
+            )
+
             val advisorRun = AdvisorRun(
                 id = 1L,
                 advisorJobId = 1L,
@@ -360,6 +367,7 @@ class OrtServerMappingsTest : WordSpec({
                 endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 environment = environment,
                 config = advisorConfiguration,
+                providerIssues = setOf(providerIssue),
                 results = mapOf(pkgIdentifier to listOf(advisorResult))
             )
 
@@ -515,6 +523,12 @@ class OrtServerMappingsTest : WordSpec({
                             reason = IssueResolutionReason.SCANNER_ISSUE,
                             comment = "Test issue resolution.",
                             source = ResolutionSource.REPOSITORY_FILE
+                        ),
+                        IssueResolution(
+                            message = providerIssue.message,
+                            reason = IssueResolutionReason.SCANNER_ISSUE,
+                            comment = "Test provider issue resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
                         )
                     ),
                     ruleViolations = listOf(
@@ -593,6 +607,12 @@ class OrtServerMappingsTest : WordSpec({
                             message = issue.message,
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "Test issue resolution.",
+                            source = ResolutionSource.REPOSITORY_FILE
+                        ),
+                        IssueResolution(
+                            message = providerIssue.message,
+                            reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                            comment = "Test provider issue resolution.",
                             source = ResolutionSource.REPOSITORY_FILE
                         )
                     ),

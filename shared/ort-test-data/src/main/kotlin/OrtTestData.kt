@@ -202,6 +202,13 @@ object OrtTestData {
         severity = Severity.ERROR
     )
 
+    val providerIssue = Issue(
+        timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+        source = "Advisor",
+        message = "Failed to create provider 'OSS Index'",
+        severity = Severity.ERROR
+    )
+
     val vulnerability = Vulnerability(
         id = "CVE-2023-0001",
         summary = "Example summary.",
@@ -243,6 +250,11 @@ object OrtTestData {
                         message = issue.message,
                         reason = IssueResolutionReason.SCANNER_ISSUE,
                         comment = "Test issue resolution."
+                    ),
+                    IssueResolution(
+                        message = providerIssue.message,
+                        reason = IssueResolutionReason.SCANNER_ISSUE,
+                        comment = "Test provider issue resolution."
                     )
                 ),
                 ruleViolations = listOf(
@@ -464,6 +476,7 @@ object OrtTestData {
         endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
         environment = environment,
         config = advisorConfiguration,
+        providerIssues = setOf(providerIssue),
         results = advisorResults
     )
 
@@ -572,6 +585,11 @@ object OrtTestData {
                     message = issue.message,
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "Test issue resolution."
+                ),
+                IssueResolution(
+                    message = providerIssue.message,
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                    comment = "Test provider issue resolution."
                 )
             ),
             ruleViolations = listOf(

@@ -107,6 +107,7 @@ private fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: Advis
     endTime = advisorRun.endTime,
     environment = advisorRun.environment,
     config = advisorRun.config,
+    providerIssues = advisorRun.providerIssues,
     results = advisorRun.results.mapValues { (_, results) -> results.map { it.withPlainIssues() } }
 )
 
@@ -179,6 +180,14 @@ private val otherIssue = Issue(
     worker = "advisor"
 )
 
+private val providerIssue = Issue(
+    timestamp = Clock.System.now().toDatabasePrecision(),
+    source = "Advisor",
+    message = "Failed to create provider 'OSS Index'",
+    severity = Severity.ERROR,
+    worker = "advisor"
+)
+
 private val vulnerability = Vulnerability(
     externalId = "external-id",
     summary = "summary",
@@ -217,6 +226,7 @@ private val advisorRun = AdvisorRun(
     endTime = Clock.System.now().toDatabasePrecision(),
     environment = environment,
     config = advisorConfiguration,
+    providerIssues = setOf(providerIssue),
     results = mapOf(identifier to listOf(advisorResult), otherIdentifier to listOf(otherAdvisorResult))
 )
 

@@ -484,6 +484,7 @@ class OrtRunService(
             endTime = advisorRun.endTime,
             environment = advisorRun.environment,
             config = advisorRun.config,
+            providerIssues = advisorRun.providerIssues,
             results = advisorRun.results
         )
     }

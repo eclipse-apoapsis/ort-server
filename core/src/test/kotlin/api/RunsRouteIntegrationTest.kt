@@ -662,6 +662,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = Clock.System.now().toDatabasePrecision(),
                     environment = generateAdvisorEnvironment(),
                     config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
                     results = generateAdvisorResult()
                 )
 
@@ -724,6 +725,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = Clock.System.now().toDatabasePrecision(),
                     environment = generateAdvisorEnvironment(),
                     config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
                     results = generateAdvisorResult()
                 )
 
@@ -801,6 +803,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = Clock.System.now().toDatabasePrecision(),
                     environment = generateAdvisorEnvironment(),
                     config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
                     results = generateAdvisorResult()
                 )
 
@@ -1038,6 +1041,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             )
                         )
                     ),
+                    providerIssues = emptySet(),
                     results = mapOf(
                         Identifier("Maven", "namespace", "name", "1.0.0") to listOf(
                             AdvisorResult(
@@ -2233,6 +2237,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             )
                         )
                     ),
+                    providerIssues = emptySet(),
                     results = mapOf(
                         Identifier("NPM", "com.example", "example2", "1.0") to listOf(
                             AdvisorResult(

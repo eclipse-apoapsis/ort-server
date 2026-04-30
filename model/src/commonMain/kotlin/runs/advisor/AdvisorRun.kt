@@ -23,6 +23,7 @@ import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 data class AdvisorRun(
     val id: Long,
@@ -31,5 +32,6 @@ data class AdvisorRun(
     val endTime: Instant,
     val environment: Environment,
     val config: AdvisorConfiguration,
+    val providerIssues: Set<Issue>,
     val results: Map<Identifier, List<AdvisorResult>>
 )
