@@ -29,6 +29,12 @@ import {
   restrictPluginMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { PluginAvailabilityToggle } from '@/components/plugin-availability-toggle';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -41,17 +47,19 @@ import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast, toastError } from '@/lib/toast';
 
-type PluginListCardProps = {
+type PluginListProps = {
+  value: string;
   title: string;
   description: string;
   plugins: PluginDescriptor[];
 };
 
-const PluginListCard = ({
+const PluginList = ({
+  value,
   title,
   description,
   plugins,
-}: PluginListCardProps) => {
+}: PluginListProps) => {
   const { mutateAsync: enablePlugin, isPending: isEnabling } = useMutation({
     ...enablePluginMutation(),
   });
@@ -105,12 +113,16 @@ const PluginListCard = ({
   };
 
   return (
-    <Card className='mb-4 h-fit'>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <AccordionItem value={value}>
+      <AccordionTrigger className='px-6'>
+        <div>
+          <div className='text-base font-semibold'>{title}</div>
+          <div className='text-muted-foreground text-sm font-normal'>
+            {description}
+          </div>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className='px-12'>
         {plugins.map((plugin) => (
           <Card key={plugin.id} className='mb-2'>
             <CardHeader className='flex items-start justify-between'>
@@ -141,8 +153,8 @@ const PluginListCard = ({
             </CardContent>
           </Card>
         ))}
-      </CardContent>
-    </Card>
+      </AccordionContent>
+    </AccordionItem>
   );
 };
 
@@ -166,38 +178,44 @@ const PluginsComponent = () => {
   const scanners = plugins?.filter((plugin) => plugin.type === 'SCANNER') || [];
 
   return (
-    <div>
-      <PluginListCard
+    <Accordion type='single' collapsible className='rounded-lg border'>
+      <PluginList
+        value='advisors'
         title='Advisors'
         description='Advisors integrate external vulnerability databases to get information about vulnerabilities in packages.'
         plugins={advisors}
       />
-      <PluginListCard
+      <PluginList
+        value='package-configuration-providers'
         title='Package Configuration Providers'
         description='Providers for package configurations which are used to set path excludes and license finding curations for packages.'
         plugins={packageConfigurationProviders}
       />
-      <PluginListCard
+      <PluginList
+        value='package-curation-providers'
         title='Package Curation Providers'
         description='Providers for package curations which are used to correct metadata of packages.'
         plugins={packageCurationProviders}
       />
-      <PluginListCard
+      <PluginList
+        value='package-managers'
         title='Package Managers'
         description='Package managers are used to detect packages and their dependencies.'
         plugins={packageManagers}
       />
-      <PluginListCard
+      <PluginList
+        value='reporters'
         title='Reporters'
         description='Reporters generate reports like SBOMs from the data collected in a run.'
         plugins={reporters}
       />
-      <PluginListCard
+      <PluginList
+        value='scanners'
         title='Scanners'
         description='Scanners scan packages for license and copyright information.'
         plugins={scanners}
       />
-    </div>
+    </Accordion>
   );
 };
 
