@@ -29,7 +29,7 @@ kspPlugin = "2.3.7"
 mavenPublishPlugin = "0.36.0"
 
 # Gradle dependencies
-aedile = "3.0.3"
+aedile = "3.0.4"
 awsSdk = "1.6.64"
 azureIdentity = "1.18.3"
 azureMessagingServicebus = "7.17.17"
