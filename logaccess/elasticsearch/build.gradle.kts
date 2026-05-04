@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.logaccess.logaccessSpi)
     implementation(projects.model)
+    implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
 
     implementation(ktorLibs.client.auth)

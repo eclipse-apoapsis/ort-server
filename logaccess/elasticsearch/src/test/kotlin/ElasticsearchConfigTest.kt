@@ -33,15 +33,13 @@ class ElasticsearchConfigTest : StringSpec({
         val pageSize = 4321
         val username = "elasticUser"
         val password = "elasticPass"
-        val timeout = "17"
         val configMap = mapOf(
             "elasticsearchServerUrl" to SERVER_URL,
             "elasticsearchIndex" to INDEX,
             "elasticsearchNamespace" to NAMESPACE,
             "elasticsearchPageSize" to pageSize,
             "elasticsearchUsername" to username,
-            "elasticsearchPassword" to password,
-            "elasticsearchTimeoutSec" to timeout
+            "elasticsearchPassword" to password
         )
         val configManager = createConfigManager(configMap)
         val expectedConfig = ElasticsearchConfig(
@@ -49,7 +47,6 @@ class ElasticsearchConfigTest : StringSpec({
             index = INDEX,
             namespace = NAMESPACE,
             pageSize = pageSize,
-            timeoutSec = timeout.toInt(),
             username = username,
             password = password,
             apiKey = null
@@ -65,7 +62,7 @@ class ElasticsearchConfigTest : StringSpec({
             "elasticsearchNamespace" to NAMESPACE
         )
         val configManager = createConfigManager(configMap)
-        val expectedConfig = ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, 30, null, null, null)
+        val expectedConfig = ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, null, null, null)
 
         ElasticsearchConfig.create(configManager) shouldBe expectedConfig
     }
@@ -82,7 +79,7 @@ class ElasticsearchConfigTest : StringSpec({
         )
 
         ElasticsearchConfig.create(createConfigManager(configMap)) shouldBe
-            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, 30, username, null, "api-key")
+            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, username, null, "api-key")
     }
 
     "Blank auth settings should be treated as absent" {
@@ -95,7 +92,7 @@ class ElasticsearchConfigTest : StringSpec({
         )
 
         ElasticsearchConfig.create(createConfigManager(configMap)) shouldBe
-            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, 30, null, null, null)
+            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, null, null, null)
     }
 })
 

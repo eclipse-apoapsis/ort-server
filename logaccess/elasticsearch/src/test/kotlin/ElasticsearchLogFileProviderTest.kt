@@ -39,6 +39,8 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.spec.tempdir
+import io.kotest.engine.test.TestResult
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
@@ -80,6 +82,10 @@ class ElasticsearchLogFileProviderTest : StringSpec() {
 
     override suspend fun beforeAny(testCase: TestCase) {
         server.resetAll()
+    }
+
+    override suspend fun afterAny(testCase: TestCase, result: TestResult) {
+        ConfigFactory.invalidateCaches()
     }
 
     private suspend fun sendTestRequest(source: LogSource, levels: Set<LogLevel>): File =
@@ -156,11 +162,17 @@ class ElasticsearchLogFileProviderTest : StringSpec() {
                     .willReturn(aResponse().withStatus(HttpStatusCode.InternalServerError.value))
             )
 
-            val exception = shouldThrow<ServerResponseException> {
-                sendTestRequest(LogSource.SCANNER, EnumSet.of(LogLevel.DEBUG))
-            }
+            val env = mapOf(
+                "ELASTICSEARCH_HTTP_CLIENT_MAX_RETRIES" to "0"
+            )
+            withEnvironment(env) {
+                ConfigFactory.invalidateCaches()
+                val exception = shouldThrow<ServerResponseException> {
+                    sendTestRequest(LogSource.SCANNER, EnumSet.of(LogLevel.DEBUG))
+                }
 
-            exception.response.status shouldBe HttpStatusCode.InternalServerError
+                exception.response.status shouldBe HttpStatusCode.InternalServerError
+            }
         }
 
         "Basic Auth should be supported" {
@@ -213,11 +225,18 @@ class ElasticsearchLogFileProviderTest : StringSpec() {
                     )
             )
 
-            val config = server.elasticsearchConfig().copy(timeoutSec = 1)
-            val provider = ElasticsearchLogFileProvider(config)
+            val env = mapOf(
+                "ELASTICSEARCH_HTTP_CLIENT_MAX_RETRIES" to "0",
+                "ELASTICSEARCH_HTTP_CLIENT_REQUEST_TIMEOUT_MS" to "50"
+            )
+            withEnvironment(env) {
+                ConfigFactory.invalidateCaches()
+                val config = server.elasticsearchConfig()
+                val provider = ElasticsearchLogFileProvider(config)
 
-            shouldThrow<IOException> {
-                provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+                shouldThrow<IOException> {
+                    provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+                }
             }
         }
 
@@ -410,7 +429,6 @@ private fun WireMockServer.elasticsearchConfig(): ElasticsearchConfig =
         index = INDEX,
         namespace = NAMESPACE,
         pageSize = LIMIT,
-        timeoutSec = TIMEOUT,
         username = null,
         password = null,
         apiKey = null
@@ -435,7 +453,7 @@ private fun generateSearchResponse(hits: List<ElasticsearchHit>): String =
 private const val INDEX = "ort-server-logs-compose"
 private const val NAMESPACE = "compose"
 private const val LIMIT = 1000
-private const val TIMEOUT = 30
+
 private const val FILE_NAME = "test.log"
 private const val RUN_ID = 2025L
 

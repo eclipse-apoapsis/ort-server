@@ -51,9 +51,6 @@ data class ElasticsearchConfig(
      */
     val pageSize: Int,
 
-    /** The timeout in seconds for requests sent to the Elasticsearch REST API. */
-    val timeoutSec: Int,
-
     /** An optional username for Basic Authentication. Ignored when [apiKey] is configured. */
     val username: String?,
 
@@ -85,14 +82,11 @@ data class ElasticsearchConfig(
         /** The configuration property that defines the Elasticsearch API key. */
         private const val API_KEY_PROPERTY = "elasticsearchApiKey"
 
-        /** The configuration property that defines a timeout for Elasticsearch requests in seconds. */
-        private const val TIMEOUT_SEC_PROPERTY = "elasticsearchTimeoutSec"
+        /** The path in the application configuration that contains Elasticsearch-specific HTTP client overrides. */
+        const val HTTP_CLIENT_OVERRIDES_PATH = "elasticsearchHttpClient"
 
         /** The default number of hits requested per page when no explicit page size is configured. */
         private const val DEFAULT_PAGE_SIZE = 1000
-
-        /** The default timeout for Elasticsearch requests in seconds when no explicit timeout is configured. */
-        private const val DEFAULT_TIMEOUT_SEC = 30
 
         /**
          * Return a new instance of [ElasticsearchConfig] initialized from the passed in [configManager].
@@ -113,7 +107,6 @@ data class ElasticsearchConfig(
                 index = configManager.getString(INDEX_PROPERTY),
                 namespace = configManager.getString(NAMESPACE_PROPERTY),
                 pageSize = configManager.getIntOrDefault(PAGE_SIZE_PROPERTY, DEFAULT_PAGE_SIZE),
-                timeoutSec = configManager.getIntOrDefault(TIMEOUT_SEC_PROPERTY, DEFAULT_TIMEOUT_SEC),
                 username = username,
                 password = password,
                 apiKey = apiKey
