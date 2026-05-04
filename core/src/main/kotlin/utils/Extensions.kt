@@ -23,7 +23,6 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.tryGetString
 
 import kotlin.enums.enumEntries
-import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
@@ -51,8 +50,7 @@ fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfigurati
         clientId = getString("keycloak.clientId"),
         accessTokenUrl = tryGetString("keycloak.accessTokenUrl") ?: defaultAccessTokenUrl,
         apiUser = getString("keycloak.apiUser"),
-        apiSecret = getSecret(Path("keycloak.apiSecret")),
-        timeout = getInt("keycloak.timeoutSeconds").seconds
+        apiSecret = getSecret(Path("keycloak.apiSecret"))
     )
 }
 

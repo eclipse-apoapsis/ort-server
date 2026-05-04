@@ -26,18 +26,19 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
+import com.typesafe.config.ConfigFactory
+
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
-
-import kotlin.time.Duration.Companion.milliseconds
 
 import kotlinx.serialization.json.Json
 
@@ -122,13 +123,16 @@ class DefaultKeycloakClientTest : WordSpec() {
                         clientId = "some-client",
                         accessTokenUrl = "${server.baseUrl()}/realms/some-realm/protocol/openid-connect/token",
                         apiUser = "some-user",
-                        apiSecret = "some-secret",
-                        timeout = 50.milliseconds
+                        apiSecret = "some-secret"
                     )
 
-                    val client = DefaultKeycloakClient.create(config, json)
-                    shouldThrow<KeycloakClientException> {
-                        client.getUser(UserName("user1"))
+                    val env = mapOf("KEYCLOAK_HTTP_CLIENT_REQUEST_TIMEOUT_MS" to "50")
+                    withEnvironment(env) {
+                        ConfigFactory.invalidateCaches()
+                        val client = DefaultKeycloakClient.create(config, json)
+                        shouldThrow<KeycloakClientException> {
+                            client.getUser(UserName("user1"))
+                        }
                     }
                 } finally {
                     server.stop()

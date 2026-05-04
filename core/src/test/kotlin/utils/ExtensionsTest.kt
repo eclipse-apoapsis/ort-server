@@ -27,8 +27,6 @@ import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import kotlin.time.Duration.Companion.seconds
-
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
@@ -254,8 +252,7 @@ class ExtensionsTest : WordSpec({
                 "keycloak.realm" to "myrealm",
                 "keycloak.clientId" to "myclient",
                 "keycloak.apiUser" to "user",
-                "keycloak.apiSecret" to "secret",
-                "keycloak.timeoutSeconds" to 30
+                "keycloak.apiSecret" to "secret"
             )
 
             val configManager = ConfigManager.create(ConfigFactory.parseMap(config))
@@ -269,7 +266,6 @@ class ExtensionsTest : WordSpec({
             keycloakClientConfig.apiUrl shouldBe "http://localhost:8080/admin/realms/myrealm"
             keycloakClientConfig.accessTokenUrl shouldBe
                     "http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
-            keycloakClientConfig.timeout shouldBe 30.seconds
         }
     }
 })

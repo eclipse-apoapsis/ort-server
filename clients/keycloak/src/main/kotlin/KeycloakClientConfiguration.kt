@@ -19,9 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.clients.keycloak
 
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-
 /**
  * A data class representing the configuration of the Keycloak client.
  *
@@ -37,16 +34,10 @@ data class KeycloakClientConfiguration(
     val clientId: String,
     val accessTokenUrl: String,
     val apiUser: String,
-    val apiSecret: String,
-
-    /** A timeout to be applied to all requests against the Keycloak server. */
-    val timeout: Duration = DEFAULT_TIMEOUT
+    val apiSecret: String
 ) {
     companion object {
         /** The default chunk size for fetching data from Keycloak. */
         const val DEFAULT_DATA_GET_CHUNK_SIZE = 5000
-
-        /** The default timeout for requests to Keycloak. */
-        val DEFAULT_TIMEOUT = 60.seconds
     }
 }
