@@ -24,12 +24,12 @@ The configuration of this module supports such a property: if it is defined, the
 
 ## Configuration
 
-As defined by the Log Access SPI module, the configuration takes place in a section named `logFileProvider`.
+As defined by the Log Access SPI module, the configuration takes place in a section named `logFileService`.
 Here a number of properties specific to this module can be set as shown in the listing below.
 Mandatory properties are the server URL and the namespace; the other properties are optional.
 
 ```
-logFileProvider {
+logFileService {
   name = "loki"
   lokiServerUrl = https://loki.example.org/
   lokiNamespace = prod
@@ -50,3 +50,23 @@ This table contains a description of the supported configuration properties:
 | lokiUserName   | LOKI\_USER\_NAME   | An optional username for Basic Auth authentication.                                                                                                                                                              | undefined | no     |
 | lokiPassword   | LOKI\_PASSWORD     | An optional password for Basic Auth authentication. If credentials are defined, the provider implementation adds an `Authorization` header for Basic Auth to requests to the query API.                          | undefined | yes    |
 | lokiTenantId   | LOKI\_TENANT\_ID   | The ID of the tenant if Loki is running in multi-tenancy mode.                                                                                                                                                   | undefined | no     |
+
+In addition, default properties of the HTTP client that is used to send requests to the Loki API can be configured in a `lokiHttpClient` section:
+
+```
+lokiHttpClient {
+  connectTimeoutMs = ${?LOKI_HTTP_CLIENT_CONNECT_TIMEOUT_MS}
+  socketTimeoutMs = ${?LOKI_HTTP_CLIENT_SOCKET_TIMEOUT_MS}
+  requestTimeoutMs = ${?LOKI_HTTP_CLIENT_REQUEST_TIMEOUT_MS}
+  maxRetries = ${?LOKI_HTTP_CLIENT_MAX_RETRIES}
+  retryDelayMs = ${?LOKI_HTTP_CLIENT_RETRY_DELAY_MS}
+  retryExponentialBackoff = ${?LOKI_HTTP_CLIENT_RETRY_EXPONENTIAL_BACKOFF}
+
+  rateLimit {
+    maxRetries = ${?LOKI_HTTP_CLIENT_RATE_LIMIT_MAX_RETRIES}
+    defaultDelayMs = ${?LOKI_HTTP_CLIENT_RATE_LIMIT_DEFAULT_DELAY_MS}
+    maxDelayMs = ${?LOKI_HTTP_CLIENT_RATE_LIMIT_MAX_DELAY_MS}
+    delayStrategy = ${?LOKI_HTTP_CLIENT_RATE_LIMIT_DELAY_STRATEGY}
+  }
+}
+```

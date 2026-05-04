@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.logaccess.loki
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
 import io.ktor.client.plugins.auth.providers.basic
@@ -43,6 +41,7 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
+import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 
 import org.slf4j.LoggerFactory
 
@@ -169,7 +168,7 @@ class LokiLogFileProvider(
      * Create an [HttpClient] with a configuration to communicate with the Loki service.
      */
     private fun createClient(): HttpClient =
-        HttpClient(OkHttp) {
+        createHttpClient(LokiConfig.HTTP_CLIENT_OVERRIDES_PATH) {
             defaultRequest {
                 url(config.serverUrl)
                 config.tenantId?.let { tenant ->
@@ -194,13 +193,6 @@ class LokiLogFileProvider(
                         sendWithoutRequest { true }
                     }
                 }
-            }
-
-            install(HttpTimeout) {
-                val httpClientTimeoutMillis = config.timeoutSec * 1000L
-                requestTimeoutMillis = httpClientTimeoutMillis
-                connectTimeoutMillis = httpClientTimeoutMillis
-                socketTimeoutMillis = httpClientTimeoutMillis
             }
 
             expectSuccess = true
