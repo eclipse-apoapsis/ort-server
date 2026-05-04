@@ -21,30 +21,25 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 
-import kotlin.time.Duration
-
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
+
+/** The path in the application configuration that contains Keycloak-specific HTTP client overrides. */
+const val KEYCLOAK_HTTP_CLIENT_OVERRIDES_PATH = "keycloakHttpClient"
+
 /**
- * Create an [HttpClient] with a default configuration for JSON requests based on [json] and timeout settings according
- * to the provided [timeout]. The client's configuration can be extended via the given [config] block.
+ * Create an [HttpClient] with a default configuration for JSON requests based on [json]. The client's configuration
+ * can be extended via the given [config] block.
  */
 fun createDefaultHttpClient(
     json: Json,
-    timeout: Duration,
     config: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient =
-    HttpClient(OkHttp) {
-        install(HttpTimeout) {
-            requestTimeoutMillis = timeout.inWholeMilliseconds
-            socketTimeoutMillis = timeout.inWholeMilliseconds
-        }
-
+    createHttpClient(KEYCLOAK_HTTP_CLIENT_OVERRIDES_PATH) {
         install(ContentNegotiation) {
             json(json)
         }

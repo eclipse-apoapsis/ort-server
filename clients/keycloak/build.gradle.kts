@@ -32,6 +32,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.clients"
 
 dependencies {
+    implementation(projects.shared.ktorClientUtils)
     implementation(ktorLibs.client.auth)
     implementation(ktorLibs.client.contentNegotiation)
     implementation(ktorLibs.client.core)
