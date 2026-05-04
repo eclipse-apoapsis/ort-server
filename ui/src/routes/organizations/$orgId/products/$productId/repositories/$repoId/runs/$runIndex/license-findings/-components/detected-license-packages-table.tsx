@@ -229,6 +229,7 @@ export const DetectedLicensePackagesTable = ({
             runId={runId}
             license={row.original.license}
             identifier={identifierToString(packageRow.original.identifier)}
+            purl={packageRow.original.purl ?? undefined}
           />
         )}
         setCurrentPageOptions={(currentPage) => {

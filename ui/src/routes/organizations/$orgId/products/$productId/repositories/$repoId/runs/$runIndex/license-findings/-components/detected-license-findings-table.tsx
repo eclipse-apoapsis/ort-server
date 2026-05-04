@@ -27,9 +27,16 @@ import {
 
 import { LicenseFinding } from '@/api';
 import { getRunDetectedLicenseFindingsOptions } from '@/api/@tanstack/react-query.gen';
+import swhLogo from '@/assets/software-heritage-logo.svg';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 
@@ -42,12 +49,14 @@ type DetectedLicenseFindingsTableProps = {
   runId: number;
   license: string;
   identifier: string;
+  purl?: string;
 };
 
 export const DetectedLicenseFindingsTable = ({
   runId,
   license,
   identifier,
+  purl,
 }: DetectedLicenseFindingsTableProps) => {
   const search = useSearch({ from: licenseFindingsRoutePath });
   const findingsPageIndex = search.findingsPage ? search.findingsPage - 1 : 0;
@@ -76,7 +85,41 @@ export const DetectedLicenseFindingsTable = ({
     findingColumnHelper.accessor('path', {
       id: 'path',
       header: 'Path',
-      cell: ({ row }) => <BreakableString text={row.original.path} />,
+      cell: ({ row }) => {
+        const url = purl
+          ? buildSwhBrowseUrl(
+              purl,
+              row.original.path,
+              row.original.startLine,
+              row.original.endLine
+            )
+          : null;
+
+        return (
+          <div className='flex items-start gap-2'>
+            <BreakableString text={row.original.path} />
+            {url && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a
+                    href={url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='mt-0.5 shrink-0'
+                  >
+                    <img
+                      src={swhLogo}
+                      alt='Software Heritage'
+                      className='h-4 w-4'
+                    />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>View in Software Heritage</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        );
+      },
       meta: {
         isGrow: true,
       },
