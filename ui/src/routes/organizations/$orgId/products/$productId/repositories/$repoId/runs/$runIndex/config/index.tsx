@@ -97,6 +97,16 @@ const ConfigComponent = () => {
                 )}
             </div>
           )}
+          {ortRun.environmentConfigPath && (
+            <div className='flex items-center gap-1 text-sm'>
+              <Label className='font-semibold'>
+                Environment configuration path:
+              </Label>
+              {ortRun.environmentConfigPath && (
+                <div>{ortRun.environmentConfigPath}</div>
+              )}
+            </div>
+          )}
           {(() => {
             const labels = ortRun.labels;
             const hasLabels = Object.keys(labels).length > 0;

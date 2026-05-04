@@ -332,5 +332,6 @@ export function formValuesToPayload(
     },
     labels,
     jobConfigContext: values.jobConfigContext,
+    environmentConfigPath: values.environmentConfigPath,
   };
 }

@@ -174,6 +174,7 @@ export function defaultValues(
     },
     labels: undefined,
     jobConfigContext: '',
+    environmentConfigPath: '',
   };
 
   // Default values for the form are either taken from "baseDefaults" or,
@@ -306,6 +307,8 @@ export function defaultValues(
         labels: convertMapToArray(ortRun.labels || {}),
         jobConfigContext:
           ortRun.jobConfigContext || baseDefaults.jobConfigContext,
+        environmentConfigPath:
+          ortRun.environmentConfigPath || baseDefaults.environmentConfigPath,
       }
     : baseDefaults;
 }
