@@ -53,3 +53,5 @@ This table contains a description of the supported configuration properties:
 The provider implementation is using the Bearer Token authorization.
 The token is obtained from the `ConfigSecretProvider` via the `gitHubApiToken` path.
 For the details on GitHub API authorization see the [Documentation on Authenticating to the GitHub REST API](https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?apiVersion=2022-11-28).
+
+In addition, default properties of the HTTP client that is used to send requests to the GitHub REST API can be configured in a `gitHubHttpClient` section.
