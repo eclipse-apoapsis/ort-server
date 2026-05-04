@@ -25,6 +25,10 @@ import {
   PreconfiguredPluginDescriptor,
 } from '@/api';
 
+function isNonBlankString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim() !== '';
+}
+
 function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
@@ -237,7 +241,7 @@ export function getPluginDefaultValues(
       plugin.options?.forEach((option) => {
         if (option.defaultValue !== undefined) {
           if (option.type === 'SECRET') {
-            secrets[option.name] = String(option.defaultValue);
+            return;
           } else if (option.type === 'BOOLEAN') {
             options[option.name] = option.defaultValue === 'true';
           } else if (option.type === 'STRING_LIST') {
@@ -305,12 +309,12 @@ export function createPluginPayload(
             typeof pluginConfig.secrets === 'object'
           ) {
             convertedConfig.secrets = Object.fromEntries(
-              Object.entries(pluginConfig.secrets as Record<string, unknown>)
-                .filter(
-                  ([, secValue]) => secValue !== undefined && secValue !== null
-                )
-                .map(([secKey, secValue]) => [secKey, String(secValue)])
-            );
+              Object.entries(
+                pluginConfig.secrets as Record<string, unknown>
+              ).flatMap(([secKey, secValue]) =>
+                isNonBlankString(secValue) ? [[secKey, secValue]] : []
+              )
+            ) as { [key: string]: string };
           }
 
           return [key, convertedConfig];
@@ -322,4 +326,61 @@ export function createPluginPayload(
   return Object.keys(filtered).length > 0
     ? (filtered as { [key: string]: PluginConfig })
     : undefined;
+}
+
+if (import.meta.vitest) {
+  const { describe, expect, it } = import.meta.vitest;
+
+  describe('getPluginDefaultValues', () => {
+    it('ignores default values for secret options', () => {
+      const defaults = getPluginDefaultValues([
+        {
+          id: 'SCANOSS',
+          type: 'SCANNER',
+          displayName: 'SCANOSS',
+          description: 'A scanner plugin.',
+          options: [
+            {
+              name: 'apiKey',
+              description: 'The API key.',
+              type: 'SECRET',
+              defaultValue: 'server-side-default-secret',
+              isFixed: false,
+              isNullable: false,
+              isRequired: false,
+            },
+          ],
+        },
+      ]);
+
+      expect(defaults.SCANOSS?.secrets).toEqual({});
+    });
+  });
+
+  describe('createPluginPayload', () => {
+    it('omits blank secret values from the payload', () => {
+      const payload = createPluginPayload(
+        {
+          SCANOSS: {
+            options: {
+              apiUrl: 'https://api.osskb.org',
+            },
+            secrets: {
+              apiKey: '',
+            },
+          },
+        },
+        ['SCANOSS']
+      );
+
+      expect(payload).toEqual({
+        SCANOSS: {
+          options: {
+            apiUrl: 'https://api.osskb.org',
+          },
+          secrets: {},
+        },
+      });
+    });
+  });
 }
