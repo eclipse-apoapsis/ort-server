@@ -51,9 +51,6 @@ data class LokiConfig(
      */
     val limit: Int,
 
-    /** The timeout for requests sent to the Loki REST API in seconds. */
-    val timeoutSec: Int,
-
     /** An optional username for basic auth. */
     val username: String?,
 
@@ -86,14 +83,11 @@ data class LokiConfig(
         /** The configuration property that defines the tenant ID if in multi-tenant mode. */
         private const val TENANT_PROPERTY = "lokiTenantId"
 
-        /** The configuration property that defines a timeout for queries against the Loki REST API in seconds. */
-        private const val TIMEOUT_SEC_PROPERTY = "lokiTimeoutSec"
+        /** The path in the application configuration that contains Loki-specific HTTP client overrides. */
+        const val HTTP_CLIENT_OVERRIDES_PATH = "lokiHttpClient"
 
         /** The default limit to be passed to the query endpoint. */
         private const val DEFAULT_LIMIT = 1000
-
-        /** The default timeout for Loki requests in seconds when no explicit timeout is configured. */
-        private const val DEFAULT_TIMEOUT_SEC = 30
 
         /**
          * Return a new instance of [LokiConfig] that has been initialized from the passed in [configManager].
@@ -110,7 +104,6 @@ data class LokiConfig(
                 configManager.getString(SERVER_URL_PROPERTY),
                 configManager.getString(NAMESPACE_PROPERTY),
                 configManager.getIntOrDefault(LIMIT_PROPERTY, DEFAULT_LIMIT),
-                configManager.getIntOrDefault(TIMEOUT_SEC_PROPERTY, DEFAULT_TIMEOUT_SEC),
                 username,
                 password,
                 configManager.getStringOrNull(TENANT_PROPERTY)

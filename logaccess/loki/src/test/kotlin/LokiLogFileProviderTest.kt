@@ -37,6 +37,8 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.spec.tempdir
+import io.kotest.engine.test.TestResult
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.plugins.ServerResponseException
@@ -74,6 +76,10 @@ class LokiLogFileProviderTest : StringSpec() {
 
     override suspend fun beforeAny(testCase: TestCase) {
         server.resetAll()
+    }
+
+    override suspend fun afterAny(testCase: TestCase, result: TestResult) {
+        ConfigFactory.invalidateCaches()
     }
 
     init {
@@ -177,11 +183,17 @@ class LokiLogFileProviderTest : StringSpec() {
                     .willReturn(aResponse().withStatus(HttpStatusCode.InternalServerError.value))
             )
 
-            val exception = shouldThrow<ServerResponseException> {
-                sendTestRequest(LogSource.SCANNER, EnumSet.of(LogLevel.DEBUG))
-            }
+            val env = mapOf(
+                "LOKI_HTTP_CLIENT_MAX_RETRIES" to "0"
+            )
+            withEnvironment(env) {
+                ConfigFactory.invalidateCaches()
+                val exception = shouldThrow<ServerResponseException> {
+                    sendTestRequest(LogSource.SCANNER, EnumSet.of(LogLevel.DEBUG))
+                }
 
-            exception.response.status shouldBe HttpStatusCode.InternalServerError
+                exception.response.status shouldBe HttpStatusCode.InternalServerError
+            }
         }
 
         "Basic Auth should be supported" {
@@ -233,11 +245,18 @@ class LokiLogFileProviderTest : StringSpec() {
                     )
             )
 
-            val config = server.lokiConfig().copy(timeoutSec = 1)
-            val provider = LokiLogFileProvider(config)
+            val env = mapOf(
+                "LOKI_HTTP_CLIENT_MAX_RETRIES" to "0",
+                "LOKI_HTTP_CLIENT_REQUEST_TIMEOUT_MS" to "50"
+            )
+            withEnvironment(env) {
+                ConfigFactory.invalidateCaches()
+                val config = server.lokiConfig()
+                val provider = LokiLogFileProvider(config)
 
-            shouldThrow<IOException> {
-                provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+                shouldThrow<IOException> {
+                    provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+                }
             }
         }
 
@@ -308,7 +327,6 @@ private const val END_TIME_STR = "1700469046"
 private const val NAMESPACE = "ort_server_ns"
 private const val FILE_NAME = "result.log"
 private const val LIMIT = 100
-private const val TIMEOUT = 30
 private const val RUN_ID = 20231120152344L
 
 private const val LOG_VALUES_PLACEHOLDER = "<<log_values>>"
@@ -333,7 +351,6 @@ private fun WireMockServer.lokiConfig(): LokiConfig =
         serverUrl = lokiUrl(),
         namespace = NAMESPACE,
         limit = LIMIT,
-        timeoutSec = TIMEOUT,
         username = null,
         password = null
     )
