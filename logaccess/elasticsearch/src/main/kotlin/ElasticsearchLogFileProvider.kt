@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.logaccess.elasticsearch
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
 import io.ktor.client.plugins.auth.providers.basic
@@ -53,6 +51,7 @@ import kotlinx.serialization.json.putJsonObject
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
+import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 
 import org.slf4j.LoggerFactory
 
@@ -210,7 +209,7 @@ class ElasticsearchLogFileProvider(
      * Create an [HttpClient] with a configuration to communicate with Elasticsearch.
      */
     private fun createClient(): HttpClient =
-        HttpClient(OkHttp) {
+        createHttpClient(ElasticsearchConfig.HTTP_CLIENT_OVERRIDES_PATH) {
             install(ContentNegotiation) {
                 json(
                     Json {
@@ -230,13 +229,6 @@ class ElasticsearchLogFileProvider(
                         sendWithoutRequest { true }
                     }
                 }
-            }
-
-            install(HttpTimeout) {
-                val httpClientTimeoutMillis = config.timeoutSec * 1000L
-                requestTimeoutMillis = httpClientTimeoutMillis
-                connectTimeoutMillis = httpClientTimeoutMillis
-                socketTimeoutMillis = httpClientTimeoutMillis
             }
 
             expectSuccess = true

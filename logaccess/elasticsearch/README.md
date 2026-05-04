@@ -47,7 +47,6 @@ logFileService {
   elasticsearchNamespace = "prod"
   elasticsearchPageSize = 1000
   elasticsearchApiKey = "base64-api-key"
-  elasticsearchTimeoutSec = 30
 }
 ```
 
@@ -65,6 +64,8 @@ Supported properties:
 | `elasticsearchTimeoutSec` | `ELASTICSEARCH_TIMEOUT_SEC` | Optional request timeout in seconds. | `30` | no |
 
 If both Basic Auth credentials and an API key are configured, the API key is used and Basic Auth is ignored.
+
+In addition, default properties of the HTTP client that is used to send requests to the Elasticsearch API can be configured in an `elasticsearchHttpClient` section.
 
 ## Query Behavior
 
