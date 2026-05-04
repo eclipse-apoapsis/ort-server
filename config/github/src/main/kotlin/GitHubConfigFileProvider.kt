@@ -23,7 +23,6 @@ import com.typesafe.config.Config
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -55,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
@@ -140,6 +140,9 @@ class GitHubConfigFileProvider(
          */
         const val JSON_CONTENT_TYPE_HEADER = "application/json"
 
+        /** The path in the application configuration that contains GitHub-specific HTTP client overrides. */
+        const val HTTP_CLIENT_OVERRIDES_PATH = "gitHubHttpClient"
+
         /** The default URL to the GitHub REST API. */
         private const val DEFAULT_GITHUB_API_URL = "https://api.github.com"
 
@@ -188,11 +191,12 @@ class GitHubConfigFileProvider(
         /**
          * Create the HTTP client to be used for all requests against the GitHub REST API.
          */
-        private fun createClient(secretProvider: ConfigSecretProvider): HttpClient = HttpClient(OkHttp) {
-            defaultRequest {
-                header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
+        private fun createClient(secretProvider: ConfigSecretProvider): HttpClient =
+            createHttpClient(HTTP_CLIENT_OVERRIDES_PATH) {
+                defaultRequest {
+                    header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
+                }
             }
-        }
 
         /**
          * Create the cache for configuration data based on the given [config].

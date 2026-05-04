@@ -29,10 +29,10 @@ dependencies {
     api(libs.typesafeConfig)
 
     implementation(projects.config.configSpi)
+    implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(ktorLibs.client.okhttp)
     implementation(ktorLibs.io)
     implementation(ktorLibs.serialization.kotlinx.json)
 
