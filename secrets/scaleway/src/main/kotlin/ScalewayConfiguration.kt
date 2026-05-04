@@ -33,6 +33,9 @@ internal const val NAME_OF_REGION = "scwRegion"
 internal const val NAME_OF_SECRET_KEY = "scwSecretKey"
 internal const val NAME_OF_PROJECT_ID = "scwProjectId"
 
+/** The path in the application configuration that contains Scaleway-specific HTTP client overrides. */
+const val SCALEWAY_HTTP_CLIENT_OVERRIDES_PATH = "scalewayHttpClient"
+
 data class ScalewayConfiguration(
     val serverUrl: String = DEFAULT_SERVER_URL,
     val apiVersion: ScalewayApiVersion = DEFAULT_API_VERSION,

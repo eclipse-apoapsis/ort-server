@@ -30,12 +30,12 @@ group = "org.eclipse.apoapsis.ortserver.secrets"
 
 dependencies {
     implementation(projects.secrets.secretsSpi)
+    implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(ktorLibs.client.contentNegotiation)
     implementation(ktorLibs.client.core)
-    implementation(ktorLibs.client.okhttp)
     implementation(ktorLibs.serialization.kotlinx.json)
 
     testImplementation(testFixtures(projects.config.configSpi))

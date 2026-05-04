@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.secrets.scaleway
 
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -50,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
@@ -72,7 +71,7 @@ class ScalewaySecretsProvider(
     }
 
     private val client by lazy {
-        HttpClient(OkHttp) {
+        createHttpClient(SCALEWAY_HTTP_CLIENT_OVERRIDES_PATH) {
             defaultRequest {
                 // For the general endpoint pattern see https://www.scaleway.com/en/developers/api/#endpoints.
                 val serverUrl = config.serverUrl.removeSuffix("/")
