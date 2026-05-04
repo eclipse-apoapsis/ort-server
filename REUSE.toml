@@ -206,6 +206,11 @@ SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "ui/src/assets/software-heritage-logo.svg"
+SPDX-FileCopyrightText = "Software Heritage (see <https://www.softwareheritage.org/communication-kit/>)"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
 path = "ui/src/assets/spdx-logo-color.svg"
 SPDX-FileCopyrightText = "2011 The Linux Foundation"
 SPDX-License-Identifier = "CC-BY-3.0"
