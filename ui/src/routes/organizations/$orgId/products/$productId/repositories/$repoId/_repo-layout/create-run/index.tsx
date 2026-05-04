@@ -268,6 +268,25 @@ const CreateRunPage = () => {
             />
             <FormField
               control={form.control}
+              name='environmentConfigPath'
+              render={({ field }) => (
+                <FormItem className='pt-4'>
+                  <FormLabel>Environment configuration path</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
+                  <FormDescription>
+                    The optional path to an environment configuration file. If
+                    this is not defined, the environment configuration is read
+                    from the default location
+                    <InlineCode>.ort.env.yml</InlineCode>.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name='jobConfigs.ruleSet'
               render={({ field }) => (
                 <FormItem className='pt-4'>

@@ -169,6 +169,7 @@ export const createRunFormSchema = (
     }),
     labels: z.array(keyValueSchema).optional(),
     jobConfigContext: z.string().optional(),
+    environmentConfigPath: z.string().optional(),
   });
 };
 
