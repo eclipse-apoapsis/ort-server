@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.Vul
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
+import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
@@ -201,6 +202,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::RuleViolationService)
     singleOf(::SearchService)
     singleOf(::SecretService)
+    singleOf(::SnippetFindingService)
     singleOf(::IssueResolutionEventStore)
     singleOf(::IssueResolutionService)
     singleOf(::RuleViolationResolutionEventStore)

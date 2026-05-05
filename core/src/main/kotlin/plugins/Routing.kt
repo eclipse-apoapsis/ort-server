@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.routes.resolutionRo
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.components.serversettings.serverSettingsRoutes
+import org.eclipse.apoapsis.ortserver.components.snippetfindings.snippetFindingRoutes
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.secretsCompositionRoutes
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.authentication
@@ -74,6 +75,7 @@ fun Application.configureRouting() {
                     secretsCompositionRoutes(get(), get())
                     secretsRoutes(get(), get())
                     serverSettingsRoutes(get())
+                    snippetFindingRoutes(get(), get())
                     versions()
                 }
             }
