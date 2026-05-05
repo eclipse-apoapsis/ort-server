@@ -54,6 +54,23 @@ import { cn } from '@/lib/utils';
 
 export type ScannerScope = 'both' | 'packages' | 'projects';
 
+const UNDEFINED_SECRET_VALUE = '__undefined_secret__';
+
+function mapSecretSelectValue(value: string | undefined): string | undefined {
+  return value === UNDEFINED_SECRET_VALUE ? undefined : value;
+}
+
+function getSecretSelectDisplayValue(
+  value: string | undefined,
+  isRequired: boolean
+): string | undefined {
+  if (value === undefined) {
+    return isRequired ? undefined : UNDEFINED_SECRET_VALUE;
+  }
+
+  return value;
+}
+
 type PluginMultiSelectFieldProps<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, Array<string>>,
@@ -294,15 +311,27 @@ export const PluginMultiSelectField = <
                                 </FormMessage>
                               ) : (
                                 <Select
-                                  onValueChange={field.onChange}
+                                  onValueChange={(value) => {
+                                    field.onChange(mapSecretSelectValue(value));
+                                  }}
                                   defaultValue={undefined}
-                                  value={field.value}
+                                  value={getSecretSelectDisplayValue(
+                                    field.value,
+                                    option.isRequired
+                                  )}
                                   disabled={option.isFixed}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder='Select a secret' />
                                   </SelectTrigger>
                                   <SelectContent>
+                                    {!option.isRequired && (
+                                      <SelectItem
+                                        value={UNDEFINED_SECRET_VALUE}
+                                      >
+                                        Not defined
+                                      </SelectItem>
+                                    )}
                                     {secrets.map((secret) => (
                                       <SelectItem
                                         key={secret.name}
@@ -372,3 +401,35 @@ export const PluginMultiSelectField = <
     />
   );
 };
+
+if (import.meta.vitest) {
+  const { describe, expect, it } = import.meta.vitest;
+
+  describe('mapSecretSelectValue', () => {
+    it('maps the explicit not defined option to undefined', () => {
+      expect(mapSecretSelectValue(UNDEFINED_SECRET_VALUE)).toBeUndefined();
+    });
+
+    it('keeps actual secret names unchanged', () => {
+      expect(mapSecretSelectValue('apiKeySCANOSS')).toBe('apiKeySCANOSS');
+    });
+  });
+
+  describe('getSecretSelectDisplayValue', () => {
+    it('maps undefined to the explicit not defined option for optional fields', () => {
+      expect(getSecretSelectDisplayValue(undefined, false)).toBe(
+        UNDEFINED_SECRET_VALUE
+      );
+    });
+
+    it('keeps undefined for required fields so the placeholder is shown', () => {
+      expect(getSecretSelectDisplayValue(undefined, true)).toBeUndefined();
+    });
+
+    it('keeps actual secret names unchanged', () => {
+      expect(getSecretSelectDisplayValue('apiKeySCANOSS', false)).toBe(
+        'apiKeySCANOSS'
+      );
+    });
+  });
+}
