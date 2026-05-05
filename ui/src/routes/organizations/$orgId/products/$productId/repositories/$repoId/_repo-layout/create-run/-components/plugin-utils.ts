@@ -187,7 +187,8 @@ export function reconstructScannerSelection(
     scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
     config: Record<string, PluginConfig>;
   },
-  scannerPluginDefaultValues: Record<string, PluginConfig>
+  scannerPluginDefaultValues: Record<string, PluginConfig>,
+  lastRunConfig?: { [p: string]: PluginConfig } | null
 ): {
   scanners: string[];
   scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
@@ -226,7 +227,7 @@ export function reconstructScannerSelection(
   return {
     scanners: allScannerIds,
     scannerScopes,
-    config: mergePluginConfigs(undefined, scannerPluginDefaultValues),
+    config: mergePluginConfigs(lastRunConfig, scannerPluginDefaultValues),
   };
 }
 
@@ -329,58 +330,110 @@ export function createPluginPayload(
 }
 
 if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest;
+  const { expect, it } = import.meta.vitest;
 
-  describe('getPluginDefaultValues', () => {
-    it('ignores default values for secret options', () => {
-      const defaults = getPluginDefaultValues([
-        {
-          id: 'SCANOSS',
-          type: 'SCANNER',
-          displayName: 'SCANOSS',
-          description: 'A scanner plugin.',
-          options: [
-            {
-              name: 'apiKey',
-              description: 'The API key.',
-              type: 'SECRET',
-              defaultValue: 'server-side-default-secret',
-              isFixed: false,
-              isNullable: false,
-              isRequired: false,
-            },
-          ],
-        },
-      ]);
+  it('getPluginDefaultValues ignores default values for secret options', () => {
+    const defaults = getPluginDefaultValues([
+      {
+        id: 'SCANOSS',
+        type: 'SCANNER',
+        displayName: 'SCANOSS',
+        description: 'A scanner plugin.',
+        options: [
+          {
+            name: 'apiKey',
+            description: 'The API key.',
+            type: 'SECRET',
+            defaultValue: 'server-side-default-secret',
+            isFixed: false,
+            isNullable: false,
+            isRequired: false,
+          },
+        ],
+      },
+    ]);
 
-      expect(defaults.SCANOSS?.secrets).toEqual({});
-    });
+    expect(defaults.SCANOSS?.secrets).toEqual({});
   });
 
-  describe('createPluginPayload', () => {
-    it('omits blank secret values from the payload', () => {
-      const payload = createPluginPayload(
-        {
-          SCANOSS: {
-            options: {
-              apiUrl: 'https://api.osskb.org',
-            },
-            secrets: {
-              apiKey: '',
-            },
-          },
-        },
-        ['SCANOSS']
-      );
-
-      expect(payload).toEqual({
+  it('createPluginPayload omits blank secret values from the payload', () => {
+    const payload = createPluginPayload(
+      {
         SCANOSS: {
           options: {
             apiUrl: 'https://api.osskb.org',
           },
+          secrets: {
+            apiKey: '',
+          },
+        },
+      },
+      ['SCANOSS']
+    );
+
+    expect(payload).toEqual({
+      SCANOSS: {
+        options: {
+          apiUrl: 'https://api.osskb.org',
+        },
+        secrets: {},
+      },
+    });
+  });
+
+  it('reconstructScannerSelection preserves last run scanner config values on rerun', () => {
+    const defaults = {
+      scanners: ['ScanCode'],
+      scannerScopes: {
+        ScanCode: 'both' as const,
+      },
+      config: {
+        SCANOSS: {
+          options: {
+            apiUrl: 'https://api.osskb.org',
+            writeToStorage: 'true',
+          },
           secrets: {},
         },
-      });
+      },
+    };
+
+    const result = reconstructScannerSelection(
+      ['SCANOSS'],
+      ['SCANOSS'],
+      defaults,
+      defaults.config,
+      {
+        SCANOSS: {
+          options: {
+            apiUrl: 'http://api.scanoss.com',
+            writeToStorage: 'false',
+            enablePathObfuscation: 'true',
+          },
+          secrets: {
+            apiKey: 'apiKeySecretRef',
+          },
+        },
+      }
+    );
+
+    expect(result).toEqual({
+      scanners: ['SCANOSS'],
+      scannerScopes: {
+        SCANOSS: 'both',
+      },
+      config: {
+        SCANOSS: {
+          options: {
+            apiUrl: 'http://api.scanoss.com',
+            writeToStorage: 'false',
+            enablePathObfuscation: 'true',
+          },
+          secrets: {
+            apiKey: 'apiKeySecretRef',
+          },
+        },
+      },
     });
   });
 }
