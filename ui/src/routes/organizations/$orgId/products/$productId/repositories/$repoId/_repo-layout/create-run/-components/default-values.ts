@@ -262,7 +262,8 @@ export function defaultValues(
               ortRun.jobConfigs.scanner?.scanners ?? null,
               ortRun.jobConfigs.scanner?.projectScanners ?? null,
               scannerDefaults,
-              scannerPluginDefaultValues
+              scannerPluginDefaultValues,
+              ortRun.jobConfigs.scanner?.config
             ),
           },
           evaluator: {
