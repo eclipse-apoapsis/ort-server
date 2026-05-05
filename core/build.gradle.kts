@@ -110,6 +110,12 @@ dependencies {
             requireCapability("$group:routes:$version")
         }
     }
+    implementation(projects.components.snippetFindings.snippetFindingsBackend)
+    implementation(projects.components.snippetFindings.snippetFindingsBackend) {
+        capabilities {
+            requireCapability("$group:routes:$version")
+        }
+    }
     implementation(projects.compositions.secretsRoutes)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
