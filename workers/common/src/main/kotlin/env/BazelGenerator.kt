@@ -31,7 +31,7 @@ internal const val BAZEL_RC_FILE_NAME = ".bazelrc"
  * class generates the file with the credentials to be consumed by this Credential Helper. The file uses the same syntax
  * as Git's .git-credentials file (https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage). To activate the
  * Credential Helper in Bazel, it has to be referenced in a .bazelrc file in the home directory. This generator creates
- * this file as well. It assumes that the Credential Helper is installed under the path /opt/bazel - this has to be
+ * this file as well. It assumes that the Credential Helper is installed under the path /opt/bazel/bin - this has to be
  * aligned with the build of the container images.
  */
 class BazelGenerator : EnvironmentConfigGenerator<BazelDefinition> {
@@ -47,7 +47,7 @@ class BazelGenerator : EnvironmentConfigGenerator<BazelDefinition> {
         }
 
         builder.buildInUserHome(BAZEL_RC_FILE_NAME) {
-            println("common --credential_helper=/opt/bazel/bazel_cred_wrapper.sh")
+            println("common --credential_helper=/opt/bazel/bin/bazel-credential-helper")
         }
     }
 }
