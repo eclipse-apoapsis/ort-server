@@ -94,7 +94,10 @@ export function buildSwhBrowseUrl(
     path,
     ...swhVersionParam(pkg),
   });
-  return `${SWH_BROWSE_BASE}?${params.toString()}#L${startLine}-L${endLine}`;
+  const fragment =
+    startLine === endLine ? `L${startLine}` : `L${startLine}-L${endLine}`;
+
+  return `${SWH_BROWSE_BASE}?${params.toString()}#${fragment}`;
 }
 
 if (import.meta.vitest) {
@@ -129,9 +132,17 @@ if (import.meta.vitest) {
 
   it('buildSwhBrowseUrl: npm scoped package', () => {
     expect(
-      buildSwhBrowseUrl('pkg:npm/%40types/node@18.0.0', 'index.d.ts', 1, 1)
+      buildSwhBrowseUrl('pkg:npm/%40types/node@18.0.0', 'index.d.ts', 1, 5)
     ).toBe(
-      'https://archive.softwareheritage.org/browse/content/?origin_url=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40types%2Fnode&path=index.d.ts&release=18.0.0#L1-L1'
+      'https://archive.softwareheritage.org/browse/content/?origin_url=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40types%2Fnode&path=index.d.ts&release=18.0.0#L1-L5'
+    );
+  });
+
+  it('buildSwhBrowseUrl: single-line finding uses plain #L fragment', () => {
+    expect(
+      buildSwhBrowseUrl('pkg:npm/apache-log2@1.1.0', 'package/README.md', 8, 8)
+    ).toBe(
+      'https://archive.softwareheritage.org/browse/content/?origin_url=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fapache-log2&path=package%2FREADME.md&release=1.1.0#L8'
     );
   });
 
