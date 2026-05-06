@@ -87,7 +87,7 @@ internal val fullJobConfigurations = JobConfigurations(
             environmentDefinitions = mapOf(
                 "maven" to listOf(
                     mapOf(
-                        "keycloak/service" to "Artifactory",
+                        "service" to "Artifactory",
                         "id" to "repo"
                     )
                 )
