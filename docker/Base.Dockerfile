@@ -21,7 +21,25 @@
 # This is a common base image for all ORT Server images requiring Java. It provides some base functionality like
 # setting file permissions for the user, setting up certificates, etc. And, it defines the temurin base image.
 
+ARG CREDENTIAL_HELPER_VERSION=0.2.0
 ARG TEMURIN_VERSION=21.0.10_7-jdk-jammy@sha256:25d1276565738d3c805e632a4542c3a7598866ef967f4def6544c15de3a74b14
+
+FROM alpine:3.21 AS credential-helper
+
+ARG CREDENTIAL_HELPER_VERSION
+ENV BAZEL_HOME=/opt/bazel
+
+RUN apk add --no-cache curl ca-certificates
+
+RUN mkdir -p $BAZEL_HOME/bin \
+    && if [ "$(arch)" = "aarch64" ]; then \
+    curl -L https://github.com/eclipse-apoapsis/ort-server-credential-helper/releases/download/$CREDENTIAL_HELPER_VERSION/bazel-credential-helper-linux-arm64.tar.gz -o /tmp/bazel-credential-helper.tar.gz; \
+    else \
+    curl -L https://github.com/eclipse-apoapsis/ort-server-credential-helper/releases/download/$CREDENTIAL_HELPER_VERSION/bazel-credential-helper-linux-x64.tar.gz -o /tmp/bazel-credential-helper.tar.gz; \
+    fi \
+    && tar xvzf /tmp/bazel-credential-helper.tar.gz --directory=$BAZEL_HOME/bin/ \
+    && mv $BAZEL_HOME/bin/credentialhelper.kexe $BAZEL_HOME/bin/bazel-credential-helper \
+    && chmod a+x $BAZEL_HOME/bin/bazel-credential-helper
 
 FROM eclipse-temurin:$TEMURIN_VERSION
 
@@ -96,5 +114,7 @@ RUN /etc/scripts/export_proxy_certificates.sh /tmp/certificates/ \
 
 USER $USER
 WORKDIR $HOME
+
+COPY --from=credential-helper --chown=$USERNAME:$USERNAME /opt/bazel /opt/bazel
 
 ENTRYPOINT [ "/bin/bash" ]
