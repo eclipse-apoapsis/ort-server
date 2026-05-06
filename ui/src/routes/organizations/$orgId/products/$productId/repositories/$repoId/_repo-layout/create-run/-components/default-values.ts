@@ -90,7 +90,6 @@ export function defaultValues(
     scannerScopes: {
       ScanCode: 'both' as const,
     } as Record<string, 'both' | 'packages' | 'projects'>,
-    config: scannerPluginDefaultValues,
   };
 
   // Default values for the form: edit only these, not the defaultValues object.
@@ -149,8 +148,9 @@ export function defaultValues(
         enabled: true,
         skipConcluded: true,
         skipExcluded: true,
-        keepAliveWorker: false,
         ...scannerDefaults,
+        config: scannerPluginDefaultValues,
+        keepAliveWorker: false,
       },
       evaluator: {
         enabled: true,
@@ -262,9 +262,11 @@ export function defaultValues(
             ...reconstructScannerSelection(
               ortRun.jobConfigs.scanner?.scanners ?? null,
               ortRun.jobConfigs.scanner?.projectScanners ?? null,
-              scannerDefaults,
-              scannerPluginDefaultValues,
-              ortRun.jobConfigs.scanner?.config
+              scannerDefaults
+            ),
+            config: mergePluginConfigs(
+              ortRun.jobConfigs.scanner?.config,
+              scannerPluginDefaultValues
             ),
           },
           evaluator: {
@@ -311,4 +313,44 @@ export function defaultValues(
           ortRun.environmentConfigPath || baseDefaults.environmentConfigPath,
       }
     : baseDefaults;
+}
+
+if (import.meta.vitest) {
+  const { expect, it } = import.meta.vitest;
+
+  it('uses scanner plugin default values for fresh runs', () => {
+    const defaults = defaultValues(
+      null,
+      [],
+      [
+        {
+          id: 'DOS',
+          type: 'SCANNER',
+          displayName: 'Double Open Server',
+          description: 'A scanner plugin.',
+          options: [
+            {
+              name: 'url',
+              description: 'Backend URL.',
+              type: 'STRING',
+              defaultValue: 'https://dos-api.example/api/',
+              isFixed: true,
+              isNullable: false,
+              isRequired: true,
+            },
+          ],
+        },
+      ],
+      false
+    );
+
+    expect(defaults.jobConfigs.scanner.config).toEqual({
+      DOS: {
+        options: {
+          url: 'https://dos-api.example/api/',
+        },
+        secrets: {},
+      },
+    });
+  });
 }
