@@ -383,7 +383,7 @@ export const PluginMultiSelectField = <
                             )}
                           </FormControl>
                           {option.isFixed && (
-                            <FormDescription className='text-muted-foreground font-semibold text-yellow-700'>
+                            <FormDescription className='font-semibold text-yellow-700'>
                               This option is set by an administrator and cannot
                               be changed.
                             </FormDescription>
