@@ -41,6 +41,18 @@ RUN mkdir -p $BAZEL_HOME/bin \
     && mv $BAZEL_HOME/bin/credentialhelper.kexe $BAZEL_HOME/bin/bazel-credential-helper \
     && chmod a+x $BAZEL_HOME/bin/bazel-credential-helper
 
+ENV GIT_HOME=/opt/git
+
+RUN mkdir -p $GIT_HOME/bin \
+    && if [ "$(arch)" = "aarch64" ]; then \
+    curl -L https://github.com/eclipse-apoapsis/ort-server-credential-helper/releases/download/$CREDENTIAL_HELPER_VERSION/git-credential-helper-linux-arm64.tar.gz -o /tmp/git-credential-helper.tar.gz; \
+    else \
+    curl -L https://github.com/eclipse-apoapsis/ort-server-credential-helper/releases/download/$CREDENTIAL_HELPER_VERSION/git-credential-helper-linux-x64.tar.gz -o /tmp/git-credential-helper.tar.gz; \
+    fi \
+    && tar xvzf /tmp/git-credential-helper.tar.gz --directory=$GIT_HOME/bin/ \
+    && mv $GIT_HOME/bin/credentialhelper.kexe $GIT_HOME/bin/git-credential-helper \
+    && chmod a+x $GIT_HOME/bin/git-credential-helper
+
 FROM eclipse-temurin:$TEMURIN_VERSION
 
 ENV LANG=en_US.UTF-8
@@ -116,5 +128,6 @@ USER $USER
 WORKDIR $HOME
 
 COPY --from=credential-helper --chown=$USERNAME:$USERNAME /opt/bazel /opt/bazel
+COPY --from=credential-helper --chown=$USERNAME:$USERNAME /opt/git /opt/git
 
 ENTRYPOINT [ "/bin/bash" ]
