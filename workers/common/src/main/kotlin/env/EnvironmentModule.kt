@@ -53,6 +53,7 @@ fun buildEnvironmentModule(includePackageManagerGenerators: Boolean = false): Mo
                 add(GitCredentialsGenerator())
 
                 if (includePackageManagerGenerators) {
+                    add(BazelGenerator())
                     add(ConanGenerator())
                     add(GradleInitGenerator())
                     add(MavenSettingsGenerator())
