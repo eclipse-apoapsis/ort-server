@@ -185,14 +185,10 @@ export function reconstructScannerSelection(
   baseDefaults: {
     scanners: string[];
     scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
-    config: Record<string, PluginConfig>;
-  },
-  scannerPluginDefaultValues: Record<string, PluginConfig>,
-  lastRunConfig?: { [p: string]: PluginConfig } | null
+  }
 ): {
   scanners: string[];
   scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
-  config: Record<string, PluginConfig>;
 } {
   const hasProjectScannerOverride =
     apiProjectScanners != null && apiProjectScanners.length > 0;
@@ -201,7 +197,6 @@ export function reconstructScannerSelection(
     return {
       scanners: baseDefaults.scanners,
       scannerScopes: baseDefaults.scannerScopes,
-      config: baseDefaults.config,
     };
   }
 
@@ -227,7 +222,6 @@ export function reconstructScannerSelection(
   return {
     scanners: allScannerIds,
     scannerScopes,
-    config: mergePluginConfigs(lastRunConfig, scannerPluginDefaultValues),
   };
 }
 
@@ -381,58 +375,24 @@ if (import.meta.vitest) {
     });
   });
 
-  it('reconstructScannerSelection preserves last run scanner config values on rerun', () => {
+  it('reconstructScannerSelection rebuilds scanner scopes for rerun values', () => {
     const defaults = {
       scanners: ['ScanCode'],
       scannerScopes: {
         ScanCode: 'both' as const,
-      },
-      config: {
-        SCANOSS: {
-          options: {
-            apiUrl: 'https://api.osskb.org',
-            writeToStorage: 'true',
-          },
-          secrets: {},
-        },
       },
     };
 
     const result = reconstructScannerSelection(
       ['SCANOSS'],
       ['SCANOSS'],
-      defaults,
-      defaults.config,
-      {
-        SCANOSS: {
-          options: {
-            apiUrl: 'http://api.scanoss.com',
-            writeToStorage: 'false',
-            enablePathObfuscation: 'true',
-          },
-          secrets: {
-            apiKey: 'apiKeySecretRef',
-          },
-        },
-      }
+      defaults
     );
 
     expect(result).toEqual({
       scanners: ['SCANOSS'],
       scannerScopes: {
         SCANOSS: 'both',
-      },
-      config: {
-        SCANOSS: {
-          options: {
-            apiUrl: 'http://api.scanoss.com',
-            writeToStorage: 'false',
-            enablePathObfuscation: 'true',
-          },
-          secrets: {
-            apiKey: 'apiKeySecretRef',
-          },
-        },
       },
     });
   });
