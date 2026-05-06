@@ -105,7 +105,7 @@ class BazelGeneratorTest : WordSpec({
 
 private fun MockConfigFileBuilder.checkBazelRcFileContent() {
     val expectedLines = listOf(
-        "common --credential_helper=/opt/bazel/bazel_cred_wrapper.sh"
+        "common --credential_helper=/opt/bazel/bin/bazel-credential-helper"
     )
     val lines = generatedLinesFor(homeFileName = BAZEL_RC_FILE_NAME)
     lines shouldContainExactly expectedLines
