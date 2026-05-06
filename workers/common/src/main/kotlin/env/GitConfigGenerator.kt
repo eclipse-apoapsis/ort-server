@@ -97,7 +97,8 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
                     // If there are any Git credentials defined, create a `[credential]` section.
                     if (hasCredentials) {
                         println("[credential]")
-                        println("\thelper = store")
+                        println("\thelper = /opt/git/bin/git-credential-helper")
+                        println("\tuseHttpPath = true")
                         GeneratorLogger.entryAdded("[credential]\n\thelper = store", GIT_CONFIG_FILE_NAME)
                     }
 
