@@ -87,7 +87,8 @@ class GitConfigGeneratorTest : WordSpec({
 
             lines shouldContainExactly listOf(
                 "[credential]",
-                "\thelper = store"
+                "\thelper = /opt/git/bin/git-credential-helper",
+                "\tuseHttpPath = true"
             )
         }
 
@@ -113,7 +114,8 @@ class GitConfigGeneratorTest : WordSpec({
 
             lines shouldContainExactly listOf(
                 "[credential]",
-                "\thelper = store",
+                "\thelper = /opt/git/bin/git-credential-helper",
+                "\tuseHttpPath = true",
                 "[url \"https://github.com\"]",
                 "\tinsteadOf = \"ssh://git@github.com\"",
                 "[url \"https://github.com/\"]",
