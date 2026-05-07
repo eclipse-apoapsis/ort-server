@@ -83,8 +83,9 @@ import {
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
+  getResolutionAccordionDefaultValue,
+  getResolutionAccordionLabel,
   getResolvedStatus,
-  hasVulnerabilityResolutionActivity,
 } from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
@@ -428,19 +429,16 @@ const VulnerabilitiesComponent = () => {
   const renderSubComponent = useCallback(
     ({ row }: { row: Row<VulnerabilityWithDetails> }) => {
       const vulnerability = row.original.vulnerability;
-      const hasAnyResolution = hasVulnerabilityResolutionActivity(row.original);
 
       return (
         <Accordion
           type='multiple'
           className='w-full'
-          defaultValue={
-            hasAnyResolution ? ['resolutions'] : ['resolutions', 'details']
-          }
+          defaultValue={getResolutionAccordionDefaultValue(row.original)}
         >
           <AccordionItem value='resolutions'>
             <AccordionTrigger className='font-semibold'>
-              {hasAnyResolution ? 'Resolutions' : 'Create a resolution'}
+              {getResolutionAccordionLabel(row.original)}
             </AccordionTrigger>
             <AccordionContent>
               <Resolutions
