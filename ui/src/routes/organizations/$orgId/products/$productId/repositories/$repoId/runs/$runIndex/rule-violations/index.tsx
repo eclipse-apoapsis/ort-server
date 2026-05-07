@@ -87,6 +87,7 @@ import {
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
+  ruleSearchParameterSchema,
   severitySearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -196,6 +197,37 @@ const RuleViolationsComponent = () => {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+
+  const { data: ortRun } = useSuspenseQuery({
+    ...getRepositoryRunOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      },
+    }),
+  });
+
+  const { data: ruleViolations } = useSuspenseQuery({
+    ...getRunRuleViolationsOptions({
+      path: { runId: ortRun.id },
+      query: { limit: ALL_ITEMS },
+    }),
+  });
+
+  const ruleOptions = useMemo(
+    () =>
+      [
+        ...new Set(
+          ruleViolations.data.map((ruleViolation) => ruleViolation.rule)
+        ),
+      ]
+        .sort((a, b) => a.localeCompare(b))
+        .map((rule) => ({
+          label: rule,
+          value: rule,
+        })),
+    [ruleViolations.data]
+  );
 
   const columns = [
     columnHelper.display({
@@ -327,7 +359,25 @@ const RuleViolationsComponent = () => {
 
     columnHelper.accessor('rule', {
       header: 'Rule',
-      enableColumnFilter: false,
+      filterFn: (row, _columnId, filterValue): boolean => {
+        return filterValue.includes(row.original.rule);
+      },
+      meta: {
+        filter: {
+          filterVariant: 'select',
+          selectOptions: ruleOptions,
+          setSelected: (rules: string[]) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                rule: rules.length === 0 ? undefined : rules,
+              },
+            });
+          },
+          align: 'end',
+        },
+      },
     }),
   ];
 
@@ -358,6 +408,11 @@ const RuleViolationsComponent = () => {
     [search.pkgId]
   );
 
+  const rules = useMemo(
+    () => (search.rule ? search.rule : undefined),
+    [search.rule]
+  );
+
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
   const columnFilters = useMemo(() => {
@@ -371,29 +426,16 @@ const RuleViolationsComponent = () => {
     if (packageIdentifier) {
       filters.push({ id: columnId, value: packageIdentifier });
     }
+    if (rules) {
+      filters.push({ id: 'rule', value: rules });
+    }
     return filters;
-  }, [severity, itemStatus, packageIdentifier, columnId]);
+  }, [severity, itemStatus, packageIdentifier, rules, columnId]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
     [search.sortBy]
   );
-
-  const { data: ortRun } = useSuspenseQuery({
-    ...getRepositoryRunOptions({
-      path: {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      },
-    }),
-  });
-
-  const { data: ruleViolations } = useSuspenseQuery({
-    ...getRunRuleViolationsOptions({
-      path: { runId: ortRun.id },
-      query: { limit: ALL_ITEMS },
-    }),
-  });
 
   const renderSubComponent = useCallback(
     ({ row }: { row: Row<RuleViolation> }) => {
@@ -542,6 +584,7 @@ export const Route = createFileRoute(
     ...severitySearchParameterSchema.shape,
     ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
+    ...ruleSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),

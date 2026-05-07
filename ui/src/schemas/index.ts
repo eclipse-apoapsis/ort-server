@@ -173,6 +173,13 @@ export const issueCategorySearchParameterSchema = z.object({
   category: z.array(issueCategorySchema).optional(),
 });
 
+export const ruleSearchParameterSchema = z.object({
+  rule: z
+    .array(z.string())
+    .refine((items) => new Set(items).size === items.length)
+    .optional(),
+});
+
 export const vulnerabilityRatingSearchParameterSchema = z.object({
   rating: z.array(zVulnerabilityRating).optional(),
 });
