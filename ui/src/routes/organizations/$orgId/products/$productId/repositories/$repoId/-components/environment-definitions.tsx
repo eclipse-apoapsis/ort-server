@@ -48,6 +48,9 @@ import {
   NpmAuthMode,
   npmAuthModes,
   npmEnvironmentDefinitions,
+  NuGetAuthMode,
+  nugetAuthModes,
+  nugetEnvironmentDefinitions,
 } from '@/lib/types';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
@@ -371,6 +374,156 @@ export const EnvironmentDefinitionsFields = ({
                       </Select>
                       <FormDescription>
                         Pick how the NPM registry authenticates requests.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionPrimitive.Item>
+        {/* NuGet */}
+        <AccordionPrimitive.Item value='nuget' className='rounded-lg border'>
+          <AccordionPrimitive.Header className='flex flex-row items-center'>
+            <AccordionPrimitive.Trigger className='focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center gap-2 px-4 py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] [&[data-state=open]>svg]:rotate-180'>
+              Enable NuGet environment definition
+              <ChevronDownIcon className='text-muted-foreground size-4 shrink-0 translate-y-0.5 transition-transform duration-200' />
+            </AccordionPrimitive.Trigger>
+            <div className='pr-4'>
+              <Switch
+                checked={enabledDefinitions['nuget'] ?? false}
+                onCheckedChange={(checked) =>
+                  onToggle(
+                    'nuget',
+                    checked,
+                    nugetEnvironmentDefinitions['nuget'] ?? []
+                  )
+                }
+              />
+            </div>
+          </AccordionPrimitive.Header>
+          <AccordionContent>
+            <div className='flex flex-col gap-4 px-4 pb-4'>
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.nuget.0.service'
+                render={({ field }) => {
+                  const selectedValue =
+                    typeof field.value === 'string' && field.value.length > 0
+                      ? field.value
+                      : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Service</FormLabel>
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select an infrastructure service' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {infrastructureServices.map((service) => (
+                            <SelectItem
+                              key={`${service.hierarchy}:${service.name}`}
+                              value={service.name}
+                            >
+                              {`${service.name} (${capitalize(service.hierarchy)})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select the infrastructure service from a chosen
+                        hierarchy level.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.nuget.0.sourceName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The name to assign to the package source.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.nuget.0.sourcePath'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source path</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The path or URL of the package source.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.nuget.0.sourceProtocolVersion'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source protocol version</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder='(optional)' />
+                    </FormControl>
+                    <FormDescription>
+                      NuGet server protocol version (e.g. 3). Defaults to 2 for
+                      non-JSON source URLs. Requires NuGet 3.0+.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.nuget.0.authMode'
+                render={({ field }) => {
+                  const selectedValue =
+                    typeof field.value === 'string' && field.value.length > 0
+                      ? (field.value as NuGetAuthMode)
+                      : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Authorization mode</FormLabel>
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select the authorization mode' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {nugetAuthModes.map((mode) => (
+                            <SelectItem key={mode} value={mode}>
+                              {mode.replaceAll('_', ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Authentication type for this package source.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

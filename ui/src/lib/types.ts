@@ -65,9 +65,27 @@ const conanEnvironmentDefinition = z
   })
   .catchall(z.string());
 
+export enum NuGetAuthMode {
+  PASSWORD = 'PASSWORD',
+  API_KEY = 'API_KEY',
+}
+
+export const nugetAuthModes = Object.values(NuGetAuthMode) as NuGetAuthMode[];
+
+const nugetEnvironmentDefinition = z
+  .object({
+    service: z.string(),
+    sourceName: z.string(),
+    sourcePath: z.string(),
+    sourceProtocolVersion: z.string().optional(),
+    authMode: z.enum(NuGetAuthMode),
+  })
+  .catchall(z.string());
+
 const environmentDefinitionValidators: Record<string, z.ZodTypeAny> = {
-  npm: npmEnvironmentDefinition,
   conan: conanEnvironmentDefinition,
+  npm: npmEnvironmentDefinition,
+  nuget: nugetEnvironmentDefinition,
 };
 
 export const environmentDefinitionsSchema =
@@ -116,6 +134,18 @@ export const conanEnvironmentDefinitions: EnvironmentDefinitions = {
       name: '',
       url: '',
       verifySsl: 'true',
+    },
+  ],
+};
+
+export const nugetEnvironmentDefinitions: EnvironmentDefinitions = {
+  nuget: [
+    {
+      service: '',
+      sourceName: '',
+      sourcePath: '',
+      sourceProtocolVersion: '',
+      authMode: NuGetAuthMode.API_KEY,
     },
   ],
 };
