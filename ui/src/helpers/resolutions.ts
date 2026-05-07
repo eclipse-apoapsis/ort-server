@@ -101,6 +101,42 @@ export function hasRuleViolationResolutionActivity(item: RuleViolation) {
   );
 }
 
+function hasResolutionActivity(item: ItemWithResolutions) {
+  if (isVulnerabilityItem(item)) {
+    return hasVulnerabilityResolutionActivity(item);
+  }
+
+  if (isRuleViolationItem(item)) {
+    return hasRuleViolationResolutionActivity(item);
+  }
+
+  if (isIssueItem(item)) {
+    return hasIssueResolutionActivity(item);
+  }
+
+  return false;
+}
+
+export function getResolutionAccordionDefaultValue(item: ItemWithResolutions) {
+  return hasResolutionActivity(item) ? ['resolutions'] : ['details'];
+}
+
+export function getResolutionAccordionLabel(item: ItemWithResolutions) {
+  if (isVulnerabilityItem(item)) {
+    return 'Resolve vulnerability';
+  }
+
+  if (isRuleViolationItem(item)) {
+    return 'Resolve rule violation';
+  }
+
+  if (isIssueItem(item)) {
+    return 'Resolve issue';
+  }
+
+  return 'Resolve item';
+}
+
 export function getResolvedStatus(
   item: ItemWithResolutions
 ): 'Resolved' | 'Unresolved' {
@@ -124,30 +160,85 @@ export function getResolvedStatus(
 // Unit tests.
 
 if (import.meta.vitest) {
-  const { describe, it, expect } = import.meta.vitest;
+  const { it, expect } = import.meta.vitest;
 
-  describe('getAppliedIssueResolutions', () => {
-    it('return applied server issue resolutions without re-filtering by message', () => {
-      const issue = {
-        source: 'Analyzer',
-        message: 'Rendered issue message',
-        resolutions: [
-          {
-            message:
-              'Persisted server resolution message that does not equal the rendered message',
-            messageHash: 'abc123',
-            reason: 'BUILD_TOOL_ISSUE',
-            comment: 'Persisted after rerun',
-            source: 'SERVER',
-            isDeleted: false,
-          },
-        ],
-        unappliedResolutions: [],
-      } as unknown as Issue;
+  it('return applied server issue resolutions without re-filtering by message', () => {
+    const issue = {
+      source: 'Analyzer',
+      message: 'Rendered issue message',
+      resolutions: [
+        {
+          message:
+            'Persisted server resolution message that does not equal the rendered message',
+          messageHash: 'abc123',
+          reason: 'BUILD_TOOL_ISSUE',
+          comment: 'Persisted after rerun',
+          source: 'SERVER',
+          isDeleted: false,
+        },
+      ],
+      unappliedResolutions: [],
+    } as unknown as Issue;
 
-      expect(getAppliedIssueResolutions(issue)).toStrictEqual(
-        issue.resolutions ?? []
-      );
-    });
+    expect(getAppliedIssueResolutions(issue)).toStrictEqual(
+      issue.resolutions ?? []
+    );
+  });
+
+  it('expand resolutions by default when an issue has pending resolutions', () => {
+    const issue = {
+      source: 'Analyzer',
+      message: 'Rendered issue message',
+      resolutions: [],
+      unappliedResolutions: [
+        {
+          message: 'Rendered issue message',
+          reason: 'BUILD_TOOL_ISSUE',
+          comment: 'Pending until rerun',
+          source: 'SERVER',
+        },
+      ],
+    } as unknown as Issue;
+
+    expect(getResolutionAccordionDefaultValue(issue)).toStrictEqual([
+      'resolutions',
+    ]);
+  });
+
+  it('expand details by default when a rule violation has no resolution activity', () => {
+    const ruleViolation = {
+      rule: 'TEST_RULE',
+      message: 'Rule violation message',
+      resolutions: [],
+      unappliedResolutions: [],
+    } as unknown as RuleViolation;
+
+    expect(getResolutionAccordionDefaultValue(ruleViolation)).toStrictEqual([
+      'details',
+    ]);
+  });
+
+  it('return an item-specific label', () => {
+    const issue = {
+      source: 'Analyzer',
+      message: 'Issue message',
+    } as unknown as Issue;
+    const ruleViolation = {
+      rule: 'TEST_RULE',
+      message: 'Rule violation message',
+    } as unknown as RuleViolation;
+    const vulnerability = {
+      vulnerability: {
+        externalId: 'CVE-2026-1234',
+      },
+    } as unknown as VulnerabilityWithDetails;
+
+    expect(getResolutionAccordionLabel(issue)).toBe('Resolve issue');
+    expect(getResolutionAccordionLabel(ruleViolation)).toBe(
+      'Resolve rule violation'
+    );
+    expect(getResolutionAccordionLabel(vulnerability)).toBe(
+      'Resolve vulnerability'
+    );
   });
 }

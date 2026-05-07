@@ -75,8 +75,9 @@ import {
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
+  getResolutionAccordionDefaultValue,
+  getResolutionAccordionLabel,
   getResolvedStatus,
-  hasRuleViolationResolutionActivity,
 } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
@@ -440,20 +441,16 @@ const RuleViolationsComponent = () => {
   const renderSubComponent = useCallback(
     ({ row }: { row: Row<RuleViolation> }) => {
       const ruleViolation = row.original;
-      const hasAnyResolution =
-        hasRuleViolationResolutionActivity(ruleViolation);
 
       return (
         <Accordion
           type='multiple'
           className='w-full'
-          defaultValue={
-            hasAnyResolution ? ['resolutions'] : ['resolutions', 'details']
-          }
+          defaultValue={getResolutionAccordionDefaultValue(ruleViolation)}
         >
           <AccordionItem value='resolutions'>
             <AccordionTrigger className='font-semibold'>
-              {hasAnyResolution ? 'Resolutions' : 'Create a resolution'}
+              {getResolutionAccordionLabel(ruleViolation)}
             </AccordionTrigger>
             <AccordionContent>
               <Resolutions

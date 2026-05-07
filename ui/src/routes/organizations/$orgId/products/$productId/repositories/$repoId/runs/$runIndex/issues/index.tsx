@@ -76,8 +76,9 @@ import {
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
+  getResolutionAccordionDefaultValue,
+  getResolutionAccordionLabel,
   getResolvedStatus,
-  hasIssueResolutionActivity,
 } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
@@ -447,19 +448,16 @@ const IssuesComponent = () => {
   const renderSubComponent = useCallback(
     ({ row }: { row: Row<Issue> }) => {
       const issue = row.original;
-      const hasAnyResolution = hasIssueResolutionActivity(issue);
 
       return (
         <Accordion
           type='multiple'
           className='w-full'
-          defaultValue={
-            hasAnyResolution ? ['resolutions'] : ['resolutions', 'details']
-          }
+          defaultValue={getResolutionAccordionDefaultValue(issue)}
         >
           <AccordionItem value='resolutions'>
             <AccordionTrigger className='font-semibold'>
-              {hasAnyResolution ? 'Resolutions' : 'Create a resolution'}
+              {getResolutionAccordionLabel(issue)}
             </AccordionTrigger>
             <AccordionContent>
               <Resolutions
