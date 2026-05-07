@@ -65,6 +65,10 @@ const conanEnvironmentDefinition = z
   })
   .catchall(z.string());
 
+const gradleEnvironmentDefinition = z
+  .object({ service: z.string() })
+  .catchall(z.string());
+
 export enum NuGetAuthMode {
   PASSWORD = 'PASSWORD',
   API_KEY = 'API_KEY',
@@ -84,6 +88,7 @@ const nugetEnvironmentDefinition = z
 
 const environmentDefinitionValidators: Record<string, z.ZodTypeAny> = {
   conan: conanEnvironmentDefinition,
+  gradle: gradleEnvironmentDefinition,
   npm: npmEnvironmentDefinition,
   nuget: nugetEnvironmentDefinition,
 };
@@ -136,6 +141,10 @@ export const conanEnvironmentDefinitions: EnvironmentDefinitions = {
       verifySsl: 'true',
     },
   ],
+};
+
+export const gradleEnvironmentDefinitions: EnvironmentDefinitions = {
+  gradle: [{ service: '' }],
 };
 
 export const nugetEnvironmentDefinitions: EnvironmentDefinitions = {
