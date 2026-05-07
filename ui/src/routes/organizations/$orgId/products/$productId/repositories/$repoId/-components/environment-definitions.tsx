@@ -53,6 +53,9 @@ import {
   NuGetAuthMode,
   nugetAuthModes,
   nugetEnvironmentDefinitions,
+  YarnAuthMode,
+  yarnAuthModes,
+  yarnEnvironmentDefinitions,
 } from '@/lib/types';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
@@ -700,6 +703,130 @@ export const EnvironmentDefinitionsFields = ({
                     </FormItem>
                   );
                 }}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionPrimitive.Item>
+        {/* Yarn */}
+        <AccordionPrimitive.Item value='yarn' className='rounded-lg border'>
+          <AccordionPrimitive.Header className='flex flex-row items-center'>
+            <AccordionPrimitive.Trigger className='focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center gap-2 px-4 py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] [&[data-state=open]>svg]:rotate-180'>
+              Enable Yarn environment definition
+              <ChevronDownIcon className='text-muted-foreground size-4 shrink-0 translate-y-0.5 transition-transform duration-200' />
+            </AccordionPrimitive.Trigger>
+            <div className='pr-4'>
+              <Switch
+                checked={enabledDefinitions['yarn'] ?? false}
+                onCheckedChange={(checked) =>
+                  onToggle(
+                    'yarn',
+                    checked,
+                    yarnEnvironmentDefinitions['yarn'] ?? []
+                  )
+                }
+              />
+            </div>
+          </AccordionPrimitive.Header>
+          <AccordionContent>
+            <div className='flex flex-col gap-4 px-4 pb-4'>
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.yarn.0.service'
+                render={({ field }) => {
+                  const selectedValue =
+                    typeof field.value === 'string' && field.value.length > 0
+                      ? field.value
+                      : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Service</FormLabel>
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select an infrastructure service' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {infrastructureServices.map((service) => (
+                            <SelectItem
+                              key={`${service.hierarchy}:${service.name}`}
+                              value={service.name}
+                            >
+                              {`${service.name} (${capitalize(service.hierarchy)})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select the infrastructure service from a chosen
+                        hierarchy level.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.yarn.0.authMode'
+                render={({ field }) => {
+                  const selectedValue =
+                    typeof field.value === 'string' && field.value.length > 0
+                      ? (field.value as YarnAuthMode)
+                      : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Authorization mode</FormLabel>
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select the authorization mode' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {yarnAuthModes.map((mode) => (
+                            <SelectItem key={mode} value={mode}>
+                              {mode.replaceAll('_', ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Authentication method for this private registry.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.yarn.0.alwaysAuth'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                    <div className='space-y-0.5'>
+                      <FormLabel>Always authenticate</FormLabel>
+                      <FormDescription>
+                        Always send authentication information to the registry
+                        via the <code>npmAlwaysAuth</code> property.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={(field.value ?? 'true') === 'true'}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? 'true' : 'false')
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
             </div>
           </AccordionContent>

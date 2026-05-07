@@ -94,12 +94,28 @@ const nugetEnvironmentDefinition = z
   })
   .catchall(z.string());
 
+export enum YarnAuthMode {
+  AUTH_IDENT = 'AUTH_IDENT',
+  AUTH_TOKEN = 'AUTH_TOKEN',
+}
+
+export const yarnAuthModes = Object.values(YarnAuthMode) as YarnAuthMode[];
+
+const yarnEnvironmentDefinition = z
+  .object({
+    service: z.string(),
+    authMode: z.enum(YarnAuthMode),
+    alwaysAuth: z.string().optional(),
+  })
+  .catchall(z.string());
+
 const environmentDefinitionValidators: Record<string, z.ZodTypeAny> = {
   conan: conanEnvironmentDefinition,
   gradle: gradleEnvironmentDefinition,
   maven: mavenEnvironmentDefinition,
   npm: npmEnvironmentDefinition,
   nuget: nugetEnvironmentDefinition,
+  yarn: yarnEnvironmentDefinition,
 };
 
 export const environmentDefinitionsSchema =
@@ -168,6 +184,16 @@ export const nugetEnvironmentDefinitions: EnvironmentDefinitions = {
       sourcePath: '',
       sourceProtocolVersion: '',
       authMode: NuGetAuthMode.API_KEY,
+    },
+  ],
+};
+
+export const yarnEnvironmentDefinitions: EnvironmentDefinitions = {
+  yarn: [
+    {
+      service: '',
+      authMode: YarnAuthMode.AUTH_TOKEN,
+      alwaysAuth: 'true',
     },
   ],
 };
