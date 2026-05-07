@@ -102,13 +102,20 @@ export function formValuesToPayload(
   // in the request body. If a job is disabled in the UI, we pass "undefined"
   // as the configuration for that job in the request body, in effect leaving
   // it empty, and thus disabling the job.
+  const allDefinitions = values.jobConfigs.analyzer.environmentDefinitions;
+  const enabledDefinitions =
+    values.jobConfigs.analyzer.environmentDefinitionsEnabled;
+  const filteredDefinitions: NonNullable<typeof allDefinitions> = {};
+  for (const [packageManager, entries] of Object.entries(
+    allDefinitions ?? {}
+  )) {
+    if (enabledDefinitions[packageManager] && entries.length > 0) {
+      filteredDefinitions[packageManager] = entries;
+    }
+  }
   const environmentDefinitions =
-    values.jobConfigs.analyzer.environmentDefinitionsEnabled &&
-    values.jobConfigs.analyzer.environmentDefinitions &&
-    Object.values(values.jobConfigs.analyzer.environmentDefinitions).some(
-      (entries) => entries.length > 0
-    )
-      ? values.jobConfigs.analyzer.environmentDefinitions
+    Object.keys(filteredDefinitions).length > 0
+      ? filteredDefinitions
       : undefined;
 
   const environmentVariables =

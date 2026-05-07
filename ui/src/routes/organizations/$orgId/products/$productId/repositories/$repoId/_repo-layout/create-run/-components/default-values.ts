@@ -103,7 +103,7 @@ export function defaultValues(
         allowDynamicVersions: true,
         skipExcluded: true,
         keepAliveWorker: false,
-        environmentDefinitionsEnabled: false,
+        environmentDefinitionsEnabled: {},
         environmentDefinitions: undefined,
         infrastructureServices: [],
         packageManagers: {
@@ -213,7 +213,11 @@ export function defaultValues(
             // defaultPackageManagerOptions gets the options from the previous run already in the
             // baseDefaults object, so those values can be used here.
             packageManagers: baseDefaults.jobConfigs.analyzer.packageManagers,
-            environmentDefinitionsEnabled: hasEnvironmentDefinitions,
+            environmentDefinitionsEnabled: Object.fromEntries(
+              Object.entries(parsedEnvironmentDefinitions ?? {}).map(
+                ([key, entries]) => [key, (entries?.length ?? 0) > 0]
+              )
+            ),
             environmentDefinitions: hasEnvironmentDefinitions
               ? parsedEnvironmentDefinitions
               : undefined,

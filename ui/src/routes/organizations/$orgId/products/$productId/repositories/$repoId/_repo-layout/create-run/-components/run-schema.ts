@@ -57,7 +57,7 @@ export const createRunFormSchema = (
         repositoryConfigPath: z.string().optional(),
         allowDynamicVersions: z.boolean(),
         skipExcluded: z.boolean(),
-        environmentDefinitionsEnabled: z.boolean(),
+        environmentDefinitionsEnabled: z.record(z.string(), z.boolean()),
         environmentDefinitions: environmentDefinitionsSchema.optional(),
         environmentVariables: z.array(environmentVariableSchema).optional(),
         infrastructureServices: z.array(zInfrastructureService).optional(),
