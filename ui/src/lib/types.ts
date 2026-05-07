@@ -69,6 +69,14 @@ const gradleEnvironmentDefinition = z
   .object({ service: z.string() })
   .catchall(z.string());
 
+const mavenEnvironmentDefinition = z
+  .object({
+    service: z.string(),
+    id: z.string(),
+    mirrorOf: z.string().optional(),
+  })
+  .catchall(z.string());
+
 export enum NuGetAuthMode {
   PASSWORD = 'PASSWORD',
   API_KEY = 'API_KEY',
@@ -89,6 +97,7 @@ const nugetEnvironmentDefinition = z
 const environmentDefinitionValidators: Record<string, z.ZodTypeAny> = {
   conan: conanEnvironmentDefinition,
   gradle: gradleEnvironmentDefinition,
+  maven: mavenEnvironmentDefinition,
   npm: npmEnvironmentDefinition,
   nuget: nugetEnvironmentDefinition,
 };
@@ -145,6 +154,10 @@ export const conanEnvironmentDefinitions: EnvironmentDefinitions = {
 
 export const gradleEnvironmentDefinitions: EnvironmentDefinitions = {
   gradle: [{ service: '' }],
+};
+
+export const mavenEnvironmentDefinitions: EnvironmentDefinitions = {
+  maven: [{ service: '', id: '', mirrorOf: '' }],
 };
 
 export const nugetEnvironmentDefinitions: EnvironmentDefinitions = {

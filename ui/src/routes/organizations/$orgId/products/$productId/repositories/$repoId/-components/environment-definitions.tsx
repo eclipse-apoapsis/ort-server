@@ -46,6 +46,7 @@ import {
   conanEnvironmentDefinitions,
   EnvironmentDefinitionEntry,
   gradleEnvironmentDefinitions,
+  mavenEnvironmentDefinitions,
   NpmAuthMode,
   npmAuthModes,
   npmEnvironmentDefinitions,
@@ -316,6 +317,110 @@ export const EnvironmentDefinitionsFields = ({
                     </FormItem>
                   );
                 }}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionPrimitive.Item>
+        {/* Maven */}
+        <AccordionPrimitive.Item value='maven' className='rounded-lg border'>
+          <AccordionPrimitive.Header className='flex flex-row items-center'>
+            <AccordionPrimitive.Trigger className='focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center gap-2 px-4 py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] [&[data-state=open]>svg]:rotate-180'>
+              Enable Maven environment definition
+              <ChevronDownIcon className='text-muted-foreground size-4 shrink-0 translate-y-0.5 transition-transform duration-200' />
+            </AccordionPrimitive.Trigger>
+            <div className='pr-4'>
+              <Switch
+                checked={enabledDefinitions['maven'] ?? false}
+                onCheckedChange={(checked) =>
+                  onToggle(
+                    'maven',
+                    checked,
+                    mavenEnvironmentDefinitions['maven'] ?? []
+                  )
+                }
+              />
+            </div>
+          </AccordionPrimitive.Header>
+          <AccordionContent>
+            <div className='flex flex-col gap-4 px-4 pb-4'>
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.maven.0.service'
+                render={({ field }) => {
+                  const selectedValue =
+                    typeof field.value === 'string' && field.value.length > 0
+                      ? field.value
+                      : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Service</FormLabel>
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select an infrastructure service' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {infrastructureServices.map((service) => (
+                            <SelectItem
+                              key={`${service.hierarchy}:${service.name}`}
+                              value={service.name}
+                            >
+                              {`${service.name} (${capitalize(service.hierarchy)})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select the infrastructure service from a chosen
+                        hierarchy level.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.maven.0.id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Repository ID referenced in <code>pom.xml</code> files.
+                      Appears as the <code>&lt;id&gt;</code> of the
+                      corresponding server in Maven&apos;s{' '}
+                      <code>settings.xml</code>.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.maven.0.mirrorOf'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mirror of</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder='(optional)' />
+                    </FormControl>
+                    <FormDescription>
+                      If set, adds this entry to the{' '}
+                      <code>&lt;mirrors&gt;</code> section of{' '}
+                      <code>settings.xml</code>. Value is the repository ID to
+                      mirror (e.g. <code>central</code>, or <code>*</code> for
+                      all repositories).
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
           </AccordionContent>
