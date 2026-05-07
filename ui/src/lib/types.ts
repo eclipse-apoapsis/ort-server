@@ -56,8 +56,18 @@ const npmEnvironmentDefinition = z
   })
   .catchall(z.string());
 
+const conanEnvironmentDefinition = z
+  .object({
+    service: z.string(),
+    name: z.string(),
+    url: z.string().optional(),
+    verifySsl: z.string().optional(),
+  })
+  .catchall(z.string());
+
 const environmentDefinitionValidators: Record<string, z.ZodTypeAny> = {
   npm: npmEnvironmentDefinition,
+  conan: conanEnvironmentDefinition,
 };
 
 export const environmentDefinitionsSchema =
@@ -95,6 +105,17 @@ export const npmEnvironmentDefinitions: EnvironmentDefinitions = {
       scope: '',
       email: '',
       authMode: NpmAuthMode.PASSWORD,
+    },
+  ],
+};
+
+export const conanEnvironmentDefinitions: EnvironmentDefinitions = {
+  conan: [
+    {
+      service: '',
+      name: '',
+      url: '',
+      verifySsl: 'true',
     },
   ],
 };

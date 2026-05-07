@@ -43,6 +43,7 @@ import { Switch } from '@/components/ui/switch';
 import { capitalize } from '@/helpers/capitalize';
 import { InfrastructureServiceWithHierarchy } from '@/hooks/use-infrastructure-services';
 import {
+  conanEnvironmentDefinitions,
   EnvironmentDefinitionEntry,
   NpmAuthMode,
   npmAuthModes,
@@ -129,6 +130,127 @@ export const EnvironmentDefinitionsFields = ({
         private artifact repositories.
       </div>
       <Accordion type='multiple' className='flex flex-col gap-2'>
+        {/* Conan */}
+        <AccordionPrimitive.Item value='conan' className='rounded-lg border'>
+          <AccordionPrimitive.Header className='flex flex-row items-center'>
+            <AccordionPrimitive.Trigger className='focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center gap-2 px-4 py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] [&[data-state=open]>svg]:rotate-180'>
+              Enable Conan environment definition
+              <ChevronDownIcon className='text-muted-foreground size-4 shrink-0 translate-y-0.5 transition-transform duration-200' />
+            </AccordionPrimitive.Trigger>
+            <div className='pr-4'>
+              <Switch
+                checked={enabledDefinitions['conan'] ?? false}
+                onCheckedChange={(checked) =>
+                  onToggle(
+                    'conan',
+                    checked,
+                    conanEnvironmentDefinitions['conan'] ?? []
+                  )
+                }
+              />
+            </div>
+          </AccordionPrimitive.Header>
+          <AccordionContent>
+            <div className='flex flex-col gap-4 px-4 pb-4'>
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.conan.0.service'
+                render={({ field }) => {
+                  const selectedValue =
+                    typeof field.value === 'string' && field.value.length > 0
+                      ? field.value
+                      : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Service</FormLabel>
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select an infrastructure service' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {infrastructureServices.map((service) => (
+                            <SelectItem
+                              key={`${service.hierarchy}:${service.name}`}
+                              value={service.name}
+                            >
+                              {`${service.name} (${capitalize(service.hierarchy)})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select the infrastructure service from a chosen
+                        hierarchy level.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.conan.0.name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Remote name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Name of the Conan remote, used in commands like{' '}
+                      <code>conan list</code>.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.conan.0.url'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder='(optional)' />
+                    </FormControl>
+                    <FormDescription>
+                      URL for Conan to search for recipes and binaries. Falls
+                      back to the infrastructure service URL if not set.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.environmentDefinitions.conan.0.verifySsl'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                    <div className='space-y-0.5'>
+                      <FormLabel>Verify SSL</FormLabel>
+                      <FormDescription>
+                        Verify the SSL certificate of the remote URL.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={(field.value ?? 'true') === 'true'}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? 'true' : 'false')
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionPrimitive.Item>
         {/* NPM */}
         <AccordionPrimitive.Item value='npm' className='rounded-lg border'>
           <AccordionPrimitive.Header className='flex flex-row items-center'>
