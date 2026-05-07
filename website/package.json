@@ -2,7 +2,12 @@
   "name": "ort-server",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@11.0.8",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.0.8"
+    }
+  },
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
