@@ -261,8 +261,7 @@ class MavenSettingsGeneratorTest : WordSpec({
                 mirrorOf = "central"
             )
 
-            val mockBuilder = MockConfigFileBuilder()
-            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+            val mockBuilder = MockConfigFileBuilder(mavenCentralMirror)
 
             MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
 
@@ -291,10 +290,9 @@ class MavenSettingsGeneratorTest : WordSpec({
                 passwordSecret = infraPasswordSecret.name
             )
 
-            val mockBuilder = MockConfigFileBuilder()
+            val mockBuilder = MockConfigFileBuilder(mavenCentralMirror)
             every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
             every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
-            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
 
             MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
 
@@ -376,10 +374,9 @@ class MavenSettingsGeneratorTest : WordSpec({
                 passwordSecret = infraPasswordSecret.name
             )
 
-            val mockBuilder = MockConfigFileBuilder()
+            val mockBuilder = MockConfigFileBuilder(mavenCentralMirror)
             every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
             every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
-            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
 
             MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
 
@@ -438,10 +435,9 @@ class MavenSettingsGeneratorTest : WordSpec({
                 passwordSecret = infraPasswordSecret.name
             )
 
-            val mockBuilder = MockConfigFileBuilder()
+            val mockBuilder = MockConfigFileBuilder(mavenCentralMirror)
             every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
             every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
-            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
 
             MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
             val content = mockBuilder.generatedText()

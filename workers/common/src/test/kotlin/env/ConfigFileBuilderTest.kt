@@ -31,7 +31,6 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import java.util.Properties
 
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedInfraSecretResolver
@@ -42,7 +41,7 @@ class ConfigFileBuilderTest : StringSpec({
     "A PrintWriter is exposed" {
         val file = tempfile()
 
-        val builder = ConfigFileBuilder(AdminConfig.DEFAULT, undefinedCredentialResolver, undefinedInfraSecretResolver)
+        val builder = ConfigFileBuilder(undefinedCredentialResolver, undefinedInfraSecretResolver)
         builder.build(file) {
             println("This is a line of text.")
             print("The answer is ")
@@ -62,7 +61,7 @@ class ConfigFileBuilderTest : StringSpec({
         val secretValues = mapOf(secret1 to "value1", secret2 to "value2")
 
         withCredentialResolverFun(secretValues) { context ->
-            val builder = ConfigFileBuilder(AdminConfig.DEFAULT, context, undefinedInfraSecretResolver)
+            val builder = ConfigFileBuilder(context, undefinedInfraSecretResolver)
             builder.build(file) {
                 println("secret1 = ${builder.secretRef(secret1)},")
                 println("secret2 = ${builder.secretRef(secret2)}.")
@@ -82,7 +81,7 @@ class ConfigFileBuilderTest : StringSpec({
         val secretValues = mapOf(secret1 to "!My\$ecret?:);", secret2 to "#+1/")
 
         withCredentialResolverFun(secretValues) { context ->
-            val builder = ConfigFileBuilder(AdminConfig.DEFAULT, context, undefinedInfraSecretResolver)
+            val builder = ConfigFileBuilder(context, undefinedInfraSecretResolver)
             builder.build(file) {
                 println("secret1 = ${builder.secretRef(secret1, ConfigFileBuilder.urlEncoding)},")
                 println("secret2 = ${builder.secretRef(secret2, ConfigFileBuilder.urlEncoding)}.")
@@ -103,7 +102,7 @@ class ConfigFileBuilderTest : StringSpec({
             lines.
         """.trimIndent()
 
-        val builder = ConfigFileBuilder(AdminConfig.DEFAULT, undefinedCredentialResolver, undefinedInfraSecretResolver)
+        val builder = ConfigFileBuilder(undefinedCredentialResolver, undefinedInfraSecretResolver)
         builder.build(file) {
             printLines(content)
         }
@@ -124,11 +123,7 @@ class ConfigFileBuilderTest : StringSpec({
         }
 
         withSystemProperties(systemProperties, OverrideMode.SetOrOverride) {
-            val builder = ConfigFileBuilder(
-                AdminConfig.DEFAULT,
-                undefinedCredentialResolver,
-                undefinedInfraSecretResolver
-            )
+            val builder = ConfigFileBuilder(undefinedCredentialResolver, undefinedInfraSecretResolver)
             builder.buildInUserHome(fileName) {
                 printLines(content)
             }
@@ -150,11 +145,7 @@ class ConfigFileBuilderTest : StringSpec({
             "no_proxy" to noProxy
         )
         withEnvironment(envMap, OverrideMode.SetOrOverride) {
-            val builder = ConfigFileBuilder(
-                AdminConfig.DEFAULT,
-                undefinedCredentialResolver,
-                undefinedInfraSecretResolver
-            )
+            val builder = ConfigFileBuilder(undefinedCredentialResolver, undefinedInfraSecretResolver)
             builder.build(file) {
                 printProxySettings { proxy ->
                     println("http_proxy = ${proxy.httpProxy}")
@@ -183,11 +174,7 @@ class ConfigFileBuilderTest : StringSpec({
             "NO_PROXY" to noProxy
         )
         withEnvironment(envMap, OverrideMode.SetOrOverride) {
-            val builder = ConfigFileBuilder(
-                AdminConfig.DEFAULT,
-                undefinedCredentialResolver,
-                undefinedInfraSecretResolver
-            )
+            val builder = ConfigFileBuilder(undefinedCredentialResolver, undefinedInfraSecretResolver)
             builder.build(file) {
                 printProxySettings { proxy ->
                     println("http_proxy = ${proxy.httpProxy}")
@@ -212,11 +199,7 @@ class ConfigFileBuilderTest : StringSpec({
         )
 
         withEnvironment(envMap, OverrideMode.SetOrOverride) {
-            val builder = ConfigFileBuilder(
-                AdminConfig.DEFAULT,
-                undefinedCredentialResolver,
-                undefinedInfraSecretResolver
-            )
+            val builder = ConfigFileBuilder(undefinedCredentialResolver, undefinedInfraSecretResolver)
             builder.build(tempfile()) {
                 printProxySettings {
                     throw IllegalStateException("This block should not be called.")

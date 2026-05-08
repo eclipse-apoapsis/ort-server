@@ -25,7 +25,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
@@ -80,7 +79,7 @@ internal class NetRcManager(
      * Return a new instance of [ConfigFileBuilder] to be used for creating the `.netrc` file.
      */
     internal fun createConfigFileBuilder(): ConfigFileBuilder =
-        ConfigFileBuilder(AdminConfig.DEFAULT, resolverFun, undefinedInfraSecretResolver)
+        ConfigFileBuilder(resolverFun, undefinedInfraSecretResolver)
 
     /**
      * Return a new instance of [NetRcGenerator] that is going to be called to generate the `.netrc` file.

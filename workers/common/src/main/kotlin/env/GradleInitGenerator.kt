@@ -67,7 +67,7 @@ class GradleInitGenerator : EnvironmentConfigGenerator<GradleDefinition> {
     override val environmentDefinitionType: Class<GradleDefinition> = GradleDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<GradleDefinition>) {
-        builder.adminConfig.mavenCentralMirror?.let { mirror ->
+        builder.globalMavenCentralMirror?.let { mirror ->
             val template = javaClass.getResource(GRADLE_INIT_SCRIPT_TEMPLATE_RESOURCE_NAME).readText()
 
             builder.buildInUserHome(GRADLE_INIT_SCRIPT_PATH) {
