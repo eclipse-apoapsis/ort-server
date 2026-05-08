@@ -55,6 +55,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
@@ -63,7 +64,7 @@ import { Route as LayoutRoute } from '../../../route.tsx';
 function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
-      return z.boolean();
+      return z.boolean().default(false);
     case 'INTEGER':
       return z.coerce.number();
     case 'LONG':
@@ -124,7 +125,8 @@ const CreateTemplate = () => {
       [templateName]: '',
       ...(plugin?.options?.reduce(
         (acc, option) => {
-          acc[option.name] = option.defaultValue ?? '';
+          acc[option.name] =
+            option.type === 'BOOLEAN' ? false : (option.defaultValue ?? '');
           acc[`${option.name}_isFinal`] = false;
           acc[`${option.name}_isNotSet`] = true;
           return acc;
@@ -273,9 +275,12 @@ const CreateTemplate = () => {
                       render={({ field }) => (
                         <FormControl>
                           {option.type === 'BOOLEAN' ? (
-                            <Checkbox
-                              checked={field.value as CheckedState}
-                              onCheckedChange={field.onChange}
+                            <Switch
+                              checked={field.value as boolean}
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked);
+                                form.setValue(`${option.name}_isNotSet`, false);
+                              }}
                             />
                           ) : option.isRequired ? (
                             <Input
@@ -331,7 +336,7 @@ const CreateTemplate = () => {
                             onCheckedChange={field.onChange}
                             disabled={Boolean(isNotSet)}
                           />
-                          isFinal
+                          <p className='text-sm'>Final</p>
                         </label>
                       )}
                     />
@@ -360,7 +365,7 @@ const CreateTemplate = () => {
                               }
                             }}
                           />
-                          undefined
+                          <p className='text-sm'>Undefined</p>
                         </label>
                       )}
                     />
@@ -383,12 +388,8 @@ const CreateTemplate = () => {
               );
             })}
           </CardContent>
-          <CardFooter>
-            <Button
-              type='submit'
-              disabled={isCreateTemplatePending}
-              className='mt-4'
-            >
+          <CardFooter className='mt-6 gap-4'>
+            <Button type='submit' disabled={isCreateTemplatePending}>
               {isCreateTemplatePending ? (
                 <>
                   <span className='sr-only'>Creating Template...</span>
@@ -397,6 +398,22 @@ const CreateTemplate = () => {
               ) : (
                 'Create Template'
               )}
+            </Button>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() =>
+                navigate({
+                  to: '/admin/plugins/$pluginType/$pluginId',
+                  params: {
+                    pluginType: params.pluginType,
+                    pluginId: params.pluginId,
+                  },
+                })
+              }
+              disabled={isCreateTemplatePending}
+            >
+              Cancel
             </Button>
           </CardFooter>
         </form>
