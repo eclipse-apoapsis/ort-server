@@ -185,8 +185,8 @@ class EnvironmentService(
     /**
      * Perform the required steps to set up authentication information for the current worker execution in the current
      * ORT run as defined by the given [context]. Load the infrastructure services associated with the current run from
-     * the database. Given the secret names in [InfrastructureServiceDeclaration.usernameSecretName] and
-     * [InfrastructureServiceDeclaration.passwordSecretName], find these secrets and continue to process them.
+     * the database. Given the secret names in [InfrastructureServiceDeclaration.usernameSecret] and
+     * [InfrastructureServiceDeclaration.passwordSecret], find these secrets and continue to process them.
      * This function can be used by workers running after the Analyzer, which has initialized the required information.
      */
     suspend fun setupAuthenticationForCurrentRun(context: WorkerContext) {
