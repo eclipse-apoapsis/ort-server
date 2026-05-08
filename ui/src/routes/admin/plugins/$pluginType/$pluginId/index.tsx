@@ -19,7 +19,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
-import { ChevronsUpDownIcon, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 
 import { PluginDescriptor, PluginTemplate } from '@/api';
 import {
@@ -44,20 +44,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card.tsx';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command.tsx';
-import { Option } from '@/components/ui/multiple-selector.tsx';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover.tsx';
+import MultipleSelector, {
+  Option,
+} from '@/components/ui/multiple-selector.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
 import {
   Tooltip,
@@ -259,10 +248,10 @@ const PluginTemplateCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div>
-          Global Template
+        <div className='flex items-center gap-2'>
+          <span className='text-sm'>Global Template</span>
           <Switch
-            className='ml-2 data-[state=checked]:bg-green-500'
+            className='data-[state=checked]:bg-green-500'
             checked={template.isGlobal}
             onCheckedChange={() => toggleIsGlobal()}
           />
@@ -281,90 +270,42 @@ const PluginTemplateCard = ({
             ? 'This template is assigned to the following organizations:'
             : 'This template is not assigned to any organizations.'}
         </p>
-
-        <div>
-          {template.organizationIds && template.organizationIds.length > 0 && (
-            <div className='mb-2 flex flex-wrap gap-2'>
-              {template.organizationIds.map((orgId) => {
-                const org = organizationOptions.find(
-                  (o) => o.value === orgId.toString()
-                );
-                return (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        asChild
-                        key={orgId}
-                        className='bg-amber-200 text-black'
-                      >
-                        <Button
-                          variant='ghost'
-                          onClick={() => {
-                            removeOrganization({
-                              path: {
-                                pluginType: template.pluginType,
-                                pluginId: template.pluginId,
-                                templateName: template.name,
-                              },
-                              query: { organizationId: orgId.toString() },
-                            });
-                          }}
-                        >
-                          {org ? org.label : orgId}
-                        </Button>
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>Remove Organization</TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </div>
+        <MultipleSelector
+          value={organizationOptions.filter((o) =>
+            template.organizationIds?.includes(Number(o.value))
           )}
-        </div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant='ghost' role='combobox' className='px-1'>
-              Add to Organization
-              <ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Command>
-              <CommandInput placeholder='Search organization...' />
-              <CommandList>
-                <CommandEmpty>No organization found.</CommandEmpty>
-                <CommandGroup>
-                  {organizationOptions
-                    .filter(
-                      (option) =>
-                        !template.organizationIds?.includes(
-                          Number(option.value)
-                        )
-                    )
-                    .map((option) => (
-                      <CommandItem
-                        key={option.value}
-                        value={option.label}
-                        onSelect={() => {
-                          addOrganization({
-                            path: {
-                              pluginType: template.pluginType,
-                              pluginId: template.pluginId,
-                              templateName: template.name,
-                            },
-                            query: { organizationId: option.value },
-                          });
-                        }}
-                      >
-                        {option.label}
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+          options={organizationOptions}
+          placeholder='Assign organizations...'
+          badgeClassName='bg-amber-200 text-black'
+          onChange={(newSelected) => {
+            const oldIds = template.organizationIds ?? [];
+            const newIds = newSelected.map((o) => Number(o.value));
+            for (const opt of newSelected) {
+              if (!oldIds.includes(Number(opt.value))) {
+                addOrganization({
+                  path: {
+                    pluginType: template.pluginType,
+                    pluginId: template.pluginId,
+                    templateName: template.name,
+                  },
+                  query: { organizationId: opt.value },
+                });
+              }
+            }
+            for (const id of oldIds) {
+              if (!newIds.includes(id)) {
+                removeOrganization({
+                  path: {
+                    pluginType: template.pluginType,
+                    pluginId: template.pluginId,
+                    templateName: template.name,
+                  },
+                  query: { organizationId: id.toString() },
+                });
+              }
+            }
+          }}
+        />
 
         <div className='my-4 border-t' />
 
@@ -373,23 +314,31 @@ const PluginTemplateCard = ({
             (opt) => opt.option === pluginOption.name
           );
           return (
-            <div key={pluginOption.name} className='mb-2'>
-              <strong>{pluginOption.name}:</strong>{' '}
+            <div
+              key={pluginOption.name}
+              className='mb-2 flex items-center gap-2'
+            >
+              <span className='text-sm font-semibold'>
+                {pluginOption.name}:
+              </span>
               {templateOption ? (
                 <>
-                  {templateOption.value}
+                  <span className='text-sm'>{templateOption.value}</span>
+                  <Badge className='bg-blue-200 text-black'>
+                    {pluginOption.type}
+                  </Badge>
                   {templateOption.isFinal && (
-                    <Badge className='ml-2 bg-green-200 text-black'>
-                      Final
-                    </Badge>
+                    <Badge className='bg-green-200 text-black'>Final</Badge>
                   )}
                 </>
               ) : (
-                <Badge className='ml-2 bg-gray-200 text-black'>Not set</Badge>
+                <>
+                  <Badge className='bg-gray-200 text-black'>Not set</Badge>
+                  <Badge className='bg-blue-200 text-black'>
+                    {pluginOption.type}
+                  </Badge>
+                </>
               )}
-              <Badge className='ml-2 bg-blue-200 text-black'>
-                {pluginOption.type}
-              </Badge>
             </div>
           );
         })}
