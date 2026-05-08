@@ -19,7 +19,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
-import { ChevronsUpDownIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, Pencil } from 'lucide-react';
 
 import { PluginDescriptor, PluginTemplate } from '@/api';
 import {
@@ -232,6 +232,24 @@ const PluginTemplateCard = ({
       <CardHeader className='flex flex-row items-center justify-between'>
         <CardTitle>{template.name}</CardTitle>
         <div className='flex items-center gap-1'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant='outline' size='sm' className='h-8 px-2' asChild>
+                <Link
+                  to='/admin/plugins/$pluginType/$pluginId/edit-template/$templateName'
+                  params={{
+                    pluginType: template.pluginType,
+                    pluginId: template.pluginId,
+                    templateName: template.name,
+                  }}
+                >
+                  <span className='sr-only'>Edit Template</span>
+                  <Pencil size={16} />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit Template</TooltipContent>
+          </Tooltip>
           <DeleteDialog
             thingName={'template'}
             uiComponent={<DeleteIconButton />}
