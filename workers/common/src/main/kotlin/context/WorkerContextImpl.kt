@@ -344,7 +344,8 @@ private fun ResolvablePluginConfig.resolveSecrets(
 }
 
 /**
- * Return a [ProviderPluginConfiguration] whose secrets are resolved according to the given map with [secretValues].
+ * Return a [ProviderPluginConfiguration] whose secrets are resolved according to the given maps with
+ * [configSecretValues] and [userSecretValues].
  */
 private fun ResolvableProviderPluginConfig.resolveSecrets(
     configSecretValues: Map<String, String>,
