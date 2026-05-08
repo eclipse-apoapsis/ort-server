@@ -41,7 +41,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card.tsx';
@@ -230,8 +229,16 @@ const PluginTemplateCard = ({
 
   return (
     <Card key={template.name} className='mb-2'>
-      <CardHeader className='flex items-start justify-between'>
+      <CardHeader className='flex flex-row items-center justify-between'>
         <CardTitle>{template.name}</CardTitle>
+        <div className='flex items-center gap-1'>
+          <DeleteDialog
+            thingName={'template'}
+            uiComponent={<DeleteIconButton />}
+            onDelete={onDelete}
+            tooltip='Delete Template'
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <div>
@@ -369,17 +376,6 @@ const PluginTemplateCard = ({
           );
         })}
       </CardContent>
-      <CardFooter>
-        Delete Template
-        <span className='ml-2'>
-          <DeleteDialog
-            thingName={'template'}
-            uiComponent={<DeleteIconButton />}
-            onDelete={onDelete}
-            tooltip='Delete Template'
-          />
-        </span>
-      </CardFooter>
     </Card>
   );
 };
