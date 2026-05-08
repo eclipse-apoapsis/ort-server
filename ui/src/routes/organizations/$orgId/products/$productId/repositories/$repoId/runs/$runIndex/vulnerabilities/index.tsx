@@ -458,7 +458,7 @@ const VulnerabilitiesComponent = () => {
                 <div className='font-semibold'>Description</div>
                 <MarkdownRenderer
                   markdown={
-                    vulnerability.description || 'No description available'
+                    vulnerability.description || '_No description available._'
                   }
                 />
                 <div className='mt-2 text-lg font-semibold'>
