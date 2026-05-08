@@ -26,6 +26,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
+import { ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z, ZodType } from 'zod';
 
@@ -132,6 +133,14 @@ const CreateTemplate = () => {
       ) || {}),
     },
   });
+
+  function handleValueChange(optionName: string, value: string) {
+    if (value !== '') {
+      form.setValue(`${optionName}_isNotSet`, false);
+    } else {
+      form.setValue(`${optionName}_isNotSet`, true);
+    }
+  }
 
   const { mutateAsync: createTemplate, isPending: isCreateTemplatePending } =
     useMutation({
@@ -283,7 +292,10 @@ const CreateTemplate = () => {
                                   ? field.value
                                   : ''
                               }
-                              disabled={Boolean(isNotSet)}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                handleValueChange(option.name, e.target.value);
+                              }}
                             />
                           ) : (
                             <OptionalInput
@@ -294,7 +306,10 @@ const CreateTemplate = () => {
                                   ? 'number'
                                   : 'text'
                               }
-                              disabled={isNotSet}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                field.onChange(e);
+                                handleValueChange(option.name, e.target.value);
+                              }}
                             />
                           )}
                         </FormControl>
@@ -333,7 +348,17 @@ const CreateTemplate = () => {
                         >
                           <Checkbox
                             checked={field.value as CheckedState}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              if (checked) {
+                                form.setValue(
+                                  option.name,
+                                  option.type === 'BOOLEAN'
+                                    ? false
+                                    : (option.defaultValue ?? '')
+                                );
+                              }
+                            }}
                           />
                           undefined
                         </label>
