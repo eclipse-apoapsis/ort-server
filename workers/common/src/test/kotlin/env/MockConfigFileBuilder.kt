@@ -31,7 +31,7 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -45,7 +45,10 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
  * References to secrets are generated deterministically using the [testSecretRef] function. So, it can be
  * tested whether the generated content contains the expected secret values.
  */
-class MockConfigFileBuilder {
+class MockConfigFileBuilder(
+    /** The [MavenCentralMirror] used by the mock [ConfigFileBuilder]. */
+    val globalMavenCentralMirror: MavenCentralMirror? = null
+) {
     companion object {
         /** URL of a test repository. */
         const val REPOSITORY_URL = "https://repo.example.org/test-orga/test-repo.git"
@@ -103,12 +106,6 @@ class MockConfigFileBuilder {
 
     /** The mock for the [InfraSecretResolverFun] used by the mock [ConfigFileBuilder]. */
     val infraSecretResolverFun = mockk<InfraSecretResolverFun>()
-
-    /** The mock for the [AdminConfig] used by the mock [ConfigFileBuilder]. */
-    val adminConfig = mockk<AdminConfig> {
-        every { getRuleSet(null) } returns AdminConfig.DEFAULT_RULE_SET
-        every { mavenCentralMirror } returns null
-    }
 
     /** A list of the files that have been generated via this mock builder's [ConfigFileBuilder.build] function. */
     val targetFiles: List<File>
@@ -192,7 +189,7 @@ class MockConfigFileBuilder {
 
             every { resolverFun } returns this@MockConfigFileBuilder.resolverFun
             every { infraSecretResolverFun } returns this@MockConfigFileBuilder.infraSecretResolverFun
-            every { adminConfig } returns this@MockConfigFileBuilder.adminConfig
+            every { globalMavenCentralMirror } returns this@MockConfigFileBuilder.globalMavenCentralMirror
         }
 
     /**

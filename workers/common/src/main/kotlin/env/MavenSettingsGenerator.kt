@@ -70,7 +70,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<MavenDefinition>) {
         builder.buildInUserHome(MAVEN_SETTINGS_PATH) {
-            val isGlobalMirrorOverridden = builder.adminConfig.mavenCentralMirror?.mirrorOf?.let { globalMirrorOf ->
+            val isGlobalMirrorOverridden = builder.globalMavenCentralMirror?.mirrorOf?.let { globalMirrorOf ->
                 definitions.filter { it.mirrorOf != null }.any { it.mirrorOf == globalMirrorOf }
             } == true
 
@@ -92,7 +92,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
             }
 
             if (!isGlobalMirrorOverridden) {
-                builder.adminConfig.mavenCentralMirror?.let { mirror ->
+                builder.globalMavenCentralMirror?.let { mirror ->
                     mirror.usernameSecret?.let { username ->
                         mirror.passwordSecret?.let { password ->
                             println("<server>".prependIndent(INDENT_8_SPACES))
@@ -127,7 +127,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
                 )
 
                 if (!isGlobalMirrorOverridden) {
-                    builder.adminConfig.mavenCentralMirror?.let { mirror ->
+                    builder.globalMavenCentralMirror?.let { mirror ->
                         add(
                             MavenMirror(
                                 id = mirror.id,

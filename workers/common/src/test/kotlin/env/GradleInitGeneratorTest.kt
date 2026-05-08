@@ -27,8 +27,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
-import io.mockk.every
-
 import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
 
@@ -50,8 +48,7 @@ class GradleInitGeneratorTest : WordSpec({
                 mirrorOf = "central"
             )
 
-            val mockBuilder = MockConfigFileBuilder()
-            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+            val mockBuilder = MockConfigFileBuilder(mavenCentralMirror)
 
             GradleInitGenerator().generate(mockBuilder.builder, emptyList())
 
@@ -75,8 +72,7 @@ class GradleInitGeneratorTest : WordSpec({
             )
             val regPlaceholder = Regex("#\\{\\w+}#")
 
-            val mockBuilder = MockConfigFileBuilder()
-            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+            val mockBuilder = MockConfigFileBuilder(mavenCentralMirror)
 
             GradleInitGenerator().generate(mockBuilder.builder, emptyList())
             val lines = mockBuilder.generatedLines()

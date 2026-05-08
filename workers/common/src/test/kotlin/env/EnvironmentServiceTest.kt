@@ -1083,7 +1083,7 @@ private fun <T : EnvironmentServiceDefinition> EnvironmentConfigGenerator<T>.ver
     }
 
     slotBuilder.captured.resolverFun shouldBe context.credentialResolverFun
-    slotBuilder.captured.adminConfig shouldBe adminConfig
+    slotBuilder.captured.globalMavenCentralMirror should beNull()
 
     if (expectedDefinitions != null) {
         slotDefinitions.captured shouldBe expectedDefinitions

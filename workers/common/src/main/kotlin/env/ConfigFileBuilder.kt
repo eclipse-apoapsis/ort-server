@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets
 import kotlin.random.Random
 
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveCredentials
@@ -56,17 +56,17 @@ typealias SecretEncodingFun = (String) -> String
  *   kept in memory before it is written to disk.
  */
 class ConfigFileBuilder(
-    /**
-     * The global settings configured by the system administrator, that need to be accessible during the generation
-     * of configuration files.
-     */
-    val adminConfig: AdminConfig,
-
     /** The function to resolve secrets for the credentials of environment services. */
     val resolverFun: CredentialResolverFun,
 
-    /** The function to resolve infrastructure-related secrets referenced in [adminConfig]. */
-    val infraSecretResolverFun: InfraSecretResolverFun
+    /** The function to resolve infrastructure-related secrets referenced in [globalMavenCentralMirror]. */
+    val infraSecretResolverFun: InfraSecretResolverFun,
+
+    /**
+     * An optional globally configured Maven Central mirror that can be used when generating config files for package
+     * managers that use the Maven ecosystem.
+     */
+    val globalMavenCentralMirror: MavenCentralMirror? = null
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)

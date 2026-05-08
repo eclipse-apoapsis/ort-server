@@ -162,9 +162,9 @@ class EnvironmentService(
         withContext(Dispatchers.IO) {
             generators.map { generator ->
                 val builder = ConfigFileBuilder(
-                    adminConfig,
                     context.credentialResolverFun,
-                    context.configManager::getSecret
+                    context.configManager::getSecret,
+                    adminConfig.mavenCentralMirror
                 )
                 async { generator.generateApplicable(builder, definitions) }
             }.awaitAll()
