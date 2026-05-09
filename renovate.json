@@ -29,6 +29,10 @@
       "allowedVersions": "< 22"
     },
     {
+      "matchPackageNames": ["docusaurus-plugin-openapi-docs", "docusaurus-theme-openapi-docs"],
+      "groupName": "docusaurus-openapi-docs"
+    },
+    {
       "matchPackageNames": ["lucide-react"],
       "schedule": ["after 9pm on sunday"]
     },
