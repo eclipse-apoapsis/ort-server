@@ -156,13 +156,13 @@ class EnvironmentService(
             context.ortRun.organizationId
         )
         val services = definitions.map(EnvironmentServiceDefinition::service)
-        val netRcManager = NetRcManager.create(context.credentialResolverFun)
+        val netRcManager = NetRcManager.create(context.secretResolverFun)
         context.setupAuthentication(services, netRcManager)
 
         withContext(Dispatchers.IO) {
             generators.map { generator ->
                 val builder = ConfigFileBuilder(
-                    context.credentialResolverFun,
+                    context.secretResolverFun,
                     context.configManager::getSecret,
                     adminConfig.mavenCentralMirror
                 )

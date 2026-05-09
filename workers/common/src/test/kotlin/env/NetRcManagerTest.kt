@@ -38,7 +38,7 @@ import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
-import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
@@ -49,18 +49,18 @@ class NetRcManagerTest : WordSpec({
 
     "createConfigFileBuilder()" should {
         "create a correct builder object" {
-            val resolverFun = mockk<CredentialResolverFun>()
+            val resolverFun = mockk<SecretResolverFun>()
             val manager = NetRcManager.create(resolverFun)
 
             val builder = manager.createConfigFileBuilder()
 
-            builder.resolverFun shouldBe resolverFun
+            builder.secretResolverFun shouldBe resolverFun
         }
     }
 
     "createNetRcGenerator()" should {
         "create a correct generator object" {
-            val resolverFun = mockk<CredentialResolverFun>()
+            val resolverFun = mockk<SecretResolverFun>()
             val mockBuilder = MockConfigFileBuilder()
             val definition = EnvironmentServiceDefinition(
                 createInfrastructureService(

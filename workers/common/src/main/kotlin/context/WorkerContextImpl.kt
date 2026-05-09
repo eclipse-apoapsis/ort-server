@@ -49,11 +49,11 @@ import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
-import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
-import org.eclipse.apoapsis.ortserver.workers.common.auth.credentialResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFromConfig
-import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.secretResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedSecretResolver
 
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
@@ -103,10 +103,10 @@ internal class WorkerContextImpl(
     private val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(configManager))
 
     /**
-     * A reference to hold the function for resolving credentials. The function is updated whenever new authentication
+     * A reference to hold the function for resolving secrets. The function is updated whenever new authentication
      * information becomes available. Since this can happen from different threads, an atomic reference is used.
      */
-    private val refCredentialResolverFun = AtomicReference(undefinedCredentialResolver)
+    private val refSecretResolverFun = AtomicReference(undefinedSecretResolver)
 
     override val ortRun: OrtRun by lazy {
         requireNotNull(ortRunRepository.get(ortRunId)) { "Could not resolve ORT run ID $ortRunId" }
@@ -120,9 +120,9 @@ internal class WorkerContextImpl(
         runBlocking { secretService.listForHierarchy(hierarchy) }.associateBy { it.name }
     }
 
-    override val credentialResolverFun: CredentialResolverFun
+    override val secretResolverFun: SecretResolverFun
         get() = { secret ->
-            refCredentialResolverFun.get().invoke(secret)
+            refSecretResolverFun.get().invoke(secret)
         }
 
     override fun createTempDir(): File =
@@ -234,7 +234,7 @@ internal class WorkerContextImpl(
 
         authenticator.updateAuthenticationInfo(authInfo)
         authenticator.updateAuthenticationListener(listener)
-        refCredentialResolverFun.set(credentialResolver(authInfo))
+        refSecretResolverFun.set(secretResolver(authInfo))
     }
 
     override fun close() {

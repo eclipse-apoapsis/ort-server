@@ -663,7 +663,7 @@ class WorkerContextTest : WordSpec({
         "always fail if there are no current services" {
             val context = helper.context()
 
-            val resolverFun = context.credentialResolverFun
+            val resolverFun = context.secretResolverFun
 
             shouldThrow<IllegalArgumentException> {
                 resolverFun(createSecret("foo"))
@@ -692,7 +692,7 @@ class WorkerContextTest : WordSpec({
             )
             context.setupAuthentication(listOf(service), mockk())
 
-            val resolverFun = context.credentialResolverFun
+            val resolverFun = context.secretResolverFun
 
             resolverFun(secUser) shouldBe username.value
             resolverFun(secPass) shouldBe password.value
@@ -701,7 +701,7 @@ class WorkerContextTest : WordSpec({
         "be aware of later changes of authentication data" {
             val context = helper.context()
 
-            val resolverFun = context.credentialResolverFun
+            val resolverFun = context.secretResolverFun
 
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             val secUser = createSecret("serviceUser1")

@@ -31,8 +31,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Secret
 
-class CredentialResolverTest : WordSpec({
-    "credentialResolver()" should {
+class SecretResolverTest : WordSpec({
+    "secretResolver()" should {
         "return a resolver function based on authentication information" {
             val secretPath = "testSecret"
             val secretValue = "verySecretValue"
@@ -43,7 +43,7 @@ class CredentialResolverTest : WordSpec({
                 secrets = mapOf(secretPath to secretValue),
                 services = emptyList()
             )
-            val resolver = credentialResolver(authInfo)
+            val resolver = secretResolver(authInfo)
 
             resolver(secret) shouldBe secretValue
 
@@ -53,19 +53,19 @@ class CredentialResolverTest : WordSpec({
         }
     }
 
-    "undefinedCredentialResolver" should {
+    "undefinedSecretResolver" should {
         "throw an exception when called" {
             val secret = Secret(0, "somePath", "someSecret", null, null, null, null)
 
             val exception = shouldThrow<IllegalArgumentException> {
-                undefinedCredentialResolver(secret)
+                undefinedSecretResolver(secret)
             }
 
             exception.message shouldInclude secret.path
         }
     }
 
-    "resolveCredentials()" should {
+    "resolveSecrets()" should {
         "return a map with resolved secrets" {
             val secret1 = Secret(0, "secretPath1", "secret1", null, null, null, null)
             val secretValue1 = "very-secret"
@@ -76,9 +76,9 @@ class CredentialResolverTest : WordSpec({
                 secret1 to secretValue1,
                 secret2 to secretValue2
             )
-            val resolverFun: CredentialResolverFun = secretsMap::getValue
+            val resolverFun: SecretResolverFun = secretsMap::getValue
 
-            val resolvedSecrets = resolveCredentials(resolverFun, secret1, secret2)
+            val resolvedSecrets = resolveSecrets(resolverFun, secret1, secret2)
 
             resolvedSecrets shouldBe secretsMap
         }

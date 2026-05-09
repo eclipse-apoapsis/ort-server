@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
  * cannot be resolved. Note that the function cannot handle arbitrary secrets; it addresses secrets referenced by
  * infrastructure services that have been resolved when setting up the environment for a worker execution.
  */
-internal typealias CredentialResolverFun = (Secret) -> String
+internal typealias SecretResolverFun = (Secret) -> String
 
 /**
  * Definition of a function that can resolve the value of an infrastructure-level secret from a given [Path].
@@ -39,10 +39,10 @@ internal typealias CredentialResolverFun = (Secret) -> String
 internal typealias InfraSecretResolverFun = (Path) -> String
 
 /**
- * A constant for a [CredentialResolverFun] that always fails with an [IllegalArgumentException]. This can be used
+ * A constant for a [SecretResolverFun] that always fails with an [IllegalArgumentException]. This can be used
  * if no authentication information is available yet.
  */
-internal val undefinedCredentialResolver: CredentialResolverFun = {
+internal val undefinedSecretResolver: SecretResolverFun = {
     throw IllegalArgumentException("Secret '${it.path}' cannot be resolved.")
 }
 
@@ -55,17 +55,16 @@ internal val undefinedInfraSecretResolver: InfraSecretResolverFun = {
 }
 
 /**
- * Return a [CredentialResolverFun] that can resolve secrets based on the data stored in the provided
- * [authenticationInfo].
+ * Return a [SecretResolverFun] that can resolve secrets based on the data stored in the provided [authenticationInfo].
  */
-internal fun credentialResolver(authenticationInfo: AuthenticationInfo): CredentialResolverFun =
+internal fun secretResolver(authenticationInfo: AuthenticationInfo): SecretResolverFun =
     authenticationInfo::resolveSecret
 
 /**
  * Resolve all the given [secrets] using the provided [resolverFun] and return a [Map] that assigns the secrets to
  * their values. This is a convenience function that can handle multiple secrets at once.
  */
-internal fun resolveCredentials(resolverFun: CredentialResolverFun, vararg secrets: Secret): Map<Secret, String> =
+internal fun resolveSecrets(resolverFun: SecretResolverFun, vararg secrets: Secret): Map<Secret, String> =
     secrets.associateWith(resolverFun)
 
 /**

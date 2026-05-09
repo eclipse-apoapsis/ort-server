@@ -34,8 +34,8 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 
 /**
  * A helper class for testing concrete environment generator classes and the configuration files they produce.
@@ -101,8 +101,8 @@ class MockConfigFileBuilder(
     /** A map to store the encoding functions used when creating secret references. */
     private val encodingFunctions = mutableMapOf<String, SecretEncodingFun>()
 
-    /** The mock for the [CredentialResolverFun] used by the mock [ConfigFileBuilder]. */
-    val resolverFun = mockk<CredentialResolverFun>()
+    /** The mock for the [SecretResolverFun] used by the mock [ConfigFileBuilder]. */
+    val secretResolverFun = mockk<SecretResolverFun>()
 
     /** The mock for the [InfraSecretResolverFun] used by the mock [ConfigFileBuilder]. */
     val infraSecretResolverFun = mockk<InfraSecretResolverFun>()
@@ -187,7 +187,7 @@ class MockConfigFileBuilder(
                 reference
             }
 
-            every { resolverFun } returns this@MockConfigFileBuilder.resolverFun
+            every { secretResolverFun } returns this@MockConfigFileBuilder.secretResolverFun
             every { infraSecretResolverFun } returns this@MockConfigFileBuilder.infraSecretResolverFun
             every { globalMavenCentralMirror } returns this@MockConfigFileBuilder.globalMavenCentralMirror
         }
