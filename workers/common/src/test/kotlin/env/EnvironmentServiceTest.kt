@@ -61,8 +61,8 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedSecretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
@@ -275,7 +275,7 @@ class EnvironmentServiceTest : WordSpec({
             val context = mockk<WorkerContext> {
                 every { hierarchy } returns repositoryHierarchy
                 every { ortRun } returns ortRunWithEnvironment
-                every { credentialResolverFun } returns undefinedCredentialResolver
+                every { secretResolverFun } returns undefinedSecretResolver
                 coEvery { setupAuthentication(any(), any()) } just runs
             }
 
@@ -545,9 +545,9 @@ class EnvironmentServiceTest : WordSpec({
 
     "setupAuthentication" should {
         "setup the authenticator with the services" {
-            val resolverFun = mockk<CredentialResolverFun>()
+            val resolverFun = mockk<SecretResolverFun>()
             val context = mockk<WorkerContext> {
-                every { credentialResolverFun } returns resolverFun
+                every { secretResolverFun } returns resolverFun
                 every { ortRun } returns currentOrtRun
                 coEvery { setupAuthentication(any(), any()) } just runs
             }
@@ -601,7 +601,7 @@ class EnvironmentServiceTest : WordSpec({
     "setupAuthenticationForCurrentRun" should {
         "setup the authenticator with services stored in the database" {
             val context = mockContext()
-            val resolverFun = context.credentialResolverFun
+            val resolverFun = context.secretResolverFun
 
             val usernameSecret = mockk<Secret> {
                 every { name } returns "usernameSecretName"
@@ -1005,7 +1005,7 @@ private fun mockContext(): WorkerContext =
     mockk {
         every { hierarchy } returns repositoryHierarchy
         every { ortRun } returns currentOrtRun
-        every { credentialResolverFun } returns mockk()
+        every { secretResolverFun } returns mockk()
         every { configManager } returns mockk()
         coEvery { setupAuthentication(any(), any()) } just runs
     }
@@ -1082,7 +1082,7 @@ private fun <T : EnvironmentServiceDefinition> EnvironmentConfigGenerator<T>.ver
         generateApplicable(capture(slotBuilder), capture(slotDefinitions))
     }
 
-    slotBuilder.captured.resolverFun shouldBe context.credentialResolverFun
+    slotBuilder.captured.secretResolverFun shouldBe context.secretResolverFun
     slotBuilder.captured.globalMavenCentralMirror should beNull()
 
     if (expectedDefinitions != null) {

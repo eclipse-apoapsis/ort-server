@@ -29,9 +29,9 @@ import kotlin.random.Random
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
-import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveCredentials
+import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveSecrets
 
 import org.slf4j.LoggerFactory
 
@@ -57,7 +57,7 @@ typealias SecretEncodingFun = (String) -> String
  */
 class ConfigFileBuilder(
     /** The function to resolve secrets for the credentials of environment services. */
-    val resolverFun: CredentialResolverFun,
+    val secretResolverFun: SecretResolverFun,
 
     /** The function to resolve infrastructure-related secrets referenced in [globalMavenCentralMirror]. */
     val infraSecretResolverFun: InfraSecretResolverFun,
@@ -168,8 +168,8 @@ class ConfigFileBuilder(
 
         printWriter.block()
 
-        val secretValues = resolveCredentials(
-            resolverFun,
+        val secretValues = resolveSecrets(
+            secretResolverFun,
             *secretReferences.values.map(SecretReference::secret).toTypedArray()
         )
         val content = secretReferences.entries.fold(writer.toString()) { text, (placeholder, reference) ->

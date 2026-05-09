@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
-import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedInfraSecretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory
  */
 internal class NetRcManager(
     /** The function to resolve credentials. */
-    private val resolverFun: CredentialResolverFun
+    private val resolverFun: SecretResolverFun
 ) : AuthenticationListener {
     companion object {
         private val logger = LoggerFactory.getLogger(NetRcManager::class.java)
@@ -54,7 +54,7 @@ internal class NetRcManager(
         /**
          * Create a new instance of [NetRcManager] and initialize it with the given [resolverFun].
          */
-        fun create(resolverFun: CredentialResolverFun): NetRcManager =
+        fun create(resolverFun: SecretResolverFun): NetRcManager =
             NetRcManager(resolverFun)
     }
 

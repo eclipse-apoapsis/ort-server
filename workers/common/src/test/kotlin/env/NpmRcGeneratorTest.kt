@@ -129,7 +129,7 @@ class NpmRcGeneratorTest : WordSpec({
             val passwordBase64 = "dGhlUmVnaXN0cnknc1NlY3JldFB3ZA=="
             val mockBuilder = MockConfigFileBuilder()
             every {
-                mockBuilder.resolverFun.invoke(passwordSecret)
+                mockBuilder.secretResolverFun.invoke(passwordSecret)
             } returns password
 
             NpmRcGenerator().generate(mockBuilder.builder, listOf(definition))
@@ -191,8 +191,8 @@ class NpmRcGeneratorTest : WordSpec({
             val password = "tiger"
             val authBase64 = "c2NvdHQ6dGlnZXI="
             val mockBuilder = MockConfigFileBuilder()
-            every { mockBuilder.resolverFun.invoke(usernameSecret) } returns username
-            every { mockBuilder.resolverFun.invoke(passwordSecret) } returns password
+            every { mockBuilder.secretResolverFun.invoke(usernameSecret) } returns username
+            every { mockBuilder.secretResolverFun.invoke(passwordSecret) } returns password
 
             NpmRcGenerator().generate(mockBuilder.builder, listOf(definition))
 

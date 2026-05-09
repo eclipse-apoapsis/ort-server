@@ -24,7 +24,7 @@ import java.io.PrintWriter
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveCredentials
+import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveSecrets
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
@@ -143,7 +143,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 }
 
                 NpmAuthMode.PASSWORD_BASE64 -> {
-                    val password = builder.resolverFun(service.passwordSecret).base64()
+                    val password = builder.secretResolverFun(service.passwordSecret).base64()
                     GeneratorLogger.entryAdded(
                         "$fragment:username=[username],_password=[base64]",
                         NPMRC_FILE_NAME,
@@ -169,8 +169,8 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 }
 
                 NpmAuthMode.USERNAME_PASSWORD_AUTH -> {
-                    val secretValues = resolveCredentials(
-                        builder.resolverFun,
+                    val secretValues = resolveSecrets(
+                        builder.secretResolverFun,
                         service.usernameSecret,
                         service.passwordSecret
                     )
