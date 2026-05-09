@@ -139,7 +139,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                     """
                     $fragment:username=${builder.secretRef(definition.service.usernameSecret)}
                     $fragment:_password=${builder.secretRef(definition.service.passwordSecret)}
-                """.trimIndent()
+                    """.trimIndent()
                 }
 
                 NpmAuthMode.PASSWORD_BASE64 -> {
@@ -153,7 +153,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                     """
                     $fragment:username=${builder.secretRef(service.usernameSecret)}
                     $fragment:_password=$password
-                """.trimIndent()
+                    """.trimIndent()
                 }
 
                 NpmAuthMode.PASSWORD_AUTH -> {
