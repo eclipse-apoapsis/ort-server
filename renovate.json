@@ -29,10 +29,6 @@
       "allowedVersions": "< 22"
     },
     {
-      "matchPackageNames": ["eslint"],
-      "rangeStrategy": "in-range-only"
-    },
-    {
       "matchPackageNames": ["lucide-react"],
       "schedule": ["after 9pm on sunday"]
     },
