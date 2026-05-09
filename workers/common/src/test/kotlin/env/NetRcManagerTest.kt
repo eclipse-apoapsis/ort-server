@@ -65,8 +65,8 @@ class NetRcManagerTest : WordSpec({
             val definition = EnvironmentServiceDefinition(
                 createInfrastructureService(
                     "https://repo.example.org",
-                    MockConfigFileBuilder.Companion.createSecret("s1"),
-                    MockConfigFileBuilder.Companion.createSecret("s2")
+                    MockConfigFileBuilder.createSecret("s1"),
+                    MockConfigFileBuilder.createSecret("s2")
                 )
             )
 
