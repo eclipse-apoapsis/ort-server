@@ -33,10 +33,12 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm -C website install --frozen-lockfile
+      working-directory: website
+      run: pnpm install --frozen-lockfile
 
     - name: Test build
-      run: pnpm -C website build
+      working-directory: website
+      run: pnpm build
 
     - name: Setup Pages
       uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

@@ -79,10 +79,12 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm -C ui install --dev
+      working-directory: ui
+      run: pnpm install --dev
 
     - name: Run ESLint
-      run: pnpm -C ui lint
+      working-directory: ui
+      run: pnpm lint
 
   prettier-ui:
     runs-on: ubuntu-24.04
@@ -100,10 +102,12 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm -C ui install --dev
+      working-directory: ui
+      run: pnpm install --dev
 
     - name: Run Prettier
-      run: pnpm -C ui format:check
+      working-directory: ui
+      run: pnpm format:check
 
   prettier-website:
     runs-on: ubuntu-24.04
@@ -121,10 +125,12 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm -C website install --dev
+      working-directory: website
+      run: pnpm install --dev
 
     - name: Run Prettier
-      run: pnpm -C website format:check
+      working-directory: website
+      run: pnpm format:check
 
   renovate-validation:
     runs-on: ubuntu-24.04

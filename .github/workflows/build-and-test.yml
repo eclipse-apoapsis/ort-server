@@ -123,13 +123,16 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm -C ui install
+      working-directory: ui
+      run: pnpm install
 
     - name: Build UI
-      run: pnpm -C ui build
+      working-directory: ui
+      run: pnpm build
 
     - name: Test UI
-      run: pnpm -C ui test
+      working-directory: ui
+      run: pnpm test
 
   test:
     needs: build
@@ -247,13 +250,16 @@ jobs:
       run: corepack enable
 
     - name: Install dependencies
-      run: pnpm -C ui install
+      working-directory: ui
+      run: pnpm install
 
     - name: Generate API client and routes
-      run: pnpm -C ui generate:api && pnpm -C ui generate:routes
+      working-directory: ui
+      run: pnpm generate:api && pnpm generate:routes
 
     - name: Install Playwright Browsers
-      run: pnpm -C ui exec playwright install --with-deps
+      working-directory: ui
+      run: pnpm exec playwright install --with-deps
 
     - name: Start core services
       run: docker compose up -d core
@@ -280,13 +286,14 @@ jobs:
       env:
         VITE_UI_URL: http://127.0.0.1:8082/
         VITE_CLIENT_ID: ort-server-ui
+      working-directory: ui
       run: |
         # Exit on error, undefined variables, and pipe failures
         set -euo pipefail
 
         # Start the Vite dev server in the background
         # The dev server is needed because Playwright tests run against a live server
-        pnpm -C ui dev --host 0.0.0.0 --port 8082 > ui-dev.log 2>&1 &
+        pnpm dev --host 0.0.0.0 --port 8082 > ui-dev.log 2>&1 &
         UI_DEV_PID=$!
 
         # Set up cleanup to ensure the background dev server process is killed on exit
@@ -325,7 +332,7 @@ jobs:
           sleep 2
         done
 
-        pnpm -C ui test:e2e
+        pnpm test:e2e
 
     - name: Upload UI dev log
       if: success() || failure()
