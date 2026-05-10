@@ -202,7 +202,7 @@ importers:
         specifier: 10.5.0
         version: 10.5.0(postcss@8.5.13)
       eslint:
-        specifier: ^10.0.0
+        specifier: 10.3.0
         version: 10.3.0(jiti@2.6.1)
       eslint-plugin-react-hooks:
         specifier: 7.1.1
