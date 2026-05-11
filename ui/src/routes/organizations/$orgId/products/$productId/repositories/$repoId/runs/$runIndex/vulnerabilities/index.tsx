@@ -17,21 +17,18 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import z from 'zod';
 
 import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
@@ -80,15 +77,17 @@ import {
   getResolvedBackgroundColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
-import { updateColumnSorting } from '@/helpers/handle-multisort';
+import {
+  convertToBackendSorting,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
   getResolutionAccordionDefaultValue,
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
-import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
-import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
+import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
   externalIdSearchParameterSchema,
@@ -104,6 +103,12 @@ import {
 import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
+const supportedSortColumns = new Set([
+  'identifier',
+  'purl',
+  'externalId',
+  'rating',
+]);
 
 const columnHelper = createColumnHelper<VulnerabilityWithDetails>();
 
@@ -186,7 +191,18 @@ const VulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const itemStatus = search.itemResolved;
+  const packageIdentifier = search.pkgId;
+  const rating = search.rating;
+  const externalId = search.externalId;
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const resolved =
+    itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
+  const sortBy = search.sortBy?.filter((sort) =>
+    supportedSortColumns.has(sort.id)
+  );
 
   const columns = [
     columnHelper.display({
@@ -264,9 +280,7 @@ const VulnerabilitiesComponent = () => {
       {
         id: 'itemStatus',
         header: 'Status',
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getResolvedStatus(row.original));
-        },
+        enableSorting: false,
         meta: {
           filter: {
             filterVariant: 'select',
@@ -288,16 +302,8 @@ const VulnerabilitiesComponent = () => {
       }
     ),
     columnHelper.accessor('rating', {
+      id: 'rating',
       header: 'Rating',
-      filterFn: (row, _columnId, filterValue): boolean => {
-        return filterValue.includes(row.original.rating);
-      },
-      sortingFn: (rowA, rowB) => {
-        return compareVulnerabilityRating(
-          rowA.getValue('rating'),
-          rowB.getValue('rating')
-        );
-      },
       meta: {
         filter: {
           filterVariant: 'select',
@@ -334,6 +340,7 @@ const VulnerabilitiesComponent = () => {
     columnHelper.accessor('advisor.name', {
       id: 'advisorName',
       header: 'Advisor',
+      enableSorting: false,
       enableColumnFilter: false,
     }),
     columnHelper.accessor(
@@ -349,61 +356,7 @@ const VulnerabilitiesComponent = () => {
     ),
   ];
 
-  // All of these need to be memoized to prevent unnecessary re-renders
-  // and (at least for Firefox) the browser freezing up.
-  const pageIndex = useMemo(
-    () => (search.page ? search.page - 1 : 0),
-    [search.page]
-  );
-
-  const pageSize = useMemo(
-    () => (search.pageSize ? search.pageSize : defaultPageSize),
-    [search.pageSize]
-  );
-
-  const itemStatus = useMemo(
-    () => (search.itemResolved ? search.itemResolved : undefined),
-    [search.itemResolved]
-  );
-
-  const packageIdentifier = useMemo(
-    () => (search.pkgId ? search.pkgId : undefined),
-    [search.pkgId]
-  );
-
-  const rating = useMemo(
-    () => (search.rating ? search.rating : undefined),
-    [search.rating]
-  );
-
-  const externalId = useMemo(
-    () => (search.externalId ? search.externalId : undefined),
-    [search.externalId]
-  );
-
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
-
-  const columnFilters = useMemo(() => {
-    const filters = [];
-    if (itemStatus) {
-      filters.push({ id: 'itemStatus', value: itemStatus });
-    }
-    if (packageIdentifier) {
-      filters.push({ id: columnId, value: packageIdentifier });
-    }
-    if (rating) {
-      filters.push({ id: 'rating', value: rating });
-    }
-    if (externalId) {
-      filters.push({ id: 'externalId', value: externalId });
-    }
-    return filters;
-  }, [itemStatus, packageIdentifier, columnId, rating, externalId]);
-
-  const sortBy = useMemo(
-    () => (search.sortBy ? search.sortBy : undefined),
-    [search.sortBy]
-  );
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -415,14 +368,36 @@ const VulnerabilitiesComponent = () => {
   });
 
   const {
+    data: totalVulnerabilities,
+    isPending: totalIsPending,
+    isError: totalIsError,
+    error: totalError,
+  } = useSuspenseQuery({
+    ...getRunVulnerabilitiesOptions({
+      path: { runId: ortRun.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  const {
     data: vulnerabilities,
     isPending,
     isError,
     error,
-  } = useQuery({
+  } = useSuspenseQuery({
     ...getRunVulnerabilitiesOptions({
       path: { runId: ortRun.id },
-      query: { limit: ALL_ITEMS },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(sortBy),
+        resolved,
+        rating: rating?.join(','),
+        ...(packageIdType === 'ORT_ID'
+          ? { identifier: packageIdentifier }
+          : { purl: packageIdentifier }),
+        externalId,
+      },
     }),
   });
 
@@ -516,12 +491,20 @@ const VulnerabilitiesComponent = () => {
   const table = useReactTable({
     data: vulnerabilities?.data || [],
     columns,
+    pageCount: Math.ceil(
+      (vulnerabilities?.pagination.totalCount ?? 0) / pageSize
+    ),
     state: {
       pagination: {
         pageIndex,
         pageSize,
       },
-      columnFilters,
+      columnFilters: [
+        { id: 'itemStatus', value: itemStatus },
+        { id: columnId, value: packageIdentifier },
+        { id: 'rating', value: rating },
+        { id: 'externalId', value: externalId },
+      ].filter(({ value }) => value !== undefined),
       columnVisibility: {
         [columnId]: false,
         rating: false,
@@ -536,29 +519,28 @@ const VulnerabilitiesComponent = () => {
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
-    enableMultiSort: false,
+    manualPagination: true,
   });
 
-  if (isPending) {
+  if (isPending || totalIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
-    toastError('Unable to load data', error);
+  if (isError || totalIsError) {
+    toastError('Unable to load data', error || totalError);
     return;
   }
-  const filtersInUse = table.getState().columnFilters.length > 0;
-  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
+  const filtersInUse =
+    totalVulnerabilities.pagination.totalCount !==
+    vulnerabilities.pagination.totalCount;
+  const matching = `, ${vulnerabilities.pagination.totalCount} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Vulnerabilities ({vulnerabilities.pagination.totalCount} in total
+          Vulnerabilities ({totalVulnerabilities.pagination.totalCount} in total
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
