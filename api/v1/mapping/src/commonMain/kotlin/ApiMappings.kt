@@ -851,7 +851,15 @@ fun ApiPackageFilters.mapToModel(): PackageFilters =
 
 fun ApiRuleViolationFilters.mapToModel(): RuleViolationFilters = RuleViolationFilters(resolved = resolved)
 
-fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFilters(resolved = resolved)
+fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFilters(
+    resolved = resolved,
+    rating = rating?.mapToModel { ratingSet ->
+        ratingSet.mapTo(mutableSetOf()) { it.mapToModel() }
+    },
+    identifier = identifier?.mapToModel { it },
+    purl = purl?.mapToModel { it },
+    externalId = externalId?.mapToModel { it }
+)
 
 fun Project.mapToApi() = ApiProject(
     identifier = identifier.mapToApi(),
