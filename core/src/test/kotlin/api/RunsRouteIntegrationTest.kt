@@ -672,20 +672,10 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
 
                 vulnerabilities.data shouldHaveSize 2
+                vulnerabilities.pagination.sortProperties shouldBe
+                    listOf(SortProperty("rating", SortDirection.DESCENDING))
 
                 with(vulnerabilities.data[0]) {
-                    vulnerability.externalId shouldBe "CVE-2018-14721"
-                    rating shouldBe VulnerabilityRating.MEDIUM
-
-                    with(identifier) {
-                        type shouldBe "Maven"
-                        namespace shouldBe "com.fasterxml.jackson.core"
-                        name shouldBe "jackson-databind"
-                        version shouldBe "2.9.6"
-                    }
-                }
-
-                with(vulnerabilities.data[1]) {
                     vulnerability.externalId shouldBe "CVE-2021-1234"
                     rating shouldBe VulnerabilityRating.MEDIUM
 
@@ -694,6 +684,18 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         namespace shouldBe "org.apache.logging.log4j"
                         name shouldBe "log4j-core"
                         version shouldBe "2.14.0"
+                    }
+                }
+
+                with(vulnerabilities.data[1]) {
+                    vulnerability.externalId shouldBe "CVE-2018-14721"
+                    rating shouldBe VulnerabilityRating.MEDIUM
+
+                    with(identifier) {
+                        type shouldBe "Maven"
+                        namespace shouldBe "com.fasterxml.jackson.core"
+                        name shouldBe "jackson-databind"
+                        version shouldBe "2.9.6"
                     }
                 }
             }
@@ -848,6 +850,396 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                     first().resolutions should beEmpty()
                 }
+            }
+        }
+
+        "filter vulnerabilities by externalId" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?externalId=CVE-2018"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 1
+                vulnerabilities.data.single().vulnerability.externalId shouldBe "CVE-2018-14721"
+            }
+        }
+
+        "filter vulnerabilities by identifier" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?identifier=jackson-databind"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 1
+                vulnerabilities.data.single().identifier.name shouldBe "jackson-databind"
+            }
+        }
+
+        "filter vulnerabilities by rating inclusion" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?rating=MEDIUM"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 2
+                vulnerabilities.data.all { it.rating == VulnerabilityRating.MEDIUM } shouldBe true
+            }
+        }
+
+        "sort vulnerabilities by rating" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = mapOf(
+                        Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0") to listOf(
+                            AdvisorResult(
+                                advisorName = "advisor",
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-1234",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "LOW",
+                                                score = 1.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6") to listOf(
+                            AdvisorResult(
+                                advisorName = "advisor",
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2018-14721",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "HIGH",
+                                                score = 8.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?sort=-rating"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.pagination.sortProperties shouldBe
+                    listOf(SortProperty("rating", SortDirection.DESCENDING))
+                vulnerabilities.data.map { it.rating } shouldBe
+                    listOf(VulnerabilityRating.HIGH, VulnerabilityRating.LOW)
+                vulnerabilities.data.map { it.vulnerability.externalId } shouldBe
+                    listOf("CVE-2018-14721", "CVE-2021-1234")
+            }
+        }
+
+        "sort vulnerabilities by identifier" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val log4jId = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                val jacksonId = Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6")
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = mapOf(
+                        log4jId to listOf(
+                            AdvisorResult(
+                                advisorName = "advisor",
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-1234",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "LOW",
+                                                score = 1.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        jacksonId to listOf(
+                            AdvisorResult(
+                                advisorName = "advisor",
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2018-14721",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "HIGH",
+                                                score = 8.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?sort=identifier"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.pagination.sortProperties shouldBe
+                    listOf(SortProperty("identifier", SortDirection.ASCENDING))
+                vulnerabilities.data.map { it.identifier } shouldBe listOf(
+                    ApiIdentifier(
+                        type = jacksonId.type,
+                        namespace = jacksonId.namespace,
+                        name = jacksonId.name,
+                        version = jacksonId.version
+                    ),
+                    ApiIdentifier(
+                        type = log4jId.type,
+                        namespace = log4jId.namespace,
+                        name = log4jId.name,
+                        version = log4jId.version
+                    )
+                )
+            }
+        }
+
+        "filter vulnerabilities by rating exclusion" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?rating=-,MEDIUM"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data should beEmpty()
+            }
+        }
+
+        "filter vulnerabilities by purl" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val jacksonId = Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6")
+                val log4jId = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                val pkgJackson = dbExtension.fixtures.generatePackage(jacksonId)
+                val pkgLog4j = dbExtension.fixtures.generatePackage(log4jId)
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId = analyzerJob.id,
+                    packages = setOf(pkgJackson, pkgLog4j)
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?purl=jackson"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 1
+                vulnerabilities.data.single().vulnerability.externalId shouldBe "CVE-2018-14721"
+                vulnerabilities.data.single().purl shouldBe pkgJackson.purl
+            }
+        }
+
+        "sort vulnerabilities by purl" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val jacksonId = Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6")
+                val log4jId = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                val pkgJackson = dbExtension.fixtures.generatePackage(jacksonId).copy(
+                    purl = "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.6"
+                )
+                val pkgLog4j = dbExtension.fixtures.generatePackage(log4jId).copy(
+                    purl = "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.0"
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId = analyzerJob.id,
+                    packages = setOf(pkgJackson, pkgLog4j)
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?sort=purl"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.pagination.sortProperties shouldBe
+                    listOf(SortProperty("purl", SortDirection.ASCENDING))
+                vulnerabilities.data.map { it.purl } shouldBe listOf(
+                    pkgJackson.purl,
+                    pkgLog4j.purl
+                )
             }
         }
 

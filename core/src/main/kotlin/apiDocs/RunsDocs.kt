@@ -288,6 +288,8 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
             description = "The ID of the ORT run."
         }
 
+        standardListQueryParameters()
+
         queryParameter<Boolean>("resolved") {
             description =
                 """
@@ -296,7 +298,25 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                 """.trimIndent()
         }
 
-        standardListQueryParameters()
+        queryParameter<String>("rating") {
+            description = "Defines the ratings to filter the results by. This is a comma-separated string with the " +
+                    "following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it" } + ". Add a " +
+                    "minus as the first item to exclude packages with the specified ratings, e.g. '-,HIGH'."
+        }
+
+        queryParameter<String>("identifier") {
+            description = "Defines an ORT package identifier to filter the results by. Uses a case-insensitive " +
+                    "substring match."
+        }
+
+        queryParameter<String>("purl") {
+            description = "Defines a purl to filter the results by. Uses a case-insensitive substring match."
+        }
+
+        queryParameter<String>("externalId") {
+            description = "Defines an external ID to filter the results by. Uses a case-insensitive " +
+                    "substring match."
+        }
     }
 
     response {
@@ -348,7 +368,7 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 1,
-                            sortProperties = listOf(SortProperty("external_id", SortDirection.ASCENDING))
+                            sortProperties = listOf(SortProperty("rating", SortDirection.DESCENDING))
                         )
                     )
                 }
