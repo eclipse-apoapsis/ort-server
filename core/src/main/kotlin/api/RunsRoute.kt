@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
@@ -549,7 +550,15 @@ private fun ApplicationCall.issueFilters() =
  */
 private fun ApplicationCall.vulnerabilityFilters() =
     VulnerabilityFilters(
-        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
+        rating = parameters["rating"]?.let { rating ->
+            val (operators, ratings) = rating.split(',').partition { it == "-" }
+            val enums = ratings.mapTo(mutableSetOf()) { findByName<VulnerabilityRating>(it) }
+            FilterOperatorAndValue(if (operators.isEmpty()) ComparisonOperator.IN else ComparisonOperator.NOT_IN, enums)
+        },
+        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
     )
 
 /**
