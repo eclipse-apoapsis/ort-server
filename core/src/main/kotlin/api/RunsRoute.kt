@@ -508,13 +508,13 @@ private fun ApplicationCall.filters(): OrtRunFilters =
  * the result by. If the first item on the list is a minus, the provided licenses will be excluded from the result.
  */
 private fun ApplicationCall.processedDeclaredLicense(): FilterOperatorAndValue<Set<String>>? {
-    val parts = parameters["processedDeclaredLicense"]?.split(',').orEmpty()
-    if (parts.isEmpty()) return null
+    val parts = parameters["processedDeclaredLicense"]?.split(',')?.toMutableSet() ?: return null
 
-    return FilterOperatorAndValue(
-        operator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN,
-        value = parts.filter { it != "-" }.toSet()
-    )
+    return if (parts.removeIf { it == "-" }) {
+        FilterOperatorAndValue(ComparisonOperator.NOT_IN, parts)
+    } else {
+        FilterOperatorAndValue(ComparisonOperator.IN, parts)
+    }
 }
 
 /**
