@@ -53,7 +53,6 @@ import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
@@ -125,16 +124,17 @@ class OrtServerScanResultStorage(
                             version = it.scannerVersion,
                             configuration = it.scannerConfiguration
                         ),
-                        summary = it.scanSummary.mapToModel(withRelations = false).mapToOrt(),
+                        summary = it.scanSummary.mapToModel(withFindings = false).mapToOrt(),
                         additionalData = it.additionalScanResultData?.data.orEmpty()
                     )
                 }.filterValues { scannerMatcher?.matches(it.scanner) != false }
 
-                matchingScanResults.forEach { (dao, _) ->
+                matchingScanResults.forEach { (dao, result) ->
                     associateScanResultWithScannerRun(dao)
+                    storeIssues(provenance, result.summary)
                 }
 
-                matchingScanResults.values.toList()
+                dropScanSummaryIssues(matchingScanResults.values)
             }
         }
 
@@ -388,3 +388,12 @@ private fun <T> withLoggedTime(action: String, block: () -> T): T {
 
     return timedValue.value
 }
+
+/**
+ * Process the given collection of [scanResults] by removing all issues from their scan summaries. The issues are
+ * collected separately by [OrtServerScanResultStorage]; therefore, they must not be in [ScanResult] objects.
+ */
+private fun dropScanSummaryIssues(scanResults: Collection<ScanResult>): List<ScanResult> =
+    scanResults.map { scanResult ->
+        scanResult.copy(summary = scanResult.summary.copy(issues = emptyList()))
+    }
