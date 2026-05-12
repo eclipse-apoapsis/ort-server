@@ -24,6 +24,7 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -74,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.Authoriza
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -1527,6 +1529,66 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             val createdOrganization = createOrganization()
             requestShouldRequireRole(OrganizationRole.READER, createdOrganization.hierarchyId) {
                 get("/api/v1/organizations/${createdOrganization.id}/vulnerabilities")
+            }
+        }
+    }
+
+    "GET /organizations/{organizationId}/vulnerabilities/advisors" should {
+        "return distinct advisors from latest successful advisor runs across repositories" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val prod1Id = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                val prod2Id = dbExtension.fixtures.createProduct("Prod2", organizationId = orgId).id
+
+                val repo1Id = dbExtension.fixtures.createRepository(productId = prod1Id).id
+                val repo2Id = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/repo2.git",
+                    productId = prod2Id
+                ).id
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo1Id).id
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = run1Id,
+                    configuration = AdvisorJobConfiguration(advisors = listOf("OSV", "VulnerableCode"))
+                ).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo2Id).id
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = run2Id,
+                    configuration = AdvisorJobConfiguration(advisors = listOf("NexusIQ", "VulnerableCode"))
+                ).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/vulnerabilities/advisors")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should containExactly("NexusIQ", "OSV", "VulnerableCode")
+            }
+        }
+
+        "return an empty list when no successful advisor jobs exist in the organization" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/vulnerabilities/advisors")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should beEmpty()
+            }
+        }
+
+        "require OrganizationPermission.READ" {
+            val createdOrganization = createOrganization()
+            requestShouldRequireRole(OrganizationRole.READER, createdOrganization.hierarchyId) {
+                get("/api/v1/organizations/${createdOrganization.id}/vulnerabilities/advisors")
             }
         }
     }

@@ -58,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationVulnerabilities
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationVulnerabilityAdvisors
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganization
@@ -267,6 +268,18 @@ fun Route.organizations() = route("organizations") {
                     .toSearchResponse(filters)
 
                 call.respond(HttpStatusCode.OK, pagedSearchResponse)
+            }
+
+            route("advisors") {
+                get(getOrganizationVulnerabilityAdvisors, requirePermission(OrganizationPermission.READ)) {
+                    val organizationId = call.requireIdParameter("organizationId")
+                    val repositoryIds = organizationService.getRepositoryIdsForOrganization(organizationId)
+                    val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
+                        repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
+                    }
+                    val advisors = vulnerabilityService.getAdvisorsForOrtRunIds(ortRunIds)
+                    call.respond(HttpStatusCode.OK, advisors.toList())
+                }
             }
         }
 
