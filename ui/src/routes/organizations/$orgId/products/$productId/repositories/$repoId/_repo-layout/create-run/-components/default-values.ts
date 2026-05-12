@@ -122,6 +122,7 @@ export function defaultValues(
           Maven: defaultPackageManagerOptions('Maven'),
           NPM: defaultPackageManagerOptions('NPM'),
           NuGet: defaultPackageManagerOptions('NuGet'),
+          OrtProjectFile: defaultPackageManagerOptions('OrtProjectFile'),
           PIP: defaultPackageManagerOptions('PIP'),
           Pipenv: defaultPackageManagerOptions('Pipenv'),
           PNPM: defaultPackageManagerOptions('PNPM'),

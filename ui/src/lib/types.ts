@@ -264,6 +264,10 @@ export const packageManagers = [
     label: 'NuGet (C# and DotNet in general)',
   },
   {
+    id: 'OrtProjectFile',
+    label: 'ORT Project File',
+  },
+  {
     id: 'PIP',
     label: 'PIP (Python)',
   },

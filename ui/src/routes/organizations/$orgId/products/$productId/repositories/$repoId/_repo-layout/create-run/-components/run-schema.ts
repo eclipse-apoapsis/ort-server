@@ -79,6 +79,7 @@ export const createRunFormSchema = (
             Maven: packageManagerOptionsSchema,
             NPM: packageManagerOptionsSchema,
             NuGet: packageManagerOptionsSchema,
+            OrtProjectFile: packageManagerOptionsSchema,
             PIP: packageManagerOptionsSchema,
             Pipenv: packageManagerOptionsSchema,
             PNPM: packageManagerOptionsSchema,

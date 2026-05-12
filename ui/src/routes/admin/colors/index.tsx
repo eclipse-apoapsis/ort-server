@@ -237,6 +237,18 @@ const ColorsComponent = () => {
                 </TableCell>
               </TableRow>
               <TableRow>
+                <TableCell>ORT</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['OrtProjectFile'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
                 <TableCell>Objective-C</TableCell>
                 <TableCell className='flex gap-2'>
                   {['Carthage', 'CocoaPods'].map((p) => (

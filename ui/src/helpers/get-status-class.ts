@@ -202,6 +202,8 @@ export function getEcosystemBackgroundColor(
       return 'bg-teal-400';
     case 'NuGet':
       return 'bg-violet-500';
+    case 'OrtProjectFile':
+      return 'bg-orange-500';
     case 'PIP':
       return 'bg-lime-400';
     case 'Pipenv':
