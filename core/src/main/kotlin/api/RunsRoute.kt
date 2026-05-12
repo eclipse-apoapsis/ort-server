@@ -225,7 +225,7 @@ fun Route.runs() = route("runs") {
 
         route("vulnerabilities") {
             get(getRunVulnerabilities, requireRunPermission()) {
-                val pagingOptions = call.pagingOptions(SortProperty("externalId", SortDirection.ASCENDING))
+                val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
                 val filters = call.vulnerabilityFilters()
 
                 val vulnerabilitiesForOrtRun =
