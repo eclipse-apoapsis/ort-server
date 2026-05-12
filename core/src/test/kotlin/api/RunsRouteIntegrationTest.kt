@@ -27,6 +27,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -2908,6 +2909,55 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/$ortRunId/packages/licenses")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/vulnerabilities/advisors" should {
+        "return the advisors used in a run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = ortRun.id,
+                    configuration = AdvisorJobConfiguration(advisors = listOf("OSV", "VulnerableCode"))
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities/advisors")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should containExactly("OSV", "VulnerableCode")
+            }
+        }
+
+        "return an empty list when no advisor job exists for the run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities/advisors")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should beEmpty()
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRunId = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            ).id
+
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
+                get("/api/v1/runs/$ortRunId/vulnerabilities/advisors")
             }
         }
     }

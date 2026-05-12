@@ -69,6 +69,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunReport
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunRuleViolations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunVulnerabilities
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunVulnerabilityAdvisors
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuns
 import org.eclipse.apoapsis.ortserver.core.utils.findByName
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
@@ -238,6 +239,13 @@ fun Route.runs() = route("runs") {
                 val pagedResponse = vulnerabilitiesForOrtRun.mapToApi { it }
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
+            }
+
+            route("advisors") {
+                get(getRunVulnerabilityAdvisors, requireRunPermission()) {
+                    val advisors = vulnerabilityService.getAdvisorsForOrtRunId(call.ortRun.id)
+                    call.respond(HttpStatusCode.OK, advisors.toList())
+                }
             }
         }
 
