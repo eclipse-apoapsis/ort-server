@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductRepositories
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductVulnerabilities
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductVulnerabilityAdvisors
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProductRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
@@ -231,6 +232,18 @@ fun Route.products() = route("products/{productId}") {
                 .toSearchResponse(filters)
 
             call.respond(HttpStatusCode.OK, pagedSearchResponse)
+        }
+
+        route("advisors") {
+            get(getProductVulnerabilityAdvisors, requirePermission(ProductPermission.READ)) {
+                val productId = call.requireIdParameter("productId")
+                val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+                val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
+                    repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
+                }
+                val advisors = vulnerabilityService.getAdvisorsForOrtRunIds(ortRunIds)
+                call.respond(HttpStatusCode.OK, advisors.toList())
+            }
         }
     }
 

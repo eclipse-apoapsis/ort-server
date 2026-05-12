@@ -369,6 +369,31 @@ val getProductVulnerabilities: RouteConfig.() -> Unit = {
     }
 }
 
+val getProductVulnerabilityAdvisors: RouteConfig.() -> Unit = {
+    operationId = "getProductVulnerabilityAdvisors"
+    summary = "Get the advisors used for vulnerability checks in a product"
+    description = "Get the distinct advisor names from the latest successful advisor runs across the repositories " +
+            "in a product."
+    tags = listOf("Products")
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success. The advisors are sorted by name."
+            jsonBody<List<String>> {
+                example("Get vulnerability advisors for a product") {
+                    value = listOf("NexusIQ", "OSV", "VulnerableCode")
+                }
+            }
+        }
+    }
+}
+
 val getProductRunStatistics: RouteConfig.() -> Unit = {
     operationId = "getProductRunStatistics"
     summary = "Get statistics about ORT runs across the repositories of a product"

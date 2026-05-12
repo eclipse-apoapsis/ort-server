@@ -24,6 +24,7 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -91,6 +92,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration as ModelAdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -1301,6 +1303,62 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             val createdProduct = createProduct()
             requestShouldRequireRole(ProductRole.READER, createdProduct.hierarchyId()) {
                 get("/api/v1/products/${createdProduct.id}/vulnerabilities")
+            }
+        }
+    }
+
+    "GET /products/{productId}/vulnerabilities/advisors" should {
+        "return distinct advisors from latest successful advisor runs across repositories" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repo1Id = dbExtension.fixtures.createRepository(productId = productId).id
+                val repo2Id = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/repo2.git",
+                    productId = productId
+                ).id
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo1Id).id
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = run1Id,
+                    configuration = ModelAdvisorJobConfiguration(advisors = listOf("OSV", "VulnerableCode"))
+                ).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo2Id).id
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = run2Id,
+                    configuration = ModelAdvisorJobConfiguration(advisors = listOf("NexusIQ", "VulnerableCode"))
+                ).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+
+                val response = superuserClient.get("/api/v1/products/$productId/vulnerabilities/advisors")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should containExactly("NexusIQ", "OSV", "VulnerableCode")
+            }
+        }
+
+        "return an empty list when no successful advisor jobs exist in the product" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                val response = superuserClient.get("/api/v1/products/$productId/vulnerabilities/advisors")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should beEmpty()
+            }
+        }
+
+        "require ProductPermission.READ" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductRole.READER, createdProduct.hierarchyId()) {
+                get("/api/v1/products/${createdProduct.id}/vulnerabilities/advisors")
             }
         }
     }
