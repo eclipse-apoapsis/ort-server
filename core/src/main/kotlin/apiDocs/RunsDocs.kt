@@ -381,6 +381,33 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
     }
 }
 
+val getRunVulnerabilityAdvisors: RouteConfig.() -> Unit = {
+    operationId = "getRunVulnerabilityAdvisors"
+    summary = "Get the advisors used for vulnerability checks in an ORT run"
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success. The advisors are sorted by name."
+            jsonBody<List<String>> {
+                example("Get vulnerability advisors for an ORT run") {
+                    value = listOf("NexusIQ", "OSV", "VulnerableCode")
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
 val getRunRuleViolations: RouteConfig.() -> Unit = {
     operationId = "getRunRuleViolations"
     summary = "Get the rule violations found in an ORT run"
