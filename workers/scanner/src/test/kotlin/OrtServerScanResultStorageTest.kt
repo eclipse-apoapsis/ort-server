@@ -319,6 +319,56 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 loadScanSummaryIds() shouldHaveSize 2
             }
+
+            "link a new artifact-provenance scan result to the matching package provenance" {
+                val remoteArtifact = createRemoteArtifact()
+                val packageProvenance = createPackageProvenanceForArtifact(scannerRun, remoteArtifact)
+                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
+
+                scanResultStorage.write(scanResult)
+
+                verifyJunctionRow(scanResult, packageProvenance)
+            }
+
+            "link a new VCS-provenance scan result to the matching package provenance" {
+                val vcsInfo = createVcsInfo()
+                val packageProvenance = createPackageProvenanceForVcs(scannerRun, vcsInfo)
+                val scanResult =
+                    createScanResult("ScanCode", createIssue("source"), createRepositoryProvenance(vcsInfo))
+
+                scanResultStorage.write(scanResult)
+
+                verifyJunctionRow(scanResult, packageProvenance)
+            }
+
+            "link a cached (reused) scan result to the new scanner run's package provenance" {
+                val remoteArtifact = createRemoteArtifact()
+                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
+
+                // Write in run 1 (no package provenance yet — no junction row expected).
+                scanResultStorage.write(scanResult)
+
+                // Start run 2, add a package provenance, then read (cache hit path).
+                val scannerRun2 = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
+                val storage2 = OrtServerScanResultStorage(dbExtension.db, scannerRun2.id)
+                val packageProvenance = createPackageProvenanceForArtifact(scannerRun2, remoteArtifact)
+
+                storage2.write(scanResult)
+
+                verifyJunctionRow(scanResult, packageProvenance, scannerRun2)
+            }
+
+            "link a scan result to all package provenances sharing the same artifact URL" {
+                val remoteArtifact = createRemoteArtifact()
+                val provenance1 = createPackageProvenanceForArtifact(scannerRun, remoteArtifact, namespace = "com.a")
+                val provenance2 = createPackageProvenanceForArtifact(scannerRun, remoteArtifact, namespace = "com.b")
+                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
+
+                scanResultStorage.write(scanResult)
+
+                verifyJunctionRow(scanResult, provenance1)
+                verifyJunctionRow(scanResult, provenance2)
+            }
         }
 
         "read" should {
@@ -404,58 +454,6 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContain matchingScanResult.withoutRelations()
                 readResult shouldNotContain notMatchingScanResult
-            }
-        }
-
-        "write" should {
-            "link a new artifact-provenance scan result to the matching package provenance" {
-                val remoteArtifact = createRemoteArtifact()
-                val packageProvenance = createPackageProvenanceForArtifact(scannerRun, remoteArtifact)
-                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
-
-                scanResultStorage.write(scanResult)
-
-                verifyJunctionRow(scanResult, packageProvenance)
-            }
-
-            "link a new VCS-provenance scan result to the matching package provenance" {
-                val vcsInfo = createVcsInfo()
-                val packageProvenance = createPackageProvenanceForVcs(scannerRun, vcsInfo)
-                val scanResult =
-                    createScanResult("ScanCode", createIssue("source"), createRepositoryProvenance(vcsInfo))
-
-                scanResultStorage.write(scanResult)
-
-                verifyJunctionRow(scanResult, packageProvenance)
-            }
-
-            "link a cached (reused) scan result to the new scanner run's package provenance" {
-                val remoteArtifact = createRemoteArtifact()
-                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
-
-                // Write in run 1 (no package provenance yet — no junction row expected).
-                scanResultStorage.write(scanResult)
-
-                // Start run 2, add a package provenance, then read (cache hit path).
-                val scannerRun2 = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
-                val storage2 = OrtServerScanResultStorage(dbExtension.db, scannerRun2.id)
-                val packageProvenance = createPackageProvenanceForArtifact(scannerRun2, remoteArtifact)
-
-                storage2.write(scanResult)
-
-                verifyJunctionRow(scanResult, packageProvenance, scannerRun2)
-            }
-
-            "link a scan result to all package provenances sharing the same artifact URL" {
-                val remoteArtifact = createRemoteArtifact()
-                val provenance1 = createPackageProvenanceForArtifact(scannerRun, remoteArtifact, namespace = "com.a")
-                val provenance2 = createPackageProvenanceForArtifact(scannerRun, remoteArtifact, namespace = "com.b")
-                val scanResult = createScanResult("ScanCode", createIssue("source"), createArtifactProvenance())
-
-                scanResultStorage.write(scanResult)
-
-                verifyJunctionRow(scanResult, provenance1)
-                verifyJunctionRow(scanResult, provenance2)
             }
         }
 
