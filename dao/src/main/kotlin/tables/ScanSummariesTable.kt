@@ -49,34 +49,30 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     val issues by ScanSummariesIssuesDao referrersOn ScanSummariesIssuesTable.scanSummaryId
 
     /**
-     * Map this DAO to a [ScanSummary] model object. If the [withRelations] flag is *true*, populate the collections
-     * for findings and issues. (Note that this may cause a larger number of SELECT statements issued to the database
-     * to load all these objects.) If the flag is *false*, only initialize the direct properties and leave the
-     * collections empty.
+     * Map this DAO to a [ScanSummary] model object. If the [withFindings] flag is *true*, populate the collections
+     * for findings. (Note that this may cause a larger number of SELECT statements issued to the database to load all
+     * these objects.) If the flag is *false*, only initialize the direct properties and the issues and leave the
+     * collections for findings empty.
      */
-    fun mapToModel(withRelations: Boolean = true) = ScanSummary(
+    fun mapToModel(withFindings: Boolean = true) = ScanSummary(
         startTime = startTime,
         endTime = endTime,
         hash = hash,
-        licenseFindings = if (withRelations) {
+        licenseFindings = if (withFindings) {
             licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel)
         } else {
             emptySet()
         },
-        copyrightFindings = if (withRelations) {
+        copyrightFindings = if (withFindings) {
             copyrightFindings.mapTo(mutableSetOf(), CopyrightFindingDao::mapToModel)
         } else {
             emptySet()
         },
-        snippetFindings = if (withRelations) {
+        snippetFindings = if (withFindings) {
             snippetFindings.mapTo(mutableSetOf(), SnippetFindingDao::mapToModel)
         } else {
             emptySet()
         },
-        issues = if (withRelations) {
-            issues.map(ScanSummariesIssuesDao::mapToModel)
-        } else {
-            emptyList()
-        }
+        issues = issues.map(ScanSummariesIssuesDao::mapToModel)
     )
 }

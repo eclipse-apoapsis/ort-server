@@ -82,12 +82,12 @@ internal object ScanResultFixtures {
 
     fun createArtifactProvenance() = ArtifactProvenance(createRemoteArtifact())
 
-    fun createIssue(source: String) =
-        Issue(Instant.fromEpochSeconds(TIME_STAMP_SECONDS), source, "message", Severity.ERROR)
+    fun createIssue(source: String, message: String = "message") =
+        Issue(Instant.fromEpochSeconds(TIME_STAMP_SECONDS), source, message, Severity.ERROR)
 
     fun createServerScanResult(
         scannerName: String,
-        issue: Issue,
+        issues: List<Issue>,
         provenance: KnownProvenance,
         scannerVersion: String = SCANNER_VERSION,
         scannerConfig: String = "config",
@@ -135,10 +135,27 @@ internal object ScanResultFixtures {
                     )
                 )
             ),
-            listOf(issue)
+            issues
         ),
         additionalData
     )
+
+    fun createScanResult(
+        scannerName: String,
+        issues: List<Issue>,
+        provenance: KnownProvenance,
+        scannerVersion: String = SCANNER_VERSION,
+        scannerConfig: String = "config",
+        additionalData: Map<String, String> = mapOf("additional1" to "data1", "additional2" to "data2")
+    ): OrtScanResult =
+        createServerScanResult(
+            scannerName,
+            issues,
+            provenance,
+            scannerVersion,
+            scannerConfig,
+            additionalData
+        ).mapToOrt()
 
     fun createScanResult(
         scannerName: String,
@@ -148,7 +165,14 @@ internal object ScanResultFixtures {
         scannerConfig: String = "config",
         additionalData: Map<String, String> = mapOf("additional1" to "data1", "additional2" to "data2")
     ): OrtScanResult =
-        createServerScanResult(scannerName, issue, provenance, scannerVersion, scannerConfig, additionalData).mapToOrt()
+        createScanResult(
+            scannerName,
+            listOf(issue),
+            provenance,
+            scannerVersion,
+            scannerConfig,
+            additionalData
+        )
 
     /**
      * Return a copy of this [OrtScanResult] that does not contain any objects from related tables.

@@ -26,6 +26,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -454,6 +455,33 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContain matchingScanResult.withoutRelations()
                 readResult shouldNotContain notMatchingScanResult
+            }
+
+            "collect the issues from the read results" {
+                val issues1 = listOf(createIssue("source1", "some error"))
+                val issues2 = listOf(createIssue("source2", "some other error"), createIssue("source3", "some timeout"))
+                val issues3 = listOf(createIssue("source4", "a failure"), createIssue("source5", "a mistake"))
+                val artifactProvenance = createArtifactProvenance()
+                val repositoryProvenance = createRepositoryProvenance()
+
+                val scanResult1 = createScanResult("ScanCode", issues1, artifactProvenance)
+                val scanResult2 = createScanResult("FossID", issues2, artifactProvenance)
+                val scanResult3 = createScanResult("FossID", issues3, repositoryProvenance)
+
+                scanResultStorage.write(scanResult1)
+                scanResultStorage.write(scanResult2)
+                scanResultStorage.write(scanResult3)
+
+                val scanResultStorage2 = OrtServerScanResultStorage(dbExtension.db, scannerRun.id)
+                scanResultStorage2.read(artifactProvenance.mapToOrt(), scannerMatcher)
+                scanResultStorage2.read(repositoryProvenance.mapToOrt(), scannerMatcher)
+
+                val expectedArtifactIssues = (issues1 + issues2).map { it.mapToOrt() }
+                val expectedRepositoryIssues = issues3.map { it.mapToOrt() }
+                val allIssues = scanResultStorage2.getAllIssues()
+                allIssues shouldHaveSize 2
+                allIssues[artifactProvenance.mapToOrt()] shouldContainExactlyInAnyOrder expectedArtifactIssues
+                allIssues[repositoryProvenance.mapToOrt()] shouldContainExactlyInAnyOrder expectedRepositoryIssues
             }
         }
 
