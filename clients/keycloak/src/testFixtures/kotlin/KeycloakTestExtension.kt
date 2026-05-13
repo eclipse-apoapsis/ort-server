@@ -25,19 +25,18 @@ import io.kotest.core.extensions.MountableExtension
 import io.kotest.core.listeners.AfterEachListener
 import io.kotest.core.listeners.AfterSpecListener
 import io.kotest.core.listeners.BeforeEachListener
+import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.test.TestResult
-
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.RealmRepresentation
 
 /**
  * A test extension for integration tests that need access to Keycloak. The extension sets up a
- * [Keycloak test container][KeycloakContainer] with the provided [realm] which defaults to [testRealm].
+ * [shared Keycloak test container][SharedKeycloakTestContainer] with the provided [realm] which defaults to
+ * [testRealm].
  *
  * By default, the extension creates the realm once per spec. If [createRealmPerTest] is set to `true` the realm is
  * created once per test. This provides better isolation of tests but also extends the duration of each test case by
@@ -57,27 +56,32 @@ import org.keycloak.representations.idm.RealmRepresentation
  * }
  * ```
  *
- * The container is started on installation of the extension and stopped when the [Spec] is completed.
+ * The underlying Keycloak container is shared across all specs within the same JVM process and is stopped at JVM exit.
+ * This means that no two test classes using this extension may run in parallel.
  */
 class KeycloakTestExtension(
     private val realm: RealmRepresentation = testRealm,
     private val createRealmPerTest: Boolean = false
-) : MountableExtension<Keycloak, KeycloakContainer>, AfterSpecListener, BeforeEachListener, AfterEachListener {
-    private val keycloak = KeycloakContainer("quay.io/keycloak/keycloak:26.6.0")
+) : MountableExtension<Keycloak, KeycloakContainer>,
+    BeforeSpecListener,
+    AfterSpecListener,
+    BeforeEachListener,
+    AfterEachListener {
+    private val keycloak get() = SharedKeycloakTestContainer.container
 
     private lateinit var configureRealm: Keycloak.() -> Unit
 
     override fun mount(configure: Keycloak.() -> Unit): KeycloakContainer {
         configureRealm = configure
-        keycloak.start()
-        if (!createRealmPerTest) createRealm()
         return keycloak
     }
 
+    override suspend fun beforeSpec(spec: Spec) {
+        if (!createRealmPerTest) createRealm()
+    }
+
     override suspend fun afterSpec(spec: Spec) {
-        if (keycloak.isRunning) {
-            withContext(Dispatchers.IO) { keycloak.stop() }
-        }
+        if (!createRealmPerTest) removeRealm()
     }
 
     override suspend fun beforeEach(testCase: TestCase) {
