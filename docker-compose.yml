@@ -583,7 +583,7 @@ services:
         tag: "grafana"
 
   loki:
-    image: grafana/loki:3.7.1
+    image: grafana/loki:3.7.2
     ports:
       - "3100:3100"
     volumes:
