@@ -1299,6 +1299,74 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "allow filtering by advisor" {
+            integrationTestApplication {
+                val prodId = createProduct().id
+                val repoId = dbExtension.fixtures.createRepository(productId = prodId).id
+                val runId = dbExtension.fixtures.createOrtRun(repoId).id
+                val advisorJobId = dbExtension.fixtures.createAdvisorJob(runId).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJobId,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJobId,
+                    mapOf(
+                        Identifier("Maven", "com.example", "lib-a", "1.0") to listOf(
+                            generateAdvisorResult(
+                                listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-11111",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "MEDIUM",
+                                                score = 4.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            ).copy(advisorName = "OSV")
+                        ),
+                        Identifier("Maven", "com.example", "lib-b", "1.0") to listOf(
+                            generateAdvisorResult(
+                                listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-22222",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "LOW",
+                                                score = 1.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            ).copy(advisorName = "VulnerableCode")
+                        )
+                    )
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/products/$prodId/vulnerabilities?advisors=OSV"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulns = response.body<PagedSearchResponse<VulnerabilityWithStats, VulnerabilityForRunsFilters>>()
+
+                vulns.data shouldHaveSize 1
+                vulns.data.single().vulnerability.externalId shouldBe "CVE-2021-11111"
+            }
+        }
+
         "require ProductPermission.READ" {
             val createdProduct = createProduct()
             requestShouldRequireRole(ProductRole.READER, createdProduct.hierarchyId()) {

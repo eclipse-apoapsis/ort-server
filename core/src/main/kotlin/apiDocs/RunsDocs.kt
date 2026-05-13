@@ -317,6 +317,11 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
             description = "Defines an external ID to filter the results by. Uses a case-insensitive " +
                     "substring match."
         }
+        queryParameter<String>("advisors") {
+            description = "Defines the advisors to filter the results by. This is a comma-separated string of " +
+                    "advisor names (e.g. 'OSV,VulnerableCode'). Add a minus as the first item to exclude " +
+                    "vulnerabilities from the specified advisors, e.g. '-,OSV'."
+        }
     }
 
     response {
