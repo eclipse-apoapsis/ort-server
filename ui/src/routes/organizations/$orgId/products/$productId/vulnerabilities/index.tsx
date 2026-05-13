@@ -313,6 +313,20 @@ const ProductVulnerabilitiesComponent = () => {
           },
         }
       ),
+      columnHelper.accessor('vulnerability.externalId', {
+        id: 'externalId',
+        header: 'External ID',
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, externalId: value },
+              });
+            },
+          },
+        },
+      }),
       columnHelper.accessor('rating', {
         id: 'rating',
         header: 'Rating',
@@ -359,20 +373,6 @@ const ProductVulnerabilitiesComponent = () => {
                   page: 1,
                   advisor: advisors.length === 0 ? undefined : advisors,
                 },
-              });
-            },
-          },
-        },
-      }),
-      columnHelper.accessor('vulnerability.externalId', {
-        id: 'externalId',
-        header: 'External ID',
-        meta: {
-          filter: {
-            filterVariant: 'text',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, externalId: value },
               });
             },
           },
