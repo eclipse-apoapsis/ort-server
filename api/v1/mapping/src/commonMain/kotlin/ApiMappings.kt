@@ -858,7 +858,8 @@ fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFi
     },
     identifier = identifier?.mapToModel { it },
     purl = purl?.mapToModel { it },
-    externalId = externalId?.mapToModel { it }
+    externalId = externalId?.mapToModel { it },
+    advisors = advisors?.mapToModel { it }
 )
 
 fun Project.mapToApi() = ApiProject(
@@ -894,5 +895,6 @@ fun ApiVulnerabilityForRunsFilters.mapToModel() = VulnerabilityForRunsFilters(
     },
     identifier = identifier?.mapToModel { it },
     purl = purl?.mapToModel { it },
-    externalId = externalId?.mapToModel { it }
+    externalId = externalId?.mapToModel { it },
+    advisors = advisors?.mapToModel { it }
 )
