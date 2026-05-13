@@ -48,7 +48,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
@@ -72,6 +71,11 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunVulnerabilities
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunVulnerabilityAdvisors
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuns
 import org.eclipse.apoapsis.ortserver.core.utils.findByName
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityAdvisorFilter
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityExternalIdFilter
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityIdentifierFilter
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityPurlFilter
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityRatingFilter
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.LogLevel
@@ -559,21 +563,11 @@ private fun ApplicationCall.issueFilters() =
 private fun ApplicationCall.vulnerabilityFilters() =
     VulnerabilityFilters(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
-        rating = parameters["rating"]?.let { rating ->
-            val (operators, ratings) = rating.split(',').partition { it == "-" }
-            val enums = ratings.mapTo(mutableSetOf()) { findByName<VulnerabilityRating>(it) }
-            FilterOperatorAndValue(if (operators.isEmpty()) ComparisonOperator.IN else ComparisonOperator.NOT_IN, enums)
-        },
-        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        advisors = parameters["advisors"]?.let { advisors ->
-            val (operators, names) = advisors.split(',').partition { it == "-" }
-            FilterOperatorAndValue(
-                if (operators.isEmpty()) ComparisonOperator.IN else ComparisonOperator.NOT_IN,
-                names.toSet()
-            )
-        }
+        rating = vulnerabilityRatingFilter(),
+        identifier = vulnerabilityIdentifierFilter(),
+        purl = vulnerabilityPurlFilter(),
+        externalId = vulnerabilityExternalIdFilter(),
+        advisors = vulnerabilityAdvisorFilter()
     )
 
 /**
