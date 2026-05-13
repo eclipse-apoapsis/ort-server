@@ -296,6 +296,42 @@ const VulnerabilitiesComponent = () => {
         },
       }
     ),
+    columnHelper.accessor('vulnerability.externalId', {
+      id: 'externalId',
+      header: 'External ID',
+      meta: {
+        filter: {
+          filterVariant: 'text',
+          setFilterValue: (value: string | undefined) => {
+            navigate({
+              search: { ...search, page: 1, externalId: value },
+            });
+          },
+        },
+      },
+    }),
+    columnHelper.accessor('rating', {
+      id: 'rating',
+      header: 'Rating',
+      meta: {
+        filter: {
+          filterVariant: 'select',
+          selectOptions: zVulnerabilityRating.options.map((rating) => ({
+            label: rating,
+            value: rating,
+          })),
+          setSelected: (ratings: VulnerabilityRating[]) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                rating: ratings.length === 0 ? undefined : ratings,
+              },
+            });
+          },
+        },
+      },
+    }),
     columnHelper.accessor(
       (vuln) => {
         return getResolvedStatus(vuln);
@@ -324,42 +360,6 @@ const VulnerabilitiesComponent = () => {
         },
       }
     ),
-    columnHelper.accessor('rating', {
-      id: 'rating',
-      header: 'Rating',
-      meta: {
-        filter: {
-          filterVariant: 'select',
-          selectOptions: zVulnerabilityRating.options.map((rating) => ({
-            label: rating,
-            value: rating,
-          })),
-          setSelected: (ratings: VulnerabilityRating[]) => {
-            navigate({
-              search: {
-                ...search,
-                page: 1,
-                rating: ratings.length === 0 ? undefined : ratings,
-              },
-            });
-          },
-        },
-      },
-    }),
-    columnHelper.accessor('vulnerability.externalId', {
-      id: 'externalId',
-      header: 'External ID',
-      meta: {
-        filter: {
-          filterVariant: 'text',
-          setFilterValue: (value: string | undefined) => {
-            navigate({
-              search: { ...search, page: 1, externalId: value },
-            });
-          },
-        },
-      },
-    }),
     columnHelper.accessor('advisor.name', {
       id: 'advisorName',
       header: 'Advisor',
