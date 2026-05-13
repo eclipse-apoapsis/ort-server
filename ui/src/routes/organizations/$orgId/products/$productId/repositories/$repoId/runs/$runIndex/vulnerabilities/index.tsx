@@ -35,6 +35,7 @@ import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
 import {
   getRepositoryRunOptions,
   getRunVulnerabilitiesOptions,
+  getRunVulnerabilityAdvisorsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -90,6 +91,7 @@ import {
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
+  advisorSearchParameterSchema,
   externalIdSearchParameterSchema,
   ItemResolved,
   itemResolvedSchema,
@@ -197,12 +199,33 @@ const VulnerabilitiesComponent = () => {
   const packageIdentifier = search.pkgId;
   const rating = search.rating;
   const externalId = search.externalId;
+  const advisor = search.advisor;
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const resolved =
     itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
   const sortBy = search.sortBy?.filter((sort) =>
     supportedSortColumns.has(sort.id)
   );
+
+  const { data: ortRun } = useSuspenseQuery({
+    ...getRepositoryRunOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      },
+    }),
+  });
+
+  const {
+    data: advisors,
+    isPending: advisorsIsPending,
+    isError: advisorsIsError,
+    error: advisorsError,
+  } = useSuspenseQuery({
+    ...getRunVulnerabilityAdvisorsOptions({
+      path: { runId: ortRun.id },
+    }),
+  });
 
   const columns = [
     columnHelper.display({
@@ -341,7 +364,25 @@ const VulnerabilitiesComponent = () => {
       id: 'advisorName',
       header: 'Advisor',
       enableSorting: false,
-      enableColumnFilter: false,
+      enableColumnFilter: advisors.length > 1,
+      meta: {
+        filter: {
+          filterVariant: 'select',
+          selectOptions: advisors.map((advisor) => ({
+            label: advisor,
+            value: advisor,
+          })),
+          setSelected: (advisors: string[]) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                advisor: advisors.length === 0 ? undefined : advisors,
+              },
+            });
+          },
+        },
+      },
     }),
     columnHelper.accessor(
       (row) => {
@@ -357,15 +398,6 @@ const VulnerabilitiesComponent = () => {
   ];
 
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
-
-  const { data: ortRun } = useSuspenseQuery({
-    ...getRepositoryRunOptions({
-      path: {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      },
-    }),
-  });
 
   const {
     data: totalVulnerabilities,
@@ -393,6 +425,7 @@ const VulnerabilitiesComponent = () => {
         sort: convertToBackendSorting(sortBy),
         resolved,
         rating: rating?.join(','),
+        advisors: advisor?.join(','),
         ...(packageIdType === 'ORT_ID'
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
@@ -503,6 +536,7 @@ const VulnerabilitiesComponent = () => {
         { id: 'itemStatus', value: itemStatus },
         { id: columnId, value: packageIdentifier },
         { id: 'rating', value: rating },
+        { id: 'advisorName', value: advisor },
         { id: 'externalId', value: externalId },
       ].filter(({ value }) => value !== undefined),
       columnVisibility: {
@@ -523,12 +557,12 @@ const VulnerabilitiesComponent = () => {
     manualPagination: true,
   });
 
-  if (isPending || totalIsPending) {
+  if (isPending || totalIsPending || advisorsIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError || totalIsError) {
-    toastError('Unable to load data', error || totalError);
+  if (isError || totalIsError || advisorsIsError) {
+    toastError('Unable to load data', error || totalError || advisorsError);
     return;
   }
   const filtersInUse =
@@ -591,6 +625,7 @@ export const Route = createFileRoute(
     ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...advisorSearchParameterSchema.shape,
     ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),

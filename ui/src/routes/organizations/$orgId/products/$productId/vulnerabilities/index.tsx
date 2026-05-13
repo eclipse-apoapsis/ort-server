@@ -35,6 +35,7 @@ import { VulnerabilityRating, VulnerabilityWithStats } from '@/api';
 import {
   getProductOptions,
   getProductVulnerabilitiesOptions,
+  getProductVulnerabilityAdvisorsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -75,6 +76,7 @@ import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
+  advisorSearchParameterSchema,
   externalIdSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
@@ -220,6 +222,17 @@ const ProductVulnerabilitiesComponent = () => {
   const navigate = Route.useNavigate();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
+  const {
+    data: advisors,
+    isPending: advisorsIsPending,
+    isError: advisorsIsError,
+    error: advisorsError,
+  } = useQuery({
+    ...getProductVulnerabilityAdvisorsOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
+  });
+
   // Prevent infinite rerenders by providing a stable reference to columns via memoization.
   // https://tanstack.com/table/latest/docs/faq#solution-1-stable-references-with-usememo-or-usestate
   const columns = useMemo(
@@ -327,6 +340,30 @@ const ProductVulnerabilitiesComponent = () => {
         header: 'Repositories',
         enableColumnFilter: false,
       }),
+      columnHelper.accessor(() => '', {
+        id: 'advisor',
+        header: 'Advisor',
+        enableSorting: false,
+        enableColumnFilter: (advisors?.length ?? 0) > 1,
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: (advisors ?? []).map((advisor) => ({
+              label: advisor,
+              value: advisor,
+            })),
+            setSelected: (advisors: string[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  advisor: advisors.length === 0 ? undefined : advisors,
+                },
+              });
+            },
+          },
+        },
+      }),
       columnHelper.accessor('vulnerability.externalId', {
         id: 'externalId',
         header: 'External ID',
@@ -348,7 +385,7 @@ const ProductVulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }),
     ],
-    [navigate, packageIdType, params.orgId, params.productId, search]
+    [advisors, navigate, packageIdType, params.orgId, params.productId, search]
   );
 
   const pageIndex = useMemo(
@@ -376,6 +413,11 @@ const ProductVulnerabilitiesComponent = () => {
     [search.externalId]
   );
 
+  const advisor = useMemo(
+    () => (search.advisor ? search.advisor : undefined),
+    [search.advisor]
+  );
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (packageIdentifier) {
@@ -390,8 +432,11 @@ const ProductVulnerabilitiesComponent = () => {
     if (externalId) {
       filters.push({ id: 'externalId', value: externalId });
     }
+    if (advisor) {
+      filters.push({ id: 'advisor', value: advisor });
+    }
     return filters;
-  }, [packageIdentifier, rating, packageIdType, externalId]);
+  }, [packageIdentifier, rating, packageIdType, externalId, advisor]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -423,6 +468,7 @@ const ProductVulnerabilitiesComponent = () => {
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(sortBy),
         rating: rating?.join(','),
+        advisors: advisor?.join(','),
         ...(packageIdType === 'ORT_ID'
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
@@ -453,6 +499,7 @@ const ProductVulnerabilitiesComponent = () => {
         [columnId]: false,
         rating: false,
         repositoriesCount: false,
+        advisor: false,
         externalId: false,
         summary: false,
       },
@@ -466,12 +513,12 @@ const ProductVulnerabilitiesComponent = () => {
     manualPagination: true,
   });
 
-  if (isPending || totIsPending) {
+  if (isPending || totIsPending || advisorsIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError || totIsError) {
-    toastError('Unable to load data', error || totError);
+  if (isError || totIsError || advisorsIsError) {
+    toastError('Unable to load data', error || totError || advisorsError);
     return;
   }
   const filtersInUse =
@@ -533,6 +580,7 @@ export const Route = createFileRoute(
     ...sortingSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...advisorSearchParameterSchema.shape,
     ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),

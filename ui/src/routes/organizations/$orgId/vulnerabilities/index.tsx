@@ -35,6 +35,7 @@ import { VulnerabilityRating, VulnerabilityWithStats } from '@/api';
 import {
   getOrganizationOptions,
   getOrganizationVulnerabilitiesOptions,
+  getOrganizationVulnerabilityAdvisorsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -75,6 +76,7 @@ import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
+  advisorSearchParameterSchema,
   externalIdSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
@@ -240,6 +242,11 @@ const OrganizationVulnerabilitiesComponent = () => {
     [search.externalId]
   );
 
+  const advisor = useMemo(
+    () => (search.advisor ? search.advisor : undefined),
+    [search.advisor]
+  );
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (rating) {
@@ -257,8 +264,22 @@ const OrganizationVulnerabilitiesComponent = () => {
     if (externalId) {
       filters.push({ id: 'externalId', value: externalId });
     }
+    if (advisor) {
+      filters.push({ id: 'advisor', value: advisor });
+    }
     return filters;
-  }, [rating, packageIdentifier, packageIdType, externalId]);
+  }, [rating, packageIdentifier, packageIdType, externalId, advisor]);
+
+  const {
+    data: advisors,
+    error: advisorsError,
+    isPending: advisorsPending,
+    isError: advisorsIsError,
+  } = useQuery({
+    ...getOrganizationVulnerabilityAdvisorsOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
+  });
 
   const {
     data: totalVulnerabilities,
@@ -287,6 +308,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
         rating: rating?.join(','),
+        advisors: advisor?.join(','),
         ...(packageIdType === 'ORT_ID'
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
@@ -401,6 +423,30 @@ const OrganizationVulnerabilitiesComponent = () => {
         header: 'Repositories',
         enableColumnFilter: false,
       }),
+      columnHelper.accessor(() => '', {
+        id: 'advisor',
+        header: 'Advisor',
+        enableSorting: false,
+        enableColumnFilter: (advisors?.length ?? 0) > 1,
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: (advisors ?? []).map((advisor) => ({
+              label: advisor,
+              value: advisor,
+            })),
+            setSelected: (advisors: string[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  advisor: advisors.length === 0 ? undefined : advisors,
+                },
+              });
+            },
+          },
+        },
+      }),
       columnHelper.accessor('vulnerability.externalId', {
         id: 'externalId',
         header: 'External ID',
@@ -422,7 +468,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }),
     ],
-    [packageIdType, search, navigate, params.orgId]
+    [advisors, packageIdType, search, navigate, params.orgId]
   );
 
   const [expanded, setExpanded] = useState<ExpandedState>(
@@ -447,6 +493,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         [columnId]: false,
         rating: false,
         repositoriesCount: false,
+        advisor: false,
         externalId: false,
         summary: false,
       },
@@ -460,12 +507,12 @@ const OrganizationVulnerabilitiesComponent = () => {
     manualPagination: true,
   });
 
-  if (isPending || totPending) {
+  if (isPending || totPending || advisorsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError || totIsError) {
-    toastError('Unable to load data', error || totError);
+  if (isError || totIsError || advisorsIsError) {
+    toastError('Unable to load data', error || totError || advisorsError);
     return;
   }
 
@@ -525,6 +572,7 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...advisorSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
