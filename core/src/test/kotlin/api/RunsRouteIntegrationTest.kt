@@ -1194,6 +1194,85 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter vulnerabilities by advisor" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = mapOf(
+                        Identifier("Maven", "com.example", "lib-a", "1.0") to listOf(
+                            AdvisorResult(
+                                advisorName = "OSV",
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-11111",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "MEDIUM",
+                                                score = 4.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        Identifier("Maven", "com.example", "lib-b", "1.0") to listOf(
+                            AdvisorResult(
+                                advisorName = "VulnerableCode",
+                                startTime = Clock.System.now().toDatabasePrecision(),
+                                endTime = Clock.System.now().toDatabasePrecision(),
+                                issues = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-22222",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "LOW",
+                                                score = 1.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?advisors=OSV"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 1
+                vulnerabilities.data.single().vulnerability.externalId shouldBe "CVE-2021-11111"
+            }
+        }
+
         "sort vulnerabilities by purl" {
             integrationTestApplication {
                 val ortRun = dbExtension.fixtures.createOrtRun(

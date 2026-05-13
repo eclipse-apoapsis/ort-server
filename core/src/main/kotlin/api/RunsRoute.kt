@@ -566,7 +566,14 @@ private fun ApplicationCall.vulnerabilityFilters() =
         },
         identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-        externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
+        externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        advisors = parameters["advisors"]?.let { advisors ->
+            val (operators, names) = advisors.split(',').partition { it == "-" }
+            FilterOperatorAndValue(
+                if (operators.isEmpty()) ComparisonOperator.IN else ComparisonOperator.NOT_IN,
+                names.toSet()
+            )
+        }
     )
 
 /**
