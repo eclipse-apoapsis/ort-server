@@ -173,29 +173,30 @@ const ProductSettingsPage = () => {
               />
             </CardContent>
             <CardFooter>
-              <Button
-                type='button'
-                className='m-1'
-                variant='outline'
-                onClick={() =>
-                  navigate({
-                    to: '/organizations/' + params.orgId,
-                  })
-                }
-                disabled={isPending}
-              >
-                Cancel
-              </Button>
-              <Button type='submit' disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <span className='sr-only'>Editing product...</span>
-                    <Loader2 size={16} className='mx-3 animate-spin' />
-                  </>
-                ) : (
-                  'Submit'
-                )}
-              </Button>
+              <div className='flex w-full items-center justify-between'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() =>
+                    navigate({
+                      to: '/organizations/' + params.orgId,
+                    })
+                  }
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+                <Button type='submit' disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <span className='sr-only'>Editing product...</span>
+                      <Loader2 size={16} className='mx-3 animate-spin' />
+                    </>
+                  ) : (
+                    'Submit'
+                  )}
+                </Button>
+              </div>
             </CardFooter>
           </form>
         </Form>
