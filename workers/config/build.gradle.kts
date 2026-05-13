@@ -28,6 +28,8 @@ plugins {
 
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-application-conventions")
+
+    id("ort-server-publication-conventions")
 }
 
 group = "org.eclipse.apoapsis.ortserver.workers"
