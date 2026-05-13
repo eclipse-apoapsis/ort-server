@@ -157,31 +157,43 @@ inline fun <reified E : Enum<E>> findByName(name: String): E =
                 enumEntries<E>().joinToString { "'$it'" }
     )
 
+/** Extract the vulnerability rating filter from the [ApplicationCall]. */
+internal fun ApplicationCall.vulnerabilityRatingFilter(): FilterOperatorAndValue<Set<VulnerabilityRating>>? =
+    parameters["rating"]?.let { rating ->
+        val ratings = rating.split(',')
+        val operator = if (ratings.first() == "-") ComparisonOperator.NOT_IN else ComparisonOperator.IN
+        val values = if (operator == ComparisonOperator.NOT_IN) ratings.drop(1) else ratings
+
+        FilterOperatorAndValue(operator, values.mapTo(mutableSetOf()) { findByName<VulnerabilityRating>(it) })
+    }
+
+/** Extract the vulnerability identifier filter from the [ApplicationCall]. */
+internal fun ApplicationCall.vulnerabilityIdentifierFilter(): FilterOperatorAndValue<String>? =
+    parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
+
+/** Extract the vulnerability purl filter from the [ApplicationCall]. */
+internal fun ApplicationCall.vulnerabilityPurlFilter(): FilterOperatorAndValue<String>? =
+    parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
+
+/** Extract the vulnerability external ID filter from the [ApplicationCall]. */
+internal fun ApplicationCall.vulnerabilityExternalIdFilter(): FilterOperatorAndValue<String>? =
+    parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
+
+/** Extract the vulnerability advisor filter from the [ApplicationCall]. */
+internal fun ApplicationCall.vulnerabilityAdvisorFilter(): FilterOperatorAndValue<Set<String>>? =
+    parameters["advisors"]?.let { advisors ->
+        val names = advisors.split(',')
+        val operator = if (names.first() == "-") ComparisonOperator.NOT_IN else ComparisonOperator.IN
+        val values = if (operator == ComparisonOperator.NOT_IN) names.drop(1) else names
+
+        FilterOperatorAndValue(operator, values.toSet())
+    }
+
 /** Extract [VulnerabilityForRunsFilters] from the [ApplicationCall] */
 fun ApplicationCall.vulnerabilityForRunsFilters(): VulnerabilityForRunsFilters = VulnerabilityForRunsFilters(
-    rating = parameters["rating"]?.let {
-        val parts = parameters["rating"]?.split(',').orEmpty()
-
-        val ratingOperator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN
-
-        val ratings = parts
-            .filter { part -> part != "-" }
-            .map { rating -> findByName<VulnerabilityRating>(rating) }
-            .toSet()
-
-        FilterOperatorAndValue(
-            ratingOperator,
-            ratings
-        )
-    },
-    identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-    purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-    externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
-    advisors = parameters["advisors"]?.let { advisors ->
-        val (operators, names) = advisors.split(',').partition { it == "-" }
-        FilterOperatorAndValue(
-            if (operators.isEmpty()) ComparisonOperator.IN else ComparisonOperator.NOT_IN,
-            names.toSet()
-        )
-    }
+    rating = vulnerabilityRatingFilter(),
+    identifier = vulnerabilityIdentifierFilter(),
+    purl = vulnerabilityPurlFilter(),
+    externalId = vulnerabilityExternalIdFilter(),
+    advisors = vulnerabilityAdvisorFilter()
 )
