@@ -184,6 +184,14 @@ export const vulnerabilityRatingSearchParameterSchema = z.object({
   rating: z.array(zVulnerabilityRating).optional(),
 });
 
+// Refine validates that the advisor names are unique.
+export const advisorSearchParameterSchema = z.object({
+  advisor: z
+    .array(z.string())
+    .refine((items) => new Set(items).size === items.length)
+    .optional(),
+});
+
 export const externalIdSearchParameterSchema = z.object({
   externalId: z.string().optional(),
 });
