@@ -28,7 +28,11 @@ plugins {
 }
 
 dependencies {
-    implementation(enforcedPlatform(libsCatalog.findLibrary("kotlinBom").get()))
+    implementation(platform(libsCatalog.findLibrary("kotlinBom").get())) {
+        version {
+            require(libsCatalog.findVersion("kotlinPlugin").get().requiredVersion)
+        }
+    }
 }
 
 tinyJib {
