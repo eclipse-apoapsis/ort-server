@@ -29,7 +29,6 @@ plugins {
     id("ort-server-kotlin-conventions")
 
     // Apply third-party plugins.
-    id("com.autonomousapps.dependency-analysis")
     id("org.jetbrains.kotlin.jvm")
 }
 

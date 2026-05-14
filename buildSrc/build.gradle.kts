@@ -31,7 +31,6 @@ repositories {
 
 dependencies {
     implementation(libs.kotlinxSerializationJson)
-    implementation(libs.plugin.dependencyAnalysis)
     implementation(libs.plugin.detekt)
     implementation(libs.plugin.kotlin)
     implementation(libs.plugin.mavenPublish)
