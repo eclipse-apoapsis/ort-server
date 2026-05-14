@@ -19,9 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
+import com.networknt.schema.InputFormat
 import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
-import com.networknt.schema.serialization.NodeReader
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
@@ -30,8 +30,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 
 import java.io.File
-
-import org.ossreviewtoolkit.model.yamlMapper
 
 class JsonSchemaTest : WordSpec({
     val validConfigs = File("src/test/resources")
@@ -46,7 +44,7 @@ class JsonSchemaTest : WordSpec({
         "successfully validate all valid .ort.env.yml files" {
             @Suppress("IgnoredReturnValue")
             validConfigs.forAll { file ->
-                val errors = schema.validate(file.toJsonNode())
+                val errors = schema.validate(file.readText(), InputFormat.YAML)
 
                 errors should beEmpty()
             }
@@ -57,7 +55,7 @@ class JsonSchemaTest : WordSpec({
             // treated as invalid by the JSON schema validator.
             @Suppress("IgnoredReturnValue")
             invalidConfigs.forAll { file ->
-                val errors = schema.validate(file.toJsonNode())
+                val errors = schema.validate(file.readText(), InputFormat.YAML)
 
                 errors shouldNot beEmpty()
             }
@@ -65,13 +63,8 @@ class JsonSchemaTest : WordSpec({
     }
 })
 
-private fun File.toJsonNode() = yamlMapper.readTree(inputStream())
-
-private val nodeReader = NodeReader.builder().yamlMapper(yamlMapper).build()
-
 private val schemaV7 = SchemaRegistry
     .builder(SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_7))
-    .nodeReader(nodeReader)
     .build()
 
 private val schema = schemaV7.getSchema(
