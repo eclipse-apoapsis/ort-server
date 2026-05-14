@@ -41,7 +41,7 @@ internal class GetPluginTemplatesQuery(val pluginType: PluginType, val pluginId:
                     name = it[PluginTemplatesReadModel.name],
                     pluginType = it[PluginTemplatesReadModel.pluginType],
                     pluginId = it[PluginTemplatesReadModel.pluginId],
-                    options = it[PluginTemplatesReadModel.options],
+                    options = it[PluginTemplatesReadModel.pluginOptions],
                     isGlobal = it[PluginTemplatesReadModel.isGlobal],
                     organizationIds = it[PluginTemplatesReadModel.organizationIds]
                 )

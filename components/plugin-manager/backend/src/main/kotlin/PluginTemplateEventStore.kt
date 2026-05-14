@@ -139,7 +139,7 @@ class PluginTemplateEventStore(private val db: Database) {
                     it[name] = pluginTemplateEvent.name
                     it[pluginType] = pluginTemplateEvent.pluginType
                     it[pluginId] = pluginTemplateEvent.pluginId
-                    it[options] = pluginTemplateEvent.payload.options
+                    it[pluginOptions] = pluginTemplateEvent.payload.options
                 }
             }
 
@@ -221,7 +221,7 @@ internal object PluginTemplatesReadModel : Table("plugin_templates_read_model") 
     val name = text("name")
     val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
-    val options = jsonb<List<PluginOptionTemplate>>("options")
+    val pluginOptions = jsonb<List<PluginOptionTemplate>>("options")
     val isGlobal = bool("is_global")
     val organizationIds = array<Long>("organization_ids")
 

@@ -57,7 +57,7 @@ internal class GetPluginTemplateForOrganizationQuery(
                 name = it[PluginTemplatesReadModel.name],
                 pluginType = it[PluginTemplatesReadModel.pluginType],
                 pluginId = it[PluginTemplatesReadModel.pluginId],
-                options = it[PluginTemplatesReadModel.options],
+                options = it[PluginTemplatesReadModel.pluginOptions],
                 isGlobal = it[PluginTemplatesReadModel.isGlobal],
                 organizationIds = it[PluginTemplatesReadModel.organizationIds]
             )
