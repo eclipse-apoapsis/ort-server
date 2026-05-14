@@ -28,6 +28,10 @@ plugins {
     alias(libs.plugins.gitSemver)
 }
 
+dependencyAnalysis {
+    useTypesafeProjectAccessors(true)
+}
+
 semver {
     // Do not create an empty release commit when running the "releaseVersion" task.
     createReleaseCommit = false
