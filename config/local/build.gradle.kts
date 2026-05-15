@@ -29,7 +29,6 @@ dependencies {
     api(libs.typesafeConfig)
 
     implementation(projects.config.configSpi)
-    implementation(projects.utils.config)
 
     testImplementation(testFixtures(projects.config.configSpi))
 

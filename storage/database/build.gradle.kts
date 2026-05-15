@@ -26,17 +26,16 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.storage"
 
 dependencies {
-    implementation(projects.dao)
     implementation(projects.storage.storageSpi)
 
     implementation(libs.exposedDao)
+    implementation(libs.exposedJdbc)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.postgres)
 
     testImplementation(testFixtures(projects.dao))
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

@@ -33,12 +33,8 @@ dependencies {
 
     implementation(projects.utils.config)
     implementation(libs.kotlinxCoroutines)
-    implementation(libs.kotlinxCoroutinesSlf4j)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-
-    testFixturesImplementation(projects.utils.config)
 }

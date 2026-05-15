@@ -37,13 +37,11 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.components.infrastructureServices.infrastructureServicesApiModel)
                 api(projects.shared.apiModel)
 
                 api(libs.konform)
 
                 implementation(ktorLibs.http)
-                implementation(libs.kotlinxSerializationJson)
             }
         }
 

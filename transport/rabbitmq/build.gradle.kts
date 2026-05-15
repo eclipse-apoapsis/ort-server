@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.utils.logging)
 
     implementation(libs.kotlinxCoroutines)
-    implementation(libs.kotlinxCoroutinesSlf4j)
     implementation(libs.rabbitMqAmqpClient)
 
     runtimeOnly(libs.logback)

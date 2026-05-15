@@ -39,7 +39,6 @@ dependencies {
     implementation(projects.model)
     implementation(projects.services.adminConfigService)
     implementation(projects.transport.transportSpi)
-    implementation(projects.utils.config)
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 

@@ -63,7 +63,6 @@ kotlin {
 
                 implementation(ktorLibs.client.auth)
                 implementation(ktorLibs.client.core)
-                implementation(ktorLibs.utils)
                 implementation(libs.clikt)
                 implementation(libs.kaml)
                 implementation(libs.kotlinxCoroutines)

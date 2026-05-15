@@ -35,7 +35,6 @@ dependencies {
 
     runtimeOnly(libs.logback)
 
-    testImplementation(projects.model)
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 

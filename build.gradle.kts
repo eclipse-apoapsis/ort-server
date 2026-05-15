@@ -29,6 +29,31 @@ plugins {
 }
 
 dependencyAnalysis {
+    issues {
+        all {
+            onUnusedDependencies {
+                severity("fail")
+
+                // Exclude modules which are automatically added by the "ort-server-kotlin-jvm-conventions".
+                exclude(projects.utils.logging)
+                exclude(projects.utils.test)
+            }
+            onUsedTransitiveDependencies { severity("ignore") }
+            onIncorrectConfiguration { severity("ignore") }
+            onCompileOnly { severity("ignore") }
+            onRuntimeOnly { severity("ignore") }
+            onUnusedAnnotationProcessors { severity("ignore") }
+            onRedundantPlugins { severity("ignore") }
+        }
+
+        project(projects.api.v1.apiV1Client) {
+            onUnusedDependencies {
+                // The dependency is wrongly reported as unused.
+                exclude(libs.okio)
+            }
+        }
+    }
+
     useTypesafeProjectAccessors(true)
 }
 

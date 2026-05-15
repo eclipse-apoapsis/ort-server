@@ -27,7 +27,6 @@ group = "org.eclipse.apoapsis.ortserver.config"
 
 dependencies {
     implementation(projects.config.configSpi)
-    implementation(projects.utils.config)
 
     implementation(libs.slf4j)
 

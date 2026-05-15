@@ -42,7 +42,6 @@ dependencies {
     api(libs.koinCore)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 

@@ -30,7 +30,6 @@ group = "org.eclipse.apoapsis.ortserver.secrets"
 
 dependencies {
     implementation(projects.secrets.secretsSpi)
-    implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(ktorLibs.serialization.kotlinx.json)
@@ -39,6 +38,5 @@ dependencies {
 
     testImplementation(testFixtures(projects.config.configSpi))
 
-    testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
 }
