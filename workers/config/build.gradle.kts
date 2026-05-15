@@ -67,7 +67,6 @@ dependencies {
     runtimeOnly(libs.logback)
     runtimeOnly(platform(ortLibs.ortPlugins.packageManagers))
 
-    testImplementation(projects.components.pluginManager.pluginManagerBackend)
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))

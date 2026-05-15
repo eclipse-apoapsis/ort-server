@@ -32,7 +32,6 @@ dependencies {
 
     implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.components.infrastructureServices.infrastructureServicesBackend)
-    implementation(projects.components.secrets.secretsApiModel)
     implementation(projects.components.secrets.secretsBackend) {
         capabilities { requireCapability("$group:routes") }
     }

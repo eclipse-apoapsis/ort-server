@@ -59,18 +59,13 @@ dependencies {
     routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.ktorUtils)
 
-    routesImplementation(ktorLibs.server.auth)
     routesImplementation(ktorLibs.server.core)
     routesImplementation(libs.ktorOpenApi)
 
-    testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.serialization.kotlinx.json)
-    testImplementation(ktorLibs.server.auth)
-    testImplementation(ktorLibs.server.contentNegotiation)
-    testImplementation(ktorLibs.server.statusPages)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)

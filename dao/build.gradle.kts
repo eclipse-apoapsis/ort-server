@@ -58,7 +58,6 @@ dependencies {
     testImplementation(testFixtures(projects.config.configSpi))
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 

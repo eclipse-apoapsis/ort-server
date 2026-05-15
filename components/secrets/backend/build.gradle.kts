@@ -28,8 +28,6 @@ dependencies {
     api(projects.model)
     api(projects.secrets.secretsSpi)
 
-    api(libs.exposedCore)
-
     implementation(projects.dao)
 
     routesApi(projects.components.secrets.secretsApiModel)

@@ -45,7 +45,6 @@ dependencies {
     implementation(projects.workers.common)
 
     implementation(libs.typesafeConfig)
-    implementation(ortLibs.downloader)
     implementation(ortLibs.reporter)
     implementation(ortLibs.utils.config)
     implementation(platform(ortLibs.ortPlugins.licenseFactProviders))

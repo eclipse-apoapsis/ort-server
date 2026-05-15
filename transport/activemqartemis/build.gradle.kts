@@ -32,7 +32,6 @@ dependencies {
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
 
-    implementation(libs.kotlinxSerializationJson)
     implementation(libs.qpidJmsClient)
 
     runtimeOnly(libs.logback)

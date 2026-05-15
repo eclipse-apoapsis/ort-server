@@ -43,7 +43,6 @@ kotlin {
                 implementation(ktorLibs.client.auth)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
-                implementation(libs.okio)
             }
         }
 
@@ -63,6 +62,7 @@ kotlin {
         linuxMain {
             dependencies {
                 implementation(ktorLibs.client.curl)
+                implementation(libs.okio)
             }
         }
 

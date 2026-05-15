@@ -33,7 +33,6 @@ dependencies {
     implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.dao)
     implementation(projects.utils.logging)
-    implementation(projects.services.reportStorageService)
 
     runtimeOnly(libs.logback)
 

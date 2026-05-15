@@ -59,11 +59,8 @@ dependencies {
     api(libs.koinCore)
     api(ortLibs.downloader)
     api(ortLibs.model)
-    api(ortLibs.ortPlugins.api)
     api(ortLibs.scanner)
     api(libs.typesafeConfig)
-
-    testImplementation(projects.shared.ortTestData)
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))

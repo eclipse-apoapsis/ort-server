@@ -41,7 +41,6 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.wiremock)
 

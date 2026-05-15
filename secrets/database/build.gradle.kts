@@ -38,6 +38,5 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
 }

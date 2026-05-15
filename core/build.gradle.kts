@@ -57,7 +57,6 @@ repositories {
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
-    implementation(projects.components.adminConfig.adminConfigBackend)
     implementation(projects.components.adminConfig.adminConfigBackend) {
         capabilities {
             requireCapability("$group:routes:$version")
@@ -185,7 +184,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsTable)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-    testImplementation(ortLibs.utils.common)
 }
 
 tinyJib {

@@ -48,7 +48,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.api.v1.apiV1Model)
     implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.dao)
     implementation(projects.model)
@@ -59,9 +58,6 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
-    implementation(ktorLibs.client.auth)
-    implementation(ktorLibs.client.contentNegotiation)
-    implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.okhttp)
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ortLibs.analyzer)
@@ -79,7 +75,6 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(projects.components.infrastructureServices.infrastructureServicesBackend)
-    testImplementation(projects.services.adminConfigService)
     testImplementation(projects.shared.ortTestData)
 
     testImplementation(testFixtures(projects.config.configSpi))

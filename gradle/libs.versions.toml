@@ -111,6 +111,7 @@ kotlinBom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlinP
 kotlinResult = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinResult" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesSlf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinxCoroutines" }
+kotlinxSerializationCore = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktorOpenApi = { module = "io.github.smiley4:ktor-openapi", version.ref = "ktorOpenApi" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorOpenApi" }
@@ -129,7 +130,6 @@ qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpi
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }
 s3 = { module = "aws.sdk.kotlin:s3", version.ref = "awsSdk" }
 schemaKeneratorCore = { module = "io.github.smiley4:schema-kenerator-core", version.ref = "schemaKenerator" }
-schemaKeneratorJsonschema = { module = "io.github.smiley4:schema-kenerator-jsonschema", version.ref = "schemaKenerator" }
 schemaKeneratorReflection = { module = "io.github.smiley4:schema-kenerator-reflection", version.ref = "schemaKenerator" }
 schemaKeneratorSwagger = { module = "io.github.smiley4:schema-kenerator-swagger", version.ref = "schemaKenerator" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
@@ -145,4 +145,4 @@ wiremock = { module = "org.wiremock:wiremock", version.ref = "wiremock" }
 
 [bundles]
 flyway = ["flywayCore", "flywayPostgresql"]
-schemaKenerator = ["schemaKeneratorCore", "schemaKeneratorJsonschema", "schemaKeneratorReflection", "schemaKeneratorSwagger"]
+schemaKenerator = ["schemaKeneratorCore", "schemaKeneratorReflection", "schemaKeneratorSwagger"]

@@ -54,8 +54,6 @@ dependencies {
     testImplementation(projects.components.authorization.authorizationBackend)
 
     testImplementation(ktorLibs.serialization.kotlinx.json)
-    testImplementation(ktorLibs.server.auth)
-    testImplementation(ktorLibs.server.contentNegotiation)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)

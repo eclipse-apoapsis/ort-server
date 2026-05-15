@@ -28,13 +28,9 @@ group = "org.eclipse.apoapsis.ortserver.services"
 dependencies {
     api(projects.model)
 
-    api(libs.exposedCore)
-
     implementation(projects.dao)
 
     runtimeOnly(libs.logback)
-
-    testImplementation(testFixtures(projects.dao))
 
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)

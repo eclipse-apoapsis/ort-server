@@ -30,6 +30,5 @@ dependencies {
     implementation(ortLibs.utils.common)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
 }

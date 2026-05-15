@@ -29,21 +29,13 @@ dependencies {
     api(projects.components.authorization.authorizationBackend)
     api(projects.model)
 
-    api(ktorLibs.server.auth)
-    api(ktorLibs.server.auth.jwt)
     api(ktorLibs.server.core)
 
     implementation(projects.dao)
-    implementation(projects.shared.ktorUtils)
 
-    implementation(libs.aedile)
-
-    testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
 
-    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

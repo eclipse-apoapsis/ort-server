@@ -52,7 +52,6 @@ dependencies {
     testFixturesImplementation(ktorLibs.client.contentNegotiation)
     testFixturesImplementation(ktorLibs.serialization.kotlinx.json)
     testFixturesImplementation(ktorLibs.server.auth)
-    testFixturesImplementation(ktorLibs.server.auth.jwt)
     testFixturesImplementation(ktorLibs.server.contentNegotiation)
     testFixturesImplementation(ktorLibs.server.core)
     testFixturesImplementation(ktorLibs.server.statusPages)

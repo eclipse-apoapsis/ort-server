@@ -33,7 +33,6 @@ dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.utils.logging)
-    implementation(projects.services.hierarchyService)
     implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
     implementation(projects.storage.storageSpi)
