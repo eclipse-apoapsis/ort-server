@@ -4,7 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "license": "Apache-2.0",
-  "packageManager": "pnpm@11.0.8",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.0.8"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "test": "vitest",
