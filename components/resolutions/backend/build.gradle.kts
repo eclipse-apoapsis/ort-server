@@ -28,14 +28,13 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.components.resolutions"
 
 dependencies {
-    api(projects.components.resolutions.resolutionsApiModel)
+    api(projects.model)
+    api(projects.services.hierarchyService)
 
     api(libs.exposedJdbc)
     api(libs.kotlinResult)
 
     implementation(projects.dao)
-    implementation(projects.model)
-    implementation(projects.services.hierarchyService)
     implementation(projects.utils.logging)
 
     implementation(libs.exposedCore)
@@ -43,6 +42,7 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
 
     routesImplementation(projects.components.authorization.authorizationBackend)
+    routesImplementation(projects.components.resolutions.resolutionsApiModel)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.ktorUtils)
 

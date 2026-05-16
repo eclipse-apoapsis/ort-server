@@ -32,7 +32,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.transport"
 
 dependencies {
-    implementation(projects.model)
+    api(projects.model)
+
     implementation(projects.utils.system)
 
     implementation(ktorLibs.serialization.kotlinx.json)
@@ -45,7 +46,7 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesImplementation(projects.model)
+    testFixturesApi(projects.model)
 
     testFixturesImplementation(libs.kotestAssertionsCore)
     testFixturesImplementation(libs.kotlinxCoroutines)

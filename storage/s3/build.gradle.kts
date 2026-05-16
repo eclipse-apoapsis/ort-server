@@ -31,10 +31,11 @@ group = "org.eclipse.apoapsis.ortserver.storage"
 dependencies {
     api(projects.storage.storageSpi)
 
+    api(libs.s3)
+
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.s3)
     implementation(ortLibs.utils.common)
 
     testImplementation(libs.kotestAssertionsCore)

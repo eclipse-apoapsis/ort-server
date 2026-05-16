@@ -56,7 +56,9 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host")
+    implementation(libs.kotlinResult)
     implementation(libs.typesafeConfig)
+    implementation(ortLibs.model)
     implementation(ortLibs.utils.scripting)
 
     runtimeOnly(platform(projects.config))

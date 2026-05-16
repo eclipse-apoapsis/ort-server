@@ -26,19 +26,19 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
-    api(projects.api.v1.apiV1Mapping)
     api(projects.api.v1.apiV1Model)
     api(projects.components.resolutions.resolutionsBackend)
-    api(projects.dao)
     api(projects.model)
-    api(projects.services.hierarchyService)
     api(projects.services.reportStorageService)
-    api(projects.shared.apiMappings)
-    api(projects.shared.apiModel)
 
     api(ortLibs.model)
     api(ortLibs.scanner)
 
+    implementation(projects.api.v1.apiV1Mapping)
+    implementation(projects.dao)
+    implementation(projects.services.hierarchyService)
+    implementation(projects.shared.apiMappings)
+    implementation(projects.shared.apiModel)
     implementation(projects.utils.logging)
 
     testImplementation(testFixtures(projects.dao))

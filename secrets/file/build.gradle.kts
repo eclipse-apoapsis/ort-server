@@ -29,7 +29,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.secrets"
 
 dependencies {
-    implementation(projects.secrets.secretsSpi)
+    api(projects.secrets.secretsSpi)
+
     implementation(projects.utils.config)
 
     implementation(ktorLibs.serialization.kotlinx.json)

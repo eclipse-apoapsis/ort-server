@@ -39,7 +39,7 @@ dependencyAnalysis {
                 exclude(projects.utils.test)
             }
             onUsedTransitiveDependencies { severity("ignore") }
-            onIncorrectConfiguration { severity("ignore") }
+            onIncorrectConfiguration { severity("fail") }
             onCompileOnly { severity("ignore") }
             onRuntimeOnly { severity("ignore") }
             onUnusedAnnotationProcessors { severity("ignore") }

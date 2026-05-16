@@ -41,8 +41,6 @@ repositories {
 }
 
 dependencies {
-    api(projects.components.infrastructureServices.infrastructureServicesApiModel)
-    api(projects.components.secrets.secretsBackend)
     api(projects.model)
 
     implementation(projects.dao)
@@ -50,12 +48,14 @@ dependencies {
     implementation(libs.exposedCore)
 
     routesImplementation(projects.components.authorization.authorizationBackend)
+    routesImplementation(projects.components.infrastructureServices.infrastructureServicesApiModel)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.core)
     routesImplementation(libs.ktorOpenApi)
 
+    testImplementation(projects.components.secrets.secretsBackend)
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.shared.ktorUtils))

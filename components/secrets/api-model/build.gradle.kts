@@ -39,8 +39,7 @@ kotlin {
                 api(projects.shared.apiModel)
 
                 api(libs.konform)
-
-                implementation(libs.kotlinxSerializationCore)
+                api(libs.kotlinxSerializationCore)
             }
         }
     }

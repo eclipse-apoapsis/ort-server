@@ -31,11 +31,12 @@ group = "org.eclipse.apoapsis.ortserver.storage"
 dependencies {
     api(projects.storage.storageSpi)
 
+    api(libs.azureStorageBlob)
+
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(libs.azureIdentity)
-    implementation(libs.azureStorageBlob)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestcontainers)

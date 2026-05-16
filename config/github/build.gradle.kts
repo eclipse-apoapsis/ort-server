@@ -26,14 +26,15 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.config"
 
 dependencies {
+    api(projects.config.configSpi)
+
+    api(ktorLibs.io)
     api(libs.typesafeConfig)
 
-    implementation(projects.config.configSpi)
     implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(ktorLibs.io)
     implementation(ktorLibs.serialization.kotlinx.json)
 
     testImplementation(testFixtures(projects.config.configSpi))

@@ -32,9 +32,9 @@ group = "org.eclipse.apoapsis.ortserver.utils"
 dependencies {
     api(libs.kotlinxCoroutines)
     api(libs.kotlinxSerializationJson)
+    api(libs.logback)
 
     implementation(libs.kotlinxCoroutinesSlf4j)
-    implementation(libs.logback)
     implementation(libs.slf4j)
 
     testImplementation(libs.kotestAssertionsCore)

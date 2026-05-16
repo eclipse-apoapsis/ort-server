@@ -30,14 +30,14 @@ dependencies {
 
     implementation(projects.dao)
 
-    routesApi(projects.components.secrets.secretsApiModel)
+    routesApi(projects.services.hierarchyService)
 
     routesApi(ktorLibs.server.core)
     routesApi(ktorLibs.server.requestValidation)
 
     routesImplementation(projects.components.authorization.authorizationBackend)
+    routesImplementation(projects.components.secrets.secretsApiModel)
     routesImplementation(projects.model)
-    routesImplementation(projects.services.hierarchyService)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)

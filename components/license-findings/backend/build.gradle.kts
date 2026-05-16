@@ -26,15 +26,17 @@ group = "org.eclipse.apoapsis.ortserver.components.licensefindings"
 
 dependencies {
     api(projects.components.licenseFindings.licenseFindingsApiModel)
+    api(projects.model)
+
     api(libs.exposedJdbc)
 
     implementation(projects.dao)
-    implementation(projects.model)
-    implementation(projects.shared.apiMappings)
 
     implementation(libs.exposedCore)
 
-    routesImplementation(projects.components.authorization.authorizationBackend)
+    routesApi(projects.components.authorization.authorizationBackend)
+
+    routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.core)

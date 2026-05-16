@@ -27,10 +27,9 @@ group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
     api(projects.storage.storageSpi)
+    api(projects.model)
 
-    implementation(projects.model)
-
-    implementation(ktorLibs.http)
+    api(ktorLibs.http)
 
     runtimeOnly(libs.logback)
 

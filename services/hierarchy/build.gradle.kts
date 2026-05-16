@@ -26,11 +26,11 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
+    api(projects.components.authorization.authorizationBackend)
     api(projects.model)
 
     api(libs.exposedCore)
 
-    implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.dao)
     implementation(projects.utils.logging)
 

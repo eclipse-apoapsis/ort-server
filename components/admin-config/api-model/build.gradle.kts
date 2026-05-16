@@ -36,7 +36,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.kotlinxSerializationCore)
+                api(libs.kotlinxSerializationCore)
             }
         }
     }

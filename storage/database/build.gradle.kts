@@ -26,9 +26,10 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.storage"
 
 dependencies {
-    implementation(projects.storage.storageSpi)
+    api(projects.storage.storageSpi)
 
-    implementation(libs.exposedDao)
+    api(libs.exposedDao)
+
     implementation(libs.exposedJdbc)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.postgres)

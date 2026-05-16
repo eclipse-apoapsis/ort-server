@@ -30,10 +30,11 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver"
 
 dependencies {
+    api(projects.model)
+    api(projects.transport.transportSpi)
+
     implementation(projects.config.configSpi)
     implementation(projects.dao)
-    implementation(projects.model)
-    implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
 
     runtimeOnly(projects.config.secretFile)

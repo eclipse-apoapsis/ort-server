@@ -27,5 +27,6 @@ group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
     api(ortLibs.model)
-    api(ortLibs.ortPlugins.api)
+
+    implementation(ortLibs.ortPlugins.api)
 }
