@@ -22,6 +22,7 @@ import dev.detekt.gradle.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 private val catalogs = extensions.getByType<VersionCatalogsExtension>()
+private val detektVersion = catalogs.named("libs").findVersion("detektPlugin").get().requiredVersion
 private val detektRulesVersion = catalogs.named("ortLibs").findLibrary("detektRules").get().get().version
 
 plugins {
@@ -33,7 +34,7 @@ plugins {
 }
 
 dependencies {
-    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:${libs.versions.detektPlugin.get()}")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:$detektVersion")
     detektPlugins("org.ossreviewtoolkit:detekt-rules:$detektRulesVersion")
 }
 

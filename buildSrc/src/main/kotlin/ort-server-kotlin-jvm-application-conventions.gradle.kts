@@ -17,16 +17,18 @@
  * License-Filename: LICENSE
  */
 
+private val libsCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
 plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.tinyJib)
+    id("tel.schich.tinyjib")
 }
 
 dependencies {
-    implementation(enforcedPlatform(libs.kotlinBom))
+    implementation(enforcedPlatform(libsCatalog.findLibrary("kotlinBom").get()))
 }
 
 tinyJib {
