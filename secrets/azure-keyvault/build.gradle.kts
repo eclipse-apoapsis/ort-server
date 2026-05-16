@@ -29,12 +29,14 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.secrets"
 
 dependencies {
-    implementation(projects.secrets.secretsSpi)
+    api(projects.secrets.secretsSpi)
+
+    api(libs.azureSecurityKeyvaultSecrets)
+
     implementation(projects.utils.logging)
 
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(libs.azureIdentity)
-    implementation(libs.azureSecurityKeyvaultSecrets)
 
     testImplementation(testFixtures(projects.config.configSpi))
 

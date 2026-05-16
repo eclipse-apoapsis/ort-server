@@ -32,13 +32,12 @@ dependencies {
     api(ktorLibs.server.auth)
     api(ktorLibs.server.auth.jwt)
     api(ktorLibs.server.core)
+    api(libs.exposedCore)
+    api(libs.exposedJdbc)
     api(libs.ktorOpenApi)
 
     implementation(projects.dao)
     implementation(projects.shared.ktorUtils)
-
-    implementation(libs.exposedCore)
-    implementation(libs.exposedJdbc)
 
     routesImplementation(libs.ktorOpenApi)
 

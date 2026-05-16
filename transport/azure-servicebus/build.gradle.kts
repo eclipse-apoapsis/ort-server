@@ -26,12 +26,14 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.transport"
 
 dependencies {
-    implementation(projects.transport.transportSpi)
+    api(projects.transport.transportSpi)
+
+    api(libs.azureMessagingServicebus)
+
     implementation(projects.utils.logging)
 
     implementation(libs.kotlinxCoroutines)
     implementation(libs.azureIdentity)
-    implementation(libs.azureMessagingServicebus)
 
     runtimeOnly(libs.logback)
 

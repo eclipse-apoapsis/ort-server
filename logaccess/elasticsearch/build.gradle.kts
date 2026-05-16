@@ -27,9 +27,10 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.logaccess"
 
 dependencies {
-    implementation(projects.config.configSpi)
-    implementation(projects.logaccess.logaccessSpi)
-    implementation(projects.model)
+    api(projects.config.configSpi)
+    api(projects.logaccess.logaccessSpi)
+    api(projects.model)
+
     implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
 

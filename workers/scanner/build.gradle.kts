@@ -38,6 +38,8 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.services.adminConfigService)
+    implementation(projects.services.hierarchyService)
+    implementation(projects.services.ortRunService)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)

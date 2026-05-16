@@ -29,7 +29,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.transport"
 
 dependencies {
-    implementation(projects.transport.transportSpi)
+    api(projects.transport.transportSpi)
+
     implementation(projects.utils.logging)
 
     implementation(libs.qpidJmsClient)

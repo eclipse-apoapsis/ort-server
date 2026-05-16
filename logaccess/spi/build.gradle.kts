@@ -32,7 +32,6 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
-    implementation(projects.model)
     implementation(projects.utils.config)
 
     implementation(libs.kotlinxCoroutines)
@@ -43,5 +42,5 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
-    testFixturesImplementation(projects.model)
+    testFixturesApi(projects.model)
 }

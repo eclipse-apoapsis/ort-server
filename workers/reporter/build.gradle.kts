@@ -34,10 +34,13 @@ group = "org.eclipse.apoapsis.ortserver.workers"
 
 dependencies {
     implementation(projects.components.authorization.authorizationBackend)
+    implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.services.adminConfigService)
+    implementation(projects.services.hierarchyService)
+    implementation(projects.services.ortRunService)
     implementation(projects.shared.reporters)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)

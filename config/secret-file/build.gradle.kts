@@ -26,7 +26,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.config"
 
 dependencies {
-    implementation(projects.config.configSpi)
+    api(projects.config.configSpi)
 
     implementation(libs.slf4j)
 

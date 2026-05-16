@@ -26,12 +26,13 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.config"
 
 dependencies {
+    api(projects.config.configSpi)
+
     api(libs.typesafeConfig)
 
     implementation(libs.slf4j)
     implementation(ortLibs.downloader)
     implementation(ortLibs.ortPlugins.versionControlSystems.git)
-    implementation(projects.config.configSpi)
     implementation(projects.utils.config)
 
     testImplementation(testFixtures(projects.config.configSpi))

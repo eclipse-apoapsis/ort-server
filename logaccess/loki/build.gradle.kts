@@ -29,10 +29,9 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.logaccess"
 
 dependencies {
-    api(libs.typesafeConfig)
+    api(projects.logaccess.logaccessSpi)
+    api(projects.model)
 
-    implementation(projects.logaccess.logaccessSpi)
-    implementation(projects.model)
     implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
 
@@ -41,6 +40,7 @@ dependencies {
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.okhttp)
     implementation(ktorLibs.serialization.kotlinx.json)
+    implementation(libs.typesafeConfig)
 
     testImplementation(testFixtures(projects.logaccess.logaccessSpi))
 

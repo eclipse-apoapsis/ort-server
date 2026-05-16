@@ -26,7 +26,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.utils"
 
 dependencies {
-    implementation(libs.typesafeConfig)
+    api(libs.typesafeConfig)
+
     implementation(ortLibs.utils.common)
 
     testImplementation(libs.kotestAssertionsCore)

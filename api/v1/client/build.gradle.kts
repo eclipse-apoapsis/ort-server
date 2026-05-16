@@ -37,7 +37,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(projects.api.v1.apiV1Model)
+                api(projects.api.v1.apiV1Model)
+
                 implementation(projects.utils.system)
 
                 implementation(ktorLibs.client.auth)

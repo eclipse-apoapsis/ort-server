@@ -25,8 +25,9 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.secrets"
 
 dependencies {
-    implementation(projects.config.configSpi)
-    implementation(projects.secrets.secretsSpi)
+    api(projects.config.configSpi)
+    api(projects.secrets.secretsSpi)
+
     implementation(projects.utils.config)
 
     implementation(libs.exposedCore)

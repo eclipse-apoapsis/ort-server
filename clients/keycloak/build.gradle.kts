@@ -32,13 +32,14 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.clients"
 
 dependencies {
+    api(ktorLibs.client.core)
+    api(libs.kotlinxSerializationJson)
+
     implementation(projects.shared.ktorClientUtils)
     implementation(ktorLibs.client.auth)
     implementation(ktorLibs.client.contentNegotiation)
-    implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.okhttp)
     implementation(ktorLibs.serialization.kotlinx.json)
-    implementation(libs.kotlinxSerializationJson)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

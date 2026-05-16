@@ -29,11 +29,13 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.transport"
 
 dependencies {
-    implementation(projects.transport.transportSpi)
+    api(projects.transport.transportSpi)
+
+    api(libs.sqs)
+
     implementation(projects.utils.logging)
 
     implementation(libs.slf4j)
-    implementation(libs.sqs)
 
     runtimeOnly(libs.logback)
 

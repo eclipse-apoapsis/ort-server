@@ -34,21 +34,22 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver"
 
 dependencies {
-    implementation(projects.config.configSpi)
-    implementation(projects.model)
+    api(projects.config.configSpi)
+    api(projects.model)
+
     implementation(projects.utils.config)
     implementation(projects.utils.system)
 
+    api(libs.exposedCore)
     api(libs.exposedDao)
     api(libs.exposedJdbc)
     api(libs.koinCore)
+    api(libs.kotlinxSerializationJson)
 
     implementation(libs.bundles.flyway)
-    implementation(libs.exposedCore)
     implementation(libs.exposedJson)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.hikari)
-    implementation(libs.kotlinxSerializationJson)
     implementation(libs.postgres)
     implementation(libs.typesafeConfig)
 

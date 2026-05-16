@@ -57,18 +57,20 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(projects.api.v1.apiV1Client)
-                implementation(projects.api.v1.apiV1Model)
+                api(projects.api.v1.apiV1Client)
+                api(projects.api.v1.apiV1Model)
+
+                api(libs.clikt)
+                api(libs.okio)
+
                 implementation(projects.utils.system)
 
                 implementation(ktorLibs.client.auth)
                 implementation(ktorLibs.client.core)
-                implementation(libs.clikt)
                 implementation(libs.kaml)
                 implementation(libs.kotlinxCoroutines)
                 implementation(libs.kotlinxSerializationJson)
                 implementation(libs.mordantCoroutines)
-                implementation(libs.okio)
             }
         }
 

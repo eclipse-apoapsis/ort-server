@@ -49,9 +49,12 @@ repositories {
 
 dependencies {
     implementation(projects.components.authorization.authorizationBackend)
+    implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.services.adminConfigService)
+    implementation(projects.services.hierarchyService)
+    implementation(projects.services.ortRunService)
     implementation(projects.shared.packageCurationProviders)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.config)
@@ -75,6 +78,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     testImplementation(projects.components.infrastructureServices.infrastructureServicesBackend)
+    testImplementation(projects.components.secrets.secretsBackend)
     testImplementation(projects.shared.ortTestData)
 
     testImplementation(testFixtures(projects.config.configSpi))

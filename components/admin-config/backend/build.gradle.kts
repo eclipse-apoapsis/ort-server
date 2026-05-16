@@ -37,11 +37,12 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.components.adminConfig.adminConfigApiModel)
+    api(projects.components.adminConfig.adminConfigApiModel)
+
+    api(libs.exposedCore)
 
     implementation(projects.dao)
 
-    implementation(libs.exposedCore)
     implementation(libs.exposedJdbc)
     implementation(libs.exposedKotlinDatetime)
 

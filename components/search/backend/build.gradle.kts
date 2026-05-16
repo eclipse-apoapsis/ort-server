@@ -36,15 +36,15 @@ repositories {
 }
 
 dependencies {
-    api(libs.exposedCore)
+    api(projects.components.authorization.authorizationBackend)
+    api(projects.components.search.searchApiModel)
+    api(projects.model)
 
-    implementation(projects.components.authorization.authorizationBackend)
-    implementation(projects.components.search.searchApiModel)
     implementation(projects.dao)
-    implementation(projects.model)
 
-    routesImplementation(projects.components.authorization.authorizationBackend)
-    routesImplementation(projects.shared.apiModel)
+    implementation(libs.exposedCore)
+
+    routesApi(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.auth)
@@ -52,6 +52,7 @@ dependencies {
     routesImplementation(libs.ktorOpenApi)
 
     testImplementation(testFixtures(projects.dao))
+    testImplementation(projects.shared.apiModel)
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.serialization.kotlinx.json)

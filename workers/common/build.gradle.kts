@@ -36,31 +36,30 @@ repositories {
 }
 
 dependencies {
+    api(libs.koinCore)
+
     implementation(projects.components.infrastructureServices.infrastructureServicesBackend)
+    implementation(projects.components.resolutions.resolutionsBackend)
+    implementation(projects.components.secrets.secretsBackend)
+    implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
-    implementation(projects.utils.config)
     implementation(projects.services.adminConfigService)
+    implementation(projects.services.ortRunService)
+    implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(libs.commonsText)
     implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
-
-    api(projects.components.resolutions.resolutionsBackend)
-    api(projects.components.secrets.secretsBackend)
-    api(projects.config.configSpi)
-    api(projects.services.ortRunService)
-    api(projects.storage.storageSpi)
-
-    api(libs.koinCore)
-    api(ortLibs.downloader)
-    api(ortLibs.model)
-    api(ortLibs.scanner)
-    api(libs.typesafeConfig)
+    implementation(libs.typesafeConfig)
+    implementation(ortLibs.downloader)
+    implementation(ortLibs.model)
+    implementation(ortLibs.scanner)
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))

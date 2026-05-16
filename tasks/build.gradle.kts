@@ -30,10 +30,11 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver"
 
 dependencies {
-    implementation(projects.config.configSpi)
+    api(projects.config.configSpi)
+    api(projects.services.ortRunService)
+
     implementation(projects.dao)
     implementation(projects.utils.logging)
-    implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)

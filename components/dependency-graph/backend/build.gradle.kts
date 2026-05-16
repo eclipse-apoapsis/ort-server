@@ -26,13 +26,14 @@ group = "org.eclipse.apoapsis.ortserver.components.dependencygraph"
 
 dependencies {
     api(projects.components.dependencyGraph.dependencyGraphApiModel)
+    api(projects.model)
+
+    api(libs.exposedJdbc)
 
     implementation(projects.dao)
-    implementation(projects.model)
 
-    implementation(libs.exposedJdbc)
+    routesApi(projects.components.authorization.authorizationBackend)
 
-    routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.components.dependencyGraph.dependencyGraphApiModel)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.apiModel)
