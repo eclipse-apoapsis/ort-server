@@ -40,10 +40,10 @@ dependencyAnalysis {
             }
             onUsedTransitiveDependencies { severity("ignore") }
             onIncorrectConfiguration { severity("fail") }
-            onCompileOnly { severity("ignore") }
+            onCompileOnly { severity("fail") }
             onRuntimeOnly { severity("ignore") }
-            onUnusedAnnotationProcessors { severity("ignore") }
-            onRedundantPlugins { severity("ignore") }
+            onUnusedAnnotationProcessors { severity("fail") }
+            onRedundantPlugins { severity("fail") }
         }
 
         project(projects.api.v1.apiV1Client) {
