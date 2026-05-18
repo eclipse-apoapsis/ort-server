@@ -31,6 +31,12 @@ java {
     }
 }
 
+dependencies {
+    // Ensure that consumers of the routes feature have the main artifact on their runtime classpath, since the compiled
+    // routes classes reference types from the main source set at runtime.
+    "routesRuntimeOnly"(project)
+}
+
 kotlin.target.compilations.apply {
     getByName("routes").associateWith(getByName(KotlinCompilation.MAIN_COMPILATION_NAME))
     getByName("test").associateWith(getByName("routes"))
