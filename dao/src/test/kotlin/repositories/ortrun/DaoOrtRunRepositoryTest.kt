@@ -23,8 +23,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.longs.shouldBeGreaterThan
-import io.kotest.matchers.longs.shouldBeLessThan
+import io.kotest.matchers.longs.shouldBeInRange
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -869,9 +868,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
  * Check whether the given [timestamp] is rather close to the current system time.
  */
 private fun assertCurrentTime(timestamp: Instant?) {
-    val time = timestamp.shouldNotBeNull()
-
-    val delta = Clock.System.now() - time
-    delta.inWholeMilliseconds shouldBeGreaterThan 0
-    delta.inWholeMilliseconds shouldBeLessThan 3000
+    with(Clock.System.now() - timestamp.shouldNotBeNull()) {
+        inWholeMilliseconds shouldBeInRange 0L..3000L
+    }
 }
