@@ -244,7 +244,7 @@ fun Route.runs() = route("runs") {
             route("advisors") {
                 get(getRunVulnerabilityAdvisors, requireRunPermission()) {
                     val advisors = vulnerabilityService.getAdvisorsForOrtRunId(call.ortRun.id)
-                    call.respond(HttpStatusCode.OK, advisors.toList())
+                    call.respond(HttpStatusCode.OK, advisors)
                 }
             }
         }

@@ -278,7 +278,7 @@ fun Route.organizations() = route("organizations") {
                         repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
                     }
                     val advisors = vulnerabilityService.getAdvisorsForOrtRunIds(ortRunIds)
-                    call.respond(HttpStatusCode.OK, advisors.toList())
+                    call.respond(HttpStatusCode.OK, advisors)
                 }
             }
         }
