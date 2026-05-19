@@ -78,7 +78,7 @@ class NuGetGeneratorTest : WordSpec({
                   </packageSourceCredentials>
 
                   <apikeys>
-                    <add key=https://api.nuget.org/v3/index.json value="${MockConfigFileBuilder.testSecretRef(passwordSecret)}" />
+                    <add key="https://api.nuget.org/v3/index.json" value="${MockConfigFileBuilder.testSecretRef(passwordSecret)}" />
                   </apikeys>
                 </configuration>
             """.trimIndent().lines()
@@ -152,8 +152,8 @@ class NuGetGeneratorTest : WordSpec({
                   </packageSourceCredentials>
 
                   <apikeys>
-                    <add key=https://api.nuget.org/v3/index.json value="${MockConfigFileBuilder.testSecretRef(passwordSecret1)}" />
-                    <add key=https://api.nuget.org/v3/index.json3 value="${MockConfigFileBuilder.testSecretRef(passwordSecret4)}" />
+                    <add key="https://api.nuget.org/v3/index.json" value="${MockConfigFileBuilder.testSecretRef(passwordSecret1)}" />
+                    <add key="https://api.nuget.org/v3/index.json3" value="${MockConfigFileBuilder.testSecretRef(passwordSecret4)}" />
                   </apikeys>
                 </configuration>
             """.trimIndent().lines()

@@ -108,6 +108,6 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
     private fun generateApiKeyBlock(
         definition: NuGetDefinition,
         builder: ConfigFileBuilder
-    ) = "<add key=${definition.sourcePath} value=\"${builder.secretRef(definition.service.passwordSecret)}\" />"
+    ) = "<add key=\"${definition.sourcePath}\" value=\"${builder.secretRef(definition.service.passwordSecret)}\" />"
         .prependIndent(INDENT_4_SPACES)
 }
