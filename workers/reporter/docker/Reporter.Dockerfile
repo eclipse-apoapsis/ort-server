@@ -35,8 +35,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl \
     libgomp1 \
     libxml2-dev \
-    libxslt1-dev \
-    && rm -rf /var/lib/apt/lists/*
+    libxslt1-dev
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
@@ -56,7 +55,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     git \
     mercurial \
-    repo \
-    && sudo rm -rf /var/lib/apt/lists/*
+    repo
 
 COPY --from=scancode-license-data-build --chown=$USER:$USER /opt/scancode-license-data /opt/scancode-license-data

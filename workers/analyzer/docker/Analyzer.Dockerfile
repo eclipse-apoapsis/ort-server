@@ -95,7 +95,6 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     unzip \
     wget \
     xz-utils \
-    && sudo rm -rf /var/lib/apt/lists/* \
     && sudo git lfs install
 
 #------------------------------------------------------------------------
@@ -126,8 +125,7 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     libssl-dev \
     libbz2-dev \
     liblzma-dev \
-    tk-dev \
-    && sudo rm -rf /var/lib/apt/lists/*
+    tk-dev
 
 ENV PYENV_ROOT=/opt/python
 ENV PATH=$PATH:$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PYENV_ROOT/conan2/bin
@@ -197,8 +195,7 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     libz-dev \
     make \
     xvfb \
-    zlib1g-dev \
-    && sudo rm -rf /var/lib/apt/lists/*
+    zlib1g-dev
 
 ENV RBENV_ROOT=/opt/rbenv
 ENV PATH=$RBENV_ROOT/bin:$RBENV_ROOT/shims/:$RBENV_ROOT/plugins/ruby-build/bin:$PATH
@@ -282,8 +279,7 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=tmpfs,target=/var/log \
     sudo apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
-    unzip \
-    && sudo rm -rf /var/lib/apt/lists/*
+    unzip
 
 ENV ANDROID_HOME=/opt/android-sdk
 
@@ -480,8 +476,7 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     sudo apt-get update && \
     DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
         php \
-        subversion \
-    && sudo rm -rf /var/lib/apt/lists/*
+        subversion
 
 # Python
 ENV PYENV_ROOT=/opt/python

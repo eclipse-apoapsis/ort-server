@@ -70,8 +70,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     openssl \
     sudo \
     unzip \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+    wget
 
 ARG USERNAME=ort
 ARG USER_ID=1001
