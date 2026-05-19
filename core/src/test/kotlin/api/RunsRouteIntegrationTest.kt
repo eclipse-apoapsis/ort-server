@@ -2410,6 +2410,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfigurations = JobConfigurations()
                 )
 
+                val identifier = Identifier("NPM", "com.example", "example2", "1.0")
                 val now = Clock.System.now()
 
                 // Define issues, vulnerabilities, and rule violations to be used in the test
@@ -2427,7 +2428,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     source = "Advisor",
                     message = "Issue 1",
                     severity = Severity.ERROR,
-                    affectedPath = "path"
+                    affectedPath = "path",
+                    identifier = identifier
                 )
 
                 val advisorIssue2 = Issue(
@@ -2632,7 +2634,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     providerIssues = emptySet(),
                     results = mapOf(
-                        Identifier("NPM", "com.example", "example2", "1.0") to listOf(
+                        identifier to listOf(
                             AdvisorResult(
                                 advisorName = "Advisor",
                                 startTime = now.toDatabasePrecision(),

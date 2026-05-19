@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.utils.DigestFunction
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
@@ -60,7 +61,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
-import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.QueryParameter
 import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
@@ -303,7 +303,8 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
                         ) and
                     (IssuesTable.severity eq issue.severity) and
                     (IssuesTable.affectedPath eq issue.affectedPath) and
-                        (identifierId?.let { OrtRunsIssuesTable.identifierId eq it } ?: Op.TRUE)
+                    (OrtRunsIssuesTable.timestamp eq issue.timestamp.toDatabasePrecision()) and
+                        (OrtRunsIssuesTable.identifierId eq identifierId)
             }
             .firstOrNull()?.get(OrtRunsIssuesTable.id)?.value
     }
