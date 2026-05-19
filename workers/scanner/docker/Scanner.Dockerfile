@@ -54,8 +54,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     unzip \
     xz-utils \
     zlib1g \
-    zlib1g-dev \
-    && sudo rm -rf /var/lib/apt/lists/*
+    zlib1g-dev
 
 ARG ASKALONO_VERSION=0.5.0
 ARG LICENSEE_VERSION=9.18.0
