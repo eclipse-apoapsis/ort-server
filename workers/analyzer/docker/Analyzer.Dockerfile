@@ -354,7 +354,6 @@ ENV SWIFT_HOME=/opt/swift
 ENV PATH=$PATH:$SWIFT_HOME/bin
 
 RUN mkdir -p $SWIFT_HOME \
-    && echo $SWIFT_VERSION \
     && if [ "$(arch)" = "aarch64" ]; then \
     SWIFT_PACKAGE="ubuntu2404-aarch64/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64.tar.gz"; \
     else \
@@ -390,7 +389,6 @@ ENV PATH=$PATH:$DOTNET_HOME:$DOTNET_HOME/tools:$DOTNET_HOME/bin
 # debian packages from Ubuntu and Microsoft are incomplete
 
 RUN mkdir -p $DOTNET_HOME \
-    && echo $SWIFT_VERSION \
     && if [ "$(arch)" = "aarch64" ]; then \
     curl -L https://aka.ms/dotnet/$DOTNET_VERSION/dotnet-sdk-linux-arm64.tar.gz | tar -C $DOTNET_HOME -xz; \
     else \
