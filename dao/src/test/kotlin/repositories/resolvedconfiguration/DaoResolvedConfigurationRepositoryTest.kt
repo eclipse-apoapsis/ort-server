@@ -36,6 +36,7 @@ import io.kotest.matchers.string.shouldContain
 import java.nio.charset.StandardCharsets
 
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.ResolvedVulnerabilitiesTable
@@ -770,6 +771,110 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                     .toList()
             }
             storedResolvedIssues shouldHaveSize 2
+        }
+
+        "match resolutions for issues that differ only in the timestamp correctly" {
+            val issue1 = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "Some test issue",
+                severity = Severity.WARNING,
+                affectedPath = "/some/path"
+            )
+            val issue2 = Issue(
+                timestamp = Clock.System.now() - 10.minutes,
+                source = "Analyzer",
+                message = "Some test issue",
+                severity = Severity.WARNING,
+                affectedPath = "/some/path"
+            )
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue1, issue2)
+            )
+
+            // Use the same resolution for both issues (simulating a regex pattern match)
+            val sharedResolution = IssueResolution(
+                message = ".*test issue.*",
+                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                comment = "Matches multiple issues",
+                source = ResolutionSource.REPOSITORY_FILE
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = mapOf(
+                    issue1 to listOf(sharedResolution),
+                    issue2 to listOf(sharedResolution)
+                ),
+                ruleViolations = emptyMap(),
+                vulnerabilities = emptyMap()
+            )
+
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            // Verify mappings were stored for both issues
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues shouldHaveSize 2
+        }
+
+        "match resolutions for issues without identifiers correctly" {
+            val issue1 = Issue(
+                timestamp = Clock.System.now(),
+                source = "Analyzer",
+                message = "Some test issue",
+                severity = Severity.WARNING,
+                affectedPath = "/some/path",
+                identifier = identifier1
+            )
+            val issue2 = Issue(
+                timestamp = issue1.timestamp,
+                source = "Analyzer",
+                message = "Some test issue",
+                severity = Severity.WARNING,
+                affectedPath = "/some/path",
+                identifier = identifier2
+            )
+            val issue3 = Issue(
+                timestamp = issue2.timestamp,
+                source = "Analyzer",
+                message = "Some test issue",
+                severity = Severity.WARNING,
+                affectedPath = "/some/path"
+            )
+            fixtures.createAnalyzerRun(
+                analyzerJobId = fixtures.analyzerJob.id,
+                issues = listOf(issue1, issue2, issue3)
+            )
+
+            val sharedResolution = IssueResolution(
+                message = ".*test issue.*",
+                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                comment = "Matches multiple issues",
+                source = ResolutionSource.REPOSITORY_FILE
+            )
+
+            val resolvedItems = ResolvedItemsResult(
+                issues = mapOf(
+                    issue1 to listOf(sharedResolution),
+                    issue2 to listOf(sharedResolution),
+                    issue3 to listOf(sharedResolution)
+                ),
+                ruleViolations = emptyMap(),
+                vulnerabilities = emptyMap()
+            )
+
+            resolvedConfigurationRepository.addResolutions(ortRunId, resolvedItems)
+
+            val storedResolvedIssues = dbExtension.db.dbQuery {
+                ResolvedIssuesTable.selectAll()
+                    .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+                    .toList()
+            }
+            storedResolvedIssues shouldHaveSize 3
         }
 
         "persist long server issue resolutions without index row size errors" {
