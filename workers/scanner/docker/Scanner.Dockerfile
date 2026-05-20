@@ -62,7 +62,7 @@ ARG PROVENANT_VERSION=0.1.1
 ARG RUBY_VERSION=3.4.4
 ARG SCANCODE_VERSION=32.5.0
 
-# Install Askalono
+# Install Askalono.
 RUN curl -LOs https://github.com/amzn/askalono/releases/download/$ASKALONO_VERSION/askalono-Linux.zip && \
     mkdir /opt/askalono && \
     unzip askalono-Linux.zip -d /opt/askalono && \
@@ -70,7 +70,7 @@ RUN curl -LOs https://github.com/amzn/askalono/releases/download/$ASKALONO_VERSI
 
 ENV PATH=$PATH:/opt/askalono
 
-# Use rbenv to install Licensee
+# Use rbenv to install Licensee.
 ENV RBENV_ROOT=/opt/rbenv
 ENV PATH=$RBENV_ROOT/bin:$RBENV_ROOT/shims/:$RBENV_ROOT/plugins/ruby-build/bin:$PATH
 
@@ -98,7 +98,7 @@ RUN mkdir -p /opt/provenant && \
 
 ENV PATH=/opt/provenant:$PATH
 
-# Use pip to install ScanCode
+# Use pip to install ScanCode.
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
     python3 -m venv /opt/scancode && \
     /opt/scancode/bin/pip install --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
