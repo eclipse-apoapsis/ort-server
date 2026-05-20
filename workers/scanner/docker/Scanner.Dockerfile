@@ -58,6 +58,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 ARG ASKALONO_VERSION=0.5.0
 ARG LICENSEE_VERSION=9.18.0
+ARG PROVENANT_VERSION=0.1.1
 ARG RUBY_VERSION=3.4.4
 ARG SCANCODE_VERSION=32.5.0
 
@@ -85,6 +86,17 @@ RUN rbenv install $RUBY_VERSION -v \
     && gem install licensee:$LICENSEE_VERSION
 
 WORKDIR $HOME
+
+# Install the Provenant binary from GitHub releases.
+RUN mkdir -p /opt/provenant && \
+    if [ "$(arch)" = "aarch64" ]; then \
+        PROVENANT_ARCHIVE="provenant-linux-aarch64.tar.gz"; \
+    else \
+        PROVENANT_ARCHIVE="provenant-linux-x86_64.tar.gz"; \
+    fi \
+    && curl -LSs "https://github.com/mstykow/provenant/releases/download/v$PROVENANT_VERSION/$PROVENANT_ARCHIVE" | tar -xz -C /opt/provenant
+
+ENV PATH=/opt/provenant:$PATH
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
