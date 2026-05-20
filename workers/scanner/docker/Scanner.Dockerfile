@@ -68,7 +68,7 @@ RUN curl -LOs https://github.com/amzn/askalono/releases/download/$ASKALONO_VERSI
     unzip askalono-Linux.zip -d /opt/askalono && \
     rm askalono-Linux.zip
 
-ENV PATH=$PATH:/opt/askalono
+ENV PATH=/opt/askalono:$PATH
 
 # Use rbenv to install Licensee.
 ENV RBENV_ROOT=/opt/rbenv
@@ -104,4 +104,4 @@ RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_
     /opt/scancode/bin/pip install --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
 
-ENV PATH="/opt/scancode/bin:${PATH}"
+ENV PATH=/opt/scancode/bin:$PATH
