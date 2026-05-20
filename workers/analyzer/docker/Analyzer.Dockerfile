@@ -25,6 +25,7 @@ ARG ANDROID_CMD_VERSION=13114758
 ARG BAZELISK_VERSION=1.29.0
 ARG BOWER_VERSION=1.8.14
 ARG COCOAPODS_VERSION=1.16.2
+ARG COREPACK_VERSION=latest
 ARG COSIGN_VERSION=3.0.3
 ARG COMPOSER_VERSION=2.8.12
 ARG CONAN_VERSION=1.66.0
@@ -171,7 +172,7 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm install "$NODEJS_VERSION" \
     && nvm alias default "$NODEJS_VERSION" \
     && nvm use default \
-    && npm install --global bower@$BOWER_VERSION corepack@latest \
+    && npm install --global bower@$BOWER_VERSION corepack@$COREPACK_VERSION \
     && corepack enable
 
 FROM scratch AS node
