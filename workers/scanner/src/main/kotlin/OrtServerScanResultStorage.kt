@@ -165,7 +165,9 @@ class OrtServerScanResultStorage(
     }
 
     /**
-     * Return a [Map] with all issues that
+     * Return a [Map] with all issues that are related to all scan results encountered for the current run. This
+     * includes issues from scan results read from the storage and issues from results written to the storage.
+     * Such issues need to be associated with the run.
      */
     fun getAllIssues(): Map<Provenance, Set<Issue>> = issuesMap
 
