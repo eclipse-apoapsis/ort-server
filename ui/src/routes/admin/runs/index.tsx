@@ -17,25 +17,34 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { View } from 'lucide-react';
+import { Repeat, View } from 'lucide-react';
 import z from 'zod';
 
 import { OrtRunStatus, OrtRunSummary } from '@/api';
 import {
+  deleteRepositoryRunMutation,
   getOrganizationOptions,
   getProductOptions,
   getRepositoryOptions,
   getRunsOptions,
+  getRunsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
+import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
@@ -56,7 +65,8 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { toastError } from '@/lib/toast';
+import { ApiError } from '@/lib/api-error';
+import { toast, toastError } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
   statusSearchParameterSchema,
@@ -216,32 +226,102 @@ const RunsComponent = () => {
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <div className='flex gap-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant='outline' asChild size='sm'>
-                <Link
-                  to={
-                    '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-                  }
-                  params={{
-                    orgId: row.original.organizationId.toString(),
-                    productId: row.original.productId.toString(),
-                    repoId: row.original.repositoryId.toString(),
-                    runIndex: row.original.index.toString(),
-                  }}
-                >
-                  <View className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>View the details of this run</TooltipContent>
-          </Tooltip>
-        </div>
-      ),
-      size: 90,
+      header: () => <div className='w-full text-center'>Actions</div>,
+      cell: function ActionsCell({ row }) {
+        const queryClient = useQueryClient();
+
+        const repository = useSuspenseQuery({
+          ...getRepositoryOptions({
+            path: {
+              repositoryId: row.original.repositoryId,
+            },
+          }),
+        });
+
+        const { mutateAsync: deleteRun } = useMutation({
+          ...deleteRepositoryRunMutation(),
+          onSuccess() {
+            toast.info('Delete Run', {
+              description: `Run "${row.original.index}" deleted successfully.`,
+            });
+            queryClient.invalidateQueries({
+              queryKey: getRunsQueryKey(),
+            });
+          },
+          onError(error: ApiError) {
+            toastError(error.message, error);
+          },
+        });
+
+        async function handleDelete() {
+          await deleteRun({
+            path: {
+              ortRunIndex: row.original.index,
+              repositoryId: row.original.repositoryId,
+            },
+          });
+        }
+
+        return (
+          <div className='flex flex-col items-center gap-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant='outline' asChild size='sm' className='w-10'>
+                  <Link
+                    to={
+                      '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+                    }
+                    params={{
+                      orgId: row.original.organizationId.toString(),
+                      productId: row.original.productId.toString(),
+                      repoId: row.original.repositoryId.toString(),
+                      runIndex: row.original.index.toString(),
+                    }}
+                  >
+                    <View className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View the details of this run</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant='outline' asChild size='sm' className='w-10'>
+                  <Link
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                    params={{
+                      orgId: row.original.organizationId.toString(),
+                      productId: row.original.productId.toString(),
+                      repoId: row.original.repositoryId.toString(),
+                    }}
+                    search={{
+                      rerunIndex: row.original.index,
+                    }}
+                  >
+                    <Repeat className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new run based on this run
+              </TooltipContent>
+            </Tooltip>
+            <DeleteDialog
+              thingName={
+                <>
+                  run with index{' '}
+                  <span className='font-bold'>{row.original.index}</span> from
+                  repository{' '}
+                  <span className='font-bold'>{repository.data.url}</span>
+                </>
+              }
+              uiComponent={<DeleteIconButton />}
+              onDelete={handleDelete}
+            />
+          </div>
+        );
+      },
+      size: 70,
       enableColumnFilter: false,
     }),
   ];
