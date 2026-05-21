@@ -32,7 +32,7 @@ dependencies {
     implementation(projects.utils.logging)
 
     implementation(libs.kubernetesClient)
-    implementation(libs.kubernetesClientExtended)
+    implementation(libs.kubernetesClientApiFluent)
 
     testImplementation(projects.model)
 
