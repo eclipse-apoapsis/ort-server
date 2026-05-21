@@ -118,7 +118,7 @@ ktorOpenApi = { module = "io.github.smiley4:ktor-openapi", version.ref = "ktorOp
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorOpenApi" }
 ktorRateLimit = { module = "io.ktor:ktor-server-rate-limit-jvm", version.ref = "ktorRateLimit" }
 kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
-kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }
+kubernetesClientApiFluent = { module = "io.kubernetes:client-java-api-fluent", version.ref = "kubernetesClient" }
 log4jToSlf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }
