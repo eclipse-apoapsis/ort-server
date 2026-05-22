@@ -32,6 +32,7 @@ http-client.private.env.json
 *.db
 .beads-credential-key
 .bv/
+.agents/
 .claude/
 .codex/
 .dolt/
