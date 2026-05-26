@@ -38,7 +38,9 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.Provenance
+import org.ossreviewtoolkit.model.ProvenanceResolutionResult
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
@@ -159,6 +161,8 @@ class ScannerWorker(
  * Extract all [Issue]s from this [OrtScannerResult] and convert it to the ORT Server model.
  */
 private fun OrtScannerResult.extractIssues(): Set<Issue> {
+    val result = mutableSetOf<Issue>()
+
     val idsByProvenance = mutableMapOf<Provenance, Identifier>()
     scannerRun.getAllScanResults().forEach { (id, results) ->
         results.forEach { result ->
@@ -166,9 +170,29 @@ private fun OrtScannerResult.extractIssues(): Set<Issue> {
         }
     }
 
-    return issues.flatMapTo(mutableSetOf()) { (provenance, issues) ->
-        issues.map { issue ->
-            issue.mapToModel(identifier = idsByProvenance[provenance], worker = "scanner")
+    issues.forEach { (provenance, provenanceIssues) ->
+        provenanceIssues.forEach { issue ->
+            result += issue.mapToModel(identifier = idsByProvenance[provenance], worker = "scanner")
         }
+    }
+
+    scannerRun.provenances.extractIssues(result, ProvenanceResolutionResult::packageProvenanceResolutionIssue)
+    scannerRun.provenances.extractIssues(result, ProvenanceResolutionResult::nestedProvenanceResolutionIssue)
+
+    return result
+}
+
+/**
+ * Extract a certain kind of issues from the [ProvenanceResolutionResult]s in this [Set] as determined by the given
+ * [extract] function to the provided [issues].
+ */
+private fun Set<ProvenanceResolutionResult>.extractIssues(
+    issues: MutableSet<Issue>,
+    extract: (ProvenanceResolutionResult) -> OrtIssue?
+) {
+    mapNotNull { resolutionResult ->
+        extract(resolutionResult)?.let { resolutionResult.id to it }
+    }.forEach { (id, issue) ->
+        issues += issue.mapToModel(identifier = id.mapToModel(), worker = "scanner")
     }
 }
