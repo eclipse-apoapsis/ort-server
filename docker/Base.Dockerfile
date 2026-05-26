@@ -73,7 +73,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     wget
 
 ARG USERNAME=ort
-ARG USER_ID=1001
+ARG USER_ID=1000
 ARG USER_GID=$USER_ID
 ARG HOMEDIR=/home/ort
 ENV HOME=$HOMEDIR
