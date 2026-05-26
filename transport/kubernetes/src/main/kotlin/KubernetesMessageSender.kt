@@ -107,7 +107,7 @@ internal class KubernetesMessageSender<T : Any>(
 
         val jobBody = V1JobBuilder()
             .withNewMetadata()
-                .withName("${endpoint.configPrefix}-$traceId".take(64))
+                .withName("${endpoint.configPrefix}-${message.header.ortRunId}-$traceId".take(64))
                 .withLabels<String, String>(labels)
             .endMetadata()
             .withNewSpec()
