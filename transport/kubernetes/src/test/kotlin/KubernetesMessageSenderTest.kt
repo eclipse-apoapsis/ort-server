@@ -63,6 +63,8 @@ class KubernetesMessageSenderTest : StringSpec({
 
         val job = createJob(senderConfig)
 
+        job.metadata?.name shouldBe "analyzer-9-01234567890123456789012345678901234567890123456789012"
+
         job.spec?.template?.spec?.containers?.single().shouldNotBeNull {
             image shouldBe senderConfig.imageName
             imagePullPolicy shouldBe senderConfig.imagePullPolicy
