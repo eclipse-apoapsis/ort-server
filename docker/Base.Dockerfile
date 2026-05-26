@@ -80,7 +80,8 @@ ENV HOME=$HOMEDIR
 ENV USER=$USERNAME
 
 # Non privileged user
-RUN groupadd --gid $USER_GID $USERNAME \
+RUN userdel -r ubuntu \
+    && groupadd --gid $USER_GID $USERNAME \
     && useradd \
     --uid $USER_ID \
     --gid $USER_GID \
