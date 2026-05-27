@@ -30,6 +30,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.contain
 
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
@@ -281,6 +282,69 @@ class DaoScannerRunRepositoryTest : WordSpec({
                     scanResultPkg3.mapToModel()
                         .copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
                 )
+            }
+        }
+
+        "remove duplicate issues for provenance resolution results" {
+            val scanResult = createScanResult(artifact = pkg.sourceArtifact)
+            val scanners = mapOf(pkg.identifier to setOf(SCANNER_NAME))
+
+            val resolutionIssue = Issue(
+                timestamp = Instant.parse("2026-05-27T05:42:02Z"),
+                source = "scanner",
+                message = "Could not resolve provenance for package " +
+                        "'Identifier(type=type, namespace=namespace, name=package, version=version)':\n" +
+                        "Could not resolve provenance.",
+                severity = Severity.ERROR,
+                identifier = pkg.identifier,
+                worker = "scanner"
+            )
+            val nestedResolutionIssue = Issue(
+                timestamp = Instant.parse("2026-05-27T05:43:27Z"),
+                source = "scanner",
+                message = "Could not resolve provenance for package " +
+                        "'Identifier(type=type, namespace=namespace, name=package, version=version)':\n" +
+                        "Could not resolve provenance.",
+                severity = Severity.ERROR,
+                identifier = pkg.identifier,
+                worker = "scanner"
+            )
+            val scannerIssue = Issue(
+                timestamp = Instant.parse("2026-05-27T05:44:11Z"),
+                source = "scanner",
+                message = "Some trouble with the scanner.",
+                severity = Severity.ERROR,
+                identifier = pkg.identifier,
+                worker = "scanner"
+            )
+            val issues = mapOf(pkg.identifier to setOf(resolutionIssue, nestedResolutionIssue, scannerIssue))
+
+            analyzerRunRepository.create(fixtures.analyzerJob.id, analyzerRun.copy(packages = setOf(pkg)))
+            val createdScannerRun = scannerRunRepository.create(
+                scannerJobId,
+                scannerRun.copy(scanners = scanners, issues = issues)
+            )
+            associateScannerRunWithScanResult(createdScannerRun, scanResult)
+
+            val newOrtRun = fixtures.createOrtRun()
+            val newAnalyzerJobId = fixtures.createAnalyzerJob(newOrtRun.id).id
+            analyzerRunRepository.create(newAnalyzerJobId, analyzerRun.copy(packages = setOf(pkg)))
+
+            transaction {
+                val provenanceDao = PackageProvenanceDao.new {
+                    identifier = IdentifierDao.getOrPut(pkg.identifier)
+                    artifact = RemoteArtifactDao.getOrPut(pkg.sourceArtifact)
+                    errorMessage = "Could not resolve provenance."
+                }
+                associateScannerRunWithPackageProvenance(createdScannerRun, provenanceDao)
+            }
+
+            val scannerRun = scannerRunRepository.get(scannerJobId)
+
+            scannerRun.shouldNotBeNull()
+
+            scannerRun.issues[pkg.identifier].orEmpty().shouldBeSingleton { issue ->
+                issue shouldBe scannerIssue
             }
         }
     }
