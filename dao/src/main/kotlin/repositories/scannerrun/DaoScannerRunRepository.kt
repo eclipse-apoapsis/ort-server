@@ -26,7 +26,6 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.queries.ortrun.GetIssuesForOrtRunQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerConfigurationsSecretsTable.scannerConfigurationSecretId
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
@@ -96,19 +95,10 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
             scanners.getOrPut(dao.identifier.mapToModel()) { mutableSetOf() }.add(dao.scannerName)
         }
 
-        val ortRunId = scannerRunDao.scannerJob.ortRun.id.value
-        val scannerIssues = GetIssuesForOrtRunQuery(ortRunId, ScannerRunDao.ISSUE_WORKER_TYPE).execute()
-        val issuesById = mutableMapOf<Identifier, MutableSet<Issue>>()
-        scannerIssues.forEach { issue ->
-            issue.identifier?.also { identifier ->
-                issuesById.getOrPut(identifier) { mutableSetOf() } += issue
-            }
-        }
-
         scannerRunDao.mapToModel().copy(
             provenances = provenanceResolutionResults,
             scanResults = scanResults,
-            issues = issuesById,
+            issues = getScannerRunIssues(scannerRunDao, provenanceResolutionResults),
             scanners = scanners
         )
     }
@@ -179,6 +169,32 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
 
             add(result)
         }
+    }
+
+    /**
+     * Get the [Issue]s for the provided [scannerRunDao] and group them by their [Identifier]. Remove duplicate issues
+     * that are related to the given [provenanceResolutionResults]. Note that resolution issues are created dynamically
+     * and therefore have a different timestamp. So, the matching is done based on the message.
+     */
+    private fun getScannerRunIssues(
+        scannerRunDao: ScannerRunDao,
+        provenanceResolutionResults: Set<ProvenanceResolutionResult>
+    ): MutableMap<Identifier, MutableSet<Issue>> {
+        val ortRunId = scannerRunDao.scannerJob.ortRun.id.value
+        val scannerIssues = GetIssuesForOrtRunQuery(ortRunId, ScannerRunDao.ISSUE_WORKER_TYPE).execute()
+        val resolutionIssues = provenanceResolutionResults.flatMapTo(mutableSetOf()) { result ->
+            listOfNotNull(result.packageProvenanceResolutionIssue, result.nestedProvenanceResolutionIssue)
+                .map(Issue::message)
+        }
+
+        val issuesById = mutableMapOf<Identifier, MutableSet<Issue>>()
+        scannerIssues.filterNot { it.message in resolutionIssues }.forEach { issue ->
+            issue.identifier?.also { identifier ->
+                issuesById.getOrPut(identifier) { mutableSetOf() } += issue
+            }
+        }
+
+        return issuesById
     }
 }
 
