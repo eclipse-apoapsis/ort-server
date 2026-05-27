@@ -143,10 +143,10 @@ services:
         gelf-address: "udp://127.0.0.1:12201"
         tag: "graphite"
 
-  # Give UID 1001 ownership of the secrets-provider volume as that UID is used by default by the ORT Server images.
+  # Give UID 1000 ownership of the secrets-provider volume as that UID is used by default by the ORT Server images.
   init-secrets:
     image: busybox
-    command: [ "sh", "-c", "chown -R 1001:1001 /mnt/secrets-provider" ]
+    command: [ "sh", "-c", "chown -R 1000:1000 /mnt/secrets-provider" ]
     volumes:
     - secrets:/mnt/secrets-provider
     restart: "no"
