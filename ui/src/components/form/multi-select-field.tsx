@@ -25,6 +25,7 @@ import {
   UseFormReturn,
 } from 'react-hook-form';
 
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   FormControl,
@@ -129,9 +130,10 @@ export const MultiSelectField = <
               <div className='flex flex-col'>
                 <FormLabel className='font-normal'>{option.label}</FormLabel>
                 {option.description != null && (
-                  <div className='text-sm text-gray-500'>
-                    {option.description}
-                  </div>
+                  <MarkdownRenderer
+                    markdown={option.description}
+                    className='text-muted-foreground max-w-none [&_p]:my-0'
+                  />
                 )}
               </div>
             </FormItem>
