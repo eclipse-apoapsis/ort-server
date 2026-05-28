@@ -32,6 +32,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.InputFiles
@@ -52,6 +54,9 @@ class PluginInfoCollectorPlugin : Plugin<Project> {
 
         /** The name of the configuration that contains the dependencies to be analyzed for plugin information. */
         internal const val DEPENDENCY_CONFIGURATION_NAME = "compileOnly"
+
+        /** The name of the resolvable configuration used to resolve plugin dependencies. */
+        private const val RESOLVER_CONFIGURATION_NAME = "pluginInfoResolver"
     }
 
     override fun apply(project: Project) {
@@ -74,11 +79,28 @@ class PluginInfoCollectorPlugin : Plugin<Project> {
     private fun configureCollectDependenciesTask(project: Project, task: CollectDependencyPluginsTask) {
         val jarFiles = mutableListOf<File>()
 
-        // The compileOnly configuration cannot be resolved; so a detached configuration is created.
+        // The compileOnly configuration cannot be resolved; so a separate resolvable configuration is created.
         project.configurations.findByName(DEPENDENCY_CONFIGURATION_NAME)?.also { configuration ->
-            val detachedConfig = project.configurations.detachedConfiguration()
+            val resolverConfig = project.configurations.create(RESOLVER_CONFIGURATION_NAME) {
+                isCanBeConsumed = false
+                isCanBeResolved = true
+
+                // Set the attributes that select runtimeElements variants for both project and external dependencies,
+                // equivalent to how runtimeClasspath resolves JVM JARs.
+                attributes {
+                    attribute(
+                        Usage.USAGE_ATTRIBUTE,
+                        project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
+                    )
+                    attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        project.objects.named(LibraryElements::class.java, LibraryElements.JAR)
+                    )
+                }
+            }
+
             configuration.dependencies.forEach { dep ->
-                detachedConfig.dependencies.add(dep)
+                resolverConfig.dependencies.add(dep)
 
                 (dep as? ProjectDependency)?.also { projectDependency ->
                     project.gradle.projectsEvaluated {
@@ -90,7 +112,7 @@ class PluginInfoCollectorPlugin : Plugin<Project> {
                 }
             }
 
-            detachedConfig.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
+            resolverConfig.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
                 if (artifact.file.extension == "jar") {
                     jarFiles.add(artifact.file)
                 }
