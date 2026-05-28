@@ -29,6 +29,7 @@ import {
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -227,9 +228,10 @@ export const PluginMultiSelectField = <
                   {plugin.displayName}
                 </FormLabel>
                 {plugin.description != null && (
-                  <FormDescription className='pb-4'>
-                    {plugin.description}
-                  </FormDescription>
+                  <MarkdownRenderer
+                    markdown={plugin.description}
+                    className='text-muted-foreground max-w-none pb-4 [&_p]:my-0'
+                  />
                 )}
                 {scannerScopeName && field.value?.includes(plugin.id) && (
                   <FormField
