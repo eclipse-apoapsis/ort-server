@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import java.io.InputStream
 import java.io.OutputStream
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -52,6 +53,7 @@ import org.slf4j.MDC
  * read this information and set up its environment accordingly. The inter-process communication is done via the
  * `stdin` stream of the forked process.
  */
+@OptIn(ExperimentalSerializationApi::class)
 object EnvironmentForkHelper {
     private val logger = LoggerFactory.getLogger(EnvironmentForkHelper.javaClass)
 
