@@ -132,7 +132,7 @@ jobs:
       working-directory: website
       run: pnpm format:check
 
-  project-health:
+  build-health:
     runs-on: ubuntu-24.04
     env:
       GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -143,8 +143,8 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
-    - name: Check Project Health
-      run: ./gradlew --stacktrace projectHealth
+    - name: Check Build Health
+      run: ./gradlew --stacktrace buildHealth
 
   renovate-validation:
     runs-on: ubuntu-24.04
