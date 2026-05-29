@@ -57,6 +57,10 @@ dependencyAnalysis {
         }
     }
 
+    reporting {
+        printBuildHealth(true)
+    }
+
     useTypesafeProjectAccessors(true)
 }
 
