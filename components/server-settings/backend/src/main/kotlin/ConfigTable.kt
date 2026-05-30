@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig
+package org.eclipse.apoapsis.ortserver.components.serversettings
 
 import kotlin.time.Clock
 

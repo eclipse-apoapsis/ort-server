@@ -57,11 +57,6 @@ repositories {
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
-    implementation(projects.components.adminConfig.adminConfigBackend) {
-        capabilities {
-            requireCapability("$group:routes:$version")
-        }
-    }
     implementation(projects.components.authorization.authorizationBackend) {
         capabilities {
             requireCapability("$group:routes:$version")
@@ -106,6 +101,11 @@ dependencies {
     }
     implementation(projects.components.secrets.secretsBackend)
     implementation(projects.components.secrets.secretsBackend) {
+        capabilities {
+            requireCapability("$group:routes:$version")
+        }
+    }
+    implementation(projects.components.serverSettings.serverSettingsBackend) {
         capabilities {
             requireCapability("$group:routes:$version")
         }

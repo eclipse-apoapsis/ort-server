@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-    api(projects.components.adminConfig.adminConfigApiModel)
+    api(projects.components.serverSettings.serverSettingsApiModel)
 
     api(libs.exposedCore)
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig
+package org.eclipse.apoapsis.ortserver.components.serversettings
 
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -34,7 +34,7 @@ abstract class AdminConfigIntegrationTest(body: AdminConfigIntegrationTest.() ->
     fun adminConfigTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { adminConfigRoutes(dbExtension.db) },
+        routes = { serverSettingsRoutes(dbExtension.db) },
         block = block
     )
 }

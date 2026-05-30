@@ -17,17 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig
+package org.eclipse.apoapsis.ortserver.components.serversettings
 
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.getConfigByKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.setConfigByKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.routes.getConfigByKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.routes.setConfigByKey
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/** Add all admin-config routes. */
-fun Route.adminConfigRoutes(db: Database) {
+/** Add all server-settings routes. */
+fun Route.serverSettingsRoutes(db: Database) {
     getConfigByKey(db)
     setConfigByKey(db)
 }
