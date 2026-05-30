@@ -24,9 +24,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getConfigByKeyOptions,
-  getConfigByKeyQueryKey,
-  setConfigByKeyMutation,
+  getServerSettingByKeyOptions,
+  getServerSettingByKeyQueryKey,
+  setServerSettingByKeyMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -70,7 +70,7 @@ export function ProductNameForm() {
     isError,
     error,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,10 +82,10 @@ export function ProductNameForm() {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...setConfigByKeyMutation(),
+    ...setServerSettingByKeyMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getConfigByKeyQueryKey({
+        queryKey: getServerSettingByKeyQueryKey({
           path: { key: 'MAIN_PRODUCT_NAME' },
         }),
       });

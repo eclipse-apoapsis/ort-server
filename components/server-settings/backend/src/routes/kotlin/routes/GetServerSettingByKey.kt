@@ -26,9 +26,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
-import org.eclipse.apoapsis.ortserver.components.serversettings.Config
-import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigKey
-import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigTable
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingsTable
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -36,16 +36,16 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
-    operationId = "GetConfigByKey"
-    summary = "Get the config for the provided key"
-    description = "Get the value and isEnabled properties for a config key. " +
-            "If no value was set before, the default value is returned."
+internal fun Route.getServerSettingByKey(db: Database) = get("admin/config/{key}", {
+    operationId = "GetServerSettingByKey"
+    summary = "Get the server setting for the provided key"
+    description = "Get the value and isEnabled properties for a server setting. " +
+            "If no value was set before or the setting is disabled, the default value is returned."
     tags = listOf("Admin")
 
     request {
-        pathParameter<ConfigKey>("key") {
-            description = "The config key."
+        pathParameter<ServerSettingKey>("key") {
+            description = "The server setting key."
             required = true
         }
     }
@@ -53,9 +53,9 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<Config> {
-                example("Config values") {
-                    value = Config(
+            jsonBody<ServerSetting> {
+                example("Server setting") {
+                    value = ServerSetting(
                         isEnabled = false,
                         value = "http://example.com/icon.png"
                     )
@@ -64,7 +64,7 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The config key is invalid."
+            description = "The server setting key is invalid."
         }
     }
 }) {
@@ -73,17 +73,17 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     val keyParameter = call.requireParameter("key")
 
     val key = runCatching {
-        enumValueOf<ConfigKey>(keyParameter)
+        enumValueOf<ServerSettingKey>(keyParameter)
     }.getOrElse {
         call.respondError(
             HttpStatusCode.BadRequest,
-            message = "Invalid config key: $keyParameter",
-            cause = "Allowed keys: ${ConfigKey.entries.joinToString()}"
+            message = "Invalid key: $keyParameter",
+            cause = "Allowed keys: ${ServerSettingKey.entries.joinToString()}"
         )
         return@get
     }
 
-    val configValue = transaction(db) { ConfigTable.get(key) }
+    val serverSetting = transaction(db) { ServerSettingsTable.get(key) }
 
-    call.respond(HttpStatusCode.OK, configValue)
+    call.respond(HttpStatusCode.OK, serverSetting)
 }

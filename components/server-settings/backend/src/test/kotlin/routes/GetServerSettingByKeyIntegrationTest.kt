@@ -28,17 +28,17 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.serversettings.AdminConfigIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.serversettings.Config
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingsIntegrationTest
 
-class GetConfigByKeyIntegrationTest : AdminConfigIntegrationTest({
-    "GetConfigByKey" should {
-        "return the value and enabled status of an existing config key" {
-            adminConfigTestApplication { client ->
-                // Insert a test config key to database
+class GetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
+    "GetServerSettingByKey" should {
+        "return the value and enabled status of an existing server setting key" {
+            serverSettingsTestApplication { client ->
+                // Insert a test server setting into the database.
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
-                        Config(
+                        ServerSetting(
                             value = "https://example.com/existing_icon.png",
                             isEnabled = true
                         )
@@ -48,27 +48,27 @@ class GetConfigByKeyIntegrationTest : AdminConfigIntegrationTest({
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
-                with(response.body<Config>()) {
+                with(response.body<ServerSetting>()) {
                     value shouldBe "https://example.com/existing_icon.png"
                     isEnabled shouldBe true
                 }
             }
         }
 
-        "return the default value if the config key does not exist in db" {
-            adminConfigTestApplication { client ->
+        "return the default value if the server setting key does not exist in db" {
+            serverSettingsTestApplication { client ->
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
-                with(response.body<Config>()) {
+                with(response.body<ServerSetting>()) {
                     value shouldBe "https://example.com/icon.png"
                     isEnabled shouldBe false
                 }
             }
         }
 
-        "return BadRequest if the config key is invalid" {
-            adminConfigTestApplication { client ->
+        "return BadRequest if the server setting key is invalid" {
+            serverSettingsTestApplication { client ->
                 client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }

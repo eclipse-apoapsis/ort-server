@@ -24,9 +24,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getConfigByKeyOptions,
-  getConfigByKeyQueryKey,
-  setConfigByKeyMutation,
+  getServerSettingByKeyOptions,
+  getServerSettingByKeyQueryKey,
+  setServerSettingByKeyMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -71,7 +71,7 @@ export function FaviconForm() {
     isError: isFaviconError,
     error: faviconError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'FAVICON_URL' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'FAVICON_URL' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -84,10 +84,12 @@ export function FaviconForm() {
 
   const { mutateAsync: saveFavicon, isPending: isFaviconPending } = useMutation(
     {
-      ...setConfigByKeyMutation(),
+      ...setServerSettingByKeyMutation(),
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: getConfigByKeyQueryKey({ path: { key: 'FAVICON_URL' } }),
+          queryKey: getServerSettingByKeyQueryKey({
+            path: { key: 'FAVICON_URL' },
+          }),
         });
         toast.info('Favicon saved', {
           description: `The favicon was saved successfully.`,
