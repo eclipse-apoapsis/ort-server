@@ -26,7 +26,6 @@ import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.dependencyGraphRoutes
@@ -36,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRout
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.resolutionRoutes
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
+import org.eclipse.apoapsis.ortserver.components.serversettings.serverSettingsRoutes
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.secretsCompositionRoutes
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.authentication
@@ -60,7 +60,6 @@ fun Application.configureRouting() {
             authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
                 rateLimit(RateLimitName("authorized")) {
                     admin()
-                    adminConfigRoutes(get())
                     authorizationRoutes()
                     dependencyGraphRoutes(get(), get(), get(), get())
                     infrastructureServicesRoutes(get())
@@ -74,6 +73,7 @@ fun Application.configureRouting() {
                     searchRoutes(get())
                     secretsCompositionRoutes(get(), get())
                     secretsRoutes(get(), get())
+                    serverSettingsRoutes(get())
                     versions()
                 }
             }

@@ -17,18 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig.routes
-
-import io.github.smiley4.ktoropenapi.get
+package org.eclipse.apoapsis.ortserver.components.serversettings.routes
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
-import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.serversettings.Config
+import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigTable
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -36,11 +36,10 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
-    operationId = "GetConfigByKey"
-    summary = "Get the config for the provided key"
-    description = "Get the value and isEnabled properties for a config key. " +
-            "If no value was set before, the default value is returned."
+internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
+    operationId = "SetConfigByKey"
+    summary = "Set the config entry for the provided key"
+    description = "Set the value and isEnabled properties for a config key."
     tags = listOf("Admin")
 
     request {
@@ -48,28 +47,28 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
             description = "The config key."
             required = true
         }
+
+        jsonBody<Config> {
+            description = "The config value and isEnabled properties."
+            example("Config value") {
+                value = Config(
+                    isEnabled = true,
+                    value = "http://example.com/icon.png"
+                )
+            }
+        }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<Config> {
-                example("Config values") {
-                    value = Config(
-                        isEnabled = false,
-                        value = "http://example.com/icon.png"
-                    )
-                }
-            }
+            description = "The config entry was successfully set."
         }
 
         HttpStatusCode.BadRequest to {
             description = "The config key is invalid."
         }
     }
-}) {
-    requirePrincipal()
-
+}, requireSuperuser()) {
     val keyParameter = call.requireParameter("key")
 
     val key = runCatching {
@@ -80,10 +79,18 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
             message = "Invalid config key: $keyParameter",
             cause = "Allowed keys: ${ConfigKey.entries.joinToString()}"
         )
-        return@get
+        return@post
     }
 
-    val configValue = transaction(db) { ConfigTable.get(key) }
+    val config = call.receive<Config>()
 
-    call.respond(HttpStatusCode.OK, configValue)
+    transaction(db) {
+        ConfigTable.insertOrUpdate(
+            key = key,
+            value = config.value,
+            isEnabled = config.isEnabled
+        )
+    }
+
+    call.respond(HttpStatusCode.OK)
 }

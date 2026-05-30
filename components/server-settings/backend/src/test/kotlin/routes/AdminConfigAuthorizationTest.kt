@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig.routes
+package org.eclipse.apoapsis.ortserver.components.serversettings.routes
 
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
+import org.eclipse.apoapsis.ortserver.components.serversettings.Config
+import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.serverSettingsRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 class AdminConfigAuthorizationTest : AbstractAuthorizationTest({
@@ -33,7 +33,7 @@ class AdminConfigAuthorizationTest : AbstractAuthorizationTest({
         "require authentication" {
             val configKey = ConfigKey.HOME_ICON_URL
 
-            requestShouldRequireAuthentication(routes = { adminConfigRoutes(dbExtension.db) }) {
+            requestShouldRequireAuthentication(routes = { serverSettingsRoutes(dbExtension.db) }) {
                 get("/admin/config/$configKey")
             }
         }
@@ -44,7 +44,7 @@ class AdminConfigAuthorizationTest : AbstractAuthorizationTest({
             val configKey = ConfigKey.HOME_ICON_URL
             val body = Config(value = "https://example.com/icon.png", isEnabled = true)
 
-            requestShouldRequireSuperuser(routes = { adminConfigRoutes(dbExtension.db) }) {
+            requestShouldRequireSuperuser(routes = { serverSettingsRoutes(dbExtension.db) }) {
                 post("/admin/config/$configKey") {
                     setBody(body)
                 }

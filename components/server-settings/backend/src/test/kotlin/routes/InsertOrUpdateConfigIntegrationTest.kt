@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig.routes
+package org.eclipse.apoapsis.ortserver.components.serversettings.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.shouldBe
@@ -28,18 +28,17 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
+import org.eclipse.apoapsis.ortserver.components.serversettings.AdminConfigIntegrationTest
+import org.eclipse.apoapsis.ortserver.components.serversettings.Config
 
-class GetConfigByKeyIntegrationTest : AdminConfigIntegrationTest({
-    "GetConfigByKey" should {
-        "return the value and enabled status of an existing config key" {
+class InsertOrUpdateConfigIntegrationTest : AdminConfigIntegrationTest({
+    "InsertOrUpdateConfig" should {
+        "insert the new config key if it doesn't exist" {
             adminConfigTestApplication { client ->
-                // Insert a test config key to database
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
                         Config(
-                            value = "https://example.com/existing_icon.png",
+                            value = "https://example.com/icon.png",
                             isEnabled = true
                         )
                     )
@@ -49,20 +48,46 @@ class GetConfigByKeyIntegrationTest : AdminConfigIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<Config>()) {
-                    value shouldBe "https://example.com/existing_icon.png"
+                    value shouldBe "https://example.com/icon.png"
                     isEnabled shouldBe true
                 }
             }
         }
 
-        "return the default value if the config key does not exist in db" {
+        "update the value and isEnabled status of an existing config key" {
             adminConfigTestApplication { client ->
+                client.post("/admin/config/HOME_ICON_URL") {
+                    setBody(
+                        Config(
+                            value = "https://example.com/icon.png",
+                            isEnabled = true
+                        )
+                    )
+                }
+
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<Config>()) {
                     value shouldBe "https://example.com/icon.png"
-                    isEnabled shouldBe false
+                    isEnabled shouldBe true
+                }
+
+                client.post("/admin/config/HOME_ICON_URL") {
+                    setBody(
+                        Config(
+                            value = "https://changed/example.com/explicit_icon.png",
+                            isEnabled = true
+                        )
+                    )
+                }
+
+                val response2 = client.get("/admin/config/HOME_ICON_URL")
+                response2 shouldHaveStatus HttpStatusCode.OK
+
+                with(response2.body<Config>()) {
+                    value shouldBe "https://changed/example.com/explicit_icon.png"
+                    isEnabled shouldBe true
                 }
             }
         }
