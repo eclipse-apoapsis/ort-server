@@ -39,6 +39,10 @@ find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_BASEPATH_PLACE
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_CLIENT_ID_PLACEHOLDER#$UI_CLIENT_ID#g" {} +
 find /usr/share/nginx/html/assets -name '*.js' -exec sed -i "s#UI_URL_PLACEHOLDER#$UI_URL#g" {} +
 
+# Pre-compress CSS and JS assets after all placeholder substitutions have been applied.
+# nginx will serve these .gz files directly via gzip_static, avoiding per-request compression.
+find /usr/share/nginx/html/assets \( -name '*.css' -o -name '*.js' \) | xargs gzip -k -f
+
 # Replace placeholders with actual environment variables in the nginx configuration.
 export UI_BASEPATH
 envsubst '${UI_BASEPATH}' < /etc/nginx/default.conf.template > /etc/nginx/conf.d/default.conf
