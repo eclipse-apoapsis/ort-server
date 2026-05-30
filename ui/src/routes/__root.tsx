@@ -21,7 +21,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import React, { Suspense } from 'react';
 
-import { getConfigByKeyOptions } from '@/api/@tanstack/react-query.gen';
+import { getServerSettingByKeyOptions } from '@/api/@tanstack/react-query.gen';
 import { RouterContext } from '@/app';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
@@ -57,7 +57,9 @@ const RootComponent = () => {
 export const Route = createRootRouteWithContext<RouterContext>()({
   loader: async ({ context: { queryClient } }) => {
     const favicon = await queryClient
-      .ensureQueryData(getConfigByKeyOptions({ path: { key: 'FAVICON_URL' } }))
+      .ensureQueryData(
+        getServerSettingByKeyOptions({ path: { key: 'FAVICON_URL' } })
+      )
       .catch(() => null);
     if (favicon?.isEnabled && favicon.value) {
       setCustomFavicon(favicon.value);

@@ -29,29 +29,35 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.upsert
 
-object ConfigTable : Table("config_table") {
-    val key = enumerationByName<ConfigKey>("key")
+object ServerSettingsTable : Table("server_settings") {
+    val key = enumerationByName<ServerSettingKey>("key")
     val isEnabled = bool("is_enabled").default(false)
     val value = text("value")
     val updatedAt = timestamp("updated_at")
 
-    override val primaryKey = PrimaryKey(key, name = "PK_ConfigTable_key")
+    override val primaryKey = PrimaryKey(key, name = "PK_ServerSettings_key")
 
-    // If the config key doesn't exist in the database, return the default value of the enum.
-    // Also return the isEnabled status as false, to handle gracefully the case of missing config
-    // key in the UI, by falling back to using a default value.
-    fun get(key: ConfigKey): Config =
+    /**
+     * Get the [ServerSetting] for the provided [key]. If no value for the [key] is stored in the database, the
+     * [default value][ServerSettingKey.default] is returned and [ServerSetting.isEnabled] default to `false` in this
+     * case.
+     */
+    fun get(key: ServerSettingKey): ServerSetting =
         select(value, isEnabled)
-            .where { ConfigTable.key eq key }
-            .map { Config(value = it[value], it[isEnabled]) }
-            .firstOrNull() ?: Config(key.default, false)
+            .where { ServerSettingsTable.key eq key }
+            .map { ServerSetting(value = it[value], it[isEnabled]) }
+            .firstOrNull() ?: ServerSetting(key.default, false)
 
-    fun insertOrUpdate(key: ConfigKey, value: String?, isEnabled: Boolean) {
+    /**
+     * Update [value] and [isEnabled] for the provided [key]. If no entry for the [key] is stored in the database, a new
+     * entry is created.
+     */
+    fun insertOrUpdate(key: ServerSettingKey, value: String?, isEnabled: Boolean) {
         upsert {
-            it[ConfigTable.key] = key
-            it[ConfigTable.value] = value ?: key.default
-            it[ConfigTable.isEnabled] = isEnabled
-            it[ConfigTable.updatedAt] = Clock.System.now()
+            it[ServerSettingsTable.key] = key
+            it[ServerSettingsTable.value] = value ?: key.default
+            it[ServerSettingsTable.isEnabled] = isEnabled
+            it[ServerSettingsTable.updatedAt] = Clock.System.now()
         }
     }
 }

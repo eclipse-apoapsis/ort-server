@@ -21,23 +21,21 @@ package org.eclipse.apoapsis.ortserver.components.serversettings
 
 import kotlinx.serialization.Serializable
 
-/**
- * A config entry.
- */
+/** A server setting. */
 @Serializable
-data class Config(
-    /** The value of the config entry. If null, the [default value][ConfigKey.default] is used. */
+data class ServerSetting(
+    /** The value of the server setting. If null, the [default value][ServerSettingKey.default] is used. */
     val value: String?,
 
-    /** Whether the config entry is enabled. If `false`, the [default value][ConfigKey.default] is used. */
+    /** Whether the server setting is enabled. If `false`, the [default value][ServerSettingKey.default] is used. */
     val isEnabled: Boolean
 )
 
 /**
- * The supported config keys. The keys are specified as enumerable values to prevent addition of arbitrary keys
+ * The supported server setting keys. The keys are specified as enumerable values to prevent addition of arbitrary keys
  * to the table. New keys should be added by adding a new entry to this enum class, possibly with a default value.
  */
-enum class ConfigKey(val default: String) {
+enum class ServerSettingKey(val default: String) {
     /** The URL of the favicon to be displayed in the UI. */
     FAVICON_URL("https://example.com/favicon.png"),
 

@@ -23,29 +23,29 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 
-import org.eclipse.apoapsis.ortserver.components.serversettings.Config
-import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingKey
 import org.eclipse.apoapsis.ortserver.components.serversettings.serverSettingsRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
-class AdminConfigAuthorizationTest : AbstractAuthorizationTest({
-    "GetConfigByKey" should {
+class ServerSettingsAuthorizationTest : AbstractAuthorizationTest({
+    "GetServerSettingByKey" should {
         "require authentication" {
-            val configKey = ConfigKey.HOME_ICON_URL
+            val serverSettingKey = ServerSettingKey.HOME_ICON_URL
 
             requestShouldRequireAuthentication(routes = { serverSettingsRoutes(dbExtension.db) }) {
-                get("/admin/config/$configKey")
+                get("/admin/config/$serverSettingKey")
             }
         }
     }
 
-    "InsertOrUpdateConfig" should {
+    "SetServerSettingByKey" should {
         "require the superuser role" {
-            val configKey = ConfigKey.HOME_ICON_URL
-            val body = Config(value = "https://example.com/icon.png", isEnabled = true)
+            val serverSettingKey = ServerSettingKey.HOME_ICON_URL
+            val body = ServerSetting(value = "https://example.com/icon.png", isEnabled = true)
 
             requestShouldRequireSuperuser(routes = { serverSettingsRoutes(dbExtension.db) }) {
-                post("/admin/config/$configKey") {
+                post("/admin/config/$serverSettingKey") {
                     setBody(body)
                 }
             }

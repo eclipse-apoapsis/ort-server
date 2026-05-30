@@ -21,13 +21,13 @@ package org.eclipse.apoapsis.ortserver.components.serversettings
 
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.serversettings.routes.getConfigByKey
-import org.eclipse.apoapsis.ortserver.components.serversettings.routes.setConfigByKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.routes.getServerSettingByKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.routes.setServerSettingByKey
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
 /** Add all server-settings routes. */
 fun Route.serverSettingsRoutes(db: Database) {
-    getConfigByKey(db)
-    setConfigByKey(db)
+    getServerSettingByKey(db)
+    setServerSettingByKey(db)
 }

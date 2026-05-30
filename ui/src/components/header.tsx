@@ -25,7 +25,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getConfigByKeyOptions } from '@/api/@tanstack/react-query.gen';
+import { getServerSettingByKeyOptions } from '@/api/@tanstack/react-query.gen';
 import homeIcon from '@/assets/home-icon.svg';
 import { ColorThemeToggle } from '@/components/color-theme-toggle';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -76,7 +76,7 @@ export const Header = () => {
     isError: isHomeIconError,
     error: homeIconError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'HOME_ICON_URL' } }),
   });
 
   const {
@@ -85,7 +85,7 @@ export const Header = () => {
     isError: isHomeIconDarkError,
     error: homeIconDarkError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL_DARK' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'HOME_ICON_URL_DARK' } }),
   });
 
   const {
@@ -94,7 +94,7 @@ export const Header = () => {
     isError: isProductNameError,
     error: productNameError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
   });
 
   const {
@@ -103,7 +103,7 @@ export const Header = () => {
     isError: isFaviconError,
     error: faviconError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'FAVICON_URL' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'FAVICON_URL' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({

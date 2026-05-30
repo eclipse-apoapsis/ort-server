@@ -28,16 +28,16 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.serversettings.AdminConfigIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.serversettings.Config
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingsIntegrationTest
 
-class InsertOrUpdateConfigIntegrationTest : AdminConfigIntegrationTest({
-    "InsertOrUpdateConfig" should {
-        "insert the new config key if it doesn't exist" {
-            adminConfigTestApplication { client ->
+class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
+    "SetServerSettingByKey" should {
+        "insert the new server setting key if it does not exist" {
+            serverSettingsTestApplication { client ->
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
-                        Config(
+                        ServerSetting(
                             value = "https://example.com/icon.png",
                             isEnabled = true
                         )
@@ -47,18 +47,18 @@ class InsertOrUpdateConfigIntegrationTest : AdminConfigIntegrationTest({
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
-                with(response.body<Config>()) {
+                with(response.body<ServerSetting>()) {
                     value shouldBe "https://example.com/icon.png"
                     isEnabled shouldBe true
                 }
             }
         }
 
-        "update the value and isEnabled status of an existing config key" {
-            adminConfigTestApplication { client ->
+        "update the value and isEnabled status of an existing server setting key" {
+            serverSettingsTestApplication { client ->
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
-                        Config(
+                        ServerSetting(
                             value = "https://example.com/icon.png",
                             isEnabled = true
                         )
@@ -68,14 +68,14 @@ class InsertOrUpdateConfigIntegrationTest : AdminConfigIntegrationTest({
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
-                with(response.body<Config>()) {
+                with(response.body<ServerSetting>()) {
                     value shouldBe "https://example.com/icon.png"
                     isEnabled shouldBe true
                 }
 
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
-                        Config(
+                        ServerSetting(
                             value = "https://changed/example.com/explicit_icon.png",
                             isEnabled = true
                         )
@@ -85,15 +85,15 @@ class InsertOrUpdateConfigIntegrationTest : AdminConfigIntegrationTest({
                 val response2 = client.get("/admin/config/HOME_ICON_URL")
                 response2 shouldHaveStatus HttpStatusCode.OK
 
-                with(response2.body<Config>()) {
+                with(response2.body<ServerSetting>()) {
                     value shouldBe "https://changed/example.com/explicit_icon.png"
                     isEnabled shouldBe true
                 }
             }
         }
 
-        "return BadRequest if the config key is invalid" {
-            adminConfigTestApplication { client ->
+        "return BadRequest if the server setting key is invalid" {
+            serverSettingsTestApplication { client ->
                 client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }

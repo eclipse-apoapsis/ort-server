@@ -26,9 +26,9 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.serversettings.Config
-import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigKey
-import org.eclipse.apoapsis.ortserver.components.serversettings.ConfigTable
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingKey
+import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingsTable
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -36,22 +36,22 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
-    operationId = "SetConfigByKey"
-    summary = "Set the config entry for the provided key"
-    description = "Set the value and isEnabled properties for a config key."
+internal fun Route.setServerSettingByKey(db: Database) = post("admin/config/{key}", {
+    operationId = "SetServerSettingByKey"
+    summary = "Set the server setting for the provided key"
+    description = "Set the value and isEnabled properties for a server setting key."
     tags = listOf("Admin")
 
     request {
-        pathParameter<ConfigKey>("key") {
-            description = "The config key."
+        pathParameter<ServerSettingKey>("key") {
+            description = "The server setting key."
             required = true
         }
 
-        jsonBody<Config> {
-            description = "The config value and isEnabled properties."
-            example("Config value") {
-                value = Config(
+        jsonBody<ServerSetting> {
+            description = "The server setting value and isEnabled properties."
+            example("Server setting") {
+                value = ServerSetting(
                     isEnabled = true,
                     value = "http://example.com/icon.png"
                 )
@@ -61,34 +61,34 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
 
     response {
         HttpStatusCode.OK to {
-            description = "The config entry was successfully set."
+            description = "The server setting was successfully set."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The config key is invalid."
+            description = "The server setting key is invalid."
         }
     }
 }, requireSuperuser()) {
     val keyParameter = call.requireParameter("key")
 
     val key = runCatching {
-        enumValueOf<ConfigKey>(keyParameter)
+        enumValueOf<ServerSettingKey>(keyParameter)
     }.getOrElse {
         call.respondError(
             HttpStatusCode.BadRequest,
-            message = "Invalid config key: $keyParameter",
-            cause = "Allowed keys: ${ConfigKey.entries.joinToString()}"
+            message = "Invalid key: $keyParameter",
+            cause = "Allowed keys: ${ServerSettingKey.entries.joinToString()}"
         )
         return@post
     }
 
-    val config = call.receive<Config>()
+    val serverSetting = call.receive<ServerSetting>()
 
     transaction(db) {
-        ConfigTable.insertOrUpdate(
+        ServerSettingsTable.insertOrUpdate(
             key = key,
-            value = config.value,
-            isEnabled = config.isEnabled
+            value = serverSetting.value,
+            isEnabled = serverSetting.isEnabled
         )
     }
 

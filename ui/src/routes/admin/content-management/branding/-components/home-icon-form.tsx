@@ -24,9 +24,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getConfigByKeyOptions,
-  getConfigByKeyQueryKey,
-  setConfigByKeyMutation,
+  getServerSettingByKeyOptions,
+  getServerSettingByKeyQueryKey,
+  setServerSettingByKeyMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -72,7 +72,7 @@ export function HomeIconForm() {
     isError: isHomeIconError,
     error: homeIconError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'HOME_ICON_URL' } }),
   });
 
   const {
@@ -81,7 +81,7 @@ export function HomeIconForm() {
     isError: isHomeIconDarkError,
     error: homeIconDarkError,
   } = useQuery({
-    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL_DARK' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'HOME_ICON_URL_DARK' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -94,10 +94,12 @@ export function HomeIconForm() {
   });
 
   const { mutateAsync: saveHomeIcon, isPending: isLightPending } = useMutation({
-    ...setConfigByKeyMutation(),
+    ...setServerSettingByKeyMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getConfigByKeyQueryKey({ path: { key: 'HOME_ICON_URL' } }),
+        queryKey: getServerSettingByKeyQueryKey({
+          path: { key: 'HOME_ICON_URL' },
+        }),
       });
       toast.info('Home icon (light mode) saved', {
         description: `Home icon for light mode saved successfully.`,
@@ -110,10 +112,10 @@ export function HomeIconForm() {
 
   const { mutateAsync: saveHomeIconDark, isPending: isDarkPending } =
     useMutation({
-      ...setConfigByKeyMutation(),
+      ...setServerSettingByKeyMutation(),
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: getConfigByKeyQueryKey({
+          queryKey: getServerSettingByKeyQueryKey({
             path: { key: 'HOME_ICON_URL_DARK' },
           }),
         });

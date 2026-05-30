@@ -24,14 +24,16 @@ import io.ktor.server.testing.ApplicationTestBuilder
 
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-/** An [AbstractIntegrationTest] pre-configured for testing the admin-config routes. */
+/** An [AbstractIntegrationTest] pre-configured for testing the server-settings routes. */
 @Suppress("AbstractClassCanBeConcreteClass")
-abstract class AdminConfigIntegrationTest(body: AdminConfigIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
+abstract class ServerSettingsIntegrationTest(
+    body: ServerSettingsIntegrationTest.() -> Unit
+) : AbstractIntegrationTest({}) {
     init {
         body()
     }
 
-    fun adminConfigTestApplication(
+    fun serverSettingsTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
         routes = { serverSettingsRoutes(dbExtension.db) },
