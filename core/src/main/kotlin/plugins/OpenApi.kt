@@ -120,6 +120,7 @@ fun Application.configureOpenApi() {
             tag("Resolutions") { }
             tag("Runs") { }
             tag("Search") { }
+            tag("Settings") { }
             tag("Versions") { }
         }
 

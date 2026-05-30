@@ -35,7 +35,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
     "SetServerSettingByKey" should {
         "insert the new server setting key if it does not exist" {
             serverSettingsTestApplication { client ->
-                client.post("/admin/config/HOME_ICON_URL") {
+                client.post("/settings/server/HOME_ICON_URL") {
                     setBody(
                         ServerSetting(
                             value = "https://example.com/icon.png",
@@ -44,7 +44,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
                     )
                 }
 
-                val response = client.get("/admin/config/HOME_ICON_URL")
+                val response = client.get("/settings/server/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<ServerSetting>()) {
@@ -56,7 +56,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
 
         "update the value and isEnabled status of an existing server setting key" {
             serverSettingsTestApplication { client ->
-                client.post("/admin/config/HOME_ICON_URL") {
+                client.post("/settings/server/HOME_ICON_URL") {
                     setBody(
                         ServerSetting(
                             value = "https://example.com/icon.png",
@@ -65,7 +65,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
                     )
                 }
 
-                val response = client.get("/admin/config/HOME_ICON_URL")
+                val response = client.get("/settings/server/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<ServerSetting>()) {
@@ -73,7 +73,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
                     isEnabled shouldBe true
                 }
 
-                client.post("/admin/config/HOME_ICON_URL") {
+                client.post("/settings/server/HOME_ICON_URL") {
                     setBody(
                         ServerSetting(
                             value = "https://changed/example.com/explicit_icon.png",
@@ -82,7 +82,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
                     )
                 }
 
-                val response2 = client.get("/admin/config/HOME_ICON_URL")
+                val response2 = client.get("/settings/server/HOME_ICON_URL")
                 response2 shouldHaveStatus HttpStatusCode.OK
 
                 with(response2.body<ServerSetting>()) {
@@ -94,7 +94,7 @@ class SetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
 
         "return BadRequest if the server setting key is invalid" {
             serverSettingsTestApplication { client ->
-                client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
+                client.get("/settings/server/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
     }

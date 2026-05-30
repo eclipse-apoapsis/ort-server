@@ -34,7 +34,7 @@ class ServerSettingsAuthorizationTest : AbstractAuthorizationTest({
             val serverSettingKey = ServerSettingKey.HOME_ICON_URL
 
             requestShouldRequireAuthentication(routes = { serverSettingsRoutes(dbExtension.db) }) {
-                get("/admin/config/$serverSettingKey")
+                get("/settings/server/$serverSettingKey")
             }
         }
     }
@@ -45,7 +45,7 @@ class ServerSettingsAuthorizationTest : AbstractAuthorizationTest({
             val body = ServerSetting(value = "https://example.com/icon.png", isEnabled = true)
 
             requestShouldRequireSuperuser(routes = { serverSettingsRoutes(dbExtension.db) }) {
-                post("/admin/config/$serverSettingKey") {
+                post("/settings/server/$serverSettingKey") {
                     setBody(body)
                 }
             }

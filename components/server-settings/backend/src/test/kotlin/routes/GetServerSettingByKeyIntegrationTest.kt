@@ -36,7 +36,7 @@ class GetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
         "return the value and enabled status of an existing server setting key" {
             serverSettingsTestApplication { client ->
                 // Insert a test server setting into the database.
-                client.post("/admin/config/HOME_ICON_URL") {
+                client.post("/settings/server/HOME_ICON_URL") {
                     setBody(
                         ServerSetting(
                             value = "https://example.com/existing_icon.png",
@@ -45,7 +45,7 @@ class GetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
                     )
                 }
 
-                val response = client.get("/admin/config/HOME_ICON_URL")
+                val response = client.get("/settings/server/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<ServerSetting>()) {
@@ -57,7 +57,7 @@ class GetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
 
         "return the default value if the server setting key does not exist in db" {
             serverSettingsTestApplication { client ->
-                val response = client.get("/admin/config/HOME_ICON_URL")
+                val response = client.get("/settings/server/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<ServerSetting>()) {
@@ -69,7 +69,7 @@ class GetServerSettingByKeyIntegrationTest : ServerSettingsIntegrationTest({
 
         "return BadRequest if the server setting key is invalid" {
             serverSettingsTestApplication { client ->
-                client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
+                client.get("/settings/server/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
     }
