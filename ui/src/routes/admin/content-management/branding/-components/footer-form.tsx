@@ -24,9 +24,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getSectionOptions,
-  getSectionQueryKey,
-  patchSectionMutation,
+  getServerSettingByKeyOptions,
+  getServerSettingByKeyQueryKey,
+  setServerSettingByKeyMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -56,7 +56,7 @@ import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
-  markdown: z.string().min(1, 'Markdown content is required'),
+  footer: z.string().min(1, 'Footer must not be empty'),
   isEnabled: z.boolean(),
 });
 
@@ -64,27 +64,27 @@ export function FooterForm() {
   const queryClient = useQueryClient();
 
   const {
-    data: contentManagementSection,
+    data: footer,
     isFetching,
     error,
     isError,
   } = useQuery({
-    ...getSectionOptions({ path: { sectionId: 'footer' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'FOOTER' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     values: {
-      markdown: contentManagementSection?.markdown || '',
-      isEnabled: contentManagementSection?.isEnabled || false,
+      footer: footer?.value || '',
+      isEnabled: footer?.isEnabled || false,
     },
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchSectionMutation(),
+    ...setServerSettingByKeyMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getSectionQueryKey({ path: { sectionId: 'footer' } }),
+        queryKey: getServerSettingByKeyQueryKey({ path: { key: 'FOOTER' } }),
       });
       toast.info('Footer saved', {
         description: `Footer saved successfully.`,
@@ -99,9 +99,9 @@ export function FooterForm() {
     await mutateAsync({
       body: {
         isEnabled: values.isEnabled,
-        markdown: values.markdown,
+        value: values.footer,
       },
-      path: { sectionId: 'footer' },
+      path: { key: 'FOOTER' },
     });
   }
 
@@ -128,7 +128,7 @@ export function FooterForm() {
           <CardContent className='space-y-4'>
             <FormField
               control={form.control}
-              name='markdown'
+              name='footer'
               render={({ field }) => (
                 <FormItem>
                   <FormControl>

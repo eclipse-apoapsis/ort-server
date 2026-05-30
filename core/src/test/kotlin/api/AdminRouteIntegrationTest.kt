@@ -23,13 +23,11 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -38,8 +36,6 @@ import io.ktor.http.HttpStatusCode
 
 import kotlinx.serialization.json.Json
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
-import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
@@ -258,93 +254,6 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         "require superuser role" {
             requestShouldRequireSuperuser(HttpStatusCode.BadRequest) {
                 delete("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
-            }
-        }
-    }
-
-    "GET /admin/content-management/sections/footer" should {
-        "return the footer section" {
-            integrationTestApplication {
-                val response = testUserClient.get("/api/v1/admin/content-management/sections/footer")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                val section = response.body<ContentManagementSection>()
-
-                with(section) {
-                    id shouldBe "footer"
-                    isEnabled shouldBe false
-                    markdown shouldContain "footer"
-                }
-            }
-        }
-
-        "return 404 NotFound for non-existing section" {
-            integrationTestApplication {
-                val response = testUserClient.get("/api/v1/admin/content-management/sections/non-existing")
-
-                response shouldHaveStatus HttpStatusCode.NotFound
-            }
-        }
-
-        "return 401 Unauthorized if not authenticated" {
-            integrationTestApplication {
-                val response = unauthenticatedClient.get("/api/v1/admin/content-management/sections/footer")
-
-                response shouldHaveStatus HttpStatusCode.Unauthorized
-            }
-        }
-    }
-
-    "PATCH /admin/content-management/sections/footer" should {
-        "return 403 Forbidden for non-superuser" {
-            integrationTestApplication {
-                val updateSectionRequest = PatchSection(
-                    isEnabled = true,
-                    markdown = "This is a changed footer."
-                )
-
-                val response = testUserClient.patch("/api/v1/admin/content-management/sections/footer") {
-                    setBody(updateSectionRequest)
-                }
-
-                response shouldHaveStatus HttpStatusCode.Forbidden
-            }
-        }
-
-        "update the footer section" {
-            integrationTestApplication {
-                val updateSectionRequest = PatchSection(
-                    isEnabled = true,
-                    markdown = "empty"
-                )
-
-                val response = superuserClient.patch("/api/v1/admin/content-management/sections/footer") {
-                    setBody(updateSectionRequest)
-                }
-
-                response shouldHaveStatus HttpStatusCode.OK
-                val section = response.body<ContentManagementSection>()
-
-                with(section) {
-                    id shouldBe "footer"
-                    isEnabled shouldBe true
-                    markdown shouldBe "empty"
-                }
-            }
-        }
-
-        "return 404 NotFound for non-existing section" {
-            integrationTestApplication {
-                val updateSectionRequest = PatchSection(
-                    isEnabled = true,
-                    markdown = "empty"
-                )
-
-                val response = superuserClient.patch("/api/v1/admin/content-management/sections/non-existing") {
-                    setBody(updateSectionRequest)
-                }
-
-                response shouldHaveStatus HttpStatusCode.NotFound
             }
         }
     }

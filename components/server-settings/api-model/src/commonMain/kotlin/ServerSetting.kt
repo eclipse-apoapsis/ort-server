@@ -39,6 +39,33 @@ enum class ServerSettingKey(val default: String) {
     /** The URL of the favicon to be displayed in the UI. */
     FAVICON_URL("https://example.com/favicon.png"),
 
+    /** The Markdown-formatted text to be displayed in the UI footer. */
+    FOOTER(
+        """
+        Please use layout markers like this:
+
+        Content inside a "align-left" layout marker is aligned to the left of the footer.
+        Content inside a "align-right" layout marker is aligned to the right of the footer.
+
+        ::: align-left
+        **ORT Server**
+        A scalable application to automate software compliance checks.
+        :::
+
+        ::: align-right
+        [API](https://eclipse-apoapsis.github.io/ort-server/api/ort-server-api)
+        :::
+
+        ::: align-right
+        [Issues](https://github.com/eclipse-apoapsis/ort-server/issues)
+        :::
+
+        ::: align-right
+        [Visit on Github.com](https://github.com/eclipse-apoapsis/ort-server)
+        :::
+        """.trimIndent()
+    ),
+
     /** The URL of the home icon to be displayed in the UI in light mode. */
     HOME_ICON_URL("https://example.com/icon.png"),
 
