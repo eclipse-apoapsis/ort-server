@@ -37,4 +37,10 @@ server {
     expires 1y;
     add_header Cache-Control "public, immutable";
   }
+
+  # index.html is not content-hashed, so always revalidate to prevent a stale app shell after deployments.
+  location = /index.html {
+    root /usr/share/nginx/html/;
+    add_header Cache-Control "no-cache";
+  }
 }
