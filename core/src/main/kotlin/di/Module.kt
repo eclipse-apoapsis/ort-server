@@ -96,7 +96,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
@@ -187,7 +186,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
         )
     }
 
-    singleOf(::ContentManagementService)
     singleOf(::DependencyGraphService)
     singleOf(::InfrastructureServiceService)
     singleOf(::IssueService)

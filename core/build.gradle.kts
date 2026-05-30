@@ -116,7 +116,6 @@ dependencies {
     implementation(projects.logaccess.logaccessSpi)
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
-    implementation(projects.services.contentManagementService)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)

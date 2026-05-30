@@ -23,8 +23,6 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
-import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
@@ -189,72 +187,6 @@ val deleteSuperuser: RouteConfig.() -> Unit = {
 
         HttpStatusCode.BadRequest to {
             description = "A superuser cannot remove their own superuser status."
-        }
-    }
-}
-
-val getSection: RouteConfig.() -> Unit = {
-    operationId = "getSection"
-    summary = "Get a dynamic UI text section by ID."
-    tags = listOf("Admin")
-
-    request {
-        pathParameter<String>("sectionId") {
-            description = "The section's ID."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<ContentManagementSection> {
-                example("Get section") {
-                    value = ContentManagementSection(
-                        id = "footer",
-                        isEnabled = true,
-                        markdown = "## Footer",
-                        updatedAt = CREATED_AT
-                    )
-                }
-            }
-        }
-    }
-}
-
-val patchSection: RouteConfig.() -> Unit = {
-    operationId = "patchSection"
-    summary = "Update a dynamic UI text section by ID."
-    tags = listOf("Admin")
-
-    request {
-        pathParameter<String>("sectionId") {
-            description = "The section's ID."
-        }
-
-        jsonBody<PatchSection> {
-            example("Update Section") {
-                value = PatchSection(
-                    isEnabled = true,
-                    markdown = "# This is a new footer"
-                )
-            }
-            description = "Set the values that should be updated."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<ContentManagementSection> {
-                example("Update Section") {
-                    value = ContentManagementSection(
-                        id = "footer",
-                        isEnabled = true,
-                        markdown = "## Footer",
-                        updatedAt = CREATED_AT
-                    )
-                }
-            }
         }
     }
 }

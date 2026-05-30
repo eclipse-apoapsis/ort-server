@@ -19,7 +19,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { getSectionOptions } from '@/api/@tanstack/react-query.gen';
+import { getServerSettingByKeyOptions } from '@/api/@tanstack/react-query.gen';
 import { MarkdownRenderer } from '@/components/markdown-renderer.tsx';
 
 function extractColumns(
@@ -44,10 +44,10 @@ function extractColumns(
 
 export function Footer() {
   const { data } = useQuery({
-    ...getSectionOptions({ path: { sectionId: 'footer' } }),
+    ...getServerSettingByKeyOptions({ path: { key: 'FOOTER' } }),
   });
 
-  const markdown = data?.markdown || '';
+  const markdown = data?.value || '';
   const enabled = data?.isEnabled || false;
 
   const columnsAlignedLeft = extractColumns(markdown, 'left');

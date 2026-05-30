@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -28,14 +26,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
-import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
@@ -43,13 +39,10 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.Authoriza
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSuperuser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putSuperuser
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
-import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
@@ -126,37 +119,6 @@ fun Route.admin() = route("admin") {
                 authorizationService.removeAssignment(username, CompoundHierarchyId.WILDCARD)
 
                 call.respond(HttpStatusCode.NoContent)
-            }
-        }
-    }
-
-    // For dynamic text sections.
-    route("content-management") {
-        val contentManagementService by inject<ContentManagementService>()
-
-        route("sections/{sectionId}") {
-            get(getSection) {
-                requirePrincipal()
-
-                val id = call.requireParameter("sectionId")
-
-                val section = contentManagementService.findSectionById(id)
-                    ?: return@get call.respond(HttpStatusCode.NotFound)
-
-                call.respond(HttpStatusCode.OK, section.mapToApi())
-            }
-
-            patch(patchSection, requireSuperuser()) {
-                val id = call.requireParameter("sectionId")
-                val updateSection = call.receive<PatchSection>()
-
-                val section = contentManagementService.updateSectionById(
-                    id = id,
-                    isEnabled = updateSection.isEnabled,
-                    markdown = updateSection.markdown
-                )
-
-                call.respond(HttpStatusCode.OK, section.mapToApi())
             }
         }
     }
