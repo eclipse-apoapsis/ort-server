@@ -109,14 +109,18 @@ fun Application.configureOpenApi() {
         // (belonging to these tags) in the Swagger UI.
         // See https://swagger.io/docs/specification/grouping-operations-with-tags/ for details.
         tags {
+            tag("Admin") { }
+            tag("Authentication") { }
+            tag("Authorization") { }
             tag("Health") { }
             tag("Organizations") { }
+            tag("Plugins") { }
             tag("Products") { }
             tag("Repositories") { }
+            tag("Resolutions") { }
             tag("Runs") { }
-            tag("Admin") { }
-            tag("Versions") { }
             tag("Search") { }
+            tag("Versions") { }
         }
 
         schemas {
