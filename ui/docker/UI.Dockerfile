@@ -48,6 +48,9 @@ COPY --from=build /app/dist /usr/share/nginx/html-template
 # /etc/nginx/conf.d/default.conf at startup, allowing /etc/nginx/conf.d to be a writable volume mount.
 COPY docker/nginx.conf.template /etc/nginx/default.conf.template
 
+# Copy robots.txt to disallow indexing by search engines.
+COPY docker/robots.txt /usr/share/nginx/html-template/robots.txt
+
 # Configure nginx to run as non-root user for OpenShift compatibility
 RUN sed -i 's/user  nginx;//g' /etc/nginx/nginx.conf \
     && sed -i 's|/var/run/nginx.pid|/tmp/nginx.pid|g' /etc/nginx/nginx.conf
