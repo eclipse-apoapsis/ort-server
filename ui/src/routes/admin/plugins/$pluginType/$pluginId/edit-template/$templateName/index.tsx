@@ -78,7 +78,7 @@ function optionTypeToZodType(type: PluginOptionType): ZodType {
     case 'STRING':
       return z.string();
     case 'STRING_LIST':
-      return z.array(z.string());
+      return z.string();
     default:
       throw new Error(`Unsupported option type: ${type}`);
   }
@@ -114,7 +114,7 @@ function parseStoredValue(
     case 'LONG':
       return value;
     case 'STRING_LIST':
-      return value.split(',');
+      return value;
     default:
       return value;
   }

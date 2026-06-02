@@ -74,7 +74,7 @@ function optionTypeToZodType(type: PluginOptionType): ZodType {
     case 'STRING':
       return z.string();
     case 'STRING_LIST':
-      return z.array(z.string());
+      return z.string();
     default:
       throw new Error(`Unsupported option type: ${type}`);
   }
