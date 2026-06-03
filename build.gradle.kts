@@ -23,6 +23,7 @@ val dockerBaseBuildArgs: String by project
 val dockerBaseImageTag: String by project
 val dockerImageTag: String by project
 val containerEngineCommand: String by project
+val javaLanguageVersion: String by project
 
 plugins {
     alias(libs.plugins.gitSemver)
@@ -196,6 +197,11 @@ tasks.register("buildAllImages") {
     val uiDockerBuild = getTasksByName("buildUIImage", /* recursive = */ false).single()
 
     dependsOn(buildAllWorkerImages, tinyJibDocker, uiDockerBuild)
+}
+
+tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
+    languageVersion = JavaLanguageVersion.of(javaLanguageVersion)
+    vendor = JvmVendorSpec.ADOPTIUM
 }
 
 // Automatically accept the Gradle Build Scan ToS when running in CI, to allow build scans to be published.
