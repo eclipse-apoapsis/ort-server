@@ -63,7 +63,7 @@ rabbitMq = "5.31.0"
 schemaKenerator = "2.7.2"
 slf4j = "2.0.18"
 testContainers = "2.0.5"
-typesafeConfig = "1.4.8"
+typesafeConfig = "1.4.9"
 wiremock = "3.13.2"
 
 [plugins]
