@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.shared.orttestdata
 
-import java.io.File
 import java.net.URI
 
 import kotlin.time.Instant
@@ -67,13 +66,11 @@ import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.Curations
 import org.ossreviewtoolkit.model.config.Excludes
-import org.ossreviewtoolkit.model.config.FileStorageConfiguration
 import org.ossreviewtoolkit.model.config.IssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
 import org.ossreviewtoolkit.model.config.LicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
-import org.ossreviewtoolkit.model.config.LocalFileStorageConfiguration
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration
@@ -478,13 +475,6 @@ object OrtTestData {
         config = advisorConfiguration,
         providerIssues = setOf(providerIssue),
         results = advisorResults
-    )
-
-    val fileStorageConfiguration = FileStorageConfiguration(
-        localFileStorage = LocalFileStorageConfiguration(
-            directory = File("/path/to/storage"),
-            compression = true
-        )
     )
 
     val scannerConfiguration = ScannerConfiguration(
