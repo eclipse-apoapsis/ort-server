@@ -85,7 +85,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
-import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
+import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 
 class WorkerContextTest : WordSpec({
     lateinit var helper: ContextFactoryTestHelper

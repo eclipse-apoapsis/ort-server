@@ -94,7 +94,8 @@ class PluginInfoTest : WordSpec({
                             "PackageConfigurationProviderFactory"
                 ),
                 PluginType("org.ossreviewtoolkit.reporter.ReporterFactory"),
-                PluginType("org.ossreviewtoolkit.scanner.ScannerWrapperFactory")
+                PluginType("org.ossreviewtoolkit.scanner.ScannerWrapperFactory"),
+                PluginType("org.ossreviewtoolkit.downloader.VersionControlSystemFactory")
             )
 
             PluginInfo.pluginTypes shouldContainExactlyInAnyOrder expectedPluginTypes

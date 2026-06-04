@@ -137,7 +137,7 @@ class AdvisorRunnerTest : WordSpec({
 private fun mockAdviceProviderFactory(adviceProviderName: String) =
     mockk<AdviceProviderFactory> {
         val pluginDescriptor =
-            PluginDescriptor(id = adviceProviderName, displayName = adviceProviderName, description = "")
+            PluginDescriptor(id = adviceProviderName, displayName = adviceProviderName, summary = "", description = "")
 
         every { descriptor } returns pluginDescriptor
 

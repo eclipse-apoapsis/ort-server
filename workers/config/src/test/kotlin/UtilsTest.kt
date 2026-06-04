@@ -45,6 +45,7 @@ class UtilsTest : WordSpec({
                         "Maven",
                         PluginType.PACKAGE_MANAGER,
                         "Maven",
+                        "summary",
                         "description",
                         availability = PluginAvailability.DISABLED
                     ),
@@ -52,6 +53,7 @@ class UtilsTest : WordSpec({
                         "NPM",
                         PluginType.PACKAGE_MANAGER,
                         "NPM",
+                        "summary",
                         "description",
                         availability = PluginAvailability.RESTRICTED
                     ),
@@ -59,6 +61,7 @@ class UtilsTest : WordSpec({
                         "PNPM",
                         PluginType.PACKAGE_MANAGER,
                         "PNPM",
+                        "summary",
                         "description",
                         availability = PluginAvailability.ENABLED
                     ),
@@ -66,6 +69,7 @@ class UtilsTest : WordSpec({
                         "Yarn2",
                         PluginType.PACKAGE_MANAGER,
                         "Yarn2",
+                        "summary",
                         "description",
                         availability = PluginAvailability.RESTRICTED
                     ),
@@ -73,6 +77,7 @@ class UtilsTest : WordSpec({
                         "OSV",
                         PluginType.ADVISOR,
                         "OSV",
+                        "summary",
                         "description",
                         availability = PluginAvailability.ENABLED
                     )

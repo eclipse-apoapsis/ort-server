@@ -60,6 +60,8 @@ dependencies {
     implementation(ortLibs.downloader)
     implementation(ortLibs.model)
     implementation(ortLibs.scanner)
+    implementation(ortLibs.utils.authentication)
+    implementation(ortLibs.utils.common)
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))

@@ -65,6 +65,7 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ortLibs.analyzer)
     implementation(ortLibs.downloader)
+    implementation(ortLibs.utils.common)
     implementation(platform(ortLibs.ortPlugins.packageCurationProviders))
     implementation(platform(ortLibs.ortPlugins.packageManagers))
     implementation(platform(ortLibs.ortPlugins.versionControlSystems))

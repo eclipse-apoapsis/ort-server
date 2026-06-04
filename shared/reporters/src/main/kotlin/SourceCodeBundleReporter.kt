@@ -51,7 +51,7 @@ import org.ossreviewtoolkit.utils.common.encodeOrUnknown
 import org.ossreviewtoolkit.utils.common.packZip
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.runBlocking
-import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice
+import org.ossreviewtoolkit.utils.spdxexpression.SpdxLicenseChoice
 
 import org.slf4j.LoggerFactory
 
@@ -83,7 +83,7 @@ data class SourceCodeBundleReporterConfig(
 @OrtPlugin(
     id = "SourceCodeBundle",
     displayName = "Source Code Bundle",
-    description = "A reporter that creates a source code bundle for the given ORT result.",
+    summary = "A reporter that creates a source code bundle for the given ORT result.",
     factory = ReporterFactory::class
 )
 class SourceCodeBundleReporter(

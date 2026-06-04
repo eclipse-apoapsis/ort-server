@@ -27,8 +27,8 @@ import java.util.concurrent.atomic.AtomicReference
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
-import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
-import org.ossreviewtoolkit.utils.ort.UserInfoAuthenticator
+import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
+import org.ossreviewtoolkit.utils.authentication.UserInfoAuthenticator
 
 import org.slf4j.LoggerFactory
 

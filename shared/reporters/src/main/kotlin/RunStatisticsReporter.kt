@@ -36,7 +36,7 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 @OrtPlugin(
     id = "RunStatistics",
     displayName = "Run Statistics",
-    description = "A reporter that creates a JSON file with the statistics of the ORT run.",
+    summary = "A reporter that creates a JSON file with the statistics of the ORT run.",
     factory = ReporterFactory::class
 )
 class RunStatisticsReporter(

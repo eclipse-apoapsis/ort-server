@@ -193,10 +193,10 @@ import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as Ort
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
 import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense as OrtProcessedDeclaredLicense
-import org.ossreviewtoolkit.utils.spdx.SpdxExpression
-import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice as OrtSpdxLicenseChoice
-import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
-import org.ossreviewtoolkit.utils.spdx.toSpdx
+import org.ossreviewtoolkit.utils.spdxexpression.SpdxExpression
+import org.ossreviewtoolkit.utils.spdxexpression.SpdxLicenseChoice as OrtSpdxLicenseChoice
+import org.ossreviewtoolkit.utils.spdxexpression.SpdxSingleLicenseExpression
+import org.ossreviewtoolkit.utils.spdxexpression.toSpdx
 
 fun AdvisorConfiguration.mapToOrt() =
     OrtAdvisorConfiguration(

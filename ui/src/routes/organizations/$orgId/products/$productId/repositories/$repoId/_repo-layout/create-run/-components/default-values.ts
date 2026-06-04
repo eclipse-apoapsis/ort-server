@@ -332,6 +332,7 @@ if (import.meta.vitest) {
           id: 'DOS',
           type: 'SCANNER',
           displayName: 'Double Open Server',
+          summary: 'A scanner plugin',
           description: 'A scanner plugin.',
           options: [
             {

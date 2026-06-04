@@ -223,6 +223,7 @@ class PluginTemplateService(
                             id = plugin.id,
                             type = plugin.type,
                             displayName = plugin.displayName,
+                            summary = plugin.summary,
                             description = plugin.description,
                             options = plugin.options.map { option ->
                                 val templateOption = template?.options?.find { it.option == option.name }

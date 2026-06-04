@@ -129,7 +129,7 @@ const PluginList = ({
               <div>
                 <CardTitle>{plugin.displayName}</CardTitle>
                 <MarkdownRenderer
-                  markdown={plugin.description}
+                  markdown={plugin.summary}
                   className='mt-1.5 max-w-none'
                 />
               </div>
