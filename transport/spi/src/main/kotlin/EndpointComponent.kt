@@ -24,6 +24,8 @@ import com.typesafe.config.ConfigFactory
 
 import java.io.File
 
+import kotlin.time.Duration.Companion.seconds
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -87,7 +89,7 @@ abstract class EndpointComponent<T : Any>(
                     "Delete keep-alive lock file ${file.absolutePath} to continue. " +
                         "Next check in $CHECK_INTERVAL_SECONDS seconds."
                 )
-                delay(CHECK_INTERVAL_SECONDS * 1000)
+                delay(CHECK_INTERVAL_SECONDS.seconds)
             }
         }
 

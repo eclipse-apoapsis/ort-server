@@ -381,9 +381,9 @@ class OrtRunServiceTest : WordSpec({
             service = createService(mockReportStorageService)
 
             fixtures.ortRunRepository.update(ortRunId1, OrtRunStatus.FINISHED.asPresent())
-            delay(1000)
+            delay(1000.milliseconds)
             fixtures.ortRunRepository.update(ortRunId2, OrtRunStatus.FINISHED.asPresent())
-            delay(1000)
+            delay(1000.milliseconds)
             fixtures.ortRunRepository.update(ortRunId3, OrtRunStatus.FINISHED.asPresent())
 
             val finishedAt = fixtures.ortRunRepository.get(ortRunId3)?.finishedAt.shouldNotBeNull()

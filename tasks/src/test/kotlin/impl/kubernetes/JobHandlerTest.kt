@@ -284,7 +284,7 @@ class JobHandlerTest : WordSpec({
             handler.deleteAndNotifyIfFailed(createJob("anotherJob"))
             handler.deleteAndNotifyIfFailed(createJob("oneMoreJob"))
 
-            delay(2)
+            delay(2.milliseconds)
             handler.deleteAndNotifyIfFailed(job)
 
             verify(exactly = 2) {
