@@ -396,7 +396,7 @@ private fun mockConfigManager(validationScriptExists: Boolean = true): ConfigMan
  */
 private fun mockPluginService(): PluginService = mockk {
     every { getPlugins() } returns DEFAULT_PACKAGE_MANAGERS.map { id ->
-        PluginDescriptor(id, PluginType.PACKAGE_MANAGER, id, "", availability = PluginAvailability.ENABLED)
+        PluginDescriptor(id, PluginType.PACKAGE_MANAGER, id, "", "", availability = PluginAvailability.ENABLED)
     }
 }
 

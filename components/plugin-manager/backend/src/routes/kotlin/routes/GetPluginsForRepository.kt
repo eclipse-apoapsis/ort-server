@@ -59,6 +59,7 @@ internal fun Route.getPluginsForRepository(
                         id = "VulnerableCode",
                         type = PluginType.ADVISOR,
                         displayName = "VulnerableCode",
+                        summary = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
                         description = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
                         options = listOf(
                             PreconfiguredPluginOption(
@@ -76,6 +77,7 @@ internal fun Route.getPluginsForRepository(
                         id = "NPM",
                         type = PluginType.PACKAGE_MANAGER,
                         displayName = "NPM",
+                        summary = "The Node package manager for Node.js.",
                         description = "The Node package manager for Node.js.",
                         options = listOf(
                             PreconfiguredPluginOption(

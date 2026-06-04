@@ -29,4 +29,5 @@ dependencies {
     api(ortLibs.model)
 
     implementation(ortLibs.ortPlugins.api)
+    implementation(ortLibs.utils.common)
 }

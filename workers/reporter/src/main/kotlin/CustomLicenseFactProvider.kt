@@ -53,7 +53,7 @@ internal class CustomLicenseFactProvider(
     override val descriptor = PluginDescriptor(
         id = "CustomLicenseFactProvider",
         displayName = "Custom License Fact Provider",
-        description = "A provider that reads license facts from the ORT Server configuration directory."
+        summary = "A provider that reads license facts from the ORT Server configuration directory."
     )
 
     /** The sanitized [Path] to the directory in the configuration containing custom license texts. */

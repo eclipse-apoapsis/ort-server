@@ -332,6 +332,7 @@ if (import.meta.vitest) {
         id: 'SCANOSS',
         type: 'SCANNER',
         displayName: 'SCANOSS',
+        summary: 'A scanner plugin.',
         description: 'A scanner plugin.',
         options: [
           {

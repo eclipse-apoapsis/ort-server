@@ -33,8 +33,11 @@ data class PreconfiguredPluginDescriptor(
     /** The display name of the plugin. */
     val displayName: String,
 
+    /** The summary of the plugin. */
+    val summary: String,
+
     /** The description of the plugin. */
-    val description: String,
+    val description: String?,
 
     /** The configuration options of the plugin. */
     val options: List<PreconfiguredPluginOption>

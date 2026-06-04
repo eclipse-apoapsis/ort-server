@@ -60,7 +60,7 @@ private val logger = LoggerFactory.getLogger(DirPackageCurationProvider::class.j
  */
 @OrtPlugin(
     displayName = "Dir Package Curation Provider",
-    description = "A package curation provider that reads curation data from a folder structure.",
+    summary = "A package curation provider that reads curation data from a folder structure.",
     factory = PackageCurationProviderFactory::class
 )
 class DirPackageCurationProvider(

@@ -41,6 +41,8 @@ dependencies {
     implementation(projects.shared.apiModel)
     implementation(projects.utils.logging)
 
+    implementation(ortLibs.utils.common)
+
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.storage.storageSpi))
 

@@ -55,8 +55,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFro
 import org.eclipse.apoapsis.ortserver.workers.common.auth.secretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedSecretResolver
 
+import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
-import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory

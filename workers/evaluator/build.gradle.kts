@@ -50,6 +50,7 @@ dependencies {
     implementation(ortLibs.utils.config)
     implementation(ortLibs.evaluator)
     implementation(platform(ortLibs.ortPlugins.packageConfigurationProviders))
+    implementation(ortLibs.utils.common)
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))

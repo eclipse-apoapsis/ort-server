@@ -156,8 +156,8 @@ import org.ossreviewtoolkit.model.config.PathInclude
 import org.ossreviewtoolkit.model.config.PathIncludeReason
 import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.utils.common.gibibytes
-import org.ossreviewtoolkit.utils.spdx.SpdxExpression
-import org.ossreviewtoolkit.utils.spdx.toSpdx
+import org.ossreviewtoolkit.utils.spdxexpression.SpdxExpression
+import org.ossreviewtoolkit.utils.spdxexpression.toSpdx
 
 @Suppress("LargeClass")
 class OrtRunServiceTest : WordSpec({

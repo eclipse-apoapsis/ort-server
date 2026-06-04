@@ -24,9 +24,9 @@ import java.net.PasswordAuthentication
 
 import org.eclipse.apoapsis.ortserver.config.Path
 
+import org.ossreviewtoolkit.utils.authentication.UserInfoAuthenticator
 import org.ossreviewtoolkit.utils.common.replaceCredentialsInUri
 import org.ossreviewtoolkit.utils.common.toUri
-import org.ossreviewtoolkit.utils.ort.UserInfoAuthenticator
 
 import org.slf4j.LoggerFactory
 

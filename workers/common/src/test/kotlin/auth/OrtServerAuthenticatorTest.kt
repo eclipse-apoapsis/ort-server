@@ -45,8 +45,8 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
+import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.common.Os
-import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 
 class OrtServerAuthenticatorTest : WordSpec() {
     /** Stores the original authenticator, so that it can be restored after the test. */

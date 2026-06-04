@@ -173,7 +173,7 @@ import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtV
 import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
 import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense as OrtProcessedDeclaredLicense
-import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice as OrtSpdxLicenseChoice
+import org.ossreviewtoolkit.utils.spdxexpression.SpdxLicenseChoice as OrtSpdxLicenseChoice
 
 fun OrtAdvisorConfiguration.mapToModel() =
     AdvisorConfiguration(

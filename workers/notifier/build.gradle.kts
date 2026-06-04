@@ -44,6 +44,7 @@ dependencies {
 
     implementation(libs.log4jToSlf4j)
     implementation(ortLibs.notifier)
+    implementation(ortLibs.utils.common)
 
     runtimeOnly(libs.logback)
 

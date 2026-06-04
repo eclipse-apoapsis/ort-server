@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.typesafeConfig)
     implementation(ortLibs.scanner)
+    implementation(ortLibs.utils.common)
 
     implementation(platform(ortLibs.ortPlugins.scanners))
     implementation(platform(ortLibs.ortPlugins.versionControlSystems))

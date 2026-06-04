@@ -43,7 +43,8 @@ data class PluginDescriptor(
     val id: String,
     val type: PluginType,
     val displayName: String,
-    val description: String,
+    val summary: String,
+    val description: String?,
     val options: List<PluginOption> = emptyList(),
     val availability: PluginAvailability
 )

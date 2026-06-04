@@ -27,6 +27,7 @@ internal fun OrtPluginDescriptor.mapToApi(type: PluginType, availability: Plugin
     id = id,
     type = type,
     displayName = displayName,
+    summary = summary,
     description = description,
     options = options.map { it.mapToApi() },
     availability = availability
