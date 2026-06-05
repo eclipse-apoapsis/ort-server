@@ -227,9 +227,9 @@ export const PluginMultiSelectField = <
                 <FormLabel className='font-normal'>
                   {plugin.displayName}
                 </FormLabel>
-                {plugin.description != null && (
+                {plugin.summary != null && (
                   <MarkdownRenderer
-                    markdown={plugin.description}
+                    markdown={plugin.summary}
                     className='text-muted-foreground max-w-none pb-4 [&_p]:my-0'
                   />
                 )}
