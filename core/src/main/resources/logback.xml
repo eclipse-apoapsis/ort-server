@@ -18,12 +18,31 @@
   -->
 
 <configuration>
-    <conversionRule conversionWord="customMdc" class="org.eclipse.apoapsis.ortserver.utils.logging.MdcConverter" />
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>time=%d{YYYY-MM-dd'T'HH:mm:ss.SSS} thread=%thread %customMdc level=%-5level logger=%logger{36} message="%replace(%msg){'\"','\\\"'}"%n</pattern>
-        </encoder>
-    </appender>
+    <variable name="LOG_FORMAT" value="${LOG_FORMAT:-text}" />
+
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>LOG_FORMAT</key>
+        <value>json</value>
+    </condition>
+    <if>
+        <then>
+            <sequenceNumberGenerator class="ch.qos.logback.core.spi.BasicSequenceNumberGenerator" />
+            <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder class="ch.qos.logback.classic.encoder.JsonEncoder">
+                    <withContext>false</withContext>
+                </encoder>
+            </appender>
+        </then>
+        <else>
+            <conversionRule conversionWord="customMdc" class="org.eclipse.apoapsis.ortserver.utils.logging.MdcConverter" />
+            <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder>
+                    <pattern>time=%d{YYYY-MM-dd'T'HH:mm:ss.SSS} thread=%thread %customMdc level=%-5level logger=%logger{36} message="%replace(%msg){'\"','\\\"'}"%n</pattern>
+                </encoder>
+            </appender>
+        </else>
+    </if>
+
     <root level="trace">
         <appender-ref ref="STDOUT"/>
     </root>
@@ -34,5 +53,4 @@
     <logger name="org.flywaydb.core.internal.license.VersionPrinter" level="WARN"/>
     <logger name="io.ktor" level="INFO"/>
     <logger name="io.ktor.server.plugins.cors.CORS" level="TRACE"/>
-
 </configuration>
