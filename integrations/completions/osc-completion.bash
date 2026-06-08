@@ -204,6 +204,12 @@ _osc_auth_login() {
           [[ ${i} -gt COMP_CWORD ]] && in_param='--password' || in_param=''
           continue
           ;;
+        --token)
+          __skip_opt_eq
+          (( i = i + 1 ))
+          [[ ${i} -gt COMP_CWORD ]] && in_param='--token' || in_param=''
+          continue
+          ;;
         -h|--help)
           __skip_opt_eq
           in_param=''
@@ -221,7 +227,7 @@ _osc_auth_login() {
   done
   local word="${COMP_WORDS[$COMP_CWORD]}"
   if [[ "${word}" =~ ^[-] ]]; then
-    COMPREPLY=($(compgen -W '--url --token-url --client-id --username --password -h --help' -- "${word}"))
+    COMPREPLY=($(compgen -W '--url --token-url --client-id --username --password --token -h --help' -- "${word}"))
     return
   fi
 
@@ -240,6 +246,8 @@ _osc_auth_login() {
     "--username")
       ;;
     "--password")
+      ;;
+    "--token")
       ;;
     "--help")
       ;;

@@ -72,13 +72,23 @@ All available settings for `setup-osc` can be found [in the Repository of the ac
 
 ### Authentication
 
-Most operations require authentication with your ORT Server instance. The following command-line arguments are used for authentication:
+Most operations require authentication with your ORT Server instance.
+
+Authenticate with username and password:
 
 ```shell
 osc auth login \
     --url <ORT_SERVER_URL> \
     --username <USERNAME> \
     --password <PASSWORD>
+```
+
+Authenticate with an offline token (for example, generated in the UI under Profile -> CLI token):
+
+```shell
+osc auth login \
+    --url <ORT_SERVER_URL> \
+    --token <TOKEN>
 ```
 
 ### Basic Operations
@@ -113,12 +123,21 @@ osc runs download reports --file-names scan-report-web-app.html --output-dir /tm
 ### Environment Variables
 
 For automated environments like CI/CD pipelines, all command-line arguments can be configured using environment variables.  
-For example, to authenticate:
+For example, to authenticate with username and password:
 
 ```shell
 export OSC_ORT_SERVER_URL="<ORT_SERVER_URL>"
 export OSC_ORT_SERVER_USERNAME="<USERNAME>"
 export OSC_ORT_SERVER_PASSWORD="<PASSWORD>"
+
+osc auth login
+```
+
+To authenticate with an offline token:
+
+```shell
+export OSC_ORT_SERVER_URL="<ORT_SERVER_URL>"
+export OSC_ORT_SERVER_TOKEN="<TOKEN>"
 
 osc auth login
 ```
