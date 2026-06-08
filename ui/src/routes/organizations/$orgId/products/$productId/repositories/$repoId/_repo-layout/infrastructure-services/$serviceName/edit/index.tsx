@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -26,7 +26,6 @@ import { z } from 'zod';
 
 import {
   getRepositoryInfrastructureServiceOptions,
-  getRepositorySecretsOptions,
   patchRepositoryInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
@@ -55,8 +54,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx';
+import { capitalize } from '@/helpers/capitalize';
+import { useSecrets } from '@/hooks/use-secrets';
 import { ApiError } from '@/lib/api-error';
-import { ALL_ITEMS } from '@/lib/constants.ts';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -75,12 +75,13 @@ type FormSchema = z.infer<typeof formSchema>;
 const EditInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const permissions = Route.useRouteContext().permissions;
 
-  const { data: secrets } = useQuery({
-    ...getRepositorySecretsOptions({
-      path: { repositoryId: Number.parseInt(params.repoId) },
-      query: { limit: ALL_ITEMS },
-    }),
+  const secrets = useSecrets({
+    orgId: params.orgId,
+    productId: params.productId,
+    repositoryId: params.repoId,
+    permissions,
   });
 
   const { data: service } = useSuspenseQuery({
@@ -211,11 +212,18 @@ const EditInfrastructureServicePage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {secrets?.data.map((secret) => (
-                        <SelectItem key={secret.name} value={secret.name}>
-                          {secret.name}
-                        </SelectItem>
-                      ))}
+                      {secrets.map((secret) => {
+                        const hierarchyLabel = capitalize(secret.hierarchy);
+                        const label = `${secret.name} (${hierarchyLabel})`;
+                        return (
+                          <SelectItem
+                            key={`${secret.hierarchy}:${secret.name}`}
+                            value={secret.name}
+                          >
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormDescription>
@@ -244,11 +252,18 @@ const EditInfrastructureServicePage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {secrets?.data.map((secret) => (
-                        <SelectItem key={secret.name} value={secret.name}>
-                          {secret.name}
-                        </SelectItem>
-                      ))}
+                      {secrets.map((secret) => {
+                        const hierarchyLabel = capitalize(secret.hierarchy);
+                        const label = `${secret.name} (${hierarchyLabel})`;
+                        return (
+                          <SelectItem
+                            key={`${secret.hierarchy}:${secret.name}`}
+                            value={secret.name}
+                          >
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormDescription>
