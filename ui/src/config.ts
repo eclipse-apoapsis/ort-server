@@ -31,6 +31,7 @@ interface Config {
   realm: string;
   accountProfileUrl: string;
   accountPasswordUrl: string;
+  accountDeviceActivityUrl: string;
   pollInterval: number;
 }
 
@@ -69,6 +70,7 @@ const authBaseUrl = AUTHORITY.split('/realms/')[0] || 'http://localhost:8081';
 const realm = AUTHORITY.split('/realms/')[1] || 'master';
 const accountProfileUrl = `${AUTHORITY}/account`;
 const accountPasswordUrl = `${accountProfileUrl}/account-security/signing-in`;
+const accountDeviceActivityUrl = `${accountProfileUrl}/account-security/device-activity`;
 
 // Polling interval for run status updates
 const pollInterval = RUN_POLL_INTERVAL;
@@ -82,5 +84,6 @@ export const config: Config = {
   realm,
   accountProfileUrl,
   accountPasswordUrl,
+  accountDeviceActivityUrl,
   pollInterval,
 };

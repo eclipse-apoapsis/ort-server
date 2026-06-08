@@ -94,14 +94,21 @@ Required configuration for the `ui` application:
 ### ORT Server CLI
 
 This client is used for authentication by the [ORT Server CLI](../../user-guide/cli/getting-started.md).
-Currently, the CLI only supports the "Direct access grants" flow which corresponds to the "Resource owner password credentials" flow in OAuth2.
+The client supports both:
+
+- "Direct access grants" (Resource Owner Password Credentials) for the CLI
+- "Standard flow" (Authorization Code with PKCE) for the UI's token generation page
 
 - _Default client ID:_ `ort-server-cli`
 - _Client authentication:_ Disabled
-- _Authentication flow:_ Direct access grants
+- _Authentication flow:_ Direct access grants, Standard flow
+- _PKCE method:_ S256
 - _Client scopes:_ `basic`, `email`, `profile`, `ort-server-api-access`, `offline_access`
+- _Valid redirect URIs:_ `<ORT_SERVER_UI_URL>/profile/token/callback`
+- _Web origins:_ Use `+` to allow the UI origin of the valid redirect URIs.
 
 The remaining default scopes are not required and can be removed to minimize the token size.
+For the UI-based token generation flow, the UI requests the `offline_access` scope explicitly to receive an offline token.
 
 Required configuration for the `core` application:
 
