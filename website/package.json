@@ -44,7 +44,7 @@
     "@docusaurus/utils": "3.10.1",
     "@docusaurus/utils-common": "3.10.1",
     "@docusaurus/utils-validation": "3.10.1",
-    "@easyops-cn/docusaurus-search-local": "0.55.1",
+    "@easyops-cn/docusaurus-search-local": "0.55.2",
     "@iconify/react": "6.0.2",
     "@mdx-js/react": "3.1.1",
     "clsx": "2.1.1",
