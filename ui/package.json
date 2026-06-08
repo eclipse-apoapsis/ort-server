@@ -70,7 +70,7 @@
     "@eslint/compat": "2.1.0",
     "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "10.0.1",
-    "@hey-api/openapi-ts": "0.98.0",
+    "@hey-api/openapi-ts": "0.98.1",
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",
     "@playwright/test": "1.60.0",
     "@tailwindcss/postcss": "4.3.0",
