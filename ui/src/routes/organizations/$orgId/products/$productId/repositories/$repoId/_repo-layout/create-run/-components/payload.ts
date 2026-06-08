@@ -19,7 +19,6 @@
 
 import {
   AnalyzerJobConfiguration,
-  InfrastructureService,
   PostRepositoryRun,
   ReporterJobConfiguration,
 } from '@/api';
@@ -122,28 +121,20 @@ export function formValuesToPayload(
       ? values.jobConfigs.analyzer.environmentVariables
       : undefined;
 
-  const infrastructureServices: InfrastructureService[] =
-    values.jobConfigs.analyzer.infrastructureServices?.map((service) => ({
-      credentialsTypes: service.credentialsTypes,
-      description: service.description,
-      name: service.name,
-      passwordSecretRef: service.passwordSecretRef,
-      url: service.url,
-      usernameSecretRef: service.usernameSecretRef,
-    })) || [];
-
-  const environmentConfig = {
-    infrastructureServices,
-    ...(environmentDefinitions ? { environmentDefinitions } : {}),
-    ...(environmentVariables ? { environmentVariables } : {}),
-  };
+  const environmentConfig =
+    environmentDefinitions || environmentVariables
+      ? {
+          ...(environmentDefinitions ? { environmentDefinitions } : {}),
+          ...(environmentVariables ? { environmentVariables } : {}),
+        }
+      : undefined;
 
   const analyzerConfig: AnalyzerJobConfiguration = {
     allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
     repositoryConfigPath:
       values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
-    environmentConfig,
+    ...(environmentConfig ? { environmentConfig } : {}),
     // Determine the enabled package managers by filtering the packageManagers object
     // and finding those for which 'enabled' is true.
     enabledPackageManagers: [
