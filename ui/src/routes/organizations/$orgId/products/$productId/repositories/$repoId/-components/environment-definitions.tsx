@@ -17,17 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import * as AccordionPrimitive from '@radix-ui/react-accordion';
-import { ChevronDownIcon } from 'lucide-react';
-import { ReactNode, useRef } from 'react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { ReactNode } from 'react';
 import { FieldPath, UseFormReturn } from 'react-hook-form';
 
-import { Accordion, AccordionContent } from '@/components/ui/accordion';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   FormControl,
   FormDescription,
@@ -49,13 +44,18 @@ import { capitalize } from '@/helpers/capitalize';
 import { InfrastructureServiceWithHierarchy } from '@/hooks/use-infrastructure-services';
 import {
   ENVIRONMENT_DEFINITION_SCHEMAS,
+  EnvironmentDefinitionSchema,
   FieldEntry,
 } from '@/lib/environment-definition-fields';
-import { EnvironmentDefinitionEntry } from '@/lib/types';
+import {
+  EnvironmentDefinitionEntry,
+  EnvironmentDefinitions,
+} from '@/lib/types';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type PackageManagerFieldProps = {
   pmKey: string;
+  index: number;
   entry: FieldEntry;
   form: UseFormReturn<CreateRunFormValues>;
   infrastructureServices: InfrastructureServiceWithHierarchy[];
@@ -63,12 +63,13 @@ type PackageManagerFieldProps = {
 
 function PackageManagerField({
   pmKey,
+  index,
   entry,
   form,
   infrastructureServices,
 }: PackageManagerFieldProps): ReactNode {
   const name =
-    `jobConfigs.analyzer.environmentDefinitions.${pmKey}.0.${entry.key}` as FieldPath<CreateRunFormValues>;
+    `jobConfigs.analyzer.environmentDefinitions.${pmKey}.${index}.${entry.key}` as FieldPath<CreateRunFormValues>;
   const { def } = entry;
 
   if (def.type === 'service') {
@@ -84,7 +85,16 @@ function PackageManagerField({
           return (
             <FormItem>
               <FormLabel>Service</FormLabel>
-              <Select value={value} onValueChange={(v) => field.onChange(v)}>
+              <Select
+                value={value}
+                onValueChange={(v) => {
+                  form.setValue(name, v, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                }}
+              >
                 <FormControl>
                   <SelectTrigger className='w-full'>
                     <SelectValue placeholder='Select an infrastructure service' />
@@ -150,7 +160,11 @@ function PackageManagerField({
               <Switch
                 checked={((field.value as string) ?? 'true') === 'true'}
                 onCheckedChange={(checked) =>
-                  field.onChange(checked ? 'true' : 'false')
+                  form.setValue(name, checked ? 'true' : 'false', {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  })
                 }
               />
             </FormControl>
@@ -172,7 +186,16 @@ function PackageManagerField({
         return (
           <FormItem>
             <FormLabel>{def.label}</FormLabel>
-            <Select value={value} onValueChange={(v) => field.onChange(v)}>
+            <Select
+              value={value}
+              onValueChange={(v) => {
+                form.setValue(name, v, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                });
+              }}
+            >
               <FormControl>
                 <SelectTrigger className='w-full'>
                   <SelectValue placeholder={def.placeholder} />
@@ -200,123 +223,184 @@ type EnvironmentDefinitionsFieldsProps = {
   infrastructureServices: InfrastructureServiceWithHierarchy[];
 };
 
-function cloneEntries(
-  entries: EnvironmentDefinitionEntry[] | undefined
-): EnvironmentDefinitionEntry[] | undefined {
-  return entries?.map((entry) => ({ ...entry }));
+type EnvironmentDefinitionCard = {
+  schema: EnvironmentDefinitionSchema;
+  index: number;
+};
+
+const firstSchema = ENVIRONMENT_DEFINITION_SCHEMAS[0];
+
+function cloneDefaultEntry(schema: EnvironmentDefinitionSchema) {
+  const defaultEntry = schema.defaultEntries[0];
+  return defaultEntry ? { ...defaultEntry } : undefined;
+}
+
+function definitionsAsRecord(
+  definitions: EnvironmentDefinitions | undefined
+): Record<string, EnvironmentDefinitionEntry[]> {
+  return (definitions ?? {}) as Record<string, EnvironmentDefinitionEntry[]>;
 }
 
 export const EnvironmentDefinitionsFields = ({
   form,
   infrastructureServices,
 }: EnvironmentDefinitionsFieldsProps) => {
-  const definitionBackups = useRef<
-    Record<string, EnvironmentDefinitionEntry[]>
-  >({});
+  const environmentDefinitions = definitionsAsRecord(
+    form.watch('jobConfigs.analyzer.environmentDefinitions')
+  );
 
-  const enabledDefinitions =
-    form.watch('jobConfigs.analyzer.environmentDefinitionsEnabled') ?? {};
+  const cards = ENVIRONMENT_DEFINITION_SCHEMAS.flatMap((schema) =>
+    (environmentDefinitions[schema.key] ?? []).map((_, index) => ({
+      schema,
+      index,
+    }))
+  );
 
-  function setEnabled(packageManager: string, value: boolean) {
-    form.setValue(
-      'jobConfigs.analyzer.environmentDefinitionsEnabled',
-      { ...enabledDefinitions, [packageManager]: value },
-      { shouldDirty: true }
-    );
-  }
-
-  function setEntries(
-    packageManager: string,
-    entries: EnvironmentDefinitionEntry[] | undefined
+  function setEnvironmentDefinitions(
+    definitions: Record<string, EnvironmentDefinitionEntry[]>
   ) {
-    const current =
-      form.getValues('jobConfigs.analyzer.environmentDefinitions') ?? {};
-    const updated = entries
-      ? { ...current, [packageManager]: entries }
-      : Object.fromEntries(
-          Object.entries(current).filter(([k]) => k !== packageManager)
-        );
+    const nonEmptyDefinitions = Object.fromEntries(
+      Object.entries(definitions).filter(([, entries]) => entries.length > 0)
+    );
+
     form.setValue(
       'jobConfigs.analyzer.environmentDefinitions',
-      Object.keys(updated).length > 0 ? updated : undefined,
-      { shouldDirty: true }
+      Object.keys(nonEmptyDefinitions).length > 0
+        ? (nonEmptyDefinitions as EnvironmentDefinitions)
+        : undefined,
+      { shouldDirty: true, shouldValidate: true }
     );
   }
 
-  function onToggle(
-    packageManager: string,
-    checked: boolean,
-    defaultEntries: EnvironmentDefinitionEntry[]
+  function addEnvironmentDefinition() {
+    if (!firstSchema) return;
+
+    const defaultEntry = cloneDefaultEntry(firstSchema);
+    if (!defaultEntry) return;
+
+    const current = definitionsAsRecord(
+      form.getValues('jobConfigs.analyzer.environmentDefinitions')
+    );
+    setEnvironmentDefinitions({
+      ...current,
+      [firstSchema.key]: [...(current[firstSchema.key] ?? []), defaultEntry],
+    });
+  }
+
+  function removeEnvironmentDefinition(schemaKey: string, index: number) {
+    const current = definitionsAsRecord(
+      form.getValues('jobConfigs.analyzer.environmentDefinitions')
+    );
+    const entries = [...(current[schemaKey] ?? [])];
+    entries.splice(index, 1);
+
+    setEnvironmentDefinitions({
+      ...current,
+      [schemaKey]: entries,
+    });
+  }
+
+  function changeEnvironmentDefinitionSchema(
+    card: EnvironmentDefinitionCard,
+    schemaKey: string
   ) {
-    setEnabled(packageManager, checked);
-    if (checked) {
-      setEntries(
-        packageManager,
-        cloneEntries(definitionBackups.current[packageManager]) ??
-          cloneEntries(defaultEntries)
-      );
-    } else {
-      definitionBackups.current[packageManager] =
-        cloneEntries(
-          form.getValues('jobConfigs.analyzer.environmentDefinitions')?.[
-            packageManager
-          ]
-        ) ?? [];
-      setEntries(packageManager, undefined);
-    }
+    if (schemaKey === card.schema.key) return;
+
+    const schema = ENVIRONMENT_DEFINITION_SCHEMAS.find(
+      (schema) => schema.key === schemaKey
+    );
+    if (!schema) return;
+
+    const defaultEntry = cloneDefaultEntry(schema);
+    if (!defaultEntry) return;
+
+    const current = definitionsAsRecord(
+      form.getValues('jobConfigs.analyzer.environmentDefinitions')
+    );
+    const sourceEntries = [...(current[card.schema.key] ?? [])];
+    sourceEntries.splice(card.index, 1);
+
+    setEnvironmentDefinitions({
+      ...current,
+      [card.schema.key]: sourceEntries,
+      [schema.key]: [...(current[schema.key] ?? []), defaultEntry],
+    });
   }
 
   return (
-    <Collapsible className='flex flex-col gap-2'>
-      <CollapsibleTrigger className='flex w-full items-start justify-between gap-4 text-left [&[data-state=open]>svg]:rotate-180'>
-        <div>
-          <h3>Environment configuration</h3>
-          <p className='mt-1 text-sm text-gray-500'>
-            Configure the credentials for different package managers to access
-            private artifact repositories.
-          </p>
-        </div>
-        <ChevronDownIcon className='text-muted-foreground mt-1 size-4 shrink-0 transition-transform duration-200' />
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <Accordion type='multiple' className='ml-4 flex flex-col gap-2'>
-          {ENVIRONMENT_DEFINITION_SCHEMAS.map((schema) => (
-            <AccordionPrimitive.Item
-              key={schema.key}
-              value={schema.key}
-              className='rounded-lg border'
-            >
-              <AccordionPrimitive.Header className='flex flex-row items-center'>
-                <AccordionPrimitive.Trigger className='focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center gap-2 px-4 py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] [&[data-state=open]>svg]:rotate-180'>
-                  {schema.label}
-                  <ChevronDownIcon className='text-muted-foreground size-4 shrink-0 translate-y-0.5 transition-transform duration-200' />
-                </AccordionPrimitive.Trigger>
-                <div className='pr-4'>
-                  <Switch
-                    checked={enabledDefinitions[schema.key] ?? false}
-                    onCheckedChange={(checked) =>
-                      onToggle(schema.key, checked, schema.defaultEntries)
-                    }
-                  />
-                </div>
-              </AccordionPrimitive.Header>
-              <AccordionContent>
-                <div className='flex flex-col gap-4 px-4 pb-4'>
-                  {schema.fields.map((entry) => (
-                    <PackageManagerField
-                      key={entry.key}
-                      pmKey={schema.key}
-                      entry={entry}
-                      form={form}
-                      infrastructureServices={infrastructureServices}
-                    />
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionPrimitive.Item>
-          ))}
-        </Accordion>
-      </CollapsibleContent>
-    </Collapsible>
+    <div className='flex flex-col gap-2'>
+      <div>
+        <h3>Environment configuration</h3>
+        <p className='mt-1 text-sm text-gray-500'>
+          Configure the credentials for different package managers to access
+          private artifact repositories.
+        </p>
+      </div>
+      <div className='mt-2 flex flex-col gap-4'>
+        {cards.map((card) => (
+          <Card key={`${card.schema.key}-${card.index}`}>
+            <CardHeader className='flex flex-row items-center justify-between gap-4'>
+              <CardTitle>
+                {card.schema.label} #{card.index + 1}
+              </CardTitle>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  removeEnvironmentDefinition(card.schema.key, card.index);
+                }}
+              >
+                <TrashIcon className='h-4 w-4' />
+              </Button>
+            </CardHeader>
+            <CardContent className='flex flex-col gap-4'>
+              <FormItem>
+                <FormLabel>Package manager</FormLabel>
+                <Select
+                  value={card.schema.key}
+                  onValueChange={(value) => {
+                    changeEnvironmentDefinitionSchema(card, value);
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='Select a package manager' />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ENVIRONMENT_DEFINITION_SCHEMAS.map((schema) => (
+                      <SelectItem key={schema.key} value={schema.key}>
+                        {schema.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+              {card.schema.fields.map((entry) => (
+                <PackageManagerField
+                  key={entry.key}
+                  pmKey={card.schema.key}
+                  index={card.index}
+                  entry={entry}
+                  form={form}
+                  infrastructureServices={infrastructureServices}
+                />
+              ))}
+            </CardContent>
+          </Card>
+        ))}
+        <Button
+          size='sm'
+          className='w-min'
+          variant='outline'
+          type='button'
+          onClick={addEnvironmentDefinition}
+        >
+          Add environment configuration
+          <PlusIcon className='ml-1 h-4 w-4' />
+        </Button>
+      </div>
+    </div>
   );
 };
