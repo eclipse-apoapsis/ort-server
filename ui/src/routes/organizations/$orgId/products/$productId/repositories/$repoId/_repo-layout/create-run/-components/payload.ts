@@ -22,6 +22,7 @@ import {
   PostRepositoryRun,
   ReporterJobConfiguration,
 } from '@/api';
+import { defaultValues } from './default-values';
 import { convertArrayToMap } from './form-primitives';
 import { createPluginPayload } from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
@@ -330,4 +331,88 @@ export function formValuesToPayload(
     jobConfigContext: values.jobConfigContext,
     environmentConfigPath: values.environmentConfigPath,
   };
+}
+
+if (import.meta.vitest) {
+  const { describe, expect, it } = import.meta.vitest;
+
+  function createFormValues(): CreateRunFormValues {
+    return {
+      ...defaultValues(null, [], [], false),
+      revision: 'main',
+      path: '',
+    };
+  }
+
+  describe('formValuesToPayload', () => {
+    it('omits the environment config when no environment settings are configured', () => {
+      const values = createFormValues();
+      values.jobConfigs.analyzer.infrastructureServices = [
+        {
+          credentialsTypes: ['NETRC_FILE'],
+          name: 'inherited-service',
+          passwordSecretRef: 'password',
+          url: 'https://example.org/repository',
+          usernameSecretRef: 'username',
+        },
+      ];
+
+      const payload = formValuesToPayload(values);
+
+      expect(payload.jobConfigs.analyzer?.environmentConfig).toBeUndefined();
+    });
+
+    it('preserves multiple environment definitions for the same ecosystem', () => {
+      const values = createFormValues();
+      values.jobConfigs.analyzer.environmentDefinitions = {
+        maven: [
+          {
+            service: 'service-a',
+            id: 'repository-a',
+            mirrorOf: '',
+          },
+          {
+            service: 'service-b',
+            id: 'repository-b',
+            mirrorOf: 'central',
+          },
+        ],
+      };
+
+      const payload = formValuesToPayload(values);
+
+      expect(
+        payload.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
+      ).toEqual(values.jobConfigs.analyzer.environmentDefinitions);
+    });
+
+    it('omits infrastructure services from environment configs', () => {
+      const values = createFormValues();
+      values.jobConfigs.analyzer.environmentDefinitions = {
+        conan: [
+          {
+            service: 'service-a',
+            name: 'private-conan',
+            url: '',
+            verifySsl: 'true',
+          },
+        ],
+      };
+      values.jobConfigs.analyzer.infrastructureServices = [
+        {
+          credentialsTypes: ['NETRC_FILE'],
+          name: 'inherited-service',
+          passwordSecretRef: 'password',
+          url: 'https://example.org/repository',
+          usernameSecretRef: 'username',
+        },
+      ];
+
+      const payload = formValuesToPayload(values);
+
+      expect(payload.jobConfigs.analyzer?.environmentConfig).not.toHaveProperty(
+        'infrastructureServices'
+      );
+    });
+  });
 }

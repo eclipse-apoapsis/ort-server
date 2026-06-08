@@ -317,6 +317,41 @@ export function defaultValues(
 if (import.meta.vitest) {
   const { expect, it } = import.meta.vitest;
 
+  it('preserves multiple environment definitions from reruns', () => {
+    const ortRun = {
+      revision: 'main',
+      path: '',
+      jobConfigs: {
+        analyzer: {
+          environmentConfig: {
+            infrastructureServices: [],
+            environmentDefinitions: {
+              maven: [
+                {
+                  service: 'service-a',
+                  id: 'repository-a',
+                  mirrorOf: '',
+                },
+                {
+                  service: 'service-b',
+                  id: 'repository-b',
+                  mirrorOf: 'central',
+                },
+              ],
+            },
+          },
+        },
+      },
+      labels: {},
+    } as unknown as OrtRun;
+
+    const defaults = defaultValues(ortRun, [], [], false);
+
+    expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
+      ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
+    );
+  });
+
   it('uses scanner plugin default values for fresh runs', () => {
     const defaults = defaultValues(
       null,
