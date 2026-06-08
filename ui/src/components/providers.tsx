@@ -26,6 +26,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { config } from '@/config';
+import { TOKEN_FLOW_MARKER_KEY } from '@/helpers/token-flow';
 import { queryClient } from '@/lib/query-client';
 
 const oidcConfig = config.oidcConfig;
@@ -36,8 +37,17 @@ export const Providers = ({ children }: { children: ReactNode }) => {
   Log.setLevel(logLevel);
   Log.setLogger(console);
 
+  const isTokenCallbackRoute = window.location.pathname
+    .replace(/\/+$/, '')
+    .endsWith('/profile/token/callback');
+
+  const hasTokenFlowMarker =
+    window.sessionStorage.getItem(TOKEN_FLOW_MARKER_KEY) === '1';
+
+  const skipSigninCallback = isTokenCallbackRoute && hasTokenFlowMarker;
+
   return (
-    <AuthProvider {...oidcConfig}>
+    <AuthProvider {...oidcConfig} skipSigninCallback={skipSigninCallback}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           defaultMode='light'

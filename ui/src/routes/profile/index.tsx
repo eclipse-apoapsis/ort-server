@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 import { Fragment } from 'react';
 
@@ -89,6 +89,9 @@ const ProfilePage = () => {
         </CardContent>
         <Separator />
         <CardFooter className='flex flex-col items-stretch gap-3 sm:flex-row sm:justify-end'>
+          <Button asChild variant='outline'>
+            <Link to='/profile/token'>Generate token</Link>
+          </Button>
           <Button asChild variant='outline'>
             <a
               href={config.accountProfileUrl}
