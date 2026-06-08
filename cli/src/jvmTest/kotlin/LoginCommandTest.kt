@@ -22,6 +22,7 @@ import com.github.ajalt.clikt.command.test
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
 import io.mockk.every
@@ -43,7 +44,7 @@ class LoginCommandTest : StringSpec({
     afterEach { unmockkAll() }
 
     "Auth login command" should {
-        "store the authentication information in a local file" {
+        "store the authentication information when using username and password" {
             mockkConstructor(AuthService::class)
             coEvery {
                 anyConstructed<AuthService>().generateToken("testUser", "testPassword", setOf("offline_access"))
@@ -83,6 +84,96 @@ class LoginCommandTest : StringSpec({
             }
 
             result.stdout.trimEnd() shouldBe "Successfully logged in to 'http://localhost:8080/' as 'testUser'."
+        }
+
+        "store the authentication information when using an offline token" {
+            mockkConstructor(AuthService::class)
+            coEvery {
+                anyConstructed<AuthService>().refreshToken("testOfflineToken", setOf("offline_access"))
+            } returns TokenInfo(
+                accessToken = "testAccessToken",
+                refreshToken = "testRefreshToken",
+                expiresInSeconds = 3600
+            )
+
+            mockkObject(AuthenticationStorage)
+            every { AuthenticationStorage.store(any()) } just runs
+
+            val command = OrtServerMain()
+
+            val result = command.test(
+                listOf(
+                    "auth",
+                    "login",
+                    "--url", "http://localhost:8080/",
+                    "--token-url", "http://localhost/token",
+                    "--token", "testOfflineToken",
+                    "--client-id", "test-client-id"
+                )
+            )
+
+            verify(exactly = 1) {
+                AuthenticationStorage.store(
+                    HostAuthenticationDetails(
+                        baseUrl = "http://localhost:8080/",
+                        tokenUrl = "http://localhost/token",
+                        clientId = "test-client-id",
+                        username = null,
+                        tokens = Tokens("testAccessToken", "testRefreshToken")
+                    )
+                )
+            }
+
+            result.stdout.trimEnd() shouldBe "Successfully logged in to 'http://localhost:8080/' with an offline token."
+        }
+
+        "fail when offline token is combined with password credentials" {
+            val command = OrtServerMain()
+
+            val result = command.test(
+                listOf(
+                    "auth",
+                    "login",
+                    "--url", "http://localhost:8080/",
+                    "--token", "testOfflineToken",
+                    "--username", "testUser",
+                    "--password", "testPassword"
+                )
+            )
+
+            result.statusCode shouldBe 1
+            result.stderr shouldContain "option --username and --password cannot be used with --offline-token"
+        }
+
+        "fail when only one password credential is provided" {
+            val command = OrtServerMain()
+
+            val result = command.test(
+                listOf(
+                    "auth",
+                    "login",
+                    "--url", "http://localhost:8080/",
+                    "--username", "testUser"
+                )
+            )
+
+            result.statusCode shouldBe 1
+            result.stderr shouldContain "missing option --password"
+        }
+
+        "fail when no authentication input is provided" {
+            val command = OrtServerMain()
+
+            val result = command.test(
+                listOf(
+                    "auth",
+                    "login",
+                    "--url", "http://localhost:8080/"
+                )
+            )
+
+            result.statusCode shouldBe 1
+            result.stderr shouldContain "Either --username and --password or --offline-token must be provided."
         }
     }
 })

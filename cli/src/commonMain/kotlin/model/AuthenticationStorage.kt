@@ -99,7 +99,7 @@ internal data class HostAuthenticationDetails(
     val clientId: String,
 
     /** The username used for the authentication. */
-    val username: String,
+    val username: String?,
 
     /** The tokens required for the authentication. */
     val tokens: Tokens

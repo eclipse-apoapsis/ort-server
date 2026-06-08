@@ -21,7 +21,10 @@ package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
+import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import com.github.ajalt.clikt.parameters.groups.cooccurring
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
@@ -62,7 +65,7 @@ private class ServerOptions : OptionGroup(
 
 private class UserOptions : OptionGroup(
     name = "User options",
-    help = "Options to authenticate with a username and password."
+    help = "Options to authenticate with a username and password. Mutually exclusive with the token options."
 ) {
     val username by option(
         "--username",
@@ -77,32 +80,51 @@ private class UserOptions : OptionGroup(
     ).required()
 }
 
+private class TokenOptions : OptionGroup(
+    name = "Token options",
+    help = "Options to authenticate with a token. Mutually exclusive with the user options."
+) {
+    val offlineToken by option(
+        "--token",
+        envvar = "OSC_ORT_SERVER_TOKEN",
+        help = "The token to authenticate with the ORT Server instance. Tokens can be generated in the profile " +
+                "section of the ORT Server UI."
+    ).required()
+}
+
 /**
  * A command to log in to an ORT Server instance.
  */
 class LoginCommand : SuspendingCliktCommand(name = "login") {
     private val serverOptions by ServerOptions()
-    private val userOptions by UserOptions()
+    private val userOptions by UserOptions().cooccurring()
+    private val tokenOptions by TokenOptions().cooccurring()
 
     override fun help(context: Context) = "Login to an ORT Server instance."
 
     override suspend fun run() {
+        if (userOptions != null && tokenOptions != null) {
+            throw MutuallyExclusiveGroupException(listOf("--username and --password", "--offline-token"))
+        }
+
+        if (userOptions == null && tokenOptions == null) {
+            throw UsageError("Either --username and --password or --offline-token must be provided.")
+        }
+
         val oidcConfig = createOidcConfig(serverOptions.baseUrl, serverOptions.tokenUrl, serverOptions.clientId)
 
-        val authService = AuthService(
+        val tokenInfo = AuthService(
             client = createDefaultHttpClient(JSON),
             tokenUrl = oidcConfig.accessTokenUrl,
             clientId = oidcConfig.clientId
-        )
-
-        val tokenInfo = authService.generateToken(userOptions.username, userOptions.password, setOf("offline_access"))
+        ).createToken(userOptions, tokenOptions)
 
         AuthenticationStorage.store(
             HostAuthenticationDetails(
                 serverOptions.baseUrl,
                 oidcConfig.accessTokenUrl,
                 oidcConfig.clientId,
-                userOptions.username,
+                userOptions?.username,
                 Tokens(
                     tokenInfo.accessToken,
                     tokenInfo.refreshToken
@@ -110,7 +132,11 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
             )
         )
 
-        echoMessage("Successfully logged in to '${serverOptions.baseUrl}' as '${userOptions.username}'.")
+        if (userOptions != null) {
+            echoMessage("Successfully logged in to '${serverOptions.baseUrl}' as '${userOptions?.username}'.")
+        } else {
+            echoMessage("Successfully logged in to '${serverOptions.baseUrl}' with an offline token.")
+        }
     }
 }
 
@@ -125,4 +151,11 @@ private suspend fun createOidcConfig(baseUrl: String, tokenUrl: String?, clientI
         )
     } else {
         OidcConfig(tokenUrl, clientId)
+    }
+
+private suspend fun AuthService.createToken(userOptions: UserOptions?, tokenOptions: TokenOptions?) =
+    if (userOptions != null) {
+        generateToken(userOptions.username, userOptions.password, setOf("offline_access"))
+    } else {
+        refreshToken(checkNotNull(tokenOptions).offlineToken, setOf("offline_access"))
     }

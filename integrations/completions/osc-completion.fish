@@ -29,6 +29,7 @@ complete -c osc -n "__fish_seen_subcommand_from login" -l token-url -r -d 'The U
 complete -c osc -n "__fish_seen_subcommand_from login" -l client-id -r -d 'The client ID to authenticate with the ORT Server instance.'
 complete -c osc -n "__fish_seen_subcommand_from login" -l username -r -d 'The username to authenticate with the ORT Server instance.'
 complete -c osc -n "__fish_seen_subcommand_from login" -l password -r -d 'The password to authenticate with the ORT Server instance.'
+complete -c osc -n "__fish_seen_subcommand_from login" -l token -r -d 'The token to authenticate with the ORT Server instance. Tokens can be generated in the profile section of the ORT Server UI.'
 complete -c osc -n "__fish_seen_subcommand_from login" -s h -l help -d 'Show this message and exit'
 
 
