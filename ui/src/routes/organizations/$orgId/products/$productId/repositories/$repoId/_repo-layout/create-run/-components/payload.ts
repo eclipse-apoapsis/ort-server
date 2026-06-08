@@ -103,13 +103,11 @@ export function formValuesToPayload(
   // as the configuration for that job in the request body, in effect leaving
   // it empty, and thus disabling the job.
   const allDefinitions = values.jobConfigs.analyzer.environmentDefinitions;
-  const enabledDefinitions =
-    values.jobConfigs.analyzer.environmentDefinitionsEnabled;
   const filteredDefinitions: NonNullable<typeof allDefinitions> = {};
   for (const [packageManager, entries] of Object.entries(
     allDefinitions ?? {}
   )) {
-    if (enabledDefinitions[packageManager] && entries.length > 0) {
+    if (entries.length > 0) {
       filteredDefinitions[packageManager] = entries;
     }
   }
