@@ -196,7 +196,7 @@ export const AnalyzerFields = ({
           />
           <div className='flex flex-col gap-2'>
             <h3>Environment variables</h3>
-            <div className='mb-2 text-sm text-gray-500'>
+            <div className='text-sm text-gray-500'>
               A list of environment variable names and their values, either
               literal ones, or retrieved from named secrets. Use this to specify
               environment variables that are required by the build process. In
