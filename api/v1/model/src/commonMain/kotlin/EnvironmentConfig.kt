@@ -42,7 +42,7 @@ typealias EnvironmentDefinitions = Map<String, List<Options>>
 @Serializable
 data class EnvironmentConfig(
     /** The list of infrastructure services declared for this repository. */
-    val infrastructureServices: List<InfrastructureService>,
+    val infrastructureServices: List<InfrastructureService> = emptyList(),
 
     /** A map with environment definitions of different types. */
     val environmentDefinitions: EnvironmentDefinitions = emptyMap(),
