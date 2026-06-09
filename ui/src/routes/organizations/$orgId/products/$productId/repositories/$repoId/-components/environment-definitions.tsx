@@ -263,6 +263,7 @@ export const EnvironmentDefinitionsFields = ({
       Object.entries(definitions).filter(([, entries]) => entries.length > 0)
     );
 
+    form.clearErrors('jobConfigs.analyzer.environmentDefinitions');
     form.setValue(
       'jobConfigs.analyzer.environmentDefinitions',
       Object.keys(nonEmptyDefinitions).length > 0
