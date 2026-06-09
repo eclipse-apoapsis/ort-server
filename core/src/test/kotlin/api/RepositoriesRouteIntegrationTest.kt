@@ -778,6 +778,51 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "create a new ORT run with default infrastructure services in the environment config" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+                val environmentDefinitions = mapOf(
+                    "maven" to listOf(mapOf("id" to "repositoryServer"))
+                )
+                val environmentVariables = listOf(
+                    ApiEnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
+                )
+
+                val envConfig = EnvironmentConfig(
+                    environmentDefinitions = environmentDefinitions,
+                    environmentVariables = environmentVariables
+                )
+                val createRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = ApiJobConfigurations(
+                        analyzer = AnalyzerJobConfiguration(environmentConfig = envConfig)
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+                val runResponse = response.body<OrtRun>()
+                runResponse.jobConfigs.analyzer.environmentConfig shouldNotBeNull {
+                    infrastructureServices.shouldBeEmpty()
+                    this.environmentDefinitions shouldBe environmentDefinitions
+                    this.environmentVariables shouldContainExactly environmentVariables
+                }
+
+                val run = ortRunRepository.listForRepository(createdRepository.id).data.single()
+
+                run.jobConfigs.analyzer.environmentConfig shouldNotBeNull {
+                    infrastructureServices.shouldBeEmpty()
+                    this.environmentDefinitions shouldBe environmentDefinitions
+                    this.environmentVariables shouldContainExactly listOf(
+                        EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
+                    )
+                }
+            }
+        }
+
         "resolve provided plugin secrets from the user secrets" {
             integrationTestApplication {
                 val createdRepository = createRepository()
