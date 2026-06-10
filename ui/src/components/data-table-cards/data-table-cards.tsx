@@ -33,6 +33,7 @@ interface DataTableCardsProps<
 > extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  noResultsContent?: React.ReactNode;
   setCurrentPageOptions: (page: number) => LinkOptions;
   setPageSizeOptions: (pageSize: number) => LinkOptions;
   setSortingOptions?: (sorting: {
@@ -44,6 +45,7 @@ interface DataTableCardsProps<
 export function DataTableCards<TData>({
   table,
   renderSubComponent,
+  noResultsContent,
   className,
   setCurrentPageOptions,
   setPageSizeOptions,
@@ -69,6 +71,7 @@ export function DataTableCards<TData>({
           rows={table.getRowModel().rows}
           renderSubComponent={renderSubComponent}
           columnSizing={columnSizing}
+          noResultsContent={noResultsContent}
           columnCount={table.getVisibleLeafColumns().length}
         />
       </Table>
