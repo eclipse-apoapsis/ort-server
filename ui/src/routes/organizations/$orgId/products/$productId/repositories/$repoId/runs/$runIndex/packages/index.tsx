@@ -115,11 +115,9 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-start justify-between gap-4'>
-        <div className='flex min-w-0 basis-2/3 items-start'>
-          <div className='text-left font-semibold'>
-            <BreakableString text={id} />
-          </div>
-          <CopyToClipboard copyText={id} />
+        <div className='min-w-0 basis-2/3 text-left font-semibold'>
+          <BreakableString text={id} />
+          <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
         </div>
         <a
           href={pkg.homepageUrl}

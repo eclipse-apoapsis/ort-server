@@ -130,7 +130,7 @@ const VulnerabilityCard = ({
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='flex items-center'>
+        <div className='min-w-0 flex-1'>
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
@@ -151,7 +151,7 @@ const VulnerabilityCard = ({
               Inspect the package details in packages table
             </TooltipContent>
           </Tooltip>
-          <CopyToClipboard copyText={id} />
+          <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
         </div>
         <Badge
           className='bg-blue-300 whitespace-nowrap text-black'
