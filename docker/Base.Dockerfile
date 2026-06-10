@@ -24,7 +24,7 @@
 ARG CREDENTIAL_HELPER_VERSION=0.2.0
 ARG TEMURIN_VERSION=21.0.11_10-jdk-noble
 
-FROM alpine:3.23 AS credential-helper
+FROM alpine:3.24 AS credential-helper
 
 ARG CREDENTIAL_HELPER_VERSION
 ENV BAZEL_HOME=/opt/bazel
