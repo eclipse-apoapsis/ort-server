@@ -116,10 +116,10 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
       <div className='flex items-center justify-between'>
         <div className='flex items-center'>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               {issue.purl ? (
                 <Link
-                  className='font-semibold text-blue-400 hover:underline'
+                  className='text-left font-semibold text-blue-400 hover:underline'
                   to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
                   params={{
                     orgId: params.orgId,
@@ -133,7 +133,7 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
                 </Link>
               ) : (
                 <Link
-                  className='font-semibold text-blue-400 hover:underline'
+                  className='text-left font-semibold text-blue-400 hover:underline'
                   to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects'
                   params={{
                     orgId: params.orgId,

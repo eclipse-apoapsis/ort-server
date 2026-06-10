@@ -116,7 +116,7 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center'>
-          <div className='font-semibold'>
+          <div className='text-left font-semibold'>
             <BreakableString text={id} />
           </div>
           <CopyToClipboard copyText={id} />

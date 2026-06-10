@@ -110,7 +110,7 @@ const VulnerabilityCard = ({
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center'>
-          <div className='font-semibold'>
+          <div className='text-left font-semibold'>
             <BreakableString text={id} />
           </div>
           <CopyToClipboard copyText={id} />
@@ -127,7 +127,7 @@ const VulnerabilityCard = ({
           {vulnerability.vulnerability.summary || 'No summary available'}
         </div>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Link
               className='flex gap-1 text-blue-400 hover:underline'
               to='/organizations/$orgId/products/$productId/search-package'
