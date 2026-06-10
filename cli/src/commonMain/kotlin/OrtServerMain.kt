@@ -24,7 +24,9 @@ import com.github.ajalt.clikt.command.parse
 import com.github.ajalt.clikt.completion.completionOption
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
@@ -84,6 +86,10 @@ fun main(args: Array<String>) {
 class OrtServerMain : SuspendingCliktCommand(COMMAND_NAME) {
     init {
         completionOption(hidden = true)
+
+        context {
+            helpFormatter = { MordantHelpFormatter(context = it, requiredOptionMarker = "*", showDefaultValues = true) }
+        }
 
         subcommands(AuthCommand(), RunsCommand())
 
