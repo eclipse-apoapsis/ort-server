@@ -33,7 +33,7 @@ import io.mockk.verify
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
 
-class AuthLogoutCommandTest : StringSpec({
+class LogoutCommandTest : StringSpec({
     afterEach { unmockkAll() }
 
     "logout command" should {

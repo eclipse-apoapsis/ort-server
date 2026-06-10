@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.cli.model.Tokens
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 import org.eclipse.apoapsis.ortserver.client.auth.TokenInfo
 
-class AuthLoginCommandTest : StringSpec({
+class LoginCommandTest : StringSpec({
     afterEach { unmockkAll() }
 
     "Auth login command" should {
