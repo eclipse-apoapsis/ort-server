@@ -72,18 +72,7 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
     override fun help(context: Context) = "Login to an ORT Server instance."
 
     override suspend fun run() {
-        val oidcConfig = if (tokenUrl == null || clientId == null) {
-            val client = createUnauthenticatedOrtServerClient(baseUrl)
-            val serverConfig = client.auth.getCliOidcConfig()
-
-            serverConfig.copy(
-                accessTokenUrl = tokenUrl ?: serverConfig.accessTokenUrl,
-                clientId = clientId ?: serverConfig.clientId
-            )
-        } else {
-            @Suppress("UnsafeCallOnNullableType")
-            OidcConfig(tokenUrl!!, clientId!!)
-        }
+        val oidcConfig = createOidcConfig(baseUrl, tokenUrl, clientId)
 
         val authService = AuthService(
             client = createDefaultHttpClient(JSON),
@@ -109,3 +98,16 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
         echoMessage("Successfully logged in to '$baseUrl' as '$username'.")
     }
 }
+
+private suspend fun createOidcConfig(baseUrl: String, tokenUrl: String?, clientId: String?) =
+    if (tokenUrl == null || clientId == null) {
+        val client = createUnauthenticatedOrtServerClient(baseUrl)
+        val serverConfig = client.auth.getCliOidcConfig()
+
+        serverConfig.copy(
+            accessTokenUrl = tokenUrl ?: serverConfig.accessTokenUrl,
+            clientId = clientId ?: serverConfig.clientId
+        )
+    } else {
+        OidcConfig(tokenUrl, clientId)
+    }
