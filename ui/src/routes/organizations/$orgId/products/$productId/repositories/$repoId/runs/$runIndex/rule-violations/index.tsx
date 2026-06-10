@@ -114,7 +114,7 @@ const RuleViolationCard = ({
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='flex items-center'>
+        <div className='min-w-0 flex-1'>
           <Tooltip>
             <TooltipTrigger asChild>
               {ruleViolation.purl ? (
@@ -153,7 +153,7 @@ const RuleViolationCard = ({
                 : 'Inspect the project details in projects table'}
             </TooltipContent>
           </Tooltip>
-          <CopyToClipboard copyText={id} />
+          <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
         </div>
         <Badge
           className='bg-blue-300 whitespace-nowrap text-black'

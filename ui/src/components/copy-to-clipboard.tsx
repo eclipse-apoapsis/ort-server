@@ -31,11 +31,13 @@ import {
 type CopyToClipboardProps = {
   copyText: string;
   tooltipContentClassName?: string;
+  className?: string;
 };
 
 export const CopyToClipboard = ({
   copyText,
   tooltipContentClassName,
+  className,
 }: CopyToClipboardProps) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -62,6 +64,7 @@ export const CopyToClipboard = ({
             variant='ghost'
             type='button'
             size='sm'
+            className={className}
             onClick={handleCopyClick}
           >
             <span className='fg-slate-300'>

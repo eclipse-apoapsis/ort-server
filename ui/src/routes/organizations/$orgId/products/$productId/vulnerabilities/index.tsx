@@ -109,11 +109,9 @@ const VulnerabilityCard = ({
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='flex items-center'>
-          <div className='text-left font-semibold'>
-            <BreakableString text={id} />
-          </div>
-          <CopyToClipboard copyText={id} />
+        <div className='min-w-0 flex-1 text-left font-semibold'>
+          <BreakableString text={id} />
+          <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
         </div>
         <Badge
           className='bg-blue-300 whitespace-nowrap text-black'
