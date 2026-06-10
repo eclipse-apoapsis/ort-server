@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -35,44 +37,57 @@ import org.eclipse.apoapsis.ortserver.client.OrtServerClient.Companion.JSON
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 import org.eclipse.apoapsis.ortserver.client.createDefaultHttpClient
 
-/**
- * A command to log in to an ORT Server instance.
- */
-class LoginCommand : SuspendingCliktCommand(name = "login") {
-    private val baseUrl by option(
+private class ServerOptions : OptionGroup(
+    name = "Server options",
+    help = "Options to configure the ORT Server instance to log in to."
+) {
+    val baseUrl by option(
         "--url",
         envvar = "OSC_ORT_SERVER_URL",
         help = "The base URL of the ORT Server instance without the '/api/v1' path."
     ).convert { it.ensureSuffix("/") }.required()
 
-    private val tokenUrl by option(
+    val tokenUrl by option(
         "--token-url",
         envvar = "OSC_ORT_SERVER_TOKEN_URL",
         help = "The URL to request a token for the ORT Server instance."
     )
 
-    private val clientId by option(
+    val clientId by option(
         "--client-id",
         envvar = "OSC_ORT_SERVER_CLIENT_ID",
         help = "The client ID to authenticate with the ORT Server instance."
     )
+}
 
-    private val username by option(
+private class UserOptions : OptionGroup(
+    name = "User options",
+    help = "Options to authenticate with a username and password."
+) {
+    val username by option(
         "--username",
         envvar = "OSC_ORT_SERVER_USERNAME",
         help = "The username to authenticate with the ORT Server instance."
     ).required()
 
-    private val password by option(
+    val password by option(
         "--password",
         envvar = "OSC_ORT_SERVER_PASSWORD",
         help = "The password to authenticate with the ORT Server instance."
     ).required()
+}
+
+/**
+ * A command to log in to an ORT Server instance.
+ */
+class LoginCommand : SuspendingCliktCommand(name = "login") {
+    private val serverOptions by ServerOptions()
+    private val userOptions by UserOptions()
 
     override fun help(context: Context) = "Login to an ORT Server instance."
 
     override suspend fun run() {
-        val oidcConfig = createOidcConfig(baseUrl, tokenUrl, clientId)
+        val oidcConfig = createOidcConfig(serverOptions.baseUrl, serverOptions.tokenUrl, serverOptions.clientId)
 
         val authService = AuthService(
             client = createDefaultHttpClient(JSON),
@@ -80,14 +95,14 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
             clientId = oidcConfig.clientId
         )
 
-        val tokenInfo = authService.generateToken(username, password, setOf("offline_access"))
+        val tokenInfo = authService.generateToken(userOptions.username, userOptions.password, setOf("offline_access"))
 
         AuthenticationStorage.store(
             HostAuthenticationDetails(
-                baseUrl,
+                serverOptions.baseUrl,
                 oidcConfig.accessTokenUrl,
                 oidcConfig.clientId,
-                username,
+                userOptions.username,
                 Tokens(
                     tokenInfo.accessToken,
                     tokenInfo.refreshToken
@@ -95,7 +110,7 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
             )
         )
 
-        echoMessage("Successfully logged in to '$baseUrl' as '$username'.")
+        echoMessage("Successfully logged in to '${serverOptions.baseUrl}' as '${userOptions.username}'.")
     }
 }
 
