@@ -529,6 +529,13 @@ const RuleViolationsComponent = () => {
   });
   const filtersInUse = table.getState().columnFilters.length > 0;
   const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
+  const evaluatorWasIncludedInRun = ortRun.jobs.evaluator != null;
+  const noResultsContent = !evaluatorWasIncludedInRun ? (
+    <div className='text-muted-foreground text-sm'>
+      No rule violations are available because the evaluator job was not enabled
+      for this run.
+    </div>
+  ) : undefined;
 
   return (
     <Card className='h-fit'>
@@ -545,6 +552,7 @@ const RuleViolationsComponent = () => {
       <CardContent>
         <DataTableCards
           table={table}
+          noResultsContent={noResultsContent}
           renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
             return {
