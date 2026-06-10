@@ -114,8 +114,8 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
 
   return (
     <div className='flex flex-col gap-1'>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center'>
+      <div className='flex items-start justify-between gap-4'>
+        <div className='flex min-w-0 basis-2/3 items-start'>
           <div className='text-left font-semibold'>
             <BreakableString text={id} />
           </div>
@@ -125,7 +125,7 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
           href={pkg.homepageUrl}
           target='_blank'
           rel='noopener noreferrer'
-          className='text-blue-400 hover:underline'
+          className='min-w-0 basis-1/3 wrap-break-word text-blue-400 hover:underline'
         >
           {pkg.homepageUrl}
         </a>
