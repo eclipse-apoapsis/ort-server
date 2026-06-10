@@ -569,6 +569,13 @@ const VulnerabilitiesComponent = () => {
     totalVulnerabilities.pagination.totalCount !==
     vulnerabilities.pagination.totalCount;
   const matching = `, ${vulnerabilities.pagination.totalCount} matching filters`;
+  const advisorWasIncludedInRun = ortRun.jobs.advisor != null;
+  const noResultsContent = !advisorWasIncludedInRun ? (
+    <div className='text-muted-foreground text-sm'>
+      No vulnerabilities are available because the advisor job was not enabled
+      for this run.
+    </div>
+  ) : undefined;
 
   return (
     <Card className='h-fit'>
@@ -588,6 +595,7 @@ const VulnerabilitiesComponent = () => {
       <CardContent>
         <DataTableCards
           table={table}
+          noResultsContent={noResultsContent}
           renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
             return {
