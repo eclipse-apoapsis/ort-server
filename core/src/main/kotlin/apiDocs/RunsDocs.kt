@@ -544,6 +544,13 @@ val getRunPackages: RouteConfig.() -> Unit = {
                     "license expressions, e.g. '-,MIT'."
         }
 
+        queryParameter<String>("declaredLicense") {
+            description = "Defines the displayed declared license values for which packages are to be retrieved, " +
+                    "including processed declared licenses and unmapped declared license strings. This is a " +
+                    "comma-separated string. Add a minus as the first item to exclude packages with the specified " +
+                    "license values, e.g. '-,MIT'."
+        }
+
         queryParameter<Boolean>("isDirectDependency") {
             description = "Filter packages by dependency type. true = direct, false = transitive, omit for all."
             required = false

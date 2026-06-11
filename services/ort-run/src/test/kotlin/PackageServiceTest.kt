@@ -512,6 +512,129 @@ class PackageServiceTest : WordSpec() {
                 }
             }
 
+            "keep filtering by processed declared license scoped to processed expressions" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        processedDeclaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(licenseUrl)
+                        )
+                    )
+                )
+
+                results.data should beEmpty()
+                results.totalCount shouldBe 0
+            }
+
+            "allow filtering by declared license" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "processed", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "unmapped", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "other", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf("Apache-2.0", licenseUrl)
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } shouldBe listOf("processed", "unmapped")
+                results.totalCount shouldBe 2
+            }
+
+            "allow excluding by declared license" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "processed", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "unmapped", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "other", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf("Apache-2.0", licenseUrl)
+                        )
+                    )
+                )
+
+                results.data.shouldBeSingleton {
+                    it.identifier.name shouldBe "other"
+                }
+                results.totalCount shouldBe 1
+            }
+
             "allow filtering by direct dependencies" {
                 val project = fixtures.getProject()
                 val directIdentifier = Identifier("Maven", "com.example", "direct", "1.0")

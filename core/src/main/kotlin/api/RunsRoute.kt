@@ -521,8 +521,18 @@ private fun ApplicationCall.filters(): OrtRunFilters =
  * empty, return null. Otherwise, it is interpreted as a comma-delimited list of license expression strings to filter
  * the result by. If the first item on the list is a minus, the provided licenses will be excluded from the result.
  */
-private fun ApplicationCall.processedDeclaredLicense(): FilterOperatorAndValue<Set<String>>? {
-    val parts = parameters["processedDeclaredLicense"]?.split(',')?.toMutableSet() ?: return null
+private fun ApplicationCall.processedDeclaredLicense(): FilterOperatorAndValue<Set<String>>? =
+    licenseFilter("processedDeclaredLicense")
+
+/**
+ * Extract the filter for declared licenses from this [ApplicationCall]. If this filter is missing or empty, return
+ * null. Otherwise, it is interpreted as a comma-delimited list of license strings to filter the result by. If the
+ * first item on the list is a minus, the provided licenses will be excluded from the result.
+ */
+private fun ApplicationCall.declaredLicense(): FilterOperatorAndValue<Set<String>>? = licenseFilter("declaredLicense")
+
+private fun ApplicationCall.licenseFilter(parameterName: String): FilterOperatorAndValue<Set<String>>? {
+    val parts = parameters[parameterName]?.split(',')?.toMutableSet() ?: return null
 
     return if (parts.removeIf { it == "-" }) {
         FilterOperatorAndValue(ComparisonOperator.NOT_IN, parts)
@@ -539,6 +549,7 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
         identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         processedDeclaredLicense = processedDeclaredLicense(),
+        declaredLicense = declaredLicense(),
         isDirectDependency = parameters["isDirectDependency"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
