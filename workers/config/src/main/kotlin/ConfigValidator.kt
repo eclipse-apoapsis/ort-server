@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
-import org.ossreviewtoolkit.utils.scripting.ScriptRunner
+import org.ossreviewtoolkit.utils.script.ScriptRunner
 
 import org.slf4j.LoggerFactory
 

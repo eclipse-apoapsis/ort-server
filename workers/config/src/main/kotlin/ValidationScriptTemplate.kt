@@ -27,7 +27,7 @@ import kotlin.time.Instant
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
-import org.ossreviewtoolkit.utils.scripting.OrtScriptCompilationConfiguration
+import org.ossreviewtoolkit.utils.script.OrtScriptCompilationConfiguration
 
 /**
  * A template defining the interface for scripts that can validate the parameters of an ORT run.
