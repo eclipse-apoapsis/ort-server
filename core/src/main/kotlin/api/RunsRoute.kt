@@ -292,7 +292,8 @@ fun Route.runs() = route("runs") {
             route("licenses") {
                 get(getRunPackageLicenses, requireRunPermission()) {
                     val licenses = Licenses(
-                        packageService.getProcessedDeclaredLicenses(call.ortRun.id)
+                        processedDeclaredLicenses = packageService.getProcessedDeclaredLicenses(call.ortRun.id),
+                        unmappedDeclaredLicenses = packageService.getUnmappedDeclaredLicenses(call.ortRun.id)
                     )
 
                     call.respond(HttpStatusCode.OK, licenses)
