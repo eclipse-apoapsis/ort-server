@@ -843,7 +843,7 @@ fun ApiPackageFilters.mapToModel(): PackageFilters =
     PackageFilters(
         identifier = identifier?.mapToModel { it },
         purl = purl?.mapToModel { it },
-        processedDeclaredLicense = processedDeclaredLicense?.mapToModel { it },
+        declaredLicense = declaredLicense?.mapToModel { it },
         isDirectDependency = isDirectDependency
     )
 

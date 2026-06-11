@@ -53,7 +53,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.core.not
-import org.jetbrains.exposed.v1.core.notInList
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
@@ -107,18 +107,27 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 query.andWhere { PackagesTable.purl.applyILike(filter.value) }
             }
 
-            filters.processedDeclaredLicense?.let { filter ->
+            filters.declaredLicense?.let { filter ->
                 require(filter.operator == ComparisonOperator.IN || filter.operator == ComparisonOperator.NOT_IN) {
-                    "Unsupported operator for identifier filter: ${filter.operator}"
+                    "Unsupported operator for declared license filter: ${filter.operator}"
                 }
 
+                val packageIdsSubquery = PackagesTable.joinAnalyzerTables()
+                    .innerJoin(ProcessedDeclaredLicensesTable)
+                    .leftJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
+                    .leftJoin(UnmappedDeclaredLicensesTable)
+                    .select(PackagesTable.id)
+                    .where {
+                        (AnalyzerJobsTable.ortRunId eq ortRunId) and
+                            (
+                                (ProcessedDeclaredLicensesTable.spdxExpression inList filter.value) or
+                                    (UnmappedDeclaredLicensesTable.unmappedLicense inList filter.value)
+                            )
+                    }
+
                 when (filter.operator) {
-                    ComparisonOperator.IN ->
-                        query.andWhere { ProcessedDeclaredLicensesTable.spdxExpression inList filter.value }
-
-                    ComparisonOperator.NOT_IN ->
-                        query.andWhere { ProcessedDeclaredLicensesTable.spdxExpression notInList filter.value }
-
+                    ComparisonOperator.IN -> query.andWhere { PackagesTable.id inSubQuery packageIdsSubquery }
+                    ComparisonOperator.NOT_IN -> query.andWhere { not(PackagesTable.id inSubQuery packageIdsSubquery) }
                     else -> {}
                 }
             }

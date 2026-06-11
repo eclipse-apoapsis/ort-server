@@ -538,10 +538,11 @@ val getRunPackages: RouteConfig.() -> Unit = {
                     "substring match."
         }
 
-        queryParameter<String>("processedDeclaredLicense") {
-            description = "Defines the processed declared licenses for which packages are to be retrieved. This is a " +
+        queryParameter<String>("declaredLicense") {
+            description = "Defines the displayed declared license values for which packages are to be retrieved, " +
+                    "including processed declared licenses and unmapped declared license strings. This is a " +
                     "comma-separated string. Add a minus as the first item to exclude packages with the specified " +
-                    "license expressions, e.g. '-,MIT'."
+                    "licenses, e.g. '-,MIT'."
         }
 
         queryParameter<Boolean>("isDirectDependency") {
@@ -629,7 +630,7 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                 operator = ComparisonOperator.ILIKE,
                                 value = "pkg:maven/org.example/name@1.0"
                             ),
-                            processedDeclaredLicense = FilterOperatorAndValue(
+                            declaredLicense = FilterOperatorAndValue(
                                 operator = ComparisonOperator.IN,
                                 value = setOf("Apache-2.0")
                             ),

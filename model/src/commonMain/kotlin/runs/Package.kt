@@ -51,8 +51,8 @@ data class PackageFilters(
     /** Substring filter for purl. Null if not set. */
     val purl: FilterOperatorAndValue<String>? = null,
 
-    /** Set of SPDX license expressions to filter with. Null if not set. */
-    val processedDeclaredLicense: FilterOperatorAndValue<Set<String>>? = null,
+    /** Set of declared license values to filter with. Null if not set. */
+    val declaredLicense: FilterOperatorAndValue<Set<String>>? = null,
 
     /** Filter by dependency type. True = direct, false = transitive, null = all. */
     val isDirectDependency: Boolean? = null
