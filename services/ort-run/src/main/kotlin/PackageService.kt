@@ -31,7 +31,9 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackageDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.CuratedPackagesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
@@ -236,7 +238,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 }
         }
 
-    /** Get all distinct processed declared license expressions found in packages in an ORT run. */
+    /** Return distinct processed declared SPDX expressions for the ORT run. */
     suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> =
         db.dbQuery {
             PackagesTable.joinAnalyzerTables()
@@ -246,6 +248,20 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 .where { AnalyzerJobsTable.ortRunId eq ortRunId }
                 .orderBy(ProcessedDeclaredLicensesTable.spdxExpression)
                 .mapNotNull { it[ProcessedDeclaredLicensesTable.spdxExpression] }
+        }
+
+    /** Return distinct unmapped declared license strings for the ORT run. */
+    suspend fun getUnmappedDeclaredLicenses(ortRunId: Long): List<String> =
+        db.dbQuery {
+            PackagesTable.joinAnalyzerTables()
+                .innerJoin(ProcessedDeclaredLicensesTable)
+                .innerJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
+                .innerJoin(UnmappedDeclaredLicensesTable)
+                .select(UnmappedDeclaredLicensesTable.unmappedLicense)
+                .withDistinct()
+                .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+                .orderBy(UnmappedDeclaredLicensesTable.unmappedLicense)
+                .map { it[UnmappedDeclaredLicensesTable.unmappedLicense] }
         }
 }
 

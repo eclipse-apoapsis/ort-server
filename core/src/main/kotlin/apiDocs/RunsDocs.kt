@@ -845,7 +845,7 @@ val getRunStatistics: RouteConfig.() -> Unit = {
 
 val getRunPackageLicenses: RouteConfig.() -> Unit = {
     operationId = "getRunPackageLicenses"
-    summary = "Get the licenses for packages found in an ORT run"
+    summary = "Get the declared licenses for packages found in an ORT run"
     tags = listOf("Runs")
 
     request {
@@ -856,10 +856,15 @@ val getRunPackageLicenses: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.OK to {
+            description = "Success. The response contains independently deduplicated and alphabetically sorted " +
+                    "processed and unmapped declared licenses."
             jsonBody<Licenses> {
                 example("Get licenses for packages") {
                     value = Licenses(
-                        processedDeclaredLicenses = listOf("Apache-2.0", "MIT")
+                        processedDeclaredLicenses = listOf("Apache-2.0", "MIT"),
+                        unmappedDeclaredLicenses = listOf(
+                            "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                        )
                     )
                 }
             }

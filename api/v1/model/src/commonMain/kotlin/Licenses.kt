@@ -27,5 +27,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Licenses(
     /** The distinct processed declared license expressions. */
-    val processedDeclaredLicenses: List<String>
+    val processedDeclaredLicenses: List<String>,
+
+    /** The distinct unmapped declared license strings. */
+    val unmappedDeclaredLicenses: List<String> = emptyList()
 )

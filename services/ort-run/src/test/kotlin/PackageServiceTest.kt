@@ -784,7 +784,7 @@ class PackageServiceTest : WordSpec() {
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "MIT",
                                 emptyMap(),
-                                emptySet()
+                                setOf("MIT")
                             )
                         ),
                         fixtures.generatePackage(
@@ -800,8 +800,45 @@ class PackageServiceTest : WordSpec() {
 
                 val licenses = service.getProcessedDeclaredLicenses(ortRunId)
 
-                licenses shouldHaveSize 3
                 licenses shouldBe listOf("Apache-2.0", "Apache-2.0 OR LGPL-2.1-or-later", "MIT")
+            }
+        }
+
+        "getUnmappedDeclaredLicenses" should {
+            "return the distinct unmapped declared licenses found in packages in the ORT run" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                setOf(licenseUrl, "custom-license")
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl, "MIT")
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("NPM", "com.example", "example3", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val licenses = service.getUnmappedDeclaredLicenses(ortRunId)
+
+                licenses shouldBe listOf("custom-license", licenseUrl, "MIT")
             }
         }
     }

@@ -2927,8 +2927,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "GET /runs/{runId}/packages/licenses" should {
-        "return the processed declared licenses found in packages" {
+        "return the processed and unmapped declared licenses found in packages" {
             integrationTestApplication {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
                 val ortRunId = dbExtension.fixtures.createOrtRun(
                     repositoryId = repositoryId,
                     revision = "revision",
@@ -2945,7 +2946,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "LGPL-2.1-or-later",
                                 emptyMap(),
-                                emptySet()
+                                setOf("custom-license", licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
@@ -2953,7 +2954,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "Apache-2.0 OR LGPL-2.1-or-later",
                                 emptyMap(),
-                                emptySet()
+                                setOf(licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
@@ -2961,7 +2962,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "MIT",
                                 emptyMap(),
-                                emptySet()
+                                setOf("MIT")
                             )
                         )
                     )
@@ -2978,6 +2979,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "LGPL-2.1-or-later",
                     "MIT"
                 )
+                licenses.unmappedDeclaredLicenses shouldBe listOf("custom-license", licenseUrl, "MIT")
             }
         }
 
