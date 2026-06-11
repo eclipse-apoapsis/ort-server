@@ -26,7 +26,7 @@
     },
     {
       "matchPackageNames": ["eclipse-temurin"],
-      "allowedVersions": "< 22"
+      "allowedVersions": "< 26"
     },
     {
       "matchPackageNames": ["docusaurus-plugin-openapi-docs", "docusaurus-theme-openapi-docs"],
