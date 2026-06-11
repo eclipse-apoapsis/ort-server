@@ -2925,8 +2925,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "GET /runs/{runId}/packages/licenses" should {
-        "return the processed declared licenses found in packages" {
+        "return the processed and unmapped declared licenses found in packages" {
             integrationTestApplication {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
                 val ortRunId = dbExtension.fixtures.createOrtRun(
                     repositoryId = repositoryId,
                     revision = "revision",
@@ -2941,25 +2942,25 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         dbExtension.fixtures.generatePackage(
                             Identifier("Maven", "com.example", "example", "1.0"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
-                                "LGPL-2.1-or-later",
-                                emptyMap(),
-                                emptySet()
+                                spdxExpression = "LGPL-2.1-or-later",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = setOf("custom-license", licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
                             Identifier("Maven", "com.example", "example2", "1.0"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
-                                "Apache-2.0 OR LGPL-2.1-or-later",
-                                emptyMap(),
-                                emptySet()
+                                spdxExpression = "Apache-2.0 OR LGPL-2.1-or-later",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = setOf(licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
                             Identifier("NPM", "", "example", "1.0"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
-                                "MIT",
-                                emptyMap(),
-                                emptySet()
+                                spdxExpression = "MIT",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = setOf("unknown-license")
                             )
                         )
                     )
@@ -2976,6 +2977,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "LGPL-2.1-or-later",
                     "MIT"
                 )
+                licenses.unmappedDeclaredLicenses shouldBe listOf("custom-license", licenseUrl, "unknown-license")
             }
         }
 
