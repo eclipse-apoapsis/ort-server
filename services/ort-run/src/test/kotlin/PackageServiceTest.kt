@@ -457,7 +457,8 @@ class PackageServiceTest : WordSpec() {
                 }
             }
 
-            "allow filtering by processed declared license" {
+            "allow filtering by declared license" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(
@@ -465,7 +466,7 @@ class PackageServiceTest : WordSpec() {
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "Apache-2.0 OR LGPL-2.1-or-later",
                                 emptyMap(),
-                                emptySet()
+                                setOf(licenseUrl)
                             )
                         ),
                         fixtures.generatePackage(
@@ -491,9 +492,9 @@ class PackageServiceTest : WordSpec() {
                     ortRunId,
                     ListQueryParameters(listOf(OrderField("processedDeclaredLicense", OrderDirection.ASCENDING))),
                     PackageFilters(
-                        processedDeclaredLicense = FilterOperatorAndValue(
+                        declaredLicense = FilterOperatorAndValue(
                             ComparisonOperator.IN,
-                            setOf("MIT", "Apache-2.0 OR LGPL-2.1-or-later")
+                            setOf("MIT", licenseUrl)
                         )
                     )
                 )
@@ -510,6 +511,54 @@ class PackageServiceTest : WordSpec() {
                     identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0").mapToApi()
                     processedDeclaredLicense.spdxExpression shouldBe "MIT"
                 }
+            }
+
+            "allow excluding by declared license" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "processed", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                spdxExpression = "Apache-2.0",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "unmapped", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                spdxExpression = "MIT",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = setOf(licenseUrl)
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "other", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                spdxExpression = "BSD-2-Clause",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf("Apache-2.0", licenseUrl)
+                        )
+                    )
+                )
+
+                results.data.shouldBeSingleton {
+                    it.identifier.name shouldBe "other"
+                }
+                results.totalCount shouldBe 1
             }
 
             "allow filtering by direct dependencies" {

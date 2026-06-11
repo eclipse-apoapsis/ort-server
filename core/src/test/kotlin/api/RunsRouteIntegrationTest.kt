@@ -1750,8 +1750,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "allow filtering by processed declared license and identifier" {
+        "allow filtering by declared license" {
             integrationTestApplication {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
                 val ortRunId = dbExtension.fixtures.createOrtRun(
                     repositoryId = repositoryId,
                     revision = "revision",
@@ -1763,10 +1764,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     configuration = AnalyzerJobConfiguration()
                 ).id
 
-                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
-                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
-                val identifier3 = Identifier("Maven", "com.example", "example3", "1.0")
-                val identifier4 = Identifier("NPM", "com.example", "example4", "1.0")
+                val identifier1 = Identifier("Maven", "com.example", "processed", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "unmapped", "1.0")
+                val identifier3 = Identifier("Maven", "com.example", "other", "1.0")
 
                 dbExtension.fixtures.createAnalyzerRun(
                     analyzerJobId,
@@ -1784,21 +1784,13 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "Apache-2.0",
                                 emptyMap(),
-                                emptySet()
+                                setOf(licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
                             identifier3,
                             processedDeclaredLicense = ProcessedDeclaredLicense(
-                                "Apache-2.0",
-                                emptyMap(),
-                                emptySet()
-                            )
-                        ),
-                        dbExtension.fixtures.generatePackage(
-                            identifier4,
-                            processedDeclaredLicense = ProcessedDeclaredLicense(
-                                "MIT",
+                                "BSD-2-Clause",
                                 emptyMap(),
                                 emptySet()
                             )
@@ -1808,24 +1800,22 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/$ortRunId/packages") {
                     url {
-                        parameters.append("processedDeclaredLicense", "-,Apache-2.0 OR LGPL-2.1-or-later,MIT")
-                        parameters.append("identifier", "example3")
+                        parameters.append("declaredLicense", "Apache-2.0 OR LGPL-2.1-or-later,$licenseUrl")
                     }
                 }
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
-                packages.data shouldHaveSize 1
-                packages.data.first().processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
-                packages.data.first().identifier shouldBe identifier3.mapToApi()
-
+                packages.data.map { it.identifier } should containExactly(
+                    identifier1.mapToApi(),
+                    identifier2.mapToApi()
+                )
                 packages.filters shouldBe PackageFilters(
-                    processedDeclaredLicense = FilterOperatorAndValue(
-                        ComparisonOperator.NOT_IN,
-                        setOf("Apache-2.0 OR LGPL-2.1-or-later", "MIT")
-                    ),
-                    identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "example3")
+                    declaredLicense = FilterOperatorAndValue(
+                        ComparisonOperator.IN,
+                        setOf("Apache-2.0 OR LGPL-2.1-or-later", licenseUrl)
+                    )
                 )
             }
         }
