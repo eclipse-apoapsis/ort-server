@@ -61,7 +61,7 @@ dependencies {
     implementation(libs.kotlinResult)
     implementation(libs.typesafeConfig)
     implementation(ortLibs.model)
-    implementation(ortLibs.utils.scripting)
+    implementation(ortLibs.utils.script)
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))
