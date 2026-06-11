@@ -37,14 +37,17 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
+type FilterOption<TValue> = {
+  label: string;
+  value: TValue;
+  icon?: React.ComponentType<{ className?: string }>;
+  group?: string;
+};
+
 interface FilterMultiSelectProps<TValue> {
   title?: string;
   showTitle?: boolean; // Whether to show the title next to the filter icon
-  options: {
-    label: string;
-    value: TValue;
-    icon?: React.ComponentType<{ className?: string }>;
-  }[];
+  options: FilterOption<TValue>[];
   selected: TValue[];
   setSelected: (selected: TValue[]) => void;
   align?: 'start' | 'end' | 'center';
@@ -58,6 +61,52 @@ export function FilterMultiSelect<TValue>({
   setSelected,
   align = 'start',
 }: FilterMultiSelectProps<TValue>) {
+  const optionGroups = options.reduce<
+    { group?: string; options: FilterOption<TValue>[] }[]
+  >((groups, option) => {
+    const previousGroup = groups.at(-1);
+
+    if (previousGroup && previousGroup.group === option.group) {
+      previousGroup.options.push(option);
+    } else {
+      groups.push({ group: option.group, options: [option] });
+    }
+
+    return groups;
+  }, []);
+
+  const renderOption = (option: FilterOption<TValue>) => {
+    const isSelected = selected.includes(option.value);
+
+    return (
+      <CommandItem
+        key={String(option.value)}
+        onSelect={() => {
+          if (isSelected) {
+            setSelected(selected.filter((value) => value !== option.value));
+          } else {
+            setSelected([...selected, option.value]);
+          }
+        }}
+      >
+        <div
+          className={cn(
+            'border-primary mr-2 flex h-4 w-4 items-center justify-center rounded-sm border',
+            isSelected
+              ? 'bg-primary text-primary-foreground'
+              : 'opacity-50 [&_svg]:invisible'
+          )}
+        >
+          <Check className={cn('h-4 w-4')} />
+        </div>
+        {option.icon && (
+          <option.icon className='text-muted-foreground mr-2 h-4 w-4' />
+        )}
+        <span>{option.label}</span>
+      </CommandItem>
+    );
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -76,40 +125,14 @@ export function FilterMultiSelect<TValue>({
           {options.length > 5 && <CommandInput placeholder={title} />}
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => {
-                const isSelected = selected.includes(option.value);
-                return (
-                  <CommandItem
-                    key={String(option.value)}
-                    onSelect={() => {
-                      if (isSelected) {
-                        setSelected(
-                          selected.filter((value) => value !== option.value)
-                        );
-                      } else {
-                        setSelected([...selected, option.value]);
-                      }
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        'border-primary mr-2 flex h-4 w-4 items-center justify-center rounded-sm border',
-                        isSelected
-                          ? 'bg-primary text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible'
-                      )}
-                    >
-                      <Check className={cn('h-4 w-4')} />
-                    </div>
-                    {option.icon && (
-                      <option.icon className='text-muted-foreground mr-2 h-4 w-4' />
-                    )}
-                    <span>{option.label}</span>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+            {optionGroups.map((group, index) => (
+              <React.Fragment key={group.group ?? `group-${index}`}>
+                {index > 0 && <CommandSeparator />}
+                <CommandGroup heading={group.group}>
+                  {group.options.map(renderOption)}
+                </CommandGroup>
+              </React.Fragment>
+            ))}
             {selected.length > 0 && (
               <>
                 <CommandSeparator />

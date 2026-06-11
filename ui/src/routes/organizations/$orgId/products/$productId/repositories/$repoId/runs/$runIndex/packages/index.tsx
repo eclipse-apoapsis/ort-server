@@ -379,7 +379,7 @@ const PackagesComponent = () => {
         ...(packageIdType === 'ORT_ID'
           ? { identifier: packageId }
           : { purl: packageId }),
-        processedDeclaredLicense: declaredLicense?.join(','),
+        declaredLicense: declaredLicense?.join(','),
         isDirectDependency,
       },
     }),
@@ -488,13 +488,22 @@ const PackagesComponent = () => {
           filter: {
             filterVariant: 'select',
             align: 'end',
-            selectOptions:
-              declaredLicensesOptions.processedDeclaredLicenses.map(
+            selectOptions: [
+              ...declaredLicensesOptions.processedDeclaredLicenses.map(
                 (license) => ({
                   label: license,
                   value: license,
+                  group: 'Processed licenses',
                 })
               ),
+              ...(declaredLicensesOptions.unmappedDeclaredLicenses ?? []).map(
+                (license) => ({
+                  label: license,
+                  value: license,
+                  group: 'Unmapped licenses',
+                })
+              ),
+            ],
             setSelected: (licenses: string[]) => {
               navigate({
                 search: {
