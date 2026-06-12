@@ -159,8 +159,6 @@ jobs:
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
-        build-contexts: |
-          ort-server-base-image:latest=docker-image://localhost:5000/ort-server-base-image:latest
         push: ${{ env.PUSH_IMAGE }}
         load: ${{ env.LOAD_IMAGE }}
         tags: ${{ steps.meta-base.outputs.tags }}
