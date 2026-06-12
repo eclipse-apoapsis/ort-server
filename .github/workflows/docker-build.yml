@@ -84,6 +84,7 @@ jobs:
           image: ui
           context: ui
           dockerfile: docker/UI.Dockerfile
+          skipWorkerBaseImage: true
 
     steps:
     - name: Checkout Repository
@@ -143,6 +144,7 @@ jobs:
         echo "PUSH_IMAGE=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
 
     - name: Build worker base image
+      if: ${{ !matrix.docker.skipWorkerBaseImage }}
       uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
       with:
         context: docker
