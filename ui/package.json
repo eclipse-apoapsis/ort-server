@@ -78,7 +78,7 @@
     "@tanstack/router-cli": "1.167.12",
     "@tanstack/router-vite-plugin": "1.167.13",
     "@types/node": "24.13.0",
-    "@types/react": "19.2.16",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.60.1",
     "@typescript-eslint/parser": "8.60.1",
