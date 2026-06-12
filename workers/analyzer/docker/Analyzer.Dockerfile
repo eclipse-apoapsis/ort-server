@@ -233,7 +233,7 @@ FROM rustbuild AS cargo-credential-netrc-build
 
 ENV PATH=$PATH:$CARGO_HOME/bin
 
-RUN cargo install cargo-credential-netrc --root /opt/cargo-credential-netrc
+RUN cargo install cargo-credential-netrc --locked --root /opt/cargo-credential-netrc
 
 FROM scratch AS cargo-credential-netrc
 COPY --from=cargo-credential-netrc-build /opt/cargo-credential-netrc /opt/cargo-credential-netrc
