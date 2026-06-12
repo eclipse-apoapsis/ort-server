@@ -144,20 +144,24 @@ export const createPluginConfigSchema = (
 };
 
 /**
- * Merge the plugin configs from the last run with the default plugin configs. The configs from the last run take
- * precedence.
+ * Merge the plugin configs from the last run with the default plugin configs.
+ * For fixed options, values configured via plugin descriptors take precedence.
+ * For non-fixed options, values from the last run take precedence.
  */
 export function mergePluginConfigs(
   lastRunConfig: { [p: string]: PluginConfig } | null | undefined,
-  defaultConfig: Record<string, PluginConfig>
+  defaultConfig: Record<string, PluginConfig>,
+  plugins: PreconfiguredPluginDescriptor[]
 ): Record<string, PluginConfig> {
   const merged: Record<string, PluginConfig> = {};
+  const pluginById = new Map(plugins.map((plugin) => [plugin.id, plugin]));
 
   for (const pluginId of Object.keys(defaultConfig)) {
     const defaultPlugin = defaultConfig[pluginId];
     const ortPlugin = lastRunConfig?.[pluginId];
+    const pluginDescriptor = pluginById.get(pluginId);
 
-    merged[pluginId] = {
+    const mergedPlugin: PluginConfig = {
       options: {
         ...(defaultPlugin?.options ?? {}),
         ...(ortPlugin?.options ?? {}),
@@ -167,6 +171,22 @@ export function mergePluginConfigs(
         ...(ortPlugin?.secrets ?? {}),
       },
     };
+
+    for (const option of pluginDescriptor?.options ?? []) {
+      if (!option.isFixed) continue;
+
+      const section = option.type === 'SECRET' ? 'secrets' : 'options';
+      const defaultSection = defaultPlugin?.[section] ?? {};
+      const defaultValue = defaultSection[option.name];
+
+      if (defaultValue !== undefined) {
+        mergedPlugin[section][option.name] = defaultValue;
+      } else {
+        delete mergedPlugin[section][option.name];
+      }
+    }
+
+    merged[pluginId] = mergedPlugin;
   }
 
   if (lastRunConfig) {

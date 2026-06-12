@@ -24,6 +24,7 @@ import {
   createPluginPayload,
   createProviderPluginPayload,
   getPluginDefaultValues,
+  mergePluginConfigs,
   providerPluginConfigsToFormValues,
   reconstructScannerSelection,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/plugin-utils';
@@ -209,6 +210,79 @@ it('reconstructScannerSelection rebuilds scanner scopes for rerun values', () =>
     scanners: ['SCANOSS'],
     scannerScopes: {
       SCANOSS: 'both',
+    },
+  });
+});
+
+it('mergePluginConfigs enforces fixed option precedence and clears missing fixed defaults', () => {
+  const plugins = [
+    createPluginDescriptor({
+      id: 'SCANOSS',
+      type: 'SCANNER',
+      options: [
+        {
+          name: 'url',
+          description: 'The API URL.',
+          type: 'STRING',
+          defaultValue: 'https://scanner.example/api',
+          isFixed: true,
+          isNullable: false,
+          isRequired: false,
+        },
+        {
+          name: 'fixedNoDefault',
+          description: 'A fixed option without default.',
+          type: 'STRING',
+          isFixed: true,
+          isNullable: false,
+          isRequired: false,
+        },
+        {
+          name: 'fixedSecret',
+          description: 'A fixed secret option.',
+          type: 'SECRET',
+          defaultValue: 'admin-provided',
+          isFixed: true,
+          isNullable: false,
+          isRequired: true,
+        },
+        {
+          name: 'timeout',
+          description: 'Timeout in seconds.',
+          type: 'INTEGER',
+          defaultValue: '30',
+          isFixed: false,
+          isNullable: false,
+          isRequired: false,
+        },
+      ],
+    }),
+  ];
+
+  const merged = mergePluginConfigs(
+    {
+      SCANOSS: {
+        options: {
+          url: 'https://old.example/api',
+          fixedNoDefault: 'legacy-value',
+          timeout: '90',
+        },
+        secrets: {
+          fixedSecret: 'legacy-secret',
+        },
+      },
+    },
+    getPluginDefaultValues(plugins),
+    plugins
+  );
+
+  expect(merged.SCANOSS).toEqual({
+    options: {
+      url: 'https://scanner.example/api',
+      timeout: '90',
+    },
+    secrets: {
+      fixedSecret: ADMIN_SECRET_VALUE,
     },
   });
 });

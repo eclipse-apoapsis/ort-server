@@ -255,7 +255,8 @@ export function defaultValues(
               packageCurationProviderFormValues.selectedPluginIds,
             packageCurationProviderConfig: mergePluginConfigs(
               packageCurationProviderFormValues.config,
-              packageCurationProviderPluginDefaultValues
+              packageCurationProviderPluginDefaultValues,
+              packageCurationProviderPlugins
             ),
             keepAliveWorker:
               (ortRun.jobConfigs.analyzer?.keepAliveWorker && isSuperuser) ||
@@ -273,7 +274,8 @@ export function defaultValues(
               baseDefaults.jobConfigs.advisor.advisors,
             config: mergePluginConfigs(
               ortRun?.jobConfigs?.advisor?.config,
-              advisorPluginDefaultValues
+              advisorPluginDefaultValues,
+              advisorPlugins
             ),
             keepAliveWorker:
               (ortRun.jobConfigs.advisor?.keepAliveWorker && isSuperuser) ||
@@ -299,7 +301,8 @@ export function defaultValues(
             ),
             config: mergePluginConfigs(
               ortRun.jobConfigs.scanner?.config,
-              scannerPluginDefaultValues
+              scannerPluginDefaultValues,
+              scannerPlugins
             ),
           },
           evaluator: {
@@ -310,7 +313,8 @@ export function defaultValues(
               evaluatorPackageConfigurationProviderFormValues.selectedPluginIds,
             packageConfigurationProviderConfig: mergePluginConfigs(
               evaluatorPackageConfigurationProviderFormValues.config,
-              packageConfigurationProviderPluginDefaultValues
+              packageConfigurationProviderPluginDefaultValues,
+              packageConfigurationProviderPlugins
             ),
             keepAliveWorker:
               (ortRun.jobConfigs.evaluator?.keepAliveWorker && isSuperuser) ||
@@ -330,7 +334,8 @@ export function defaultValues(
               reporterPackageConfigurationProviderFormValues.selectedPluginIds,
             packageConfigurationProviderConfig: mergePluginConfigs(
               reporterPackageConfigurationProviderFormValues.config,
-              packageConfigurationProviderPluginDefaultValues
+              packageConfigurationProviderPluginDefaultValues,
+              packageConfigurationProviderPlugins
             ),
             keepAliveWorker:
               (ortRun.jobConfigs.reporter?.keepAliveWorker && isSuperuser) ||
