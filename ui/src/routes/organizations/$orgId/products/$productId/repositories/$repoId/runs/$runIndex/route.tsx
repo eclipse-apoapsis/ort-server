@@ -31,6 +31,7 @@ import {
   Logs,
   Scale,
   ShieldQuestion,
+  SquareScissors,
 } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -74,6 +75,15 @@ const Layout = () => {
             sortBy: [{ id: 'packageCount', desc: true }],
           },
           icon: () => <FileText className='h-4 w-4' />,
+        },
+        {
+          title: 'Detected Snippets',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings',
+          params,
+          search: {
+            sortBy: [{ id: 'name', desc: false }],
+          },
+          icon: () => <SquareScissors className='h-4 w-4' />,
         },
         {
           title: 'Vulnerabilities',
