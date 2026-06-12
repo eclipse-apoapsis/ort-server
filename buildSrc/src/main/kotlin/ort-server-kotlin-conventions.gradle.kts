@@ -57,7 +57,7 @@ detekt {
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         allWarningsAsErrors = true
-        freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility", "-Xcontext-parameters")
+        freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility")
     }
 }
 
