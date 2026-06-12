@@ -20,9 +20,88 @@ env:
   IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-RC') }}
 
 jobs:
+  build-base-image:
+    name: Build Base Image
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
+
+    - name: Get ORT-Server Version
+      run: |
+        ORT_SERVER_VERSION=$(./gradlew -q printVersion)
+        echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
+
+    - name: Extract Docker Metadata for base image
+      id: meta-base-image
+      uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image
+        tags: |
+          type=raw,value=${{ env.ORT_SERVER_VERSION }}
+          type=ref,event=branch
+          type=sha
+          type=raw,value=latest,enable=${{ env.IS_RELEASE }}
+
+    - name: Set cache-to
+      run: |
+        # Only write to the registry cache of the base image if the workflow is not running for a PR.
+        echo "BASE_CACHE_TO=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache,mode=max' || echo '')" >> $GITHUB_ENV
+
+    # Build the base image exactly once and export it as a tarball, so that all matrix jobs of the "build" job can reuse
+    # the identical image (and therefore the cache layers built on top of it) without rebuilding it in parallel.
+    - name: Build base image
+      uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+      with:
+        context: docker
+        file: docker/Base.Dockerfile
+        tags: localhost:5000/ort-server-base-image:${{ env.ORT_SERVER_VERSION }}
+        labels: ${{ steps.meta-base-image.outputs.labels }}
+        outputs: type=docker,dest=/tmp/ort-server-base-image.tar
+        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
+        cache-to: ${{ env.BASE_CACHE_TO }}
+
+    - name: Upload base image artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ort-server-base-image
+        path: /tmp/ort-server-base-image.tar
+        retention-days: 1
+
+    # Publish the base image to the registry for non-PR builds. This reuses the cache written above, so it is a cache
+    # hit that produces the identical image and only pushes it to the registry.
+    - name: Publish base image to registry
+      if: ${{ env.IS_PR == 'false' }}
+      uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+      with:
+        context: docker
+        file: docker/Base.Dockerfile
+        tags: ${{ steps.meta-base-image.outputs.tags }}
+        labels: ${{ steps.meta-base-image.outputs.labels }}
+        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
+        push: true
+
   build:
     name: Build ${{ matrix.docker.jibImage || matrix.docker.image }} Docker Image
     runs-on: ubuntu-24.04
+    needs: build-base-image
     services:
       registry:
         image: registry:3
@@ -32,9 +111,10 @@ jobs:
       packages: write
     strategy:
       matrix:
-        # Define the Docker images to build. The job first builds an image using Docker which is used for the ui and for
-        # worker base images. Then the job builds an image using Jib. Both steps are optional, e.g., not all Jib builds
-        # need a base image, and the ui build does not need a Jib build.
+        # Define the Docker images to build. The common base image is built once by the "build-base-image" job and
+        # reused here; this job makes it available in the local registry (unless skipWorkerBaseImage is set), then
+        # builds an image using Docker and/or Jib on top of it. Both build steps are optional, e.g., not all Jib builds
+        # need a Docker image, and the ui build does not need a Jib build.
         #
         # If the image is built with Docker:
         # preparationTask (optional): Gradle task to run before building the image.
@@ -48,7 +128,7 @@ jobs:
         #
         # Optional properties:
         # freeDiskSpace: Whether to free disk space before building the image.
-        # skipWorkerBaseImage: Whether to skip building the worker base image.
+        # skipWorkerBaseImage: Whether to skip providing the common base image (set for images not based on it).
         docker:
         - jibImage: core
           task: :core:tinyJibDocker
@@ -136,24 +216,25 @@ jobs:
       run: |
         # Only write to the registry cache if the workflow is not running for a PR.
         echo "CACHE_TO=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max' || echo '')" >> $GITHUB_ENV
-        # Only write to the registry cache of the base image if the workflow is not running for a PR.
-        echo "BASE_CACHE_TO=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache,mode=max' || echo '')" >> $GITHUB_ENV
         # Load the image to the Docker daemon if it is required as a base image for the Jib build.
         echo "LOAD_IMAGE=$([[ '${{ matrix.docker.task }}' != '' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
         # Push the image to the registry if it is not a PR and no Jib build is configured.
         echo "PUSH_IMAGE=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
 
-    - name: Build worker base image
+    # Reuse the base image built once by the "build-base-image" job and make it available in this job's local registry,
+    # so that it can be used as the base image for the Docker and Jib builds below.
+    - name: Download worker base image
       if: ${{ !matrix.docker.skipWorkerBaseImage }}
-      uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
-        context: docker
-        file: docker/Base.Dockerfile
-        tags: localhost:5000/ort-server-base-image:${{ env.ORT_SERVER_VERSION }}
-        labels: ${{ steps.meta-base.outputs.labels }}
-        push: true
-        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
-        cache-to: ${{ env.BASE_CACHE_TO }}
+        name: ort-server-base-image
+        path: /tmp
+
+    - name: Provide worker base image
+      if: ${{ !matrix.docker.skipWorkerBaseImage }}
+      run: |
+        docker load --input /tmp/ort-server-base-image.tar
+        docker push localhost:5000/ort-server-base-image:${{ env.ORT_SERVER_VERSION }}
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
@@ -219,52 +300,3 @@ jobs:
         if [ "${{ env.IS_PR }}" = "false" ]; then
           docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
         fi
-
-  publish-base-image:
-    name: Publish Base Image
-    runs-on: ubuntu-24.04
-    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
-    permissions:
-      packages: write
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
-
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
-
-    - name: Get ORT-Server Version
-      run: |
-        ORT_SERVER_VERSION=$(./gradlew -q printVersion)
-        echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
-
-    - name: Extract Docker Metadata for base image
-      id: meta-base-image
-      uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
-      with:
-        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image
-        tags: |
-          type=raw,value=${{ env.ORT_SERVER_VERSION }}
-          type=ref,event=branch
-          type=sha
-          type=raw,value=latest,enable=${{ env.IS_RELEASE }}
-
-    - name: Build and push base image to registry
-      uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
-      with:
-        context: docker
-        file: docker/Base.Dockerfile
-        tags: ${{ steps.meta-base-image.outputs.tags }}
-        labels: ${{ steps.meta-base-image.outputs.labels }}
-        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
-        push: true
