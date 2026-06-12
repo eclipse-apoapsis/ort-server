@@ -25,6 +25,8 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       packages: write
+    outputs:
+      ort-server-version: ${{ steps.version.outputs.version }}
     steps:
     - name: Checkout Repository
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -45,9 +47,11 @@ jobs:
       uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
 
     - name: Get ORT-Server Version
+      id: version
       run: |
         ORT_SERVER_VERSION=$(./gradlew -q printVersion)
         echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
+        echo "version=${ORT_SERVER_VERSION}" >> $GITHUB_OUTPUT
 
     - name: Extract Docker Metadata for base image
       id: meta-base-image
@@ -102,6 +106,8 @@ jobs:
     name: Build ${{ matrix.docker.jibImage || matrix.docker.image }} Docker Image
     runs-on: ubuntu-24.04
     needs: build-base-image
+    env:
+      ORT_SERVER_VERSION: ${{ needs.build-base-image.outputs.ort-server-version }}
     services:
       registry:
         image: registry:3
@@ -190,11 +196,6 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
-
-    - name: Get ORT-Server Version
-      run: |
-        ORT_SERVER_VERSION=$(./gradlew -q printVersion)
-        echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
 
     - name: Run Preparation Task ${{ matrix.docker.preparationTask }}
       if: ${{ matrix.docker.preparationTask != '' }}
