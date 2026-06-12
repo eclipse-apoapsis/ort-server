@@ -267,5 +267,4 @@ jobs:
         tags: ${{ steps.meta-base-image.outputs.tags }}
         labels: ${{ steps.meta-base-image.outputs.labels }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
-        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache,mode=max
         push: true
