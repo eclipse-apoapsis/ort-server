@@ -76,7 +76,9 @@ class SnippetDao(id: EntityID<Long>) : LongEntity(id) {
                 this.score = snippet.score
                 this.license = snippet.spdxLicense
                 this.additionalData = AdditionalSnippetData(snippet.additionalData)
-                this.vcs = (snippet.provenance as? RepositoryProvenance)?.vcsInfo?.let { VcsInfoDao.getOrPut(it) }
+                this.vcs = (snippet.provenance as? RepositoryProvenance)?.let { provenance ->
+                    provenance.vcsInfo.copy(revision = provenance.resolvedRevision).let { VcsInfoDao.getOrPut(it) }
+                }
                 this.artifact = (snippet.provenance as? ArtifactProvenance)?.sourceArtifact?.let {
                     RemoteArtifactDao.getOrPut(it)
                 }
