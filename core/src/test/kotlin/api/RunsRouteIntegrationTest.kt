@@ -1830,6 +1830,76 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "allow filtering by declared license" {
+            integrationTestApplication {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                ).id
+
+                val analyzerJobId = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRunId,
+                    configuration = AnalyzerJobConfiguration()
+                ).id
+
+                val identifier1 = Identifier("Maven", "com.example", "processed", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "unmapped", "1.0")
+                val identifier3 = Identifier("Maven", "com.example", "other", "1.0")
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId,
+                    packages = setOf(
+                        dbExtension.fixtures.generatePackage(
+                            identifier1,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            identifier2,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            identifier3,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/$ortRunId/packages") {
+                    url {
+                        parameters.append("declaredLicense", "Apache-2.0,$licenseUrl")
+                    }
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                packages.data.map { it.identifier } shouldContainExactly listOf(
+                    identifier1.mapToApi(),
+                    identifier2.mapToApi()
+                )
+                packages.filters shouldBe PackageFilters(
+                    declaredLicense = FilterOperatorAndValue(
+                        ComparisonOperator.IN,
+                        setOf("Apache-2.0", licenseUrl)
+                    )
+                )
+            }
+        }
+
         "allow filtering by direct dependencies" {
             integrationTestApplication {
                 val ortRun = dbExtension.fixtures.createOrtRun(
@@ -2927,8 +2997,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "GET /runs/{runId}/packages/licenses" should {
-        "return the processed declared licenses found in packages" {
+        "return the processed and unmapped declared licenses found in packages" {
             integrationTestApplication {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
                 val ortRunId = dbExtension.fixtures.createOrtRun(
                     repositoryId = repositoryId,
                     revision = "revision",
@@ -2945,7 +3016,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "LGPL-2.1-or-later",
                                 emptyMap(),
-                                emptySet()
+                                setOf("custom-license", licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
@@ -2953,7 +3024,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "Apache-2.0 OR LGPL-2.1-or-later",
                                 emptyMap(),
-                                emptySet()
+                                setOf(licenseUrl)
                             )
                         ),
                         dbExtension.fixtures.generatePackage(
@@ -2961,7 +3032,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "MIT",
                                 emptyMap(),
-                                emptySet()
+                                setOf("MIT")
                             )
                         )
                     )
@@ -2978,6 +3049,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     "LGPL-2.1-or-later",
                     "MIT"
                 )
+                licenses.unmappedDeclaredLicenses shouldBe listOf("custom-license", licenseUrl, "MIT")
             }
         }
 

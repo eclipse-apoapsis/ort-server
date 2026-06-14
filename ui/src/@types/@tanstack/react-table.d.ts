@@ -50,6 +50,7 @@ declare module '@tanstack/react-table' {
       label: string;
       value: TValue;
       icon?: React.ComponentType<{ className?: string }>;
+      group?: string;
     }[];
     setSelected: (selected: TValue[]) => void;
     align?: 'start' | 'end' | 'center';

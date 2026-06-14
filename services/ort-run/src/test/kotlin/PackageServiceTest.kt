@@ -512,6 +512,246 @@ class PackageServiceTest : WordSpec() {
                 }
             }
 
+            "keep filtering by processed declared license scoped to processed expressions" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        processedDeclaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(licenseUrl)
+                        )
+                    )
+                )
+
+                results.data should beEmpty()
+                results.totalCount shouldBe 0
+            }
+
+            "allow filtering by declared license" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "processed", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "unmapped", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "other", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf("Apache-2.0", licenseUrl)
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } shouldBe listOf("processed", "unmapped")
+                results.totalCount shouldBe 2
+            }
+
+            "match curated processed declared licenses in processedDeclaredLicense IN filter" {
+                val pkgMit = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mit", "1.0"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                )
+                val pkgMapped = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mapped", "1.0"),
+                    declaredLicenses = setOf("custom-foo"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("custom-foo"))
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkgMit, pkgMapped)).id
+
+                addLicenseMappingCuration(ortRunId, pkgMapped.identifier, mapOf("custom-foo" to "Apache-2.0"))
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        processedDeclaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf("Apache-2.0")
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } shouldBe listOf("mapped")
+                results.totalCount shouldBe 1
+            }
+
+            "exclude packages whose curated SPDX matches processedDeclaredLicense NOT_IN filter" {
+                val pkgMit = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mit", "1.0"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                )
+                val pkgMapped = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mapped", "1.0"),
+                    declaredLicenses = setOf("custom-foo"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("custom-foo"))
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkgMit, pkgMapped)).id
+
+                addLicenseMappingCuration(ortRunId, pkgMapped.identifier, mapOf("custom-foo" to "Apache-2.0"))
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        processedDeclaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf("Apache-2.0")
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } shouldBe listOf("mit")
+                results.totalCount shouldBe 1
+            }
+
+            "allow excluding by declared license" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "processed", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "unmapped", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl)
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "other", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf("Apache-2.0", licenseUrl)
+                        )
+                    )
+                )
+
+                results.data.shouldBeSingleton {
+                    it.identifier.name shouldBe "other"
+                }
+                results.totalCount shouldBe 1
+            }
+
+            "match curated declared licenses in declaredLicense IN filter" {
+                val pkgMit = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mit", "1.0"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                )
+                val pkgMapped = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mapped", "1.0"),
+                    declaredLicenses = setOf("custom-foo"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("custom-foo"))
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkgMit, pkgMapped)).id
+
+                addLicenseMappingCuration(ortRunId, pkgMapped.identifier, mapOf("custom-foo" to "Apache-2.0"))
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf("Apache-2.0")
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } shouldBe listOf("mapped")
+                results.totalCount shouldBe 1
+            }
+
+            "keep packages whose curations resolve a declaredLicense NOT_IN value" {
+                val pkgMapped = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mapped", "1.0"),
+                    declaredLicenses = setOf("custom-foo"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("custom-foo"))
+                )
+                val pkgOther = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "other", "1.0"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkgMapped, pkgOther)).id
+
+                addLicenseMappingCuration(ortRunId, pkgMapped.identifier, mapOf("custom-foo" to "Apache-2.0"))
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        declaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf("custom-foo")
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } shouldBe listOf("mapped", "other")
+                results.totalCount shouldBe 2
+            }
+
             "allow filtering by direct dependencies" {
                 val project = fixtures.getProject()
                 val directIdentifier = Identifier("Maven", "com.example", "direct", "1.0")
@@ -784,7 +1024,7 @@ class PackageServiceTest : WordSpec() {
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "MIT",
                                 emptyMap(),
-                                emptySet()
+                                setOf("MIT")
                             )
                         ),
                         fixtures.generatePackage(
@@ -800,10 +1040,104 @@ class PackageServiceTest : WordSpec() {
 
                 val licenses = service.getProcessedDeclaredLicenses(ortRunId)
 
-                licenses shouldHaveSize 3
                 licenses shouldBe listOf("Apache-2.0", "Apache-2.0 OR LGPL-2.1-or-later", "MIT")
             }
+
+            "include curated SPDX expressions from declared license mappings" {
+                val pkgMit = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mit", "1.0"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                )
+                val pkgMapped = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mapped", "1.0"),
+                    declaredLicenses = setOf("custom-foo"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("custom-foo"))
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkgMit, pkgMapped)).id
+
+                addLicenseMappingCuration(ortRunId, pkgMapped.identifier, mapOf("custom-foo" to "Apache-2.0"))
+
+                service.getProcessedDeclaredLicenses(ortRunId) shouldBe listOf("Apache-2.0", "MIT")
+            }
         }
+
+        "getUnmappedDeclaredLicenses" should {
+            "return the distinct unmapped declared licenses found in packages in the ORT run" {
+                val licenseUrl = "https://www.nuget.org/packages/CommandLineParser/2.9.1/license"
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                setOf(licenseUrl, "custom-license")
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf(licenseUrl, "MIT")
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("NPM", "com.example", "example3", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val licenses = service.getUnmappedDeclaredLicenses(ortRunId)
+
+                licenses shouldBe listOf("custom-license", licenseUrl, "MIT")
+            }
+
+            "exclude unmapped declared licenses that curations resolve" {
+                val pkgMapped = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "mapped", "1.0"),
+                    declaredLicenses = setOf("custom-foo"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("custom-foo"))
+                )
+                val pkgOther = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "other", "1.0"),
+                    declaredLicenses = setOf("other-unmapped"),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), setOf("other-unmapped"))
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkgMapped, pkgOther)).id
+
+                addLicenseMappingCuration(ortRunId, pkgMapped.identifier, mapOf("custom-foo" to "Apache-2.0"))
+
+                service.getUnmappedDeclaredLicenses(ortRunId) shouldBe listOf("other-unmapped")
+            }
+        }
+    }
+
+    private fun addLicenseMappingCuration(
+        ortRunId: Long,
+        identifier: Identifier,
+        mapping: Map<String, String>
+    ) {
+        val curation = PackageCuration(
+            id = identifier,
+            data = PackageCurationData(declaredLicenseMapping = mapping)
+        )
+        val resolvedPackageCurations = ResolvedPackageCurations(
+            provider = PackageCurationProviderConfig("test"),
+            curations = listOf(curation)
+        )
+        fixtures.resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(resolvedPackageCurations))
+        fixtures.resolvedConfigurationRepository.addPackageCurationAssociations(
+            ortRunId,
+            mapOf(identifier to listOf(AppliedPackageCurationRef(providerName = "test", curationRank = 0)))
+        )
     }
 
     private fun createAnalyzerRunWithPackages(
