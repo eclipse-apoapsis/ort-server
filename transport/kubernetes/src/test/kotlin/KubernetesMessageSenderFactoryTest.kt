@@ -98,17 +98,13 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             args should containsInOrder("run", "all tests", "fast")
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
-            secretVolumes should containsInOrder(
+            volumeMounts should containsInOrder(
                 SecretVolumeMount("secret1", "/mnt/sec1", "sub1"),
                 SecretVolumeMount("secret2", "/path/with/white space"),
-                SecretVolumeMount("secret3", "/mnt/other", "sub2")
-            )
-            pvcVolumes should containsInOrder(
+                SecretVolumeMount("secret3", "/mnt/other", "sub2"),
                 PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
                 PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
-                PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
-            )
-            emptyDirVolumes should containsInOrder(
+                PvcVolumeMount("pvc3", "/mnt/other", readOnly = true),
                 EmptyDirVolumeMount("dir1", "/mnt/dir1"),
                 EmptyDirVolumeMount("dir2", "/path/with/white space"),
                 EmptyDirVolumeMount("dir3", "/mnt/other")
@@ -149,7 +145,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             imagePullPolicy shouldBe "Never"
             restartPolicy shouldBe "OnFailure"
             imagePullSecret should beNull()
-            secretVolumes should beEmpty()
+            volumeMounts should beEmpty()
             labels.keys should beEmpty()
             annotations.keys should beEmpty()
             serviceAccountName should beNull()
@@ -172,7 +168,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-        sender.config.secretVolumes should containsInOrder(
+        sender.config.volumeMounts should containsInOrder(
             SecretVolumeMount("secret1", "/mnt/sec1", "sub1"),
             SecretVolumeMount("secret2", "/path/with/white space"),
             SecretVolumeMount("secret3", "/mnt/other", "sub2")
@@ -193,7 +189,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
 
-        sender.config.pvcVolumes should containsInOrder(
+        sender.config.volumeMounts should containsInOrder(
             PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
             PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
             PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
@@ -214,7 +210,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
 
-        sender.config.emptyDirVolumes should containsInOrder(
+        sender.config.volumeMounts should containsInOrder(
             EmptyDirVolumeMount("dir1", "/mnt/dir1"),
             EmptyDirVolumeMount("dir2", "/path/with/white space"),
             EmptyDirVolumeMount("dir3", "/mnt/other")
