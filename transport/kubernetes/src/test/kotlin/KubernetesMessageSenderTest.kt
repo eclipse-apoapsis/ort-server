@@ -92,12 +92,12 @@ class KubernetesMessageSenderTest : StringSpec({
             }
             with(mounts[2]) {
                 readOnly shouldBe true
-                name shouldBe "pvc-volume-1"
+                name shouldBe "pvc-volume-3"
                 mountPath shouldBe "/mnt/readOnly"
             }
             with(mounts[3]) {
                 readOnly shouldBe false
-                name shouldBe "pvc-volume-2"
+                name shouldBe "pvc-volume-4"
                 mountPath shouldBe "/mnt/data"
             }
             with(mounts[4]) {
@@ -122,8 +122,8 @@ class KubernetesMessageSenderTest : StringSpec({
         volumes.map { it.name } should containExactly(
             "secret-volume-1",
             "secret-volume-2",
-            "pvc-volume-1",
-            "pvc-volume-2",
+            "pvc-volume-3",
+            "pvc-volume-4",
             "dir1",
             "dir2"
         )

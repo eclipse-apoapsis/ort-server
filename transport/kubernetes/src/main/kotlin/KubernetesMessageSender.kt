@@ -21,14 +21,11 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
-import io.kubernetes.client.openapi.models.V1EmptyDirVolumeSource
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
-import io.kubernetes.client.openapi.models.V1PersistentVolumeClaimVolumeSource
 import io.kubernetes.client.openapi.models.V1PodSecurityContextBuilder
 import io.kubernetes.client.openapi.models.V1ResourceRequirements
-import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
 
@@ -55,12 +52,6 @@ private const val RUN_ID_LABEL = "run-id"
  * up via label selectors.
  */
 private const val WORKER_LABEL = "ort-worker"
-
-/** A prefix for generating names for secret volumes. */
-private const val SECRET_VOLUME_PREFIX = "secret-volume-"
-
-/** A prefix for generating names for PVC volumes. */
-private const val PVC_VOLUME_PREFIX = "pvc-volume-"
 
 /** The name of the CPU resource. */
 private const val CPU_RESOURCE = "cpu"
@@ -170,42 +161,16 @@ internal class KubernetesMessageSender<T : Any>(
      * Return a list with volumes declared in the given [msgConfig].
      */
     private fun createVolumes(msgConfig: KubernetesSenderConfig): List<V1Volume> =
-        msgConfig.secretVolumes.mapIndexed { index, volumeMount ->
-            V1Volume()
-                .name("$SECRET_VOLUME_PREFIX${index + 1}")
-                .secret(V1SecretVolumeSource().secretName(volumeMount.secretName))
-        } + msgConfig.pvcVolumes.mapIndexed { index, volumeMount ->
-            V1Volume()
-                .name("$PVC_VOLUME_PREFIX${index + 1}")
-                .persistentVolumeClaim(
-                    V1PersistentVolumeClaimVolumeSource()
-                        .claimName(volumeMount.claimName)
-                        .readOnly(volumeMount.readOnly)
-                )
-        } + msgConfig.emptyDirVolumes.map { volumeMount ->
-            V1Volume()
-                .name(volumeMount.name)
-                .emptyDir(V1EmptyDirVolumeSource())
+        msgConfig.volumeMounts.mapIndexed { index, volumeMount ->
+            volumeMount.initializeVolume(V1Volume(), index)
         }
 
     /**
      * Return a list with volume mounts for the volume mount declarations contained in the given [msgConfig].
      */
     private fun createVolumeMounts(msgConfig: KubernetesSenderConfig): List<V1VolumeMount> =
-        msgConfig.secretVolumes.mapIndexed { index, volumeMount ->
-            V1VolumeMount()
-                .name("$SECRET_VOLUME_PREFIX${index + 1}")
-                .mountPath(volumeMount.mountPath)
-                .subPath(volumeMount.subPath)
-                .readOnly(true)
-        } + msgConfig.pvcVolumes.mapIndexed { index, volumeMount ->
-            V1VolumeMount()
-                .name("$PVC_VOLUME_PREFIX${index + 1}")
-                .mountPath(volumeMount.mountPath)
-                .readOnly(volumeMount.readOnly)
-        } + msgConfig.emptyDirVolumes.map { volumeMount ->
-            V1VolumeMount()
-                .name(volumeMount.name)
+        msgConfig.volumeMounts.mapIndexed { index, volumeMount ->
+            volumeMount.initializeVolumeMount(V1VolumeMount(), index)
                 .mountPath(volumeMount.mountPath)
         }
 

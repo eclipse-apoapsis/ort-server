@@ -34,44 +34,6 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.slf4j.LoggerFactory
 
 /**
- * A data class defining a secret to be mounted in a pod. A [KubernetesSenderConfig] contains a list of instances of
- * this class, allowing an arbitrary number of secrets to be mounted into pods.
- */
-data class SecretVolumeMount(
-    /** The name of the secret to be mounted. */
-    val secretName: String,
-
-    /** The path where the secret is to be mounted. */
-    val mountPath: String,
-
-    /** The optional sub path to mount from the volume. */
-    val subPath: String? = null
-)
-
-/**
- * A data class defining a volume mount for a pod based on a persistent volume claim.
- */
-data class PvcVolumeMount(
-    /** The name of the referenced persistent volume claim. */
-    val claimName: String,
-
-    /** The path where the volume is mounted into the pod. */
-    val mountPath: String,
-
-    /** A flag whether this is a read-only volume. */
-    val readOnly: Boolean
-)
-
-/** A data class defining a volume mount for an empty dir. */
-data class EmptyDirVolumeMount(
-    /** The name of the empty dir volume. */
-    val name: String,
-
-    /** The path where the volume is mounted into the pod. */
-    val mountPath: String
-)
-
-/**
  * A configuration class used by the sender part of the Kubernetes Transport implementation.
  *
  * Note that there is an asymmetry between the configuration requirements of the sender and the receiver part: The
@@ -103,14 +65,8 @@ data class KubernetesSenderConfig(
     /** A list with arguments for the container command. */
     val args: List<String> = emptyList(),
 
-    /** A list with [SecretVolumeMount]s to be added to the new pod. */
-    val secretVolumes: List<SecretVolumeMount> = emptyList(),
-
-    /** A list with [PvcVolumeMount]s to be added to the new pod. */
-    val pvcVolumes: List<PvcVolumeMount> = emptyList(),
-
-    /** A list with [EmptyDirVolumeMount]s to be added to the new pod. */
-    val emptyDirVolumes: List<EmptyDirVolumeMount> = emptyList(),
+    /** A list with volume mount declarations for the pod to be created. */
+    val volumeMounts: List<VolumeMount> = emptyList(),
 
     /**
      * A list of labels to add to the new pod. The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted
@@ -279,14 +235,6 @@ data class KubernetesSenderConfig(
          */
         private val splitCommandsRegex = Regex("""\s(?=([^"]*"[^"]*")*[^"]*$)""")
 
-        /** A regular expression to parse a secret volume mount declaration. */
-        private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)(?:(?:\s*)\|\s*(.+))?""")
-
-        /** A regular expression to parse a PVC-based volume mount declaration. */
-        private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
-
-        private val mountEmptyDirDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+)""")
-
         /** A regular expression to split the list of labels. */
         private val splitLabelsRegex = splitRegex(LIST_SEPARATOR)
 
@@ -309,9 +257,8 @@ data class KubernetesSenderConfig(
                 backoffLimit = config.getIntOrDefault(BACKOFF_LIMIT_PROPERTY, DEFAULT_BACKOFF_LIMIT),
                 commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
-                secretVolumes = config.parseSecretVolumeMounts(),
-                pvcVolumes = config.parsePvcVolumeMounts(),
-                emptyDirVolumes = config.parseEmptyDirVolumeMounts(),
+                volumeMounts = config.parseSecretVolumeMounts() + config.parsePvcVolumeMounts() +
+                        config.parseEmptyDirVolumeMounts(),
                 labels = createLabels(config.getStringOrDefault(LABELS_PROPERTY, "")),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
@@ -335,48 +282,31 @@ data class KubernetesSenderConfig(
             }.filterNot { it.isEmpty() }
 
         /**
-         * Parse the given [property] of this [Config] as a number of volume mount objects as defined by the given
-         * [regex] and the [parse] function.
+         * Parse the given [property] of this [Config] as a number of volume mount objects making use of the provided
+         * [parse] function.
          */
-        private fun <T> Config.toVolumeMounts(property: String, regex: Regex, parse: (MatchResult) -> T): List<T> {
+        private fun Config.toVolumeMounts(property: String, parse: (String) -> VolumeMount?): List<VolumeMount> {
             val declarations = getStringOrDefault(property, "")
-            val (valid, invalid) = declarations.splitAtWhitespace()
-                .map { it to regex.matchEntire(it) }
-                .partition { it.second != null }
-
-            if (invalid.isNotEmpty()) {
-                val invalidDeclarations = invalid.map { it.first }
-                logger.warn(
-                    "Found invalid volume mount declarations: $invalidDeclarations. These are ignored."
-                )
-            }
-
-            return valid.mapNotNull { it.second }.map(parse)
+            return declarations.splitAtWhitespace().mapNotNull(parse)
         }
 
         /**
          * Parse the secret volume mount declarations from this [Config].
          */
-        private fun Config.parseSecretVolumeMounts(): List<SecretVolumeMount> =
-            toVolumeMounts(MOUNT_SECRETS_PROPERTY, mountSecretDeclarationRegex) { match ->
-                val (secretName, mountPath, subPath) = match.destructured
-                SecretVolumeMount(secretName, mountPath.trim(), subPath.takeUnless { it.isEmpty() })
-            }
+        private fun Config.parseSecretVolumeMounts(): List<VolumeMount> =
+            toVolumeMounts(MOUNT_SECRETS_PROPERTY, ::parseSecretVolumeMount)
 
         /**
          * Parse the PVC-based volume mount declarations from this [Config].
          */
-        private fun Config.parsePvcVolumeMounts(): List<PvcVolumeMount> =
-            toVolumeMounts(MOUNT_PVCS_PROPERTY, mountPvcDeclarationRegex) { match ->
-                val (claimName, mountPath, readOnly) = match.destructured
-                PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r")
-            }
+        private fun Config.parsePvcVolumeMounts(): List<VolumeMount> =
+            toVolumeMounts(MOUNT_PVCS_PROPERTY, ::parsePvcVolumeMount)
 
-        private fun Config.parseEmptyDirVolumeMounts(): List<EmptyDirVolumeMount> =
-            toVolumeMounts(MOUNT_EMPTYDIRS_PROPERTY, mountEmptyDirDeclarationRegex) { match ->
-                val (name, mountPath) = match.destructured
-                EmptyDirVolumeMount(name, mountPath)
-            }
+        /**
+         * Parse the empty volume mount declarations from this [Config].
+         */
+        private fun Config.parseEmptyDirVolumeMounts(): List<VolumeMount> =
+            toVolumeMounts(MOUNT_EMPTYDIRS_PROPERTY, ::parseEmptyVolumeMount)
 
         /**
          * Create the map with labels based on the given [labels]. Extract the labels from the comma-delimited string,
