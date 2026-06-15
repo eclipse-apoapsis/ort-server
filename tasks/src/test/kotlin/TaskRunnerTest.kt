@@ -96,7 +96,7 @@ class TaskRunnerTest : KoinTest, WordSpec() {
 
         "main" should {
             "call runTasks with a database module" {
-                checkMain { koin ->
+                checkMain {
                     verifyDatabaseModuleIncluded()
                 }
             }
