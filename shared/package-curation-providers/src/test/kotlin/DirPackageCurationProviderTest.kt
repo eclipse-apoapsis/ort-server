@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.shared.packagecurationproviders
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 
 import java.io.File
@@ -57,7 +57,7 @@ class DirPackageCurationProviderTest : StringSpec({
 
         val curations = provider.getCurationsFor(listOf(packageText, packageLang))
 
-        curations shouldContainExactlyInAnyOrder listOf(curation)
+        curations should containExactlyInAnyOrder(curation)
     }
 
     "Special characters in identifiers should be encoded" {
@@ -76,7 +76,7 @@ class DirPackageCurationProviderTest : StringSpec({
 
         val curations = provider.getCurationsFor(listOf(packageAngular, packageCloud))
 
-        curations shouldContainExactlyInAnyOrder listOf(angularCuration, cloudCuration)
+        curations should containExactlyInAnyOrder(angularCuration, cloudCuration)
     }
 })
 

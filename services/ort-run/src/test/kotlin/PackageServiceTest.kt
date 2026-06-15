@@ -23,8 +23,8 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.containsInOrder
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.containExactly as containExactlyEntries
 import io.kotest.matchers.should
@@ -209,7 +209,7 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 5
                 results.totalCount shouldBe 5
 
-                results.data.map { it.identifier.mapToModel() } shouldContainInOrder listOf(
+                results.data.map { it.identifier.mapToModel() } should containsInOrder(
                     identifier1,
                     identifier5,
                     identifier3,
@@ -604,7 +604,7 @@ class PackageServiceTest : WordSpec() {
                 )
 
                 results.totalCount shouldBe 2
-                results.data.map { it.identifier.mapToModel() } shouldContainInOrder listOf(
+                results.data.map { it.identifier.mapToModel() } should containsInOrder(
                     directIdentifier,
                     transitiveIdentifier
                 )

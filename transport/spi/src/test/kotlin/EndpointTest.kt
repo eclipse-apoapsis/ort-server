@@ -21,7 +21,8 @@ package org.eclipse.apoapsis.ortserver.transport
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -49,7 +50,7 @@ class EndpointTest : WordSpec({
 
     "entries" should {
         "return the correct Endpoint instances" {
-            Endpoint.entries() shouldContainExactlyInAnyOrder listOf(
+            Endpoint.entries() should containExactlyInAnyOrder(
                 AdvisorEndpoint,
                 AnalyzerEndpoint,
                 ConfigEndpoint,

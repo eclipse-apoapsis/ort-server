@@ -24,6 +24,7 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContain
@@ -758,8 +759,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     environmentConfig shouldNotBeNull {
                         strict shouldBe false
                         this.environmentDefinitions shouldBe environmentDefinitions
-                        infrastructureServices shouldContainExactly listOf(serviceDeclaration)
-                        this.environmentVariables shouldContainExactly listOf(
+                        infrastructureServices should containExactly(serviceDeclaration)
+                        this.environmentVariables should containExactly(
                             EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret"),
                             EnvironmentVariableDeclaration("MY_OTHER_ENV_VAR", value = "nonSensitiveData")
                         )
@@ -816,7 +817,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 run.jobConfigs.analyzer.environmentConfig shouldNotBeNull {
                     infrastructureServices.shouldBeEmpty()
                     this.environmentDefinitions shouldBe environmentDefinitions
-                    this.environmentVariables shouldContainExactly listOf(
+                    this.environmentVariables should containExactly(
                         EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
                     )
                 }

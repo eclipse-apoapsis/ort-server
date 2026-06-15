@@ -24,7 +24,8 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -214,7 +215,7 @@ class StorageTest : WordSpec({
             storage.delete(key) shouldBe true
 
             val keys = StorageProviderFactoryForTesting.keys()
-            keys shouldContainExactly listOf(otherKey)
+            keys should containExactly(otherKey)
         }
 
         "handle exceptions thrown by the provider" {

@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.scanner.scanner
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -49,7 +49,7 @@ class PackageProvenanceCacheTest : WordSpec({
             cache.putAndGetNestedProvenance(rootProvenance, provenanceDaoId1)
             cache.putAndGetNestedProvenance(rootProvenance, provenanceDaoId2)
 
-            cache.get(rootProvenance) shouldContainExactlyInAnyOrder listOf(provenanceDaoId1, provenanceDaoId2)
+            cache.get(rootProvenance) should containExactlyInAnyOrder(provenanceDaoId1, provenanceDaoId2)
         }
     }
 
@@ -81,7 +81,7 @@ class PackageProvenanceCacheTest : WordSpec({
 
             val idsToAssociate = cache.putNestedProvenance(rootProvenance, 20240111162417L)
 
-            idsToAssociate shouldContainExactlyInAnyOrder listOf(nestedProvenanceId1, nestedProvenanceId2)
+            idsToAssociate should containExactlyInAnyOrder(nestedProvenanceId1, nestedProvenanceId2)
         }
 
         "not return root provenances" {

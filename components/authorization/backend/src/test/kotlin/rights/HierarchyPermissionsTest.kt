@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
@@ -259,9 +259,9 @@ class HierarchyPermissionsTest : WordSpec({
             val includes = permissions.includes()
 
             includes shouldHaveSize 3
-            includes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder listOf(id4)
-            includes[HierarchyLevel.PRODUCT] shouldContainExactlyInAnyOrder listOf(id3)
-            includes[HierarchyLevel.REPOSITORY] shouldContainExactlyInAnyOrder listOf(id2)
+            includes[HierarchyLevel.ORGANIZATION] should containExactlyInAnyOrder(id4)
+            includes[HierarchyLevel.PRODUCT] should containExactlyInAnyOrder(id3)
+            includes[HierarchyLevel.REPOSITORY] should containExactlyInAnyOrder(id2)
         }
 
         "not contain elements that are already dominated by higher level assignments" {
@@ -279,7 +279,7 @@ class HierarchyPermissionsTest : WordSpec({
             )
             val includes = permissions.includes()
 
-            includes[HierarchyLevel.REPOSITORY] shouldContainExactlyInAnyOrder listOf(repo2Id)
+            includes[HierarchyLevel.REPOSITORY] should containExactlyInAnyOrder(repo2Id)
         }
     }
 
@@ -296,10 +296,10 @@ class HierarchyPermissionsTest : WordSpec({
             val implicitIncludes = permissions.implicitIncludes()
 
             implicitIncludes shouldHaveSize 2
-            implicitIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder listOf(
+            implicitIncludes[HierarchyLevel.ORGANIZATION] should containExactlyInAnyOrder(
                 CompoundHierarchyId.forOrganization(OrganizationId(1))
             )
-            implicitIncludes[HierarchyLevel.PRODUCT] shouldContainExactlyInAnyOrder listOf(repoId.parent)
+            implicitIncludes[HierarchyLevel.PRODUCT] should containExactlyInAnyOrder(repoId.parent)
         }
 
         "not return the IDs of elements dominated by higher level assignments" {
@@ -332,10 +332,10 @@ class HierarchyPermissionsTest : WordSpec({
             val implicitIncludes = permissions.implicitIncludes()
 
             implicitIncludes shouldHaveSize 2
-            implicitIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder listOf(
+            implicitIncludes[HierarchyLevel.ORGANIZATION] should containExactlyInAnyOrder(
                 CompoundHierarchyId.forOrganization(OrganizationId(1))
             )
-            implicitIncludes[HierarchyLevel.PRODUCT] shouldContainExactlyInAnyOrder listOf(repo1Id.parent)
+            implicitIncludes[HierarchyLevel.PRODUCT] should containExactlyInAnyOrder(repo1Id.parent)
         }
     }
 

@@ -25,9 +25,9 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -505,7 +505,7 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
             val adminConfig = service.loadAdminConfig(context, ORGANIZATION_ID)
 
-            adminConfig.ruleSetNames shouldContainExactlyInAnyOrder listOf("customRuleSet1", "customRuleSet2")
+            adminConfig.ruleSetNames should containExactlyInAnyOrder("customRuleSet1", "customRuleSet2")
         }
     }
 
@@ -518,7 +518,7 @@ class AdminConfigServiceTest : WordSpec({
                 this shouldBeSameInstanceAs AdminConfig.DEFAULT_SCANNER_CONFIG
                 detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
                 ignorePatterns shouldBe ortScannerConfig.ignorePatterns
-                sourceCodeOrigins shouldContainExactly listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+                sourceCodeOrigins should containExactly(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
             }
         }
 
@@ -533,7 +533,7 @@ class AdminConfigServiceTest : WordSpec({
             with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
                 detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
                 ignorePatterns shouldBe ortScannerConfig.ignorePatterns
-                sourceCodeOrigins shouldContainExactly listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+                sourceCodeOrigins should containExactly(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
             }
         }
 
@@ -555,8 +555,8 @@ class AdminConfigServiceTest : WordSpec({
                     "detectedLicense1" to "spdxLicense1",
                     "detectedLicense2" to "spdxLicense2"
                 )
-                ignorePatterns shouldContainExactly listOf("ignorePattern1", "ignorePattern2")
-                sourceCodeOrigins shouldContainExactly listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+                ignorePatterns should containExactly("ignorePattern1", "ignorePattern2")
+                sourceCodeOrigins should containExactly(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
             }
         }
     }
@@ -732,11 +732,11 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 pluginId shouldBe "PdfTemplate"
-                assetFiles shouldContainExactly listOf(
+                assetFiles should containExactly(
                     ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
                     ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")
                 )
-                assetDirectories shouldContainExactly listOf(
+                assetDirectories should containExactly(
                     ReporterAsset("reporter/template/assets-files/", "assets", "files"),
                     ReporterAsset("reporter/template/other-assets-files/", "other-assets", "more-files")
                 )
@@ -797,7 +797,7 @@ class AdminConfigServiceTest : WordSpec({
             val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
 
             reporterConfig.getReportDefinition("disclosurepdf") shouldNotBeNull {
-                assetFiles shouldContainExactly listOf(
+                assetFiles should containExactly(
                     ReporterAsset("reporter/template/logo.png", null, "report-logo.png"),
                     ReporterAsset("reporter/template/title.ttf", "fonts", null)
                 )
@@ -889,21 +889,21 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 pluginId shouldBe "PdfTemplate"
-                assetFiles shouldContainExactly listOf(
+                assetFiles should containExactly(
                     ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
                     ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")
                 )
-                assetDirectories shouldContainExactlyInAnyOrder listOf(
+                assetDirectories should containExactlyInAnyOrder(
                     ReporterAsset("reporter/template/assets-files/", "assets", "files"),
                     ReporterAsset("reporter/template/themes/", "assets", "themes"),
                     ReporterAsset("reporter/layout/tiles/")
                 )
             }
 
-            reporterConfig.globalAssets.keys shouldContainExactlyInAnyOrder listOf(
+            reporterConfig.globalAssets.keys should containExactlyInAnyOrder(
                 "pdfAssets", "themeAssets", "layoutAssets", "specialAssets"
             )
-            reporterConfig.globalAssets["specialAssets"].orEmpty() shouldContainExactly listOf(
+            reporterConfig.globalAssets["specialAssets"].orEmpty() should containExactly(
                 ReporterAsset("special/layout/foo"),
                 ReporterAsset("special/layout/bar")
             )

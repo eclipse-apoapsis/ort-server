@@ -20,8 +20,10 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -156,7 +158,7 @@ class NetRcManagerTest : WordSpec({
             }
 
             slotServices shouldHaveSize 2
-            slotServices[1].map(EnvironmentServiceDefinition::service) shouldContainExactlyInAnyOrder listOf(service2)
+            slotServices[1].map(EnvironmentServiceDefinition::service) should containExactlyInAnyOrder(service2)
         }
 
         "not write the .netrc file if there are no changes" {

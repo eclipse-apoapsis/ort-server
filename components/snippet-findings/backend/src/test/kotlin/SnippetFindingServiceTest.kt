@@ -20,9 +20,10 @@
 package org.eclipse.apoapsis.ortserver.components.snippetfindings
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -90,7 +91,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 1
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     SnippetFindingProvenance(
                         id = seed.provenanceId,
                         identifier = ApiIdentifier("Maven", "com.example", "artifact-package", "1.0"),
@@ -115,7 +116,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data.map { it.id } shouldContainExactlyInAnyOrder listOf(
+                result.data.map { it.id } should containExactlyInAnyOrder(
                     seed.provenanceId,
                     subRepoScanResultId
                 )
@@ -196,7 +197,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     SnippetFinding(seed.firstFindingId, "src/main/App.kt", 12, 18, 2),
                     SnippetFinding(seed.secondFindingId, "src/test/AppTest.kt", 3, 7, 1)
                 )
@@ -214,7 +215,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     SnippetFinding(seed.secondFindingId, "src/test/AppTest.kt", 3, 7, 1)
                 )
             }
@@ -240,7 +241,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     SnippetSource(
                         purl = "pkg:maven/com.example/upstream-artifact@1.0",
                         path = "src/App.kt",
@@ -277,7 +278,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     SnippetSource(
                         purl = "pkg:maven/com.example/upstream-artifact@1.0",
                         path = "src/App.kt",

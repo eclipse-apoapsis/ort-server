@@ -26,7 +26,6 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.file.aDirectory
@@ -226,7 +225,7 @@ class ReporterRunnerTest : WordSpec({
             }
 
             val storedReports = slotReports.captured
-            storedReports.keys shouldContainExactly listOf("testReport.html")
+            storedReports.keys should containExactly("testReport.html")
         }
 
         "resolve template file references" {

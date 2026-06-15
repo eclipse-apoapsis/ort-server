@@ -19,7 +19,9 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
@@ -45,7 +47,7 @@ class BazelGeneratorTest : WordSpec({
 
             BazelGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            mockBuilder.homeFileNames shouldContainExactly listOf(BAZEL_CREDENTIALS_FILE_NAME, BAZEL_RC_FILE_NAME)
+            mockBuilder.homeFileNames should containExactly(BAZEL_CREDENTIALS_FILE_NAME, BAZEL_RC_FILE_NAME)
         }
 
         "generate a file with a single credential entry and a .bazelrc file" {

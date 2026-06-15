@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -69,7 +70,7 @@ class OrganizationServiceTest : WordSpec({
             val repo2Id = fixtures.createRepository(url = "https://example.com/repo2.git", productId = prod2Id).id
             val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prod2Id).id
 
-            service.getRepositoryIdsForOrganization(orgId).shouldContainExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
+            service.getRepositoryIdsForOrganization(orgId) should containExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
         }
     }
 
@@ -97,7 +98,7 @@ class OrganizationServiceTest : WordSpec({
             val organizations = service.listOrganizationsForUser(userId)
 
             organizations.totalCount shouldBe 2
-            organizations.data shouldContainExactlyInAnyOrder listOf(fixtures.organization, org2)
+            organizations.data should containExactlyInAnyOrder(fixtures.organization, org2)
         }
     }
 
@@ -132,7 +133,7 @@ class OrganizationServiceTest : WordSpec({
             val products = service.listProductsForOrganizationAndUser(org1Id, userId)
 
             products.totalCount shouldBe 2
-            products.data shouldContainExactlyInAnyOrder listOf(prod1, prod2)
+            products.data should containExactlyInAnyOrder(prod1, prod2)
         }
     }
 })

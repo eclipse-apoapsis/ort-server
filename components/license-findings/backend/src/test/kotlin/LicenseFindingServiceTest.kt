@@ -20,8 +20,9 @@
 package org.eclipse.apoapsis.ortserver.components.licensefindings
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -91,7 +92,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 3
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     DetectedLicense("Apache-2.0", 2),
                     DetectedLicense("BSD-3-Clause", 1),
                     DetectedLicense("MIT", 1)
@@ -106,7 +107,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 1
-                result.data shouldContainExactly listOf(DetectedLicense("Apache-2.0", 2))
+                result.data should containExactly(DetectedLicense("Apache-2.0", 2))
             }
 
             "not include scan results from a different scanner run sharing the same package provenance" {
@@ -118,7 +119,7 @@ class LicenseFindingServiceTest : WordSpec() {
                     null
                 )
 
-                result.data.map { it.license } shouldContainExactly listOf("MIT")
+                result.data.map { it.license } should containExactly("MIT")
             }
 
             "sort by packageCount descending without throwing" {
@@ -138,7 +139,7 @@ class LicenseFindingServiceTest : WordSpec() {
                     null
                 )
 
-                result.data.map { it.license } shouldContainExactly listOf("Apache-2.0", "BSD-3-Clause", "MIT")
+                result.data.map { it.license } should containExactly("Apache-2.0", "BSD-3-Clause", "MIT")
             }
 
             "count each package only once even with duplicate package rows" {
@@ -148,7 +149,7 @@ class LicenseFindingServiceTest : WordSpec() {
                     null
                 )
 
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     DetectedLicense("Apache-2.0", 2),
                     DetectedLicense("BSD-3-Clause", 1),
                     DetectedLicense("MIT", 1)
@@ -167,7 +168,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 3
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     DetectedLicense("BSD-3-Clause", 1)
                 )
             }
@@ -197,7 +198,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 1
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     PackageIdentifier(seed.vcsIdentifier.mapToApi(), seed.vcsPurl)
                 )
             }
@@ -225,7 +226,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 1
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     PackageIdentifier(seed.artifactIdentifier.mapToApi(), seed.artifactPurl)
                 )
             }
@@ -257,7 +258,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     PackageIdentifier(seed.vcsIdentifier.mapToApi(), seed.vcsPurl)
                 )
             }
@@ -272,7 +273,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 1
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     PackageIdentifier(seed.artifactIdentifier.mapToApi(), seed.artifactPurl)
                 )
             }
@@ -302,7 +303,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     PackageIdentifier(seed.vcsIdentifier.mapToApi(), seed.vcsPurl),
                     PackageIdentifier(seed.artifactIdentifier.mapToApi(), seed.artifactPurl)
                 )
@@ -331,7 +332,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     LicenseFinding("docs/NOTICE.Apache", 11, 18, 87.5f, "LicenseScanner 1.0.0"),
                     LicenseFinding("LICENSE", 1, 10, 99f, "LicenseScanner 1.0.0")
                 )
@@ -346,7 +347,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 1
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     LicenseFinding("NOTICE", 2, 3, null, "LicenseScanner 1.0.0")
                 )
             }
@@ -364,7 +365,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.totalCount shouldBe 2
-                result.data shouldContainExactly listOf(
+                result.data should containExactly(
                     LicenseFinding("LICENSE", 1, 10, 99f, "LicenseScanner 1.0.0")
                 )
             }

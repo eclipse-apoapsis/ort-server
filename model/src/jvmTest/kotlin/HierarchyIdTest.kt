@@ -20,12 +20,13 @@
 package org.eclipse.apoapsis.ortserver.model
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 
 class HierarchyIdTest : WordSpec({
     "HierarchyLevel.DEFINED_LEVELS" should {
         "contain the expected levels" {
-            HierarchyLevel.DEFINED_LEVELS_TOP_DOWN.toList() shouldContainExactly listOf(
+            HierarchyLevel.DEFINED_LEVELS_TOP_DOWN.toList() should containExactly(
                 HierarchyLevel.ORGANIZATION,
                 HierarchyLevel.PRODUCT,
                 HierarchyLevel.REPOSITORY

@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.should
@@ -46,11 +46,11 @@ class GitConfigGeneratorTest : WordSpec({
 
             GitConfigGenerator.generateGitConfig(mockBuilder.builder, definitions, parsedConfig)
 
-            mockBuilder.homeFileNames shouldContainExactlyInAnyOrder listOf(".gitconfig")
+            mockBuilder.homeFileNames should containExactlyInAnyOrder(".gitconfig")
 
             val lines = mockBuilder.generatedLinesFor(homeFileName = ".gitconfig")
 
-            lines shouldContainExactly listOf(
+            lines should containExactly(
                 "[url \"https://github.com\"]",
                 "\tinsteadOf = \"ssh://git@github.com\"",
                 "[url \"https://github.com/\"]",
@@ -85,7 +85,7 @@ class GitConfigGeneratorTest : WordSpec({
             GitConfigGenerator.generateGitConfig(mockBuilder.builder, definitions, parsedConfig)
             val lines = mockBuilder.generatedLinesFor(homeFileName = ".gitconfig")
 
-            lines shouldContainExactly listOf(
+            lines should containExactly(
                 "[credential]",
                 "\thelper = /opt/git/bin/git-credential-helper",
                 "\tuseHttpPath = true"
@@ -112,7 +112,7 @@ class GitConfigGeneratorTest : WordSpec({
             GitConfigGenerator.generateGitConfig(mockBuilder.builder, definitions, parsedConfig)
             val lines = mockBuilder.generatedLinesFor(homeFileName = ".gitconfig")
 
-            lines shouldContainExactly listOf(
+            lines should containExactly(
                 "[credential]",
                 "\thelper = /opt/git/bin/git-credential-helper",
                 "\tuseHttpPath = true",

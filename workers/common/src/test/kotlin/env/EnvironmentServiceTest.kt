@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
@@ -421,7 +422,7 @@ class EnvironmentServiceTest : WordSpec({
                 credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
             ).toInfrastructureServiceDeclaration()
 
-            assignedServices shouldContainExactlyInAnyOrder listOf(expectedAssignedService)
+            assignedServices should containExactlyInAnyOrder(expectedAssignedService)
         }
 
         "remove duplicates before assigning services to the current ORT run" {
@@ -672,7 +673,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val result = config1.merge(config2)
 
-            result.infrastructureServices shouldContainExactlyInAnyOrder listOf(service1, service2)
+            result.infrastructureServices should containExactlyInAnyOrder(service1, service2)
         }
 
         "override overlapping services" {
@@ -684,7 +685,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val result = config1.merge(config2)
 
-            result.infrastructureServices shouldContainExactlyInAnyOrder listOf(service2)
+            result.infrastructureServices should containExactlyInAnyOrder(service2)
         }
 
         "combine non-overlapping environment definitions" {
@@ -720,7 +721,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val result = config1.merge(config2)
 
-            result.environmentVariables shouldContainExactlyInAnyOrder listOf(variable1, variable2)
+            result.environmentVariables should containExactlyInAnyOrder(variable1, variable2)
         }
 
         "override overlapping environment variables" {
@@ -732,7 +733,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val result = config1.merge(config2)
 
-            result.environmentVariables shouldContainExactlyInAnyOrder listOf(variable2)
+            result.environmentVariables should containExactlyInAnyOrder(variable2)
         }
     }
 

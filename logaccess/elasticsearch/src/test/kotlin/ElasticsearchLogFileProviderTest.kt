@@ -41,7 +41,8 @@ import io.kotest.core.test.TestCase
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.test.TestResult
 import io.kotest.extensions.system.withEnvironment
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.plugins.ServerResponseException
@@ -278,7 +279,7 @@ class ElasticsearchLogFileProviderTest : StringSpec() {
             logArchive.unpackTo(archiveContentDir)
 
             archiveContentDir.walk().maxDepth(1).filter { it.isFile }
-                .mapTo(mutableListOf()) { it.name } shouldContainExactlyInAnyOrder listOf("config.log", "advisor.log")
+                .mapTo(mutableListOf()) { it.name } should containExactlyInAnyOrder("config.log", "advisor.log")
 
             configHits.checkLogFile(archiveContentDir.resolve("config.log"))
             advisorHits.checkLogFile(archiveContentDir.resolve("advisor.log"))

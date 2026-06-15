@@ -25,8 +25,8 @@ import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
@@ -1719,12 +1719,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     )
                     packagesCount shouldBe 3
-                    ecosystems?.shouldContainExactlyInAnyOrder(
-                        listOf(
-                            EcosystemStats("NPM", 1),
-                            EcosystemStats("Maven", 1),
-                            EcosystemStats("PyPI", 1)
-                        )
+                    ecosystems should containExactlyInAnyOrder(
+                        EcosystemStats("NPM", 1),
+                        EcosystemStats("Maven", 1),
+                        EcosystemStats("PyPI", 1)
                     )
                     vulnerabilitiesCount shouldBe 2
                     vulnerabilitiesCountByRating?.shouldContainExactly(
@@ -1976,7 +1974,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryIdsAll = createdRunsAll.map { run ->
                     dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
-                repositoryIdsAll shouldContainExactlyInAnyOrder listOf(repository1Id, repository2Id)
+                repositoryIdsAll should containExactlyInAnyOrder(repository1Id, repository2Id)
 
                 val createOrtRunSpecific = PostRepositoryRun(
                     revision = "main",
@@ -2000,7 +1998,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryIdsSpecific = createdRunsSpecific.map { run ->
                     dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
-                repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id)
+                repositoryIdsSpecific should containExactlyInAnyOrder(repository1Id)
             }
         }
 
@@ -2285,7 +2283,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val repositoryIdsSpecific = createdRunsSpecific.map { it.repositoryId }
 
-                repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id, repository3Id)
+                repositoryIdsSpecific should containExactlyInAnyOrder(repository1Id, repository3Id)
             }
         }
 

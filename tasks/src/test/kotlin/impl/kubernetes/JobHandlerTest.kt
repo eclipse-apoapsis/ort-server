@@ -21,8 +21,9 @@ package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -334,7 +335,7 @@ class JobHandlerTest : WordSpec({
             val handler = createJobHandler(jobApi, coreApi)
             val jobs = handler.findJobsCompletedBefore(referenceTime)
 
-            jobs shouldContainExactlyInAnyOrder listOf(matchJob1, matchJob2, matchJob3)
+            jobs should containExactlyInAnyOrder(matchJob1, matchJob2, matchJob3)
         }
 
         "query only jobs for ORT Server workers" {
@@ -363,7 +364,7 @@ class JobHandlerTest : WordSpec({
             val labelSelectorRegex = Regex("""ort-worker in \((.+)\)""")
             labelSelectorRegex.matchEntire(slotLabel.captured) shouldNotBeNull {
                 val workers = groupValues[1].split(',')
-                workers shouldContainExactlyInAnyOrder listOf(
+                workers should containExactlyInAnyOrder(
                     "advisor",
                     "analyzer",
                     "config",
@@ -398,7 +399,7 @@ class JobHandlerTest : WordSpec({
             val handler = createJobHandler(jobApi, coreApi)
             val jobs = handler.findJobsForWorker(AnalyzerEndpoint)
 
-            jobs shouldContainExactlyInAnyOrder listOf(job1, job2)
+            jobs should containExactlyInAnyOrder(job1, job2)
         }
     }
 

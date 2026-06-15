@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
@@ -223,7 +224,7 @@ class IssueServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id)
 
                 result.data shouldHaveSize 1
-                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                result.data.single().resolutions should containExactlyInAnyOrder(
                     AppliedIssueResolution(
                         message = "dependency not found.*",
                         messageHash = null,
@@ -233,7 +234,7 @@ class IssueServiceTest : WordSpec() {
                         isDeleted = false
                     )
                 )
-                result.data.single().unappliedResolutions shouldContainExactlyInAnyOrder listOf(
+                result.data.single().unappliedResolutions should containExactlyInAnyOrder(
                     IssueResolution(
                         message = "dependency not found.*",
                         messageHash = calculateResolutionMessageHash("dependency not found.*"),
@@ -285,7 +286,7 @@ class IssueServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id)
 
                 result.data shouldHaveSize 1
-                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                result.data.single().resolutions should containExactlyInAnyOrder(
                     AppliedIssueResolution(
                         message = "dependency not found.*",
                         messageHash = calculateResolutionMessageHash("dependency not found.*"),

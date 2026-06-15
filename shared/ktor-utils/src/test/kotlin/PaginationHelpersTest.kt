@@ -21,7 +21,9 @@ package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.request.get
@@ -69,7 +71,7 @@ class PaginationHelpersTest : WordSpec({
             testPagingOptionsExtraction("?sort=name") {
                 limit shouldBe DEFAULT_LIMIT
                 offset shouldBe 0
-                sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
+                sortProperties should containExactly(SortProperty(field, SortDirection.ASCENDING))
             }
         }
 
@@ -90,7 +92,7 @@ class PaginationHelpersTest : WordSpec({
             testPagingOptionsExtraction("?sort=%2B$field") {
                 limit shouldBe DEFAULT_LIMIT
                 offset shouldBe 0
-                sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.ASCENDING))
+                sortProperties should containExactly(SortProperty(field, SortDirection.ASCENDING))
             }
         }
 
@@ -99,7 +101,7 @@ class PaginationHelpersTest : WordSpec({
             testPagingOptionsExtraction("?sort=-$field") {
                 limit shouldBe DEFAULT_LIMIT
                 offset shouldBe 0
-                sortProperties shouldContainExactly listOf(SortProperty(field, SortDirection.DESCENDING))
+                sortProperties should containExactly(SortProperty(field, SortDirection.DESCENDING))
             }
         }
     }

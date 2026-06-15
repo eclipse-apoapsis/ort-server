@@ -24,7 +24,8 @@ import com.github.michaelbull.result.Ok
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -219,7 +220,7 @@ class ReporterWorkerTest : StringSpec({
             environmentService.setupAuthenticationForCurrentRun(context)
         }
 
-        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+        slotReporterRun.captured.reports should containExactlyInAnyOrder(
             Report("report.html", link.downloadLink, link.expirationTime, 12345L)
         )
     }
@@ -340,7 +341,7 @@ class ReporterWorkerTest : StringSpec({
             environmentService.setupAuthenticationForCurrentRun(context)
         }
 
-        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+        slotReporterRun.captured.reports should containExactlyInAnyOrder(
             Report("report.html", link.downloadLink, link.expirationTime, 12345L)
         )
     }
@@ -436,7 +437,7 @@ class ReporterWorkerTest : StringSpec({
             environmentService.setupAuthenticationForCurrentRun(context)
         }
 
-        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+        slotReporterRun.captured.reports should containExactlyInAnyOrder(
             Report("report.html", link.downloadLink, link.expirationTime, 12345L)
         )
     }

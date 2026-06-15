@@ -28,8 +28,8 @@ import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.file.aFile
@@ -1880,7 +1880,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
-                packages.data.map { it.identifier } shouldContainExactly listOf(identifier1.mapToApi())
+                packages.data.map { it.identifier } should containExactly(identifier1.mapToApi())
                 packages.filters shouldBe PackageFilters(isDirectDependency = true)
             }
         }
@@ -1935,7 +1935,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
-                packages.data.map { it.identifier } shouldContainExactly listOf(identifier2.mapToApi())
+                packages.data.map { it.identifier } should containExactly(identifier2.mapToApi())
                 packages.filters shouldBe PackageFilters(isDirectDependency = false)
             }
         }
@@ -2472,7 +2472,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 ruleViolationsResponse.data[1] shouldBe ruleViolations[3].mapToApi()
                 ruleViolationsResponse.data[2] shouldBe ruleViolations[1].mapToApi()
                 ruleViolationsResponse.data[3] shouldBe ruleViolations[0].mapToApi()
-                ruleViolationsResponse.data[2].licenseSources shouldContainExactlyInAnyOrder listOf(
+                ruleViolationsResponse.data[2].licenseSources should containExactlyInAnyOrder(
                     ApiLicenseSource.DECLARED,
                     ApiLicenseSource.DETECTED
                 )
@@ -2827,11 +2827,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     )
                     packagesCount shouldBe 2
-                    ecosystems?.shouldContainExactlyInAnyOrder(
-                        listOf(
-                            EcosystemStats("NPM", 1),
-                            EcosystemStats("Maven", 1)
-                        )
+                    ecosystems should containExactlyInAnyOrder(
+                        EcosystemStats("NPM", 1),
+                        EcosystemStats("Maven", 1)
                     )
                     // 1 total vulnerability (MEDIUM), but resolved
                     vulnerabilitiesCount shouldBe 0

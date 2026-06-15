@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.containOnly
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -414,7 +414,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val results = service.listForSecret(orgUserSecret.name, OrganizationId(organization.id))
 
-            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+            results.map { it.name } should containOnly(SERVICE_NAME)
         }
 
         "return an empty list when no service references the secret" {
@@ -437,7 +437,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val results = service.listForSecret(orgOnlySecret.name, OrganizationId(organization.id))
 
-            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+            results.map { it.name } should containOnly(SERVICE_NAME)
         }
 
         "not return product services when a product secret shadows the org secret" {
@@ -466,7 +466,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val results = service.listForSecret(orgOnlySecret.name, OrganizationId(organization.id))
 
-            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+            results.map { it.name } should containOnly(SERVICE_NAME)
         }
 
         "not return repo services when a repo secret shadows the org secret" {
@@ -509,7 +509,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val results = service.listForSecret(prodOnlySecret.name, ProductId(product.id))
 
-            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+            results.map { it.name } should containOnly(SERVICE_NAME)
         }
 
         "not return repo services when a repo secret shadows the product secret" {
@@ -552,7 +552,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val results = service.listForSecret(prodOnlySecret.name, ProductId(product.id))
 
-            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+            results.map { it.name } should containOnly(SERVICE_NAME)
         }
 
         "not return repo services when a product secret shadows the repository secret" {
@@ -599,7 +599,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val results = service.listForSecret(repoOnlySecret.name, RepositoryId(repository.id))
 
-            results.map { it.name } shouldContainOnly listOf(SERVICE_NAME)
+            results.map { it.name } should containOnly(SERVICE_NAME)
         }
 
         "not return services from a different organization" {
@@ -677,7 +677,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
             )
 
-            services shouldContainExactlyInAnyOrder listOf(match1, match2, match3, match4)
+            services should containExactlyInAnyOrder(match1, match2, match3, match4)
         }
 
         "throw exception for duplicated name for same organization" {
@@ -714,7 +714,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
             )
 
-            services shouldContainExactlyInAnyOrder listOf(repositoryService, orgService2)
+            services should containExactlyInAnyOrder(repositoryService, orgService2)
         }
 
         "handle infrastructure services with duplicate URL correctly (repository beats product)" {
@@ -736,7 +736,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
             )
 
-            services shouldContainExactlyInAnyOrder listOf(repositoryService, productService2)
+            services should containExactlyInAnyOrder(repositoryService, productService2)
         }
     }
 
@@ -748,7 +748,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             infrastructureService shouldBe expectedService
 
             val runServices = service.listDeclarationsForRun(fixtures.ortRun.id)
-            runServices shouldContainOnly listOf(infrastructureService)
+            runServices should containOnly(infrastructureService)
         }
 
         "reuse an already existing entity" {
@@ -761,7 +761,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             serviceForRun shouldBe serviceForOtherRun
 
             val runServices = service.listDeclarationsForRun(fixtures.ortRun.id)
-            runServices shouldContainOnly listOf(serviceForRun)
+            runServices should containOnly(serviceForRun)
         }
 
         "not reuse a service assigned to an organization" {
@@ -815,7 +815,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
 
             val runServices = service.listDeclarationsForRun(fixtures.ortRun.id)
 
-            runServices shouldContainExactlyInAnyOrder listOf(runService1, runService2)
+            runServices should containExactlyInAnyOrder(runService1, runService2)
         }
     }
 })

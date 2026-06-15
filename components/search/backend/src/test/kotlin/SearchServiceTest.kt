@@ -21,9 +21,9 @@ package ort.eclipse.apoapsis.ortserver.components.search
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -78,7 +78,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support search inside an organization" {
@@ -111,7 +111,7 @@ class SearchServiceTest : WordSpec({
                 scope = OrganizationId(run.organizationId)
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support search inside a product" {
@@ -145,7 +145,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId,
                 scope = ProductId(run.productId)
             )
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support search inside a repository" {
@@ -179,7 +179,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId,
                 scope = RepositoryId(run.repositoryId)
             )
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "find all runs for a package from multiple repositories/products/organizations" {
@@ -201,7 +201,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactlyInAnyOrder listOf(run1, run2, run3)
+            result should containExactlyInAnyOrder(run1, run2, run3)
         }
 
         "return empty when package is not present in the given scope" {
@@ -254,7 +254,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run1)
+            result should containExactly(run1)
         }
 
         "support PURL-based search without curation" {
@@ -264,7 +264,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(identifier = null, purl = expectedPurl, userId = userId)
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support PURL-based search with curation" {
@@ -279,7 +279,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(identifier = null, purl = curatedPurl, userId = userId)
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "not find original PURL when curated PURL exists" {
@@ -337,7 +337,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support case-insensitive PURL search" {
@@ -350,7 +350,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
     }
 
@@ -370,7 +370,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support search inside an organization" {
@@ -414,7 +414,7 @@ class SearchServiceTest : WordSpec({
                 scope = OrganizationId(run.organizationId)
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support search inside a product" {
@@ -463,7 +463,7 @@ class SearchServiceTest : WordSpec({
                 scope = ProductId(run.productId)
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support search inside a repository" {
@@ -509,7 +509,7 @@ class SearchServiceTest : WordSpec({
                 scope = RepositoryId(run.repositoryId)
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "return empty when vulnerability is not present in the given scope" {
@@ -569,7 +569,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByVulnerability(externalId = vulnId, userId = userId)
 
-            result shouldContainExactly listOf(run1)
+            result should containExactly(run1)
         }
 
         "return packageId field and null purl when returnPurl is false" {
@@ -636,7 +636,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
 
         "support regex pattern matching for externalId" {
@@ -666,7 +666,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactlyInAnyOrder listOf(run1, run2)
+            result should containExactlyInAnyOrder(run1, run2)
         }
 
         "support case-insensitive externalId search" {
@@ -683,7 +683,7 @@ class SearchServiceTest : WordSpec({
                 userId = userId
             )
 
-            result shouldContainExactly listOf(run)
+            result should containExactly(run)
         }
     }
 })

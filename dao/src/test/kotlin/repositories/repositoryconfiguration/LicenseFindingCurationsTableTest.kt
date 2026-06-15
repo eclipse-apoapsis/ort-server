@@ -20,8 +20,9 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -43,7 +44,7 @@ class LicenseFindingCurationsTableTest : StringSpec({
 
             val dao = LicenseFindingCurationDao.findById(id.value).shouldNotBeNull()
 
-            dao.startLines shouldContainExactly listOf(47, 11)
+            dao.startLines should containExactly(47, 11)
         }
     }
 })
