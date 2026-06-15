@@ -74,7 +74,7 @@
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",
     "@playwright/test": "1.60.0",
     "@tailwindcss/postcss": "4.3.0",
-    "@tailwindcss/typography": "0.5.19",
+    "@tailwindcss/typography": "0.5.20",
     "@tanstack/router-cli": "1.167.17",
     "@tanstack/router-vite-plugin": "1.167.18",
     "@types/node": "24.13.1",
