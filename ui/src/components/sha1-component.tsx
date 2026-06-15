@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import {
   Tooltip,
   TooltipContent,
@@ -30,13 +31,18 @@ type Sha1ComponentProps = {
 export const Sha1Component = ({ sha1 }: Sha1ComponentProps) => {
   const shortSha1 = sha1.slice(0, 7);
   return (
-    <Tooltip>
-      <TooltipTrigger>
-        <span className='font-mono'>({shortSha1})</span>
-      </TooltipTrigger>
-      <TooltipContent>
-        <span className='font-mono'>SHA1: {sha1}</span>
-      </TooltipContent>
-    </Tooltip>
+    <span className='inline-flex items-center font-mono'>
+      (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>{shortSha1}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <span className='font-mono'>SHA1: {sha1}</span>
+        </TooltipContent>
+      </Tooltip>
+      <CopyToClipboard copyText={sha1} className='h-5 pr-0 pl-1 align-middle' />
+      )
+    </span>
   );
 };
