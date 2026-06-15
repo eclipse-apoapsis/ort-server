@@ -55,25 +55,31 @@ const isValidRevision = (revision: string | null | undefined) =>
 const SnippetProvenance = ({ snippet }: { snippet: SnippetSource }) => {
   if (snippet.artifactUrl) {
     return (
-      <div className='flex min-w-0 items-center'>
+      <a
+        href={snippet.artifactUrl}
+        target='_blank'
+        rel='noopener noreferrer'
+        className='text-blue-400 hover:underline'
+      >
         <BreakableString text={snippet.artifactUrl} />
-        <CopyToClipboard
-          copyText={snippet.artifactUrl}
-          className='h-5 px-2 align-middle'
-        />
-      </div>
+      </a>
     );
   }
 
   if (snippet.vcsUrl) {
-    const text = isValidRevision(snippet.vcsRevision)
-      ? `${snippet.vcsUrl} (${snippet.vcsRevision})`
-      : snippet.vcsUrl;
-
     return (
       <div className='flex min-w-0 items-center'>
-        <BreakableString text={text} />
-        <CopyToClipboard copyText={text} className='h-5 px-2 align-middle' />
+        <a
+          href={snippet.vcsUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-blue-400 hover:underline'
+        >
+          <BreakableString text={snippet.vcsUrl} />
+        </a>
+        {isValidRevision(snippet.vcsRevision) && (
+          <span>&nbsp;({snippet.vcsRevision})</span>
+        )}
       </div>
     );
   }

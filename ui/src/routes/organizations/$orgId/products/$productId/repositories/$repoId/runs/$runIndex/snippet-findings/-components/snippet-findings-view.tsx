@@ -38,6 +38,7 @@ import { BreakableString } from '@/components/breakable-string';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Sha1Component } from '@/components/sha1-component';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,7 +62,9 @@ const defaultPageSize = 10;
 const snippetFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings/';
 
-const isValidRevision = (revision: string | null | undefined) =>
+const isValidRevision = (
+  revision: string | null | undefined
+): revision is string =>
   revision != null && revision !== '' && revision !== '.';
 
 const ProvenanceDetails = ({
@@ -71,25 +74,33 @@ const ProvenanceDetails = ({
 }) => {
   if (provenance.artifactUrl) {
     return (
-      <div className='flex min-w-0 items-center'>
-        <BreakableString text={provenance.artifactUrl} />
-        <CopyToClipboard
-          copyText={provenance.artifactUrl}
-          className='h-5 px-2 align-middle'
-        />
+      <div className='flex min-w-0 items-center gap-1'>
+        <a
+          href={provenance.artifactUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-blue-400 hover:underline'
+        >
+          <BreakableString text={provenance.artifactUrl} />
+        </a>
       </div>
     );
   }
 
   if (provenance.vcsUrl) {
-    const text = isValidRevision(provenance.vcsRevision)
-      ? `${provenance.vcsUrl} (${provenance.vcsRevision})`
-      : provenance.vcsUrl;
-
     return (
-      <div className='flex min-w-0 items-center'>
-        <BreakableString text={text} />
-        <CopyToClipboard copyText={text} className='h-5 px-2 align-middle' />
+      <div className='flex min-w-0 items-center gap-1'>
+        <a
+          href={provenance.vcsUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-blue-400 hover:underline'
+        >
+          <BreakableString text={provenance.vcsUrl} />
+        </a>
+        {isValidRevision(provenance.vcsRevision) && (
+          <Sha1Component sha1={provenance.vcsRevision} />
+        )}
       </div>
     );
   }
