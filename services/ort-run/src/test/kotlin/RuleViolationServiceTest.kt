@@ -23,6 +23,7 @@ import com.github.michaelbull.result.Ok
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -247,7 +248,7 @@ class RuleViolationServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id)
 
                 result.data shouldHaveSize 1
-                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                result.data.single().resolutions should containExactlyInAnyOrder(
                     AppliedRuleViolationResolution(
                         message = "dependency not found.*",
                         messageHash = null,
@@ -257,7 +258,7 @@ class RuleViolationServiceTest : WordSpec() {
                         isDeleted = false
                     )
                 )
-                result.data.single().unappliedResolutions shouldContainExactlyInAnyOrder listOf(
+                result.data.single().unappliedResolutions should containExactlyInAnyOrder(
                     RuleViolationResolution(
                         message = "dependency not found.*",
                         messageHash = calculateResolutionMessageHash("dependency not found.*"),
@@ -308,7 +309,7 @@ class RuleViolationServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id)
 
                 result.data shouldHaveSize 1
-                result.data.single().resolutions shouldContainExactlyInAnyOrder listOf(
+                result.data.single().resolutions should containExactlyInAnyOrder(
                     AppliedRuleViolationResolution(
                         message = "dependency not found.*",
                         messageHash = calculateResolutionMessageHash("dependency not found.*"),

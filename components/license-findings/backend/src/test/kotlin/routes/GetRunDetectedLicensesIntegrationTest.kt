@@ -19,7 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.licensefindings.routes
 
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -71,7 +72,7 @@ class GetRunDetectedLicensesIntegrationTest : LicenseFindingIntegrationTest({
                 response.status shouldBe HttpStatusCode.OK
                 val body = response.body<PagedResponse<DetectedLicense>>()
                 body.pagination.totalCount shouldBe 1
-                body.data shouldContainExactly listOf(DetectedLicense("Apache-2.0", 2))
+                body.data should containExactly(DetectedLicense("Apache-2.0", 2))
             }
         }
 

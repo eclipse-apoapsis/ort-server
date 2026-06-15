@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.tables
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -55,7 +56,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
                 dbExtension.db.blockingQuery {
                     val newEntity = ScanSummariesIssuesDao.createByIssue(summary.id.value, issue)
 
-                    ScanSummariesIssuesDao.all().toList() shouldContainExactlyInAnyOrder listOf(newEntity)
+                    ScanSummariesIssuesDao.all().toList() should containExactlyInAnyOrder(newEntity)
 
                     val expectedIssue = issue.copy(
                         // Check if the timestamp is normalized to the database precision.
@@ -98,7 +99,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
                     val allIssues = IssueDao.all().map {
                         it.mapToModel(issueTime, null, null)
                     }
-                    allIssues shouldContainExactlyInAnyOrder listOf(issue1, issue2)
+                    allIssues should containExactlyInAnyOrder(issue1, issue2)
                 }
             }
         }

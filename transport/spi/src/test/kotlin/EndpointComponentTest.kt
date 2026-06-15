@@ -22,7 +22,8 @@ package org.eclipse.apoapsis.ortserver.transport
 import com.typesafe.config.Config
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
@@ -53,7 +54,7 @@ class EndpointComponentTest : StringSpec({
 
         MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
 
-        component.receivedMessages shouldContainExactly listOf(message)
+        component.receivedMessages should containExactly(message)
     }
 
     "A MessagePublisher is available via dependency injection" {

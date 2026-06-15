@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.services
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -167,7 +167,7 @@ class ProductServiceTest : WordSpec({
             val repo2Id = fixtures.createRepository(url = "https://example.com/repo2.git", productId = prodId).id
             val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prodId).id
 
-            service.getRepositoryIdsForProduct(prodId).shouldContainExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
+            service.getRepositoryIdsForProduct(prodId) should containExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
         }
     }
 
@@ -203,7 +203,7 @@ class ProductServiceTest : WordSpec({
                 userId = userId
             )
 
-            result.data shouldContainExactlyInAnyOrder listOf(repo1, repo2)
+            result.data should containExactlyInAnyOrder(repo1, repo2)
         }
 
         "return an empty list for a non-existing product ID" {

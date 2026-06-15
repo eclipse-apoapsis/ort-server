@@ -25,8 +25,9 @@ import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.extensions.system.withSystemProperties
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.should
 
 import java.util.Properties
 
@@ -48,7 +49,7 @@ class ConfigFileBuilderTest : StringSpec({
             println(42)
         }
 
-        file.readLines() shouldContainExactly listOf(
+        file.readLines() should containExactly(
             "This is a line of text.",
             "The answer is 42"
         )
@@ -67,7 +68,7 @@ class ConfigFileBuilderTest : StringSpec({
                 println("secret2 = ${builder.secretRef(secret2)}.")
             }
 
-            file.readLines() shouldContainExactly listOf(
+            file.readLines() should containExactly(
                 "secret1 = value1,",
                 "secret2 = value2."
             )
@@ -87,7 +88,7 @@ class ConfigFileBuilderTest : StringSpec({
                 println("secret2 = ${builder.secretRef(secret2, ConfigFileBuilder.urlEncoding)}.")
             }
 
-            file.readLines() shouldContainExactly listOf(
+            file.readLines() should containExactly(
                 "secret1 = %21My%24ecret%3F%3A%29%3B,",
                 "secret2 = %23%2B1%2F."
             )
@@ -107,7 +108,7 @@ class ConfigFileBuilderTest : StringSpec({
             printLines(content)
         }
 
-        file.readLines() shouldContainExactly listOf(
+        file.readLines() should containExactly(
             "This is a file",
             "with multiple",
             "lines."
@@ -130,7 +131,7 @@ class ConfigFileBuilderTest : StringSpec({
         }
 
         val file = tempDir.resolve(fileName)
-        file.readLines() shouldContainExactly listOf(content)
+        file.readLines() should containExactly(content)
     }
 
     "A proxy configuration can be generated" {
@@ -155,7 +156,7 @@ class ConfigFileBuilderTest : StringSpec({
             }
         }
 
-        file.readLines() shouldContainExactly listOf(
+        file.readLines() should containExactly(
             "http_proxy = $httpProxy",
             "https_proxy = $httpsProxy",
             "no_proxy = $noProxy"
@@ -184,7 +185,7 @@ class ConfigFileBuilderTest : StringSpec({
             }
         }
 
-        file.readLines() shouldContainExactly listOf(
+        file.readLines() should containExactly(
             "http_proxy = $httpProxy",
             "https_proxy = $httpsProxy",
             "no_proxy = $noProxy"

@@ -25,8 +25,8 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainInOrder
-import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.collections.containsInOrder
+import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -94,30 +94,30 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             imageName shouldBe IMAGE_NAME
             imagePullPolicy shouldBe IMAGE_PULL_POLICY
             imagePullSecret shouldBe IMAGE_PULL_SECRET
-            commands shouldContainInOrder listOf("foo", "bar", "hello world", "baz")
-            args shouldContainInOrder listOf("run", "all tests", "fast")
+            commands should containsInOrder("foo", "bar", "hello world", "baz")
+            args should containsInOrder("run", "all tests", "fast")
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
-            secretVolumes shouldContainInOrder listOf(
+            secretVolumes should containsInOrder(
                 SecretVolumeMount("secret1", "/mnt/sec1", "sub1"),
                 SecretVolumeMount("secret2", "/path/with/white space"),
                 SecretVolumeMount("secret3", "/mnt/other", "sub2")
             )
-            pvcVolumes shouldContainInOrder listOf(
+            pvcVolumes should containsInOrder(
                 PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
                 PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
                 PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
             )
-            emptyDirVolumes shouldContainInOrder listOf(
+            emptyDirVolumes should containsInOrder(
                 EmptyDirVolumeMount("dir1", "/mnt/dir1"),
                 EmptyDirVolumeMount("dir2", "/path/with/white space"),
                 EmptyDirVolumeMount("dir3", "/mnt/other")
             )
-            labels shouldContainExactly mapOf(
+            labels should containExactly(
                 "label1" to "value1",
                 "label2" to "value2"
             )
-            annotations shouldContainExactly mapOf(
+            annotations should containExactly(
                 "ort-server.org/test" to "true",
                 "ort-server.org/performance" to "fast"
             )
@@ -172,7 +172,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-        sender.config.secretVolumes shouldContainInOrder listOf(
+        sender.config.secretVolumes should containsInOrder(
             SecretVolumeMount("secret1", "/mnt/sec1", "sub1"),
             SecretVolumeMount("secret2", "/path/with/white space"),
             SecretVolumeMount("secret3", "/mnt/other", "sub2")
@@ -193,7 +193,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
 
-        sender.config.pvcVolumes shouldContainInOrder listOf(
+        sender.config.pvcVolumes should containsInOrder(
             PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
             PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
             PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
@@ -214,7 +214,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
 
-        sender.config.emptyDirVolumes shouldContainInOrder listOf(
+        sender.config.emptyDirVolumes should containsInOrder(
             EmptyDirVolumeMount("dir1", "/mnt/dir1"),
             EmptyDirVolumeMount("dir2", "/path/with/white space"),
             EmptyDirVolumeMount("dir3", "/mnt/other")
@@ -235,7 +235,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-        sender.config.labels shouldContainExactly mapOf(
+        sender.config.labels should containExactly(
             "label1" to "value1",
             "label2" to "value2"
         )
@@ -255,7 +255,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-        sender.config.labels shouldContainExactly mapOf(
+        sender.config.labels should containExactly(
             "label1" to "value1",
             "label2" to "value2"
         )
@@ -281,7 +281,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
             sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-            sender.config.annotations shouldContainExactly mapOf("foo" to "bar")
+            sender.config.annotations should containExactly("foo" to "bar")
         }
     }
 
@@ -304,7 +304,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
 
             sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
-            sender.config.annotations shouldContainExactly mapOf("foo" to "bar")
+            sender.config.annotations should containExactly("foo" to "bar")
         }
     }
 })

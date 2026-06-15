@@ -24,7 +24,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -334,7 +334,7 @@ class ConfigManagerTest : WordSpec({
 
             val paths = manager.listFiles(testContext(), Path("sub"))
 
-            paths shouldContainExactlyInAnyOrder listOf(Path("sub/sub1.txt"), Path("sub/sub2.txt"))
+            paths should containExactlyInAnyOrder(Path("sub/sub1.txt"), Path("sub/sub2.txt"))
         }
 
         "return a set with Paths representing configuration files in the default context" {
@@ -342,7 +342,7 @@ class ConfigManagerTest : WordSpec({
 
             val paths = manager.listFiles(null, Path("."))
 
-            paths shouldContainExactlyInAnyOrder listOf(Path("./test.txt"))
+            paths should containExactlyInAnyOrder(Path("./test.txt"))
         }
 
         "handle exceptions from the provider" {

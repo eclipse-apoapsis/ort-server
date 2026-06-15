@@ -22,7 +22,9 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
@@ -187,7 +189,7 @@ class YarnRcGeneratorTest : WordSpec({
                 YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
             }
 
-            mockBuilder.generatedLines().take(3) shouldContainExactly listOf(
+            mockBuilder.generatedLines().take(3) should containExactly(
                 "httpProxy: \"$proxyHttp\"",
                 "httpsProxy: \"$proxyHttps\"",
                 ""
@@ -211,7 +213,7 @@ class YarnRcGeneratorTest : WordSpec({
                 YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
             }
 
-            mockBuilder.generatedLines().take(2) shouldContainExactly listOf(
+            mockBuilder.generatedLines().take(2) should containExactly(
                 "httpsProxy: \"$proxyHttps\"",
                 ""
             )

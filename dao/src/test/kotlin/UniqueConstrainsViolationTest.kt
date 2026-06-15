@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 
 import io.mockk.mockk
 
@@ -55,7 +56,7 @@ class UniqueConstrainsViolationTest : StringSpec() {
             val artifacts = dbExtension.db.dbQuery {
                 RemoteArtifactDao.all().toList().map(RemoteArtifactDao::mapToModel)
             }
-            artifacts shouldContainExactly listOf(testArtifact)
+            artifacts should containExactly(testArtifact)
         }
     }
 }

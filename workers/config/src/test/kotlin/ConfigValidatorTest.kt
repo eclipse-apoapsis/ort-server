@@ -22,11 +22,13 @@ package org.eclipse.apoapsis.ortserver.workers.config
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -189,7 +191,7 @@ class ConfigValidatorTest : StringSpec({
         val failedGroups = errorIssues.map { issue ->
             regExErrorMessage.matchEntire(issue.message).shouldNotBeNull().groupValues[1]
         }
-        failedGroups shouldContainExactlyInAnyOrder listOf(invalidAssetGroup1, invalidAssetGroup2)
+        failedGroups should containExactlyInAnyOrder(invalidAssetGroup1, invalidAssetGroup2)
     }
 
     "Exceptions when loading the admin configuration should be handled" {

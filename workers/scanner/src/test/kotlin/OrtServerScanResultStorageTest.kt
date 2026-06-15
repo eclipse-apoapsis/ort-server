@@ -388,7 +388,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldContainExactlyInAnyOrder listOf(
+                readResult should containExactlyInAnyOrder(
                     scanResult1.withoutRelations(),
                     scanResult2.withoutRelations()
                 )
@@ -410,7 +410,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
                 val readResult = scanResultStorage.read(artifactProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldContainExactlyInAnyOrder listOf(
+                readResult should containExactlyInAnyOrder(
                     scanResult1.withoutRelations(),
                     scanResult2.withoutRelations()
                 )
@@ -502,8 +502,8 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 val issues = scanResultStorage.getAllIssues()
 
-                issues[artifactProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue1.mapToOrt())
-                issues[repositoryProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(
+                issues[artifactProvenance.mapToOrt()] should containExactlyInAnyOrder(issue1.mapToOrt())
+                issues[repositoryProvenance.mapToOrt()] should containExactlyInAnyOrder(
                     issue2.mapToOrt(), issue3.mapToOrt()
                 )
 
@@ -521,7 +521,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 val issues = storage2.getAllIssues()
 
-                issues[provenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue.mapToOrt())
+                issues[provenance.mapToOrt()] should containExactlyInAnyOrder(issue.mapToOrt())
             }
         }
     }

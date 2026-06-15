@@ -21,8 +21,10 @@ package org.eclipse.apoapsis.ortserver.dao.utils
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -134,7 +136,7 @@ class ListQueryTest : StringSpec() {
                 repositoryRepository.listForProduct(product.id, parameters)
             }
 
-            repositories.data shouldContainExactly listOf(repo2, repo1, repo3)
+            repositories.data should containExactly(repo2, repo1, repo3)
         }
 
         "Sorting is only allowed for properties marked as sortable" {

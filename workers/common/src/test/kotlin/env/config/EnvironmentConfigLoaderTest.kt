@@ -24,6 +24,7 @@ import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -320,7 +321,7 @@ class EnvironmentConfigLoaderTest : StringSpec({
 
         val config = parseConfig(".ort.env.variables.yml", helper).resolve(helper)
 
-        config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+        config.environmentVariables should containExactlyInAnyOrder(
             SecretVariableDefinition("variable1", secret1),
             SecretVariableDefinition("variable2", secret2)
         )
@@ -332,7 +333,7 @@ class EnvironmentConfigLoaderTest : StringSpec({
 
         val config = parseConfig(".ort.env.variables-non-strict.yml", helper).resolve(helper)
 
-        config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+        config.environmentVariables should containExactlyInAnyOrder(
             SecretVariableDefinition("variable1", secret1)
         )
     }
@@ -461,7 +462,7 @@ class EnvironmentConfigLoaderTest : StringSpec({
 
         val config = parseConfig(".ort.env.direct-variables.yml", helper).resolve(helper)
 
-        config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+        config.environmentVariables should containExactlyInAnyOrder(
             SimpleVariableDefinition("variable1", value = "testValue1"),
             SimpleVariableDefinition("variable2", value = "testValue2")
         )

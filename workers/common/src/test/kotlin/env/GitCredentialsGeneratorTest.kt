@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -48,7 +48,7 @@ class GitCredentialsGeneratorTest : StringSpec({
 
         GitCredentialsGenerator().generate(mockBuilder.builder, listOf(definition))
 
-        mockBuilder.homeFileNames shouldContainExactlyInAnyOrder listOf(".git-credentials")
+        mockBuilder.homeFileNames should containExactlyInAnyOrder(".git-credentials")
     }
 
     "Files should only be generated if services with Git credentials exist" {
@@ -95,7 +95,7 @@ class GitCredentialsGeneratorTest : StringSpec({
         GitCredentialsGenerator().generate(mockBuilder.builder, definitions)
         val lines = mockBuilder.generatedLinesFor(homeFileName = ".git-credentials")
 
-        lines shouldContainExactlyInAnyOrder listOf(
+        lines should containExactlyInAnyOrder(
             "https://${testSecretRef(secUser1)}:${testSecretRef(secPass1)}@repo1.example.org",
             "http://${testSecretRef(secUser2)}:${testSecretRef(secPass2)}@repo2.example.org:444/orga/repo.git"
         )
@@ -128,7 +128,7 @@ class GitCredentialsGeneratorTest : StringSpec({
         GitCredentialsGenerator().generate(mockBuilder.builder, definitions)
         val lines = mockBuilder.generatedLinesFor(homeFileName = ".git-credentials")
 
-        lines shouldContainExactly listOf(
+        lines should containExactly(
             "https://${testSecretRef(secUser)}:${testSecretRef(secPass)}@repo.example.org/orga/repo.git"
         )
     }

@@ -23,7 +23,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -155,7 +155,7 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
 
             val activeJobs = getJobRepository().listActive()
 
-            activeJobs shouldContainExactly listOf(job)
+            activeJobs should containExactly(job)
         }
 
         "listActive should not return a completed job" {
@@ -173,7 +173,7 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
 
             val activeJobs = getJobRepository().listActive(referenceDate)
 
-            activeJobs shouldContainExactly listOf(job)
+            activeJobs should containExactly(job)
         }
 
         "listActive should not return an active job after a given reference date" {

@@ -20,11 +20,12 @@
 package ort.eclipse.apoapsis.ortserver.components.search.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -108,7 +109,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -154,7 +155,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -202,7 +203,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -250,7 +251,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -295,7 +296,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(allowed)
+                body should containExactly(allowed)
             }
         }
 
@@ -334,7 +335,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactlyInAnyOrder listOf(run1, run2, run3)
+                body should containExactlyInAnyOrder(run1, run2, run3)
             }
         }
 
@@ -397,7 +398,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -420,7 +421,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -494,7 +495,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
 
@@ -520,7 +521,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val body = response.body<List<RunWithPackage>>()
-                body shouldContainExactly listOf(run)
+                body should containExactly(run)
             }
         }
     }

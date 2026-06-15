@@ -27,8 +27,8 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.file.aDirectory
 import io.kotest.matchers.file.exist
 import io.kotest.matchers.maps.beEmpty as beEmptyMap
@@ -638,7 +638,7 @@ class WorkerContextTest : WordSpec({
                 secPass2.path to password2.value
             )
             with(slotAuthServices.captured) {
-                services shouldContainExactlyInAnyOrder listOf(service1, service2)
+                services should containExactlyInAnyOrder(service1, service2)
                 secrets shouldContainExactly expectedSecrets
             }
         }

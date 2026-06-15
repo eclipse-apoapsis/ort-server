@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.components.authorization.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -739,7 +739,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 val users = service.listUsers(repositoryCompoundId)
-                users.keys shouldContainExactlyInAnyOrder listOf(
+                users.keys should containExactlyInAnyOrder(
                     USER_ID,
                     writerUser,
                     productAdminUser,
@@ -768,7 +768,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 service.assignRole(repoReaderUser, RepositoryRole.READER, repositoryCompoundId)
 
                 val users = service.listUsers(organizationCompoundId)
-                users.keys shouldContainExactlyInAnyOrder listOf(
+                users.keys should containExactlyInAnyOrder(
                     USER_ID,
                     writerUser,
                     adminUser,
@@ -825,7 +825,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 val users = service.listUsers(repositoryCompoundId)
-                users.keys shouldContainExactlyInAnyOrder listOf(USER_ID)
+                users.keys should containExactlyInAnyOrder(USER_ID)
             }
 
             "not fail for invalid role names" {
@@ -930,7 +930,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     requiredRole = OrganizationRole.READER
                 )
 
-                filter.transitiveIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder setOf(
+                filter.transitiveIncludes[HierarchyLevel.ORGANIZATION] should containExactlyInAnyOrder(
                     organizationId,
                     otherOrgId
                 )
@@ -1005,12 +1005,8 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.WRITE)
                 )
 
-                filter.transitiveIncludes[HierarchyLevel.PRODUCT] shouldContainExactlyInAnyOrder setOf(
-                    productId
-                )
-                filter.transitiveIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder setOf(
-                    otherOrgId
-                )
+                filter.transitiveIncludes[HierarchyLevel.PRODUCT] should containExactlyInAnyOrder(productId)
+                filter.transitiveIncludes[HierarchyLevel.ORGANIZATION] should containExactlyInAnyOrder(otherOrgId)
             }
 
             "drop IDs contained in others" {
@@ -1107,9 +1103,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.READ)
                 )
 
-                filter.transitiveIncludes[HierarchyLevel.REPOSITORY] shouldContainExactly setOf(
-                    repositoryCompoundId
-                )
+                filter.transitiveIncludes[HierarchyLevel.REPOSITORY] should containExactly(repositoryCompoundId)
             }
 
             "apply a containedIn filter on product level" {
@@ -1142,9 +1136,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
-                filter.transitiveIncludes[HierarchyLevel.REPOSITORY] shouldContainExactly setOf(
-                    repositoryCompoundId
-                )
+                filter.transitiveIncludes[HierarchyLevel.REPOSITORY] should containExactly(repositoryCompoundId)
             }
 
             "apply a containedIn filter on organization level" {
@@ -1176,7 +1168,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = productId.organizationId
                 )
 
-                filter.transitiveIncludes[HierarchyLevel.PRODUCT] shouldContainExactly setOf(productId)
+                filter.transitiveIncludes[HierarchyLevel.PRODUCT] should containExactly(productId)
             }
 
             "handle a containedIn filter together with a superuser assignment" {
@@ -1241,10 +1233,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.READ)
                 )
 
-                filter.nonTransitiveIncludes[HierarchyLevel.PRODUCT] shouldContainExactly setOf(
+                filter.nonTransitiveIncludes[HierarchyLevel.PRODUCT] should containExactly(
                     repositoryCompoundId.parent
                 )
-                filter.nonTransitiveIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactly setOf(
+                filter.nonTransitiveIncludes[HierarchyLevel.ORGANIZATION] should containExactly(
                     repositoryCompoundId.parent?.parent
                 )
                 filter.nonTransitiveIncludes shouldHaveSize 2
@@ -1364,7 +1356,7 @@ class DbAuthorizationServiceTest : WordSpec() {
         service.assignRole("other-hierarchy-user", role, otherId)
 
         val users = service.listUsersWithRole(role, hierarchyId)
-        users shouldContainExactlyInAnyOrder listOf(USER_ID, user2)
+        users should containExactlyInAnyOrder(USER_ID, user2)
     }
 
     /**

@@ -19,7 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.licensefindings.routes
 
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -78,7 +79,7 @@ class GetRunPackagesWithDetectedLicenseIntegrationTest : LicenseFindingIntegrati
                 response.status shouldBe HttpStatusCode.OK
                 val body = response.body<PagedResponse<PackageIdentifier>>()
                 body.pagination.totalCount shouldBe 1
-                body.data shouldContainExactly listOf(
+                body.data should containExactly(
                     PackageIdentifier(
                         seeded.vcsIdentifier.mapToApi(),
                         seeded.vcsPurl
@@ -96,7 +97,7 @@ class GetRunPackagesWithDetectedLicenseIntegrationTest : LicenseFindingIntegrati
                 response.status shouldBe HttpStatusCode.OK
                 val body = response.body<PagedResponse<PackageIdentifier>>()
                 body.pagination.totalCount shouldBe 1
-                body.data shouldContainExactly listOf(
+                body.data should containExactly(
                     PackageIdentifier(
                         seeded.artifactIdentifier.mapToApi(),
                         seeded.artifactPurl

@@ -23,8 +23,8 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.system.withEnvironment
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 import io.kotest.matchers.types.beInstanceOf
 
@@ -72,25 +72,25 @@ class TaskRunnerTest : KoinTest, WordSpec() {
             "execute a single task" {
                 val taskLog = checkTaskExecution("task1")
 
-                taskLog.getExecutedTasks() shouldContainExactly setOf("task1")
+                taskLog.getExecutedTasks() should containExactly("task1")
             }
 
             "execute multiple tasks" {
                 val taskLog = checkTaskExecution("task1", "task2")
 
-                taskLog.getExecutedTasks() shouldContainExactlyInAnyOrder setOf("task1", "task2")
+                taskLog.getExecutedTasks() should containExactlyInAnyOrder("task1", "task2")
             }
 
             "handle errors during task execution" {
                 val taskLog = checkTaskExecution("task1", ERROR_TASK, "task2")
 
-                taskLog.getExecutedTasks() shouldContainExactlyInAnyOrder setOf("task1", ERROR_TASK, "task2")
+                taskLog.getExecutedTasks() should containExactlyInAnyOrder("task1", ERROR_TASK, "task2")
             }
 
             "handle a non-existing task" {
                 val taskLog = checkTaskExecution("task1", "nonExistingTask", "task2")
 
-                taskLog.getExecutedTasks() shouldContainExactlyInAnyOrder setOf("task1", "task2")
+                taskLog.getExecutedTasks() should containExactlyInAnyOrder("task1", "task2")
             }
         }
 

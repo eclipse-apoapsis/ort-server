@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
@@ -42,7 +43,7 @@ class EnvironmentConfigGeneratorTest : StringSpec({
         generator.generateApplicable(builder, listOf(def1, def2, def3, def4, def5, def6))
 
         generator.providedBuilder shouldBe builder
-        generator.providedDefinitions shouldContainExactlyInAnyOrder listOf(def1, def4, def5)
+        generator.providedDefinitions should containExactlyInAnyOrder(def1, def4, def5)
     }
 })
 

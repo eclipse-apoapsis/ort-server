@@ -20,25 +20,26 @@
 package org.eclipse.apoapsis.ortserver.logaccess
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.should
 
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 
 class LogLevelTest : WordSpec({
     "levelOrHigher" should {
         "return a correct set for the ERROR level" {
-            LogLevel.levelOrHigher(LogLevel.ERROR) shouldContainExactlyInAnyOrder setOf(LogLevel.ERROR)
+            LogLevel.levelOrHigher(LogLevel.ERROR) should containExactlyInAnyOrder(LogLevel.ERROR)
         }
 
         "return a correct set for the WARN level" {
-            LogLevel.levelOrHigher(LogLevel.WARN) shouldContainExactlyInAnyOrder setOf(
+            LogLevel.levelOrHigher(LogLevel.WARN) should containExactlyInAnyOrder(
                 LogLevel.ERROR,
                 LogLevel.WARN
             )
         }
 
         "return a correct set for the INFO level" {
-            LogLevel.levelOrHigher(LogLevel.INFO) shouldContainExactlyInAnyOrder setOf(
+            LogLevel.levelOrHigher(LogLevel.INFO) should containExactlyInAnyOrder(
                 LogLevel.ERROR,
                 LogLevel.WARN,
                 LogLevel.INFO
@@ -46,7 +47,7 @@ class LogLevelTest : WordSpec({
         }
 
         "return a correct set for the DEBUG level" {
-            LogLevel.levelOrHigher(LogLevel.DEBUG) shouldContainExactlyInAnyOrder setOf(
+            LogLevel.levelOrHigher(LogLevel.DEBUG) should containExactlyInAnyOrder(
                 LogLevel.ERROR,
                 LogLevel.WARN,
                 LogLevel.INFO,

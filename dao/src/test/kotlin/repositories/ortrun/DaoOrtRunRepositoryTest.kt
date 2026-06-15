@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
@@ -470,7 +471,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
             val activeRuns = ortRunRepository.listActiveRuns()
 
-            activeRuns shouldContainExactlyInAnyOrder listOf(
+            activeRuns should containExactlyInAnyOrder(
                 ActiveOrtRun(createdRun.id, createdRun.createdAt, createdRun.traceId),
                 ActiveOrtRun(activeRun.id, activeRun.createdAt, activeRun.traceId)
             )

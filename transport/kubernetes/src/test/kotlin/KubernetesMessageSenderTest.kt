@@ -25,16 +25,17 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainOnly
+import io.kotest.matchers.collections.containAll
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containOnly
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotContainAll
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
 import io.kubernetes.client.custom.Quantity
@@ -73,7 +74,7 @@ class KubernetesMessageSenderTest : StringSpec({
             resources should beNull()
             val jobEnvironment = env!!.associate { it.name to it.value }
             jobEnvironment shouldContainAll expectedEnvVars
-            jobEnvironment.keys shouldNotContainAll listOf("_", "HOME", "PATH", "PWD")
+            jobEnvironment.keys shouldNot containAll("_", "HOME", "PATH", "PWD")
 
             val mounts = volumeMounts.orEmpty()
             mounts shouldHaveSize 6
@@ -114,11 +115,11 @@ class KubernetesMessageSenderTest : StringSpec({
         job.spec?.template?.spec?.restartPolicy shouldBe senderConfig.restartPolicy
         job.spec?.template?.spec?.serviceAccountName shouldBe senderConfig.serviceAccountName
         job.spec?.template?.spec?.imagePullSecrets.orEmpty()
-            .map { it.name } shouldContainOnly listOf(senderConfig.imagePullSecret)
+            .map { it.name } should containOnly(senderConfig.imagePullSecret)
 
         val volumes = job.spec?.template?.spec?.volumes.orEmpty()
         volumes shouldHaveSize 6
-        volumes.map { it.name } shouldContainExactly listOf(
+        volumes.map { it.name } should containExactly(
             "secret-volume-1",
             "secret-volume-2",
             "pvc-volume-1",
@@ -127,7 +128,7 @@ class KubernetesMessageSenderTest : StringSpec({
             "dir2"
         )
         val secrets = volumes.mapNotNull { it.secret?.secretName }
-        secrets shouldContainExactly listOf("secretService", "topSecret")
+        secrets should containExactly("secretService", "topSecret")
 
         verifyLabels(
             actualLabels = job.metadata?.labels.orEmpty(),
