@@ -46,6 +46,8 @@ class ElasticsearchConfigTest : StringSpec({
             serverUrl = SERVER_URL,
             index = INDEX,
             namespace = NAMESPACE,
+            namespaceField = "namespace",
+            fieldPrefix = null,
             pageSize = pageSize,
             username = username,
             password = password,
@@ -62,7 +64,8 @@ class ElasticsearchConfigTest : StringSpec({
             "elasticsearchNamespace" to NAMESPACE
         )
         val configManager = createConfigManager(configMap)
-        val expectedConfig = ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, null, null, null)
+        val expectedConfig =
+            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, "namespace", null, 1000, null, null, null)
 
         ElasticsearchConfig.create(configManager) shouldBe expectedConfig
     }
@@ -79,7 +82,7 @@ class ElasticsearchConfigTest : StringSpec({
         )
 
         ElasticsearchConfig.create(createConfigManager(configMap)) shouldBe
-            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, username, null, "api-key")
+            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, "namespace", null, 1000, username, null, "api-key")
     }
 
     "Blank auth settings should be treated as absent" {
@@ -92,7 +95,7 @@ class ElasticsearchConfigTest : StringSpec({
         )
 
         ElasticsearchConfig.create(createConfigManager(configMap)) shouldBe
-            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, 1000, null, null, null)
+            ElasticsearchConfig(SERVER_URL, INDEX, NAMESPACE, "namespace", null, 1000, null, null, null)
     }
 })
 
