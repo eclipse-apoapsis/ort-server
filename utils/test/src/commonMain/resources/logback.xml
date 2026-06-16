@@ -28,7 +28,7 @@
         <then>
             <sequenceNumberGenerator class="ch.qos.logback.core.spi.BasicSequenceNumberGenerator" />
             <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-                <encoder class="ch.qos.logback.classic.encoder.JsonEncoder">
+                <encoder class="org.eclipse.apoapsis.ortserver.utils.logging.JsonEncoderWithExceptionField">
                     <withArguments>false</withArguments>
                     <withContext>false</withContext>
                     <withFormattedMessage>true</withFormattedMessage>
