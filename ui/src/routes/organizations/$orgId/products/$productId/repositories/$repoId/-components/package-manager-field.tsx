@@ -60,7 +60,7 @@ export const PackageManagerField = ({
       render={({ field }) => (
         <FormItem
           className={cn(
-            'mb-4 flex flex-col justify-between rounded-lg border p-4',
+            'flex flex-col justify-between rounded-lg border p-4',
             className
           )}
         >
