@@ -144,7 +144,7 @@ private const val VARIABLE_SUFFIX = "}"
 fun Config.getInterpolatedString(path: String, variables: Map<String, String>): String {
     val str = getString(path)
 
-    return str.takeIf { VARIABLE_PREFIX !in it } ?: substituteVariables(str, variables)
+    return str.takeIf { VARIABLE_PREFIX !in it } ?: str.substituteVariables(variables)
 }
 
 /**
@@ -162,7 +162,7 @@ fun Config.getInterpolatedStringOrNull(path: String, variables: Map<String, Stri
  * are also subject of variable substitution.
  */
 fun Config.getInterpolatedStringOrDefault(path: String, default: String, variables: Map<String, String>): String =
-    substituteVariables(getStringOrDefault(path, default), variables)
+    getStringOrDefault(path, default).substituteVariables(variables)
 
 /**
  * Return the string at the given [path] and make sure that it is a valid URL. The URL may contain a user info
@@ -180,11 +180,11 @@ fun Config.getServiceUrl(path: String): String {
 }
 
 /**
- * Return a new string based on [string] with all variable references replaced by their current values in the given
+ * Return a new string based on this one with all variable references replaced by their current values in the given
  * [variables] map.
  */
-private fun substituteVariables(string: String, variables: Map<String, String>): String =
-    variables.filter { it.key in string }.entries.fold(string) { str, (key, value) ->
+fun String.substituteVariables(variables: Map<String, String>): String =
+    variables.filter { it.key in this }.entries.fold(this) { str, (key, value) ->
         val placeholder = "$VARIABLE_PREFIX${key}$VARIABLE_SUFFIX"
         str.replace(placeholder, value)
     }
