@@ -22,7 +22,12 @@ import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
-import { InfrastructureService } from '@/api';
+import {
+  InfrastructureService,
+  PreconfiguredPluginDescriptor,
+  Secret,
+} from '@/api';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import { InlineCode } from '@/components/typography.tsx';
 import {
   AccordionContent,
@@ -64,6 +69,8 @@ type AnalyzerFieldsProps = {
   value: string;
   onToggle: () => void;
   isSuperuser: boolean;
+  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[];
+  pluginSecrets: Secret[];
   permissions: {
     organization: OrganizationPermissions | undefined;
     product: ProductPermissions | undefined;
@@ -76,6 +83,8 @@ export const AnalyzerFields = ({
   value,
   onToggle,
   isSuperuser,
+  packageCurationProviderPlugins,
+  pluginSecrets,
   permissions,
 }: AnalyzerFieldsProps) => {
   const { orgId, productId, repoId } = useParams({ strict: false });
@@ -364,6 +373,17 @@ export const AnalyzerFields = ({
             infrastructureServices={infrastructureServices}
           />
           <PackageManagerField form={form} />
+          <PluginMultiSelectField
+            form={form}
+            name='jobConfigs.analyzer.packageCurationProviders'
+            configName='jobConfigs.analyzer.packageCurationProviderConfig'
+            label='Package curation providers'
+            description={
+              <>Select the package curation providers enabled for this run.</>
+            }
+            plugins={packageCurationProviderPlugins}
+            secrets={pluginSecrets}
+          />
           {isSuperuser && (
             <FormField
               control={form.control}
