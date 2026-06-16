@@ -23,6 +23,7 @@ import { convertMapToArray } from './form-primitives';
 import {
   getPluginDefaultValues,
   mergePluginConfigs,
+  providerPluginConfigsToFormValues,
   reconstructScannerSelection,
 } from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
@@ -35,7 +36,8 @@ export function defaultValues(
   ortRun: OrtRun | null,
   advisorPlugins: PreconfiguredPluginDescriptor[],
   scannerPlugins: PreconfiguredPluginDescriptor[],
-  isSuperuser: boolean
+  isSuperuser: boolean,
+  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[]
 ): CreateRunFormValues {
   /**
    * Constructs the default options for a package manager, either as a blank set of options
@@ -85,6 +87,12 @@ export function defaultValues(
 
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
   const scannerPluginDefaultValues = getPluginDefaultValues(scannerPlugins);
+  const packageCurationProviderPluginDefaultValues = getPluginDefaultValues(
+    packageCurationProviderPlugins
+  );
+  const packageCurationProviderFormValues = providerPluginConfigsToFormValues(
+    ortRun?.jobConfigs.analyzer?.packageCurationProviders
+  );
   const scannerDefaults = {
     scanners: ['ScanCode'],
     scannerScopes: {
@@ -105,6 +113,9 @@ export function defaultValues(
         keepAliveWorker: false,
         environmentDefinitions: undefined,
         infrastructureServices: [],
+        packageCurationProviders: [],
+        packageCurationProviderConfig:
+          packageCurationProviderPluginDefaultValues,
         packageManagers: {
           Bazel: defaultPackageManagerOptions('Bazel'),
           Bower: defaultPackageManagerOptions('Bower'),
@@ -223,6 +234,12 @@ export function defaultValues(
               ortRun.jobConfigs.analyzer?.environmentConfig
                 ?.infrastructureServices ||
               baseDefaults.jobConfigs.analyzer.infrastructureServices,
+            packageCurationProviders:
+              packageCurationProviderFormValues.selectedPluginIds,
+            packageCurationProviderConfig: mergePluginConfigs(
+              packageCurationProviderFormValues.config,
+              packageCurationProviderPluginDefaultValues
+            ),
             keepAliveWorker:
               (ortRun.jobConfigs.analyzer?.keepAliveWorker && isSuperuser) ||
               baseDefaults.jobConfigs.analyzer.keepAliveWorker,
@@ -345,11 +362,85 @@ if (import.meta.vitest) {
       labels: {},
     } as unknown as OrtRun;
 
-    const defaults = defaultValues(ortRun, [], [], false);
+    const defaults = defaultValues(ortRun, [], [], false, []);
 
     expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
       ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
     );
+  });
+
+  it('uses package curation provider plugin default values for fresh runs', () => {
+    const defaults = defaultValues(null, [], [], false, [
+      {
+        id: 'ClearlyDefined',
+        type: 'PACKAGE_CURATION_PROVIDER',
+        displayName: 'ClearlyDefined',
+        summary: 'A package curation provider plugin',
+        description: 'A package curation provider plugin.',
+        options: [
+          {
+            name: 'serverUrl',
+            description: 'Backend URL.',
+            type: 'STRING',
+            defaultValue: 'https://api.clearlydefined.io',
+            isFixed: true,
+            isNullable: false,
+            isRequired: true,
+          },
+        ],
+      },
+    ]);
+
+    expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([]);
+    expect(defaults.jobConfigs.analyzer.packageCurationProviderConfig).toEqual({
+      ClearlyDefined: {
+        options: {
+          serverUrl: 'https://api.clearlydefined.io',
+        },
+        secrets: {},
+      },
+    });
+  });
+
+  it('preserves package curation provider config from reruns', () => {
+    const ortRun = {
+      revision: 'main',
+      path: '',
+      jobConfigs: {
+        analyzer: {
+          packageCurationProviders: [
+            {
+              type: 'ClearlyDefined',
+              id: 'ClearlyDefined',
+              enabled: true,
+              options: {
+                serverUrl: 'https://api.clearlydefined.io',
+              },
+              secrets: {
+                token: 'clearly-defined-token',
+              },
+            },
+          ],
+        },
+      },
+      labels: {},
+    } as unknown as OrtRun;
+
+    const defaults = defaultValues(ortRun, [], [], false, []);
+
+    expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([
+      'ClearlyDefined',
+    ]);
+    expect(defaults.jobConfigs.analyzer.packageCurationProviderConfig).toEqual({
+      ClearlyDefined: {
+        options: {
+          serverUrl: 'https://api.clearlydefined.io',
+        },
+        secrets: {
+          token: 'clearly-defined-token',
+        },
+      },
+    });
   });
 
   it('uses scanner plugin default values for fresh runs', () => {
@@ -376,7 +467,8 @@ if (import.meta.vitest) {
           ],
         },
       ],
-      false
+      false,
+      []
     );
 
     expect(defaults.jobConfigs.scanner.config).toEqual({

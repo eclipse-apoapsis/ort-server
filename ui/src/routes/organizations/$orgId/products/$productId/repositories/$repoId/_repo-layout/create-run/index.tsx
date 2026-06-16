@@ -88,6 +88,10 @@ const CreateRunPage = () => {
     plugins?.data?.filter((plugin) => plugin.type === 'REPORTER') || [];
   const scannerPlugins =
     plugins?.data?.filter((plugin) => plugin.type === 'SCANNER') || [];
+  const packageCurationProviderPlugins =
+    plugins?.data?.filter(
+      (plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER'
+    ) || [];
 
   type AccordionSection =
     | 'analyzer'
@@ -130,7 +134,11 @@ const CreateRunPage = () => {
     },
   });
 
-  const formSchema = createRunFormSchema(advisorPlugins, scannerPlugins);
+  const formSchema = createRunFormSchema(
+    advisorPlugins,
+    scannerPlugins,
+    packageCurationProviderPlugins
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -138,7 +146,8 @@ const CreateRunPage = () => {
       ortRun?.data ?? null,
       advisorPlugins,
       scannerPlugins,
-      isSuperuser
+      isSuperuser,
+      packageCurationProviderPlugins
     ),
   });
 

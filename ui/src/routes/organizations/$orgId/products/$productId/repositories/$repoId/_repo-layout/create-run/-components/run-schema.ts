@@ -35,7 +35,8 @@ import {
 
 export const createRunFormSchema = (
   advisorPlugins: PreconfiguredPluginDescriptor[],
-  scannerPlugins: PreconfiguredPluginDescriptor[]
+  scannerPlugins: PreconfiguredPluginDescriptor[],
+  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[]
 ) => {
   const advisorConfigSchema: Record<string, z.ZodTypeAny> = {};
 
@@ -48,56 +49,81 @@ export const createRunFormSchema = (
     scannerConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
   });
 
+  const packageCurationProviderConfigSchema: Record<string, z.ZodTypeAny> = {};
+  packageCurationProviderPlugins.forEach((plugin) => {
+    packageCurationProviderConfigSchema[plugin.id] =
+      createPluginConfigSchema(plugin);
+  });
+
   return z.object({
     revision: z.string(),
     path: z.string(),
     jobConfigs: z.object({
-      analyzer: z.object({
-        enabled: z.boolean(),
-        repositoryConfigPath: z.string().optional(),
-        allowDynamicVersions: z.boolean(),
-        skipExcluded: z.boolean(),
-        environmentDefinitions: environmentDefinitionsSchema.optional(),
-        environmentVariables: z.array(environmentVariableSchema).optional(),
-        infrastructureServices: z.array(zInfrastructureService).optional(),
-        keepAliveWorker: z.boolean(),
-        packageManagers: z
-          .object({
-            Bazel: packageManagerOptionsSchema,
-            Bower: packageManagerOptionsSchema,
-            Bundler: packageManagerOptionsSchema,
-            Cargo: packageManagerOptionsSchema,
-            Carthage: packageManagerOptionsSchema,
-            CocoaPods: packageManagerOptionsSchema,
-            Composer: packageManagerOptionsSchema,
-            Conan: packageManagerOptionsSchema,
-            Gleam: packageManagerOptionsSchema,
-            GoMod: packageManagerOptionsSchema,
-            Gradle: packageManagerOptionsSchema,
-            GradleInspector: packageManagerOptionsSchema,
-            Maven: packageManagerOptionsSchema,
-            NPM: packageManagerOptionsSchema,
-            NuGet: packageManagerOptionsSchema,
-            OrtProjectFile: packageManagerOptionsSchema,
-            PIP: packageManagerOptionsSchema,
-            Pipenv: packageManagerOptionsSchema,
-            PNPM: packageManagerOptionsSchema,
-            Poetry: packageManagerOptionsSchema,
-            Pub: packageManagerOptionsSchema,
-            SBT: packageManagerOptionsSchema,
-            SPDX: packageManagerOptionsSchema,
-            SpdxDocumentFile: packageManagerOptionsSchema,
-            Stack: packageManagerOptionsSchema,
-            SwiftPM: packageManagerOptionsSchema,
-            Tycho: packageManagerOptionsSchema,
-            Yarn: packageManagerOptionsSchema,
-            Yarn2: packageManagerOptionsSchema,
-          })
-          .refine((schema) => {
-            // Ensure that not both Gradle and GradleInspector are enabled at the same time.
-            return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
-          }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
-      }),
+      analyzer: z
+        .object({
+          enabled: z.boolean(),
+          repositoryConfigPath: z.string().optional(),
+          allowDynamicVersions: z.boolean(),
+          skipExcluded: z.boolean(),
+          environmentDefinitions: environmentDefinitionsSchema.optional(),
+          environmentVariables: z.array(environmentVariableSchema).optional(),
+          infrastructureServices: z.array(zInfrastructureService).optional(),
+          keepAliveWorker: z.boolean(),
+          packageCurationProviders: z.array(z.string()),
+          packageCurationProviderConfig: z
+            .object(packageCurationProviderConfigSchema)
+            .optional(),
+          packageManagers: z
+            .object({
+              Bazel: packageManagerOptionsSchema,
+              Bower: packageManagerOptionsSchema,
+              Bundler: packageManagerOptionsSchema,
+              Cargo: packageManagerOptionsSchema,
+              Carthage: packageManagerOptionsSchema,
+              CocoaPods: packageManagerOptionsSchema,
+              Composer: packageManagerOptionsSchema,
+              Conan: packageManagerOptionsSchema,
+              Gleam: packageManagerOptionsSchema,
+              GoMod: packageManagerOptionsSchema,
+              Gradle: packageManagerOptionsSchema,
+              GradleInspector: packageManagerOptionsSchema,
+              Maven: packageManagerOptionsSchema,
+              NPM: packageManagerOptionsSchema,
+              NuGet: packageManagerOptionsSchema,
+              OrtProjectFile: packageManagerOptionsSchema,
+              PIP: packageManagerOptionsSchema,
+              Pipenv: packageManagerOptionsSchema,
+              PNPM: packageManagerOptionsSchema,
+              Poetry: packageManagerOptionsSchema,
+              Pub: packageManagerOptionsSchema,
+              SBT: packageManagerOptionsSchema,
+              SPDX: packageManagerOptionsSchema,
+              SpdxDocumentFile: packageManagerOptionsSchema,
+              Stack: packageManagerOptionsSchema,
+              SwiftPM: packageManagerOptionsSchema,
+              Tycho: packageManagerOptionsSchema,
+              Yarn: packageManagerOptionsSchema,
+              Yarn2: packageManagerOptionsSchema,
+            })
+            .refine((schema) => {
+              // Ensure that not both Gradle and GradleInspector are enabled at the same time.
+              return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
+            }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
+        })
+        .superRefine((data, ctx) => {
+          validateRequiredPluginOptions(
+            packageCurationProviderPlugins,
+            data.packageCurationProviders,
+            data.packageCurationProviderConfig as
+              | Record<
+                  string,
+                  Record<string, Record<string, unknown>> | undefined
+                >
+              | undefined,
+            ctx,
+            'packageCurationProviderConfig'
+          );
+        }),
       advisor: z
         .object({
           enabled: z.boolean(),
