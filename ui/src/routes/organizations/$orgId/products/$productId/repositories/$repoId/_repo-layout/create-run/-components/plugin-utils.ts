@@ -23,6 +23,7 @@ import {
   PluginConfig,
   PluginOptionType,
   PreconfiguredPluginDescriptor,
+  ProviderPluginConfiguration,
 } from '@/api';
 
 function isNonBlankString(value: unknown): value is string {
@@ -78,7 +79,8 @@ export function validateRequiredPluginOptions(
   config:
     | Record<string, Record<string, Record<string, unknown>> | undefined>
     | undefined,
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
+  configPath = 'config'
 ): void {
   for (const plugin of plugins) {
     if (!selectedPluginIds.includes(plugin.id)) continue;
@@ -96,7 +98,7 @@ export function validateRequiredPluginOptions(
           code: 'invalid_type',
           expected: 'string',
           received: 'undefined',
-          path: ['config', plugin.id, section, option.name],
+          path: [configPath, plugin.id, section, option.name],
           message: `Required option "${option.name}" is missing for "${plugin.displayName}".`,
         });
       }
@@ -265,6 +267,38 @@ export function getPluginDefaultValues(
   );
 }
 
+type ProviderPluginFormValues = {
+  selectedPluginIds: string[];
+  config: Record<string, PluginConfig>;
+};
+
+/**
+ * Convert provider plugin configurations from a previous run to the form representation.
+ */
+export function providerPluginConfigsToFormValues(
+  providers: ProviderPluginConfiguration[] | null | undefined
+): ProviderPluginFormValues {
+  const result: ProviderPluginFormValues = {
+    selectedPluginIds: [],
+    config: {},
+  };
+
+  providers?.forEach((provider) => {
+    const pluginId = provider.id || provider.type;
+
+    if (provider.enabled !== false) {
+      result.selectedPluginIds.push(pluginId);
+    }
+
+    result.config[pluginId] = {
+      options: provider.options ?? {},
+      secrets: provider.secrets ?? {},
+    };
+  });
+
+  return result;
+}
+
 /**
  * Convert the plugin config from form values to the payload format expected by the back-end. Configuration for plugins
  * which are not enabled is not included in the payload.
@@ -323,6 +357,34 @@ export function createPluginPayload(
     : undefined;
 }
 
+/**
+ * Convert selected provider plugins and their configuration to the payload format expected by the back-end.
+ */
+export function createProviderPluginPayload(
+  config: Record<string, unknown> | undefined,
+  enabledPlugins: string[]
+): ProviderPluginConfiguration[] | undefined {
+  if (enabledPlugins.length === 0) return undefined;
+
+  const pluginPayload = createPluginPayload(config, enabledPlugins);
+
+  return enabledPlugins.map((pluginId) => {
+    const pluginConfig = pluginPayload?.[pluginId];
+
+    return {
+      type: pluginId,
+      id: pluginId,
+      enabled: true,
+      ...(pluginConfig?.options && Object.keys(pluginConfig.options).length > 0
+        ? { options: pluginConfig.options }
+        : {}),
+      ...(pluginConfig?.secrets && Object.keys(pluginConfig.secrets).length > 0
+        ? { secrets: pluginConfig.secrets }
+        : {}),
+    };
+  });
+}
+
 if (import.meta.vitest) {
   const { expect, it } = import.meta.vitest;
 
@@ -351,6 +413,45 @@ if (import.meta.vitest) {
     expect(defaults.SCANOSS?.secrets).toEqual({});
   });
 
+  it('providerPluginConfigsToFormValues reconstructs selected providers and config', () => {
+    const formValues = providerPluginConfigsToFormValues([
+      {
+        type: 'ClearlyDefined',
+        id: 'ClearlyDefined',
+        enabled: true,
+        options: {
+          serverUrl: 'https://api.clearlydefined.io',
+        },
+        secrets: {
+          token: 'clearly-defined-token',
+        },
+      },
+      {
+        type: 'File',
+        id: 'File',
+        enabled: false,
+      },
+    ]);
+
+    expect(formValues).toEqual({
+      selectedPluginIds: ['ClearlyDefined'],
+      config: {
+        ClearlyDefined: {
+          options: {
+            serverUrl: 'https://api.clearlydefined.io',
+          },
+          secrets: {
+            token: 'clearly-defined-token',
+          },
+        },
+        File: {
+          options: {},
+          secrets: {},
+        },
+      },
+    });
+  });
+
   it('createPluginPayload omits blank secret values from the payload', () => {
     const payload = createPluginPayload(
       {
@@ -374,6 +475,39 @@ if (import.meta.vitest) {
         secrets: {},
       },
     });
+  });
+
+  it('createProviderPluginPayload creates provider configurations for selected plugins', () => {
+    const payload = createProviderPluginPayload(
+      {
+        ClearlyDefined: {
+          options: {
+            serverUrl: 'https://api.clearlydefined.io',
+          },
+          secrets: {
+            token: '',
+          },
+        },
+        File: {
+          options: {
+            path: 'curations.yml',
+          },
+          secrets: {},
+        },
+      },
+      ['ClearlyDefined']
+    );
+
+    expect(payload).toEqual([
+      {
+        type: 'ClearlyDefined',
+        id: 'ClearlyDefined',
+        enabled: true,
+        options: {
+          serverUrl: 'https://api.clearlydefined.io',
+        },
+      },
+    ]);
   });
 
   it('reconstructScannerSelection rebuilds scanner scopes for rerun values', () => {

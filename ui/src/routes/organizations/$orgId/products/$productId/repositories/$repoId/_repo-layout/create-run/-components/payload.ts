@@ -24,7 +24,10 @@ import {
 } from '@/api';
 import { defaultValues } from './default-values';
 import { convertArrayToMap } from './form-primitives';
-import { createPluginPayload } from './plugin-utils';
+import {
+  createPluginPayload,
+  createProviderPluginPayload,
+} from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
 
 /**
@@ -146,6 +149,10 @@ export function formValuesToPayload(
     // that have options set in the form.
     packageManagerOptions: getPackageManagerOptions(
       values.jobConfigs.analyzer.packageManagers
+    ),
+    packageCurationProviders: createProviderPluginPayload(
+      values.jobConfigs.analyzer.packageCurationProviderConfig,
+      values.jobConfigs.analyzer.packageCurationProviders
     ),
     keepAliveWorker: values.jobConfigs.analyzer.keepAliveWorker || undefined,
   };
@@ -338,7 +345,7 @@ if (import.meta.vitest) {
 
   function createFormValues(): CreateRunFormValues {
     return {
-      ...defaultValues(null, [], [], false),
+      ...defaultValues(null, [], [], false, []),
       revision: 'main',
       path: '',
     };
@@ -384,6 +391,62 @@ if (import.meta.vitest) {
       expect(
         payload.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
       ).toEqual(values.jobConfigs.analyzer.environmentDefinitions);
+    });
+
+    it('adds selected package curation providers', () => {
+      const values = createFormValues();
+      values.jobConfigs.analyzer.packageCurationProviders = ['ClearlyDefined'];
+      values.jobConfigs.analyzer.packageCurationProviderConfig = {
+        ClearlyDefined: {
+          options: {
+            serverUrl: 'https://api.clearlydefined.io',
+          },
+          secrets: {
+            token: 'clearly-defined-token',
+          },
+        },
+        File: {
+          options: {
+            path: 'curations.yml',
+          },
+          secrets: {},
+        },
+      };
+
+      const payload = formValuesToPayload(values);
+
+      expect(payload.jobConfigs.analyzer?.packageCurationProviders).toEqual([
+        {
+          type: 'ClearlyDefined',
+          id: 'ClearlyDefined',
+          enabled: true,
+          options: {
+            serverUrl: 'https://api.clearlydefined.io',
+          },
+          secrets: {
+            token: 'clearly-defined-token',
+          },
+        },
+      ]);
+    });
+
+    it('omits package curation providers if none are selected', () => {
+      const values = createFormValues();
+      values.jobConfigs.analyzer.packageCurationProviders = [];
+      values.jobConfigs.analyzer.packageCurationProviderConfig = {
+        ClearlyDefined: {
+          options: {
+            serverUrl: 'https://api.clearlydefined.io',
+          },
+          secrets: {},
+        },
+      };
+
+      const payload = formValuesToPayload(values);
+
+      expect(
+        payload.jobConfigs.analyzer?.packageCurationProviders
+      ).toBeUndefined();
     });
 
     it('omits infrastructure services from environment configs', () => {
