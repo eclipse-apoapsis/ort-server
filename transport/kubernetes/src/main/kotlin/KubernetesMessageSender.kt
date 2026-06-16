@@ -19,13 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
-import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
 import io.kubernetes.client.openapi.models.V1PodSecurityContextBuilder
-import io.kubernetes.client.openapi.models.V1ResourceRequirements
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
 
@@ -37,6 +35,9 @@ import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.kubernetes.KubernetesSenderConfig.Companion.TRANSPORT_NAME
+import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
+import org.eclipse.apoapsis.ortserver.utils.config.substituteVariables
 
 /** A prefix for the name of a label storing a part of the trace ID. */
 private const val TRACE_LABEL_PREFIX = "trace-id-"
@@ -52,12 +53,6 @@ private const val RUN_ID_LABEL = "run-id"
  * up via label selectors.
  */
 private const val WORKER_LABEL = "ort-worker"
-
-/** The name of the CPU resource. */
-private const val CPU_RESOURCE = "cpu"
-
-/** The name of the memory resource. */
-private const val MEMORY_RESOURCE = "memory"
 
 /**
  * A set with the names of environment variables that should not be passed to the environment of newly created jobs.
@@ -89,7 +84,7 @@ internal class KubernetesMessageSender<T : Any>(
             "payload" to serializer.toJson(message.payload)
         )
 
-        val msgConfig = config.forMessage(message)
+        val variables = message.header.transportProperties.selectByPrefix(TRANSPORT_NAME)
         val envVars = createEnvironment()
         val labels = config.labels + createTraceIdLabels(traceId) + mapOf(
             RUN_ID_LABEL to message.header.ortRunId.toString(),
@@ -102,38 +97,38 @@ internal class KubernetesMessageSender<T : Any>(
                 .withLabels<String, String>(labels)
             .endMetadata()
             .withNewSpec()
-                .withBackoffLimit(msgConfig.backoffLimit)
+                .withBackoffLimit(config.backoffLimit)
                 .withNewTemplate()
                     .withNewMetadata()
-                        .withAnnotations<String, String>(msgConfig.annotations)
+                        .withAnnotations<String, String>(config.annotations)
                         .withLabels<String, String>(labels)
                     .endMetadata()
                     .withNewSpec()
-                        .withSecurityContext(V1PodSecurityContextBuilder().withRunAsUser(msgConfig.userId).build())
-                        .withRestartPolicy(msgConfig.restartPolicy)
+                        .withSecurityContext(V1PodSecurityContextBuilder().withRunAsUser(config.userId).build())
+                        .withRestartPolicy(config.restartPolicy)
                         .withImagePullSecrets(
-                            listOfNotNull(msgConfig.imagePullSecret).map { V1LocalObjectReference().name(it) }
+                            listOfNotNull(config.imagePullSecret).map { V1LocalObjectReference().name(it) }
                         )
-                       .withServiceAccountName(msgConfig.serviceAccountName)
+                       .withServiceAccountName(config.serviceAccountName)
                        .addNewContainer()
                            .withName("${endpoint.configPrefix}-$traceId".take(64))
-                           .withImage(msgConfig.imageName)
-                           .withCommand(msgConfig.commands)
-                           .withArgs(msgConfig.args)
-                           .withImagePullPolicy(msgConfig.imagePullPolicy)
+                           .withImage(config.mainContainer.imageName.substituteVariables(variables))
+                           .withCommand(config.mainContainer.commands)
+                           .withArgs(config.mainContainer.args)
+                           .withImagePullPolicy(config.mainContainer.imagePullPolicy)
                            .withEnv(
                                (envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() }
                            )
-                           .withVolumeMounts(createVolumeMounts(msgConfig))
-                           .withResources(createResources(msgConfig))
+                           .withVolumeMounts(createVolumeMounts(config))
+                           .withResources(config.mainContainer.createResources(variables))
                        .endContainer()
-                       .withVolumes(createVolumes(msgConfig))
+                       .withVolumes(createVolumes(config))
                     .endSpec()
                 .endTemplate()
             .endSpec()
             .build()
 
-        api.createNamespacedJob(msgConfig.namespace, jobBody).execute()
+        api.createNamespacedJob(config.namespace, jobBody).execute()
     }
 
     /**
@@ -158,18 +153,18 @@ internal class KubernetesMessageSender<T : Any>(
     }
 
     /**
-     * Return a list with volumes declared in the given [msgConfig].
+     * Return a list with volumes declared in the given [config].
      */
-    private fun createVolumes(msgConfig: KubernetesSenderConfig): List<V1Volume> =
-        msgConfig.volumeMounts.mapIndexed { index, volumeMount ->
+    private fun createVolumes(config: KubernetesSenderConfig): List<V1Volume> =
+        config.volumeMounts.mapIndexed { index, volumeMount ->
             volumeMount.initializeVolume(V1Volume(), index)
         }
 
     /**
-     * Return a list with volume mounts for the volume mount declarations contained in the given [msgConfig].
+     * Return a list with volume mounts for the volume mount declarations contained in the given [config].
      */
-    private fun createVolumeMounts(msgConfig: KubernetesSenderConfig): List<V1VolumeMount> =
-        msgConfig.volumeMounts.mapIndexed { index, volumeMount ->
+    private fun createVolumeMounts(config: KubernetesSenderConfig): List<V1VolumeMount> =
+        config.volumeMounts.mapIndexed { index, volumeMount ->
             volumeMount.initializeVolumeMount(V1VolumeMount(), index)
                 .mountPath(volumeMount.mountPath)
         }
@@ -182,19 +177,4 @@ internal class KubernetesMessageSender<T : Any>(
         traceId.chunked(TRACE_LABEL_LENGTH).withIndex().fold(mapOf()) { map, value ->
             map + ("$TRACE_LABEL_PREFIX${value.index}" to value.value)
         }
-
-    /**
-     * Create a [V1ResourceRequirements] object based on the given [msgConfig]. If no resource requirements are
-     * specified, return *null*.
-     */
-    private fun createResources(msgConfig: KubernetesSenderConfig): V1ResourceRequirements? {
-        val requirements = V1ResourceRequirements()
-
-        msgConfig.cpuLimit?.let { requirements.putLimitsItem(CPU_RESOURCE, Quantity(it)) }
-        msgConfig.memoryLimit?.let { requirements.putLimitsItem(MEMORY_RESOURCE, Quantity(it)) }
-        msgConfig.cpuRequest?.let { requirements.putRequestsItem(CPU_RESOURCE, Quantity(it)) }
-        msgConfig.memoryRequest?.let { requirements.putRequestsItem(MEMORY_RESOURCE, Quantity(it)) }
-
-        return requirements.takeUnless { it.limits.isNullOrEmpty() && it.requests.isNullOrEmpty() }
-    }
 }

@@ -26,6 +26,7 @@ import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containsInOrder
+import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
@@ -91,11 +92,13 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
         with(sender.config) {
             namespace shouldBe NAMESPACE
-            imageName shouldBe IMAGE_NAME
-            imagePullPolicy shouldBe IMAGE_PULL_POLICY
-            imagePullSecret shouldBe IMAGE_PULL_SECRET
-            commands should containsInOrder("foo", "bar", "hello world", "baz")
-            args should containsInOrder("run", "all tests", "fast")
+            with(mainContainer) {
+                imageName shouldBe IMAGE_NAME
+                imagePullPolicy shouldBe IMAGE_PULL_POLICY
+                imagePullSecret shouldBe IMAGE_PULL_SECRET
+                commands shouldContainInOrder listOf("foo", "bar", "hello world", "baz")
+                args shouldContainInOrder listOf("run", "all tests", "fast")
+            }
             backoffLimit shouldBe BACKOFF_LIMIT
             restartPolicy shouldBe RESTART_POLICY
             volumeMounts should containsInOrder(
@@ -139,12 +142,14 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
         with(sender.config) {
-            commands should beEmpty()
-            args should beEmpty()
             backoffLimit shouldBe 2
-            imagePullPolicy shouldBe "Never"
             restartPolicy shouldBe "OnFailure"
-            imagePullSecret should beNull()
+            with(mainContainer) {
+                commands should beEmpty()
+                args should beEmpty()
+                imagePullPolicy shouldBe "Never"
+                imagePullSecret should beNull()
+            }
             volumeMounts should beEmpty()
             labels.keys should beEmpty()
             annotations.keys should beEmpty()

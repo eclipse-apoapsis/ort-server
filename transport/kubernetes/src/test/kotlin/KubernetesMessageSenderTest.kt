@@ -67,10 +67,10 @@ class KubernetesMessageSenderTest : StringSpec({
         job.metadata?.name shouldBe "analyzer-9-01234567890123456789012345678901234567890123456789012"
 
         job.spec?.template?.spec?.containers?.single().shouldNotBeNull {
-            image shouldBe senderConfig.imageName
-            imagePullPolicy shouldBe senderConfig.imagePullPolicy
-            command shouldBe senderConfig.commands
-            args shouldBe senderConfig.args
+            image shouldBe senderConfig.mainContainer.imageName
+            imagePullPolicy shouldBe senderConfig.mainContainer.imagePullPolicy
+            command shouldBe senderConfig.mainContainer.commands
+            args shouldBe senderConfig.mainContainer.args
             resources should beNull()
             val jobEnvironment = env!!.associate { it.name to it.value }
             jobEnvironment shouldContainAll expectedEnvVars
@@ -303,7 +303,7 @@ private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSend
     return withEnvironment(annotationVariables) {
         val config = ConfigFactory.parseMap(overrideProperties).withFallback(ConfigFactory.parseMap(defaultProperties))
 
-        KubernetesSenderConfig.createConfig(config)
+        KubernetesSenderConfig.createConfig(config, AnalyzerEndpoint)
     }
 }
 
