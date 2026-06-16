@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.logaccess.elasticsearch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 
 /**
  * A data class that represents the relevant parts of a response sent by Elasticsearch for a search request.
@@ -44,19 +45,13 @@ internal data class ElasticsearchHit(
     @SerialName("_id")
     val id: String? = null,
 
-    /** The source document with the log fields used by this provider. */
+    /**
+     * The raw source document. The fields read from it are configurable (including an optional field prefix), so the
+     * document is kept as a [JsonObject].
+     */
     @SerialName("_source")
-    val source: ElasticsearchSource = ElasticsearchSource(),
+    val source: JsonObject = JsonObject(emptyMap()),
 
     /** The sort values returned by Elasticsearch and used for `search_after` pagination. */
     val sort: List<JsonElement> = emptyList()
-)
-
-/**
- * A data class that represents the source fields read from an Elasticsearch hit.
- */
-@Serializable
-internal data class ElasticsearchSource(
-    /** The rendered log statement as it was written by the application. */
-    val message: String? = null
 )

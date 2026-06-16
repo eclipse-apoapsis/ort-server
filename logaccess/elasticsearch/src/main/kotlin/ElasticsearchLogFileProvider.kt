@@ -66,17 +66,24 @@ class ElasticsearchLogFileProvider(
     private val config: ElasticsearchConfig
 ) : LogFileProvider {
     companion object {
-        /** The field used for time range filters and primary sorting. */
-        private const val TIMESTAMP_FIELD = "time"
-
-        /** The field used as a stable tie-breaker for pagination. */
-        private const val SORT_ID_FIELD = "sortId"
-
         private val logger = LoggerFactory.getLogger(ElasticsearchLogFileProvider::class.java)
     }
 
     /** The HTTP client for sending requests to the Elasticsearch instance. */
     private val elasticsearchClient = createClient()
+
+    // The Kubernetes namespace is not coming from the log lines, therefore the field prefix is not applied.
+    private val namespaceField = config.namespaceField
+
+    // Apply the configured field prefix to all fields taken from the log lines.
+    private val componentIndexField = prefix("mdc.component.keyword")
+    private val levelField = prefix("level")
+    private val levelIndexField = prefix("level.keyword")
+    private val messageField = prefix("formattedMessage")
+    private val ortRunIdIndexField = prefix("mdc.ortRunId.keyword")
+    private val sequenceNumberField = prefix("sequenceNumber")
+    private val throwableField = prefix("throwable")
+    private val timestampField = prefix("timestamp")
 
     override suspend fun downloadLogFile(
         ortRunId: Long,
@@ -96,11 +103,16 @@ class ElasticsearchLogFileProvider(
                 val hits = response.hits.hits
 
                 hits.forEach { hit ->
-                    val statement = hit.source.message
+                    val statement = hit.source.stringAtPath(messageField)
                     if (statement == null) {
                         logger.warn("Skipping Elasticsearch hit '{}' because no message field is present.", hit.id)
                     } else {
+                        hit.source.stringAtPath(timestampField)?.toLongOrNull()?.let { timestamp ->
+                            out.write("${Instant.fromEpochMilliseconds(timestamp)} ")
+                        }
+                        hit.source.stringAtPath(levelField)?.let { out.write("$it ") }
                         out.write(statement)
+                        hit.source.stringAtPath(throwableField)?.let { out.write("\n$it") }
                         out.newLine()
                     }
                 }
@@ -145,22 +157,25 @@ class ElasticsearchLogFileProvider(
         buildJsonObject {
             put("size", config.pageSize)
             putJsonArray("_source") {
-                add(JsonPrimitive("message"))
+                add(JsonPrimitive(levelField))
+                add(JsonPrimitive(messageField))
+                add(JsonPrimitive(throwableField))
+                add(JsonPrimitive(timestampField))
             }
             putJsonObject("query") {
                 putJsonObject("bool") {
                     putJsonArray("filter") {
-                        add(termQuery("namespace", JsonPrimitive(config.namespace)))
-                        add(termQuery("component", JsonPrimitive(source.component)))
-                        add(termQuery("ortRunId", JsonPrimitive(ortRunId.toString())))
-                        add(termsQuery("level", levels.map { it.name }))
+                        add(termQuery(namespaceField, JsonPrimitive(config.namespace)))
+                        add(termQuery(componentIndexField, JsonPrimitive(source.component)))
+                        add(termQuery(ortRunIdIndexField, JsonPrimitive(ortRunId.toString())))
+                        add(termsQuery(levelIndexField, levels.map { it.name }))
                         add(rangeQuery(startTime, endTime))
                     }
                 }
             }
             putJsonArray("sort") {
-                add(sortBy(TIMESTAMP_FIELD))
-                add(sortBy(SORT_ID_FIELD))
+                add(sortBy(timestampField))
+                add(sortBy(sequenceNumberField))
             }
             if (searchAfter != null) {
                 put("search_after", JsonArray(searchAfter))
@@ -189,7 +204,7 @@ class ElasticsearchLogFileProvider(
     private fun rangeQuery(startTime: Instant, endTime: Instant): JsonObject =
         buildJsonObject {
             putJsonObject("range") {
-                putJsonObject(TIMESTAMP_FIELD) {
+                putJsonObject(timestampField) {
                     put("gte", startTime.toEpochMilliseconds())
                     put("lte", endTime.toEpochMilliseconds())
                     put("format", "epoch_millis")
@@ -233,4 +248,19 @@ class ElasticsearchLogFileProvider(
 
             expectSuccess = true
         }
+
+    private fun prefix(field: String) = if (config.fieldPrefix != null) "${config.fieldPrefix}.$field" else field
+}
+
+/**
+ * Return the string value located at [path] within this object, where [path] is a dot-separated field name, or `null`,
+ * if any segment is missing or the final sigment is not a [JsonPrimitive].
+ */
+internal fun JsonObject.stringAtPath(path: String): String? {
+    var current: JsonElement = this
+    path.split('.').forEach { segment ->
+        current = (current as? JsonObject)?.get(segment) ?: return null
+    }
+
+    return (current as? JsonPrimitive)?.content
 }

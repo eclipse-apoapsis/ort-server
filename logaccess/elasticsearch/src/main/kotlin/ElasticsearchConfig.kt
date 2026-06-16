@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.logaccess.elasticsearch
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
@@ -43,6 +44,15 @@ data class ElasticsearchConfig(
      * The namespace used to restrict log queries, for example the Kubernetes namespace or the local `compose` label.
      */
     val namespace: String,
+
+    /** The path of the log field that contains the Kubernetes namespace. */
+    val namespaceField: String,
+
+    /**
+     * A prefix to prepend to the log fields taken from the log lines. This is required if logstash is configured to add
+     * a custom prefix to all fields during indexing.
+     */
+    val fieldPrefix: String?,
 
     /**
      * The maximum number of hits requested per search call.
@@ -69,6 +79,12 @@ data class ElasticsearchConfig(
 
         /** The configuration property that defines the namespace label used in search filters. */
         private const val NAMESPACE_PROPERTY = "elasticsearchNamespace"
+
+        /** The configuration property that defines the path of the namespace field. Defaults to "namespace". */
+        private const val NAMESPACE_FIELD_PROPERTY = "elasticsearchNamespaceField"
+
+        /** The configuration property that defines the field prefix. */
+        private const val FIELD_PREFIX_PROPERTY = "elasticsearchFieldPrefix"
 
         /** The configuration property that defines the page size used for search requests. */
         private const val PAGE_SIZE_PROPERTY = "elasticsearchPageSize"
@@ -106,6 +122,8 @@ data class ElasticsearchConfig(
                 serverUrl = configManager.getString(SERVER_URL_PROPERTY),
                 index = configManager.getString(INDEX_PROPERTY),
                 namespace = configManager.getString(NAMESPACE_PROPERTY),
+                namespaceField = configManager.getStringOrDefault(NAMESPACE_FIELD_PROPERTY, "namespace"),
+                fieldPrefix = configManager.getStringOrNull(FIELD_PREFIX_PROPERTY),
                 pageSize = configManager.getIntOrDefault(PAGE_SIZE_PROPERTY, DEFAULT_PAGE_SIZE),
                 username = username,
                 password = password,

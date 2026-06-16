@@ -54,7 +54,6 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.EnumSet
-import java.util.Locale
 import java.util.UUID
 import java.util.zip.ZipFile
 
@@ -64,6 +63,9 @@ import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
@@ -146,7 +148,10 @@ class ElasticsearchLogFileProviderTest : StringSpec() {
                 hits.take(2) +
                     ElasticsearchHit(
                         "missing-message",
-                        ElasticsearchSource(null),
+                        buildJsonObject {
+                            put("level", "ERROR")
+                            put("timestamp", START_TIME_MS)
+                        },
                         listOf(JsonPrimitive(99), JsonPrimitive("x"))
                     ) + hits.takeLast(2),
                 source = LogSource.CONFIG
@@ -310,6 +315,46 @@ class ElasticsearchLogFileProviderTest : StringSpec() {
             firstPage.checkLogFile(logFile)
         }
 
+        "A configured field prefix should resolve nested source fields" {
+            val timestamp = START_TIME_MS + 1
+            val message = "Prefixed log line"
+            val hit = ElasticsearchHit(
+                id = "prefixed",
+                source = buildJsonObject {
+                    putJsonObject("logs") {
+                        put("formattedMessage", message)
+                        put("level", "ERROR")
+                        put("timestamp", timestamp)
+                    }
+                },
+                sort = listOf(JsonPrimitive(1), JsonPrimitive("sort-id-1"))
+            )
+
+            server.stubFor(
+                post(urlPathEqualTo("/$INDEX/_search")).willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(generateSearchResponse(listOf(hit)))
+                )
+            )
+
+            val config = server.elasticsearchConfig().copy(fieldPrefix = "logs")
+            val logFile =
+                ElasticsearchLogFileProvider(config).testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+
+            logFile.readLines() shouldBe listOf("${Instant.fromEpochMilliseconds(timestamp)} ERROR $message")
+            server.verify(
+                postRequestedFor(urlPathEqualTo("/$INDEX/_search"))
+                    .withRequestBody(matchingJsonPath("$._source[0]", equalTo("logs.level")))
+                    .withRequestBody(
+                        matchingJsonPath(
+                            "$.query.bool.filter[1].term['logs.mdc.component.keyword']",
+                            equalTo(LogSource.ADVISOR.component)
+                        )
+                    )
+            )
+        }
+
         "A full page without sort values should fail" {
             val hits = generateHits(LIMIT)
             val malformedHits = hits.dropLast(1) + hits.last().copy(sort = emptyList())
@@ -331,7 +376,22 @@ private suspend fun ElasticsearchLogFileProvider.testRequest(source: LogSource, 
 }
 
 private fun List<ElasticsearchHit>.checkLogFile(logFile: File) {
-    logFile.readLines() shouldBe mapNotNull { it.source.message }
+    logFile.readLines() shouldBe flatMap { it.expectedLines() }
+}
+
+/**
+ * Return the log file lines expected for this hit, mirroring how the provider renders a hit: an optional formatted
+ * timestamp and log level prefix followed by the message, with the throwable (if present) on a separate line. Hits
+ * without a message are skipped and therefore produce no lines.
+ */
+private fun ElasticsearchHit.expectedLines(): List<String> {
+    val message = source.stringAtPath("formattedMessage") ?: return emptyList()
+    val prefix = buildString {
+        source.stringAtPath("timestamp")?.toLongOrNull()?.let { append("${Instant.fromEpochMilliseconds(it)} ") }
+        source.stringAtPath("level")?.let { append("$it ") }
+    }
+
+    return listOfNotNull("$prefix$message", source.stringAtPath("throwable"))
 }
 
 private fun File.unpackTo(targetDirectory: File) {
@@ -371,15 +431,26 @@ private fun MappingBuilder.withExpectedSearchBody(
     searchAfter: List<JsonElement>? = null
 ): MappingBuilder =
     withRequestBody(matchingJsonPath("$.size", equalTo(LIMIT.toString())))
-        .withRequestBody(matchingJsonPath("$._source[0]", equalTo("message")))
+        .withRequestBody(matchingJsonPath("$._source[0]", equalTo("level")))
+        .withRequestBody(matchingJsonPath("$._source[1]", equalTo("formattedMessage")))
+        .withRequestBody(matchingJsonPath("$._source[2]", equalTo("throwable")))
+        .withRequestBody(matchingJsonPath("$._source[3]", equalTo("timestamp")))
         .withRequestBody(matchingJsonPath("$.query.bool.filter[0].term.namespace", equalTo(NAMESPACE)))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[1].term.component", equalTo(source.component)))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[2].term.ortRunId", equalTo(RUN_ID.toString())))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.time.gte", equalTo(START_TIME_MS.toString())))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.time.lte", equalTo(END_TIME_MS.toString())))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.time.format", equalTo("epoch_millis")))
-        .withRequestBody(matchingJsonPath("$.sort[0].time.order", equalTo("asc")))
-        .withRequestBody(matchingJsonPath("$.sort[1].sortId.order", equalTo("asc")))
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[1].term['mdc.component.keyword']", equalTo(source.component))
+        )
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[2].term['mdc.ortRunId.keyword']", equalTo(RUN_ID.toString()))
+        )
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[4].range.timestamp.gte", equalTo(START_TIME_MS.toString()))
+        )
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[4].range.timestamp.lte", equalTo(END_TIME_MS.toString()))
+        )
+        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.timestamp.format", equalTo("epoch_millis")))
+        .withRequestBody(matchingJsonPath("$.sort[0].timestamp.order", equalTo("asc")))
+        .withRequestBody(matchingJsonPath("$.sort[1].sequenceNumber.order", equalTo("asc")))
         .withExpectedLevels(levels)
         .withExpectedSearchAfter(searchAfter)
 
@@ -389,26 +460,41 @@ private fun RequestPatternBuilder.withExpectedSearchBody(
     searchAfter: List<JsonElement>? = null
 ): RequestPatternBuilder =
     withRequestBody(matchingJsonPath("$.size", equalTo(LIMIT.toString())))
-        .withRequestBody(matchingJsonPath("$._source[0]", equalTo("message")))
+        .withRequestBody(matchingJsonPath("$._source[0]", equalTo("level")))
+        .withRequestBody(matchingJsonPath("$._source[1]", equalTo("formattedMessage")))
+        .withRequestBody(matchingJsonPath("$._source[2]", equalTo("throwable")))
+        .withRequestBody(matchingJsonPath("$._source[3]", equalTo("timestamp")))
         .withRequestBody(matchingJsonPath("$.query.bool.filter[0].term.namespace", equalTo(NAMESPACE)))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[1].term.component", equalTo(source.component)))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[2].term.ortRunId", equalTo(RUN_ID.toString())))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.time.gte", equalTo(START_TIME_MS.toString())))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.time.lte", equalTo(END_TIME_MS.toString())))
-        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.time.format", equalTo("epoch_millis")))
-        .withRequestBody(matchingJsonPath("$.sort[0].time.order", equalTo("asc")))
-        .withRequestBody(matchingJsonPath("$.sort[1].sortId.order", equalTo("asc")))
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[1].term['mdc.component.keyword']", equalTo(source.component))
+        )
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[2].term['mdc.ortRunId.keyword']", equalTo(RUN_ID.toString()))
+        )
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[4].range.timestamp.gte", equalTo(START_TIME_MS.toString()))
+        )
+        .withRequestBody(
+            matchingJsonPath("$.query.bool.filter[4].range.timestamp.lte", equalTo(END_TIME_MS.toString()))
+        )
+        .withRequestBody(matchingJsonPath("$.query.bool.filter[4].range.timestamp.format", equalTo("epoch_millis")))
+        .withRequestBody(matchingJsonPath("$.sort[0].timestamp.order", equalTo("asc")))
+        .withRequestBody(matchingJsonPath("$.sort[1].sequenceNumber.order", equalTo("asc")))
         .withExpectedLevels(levels)
         .withExpectedSearchAfter(searchAfter)
 
 private fun MappingBuilder.withExpectedLevels(levels: List<LogLevel>): MappingBuilder =
     levels.foldIndexed(this) { index, request, level ->
-        request.withRequestBody(matchingJsonPath("$.query.bool.filter[3].terms.level[$index]", equalTo(level.name)))
+        request.withRequestBody(
+            matchingJsonPath("$.query.bool.filter[3].terms['level.keyword'][$index]", equalTo(level.name))
+        )
     }
 
 private fun RequestPatternBuilder.withExpectedLevels(levels: List<LogLevel>): RequestPatternBuilder =
     levels.foldIndexed(this) { index, request, level ->
-        request.withRequestBody(matchingJsonPath("$.query.bool.filter[3].terms.level[$index]", equalTo(level.name)))
+        request.withRequestBody(
+            matchingJsonPath("$.query.bool.filter[3].terms['level.keyword'][$index]", equalTo(level.name))
+        )
     }
 
 private fun MappingBuilder.withExpectedSearchAfter(searchAfter: List<JsonElement>?): MappingBuilder =
@@ -429,6 +515,8 @@ private fun WireMockServer.elasticsearchConfig(): ElasticsearchConfig =
         serverUrl = "http://localhost:${port()}",
         index = INDEX,
         namespace = NAMESPACE,
+        namespaceField = "namespace",
+        fieldPrefix = null,
         pageSize = LIMIT,
         username = null,
         password = null,
@@ -440,10 +528,11 @@ private fun generateHits(count: Int, offset: Long = 0, source: LogSource = LogSo
         val sortValue = offset + index + 1
         ElasticsearchHit(
             id = UUID.randomUUID().toString(),
-            source = ElasticsearchSource(
-                "time=2025-01-01T00:00:${"%02d".format(Locale.ROOT, index)}.000 component=${source.component} " +
-                        "ortRunId=$RUN_ID level=ERROR message=\"log line $sortValue\""
-            ),
+            source = buildJsonObject {
+                put("formattedMessage", "Log line $sortValue for component ${source.component}.")
+                put("level", "ERROR")
+                put("timestamp", START_TIME_MS + sortValue)
+            },
             sort = listOf(JsonPrimitive(sortValue), JsonPrimitive("sort-id-$sortValue"))
         )
     }
