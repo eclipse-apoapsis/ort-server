@@ -21,12 +21,9 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import com.typesafe.config.Config
 
-import org.eclipse.apoapsis.ortserver.transport.Message
-import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
+import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
-import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedString
-import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
@@ -44,9 +41,6 @@ data class KubernetesSenderConfig(
     /** The namespace inside the Kubernetes Cluster. */
     val namespace: String,
 
-    /** The policy when pulling images. */
-    val imagePullPolicy: String = DEFAULT_IMAGE_PULL_POLICY,
-
     /** A secret required for pulling the image from the container registry. */
     val imagePullSecret: String? = null,
 
@@ -59,11 +53,8 @@ data class KubernetesSenderConfig(
     /** The backoff limit when restarting pods. */
     val backoffLimit: Int = DEFAULT_BACKOFF_LIMIT,
 
-    /** The commands to be executed when running the container. */
-    val commands: List<String> = emptyList(),
-
-    /** A list with arguments for the container command. */
-    val args: List<String> = emptyList(),
+    /** The definition of the main container for the job to be created. */
+    val mainContainer: Container,
 
     /** A list with volume mount declarations for the pod to be created. */
     val volumeMounts: List<VolumeMount> = emptyList(),
@@ -88,10 +79,7 @@ data class KubernetesSenderConfig(
     val enableDebugLogging: Boolean = false,
 
     /** Stores the underlying configuration of the endpoint. */
-    private val endpointConfig: Config,
-
-    /** A map with the variable values for interpolation. */
-    private val variables: Map<String, String> = emptyMap()
+    private val endpointConfig: Config
 ) {
     companion object {
         /**
@@ -245,25 +233,40 @@ data class KubernetesSenderConfig(
         private val splitKeyValueRegex = splitRegex(KEY_VALUE_SEPARATOR)
 
         /**
-         * Create a [KubernetesSenderConfig] from the provided [config].
+         * Create a [KubernetesSenderConfig] for the given [endpoint] from the provided [config].
          */
-        fun createConfig(config: Config) =
+        fun createConfig(config: Config, endpoint: Endpoint<*>) =
             KubernetesSenderConfig(
                 namespace = config.getString(NAMESPACE_PROPERTY),
-                imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),
                 imagePullSecret = config.getStringOrNull(IMAGE_PULL_SECRET_PROPERTY),
                 userId = config.getLongOrDefault(USER_ID_PROPERTY, DEFAULT_USER_ID),
                 restartPolicy = config.getStringOrDefault(RESTART_POLICY_PROPERTY, DEFAULT_RESTART_POLICY),
                 backoffLimit = config.getIntOrDefault(BACKOFF_LIMIT_PROPERTY, DEFAULT_BACKOFF_LIMIT),
-                commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
-                args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
                 volumeMounts = config.parseSecretVolumeMounts() + config.parsePvcVolumeMounts() +
                         config.parseEmptyDirVolumeMounts(),
                 labels = createLabels(config.getStringOrDefault(LABELS_PROPERTY, "")),
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false),
-                config
+                mainContainer = createMainContainer(config, endpoint),
+                endpointConfig = config
+            )
+
+        /**
+         * Create a [Container] object representing the main container of the pod for the given [endpoint] from the
+         * given [config].
+         */
+        private fun createMainContainer(config: Config, endpoint: Endpoint<*>): Container =
+            Container(
+                name = "${endpoint.configPrefix}-main",
+                imageName = config.getString(IMAGE_NAME_PROPERTY),
+                imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),
+                commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
+                args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
+                cpuLimit = config.getStringOrNull(CPU_LIMIT_PROPERTY),
+                cpuRequest = config.getStringOrNull(CPU_REQUEST_PROPERTY),
+                memoryLimit = config.getStringOrNull(MEMORY_LIMIT_PROPERTY),
+                memoryRequest = config.getStringOrNull(MEMORY_REQUEST_PROPERTY)
             )
 
         /**
@@ -364,38 +367,4 @@ data class KubernetesSenderConfig(
             }
         }
     }
-
-    /** The name of the container image for the job to be started. */
-    val imageName: String
-        get() = endpointConfig.getInterpolatedString(IMAGE_NAME_PROPERTY, variables)
-
-    /** An optional limit for the CPU resource. */
-    val cpuLimit: String?
-        get() = interpolatedProperty(CPU_LIMIT_PROPERTY)
-
-    /** An optional request for the CPU resource. */
-    val cpuRequest: String?
-        get() = interpolatedProperty(CPU_REQUEST_PROPERTY)
-
-    /** An optional limit for the memory resource. */
-    val memoryLimit: String?
-        get() = interpolatedProperty(MEMORY_LIMIT_PROPERTY)
-
-    /** An optional request for the memory resource. */
-    val memoryRequest: String?
-        get() = interpolatedProperty(MEMORY_REQUEST_PROPERTY)
-
-    /**
-     * Return a [KubernetesSenderConfig] with settings updated for the given [message]. This function enables variable
-     * interpolation based on the properties of the given [message].
-     */
-    fun forMessage(message: Message<*>): KubernetesSenderConfig =
-        copy(variables = message.header.transportProperties.selectByPrefix(TRANSPORT_NAME))
-
-    /**
-     * Return the value of an optional property obtained from the underlying configuration applying variable
-     * interpolation.
-     */
-    private fun interpolatedProperty(name: String): String? =
-        endpointConfig.getInterpolatedStringOrNull(name, variables)
 }

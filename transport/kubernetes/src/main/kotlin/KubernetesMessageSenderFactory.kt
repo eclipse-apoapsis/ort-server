@@ -31,7 +31,7 @@ class KubernetesMessageSenderFactory : MessageSenderFactory {
     override val name: String = KubernetesSenderConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
-        val senderConfig = KubernetesSenderConfig.createConfig(configManager)
+        val senderConfig = KubernetesSenderConfig.createConfig(configManager, to)
 
         val client = defaultClient().setDebugging(senderConfig.enableDebugLogging)
 
