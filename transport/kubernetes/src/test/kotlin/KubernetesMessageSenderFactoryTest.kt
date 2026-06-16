@@ -217,6 +217,37 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         )
     }
 
+    "Mount declarations can be assigned a name" {
+        val secretMounts = "mySecretMount=$SECRET_MOUNTS"
+        val pvcMounts = PVC_MOUNTS.substringBefore("pvc3") + "myPvcMount =  pvc3" + PVC_MOUNTS.substringAfter("pvc3")
+        val emptyMounts = "myEmptyMount=$EMPTY_DIR_MOUNTS"
+        val keyPrefix = "analyzer.sender"
+        val configMap = mapOf(
+            "$keyPrefix.type" to KubernetesSenderConfig.TRANSPORT_NAME,
+            "$keyPrefix.namespace" to NAMESPACE,
+            "$keyPrefix.imageName" to IMAGE_NAME,
+            "$keyPrefix.mountSecrets" to secretMounts,
+            "$keyPrefix.mountPvcs" to pvcMounts,
+            "$keyPrefix.mountEmptyDirs" to emptyMounts
+        )
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+
+        val sender = MessageSenderFactory.createSender(AnalyzerEndpoint, configManager)
+
+        sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
+        sender.config.volumeMounts shouldContainInOrder listOf(
+            SecretVolumeMount("secret1", "/mnt/sec1", "sub1", "mySecretMount"),
+            SecretVolumeMount("secret2", "/path/with/white space"),
+            SecretVolumeMount("secret3", "/mnt/other", "sub2"),
+            PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
+            PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
+            PvcVolumeMount("pvc3", "/mnt/other", readOnly = true, "myPvcMount"),
+            EmptyDirVolumeMount("dir1", "/mnt/dir1", "myEmptyMount"),
+            EmptyDirVolumeMount("dir2", "/path/with/white space"),
+            EmptyDirVolumeMount("dir3", "/mnt/other")
+        )
+    }
+
     "Invalid labels are ignored" {
         val keyPrefix = "analyzer.sender"
         val labels = "label1=value1 , invalid label, label2 = value2, =invalid, invalid="

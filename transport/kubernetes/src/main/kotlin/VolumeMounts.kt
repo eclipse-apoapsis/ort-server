@@ -39,7 +39,11 @@ private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)(?:(?:\s*
 /** A regular expression to parse a PVC-based volume mount declaration. */
 private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
 
+/** A regular expression to parse an empty volume mount declaration. */
 private val mountEmptyDirDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+)""")
+
+/** A regular expression to parse an expression with an optional preceding name assignment. */
+private val namedDeclarationRegex = Regex("""((\S+)\s*=\s*)?(.+)""")
 
 private val logger = LoggerFactory.getLogger("VolumeMounts")
 
@@ -54,6 +58,13 @@ private val logger = LoggerFactory.getLogger("VolumeMounts")
 sealed interface VolumeMount {
     /** The path where to mount the volume in the container. */
     val mountPath: String
+
+    /**
+     * An optional name assigned to this volume mount declaration. This is used to reference mount declarations by
+     * name, for instance, to specify which mount should be added to a specific container. Mount declarations without
+     * a name are added to all containers.
+     */
+    val mountName: String?
 
     /**
      * Populate the properties of the passed in [mount] according to the data stored in this object. Use the given
@@ -81,7 +92,9 @@ internal data class SecretVolumeMount(
     override val mountPath: String,
 
     /** The optional sub path to mount from the volume. */
-    val subPath: String? = null
+    val subPath: String? = null,
+
+    override val mountName: String? = null
 ) : VolumeMount {
     override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
         mount.name("$SECRET_VOLUME_PREFIX${index + 1}")
@@ -107,7 +120,9 @@ internal data class PvcVolumeMount(
     override val mountPath: String,
 
     /** A flag whether this is a read-only volume. */
-    val readOnly: Boolean
+    val readOnly: Boolean,
+
+    override val mountName: String? = null
 ) : VolumeMount {
     override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
         mount.name("$PVC_VOLUME_PREFIX${index + 1}")
@@ -128,7 +143,9 @@ data class EmptyDirVolumeMount(
     val name: String,
 
     /** The path where the volume is mounted into the pod. */
-    override val mountPath: String
+    override val mountPath: String,
+
+    override val mountName: String? = null
 ) : VolumeMount {
     override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
         mount.name(name)
@@ -146,9 +163,9 @@ data class EmptyDirVolumeMount(
  * declaration is invalid.
  */
 internal fun parseSecretVolumeMount(mountDeclaration: String): VolumeMount? =
-    parseVolumeMount(mountDeclaration, mountSecretDeclarationRegex) { match ->
+    parseVolumeMount(mountDeclaration, mountSecretDeclarationRegex) { match, name ->
         val (secretName, mountPath, subPath) = match.destructured
-        SecretVolumeMount(secretName, mountPath.trim(), subPath.takeUnless { it.isEmpty() })
+        SecretVolumeMount(secretName, mountPath.trim(), subPath.takeUnless { it.isEmpty() }, name)
     }
 
 /**
@@ -156,9 +173,9 @@ internal fun parseSecretVolumeMount(mountDeclaration: String): VolumeMount? =
  * *null* if the declaration is invalid.
  */
 internal fun parsePvcVolumeMount(mountDeclaration: String): VolumeMount? =
-    parseVolumeMount(mountDeclaration, mountPvcDeclarationRegex) { match ->
+    parseVolumeMount(mountDeclaration, mountPvcDeclarationRegex) { match, name ->
         val (claimName, mountPath, readOnly) = match.destructured
-        PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r")
+        PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r", name)
     }
 
 /**
@@ -166,9 +183,9 @@ internal fun parsePvcVolumeMount(mountDeclaration: String): VolumeMount? =
  *  the declaration is invalid.
  */
 internal fun parseEmptyVolumeMount(mountDeclaration: String): VolumeMount? =
-    parseVolumeMount(mountDeclaration, mountEmptyDirDeclarationRegex) { match ->
+    parseVolumeMount(mountDeclaration, mountEmptyDirDeclarationRegex) { match, mountName ->
         val (name, mountPath) = match.destructured
-        EmptyDirVolumeMount(name, mountPath)
+        EmptyDirVolumeMount(name, mountPath, mountName)
     }
 
 /**
@@ -178,14 +195,18 @@ internal fun parseEmptyVolumeMount(mountDeclaration: String): VolumeMount? =
 private fun parseVolumeMount(
     mountDeclaration: String,
     regex: Regex,
-    parse: (MatchResult) -> VolumeMount
-): VolumeMount? {
-    val matchResult = regex.matchEntire(mountDeclaration)
+    parse: (MatchResult, String?) -> VolumeMount
+): VolumeMount? =
+    namedDeclarationRegex.matchEntire(mountDeclaration)?.let { match ->
+        val name = match.groupValues[2].takeIf { it.isNotEmpty() }
+        val declaration = match.groupValues[3]
 
-    return if (matchResult == null) {
-        logger.warn("Found invalid volume mount declaration: $mountDeclaration. This will be ignored.")
-        null
-    } else {
-        parse(matchResult)
+        val matchResult = regex.matchEntire(declaration)
+
+        if (matchResult == null) {
+            logger.warn("Found invalid volume mount declaration: $mountDeclaration. This will be ignored.")
+            null
+        } else {
+            parse(matchResult, name)
+        }
     }
-}
