@@ -164,7 +164,7 @@ importers:
         version: 0.98.2(typescript@6.0.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: 4.7.1
-        version: 4.7.1(prettier@3.8.3)
+        version: 4.7.1(prettier@3.8.4)
       '@playwright/test':
         specifier: 1.60.0
         version: 1.60.0
@@ -217,11 +217,11 @@ importers:
         specifier: 8.5.15
         version: 8.5.15
       prettier:
-        specifier: 3.8.3
-        version: 3.8.3
+        specifier: 3.8.4
+        version: 3.8.4
       prettier-plugin-tailwindcss:
         specifier: 0.8.0
-        version: 0.8.0(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.3))(prettier@3.8.3)
+        version: 0.8.0(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4))(prettier@3.8.4)
       tailwindcss:
         specifier: 4.3.0
         version: 4.3.0
@@ -2815,6 +2815,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prettier@3.8.4:
+    resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   property-information@7.0.0:
     resolution: {integrity: sha512-7D/qOz/+Y4X/rzSB6jKxKUsQnphO046ei8qxG59mtM3RG3DHgTK81HrxrmoDVINJb8NKT5ZsRbwHvQ6B68Iyhg==}
 
@@ -3595,13 +3600,13 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.3)':
+  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4)':
     dependencies:
       '@babel/generator': 7.29.0
       '@babel/parser': 7.29.0
       '@babel/traverse': 7.29.0
       '@babel/types': 7.29.0
-      prettier: 3.8.3
+      prettier: 3.8.4
       semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
@@ -5911,13 +5916,15 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.8.0(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.3))(prettier@3.8.3):
+  prettier-plugin-tailwindcss@0.8.0(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4))(prettier@3.8.4):
     dependencies:
-      prettier: 3.8.3
+      prettier: 3.8.4
     optionalDependencies:
-      '@ianvs/prettier-plugin-sort-imports': 4.7.1(prettier@3.8.3)
+      '@ianvs/prettier-plugin-sort-imports': 4.7.1(prettier@3.8.4)
 
   prettier@3.8.3: {}
+
+  prettier@3.8.4: {}
 
   property-information@7.0.0: {}
 
