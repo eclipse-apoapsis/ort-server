@@ -462,6 +462,8 @@ const CreateRunPage = () => {
                 value='analyzer'
                 onToggle={() => toggleAccordionOpen('analyzer')}
                 isSuperuser={isSuperuser}
+                packageCurationProviderPlugins={packageCurationProviderPlugins}
+                pluginSecrets={secrets.data || []}
                 permissions={permissions}
               />
               <AdvisorFields
