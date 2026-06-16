@@ -114,7 +114,7 @@ export const PluginMultiSelectField = <
       render={({ field }) => (
         <FormItem
           className={cn(
-            'mb-4 flex flex-col justify-between rounded-lg border p-4',
+            'flex flex-col justify-between rounded-lg border p-4',
             className
           )}
         >
@@ -223,14 +223,14 @@ export const PluginMultiSelectField = <
                   }}
                 />
               </FormControl>
-              <div className='flex flex-col space-y-2'>
+              <div className='flex flex-col'>
                 <FormLabel className='font-normal'>
                   {plugin.displayName}
                 </FormLabel>
                 {plugin.summary != null && (
                   <MarkdownRenderer
                     markdown={plugin.summary}
-                    className='text-muted-foreground max-w-none pb-4 [&_p]:my-0'
+                    className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
                   />
                 )}
                 {scannerScopeName && field.value?.includes(plugin.id) && (
@@ -285,7 +285,7 @@ export const PluginMultiSelectField = <
                         `${configName}.${plugin.id}.${option.type === 'SECRET' ? 'secrets' : 'options'}.${option.name}` as Path<TFieldValues>
                       }
                       render={({ field }) => (
-                        <FormItem className='ml-4 flex flex-col space-y-0.5 pb-4'>
+                        <FormItem className='ml-4 flex flex-col pb-4'>
                           <FormLabel>
                             {option.name}
                             <Badge
