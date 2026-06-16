@@ -295,9 +295,6 @@ export const PluginMultiSelectField = <
                               {option.type}
                             </Badge>
                           </FormLabel>
-                          <FormDescription>
-                            {option.description}
-                          </FormDescription>
                           <FormControl>
                             {option.type === 'BOOLEAN' ? (
                               <Checkbox
@@ -384,6 +381,9 @@ export const PluginMultiSelectField = <
                               />
                             )}
                           </FormControl>
+                          <FormDescription>
+                            {option.description}
+                          </FormDescription>
                           {option.isFixed && (
                             <FormDescription className='font-semibold text-yellow-700'>
                               This option is set by an administrator and cannot
