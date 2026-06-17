@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-val dockerBaseImagePrefix: String by project
-val dockerBaseImageTag: String by project
-val dockerImagePrefix: String by project
-val dockerImageTag: String by project
+val dockerBaseImagePrefix = project.property("dockerBaseImagePrefix") as String
+val dockerBaseImageTag = project.property("dockerBaseImageTag") as String
+val dockerImagePrefix = project.property("dockerImagePrefix") as String
+val dockerImageTag = project.property("dockerImageTag") as String
 
 plugins {
     // Apply core plugins.
