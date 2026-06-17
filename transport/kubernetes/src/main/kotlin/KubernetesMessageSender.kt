@@ -20,10 +20,12 @@
 package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.models.V1EnvVar
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
 import io.kubernetes.client.openapi.models.V1LocalObjectReference
 import io.kubernetes.client.openapi.models.V1PodSecurityContextBuilder
+import io.kubernetes.client.openapi.models.V1PodSpecFluent
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
 
@@ -85,11 +87,12 @@ internal class KubernetesMessageSender<T : Any>(
         )
 
         val variables = message.header.transportProperties.selectByPrefix(TRANSPORT_NAME)
-        val envVars = createEnvironment()
+        val env = (createEnvironment() + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() }
         val labels = config.labels + createTraceIdLabels(traceId) + mapOf(
             RUN_ID_LABEL to message.header.ortRunId.toString(),
             WORKER_LABEL to endpoint.configPrefix
         )
+        val (globalMounts, namedMounts) = createVolumeMounts(config)
 
         val jobBody = V1JobBuilder()
             .withNewMetadata()
@@ -110,18 +113,7 @@ internal class KubernetesMessageSender<T : Any>(
                             listOfNotNull(config.imagePullSecret).map { V1LocalObjectReference().name(it) }
                         )
                        .withServiceAccountName(config.serviceAccountName)
-                       .addNewContainer()
-                           .withName("${endpoint.configPrefix}-$traceId".take(64))
-                           .withImage(config.mainContainer.imageName.substituteVariables(variables))
-                           .withCommand(config.mainContainer.commands)
-                           .withArgs(config.mainContainer.args)
-                           .withImagePullPolicy(config.mainContainer.imagePullPolicy)
-                           .withEnv(
-                               (envVars + msgMap).map { V1EnvVarBuilder().withName(it.key).withValue(it.value).build() }
-                           )
-                           .withVolumeMounts(createVolumeMounts(config))
-                           .withResources(config.mainContainer.createResources(variables))
-                       .endContainer()
+                       .addContainers(config, env, variables, globalMounts, namedMounts)
                        .withVolumes(createVolumes(config))
                     .endSpec()
                 .endTemplate()
@@ -161,12 +153,16 @@ internal class KubernetesMessageSender<T : Any>(
         }
 
     /**
-     * Return a list with volume mounts for the volume mount declarations contained in the given [config].
+     * Convert the volume mounts declared in the given [config] to [V1VolumeMount] objects. Return a [Pair] with the
+     * mounts to be added to all containers and the named volume mounts.
      */
-    private fun createVolumeMounts(config: KubernetesSenderConfig): List<V1VolumeMount> =
-        config.volumeMounts.mapIndexed { index, volumeMount ->
-            volumeMount.initializeVolumeMount(V1VolumeMount(), index)
+    private fun createVolumeMounts(
+        config: KubernetesSenderConfig
+    ): Pair<List<V1VolumeMount>, Map<String, V1VolumeMount>> =
+        config.volumeMounts.foldIndexed(emptyList<V1VolumeMount>() to emptyMap()) { index, (list, map), volumeMount ->
+            val mount = volumeMount.initializeVolumeMount(V1VolumeMount(), index)
                 .mountPath(volumeMount.mountPath)
+            volumeMount.mountName?.let { name -> list to (map + (name to mount)) } ?: ((list + mount) to map)
         }
 
     /**
@@ -178,3 +174,29 @@ internal class KubernetesMessageSender<T : Any>(
             map + ("$TRACE_LABEL_PREFIX${value.index}" to value.value)
         }
 }
+
+/**
+ * Add the containers declared in the given [config] to the pod specification. All containers share the same
+ * [environment]. Variable substitution is done based on the provided [variables]. Generate volume mounts based on the
+ * given [globalMounts] (which are added to all containers) and [namedMounts] (explicitly referenced by single
+ * containers).
+ */
+private fun <A : V1PodSpecFluent<A>> A.addContainers(
+    config: KubernetesSenderConfig,
+    environment: List<V1EnvVar>,
+    variables: Map<String, String>,
+    globalMounts: List<V1VolumeMount>,
+    namedMounts: Map<String, V1VolumeMount>
+): A =
+    (listOf(config.mainContainer) + config.additionalContainers).fold(this) { pod, container ->
+        pod.addNewContainer()
+            .withName(container.name)
+            .withImage(container.imageName.substituteVariables(variables))
+            .withImagePullPolicy(container.imagePullPolicy)
+            .withCommand(container.commands)
+            .withArgs(container.args)
+            .withEnv(environment)
+            .withResources(container.createResources(variables))
+            .withVolumeMounts(globalMounts + container.volumeMounts.mapNotNull { namedMounts[it] })
+            .endContainer()
+    }
