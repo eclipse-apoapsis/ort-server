@@ -464,6 +464,7 @@ const CreateRunPage = () => {
                 isSuperuser={isSuperuser}
                 packageCurationProviderPlugins={packageCurationProviderPlugins}
                 pluginSecrets={secrets.data || []}
+                isRerun={ortRun?.data != null}
                 permissions={permissions}
               />
               <AdvisorFields

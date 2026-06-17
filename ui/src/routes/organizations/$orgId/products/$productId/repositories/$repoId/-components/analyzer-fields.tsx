@@ -71,6 +71,7 @@ type AnalyzerFieldsProps = {
   isSuperuser: boolean;
   packageCurationProviderPlugins: PreconfiguredPluginDescriptor[];
   pluginSecrets: Secret[];
+  isRerun: boolean;
   permissions: {
     organization: OrganizationPermissions | undefined;
     product: ProductPermissions | undefined;
@@ -85,6 +86,7 @@ export const AnalyzerFields = ({
   isSuperuser,
   packageCurationProviderPlugins,
   pluginSecrets,
+  isRerun,
   permissions,
 }: AnalyzerFieldsProps) => {
   const { orgId, productId, repoId } = useParams({ strict: false });
@@ -379,10 +381,16 @@ export const AnalyzerFields = ({
             configName='jobConfigs.analyzer.packageCurationProviderConfig'
             label='Package curation providers'
             description={
-              <>Select the package curation providers enabled for this run.</>
+              <>
+                Configure the package curation providers to use. Providers
+                higher in the list take precedence over lower providers. Change
+                the order of providers via drag & drop.
+              </>
             }
             plugins={packageCurationProviderPlugins}
             secrets={pluginSecrets}
+            enableReordering
+            showSelectedPluginsFirst={isRerun}
           />
           {isSuperuser && (
             <FormField
