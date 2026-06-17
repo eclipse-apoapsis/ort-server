@@ -33,7 +33,7 @@ dependencies {
     implementation(projects.dao)
 
     routesApi(projects.components.authorization.authorizationBackend)
-    
+
     routesImplementation(ktorLibs.server.core)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.ktorUtils)
