@@ -59,7 +59,13 @@ data class Container(
     val memoryLimit: String?,
 
     /** An optional request for the memory resource. This may contain variables. */
-    val memoryRequest: String?
+    val memoryRequest: String?,
+
+    /**
+     * A list with the names of volume mounts to add to this container. The strings in the list reference the names of
+     * declared volume mounts. In addition, volume mounts without a name are added to all containers.
+     */
+    val volumeMounts: List<String> = emptyList()
 ) {
     /**
      * Return an optional [V1ResourceRequirements] object based on the properties related to resource requests and

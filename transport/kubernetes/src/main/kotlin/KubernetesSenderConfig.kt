@@ -33,6 +33,13 @@ import org.slf4j.LoggerFactory
 /**
  * A configuration class used by the sender part of the Kubernetes Transport implementation.
  *
+ * This class contains a larger set of properties that defines the Kubernetes job to be created for the current
+ * endpoint. Many aspects of the manifest can be configured, including labels, annotations, retry behavior, volumes,
+ * and the containers running in the pod created for the job. Per default, there is only a single container ("main"),
+ * whose properties are directly defined in the application configuration. It is, however, possible to declare an
+ * arbitrary number of additional containers, which may also be init containers. Their properties are obtained from
+ * environment variables.
+ *
  * Note that there is an asymmetry between the configuration requirements of the sender and the receiver part: The
  * sender does the heavy work of creating a Kubernetes job and thus needs to be rather flexible and configurable.
  * The receiver in contrast just receives some parameters from environment variables.
@@ -55,6 +62,9 @@ data class KubernetesSenderConfig(
 
     /** The definition of the main container for the job to be created. */
     val mainContainer: Container,
+
+    /** A list storing additional containers that should run in the pod created for the job. */
+    val additionalContainers: List<Container> = emptyList(),
 
     /** A list with volume mount declarations for the pod to be created. */
     val volumeMounts: List<VolumeMount> = emptyList(),
@@ -155,6 +165,13 @@ data class KubernetesSenderConfig(
         private const val MOUNT_EMPTYDIRS_PROPERTY = "mountEmptyDirs"
 
         /**
+         * The name of the configuration that defines the names of volume mounts to be added to the main container. The
+         * value is a comma-separated list of mount names. (Note that all volume mounts without a name are added
+         * automatically.)
+         */
+        private const val VOLUME_MOUNT_NAMES_PROPERTY = "volumeMounts"
+
+        /**
          * The name of the configuration property defining the labels to add to new pods. The value of this property is
          * interpreted as a comma-separated list of labels, ignoring whitespace around the labels. Each label must have
          * the format _key=value_. The labels `ort-worker`, `run-id` and any `trace-id-*` are inserted automatically by
@@ -197,6 +214,18 @@ data class KubernetesSenderConfig(
          */
         private const val MEMORY_REQUEST_PROPERTY = "memoryRequest"
 
+        /**
+         * The name of the configuration property that allows the definition of additional containers. The property
+         * value is expected to be a comma-separated list of container names. The properties of these containers (such
+         * as image name, commands, args, etc.) are then obtained from environment variables following a certain naming
+         * convention. The variables must start with the container name, followed by an underscore, followed by the
+         * property name in upper snake case, for instance, `CONTROLLER_IMAGE_NAME` or `CONTROLLER_CPU_REQUEST` for a
+         * container named _CONTROLLER_. The additional containers inherit a number of properties from the main
+         * container unless they are overridden by the corresponding variables. There are some exceptions like
+         * resources and volume mounts which need to be explicitly defined for each container.
+         */
+        private const val ADDITIONAL_CONTAINERS_PROPERTY = "additionalContainers"
+
         /** The default value for the user id. */
         private const val DEFAULT_USER_ID = 1000L
 
@@ -223,8 +252,8 @@ data class KubernetesSenderConfig(
          */
         private val splitCommandsRegex = Regex("""\s(?=([^"]*"[^"]*")*[^"]*$)""")
 
-        /** A regular expression to split the list of labels. */
-        private val splitLabelsRegex = splitRegex(LIST_SEPARATOR)
+        /** A regular expression to split comma-separated lists, like the list of labels. */
+        private val splitCommaListRegex = splitRegex(LIST_SEPARATOR)
 
         /** A regular expression to split the list with environment variables defining annotations. */
         private val splitAnnotationVariablesRegex = splitRegex(LIST_SEPARATOR)
@@ -235,8 +264,12 @@ data class KubernetesSenderConfig(
         /**
          * Create a [KubernetesSenderConfig] for the given [endpoint] from the provided [config].
          */
-        fun createConfig(config: Config, endpoint: Endpoint<*>) =
-            KubernetesSenderConfig(
+        fun createConfig(config: Config, endpoint: Endpoint<*>): KubernetesSenderConfig {
+            val mainContainer = createMainContainer(config, endpoint)
+            val additionalContainerNames = config.getStringOrNull(ADDITIONAL_CONTAINERS_PROPERTY)
+                .splitAt(splitCommaListRegex)
+
+            return KubernetesSenderConfig(
                 namespace = config.getString(NAMESPACE_PROPERTY),
                 imagePullSecret = config.getStringOrNull(IMAGE_PULL_SECRET_PROPERTY),
                 userId = config.getLongOrDefault(USER_ID_PROPERTY, DEFAULT_USER_ID),
@@ -248,9 +281,11 @@ data class KubernetesSenderConfig(
                 annotations = createAnnotations(config.getStringOrDefault(ANNOTATIONS_VARIABLES_PROPERTY, "")),
                 serviceAccountName = config.getStringOrNull(SERVICE_ACCOUNT_PROPERTY),
                 enableDebugLogging = config.getBooleanOrDefault(ENABLE_DEBUG_LOGGING_PROPERTY, false),
-                mainContainer = createMainContainer(config, endpoint),
+                mainContainer = mainContainer,
+                additionalContainers = additionalContainerNames.map { createAdditionalContainer(it, mainContainer) },
                 endpointConfig = config
             )
+        }
 
         /**
          * Create a [Container] object representing the main container of the pod for the given [endpoint] from the
@@ -266,8 +301,31 @@ data class KubernetesSenderConfig(
                 cpuLimit = config.getStringOrNull(CPU_LIMIT_PROPERTY),
                 cpuRequest = config.getStringOrNull(CPU_REQUEST_PROPERTY),
                 memoryLimit = config.getStringOrNull(MEMORY_LIMIT_PROPERTY),
-                memoryRequest = config.getStringOrNull(MEMORY_REQUEST_PROPERTY)
+                memoryRequest = config.getStringOrNull(MEMORY_REQUEST_PROPERTY),
+                volumeMounts = config.getStringOrNull(VOLUME_MOUNT_NAMES_PROPERTY).splitAt(splitCommaListRegex)
             )
+
+        /**
+         * Create a [Container] object for the additional container with the given [name]. Look for environment
+         * variables starting with a prefix derived from the container name. User properties from the given
+         * [mainContainer] as default values.
+         */
+        private fun createAdditionalContainer(name: String, mainContainer: Container): Container {
+            val prefix = name.uppercase() + "_"
+
+            return Container(
+                name = "${name.lowercase()}-container",
+                imageName = System.getenv("${prefix}IMAGE_NAME") ?: mainContainer.imageName,
+                imagePullPolicy = System.getenv("${prefix}IMAGE_PULL_POLICY") ?: mainContainer.imagePullPolicy,
+                commands = System.getenv("${prefix}COMMANDS")?.splitAtWhitespace() ?: mainContainer.commands,
+                args = System.getenv("${prefix}ARGS")?.splitAtWhitespace() ?: mainContainer.args,
+                cpuLimit = System.getenv("${prefix}CPU_LIMIT"),
+                cpuRequest = System.getenv("${prefix}CPU_REQUEST"),
+                memoryLimit = System.getenv("${prefix}MEMORY_LIMIT"),
+                memoryRequest = System.getenv("${prefix}MEMORY_REQUEST"),
+                volumeMounts = System.getenv("${prefix}VOLUME_MOUNTS").splitAt(splitCommaListRegex)
+            )
+        }
 
         /**
          * Return a [Regex] that can be used to split a string at the given [separator] and that handles whitespace
@@ -283,6 +341,12 @@ data class KubernetesSenderConfig(
             split(splitCommandsRegex).map { s ->
                 if (s.startsWith('"') && s.endsWith('"')) s.substring(1..s.length - 2) else s
             }.filterNot { it.isEmpty() }
+
+        /**
+         * Split a nullable string using the given [regex] and return a list with the non-empty parts.
+         */
+        private fun String?.splitAt(regex: Regex): List<String> =
+            this?.split(regex).orEmpty().filterNot { it.isEmpty() }
 
         /**
          * Parse the given [property] of this [Config] as a number of volume mount objects making use of the provided
@@ -322,7 +386,7 @@ data class KubernetesSenderConfig(
 
             val reservedLabels = listOf("ort-worker", "run-id")
 
-            return labels.split(splitLabelsRegex).mapNotNull { label ->
+            return labels.split(splitCommaListRegex).mapNotNull { label ->
                 val keyValue = label.split(splitKeyValueRegex, limit = 2)
                 if (keyValue.size != 2 || keyValue[0].isEmpty() || keyValue[1].isEmpty()) {
                     logger.warn("Ignore invalid label declaration: '$label'. Labels must have the format 'key=value'.")

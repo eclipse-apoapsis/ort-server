@@ -25,9 +25,11 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containOnly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.maps.shouldContainAll
@@ -40,6 +42,7 @@ import io.kotest.matchers.string.shouldStartWith
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.models.V1Container
 import io.kubernetes.client.openapi.models.V1Job
 
 import io.mockk.every
@@ -148,7 +151,7 @@ class KubernetesMessageSenderTest : StringSpec({
 
     "The container image should be customizable based on message properties" {
         val jdkVariable = "javaVersion"
-        val config = createConfig("imageName" to "analyzer-\${$jdkVariable}")
+        val config = createConfig(mapOf("imageName" to "analyzer-\${$jdkVariable}"))
         val msg = messageWithProperties("kubernetes.$jdkVariable" to "18")
 
         val job = createJob(config, msg)
@@ -158,10 +161,12 @@ class KubernetesMessageSenderTest : StringSpec({
 
     "Resource definitions should be supported that are customizable based on message properties" {
         val config = createConfig(
-            "cpuLimit" to "\${cpuLimitVar}",
-            "cpuRequest" to "\${cpuRequestVar}",
-            "memoryLimit" to "\${memoryLimitVar}",
-            "memoryRequest" to "\${memoryRequestVar}"
+            mapOf(
+                "cpuLimit" to "\${cpuLimitVar}",
+                "cpuRequest" to "\${cpuRequestVar}",
+                "memoryLimit" to "\${memoryLimitVar}",
+                "memoryRequest" to "\${memoryRequestVar}"
+            )
         )
         val msg = messageWithProperties(
             "kubernetes.cpuLimitVar" to "500m",
@@ -206,6 +211,82 @@ class KubernetesMessageSenderTest : StringSpec({
         jobNames.forAll { jobName ->
             jobName.shouldStartWith("analyzer-")
             jobName.length shouldBeGreaterThan 20
+        }
+    }
+
+    "Additional containers can be created" {
+        val containerVariables = mapOf(
+            "C1_IMAGE_NAME" to $$"${imageVar}",
+            "C1_IMAGE_PULL_POLICY" to "sometimes",
+            "C1_COMMANDS" to "c1.exe",
+            "C1_ARGS" to "foo bar",
+            "C1_CPU_LIMIT" to "50",
+            "C1_CPU_REQUEST" to "25",
+            "C1_MEMORY_LIMIT" to "1024",
+            "C1_MEMORY_REQUEST" to "512",
+            "C2_VOLUME_MOUNTS" to "secretMount",
+            "C3_COMMANDS" to "c3.exe",
+            "C3_CPU_REQUEST" to $$"${c3.cpuLimitVar}",
+            "C3_VOLUME_MOUNTS" to "secretMount, persistentMount"
+        )
+
+        val config = createConfig(
+            mapOf(
+                "cpuLimit" to "10",
+                "additionalContainers" to "C1,C2, C3",
+                "mountSecrets" to "secretMount=topSecret->/mnt/top/secret|sub-secret",
+                "mountPvcs" to "persistentMount=pvc1->/mnt/readOnly,R",
+                "mountEmptyDirs" to "dir1->/mnt/dir1 dir2->/mnt/dir2",
+                "volumeMounts" to "persistentMount"
+            ),
+            containerVariables
+        )
+        val msg = messageWithProperties(
+            "kubernetes.imageVar" to "test-image:most-recent",
+            "kubernetes.c3.cpuLimitVar" to "250m"
+        )
+
+        val job = createJob(config, msg)
+
+        val containers = job.spec?.template?.spec?.containers.orEmpty()
+        containers shouldHaveSize 4
+
+        with(containers[0]) {
+            name shouldBe config.mainContainer.name
+            expectMounts("pvc-volume-2", "dir1", "dir2")
+        }
+
+        with(containers[1]) {
+            image shouldBe "test-image:most-recent"
+            imagePullPolicy shouldBe "sometimes"
+            command shouldBe listOf("c1.exe")
+            args shouldBe listOf("foo", "bar")
+            resources shouldNotBeNull {
+                limits shouldBe mapOf("cpu" to Quantity("50"), "memory" to Quantity("1024"))
+                requests shouldBe mapOf("cpu" to Quantity("25"), "memory" to Quantity("512"))
+            }
+            expectMounts("dir1", "dir2")
+        }
+
+        with(containers[2]) {
+            image shouldBe "busybox"
+            imagePullPolicy shouldBe "Always"
+            command shouldBe config.mainContainer.commands
+            args shouldBe config.mainContainer.args
+            resources should beNull()
+            expectMounts("dir1", "dir2", "secret-volume-1")
+        }
+
+        with(containers[3]) {
+            image shouldBe "busybox"
+            imagePullPolicy shouldBe "Always"
+            command shouldBe listOf("c3.exe")
+            args shouldBe config.mainContainer.args
+            resources shouldNotBeNull {
+                limits?.keys.orEmpty() should beEmpty()
+                requests shouldBe mapOf("cpu" to Quantity("250m"))
+            }
+            expectMounts("dir1", "dir2", "secret-volume-1", "pvc-volume-2")
         }
     }
 })
@@ -278,9 +359,13 @@ private fun createClientAndSender(
 }
 
 /**
- * Create a [KubernetesSenderConfig] with default properties that can be overridden with the given [overrides].
+ * Create a [KubernetesSenderConfig] with default properties that can be overridden with the given [overrides]. Set the
+ * given [environment].
  */
-private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSenderConfig {
+private fun createConfig(
+    overrides: Map<String, String> = emptyMap(),
+    environment: Map<String, String> = annotationVariables
+): KubernetesSenderConfig {
     val defaultProperties = mapOf(
         "namespace" to "test-namespace",
         "imageName" to "busybox",
@@ -298,10 +383,10 @@ private fun createConfig(vararg overrides: Pair<String, String>): KubernetesSend
         "annotationVariables" to "v1,v2",
         "serviceAccountName" to "test_service_account"
     )
-    val overrideProperties = mapOf(*overrides)
 
-    return withEnvironment(annotationVariables) {
-        val config = ConfigFactory.parseMap(overrideProperties).withFallback(ConfigFactory.parseMap(defaultProperties))
+    return withEnvironment(environment) {
+        ConfigFactory.invalidateCaches()
+        val config = ConfigFactory.parseMap(overrides).withFallback(ConfigFactory.parseMap(defaultProperties))
 
         KubernetesSenderConfig.createConfig(config, AnalyzerEndpoint)
     }
@@ -325,4 +410,11 @@ private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long,
     customLabels.forEach { (key, value) ->
         actualLabels[key] shouldBe value
     }
+}
+
+/**
+ * Check whether this container has exactly the volume mounts with the given [expectedNames].
+ */
+private fun V1Container.expectMounts(vararg expectedNames: String) {
+    volumeMounts.orEmpty().map { it.name } shouldContainExactlyInAnyOrder expectedNames.toList()
 }
