@@ -323,7 +323,8 @@ data class KubernetesSenderConfig(
                 cpuRequest = System.getenv("${prefix}CPU_REQUEST"),
                 memoryLimit = System.getenv("${prefix}MEMORY_LIMIT"),
                 memoryRequest = System.getenv("${prefix}MEMORY_REQUEST"),
-                volumeMounts = System.getenv("${prefix}VOLUME_MOUNTS").splitAt(splitCommaListRegex)
+                volumeMounts = System.getenv("${prefix}VOLUME_MOUNTS").splitAt(splitCommaListRegex),
+                isInitContainer = System.getenv("${prefix}INIT_CONTAINER")?.toBoolean() ?: false
             )
         }
 

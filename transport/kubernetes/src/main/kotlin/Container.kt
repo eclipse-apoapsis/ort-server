@@ -65,7 +65,13 @@ data class Container(
      * A list with the names of volume mounts to add to this container. The strings in the list reference the names of
      * declared volume mounts. In addition, volume mounts without a name are added to all containers.
      */
-    val volumeMounts: List<String> = emptyList()
+    val volumeMounts: List<String> = emptyList(),
+
+    /**
+     * A flag whether this container is an init container.
+     * See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+     */
+    val isInitContainer: Boolean = false
 ) {
     /**
      * Return an optional [V1ResourceRequirements] object based on the properties related to resource requests and

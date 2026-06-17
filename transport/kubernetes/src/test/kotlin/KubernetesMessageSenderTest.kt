@@ -289,6 +289,41 @@ class KubernetesMessageSenderTest : StringSpec({
             expectMounts("dir1", "dir2", "secret-volume-1", "pvc-volume-2")
         }
     }
+
+    "Init containers can be created" {
+        val containerVariables = mapOf(
+            "INIT_INIT_CONTAINER" to "true",
+            "INIT_IMAGE_NAME" to "init-image:1.0",
+            "INIT_COMMANDS" to "initialize.sh",
+            "INIT_MEMORY_REQUEST" to "128",
+            "INIT_VOLUME_MOUNTS" to "secretMount"
+        )
+
+        val config = createConfig(
+            mapOf(
+                "additionalContainers" to "INIT",
+                "mountPvcs" to "",
+                "mountSecrets" to "secretMount=topSecret->/mnt/top/secret|sub-secret",
+                "mountEmptyDirs" to "dir1->/mnt/dir1"
+            ),
+            containerVariables
+        )
+
+        val job = createJob(config, message)
+
+        job.spec?.template?.spec?.containers.orEmpty() shouldHaveSize 1
+
+        job.spec?.template?.spec?.initContainers.orEmpty().single().shouldNotBeNull {
+            image shouldBe "init-image:1.0"
+            command shouldBe listOf("initialize.sh")
+            args shouldBe config.mainContainer.args
+            resources shouldNotBeNull {
+                limits?.keys.orEmpty() should beEmpty()
+                requests shouldBe mapOf("memory" to Quantity("128"))
+            }
+            expectMounts("secret-volume-1", "dir1")
+        }
+    }
 })
 
 private val annotations = mapOf(
