@@ -18,7 +18,7 @@
 [versions]
 # Gradle plugins
 buildConfigPlugin = "6.0.10"
-detektPlugin = "2.0.0-alpha.3"
+detektPlugin = "2.0.0-alpha.5"
 gitSemverPlugin = "0.19.2"
 tinyJibPlugin = "0.3.4"
 kotlinPlugin = "2.3.21"
