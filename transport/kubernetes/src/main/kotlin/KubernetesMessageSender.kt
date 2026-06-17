@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.models.V1ContainerFluent
 import io.kubernetes.client.openapi.models.V1EnvVar
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder
 import io.kubernetes.client.openapi.models.V1JobBuilder
@@ -189,14 +190,34 @@ private fun <A : V1PodSpecFluent<A>> A.addContainers(
     namedMounts: Map<String, V1VolumeMount>
 ): A =
     (listOf(config.mainContainer) + config.additionalContainers).fold(this) { pod, container ->
-        pod.addNewContainer()
-            .withName(container.name)
-            .withImage(container.imageName.substituteVariables(variables))
-            .withImagePullPolicy(container.imagePullPolicy)
-            .withCommand(container.commands)
-            .withArgs(container.args)
-            .withEnv(environment)
-            .withResources(container.createResources(variables))
-            .withVolumeMounts(globalMounts + container.volumeMounts.mapNotNull { namedMounts[it] })
-            .endContainer()
+        if (container.isInitContainer) {
+            pod.addNewInitContainer()
+                .configureContainer(container, environment, variables, globalMounts, namedMounts)
+                .endInitContainer()
+        } else {
+            pod.addNewContainer()
+                .configureContainer(container, environment, variables, globalMounts, namedMounts)
+                .endContainer()
+        }
     }
+
+/**
+ * Configure this container fluent builder with all properties from the given [container]. The [environment] is set
+ * as env vars. Variable substitution is done based on the provided [variables]. Volume mounts are generated from
+ * [globalMounts] (added to all containers) and [namedMounts] (explicitly referenced by single containers).
+ */
+private fun <F : V1ContainerFluent<F>> F.configureContainer(
+    container: Container,
+    environment: List<V1EnvVar>,
+    variables: Map<String, String>,
+    globalMounts: List<V1VolumeMount>,
+    namedMounts: Map<String, V1VolumeMount>
+): F =
+    withName(container.name)
+        .withImage(container.imageName.substituteVariables(variables))
+        .withImagePullPolicy(container.imagePullPolicy)
+        .withCommand(container.commands)
+        .withArgs(container.args)
+        .withEnv(environment)
+        .withResources(container.createResources(variables))
+        .withVolumeMounts(globalMounts + container.volumeMounts.mapNotNull { namedMounts[it] })
