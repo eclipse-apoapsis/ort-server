@@ -19,11 +19,11 @@
 
 import git.semver.plugin.gradle.PrintTask
 
-val dockerBaseBuildArgs: String by project
-val dockerBaseImageTag: String by project
-val dockerImageTag: String by project
-val containerEngineCommand: String by project
-val javaLanguageVersion: String by project
+val dockerBaseBuildArgs = project.property("dockerBaseBuildArgs") as String
+val dockerBaseImageTag = project.property("dockerBaseImageTag") as String
+val dockerImageTag = project.property("dockerImageTag") as String
+val containerEngineCommand = project.property("containerEngineCommand") as String
+val javaLanguageVersion = project.property("javaLanguageVersion") as String
 
 plugins {
     alias(libs.plugins.gitSemver)
@@ -176,7 +176,7 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
     }
 }
 
-val buildAllWorkerImages by tasks.registering {
+val buildAllWorkerImages = tasks.register("buildAllWorkerImages") {
     group = "Docker"
     description = "Builds all worker Docker images."
 
