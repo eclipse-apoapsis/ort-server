@@ -17,7 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { DragDropProvider } from '@dnd-kit/react';
+import { isSortable, useSortable } from '@dnd-kit/react/sortable';
 import { CheckedState } from '@radix-ui/react-checkbox';
+import { GripVerticalIcon } from 'lucide-react';
 import React from 'react';
 import {
   FieldPathByValue,
@@ -72,6 +75,87 @@ function getSecretSelectDisplayValue(
   return value;
 }
 
+function moveItem<T>(items: readonly T[], fromIndex: number, toIndex: number) {
+  const newItems = [...items];
+  const [removed] = newItems.splice(fromIndex, 1);
+
+  if (removed !== undefined) {
+    newItems.splice(toIndex, 0, removed);
+  }
+
+  return newItems;
+}
+
+function getPluginsInDisplayOrder<T extends { id: string }>(
+  plugins: readonly T[],
+  selectedPluginIds: readonly string[],
+  showSelectedPluginsFirst: boolean,
+  pluginOrder?: readonly string[]
+) {
+  const pluginsById = new Map(plugins.map((plugin) => [plugin.id, plugin]));
+  const pluginIds = plugins.map((plugin) => plugin.id);
+  const selectedPluginIdSet = new Set(selectedPluginIds);
+  const selectedPluginIdsInPayloadOrder = selectedPluginIds.filter((pluginId) =>
+    pluginsById.has(pluginId)
+  );
+  const fallbackPluginOrder = showSelectedPluginsFirst
+    ? [
+        ...selectedPluginIdsInPayloadOrder,
+        ...pluginIds.filter((pluginId) => !selectedPluginIdSet.has(pluginId)),
+      ]
+    : pluginIds;
+  const orderedPluginIds = pluginOrder ?? fallbackPluginOrder;
+  const pluginOrderSet = new Set(orderedPluginIds);
+
+  return [
+    ...orderedPluginIds.flatMap((pluginId) => {
+      const plugin = pluginsById.get(pluginId);
+      return plugin ? [plugin] : [];
+    }),
+    ...plugins.filter((plugin) => !pluginOrderSet.has(plugin.id)),
+  ];
+}
+
+type SortablePluginListItemProps = {
+  id: string;
+  index: number;
+  children: (dragHandle: React.ReactNode) => React.ReactNode;
+};
+
+function SortablePluginListItem({
+  id,
+  index,
+  children,
+}: SortablePluginListItemProps) {
+  const { ref, handleRef, isDragging } = useSortable({
+    id,
+    index,
+    type: 'plugin',
+    accept: 'plugin',
+  });
+
+  return (
+    <FormItem
+      ref={ref}
+      className={cn(
+        'flex flex-row items-start space-y-0 space-x-3',
+        isDragging && 'opacity-60'
+      )}
+    >
+      {children(
+        <button
+          ref={handleRef}
+          type='button'
+          aria-label={`Reorder ${id}`}
+          className='text-muted-foreground flex h-4 w-4 cursor-grab items-center justify-center rounded-sm hover:text-black focus-visible:ring-2 focus-visible:outline-none active:cursor-grabbing'
+        >
+          <GripVerticalIcon className='h-4 w-4' />
+        </button>
+      )}
+    </FormItem>
+  );
+}
+
 type PluginMultiSelectFieldProps<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, Array<string>>,
@@ -90,6 +174,18 @@ type PluginMultiSelectFieldProps<
   description?: React.ReactNode;
   plugins: readonly PreconfiguredPluginDescriptor[];
   secrets: readonly Secret[];
+  /**
+   * Enable drag-and-drop reordering for plugins. In this mode, all plugins are
+   * displayed in a sortable list and selected plugins are stored in the same
+   * order in which they appear in the list.
+   */
+  enableReordering?: boolean;
+  /**
+   * Show selected plugins first in their form value order before the user has
+   * reordered the list. This is intended for reruns, where an existing payload
+   * order should be reflected in the UI.
+   */
+  showSelectedPluginsFirst?: boolean;
   className?: string;
 };
 
@@ -105,92 +201,56 @@ export const PluginMultiSelectField = <
   description,
   plugins,
   secrets,
+  enableReordering = false,
+  showSelectedPluginsFirst = false,
   className,
 }: PluginMultiSelectFieldProps<TFieldValues, TName>) => {
+  const [pluginOrder, setPluginOrder] = React.useState<string[]>();
+
   return (
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
-        <FormItem
-          className={cn(
-            'flex flex-col justify-between rounded-lg border p-4',
-            className
-          )}
-        >
-          <FormLabel>{label}</FormLabel>
-          <FormDescription className='pb-4'>{description}</FormDescription>
-          <div className='flex items-center space-x-3'>
-            <Checkbox
-              id='check-all-items'
-              checked={
-                plugins.every((plugin) =>
-                  form.getValues(name).includes(plugin.id)
-                )
-                  ? true
-                  : plugins.some((plugin) =>
-                        form.getValues(name).includes(plugin.id)
-                      )
-                    ? 'indeterminate'
-                    : false
-              }
-              onCheckedChange={(checked) => {
-                const enabledItems = checked
-                  ? plugins.map((plugin) => plugin.id)
-                  : [];
-                form.setValue(
-                  name,
-                  // TypeScript doesn't get this, but TName extends FieldPathByValue<TFieldValues, Array<string>>,
-                  // so the field behind TName is always an Array<string>
-                  // and options.map((option) => option.id) is also Array<string>,
-                  // so this type cast is safe.
-                  enabledItems as FieldPathValue<TFieldValues, TName>
-                );
-                if (scannerScopeName) {
-                  if (checked) {
-                    plugins.forEach((plugin) => {
-                      const scopePath =
-                        `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>;
-                      if (!form.getValues(scopePath)) {
-                        form.setValue(
-                          scopePath,
-                          'both' as FieldPathValue<
-                            TFieldValues,
-                            Path<TFieldValues>
-                          >
-                        );
-                      }
-                    });
-                  } else {
-                    plugins.forEach((plugin) => {
-                      form.setValue(
-                        `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>,
-                        undefined as FieldPathValue<
-                          TFieldValues,
-                          Path<TFieldValues>
-                        >
-                      );
-                    });
-                  }
-                }
-              }}
-            />
-            <Label htmlFor='check-all-items' className='font-bold'>
-              Enable/disable all
-            </Label>
-          </div>
-          <Separator className='my-2' />
-          {plugins.map((plugin) => (
-            <FormItem
-              key={plugin.id}
-              className='flex flex-row items-start space-y-0 space-x-3'
-            >
+      render={({ field }) => {
+        const selectedPluginIds = (field.value ?? []) as string[];
+        const selectedPluginIdSet = new Set(selectedPluginIds);
+        const pluginsInDisplayOrder = getPluginsInDisplayOrder(
+          plugins,
+          selectedPluginIds,
+          showSelectedPluginsFirst,
+          pluginOrder
+        );
+
+        const selectedPluginIdsInOrder = (
+          orderedPlugins: readonly PreconfiguredPluginDescriptor[],
+          selectedIds: ReadonlySet<string>
+        ) =>
+          orderedPlugins
+            .map((plugin) => plugin.id)
+            .filter((pluginId) => selectedIds.has(pluginId));
+
+        const renderPluginItemContent = (
+          plugin: PreconfiguredPluginDescriptor,
+          dragHandle?: React.ReactNode
+        ) => {
+          const isSelected = selectedPluginIdSet.has(plugin.id);
+
+          return (
+            <>
+              {dragHandle}
               <FormControl>
                 <Checkbox
-                  checked={field.value?.includes(plugin.id)}
+                  checked={isSelected}
                   onCheckedChange={(checked) => {
-                    if (checked) {
-                      field.onChange([...field.value, plugin.id]);
+                    if (checked === true) {
+                      field.onChange(
+                        enableReordering
+                          ? selectedPluginIdsInOrder(
+                              pluginsInDisplayOrder,
+                              new Set([...selectedPluginIds, plugin.id])
+                            )
+                          : [...selectedPluginIds, plugin.id]
+                      );
                       if (scannerScopeName) {
                         const scopePath =
                           `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>;
@@ -205,10 +265,17 @@ export const PluginMultiSelectField = <
                         }
                       }
                     } else {
+                      const nextSelectedPluginIds = selectedPluginIds.filter(
+                        (value: string) => value !== plugin.id
+                      );
+
                       field.onChange(
-                        field.value?.filter(
-                          (value: string) => value !== plugin.id
-                        )
+                        enableReordering
+                          ? selectedPluginIdsInOrder(
+                              pluginsInDisplayOrder,
+                              new Set(nextSelectedPluginIds)
+                            )
+                          : nextSelectedPluginIds
                       );
                       if (scannerScopeName) {
                         form.setValue(
@@ -233,7 +300,7 @@ export const PluginMultiSelectField = <
                     className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
                   />
                 )}
-                {scannerScopeName && field.value?.includes(plugin.id) && (
+                {scannerScopeName && isSelected && (
                   <FormField
                     control={form.control}
                     name={
@@ -276,7 +343,7 @@ export const PluginMultiSelectField = <
                     )}
                   />
                 )}
-                {field.value?.includes(plugin.id) &&
+                {isSelected &&
                   plugin.options.map((option) => (
                     <FormField
                       control={form.control}
@@ -395,17 +462,197 @@ export const PluginMultiSelectField = <
                     />
                   ))}
               </div>
-            </FormItem>
-          ))}
-          <FormMessage />
-        </FormItem>
-      )}
+            </>
+          );
+        };
+
+        const renderStaticPluginItem = (
+          plugin: PreconfiguredPluginDescriptor
+        ) => (
+          <FormItem
+            key={plugin.id}
+            className='flex flex-row items-start space-y-0 space-x-3'
+          >
+            {renderPluginItemContent(plugin)}
+          </FormItem>
+        );
+
+        return (
+          <FormItem
+            className={cn(
+              'flex flex-col justify-between rounded-lg border p-4',
+              className
+            )}
+          >
+            <FormLabel>{label}</FormLabel>
+            <FormDescription className='pb-4'>{description}</FormDescription>
+            <div className='flex items-center space-x-3'>
+              <Checkbox
+                id='check-all-items'
+                checked={
+                  plugins.every((plugin) =>
+                    form.getValues(name).includes(plugin.id)
+                  )
+                    ? true
+                    : plugins.some((plugin) =>
+                          form.getValues(name).includes(plugin.id)
+                        )
+                      ? 'indeterminate'
+                      : false
+                }
+                onCheckedChange={(checked) => {
+                  const enabledItems =
+                    checked === true
+                      ? enableReordering
+                        ? pluginsInDisplayOrder.map((plugin) => plugin.id)
+                        : plugins.map((plugin) => plugin.id)
+                      : [];
+
+                  form.setValue(
+                    name,
+                    // TypeScript doesn't get this, but TName extends FieldPathByValue<TFieldValues, Array<string>>,
+                    // so the field behind TName is always an Array<string>
+                    // and options.map((option) => option.id) is also Array<string>,
+                    // so this type cast is safe.
+                    enabledItems as FieldPathValue<TFieldValues, TName>
+                  );
+                  if (scannerScopeName) {
+                    if (checked === true) {
+                      plugins.forEach((plugin) => {
+                        const scopePath =
+                          `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>;
+                        if (!form.getValues(scopePath)) {
+                          form.setValue(
+                            scopePath,
+                            'both' as FieldPathValue<
+                              TFieldValues,
+                              Path<TFieldValues>
+                            >
+                          );
+                        }
+                      });
+                    } else {
+                      plugins.forEach((plugin) => {
+                        form.setValue(
+                          `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>,
+                          undefined as FieldPathValue<
+                            TFieldValues,
+                            Path<TFieldValues>
+                          >
+                        );
+                      });
+                    }
+                  }
+                }}
+              />
+              <Label htmlFor='check-all-items' className='font-bold'>
+                Enable/disable all
+              </Label>
+            </div>
+            <Separator className='my-2' />
+            {enableReordering ? (
+              <DragDropProvider
+                onDragEnd={(event) => {
+                  if (event.canceled) return;
+
+                  const { source } = event.operation;
+
+                  if (isSortable(source)) {
+                    const { initialIndex, index } = source;
+
+                    if (initialIndex !== index) {
+                      const nextPluginOrder = moveItem(
+                        pluginsInDisplayOrder.map((plugin) => plugin.id),
+                        initialIndex,
+                        index
+                      );
+
+                      setPluginOrder(nextPluginOrder);
+                      field.onChange(
+                        nextPluginOrder.filter((pluginId) =>
+                          selectedPluginIdSet.has(pluginId)
+                        )
+                      );
+                    }
+                  }
+                }}
+              >
+                <div className='flex flex-col gap-2'>
+                  {pluginsInDisplayOrder.map((plugin, index) => (
+                    <SortablePluginListItem
+                      key={plugin.id}
+                      id={plugin.id}
+                      index={index}
+                    >
+                      {(dragHandle) =>
+                        renderPluginItemContent(plugin, dragHandle)
+                      }
+                    </SortablePluginListItem>
+                  ))}
+                </div>
+              </DragDropProvider>
+            ) : (
+              plugins.map(renderStaticPluginItem)
+            )}
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };
 
 if (import.meta.vitest) {
   const { describe, expect, it } = import.meta.vitest;
+
+  describe('moveItem', () => {
+    it('moves an item from one index to another', () => {
+      expect(moveItem(['File', 'ClearlyDefined', 'OrtConfig'], 0, 2)).toEqual([
+        'ClearlyDefined',
+        'OrtConfig',
+        'File',
+      ]);
+    });
+  });
+
+  describe('getPluginsInDisplayOrder', () => {
+    const plugins = [
+      { id: 'ClearlyDefined' },
+      { id: 'DefaultFile' },
+      { id: 'OrtConfig' },
+    ];
+
+    it('keeps plugins in their original order by default', () => {
+      expect(
+        getPluginsInDisplayOrder(
+          plugins,
+          ['DefaultFile', 'ClearlyDefined'],
+          false
+        ).map((plugin) => plugin.id)
+      ).toEqual(['ClearlyDefined', 'DefaultFile', 'OrtConfig']);
+    });
+
+    it('shows enabled plugins first in payload order for an existing selection', () => {
+      expect(
+        getPluginsInDisplayOrder(
+          plugins,
+          ['DefaultFile', 'ClearlyDefined'],
+          true
+        ).map((plugin) => plugin.id)
+      ).toEqual(['DefaultFile', 'ClearlyDefined', 'OrtConfig']);
+    });
+
+    it('uses the explicitly sorted plugin order when set', () => {
+      expect(
+        getPluginsInDisplayOrder(
+          plugins,
+          ['DefaultFile', 'ClearlyDefined'],
+          false,
+          ['OrtConfig', 'DefaultFile', 'ClearlyDefined']
+        ).map((plugin) => plugin.id)
+      ).toEqual(['OrtConfig', 'DefaultFile', 'ClearlyDefined']);
+    });
+  });
 
   describe('mapSecretSelectValue', () => {
     it('maps the explicit not defined option to undefined', () => {
