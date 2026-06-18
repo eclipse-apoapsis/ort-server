@@ -29,7 +29,10 @@
             <sequenceNumberGenerator class="ch.qos.logback.core.spi.BasicSequenceNumberGenerator" />
             <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
                 <encoder class="ch.qos.logback.classic.encoder.JsonEncoder">
+                    <withArguments>false</withArguments>
                     <withContext>false</withContext>
+                    <withFormattedMessage>true</withFormattedMessage>
+                    <withMessage>false</withMessage>
                 </encoder>
             </appender>
         </then>
