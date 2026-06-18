@@ -28,11 +28,12 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 dependencies {
     api(projects.transport.transportSpi)
 
+    api(libs.kubernetesClientApiFluent)
+
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(libs.kubernetesClient)
-    implementation(libs.kubernetesClientApiFluent)
 
     testImplementation(projects.model)
 
