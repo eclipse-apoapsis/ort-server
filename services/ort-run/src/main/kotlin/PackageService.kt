@@ -39,7 +39,10 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Package as ModelPackage
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -159,14 +162,9 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                     } else {
                         PackageDao.find { PackagesTable.id inList affectedPackageIds }.map { dao ->
                             val modelPackage = dao.mapToModel()
-                            val packageCurations = curationsMap[modelPackage.identifier].orEmpty()
-                            val curatedOrtPackage = packageCurations.fold(
-                                OrtCuratedPackage(modelPackage.mapToOrt())
-                            ) { acc, (_, curation) ->
-                                curation.mapToOrt().apply(acc)
-                            }
+                            val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
 
-                            dao.id to curatedOrtPackage.metadata.mapToModel().processedDeclaredLicense
+                            dao.id to curatedModelPackage.processedDeclaredLicense
                         }
                     }
                 }
@@ -268,12 +266,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 val shortestDependencyPaths = shortestPathsByPackage[modelPackage.identifier].orEmpty()
 
                 val packageCurations = curationsMap[modelPackage.identifier].orEmpty()
-
-                val ortPackage = modelPackage.mapToOrt()
-                val curatedOrtPackage = packageCurations.fold(OrtCuratedPackage(ortPackage)) { acc, (_, curation) ->
-                    curation.mapToOrt().apply(acc)
-                }
-                val curatedModelPackage = curatedOrtPackage.metadata.mapToModel()
+                val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
 
                 val apiCurations = packageCurations.map { (providerName, curation) ->
                     ApiPackageCuration(providerName, curation.data.mapToApi())
@@ -345,14 +338,9 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 } else {
                     PackageDao.find { PackagesTable.id inList affectedPackageIds }.map { dao ->
                         val modelPackage = dao.mapToModel()
-                        val curations = curationsMap[modelPackage.identifier].orEmpty()
-                        val curatedOrtPackage = curations.fold(
-                            OrtCuratedPackage(modelPackage.mapToOrt())
-                        ) { acc, (_, curation) ->
-                            curation.mapToOrt().apply(acc)
-                        }
+                        val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
 
-                        dao.id to curatedOrtPackage.metadata.mapToModel().processedDeclaredLicense
+                        dao.id to curatedModelPackage.processedDeclaredLicense
                     }
                 }
             }
@@ -406,14 +394,9 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 } else {
                     PackageDao.find { PackagesTable.id inList affectedPackageIds }.map { dao ->
                         val modelPackage = dao.mapToModel()
-                        val curations = curationsMap[modelPackage.identifier].orEmpty()
-                        val curatedOrtPackage = curations.fold(
-                            OrtCuratedPackage(modelPackage.mapToOrt())
-                        ) { acc, (_, curation) ->
-                            curation.mapToOrt().apply(acc)
-                        }
+                        val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
 
-                        dao.id to curatedOrtPackage.metadata.mapToModel().processedDeclaredLicense
+                        dao.id to curatedModelPackage.processedDeclaredLicense
                     }
                 }
             }
@@ -438,6 +421,13 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             licenses.sortedWith(String.CASE_INSENSITIVE_ORDER)
         }
 }
+
+private fun ModelPackage.applyCurations(
+    curationsByIdentifier: Map<Identifier, List<Pair<String, PackageCuration>>>
+): OrtCuratedPackage =
+    curationsByIdentifier[identifier].orEmpty().fold(OrtCuratedPackage(mapToOrt())) { curatedPackage, (_, curation) ->
+        curation.mapToOrt().apply(curatedPackage)
+    }
 
 private fun PackagesTable.joinAnalyzerTables() =
     innerJoin(PackagesAnalyzerRunsTable)
