@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package as ModelPackage
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -53,6 +54,7 @@ import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
@@ -135,40 +137,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                             )
                     }
 
-                // Only curations with a declared license mapping can change the processed declared license.
-                val affectedIdentifierIds = curationsMap
-                    .filterValues { list ->
-                        list.any { (_, curation) ->
-                            curation.data.declaredLicenseMapping.isNotEmpty()
-                        }
-                    }
-                    .keys
-                    .mapNotNull { IdentifierDao.findByIdentifier(it)?.id }
-
-                // For packages with such curations, apply the curations and use the resulting declared license.
-                val curatedDeclaredLicenses = if (affectedIdentifierIds.isEmpty()) {
-                    emptyList()
-                } else {
-                    val affectedPackageIds = PackagesTable.joinAnalyzerTables()
-                        .select(PackagesTable.id)
-                        .where {
-                            (AnalyzerJobsTable.ortRunId eq ortRunId) and
-                                (PackagesTable.identifierId inList affectedIdentifierIds)
-                        }
-                        .map { it[PackagesTable.id] }
-
-                    if (affectedPackageIds.isEmpty()) {
-                        emptyList()
-                    } else {
-                        PackageDao.find { PackagesTable.id inList affectedPackageIds }.map { dao ->
-                            val modelPackage = dao.mapToModel()
-                            val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
-
-                            dao.id to curatedModelPackage.processedDeclaredLicense
-                        }
-                    }
-                }
-
+                val curatedDeclaredLicenses = getCuratedDeclaredLicenses(ortRunId, curationsMap)
                 val packageIdsWithDeclaredLicenseCurations = curatedDeclaredLicenses.map { it.first }
                 val curatedPackageIdsMatchingFilter = curatedDeclaredLicenses.filter { (_, curatedDeclared) ->
                     val matches = curatedDeclared.spdxExpression in filter.value ||
@@ -313,37 +282,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
     suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> =
         db.dbQuery {
             val curationsMap = CuratedPackagesTable.getForOrtRunId(ortRunId)
-            val affectedIdentifierIds = curationsMap
-                .filterValues { list ->
-                    list.any { (_, curation) ->
-                        curation.data.declaredLicenseMapping.isNotEmpty()
-                    }
-                }
-                .keys
-                .mapNotNull { IdentifierDao.findByIdentifier(it)?.id }
-
-            val curatedDeclaredLicenses = if (affectedIdentifierIds.isEmpty()) {
-                emptyList()
-            } else {
-                val affectedPackageIds = PackagesTable.joinAnalyzerTables()
-                    .select(PackagesTable.id)
-                    .where {
-                        (AnalyzerJobsTable.ortRunId eq ortRunId) and
-                            (PackagesTable.identifierId inList affectedIdentifierIds)
-                    }
-                    .map { it[PackagesTable.id] }
-
-                if (affectedPackageIds.isEmpty()) {
-                    emptyList()
-                } else {
-                    PackageDao.find { PackagesTable.id inList affectedPackageIds }.map { dao ->
-                        val modelPackage = dao.mapToModel()
-                        val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
-
-                        dao.id to curatedModelPackage.processedDeclaredLicense
-                    }
-                }
-            }
+            val curatedDeclaredLicenses = getCuratedDeclaredLicenses(ortRunId, curationsMap)
             val packageIdsWithDeclaredLicenseCurations = curatedDeclaredLicenses.map { it.first }
 
             val rawQuery = PackagesTable.joinAnalyzerTables()
@@ -369,37 +308,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
     suspend fun getUnmappedDeclaredLicenses(ortRunId: Long): List<String> =
         db.dbQuery {
             val curationsMap = CuratedPackagesTable.getForOrtRunId(ortRunId)
-            val affectedIdentifierIds = curationsMap
-                .filterValues { list ->
-                    list.any { (_, curation) ->
-                        curation.data.declaredLicenseMapping.isNotEmpty()
-                    }
-                }
-                .keys
-                .mapNotNull { IdentifierDao.findByIdentifier(it)?.id }
-
-            val curatedDeclaredLicenses = if (affectedIdentifierIds.isEmpty()) {
-                emptyList()
-            } else {
-                val affectedPackageIds = PackagesTable.joinAnalyzerTables()
-                    .select(PackagesTable.id)
-                    .where {
-                        (AnalyzerJobsTable.ortRunId eq ortRunId) and
-                            (PackagesTable.identifierId inList affectedIdentifierIds)
-                    }
-                    .map { it[PackagesTable.id] }
-
-                if (affectedPackageIds.isEmpty()) {
-                    emptyList()
-                } else {
-                    PackageDao.find { PackagesTable.id inList affectedPackageIds }.map { dao ->
-                        val modelPackage = dao.mapToModel()
-                        val curatedModelPackage = modelPackage.applyCurations(curationsMap).metadata.mapToModel()
-
-                        dao.id to curatedModelPackage.processedDeclaredLicense
-                    }
-                }
-            }
+            val curatedDeclaredLicenses = getCuratedDeclaredLicenses(ortRunId, curationsMap)
             val packageIdsWithDeclaredLicenseCurations = curatedDeclaredLicenses.map { it.first }
 
             val rawQuery = PackagesTable.joinAnalyzerTables()
@@ -420,6 +329,40 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
 
             licenses.sortedWith(String.CASE_INSENSITIVE_ORDER)
         }
+}
+
+private fun getCuratedDeclaredLicenses(
+    ortRunId: Long,
+    curationsByIdentifier: Map<Identifier, List<Pair<String, PackageCuration>>>
+): List<Pair<EntityID<Long>, ProcessedDeclaredLicense>> {
+    // Only curations with a declared license mapping can change the processed declared license.
+    val identifierIds = curationsByIdentifier
+        .filterValues { curations ->
+            curations.any { (_, curation) ->
+                curation.data.declaredLicenseMapping.isNotEmpty()
+            }
+        }
+        .keys
+        .mapNotNull { IdentifierDao.findByIdentifier(it)?.id }
+
+    if (identifierIds.isEmpty()) return emptyList()
+
+    // Apply curations only to packages from this ORT run that can be affected by these curations.
+    val packageIds = PackagesTable.joinAnalyzerTables()
+        .select(PackagesTable.id)
+        .where {
+            (AnalyzerJobsTable.ortRunId eq ortRunId) and (PackagesTable.identifierId inList identifierIds)
+        }
+        .map { it[PackagesTable.id] }
+
+    if (packageIds.isEmpty()) return emptyList()
+
+    return PackageDao.find { PackagesTable.id inList packageIds }.map { dao ->
+        val modelPackage = dao.mapToModel()
+        val curatedModelPackage = modelPackage.applyCurations(curationsByIdentifier).metadata.mapToModel()
+
+        dao.id to curatedModelPackage.processedDeclaredLicense
+    }
 }
 
 private fun ModelPackage.applyCurations(
