@@ -30,10 +30,19 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { Repeat, View } from 'lucide-react';
+import { useMemo } from 'react';
 
-import { JobSummary, OrtRunSummary } from '@/api';
+import {
+  JobSummary,
+  Organization,
+  OrtRunSummary,
+  Product,
+  Repository,
+} from '@/api';
 import {
   deleteRepositoryRunMutation,
+  getOrganizationOptions,
+  getProductOptions,
   getRepositoryOptions,
   getRepositoryRunsOptions,
   getRepositoryRunsQueryKey,
@@ -42,6 +51,7 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
+import { FavoriteButton } from '@/components/favorite-button';
 import { ItemCounts } from '@/components/item-counts';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
@@ -67,9 +77,12 @@ import { isJobFinished } from '@/helpers/job-helpers';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
+import { buildRunFavorite } from '@/providers/home-data';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
 type RepositoryTableProps = {
+  orgId: string;
+  productId: string;
   repoId: string;
   pageIndex: number;
   pageSize: number;
@@ -220,25 +233,60 @@ const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
   );
 };
 
-const columns = [
-  columnHelper.accessor('index', {
-    header: 'Index',
-    size: 50,
-    cell: ({ row }) => (
+type FavoriteContext = {
+  organization?: Organization;
+  product?: Product;
+  repository?: Repository;
+};
+
+const RunIndexCell = ({
+  favoriteContext,
+  summary,
+}: {
+  favoriteContext: FavoriteContext;
+  summary: OrtRunSummary;
+}) => {
+  const { organization, product, repository } = favoriteContext;
+
+  return (
+    <div className='flex items-center gap-1.5'>
       <Link
         className='font-semibold text-blue-400 hover:underline'
         to={
           '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
         }
         params={{
-          orgId: row.original.organizationId.toString(),
-          productId: row.original.productId.toString(),
-          repoId: row.original.repositoryId.toString(),
-          runIndex: row.original.index.toString(),
+          orgId: summary.organizationId.toString(),
+          productId: summary.productId.toString(),
+          repoId: summary.repositoryId.toString(),
+          runIndex: summary.index.toString(),
         }}
       >
-        {row.original.index}
+        {summary.index}
       </Link>
+      {organization && product && repository && (
+        <FavoriteButton
+          favorite={buildRunFavorite(
+            organization,
+            product,
+            repository,
+            summary
+          )}
+          size='xs'
+          variant='ghost'
+          className='size-6 p-0'
+        />
+      )}
+    </div>
+  );
+};
+
+const createColumns = (favoriteContext: FavoriteContext) => [
+  columnHelper.accessor('index', {
+    header: 'Index',
+    size: 50,
+    cell: ({ row }) => (
+      <RunIndexCell favoriteContext={favoriteContext} summary={row.original} />
     ),
     enableColumnFilter: false,
   }),
@@ -377,12 +425,37 @@ const columns = [
 ];
 
 export const RepositoryRunsTable = ({
+  orgId,
+  productId,
   repoId,
   pageIndex,
   pageSize,
   search,
 }: RepositoryTableProps) => {
   const setRunPageSize = useTablePrefsStore((state) => state.setRunPageSize);
+
+  const { data: organization } = useQuery({
+    ...getOrganizationOptions({
+      path: { organizationId: Number.parseInt(orgId) },
+    }),
+  });
+
+  const { data: product } = useQuery({
+    ...getProductOptions({
+      path: { productId: Number.parseInt(productId) },
+    }),
+  });
+
+  const { data: repository } = useQuery({
+    ...getRepositoryOptions({
+      path: { repositoryId: Number.parseInt(repoId) },
+    }),
+  });
+
+  const columns = useMemo(
+    () => createColumns({ organization, product, repository }),
+    [organization, product, repository]
+  );
 
   const {
     data: runs,

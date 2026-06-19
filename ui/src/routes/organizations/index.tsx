@@ -31,6 +31,7 @@ import z from 'zod';
 import { Organization } from '@/api';
 import { getOrganizationsOptions } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
+import { OrganizationFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
@@ -106,13 +107,21 @@ export const OrganizationsPage = () => {
         header: 'Organizations',
         cell: ({ row }) => (
           <>
-            <Link
-              className='block font-semibold text-blue-400 hover:underline'
-              to={`/organizations/$orgId`}
-              params={{ orgId: row.original.id.toString() }}
-            >
-              {row.original.name}
-            </Link>
+            <div className='flex items-center gap-1.5'>
+              <Link
+                className='font-semibold text-blue-400 hover:underline'
+                to={`/organizations/$orgId`}
+                params={{ orgId: row.original.id.toString() }}
+              >
+                {row.original.name}
+              </Link>
+              <OrganizationFavoriteButton
+                organization={row.original}
+                size='xs'
+                variant='ghost'
+                className='size-6 p-0'
+              />
+            </div>
 
             <div className='text-muted-foreground hidden text-sm md:inline'>
               {row.original.description}
