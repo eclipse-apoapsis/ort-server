@@ -28,6 +28,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { TOKEN_FLOW_MARKER_KEY } from '@/helpers/token-flow';
 import { queryClient } from '@/lib/query-client';
+import { HomeDataProvider } from '@/providers/home-data';
 
 const oidcConfig = config.oidcConfig;
 
@@ -55,7 +56,9 @@ export const Providers = ({ children }: { children: ReactNode }) => {
           defaultColorTheme='default'
           storageKeyColorTheme='vite-ui-theme-color'
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          <HomeDataProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </HomeDataProvider>
         </ThemeProvider>
       </QueryClientProvider>
       <Toaster
