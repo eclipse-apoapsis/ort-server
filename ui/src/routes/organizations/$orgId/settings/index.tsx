@@ -119,7 +119,7 @@ const OrganizationSettingsPage = () => {
         description: `Organization "${organization.name}" deleted successfully.`,
       });
       navigate({
-        to: '/',
+        to: '/organizations',
       });
     },
     onError(error: ApiError) {
@@ -178,7 +178,7 @@ const OrganizationSettingsPage = () => {
                   variant='outline'
                   onClick={() =>
                     navigate({
-                      to: '/',
+                      to: '/organizations',
                     })
                   }
                   disabled={isPending}

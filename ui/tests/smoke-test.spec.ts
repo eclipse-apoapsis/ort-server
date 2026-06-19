@@ -30,6 +30,10 @@ test('test', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Password' }).fill('admin');
   await page.getByRole('button', { name: 'Sign In' }).click();
   await expect(
+    page.getByRole('link', { name: 'Browse organizations' })
+  ).toBeVisible();
+  await page.goto('/organizations');
+  await expect(
     page.getByText('Browse your organizations or create a new one')
   ).toBeVisible();
   await expect(

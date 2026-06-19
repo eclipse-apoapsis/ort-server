@@ -17,21 +17,8 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
-import z from 'zod';
 
-import { Organization } from '@/api';
-import { getOrganizationsOptions } from '@/api/@tanstack/react-query.gen';
-import { DataTable } from '@/components/data-table/data-table';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -40,203 +27,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useIsSuperuser } from '@/hooks/use-authorization';
-import { toastError } from '@/lib/toast';
-import {
-  filterByNameSearchParameterSchema,
-  paginationSearchParameterSchema,
-} from '@/schemas';
-import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-// Fetch the default page size to loader from the store.
-const defaultPageSize = useTablePrefsStore.getState().orgPageSize;
-
-const columnHelper = createColumnHelper<Organization>();
-
-export const IndexPage = () => {
-  const orgPageSize = useTablePrefsStore((state) => state.orgPageSize);
-  const setOrgPageSize = useTablePrefsStore((state) => state.setOrgPageSize);
-  const search = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const { isSuperuser } = useIsSuperuser();
-
-  const pageIndex = useMemo(
-    () => (search.page ? search.page - 1 : 0),
-    [search.page]
-  );
-  const pageSize = useMemo(
-    () => (search.pageSize ? search.pageSize : orgPageSize),
-    [search.pageSize, orgPageSize]
-  );
-  const nameFilter = useMemo(
-    () => (search.filter ? search.filter : undefined),
-    [search.filter]
-  );
-
-  const { data: totalOrganizations } = useSuspenseQuery({
-    ...getOrganizationsOptions({
-      query: { limit: 1 },
-    }),
-  });
-
-  const {
-    data: organizations,
-    isPending,
-    isError,
-    error,
-  } = useQuery({
-    ...getOrganizationsOptions({
-      query: {
-        limit: pageSize,
-        offset: pageIndex * pageSize,
-        filter: nameFilter,
-      },
-    }),
-  });
-
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor('name', {
-        id: 'organization',
-        header: 'Organizations',
-        cell: ({ row }) => (
-          <>
-            <Link
-              className='block font-semibold text-blue-400 hover:underline'
-              to={`/organizations/$orgId`}
-              params={{ orgId: row.original.id.toString() }}
-            >
-              {row.original.name}
-            </Link>
-
-            <div className='text-muted-foreground hidden text-sm md:inline'>
-              {row.original.description}
-            </div>
-          </>
-        ),
-        meta: {
-          filter: {
-            filterVariant: 'regex',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, filter: value },
-              });
-            },
-          },
-        },
-      }),
-    ],
-    [navigate, search]
-  );
-
-  const table = useReactTable({
-    data: organizations?.data || [],
-    columns,
-    pageCount: Math.ceil(
-      (organizations?.pagination.totalCount ?? 0) / pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
-      },
-      columnFilters: [{ id: 'organization', value: nameFilter }],
-    },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
-
-  if (isPending) {
-    return <LoadingIndicator />;
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
-
-  const filtersInUse =
-    totalOrganizations.pagination.totalCount !==
-    organizations.pagination.totalCount;
-  const matching = `, ${organizations.pagination.totalCount} matching filters`;
-
+const HomePage = () => {
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
-        <CardTitle>
-          Organizations ({totalOrganizations.pagination.totalCount} in total
-          {filtersInUse && matching})
-        </CardTitle>
+        <CardTitle>Home</CardTitle>
         <CardDescription>
-          Browse your organizations or create a new one
+          Browse all organizations you can access.
         </CardDescription>
-        <div className='py-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                size='sm'
-                className='ml-auto gap-1'
-                disabled={isSuperuser === false}
-              >
-                <Link to='/create-organization'>
-                  Add organization
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isSuperuser !== false
-                ? 'Add an organization for managing products'
-                : 'Insufficient permissions.'}
-            </TooltipContent>
-          </Tooltip>
-        </div>
       </CardHeader>
       <CardContent>
-        <DataTable
-          table={table}
-          setCurrentPageOptions={(currentPage) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: currentPage },
-            };
-          }}
-          setPageSizeOptions={(size) => {
-            // Persist the user preference for page size to local storage.
-            setOrgPageSize(size);
-            return {
-              to: Route.to,
-              search: { ...search, page: 1, pageSize: size },
-            };
-          }}
-        />
+        <Button asChild>
+          <Link to='/organizations'>Browse organizations</Link>
+        </Button>
       </CardContent>
     </Card>
   );
 };
 
 export const Route = createFileRoute('/')({
-  validateSearch: z.object({
-    ...paginationSearchParameterSchema.shape,
-    ...filterByNameSearchParameterSchema.shape,
-  }),
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context: { queryClient }, deps: { page, pageSize } }) => {
-    queryClient.prefetchQuery({
-      ...getOrganizationsOptions({
-        query: {
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        },
-      }),
-    });
-  },
-  component: IndexPage,
-  pendingComponent: LoadingIndicator,
+  component: HomePage,
 });
