@@ -18,20 +18,26 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { postRepositoryRunMutation } from '@/api/@tanstack/react-query.gen';
+import {
+  getOrganizationOptions,
+  getProductOptions,
+  getRepositoryOptions,
+  postRepositoryRunMutation,
+} from '@/api/@tanstack/react-query.gen';
 import {
   getAvailableRepositorySecrets,
   getPluginsForRepository,
   getRepositoryRun,
 } from '@/api/sdk.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { InlineCode } from '@/components/typography.tsx';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -58,6 +64,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
+import { buildRecentRun, useHomeRecentRunActions } from '@/providers/home-data';
 import {
   AdvisorFields,
   AnalyzerFields,
@@ -78,6 +85,7 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const { ortRun, plugins, secrets } = Route.useLoaderData();
+  const { recordRecentRun } = useHomeRecentRunActions();
   const [isTest, setIsTest] = useState(false);
   const isSuperuser = useUser().isSuperuser || false;
   const permissions = Route.useRouteContext().permissions;
@@ -92,6 +100,39 @@ const CreateRunPage = () => {
     plugins?.data?.filter(
       (plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER'
     ) || [];
+
+  const {
+    data: organization,
+    error: orgError,
+    isPending: orgIsPending,
+    isError: orgIsError,
+  } = useQuery({
+    ...getOrganizationOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
+  });
+
+  const {
+    data: product,
+    error: productError,
+    isPending: productIsPending,
+    isError: productIsError,
+  } = useQuery({
+    ...getProductOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
+  });
+
+  const {
+    data: repository,
+    error: repositoryError,
+    isPending: repositoryIsPending,
+    isError: repositoryIsError,
+  } = useQuery({
+    ...getRepositoryOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+    }),
+  });
 
   type AccordionSection =
     | 'analyzer'
@@ -116,6 +157,12 @@ const CreateRunPage = () => {
   const { mutateAsync, isPending } = useMutation({
     ...postRepositoryRunMutation(),
     onSuccess(response) {
+      if (organization && product && repository) {
+        recordRecentRun(
+          buildRecentRun(organization, product, repository, response)
+        );
+      }
+
       toast.info('Create Run', {
         description: 'New run created successfully for this repository.',
       });
@@ -206,6 +253,18 @@ const CreateRunPage = () => {
     // Open the accordions with errors
     setOpenAccordions(accordionsWithErrors);
   };
+
+  if (orgIsPending || productIsPending || repositoryIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (orgIsError || productIsError || repositoryIsError) {
+    toastError(
+      'Unable to load data',
+      orgError || productError || repositoryError
+    );
+    return;
+  }
 
   return (
     <Card>
