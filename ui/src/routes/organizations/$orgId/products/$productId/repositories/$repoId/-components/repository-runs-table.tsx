@@ -200,11 +200,11 @@ const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
                     )}
                 </div>
                 {hasLabels && (
-                  <div className='flex flex-wrap justify-end gap-2'>
+                  <div className='flex w-full flex-wrap justify-end gap-2'>
                     {Object.entries(summary.labels!).map(([key, value]) => (
                       <Badge
                         key={key}
-                        className='bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                        className='max-w-full min-w-0 shrink bg-gray-200 break-words whitespace-normal text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                       >
                         {key}: {value}
                       </Badge>
