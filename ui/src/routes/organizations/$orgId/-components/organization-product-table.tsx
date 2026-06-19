@@ -29,10 +29,12 @@ import { useMemo } from 'react';
 
 import { Product } from '@/api';
 import {
+  getOrganizationOptions,
   getOrganizationProductsOptions,
   getProductRepositoriesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
+import { ProductFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -66,6 +68,12 @@ export const OrganizationProductTable = () => {
     [search.filter]
   );
 
+  const { data: organization } = useQuery({
+    ...getOrganizationOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
+  });
+
   const {
     data: products,
     error: prodError,
@@ -90,16 +98,28 @@ export const OrganizationProductTable = () => {
         size: 300,
         cell: ({ row }) => (
           <>
-            <Link
-              className='block font-semibold text-blue-400 hover:underline'
-              to={`/organizations/$orgId/products/$productId`}
-              params={{
-                orgId: row.original.organizationId.toString(),
-                productId: row.original.id.toString(),
-              }}
-            >
-              {row.original.name}
-            </Link>
+            <div className='flex items-center gap-1.5'>
+              <Link
+                className='font-semibold text-blue-400 hover:underline'
+                to={`/organizations/$orgId/products/$productId`}
+                params={{
+                  orgId: row.original.organizationId.toString(),
+                  productId: row.original.id.toString(),
+                }}
+              >
+                {row.original.name}
+              </Link>
+              {organization && (
+                <ProductFavoriteButton
+                  organization={organization}
+                  organizationId={row.original.organizationId}
+                  product={row.original}
+                  size='xs'
+                  variant='ghost'
+                  className='size-6 p-0'
+                />
+              )}
+            </div>
             <div className='text-muted-foreground text-sm md:inline'>
               {row.original.description}
             </div>
@@ -241,7 +261,7 @@ export const OrganizationProductTable = () => {
         enableColumnFilter: false,
       }),
     ],
-    [navigate, search]
+    [navigate, organization, search]
   );
 
   const table = useReactTable({

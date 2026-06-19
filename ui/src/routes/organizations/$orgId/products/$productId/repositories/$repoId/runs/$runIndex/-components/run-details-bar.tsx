@@ -25,6 +25,7 @@ import {
   getRepositoryRunOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { RunFavoriteButton } from '@/components/favorite-button';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { Sha1Component } from '@/components/sha1-component';
@@ -166,7 +167,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
             runIndex={params.runIndex}
           />
         </div>
-        <div className='flex flex-col justify-start'>
+        <div className='flex items-start gap-2'>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -201,6 +202,15 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
         <div className='flex items-center gap-2 text-sm'>
           <Label className='font-semibold'>Run ID:</Label>
           <div>{ortRun.id}</div>
+          <RunFavoriteButton
+            organizationId={params.orgId}
+            productId={params.productId}
+            repositoryId={params.repoId}
+            run={ortRun}
+            size='xs'
+            variant='ghost'
+            className='size-6 p-0'
+          />
         </div>
         <div className='flex gap-2 text-sm'>
           <Label className='font-semibold'>Revision:</Label> {ortRun.revision}

@@ -26,6 +26,7 @@ import {
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { JobDurations } from '@/components/charts/job-durations';
+import { RepositoryFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
@@ -85,8 +86,18 @@ const RepositoryRunsComponent = () => {
       <Card>
         <CardHeader>
           <CardTitle>
-            <div className='flex justify-between'>
-              <span>{repo.name}</span>
+            <div className='flex justify-between gap-2'>
+              <div className='flex items-center gap-2'>
+                <span>{repo.name}</span>
+                <RepositoryFavoriteButton
+                  organizationId={params.orgId}
+                  productId={params.productId}
+                  repository={repo}
+                  size='xs'
+                  variant='ghost'
+                  className='size-6 p-0'
+                />
+              </div>
               <div>
                 <span className='text-sm font-normal'>
                   {getRepositoryTypeLabel(repo.type)} repository
@@ -149,6 +160,8 @@ const RepositoryRunsComponent = () => {
         </CardHeader>
         <CardContent>
           <RepositoryRunsTable
+            orgId={params.orgId}
+            productId={params.productId}
             repoId={params.repoId}
             pageIndex={pageIndex}
             pageSize={pageSize}

@@ -25,6 +25,7 @@ import z from 'zod';
 
 import { getOrganizationOptions } from '@/api/@tanstack/react-query.gen';
 import { ErrorComponent } from '@/components/error-component';
+import { OrganizationFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
@@ -74,8 +75,18 @@ const OrganizationComponent = () => {
       <div className='grid grid-cols-4 gap-2'>
         <Card className='col-span-2'>
           <CardHeader>
-            <CardTitle>{organization.name}</CardTitle>
-            <CardDescription>{organization.description}</CardDescription>
+            <div>
+              <div className='flex items-center gap-1.5'>
+                <CardTitle>{organization.name}</CardTitle>
+                <OrganizationFavoriteButton
+                  organization={organization}
+                  size='xs'
+                  variant='ghost'
+                  className='size-6 p-0'
+                />
+              </div>
+              <CardDescription>{organization.description}</CardDescription>
+            </div>
           </CardHeader>
         </Card>
         <OrganizationProductsStatisticsCard

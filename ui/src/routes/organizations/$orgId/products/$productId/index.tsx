@@ -24,6 +24,7 @@ import { Suspense } from 'react';
 import z from 'zod';
 
 import { getProductOptions } from '@/api/@tanstack/react-query.gen';
+import { ProductFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
@@ -73,8 +74,19 @@ const ProductComponent = () => {
       <div className='grid grid-cols-4 gap-2'>
         <Card className='col-span-2'>
           <CardHeader>
-            <CardTitle>{product.name}</CardTitle>
-            <CardDescription>{product.description}</CardDescription>
+            <div>
+              <div className='flex items-center gap-1.5'>
+                <CardTitle>{product.name}</CardTitle>
+                <ProductFavoriteButton
+                  organizationId={params.orgId}
+                  product={product}
+                  size='xs'
+                  variant='ghost'
+                  className='size-6 p-0'
+                />
+              </div>
+              <CardDescription>{product.description}</CardDescription>
+            </div>
           </CardHeader>
         </Card>
         <ProductRepositoriesStatisticsCard

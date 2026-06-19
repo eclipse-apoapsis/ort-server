@@ -27,8 +27,13 @@ import {
 import { useMemo } from 'react';
 
 import { Repository } from '@/api';
-import { getProductRepositoriesOptions } from '@/api/@tanstack/react-query.gen';
+import {
+  getOrganizationOptions,
+  getProductOptions,
+  getProductRepositoriesOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
+import { RepositoryFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -62,6 +67,18 @@ export const ProductRepositoryTable = () => {
     [search.filter]
   );
 
+  const { data: organization } = useQuery({
+    ...getOrganizationOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
+  });
+
+  const { data: product } = useQuery({
+    ...getProductOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
+  });
+
   const {
     data: repositories,
     error: reposError,
@@ -86,30 +103,58 @@ export const ProductRepositoryTable = () => {
           id: 'repository',
           header: 'Repositories',
           size: 300,
-          cell: ({ row }) => (
-            <>
-              <Link
-                className='block font-semibold text-blue-400 hover:underline'
-                to={
-                  '/organizations/$orgId/products/$productId/repositories/$repoId'
-                }
-                params={{
-                  orgId: row.original.organizationId.toString(),
-                  productId: row.original.productId.toString(),
-                  repoId: row.original.id.toString(),
-                }}
-              >
-                {row.original.name && <div>{row.original.name}</div>}
-                <div>{row.original.url}</div>
-              </Link>
-              <div className='text-muted-foreground text-sm md:inline'>
-                {row.original.type}
-                {row.original.description
-                  ? ` | ${row.original.description}`
-                  : ''}
-              </div>
-            </>
-          ),
+          cell: ({ row }) => {
+            const linkParams = {
+              orgId: row.original.organizationId.toString(),
+              productId: row.original.productId.toString(),
+              repoId: row.original.id.toString(),
+            };
+
+            return (
+              <>
+                <div className='flex flex-wrap items-center gap-1.5'>
+                  <Link
+                    className='font-semibold text-blue-400 hover:underline'
+                    to={
+                      '/organizations/$orgId/products/$productId/repositories/$repoId'
+                    }
+                    params={linkParams}
+                  >
+                    {row.original.name || row.original.url}
+                  </Link>
+                  {organization && product && (
+                    <RepositoryFavoriteButton
+                      organization={organization}
+                      organizationId={row.original.organizationId}
+                      product={product}
+                      productId={row.original.productId}
+                      repository={row.original}
+                      size='xs'
+                      variant='ghost'
+                      className='size-6 p-0'
+                    />
+                  )}
+                </div>
+                {row.original.name && (
+                  <Link
+                    className='block font-semibold text-blue-400 hover:underline'
+                    to={
+                      '/organizations/$orgId/products/$productId/repositories/$repoId'
+                    }
+                    params={linkParams}
+                  >
+                    {row.original.url}
+                  </Link>
+                )}
+                <div className='text-muted-foreground text-sm md:inline'>
+                  {row.original.type}
+                  {row.original.description
+                    ? ` | ${row.original.description}`
+                    : ''}
+                </div>
+              </>
+            );
+          },
           meta: {
             filter: {
               filterVariant: 'regex',
@@ -173,7 +218,7 @@ export const ProductRepositoryTable = () => {
         enableColumnFilter: false,
       }),
     ],
-    [navigate, search]
+    [navigate, organization, product, search]
   );
 
   const table = useReactTable({
