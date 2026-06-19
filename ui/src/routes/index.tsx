@@ -17,32 +17,53 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { getServerSettingByKeyOptions } from '@/api/@tanstack/react-query.gen';
+import { Card, CardContent } from '@/components/ui/card';
+import { useUser } from '@/hooks/use-user';
+import { useHomeFavorites, useHomeRecentRuns } from '@/providers/home-data';
+import { HomeFavoritesSection } from './-components/home-favorites-section';
+import { HomeOrganizationsSection } from './-components/home-organizations-section';
+import { HomeRecentRunsSection } from './-components/home-recent-runs-section';
+
+const PRODUCT_NAME = 'ORT Server';
 
 const HomePage = () => {
+  const favorites = useHomeFavorites();
+  const recentRuns = useHomeRecentRuns();
+  const user = useUser();
+  const userDisplayName =
+    user.fullName || user.username || user.user?.profile.email;
+  const { data: dbProductName } = useQuery({
+    ...getServerSettingByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
+  });
+  const productName =
+    dbProductName?.value && dbProductName.isEnabled
+      ? dbProductName.value
+      : PRODUCT_NAME;
+
   return (
-    <Card className='mx-auto w-full max-w-4xl'>
-      <CardHeader>
-        <CardTitle>Home</CardTitle>
-        <CardDescription>
-          Browse all organizations you can access.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button asChild>
-          <Link to='/organizations'>Browse organizations</Link>
-        </Button>
-      </CardContent>
-    </Card>
+    <div className='mx-auto flex w-full max-w-7xl flex-col gap-4'>
+      <div>
+        <h1 className='text-3xl font-bold tracking-tight'>
+          Welcome to {productName}
+          {userDisplayName && `, ${userDisplayName}`}!
+        </h1>
+      </div>
+      <HomeOrganizationsSection />
+      <Card>
+        <CardContent className='text-muted-foreground text-sm'>
+          Please note that the information displayed below is only persisted in
+          your current browser.
+        </CardContent>
+      </Card>
+      <div className='grid gap-4 xl:grid-cols-2'>
+        <HomeFavoritesSection favorites={favorites} />
+        <HomeRecentRunsSection recentRuns={recentRuns} />
+      </div>
+    </div>
   );
 };
 
