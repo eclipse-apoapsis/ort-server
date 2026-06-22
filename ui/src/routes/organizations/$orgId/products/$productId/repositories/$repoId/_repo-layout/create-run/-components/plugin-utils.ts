@@ -80,7 +80,7 @@ export function validateRequiredPluginOptions(
     | Record<string, Record<string, Record<string, unknown>> | undefined>
     | undefined,
   ctx: z.RefinementCtx,
-  configPath = 'config'
+  configPath: string | string[] = 'config'
 ): void {
   for (const plugin of plugins) {
     if (!selectedPluginIds.includes(plugin.id)) continue;
@@ -98,7 +98,12 @@ export function validateRequiredPluginOptions(
           code: 'invalid_type',
           expected: 'string',
           received: 'undefined',
-          path: [configPath, plugin.id, section, option.name],
+          path: [
+            ...(Array.isArray(configPath) ? configPath : [configPath]),
+            plugin.id,
+            section,
+            option.name,
+          ],
           message: `Required option "${option.name}" is missing for "${plugin.displayName}".`,
         });
       }
