@@ -25,6 +25,7 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
+import io.ktor.server.request.uri
 
 import java.util.UUID
 
@@ -54,9 +55,9 @@ fun Application.configureMonitoring() {
 
             val status = call.response.status()?.value ?: "unknown"
             val method = call.request.httpMethod.value
-            val path = call.request.path()
+            val uri = call.request.uri
 
-            "clientType=$clientType $method $path: $status"
+            "clientType=$clientType $method $uri: $status"
         }
     }
 }
