@@ -23,6 +23,7 @@ import { z } from 'zod';
 import { PreconfiguredPluginDescriptor } from '@/api';
 import { zInfrastructureService } from '@/api/zod.gen';
 import { environmentDefinitionsSchema } from '@/lib/types';
+import { defaultValues } from './default-values';
 import {
   environmentVariableSchema,
   keyValueSchema,
@@ -36,7 +37,8 @@ import {
 export const createRunFormSchema = (
   advisorPlugins: PreconfiguredPluginDescriptor[],
   scannerPlugins: PreconfiguredPluginDescriptor[],
-  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[]
+  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[],
+  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[]
 ) => {
   const advisorConfigSchema: Record<string, z.ZodTypeAny> = {};
 
@@ -55,144 +57,195 @@ export const createRunFormSchema = (
       createPluginConfigSchema(plugin);
   });
 
+  const packageConfigurationProviderConfigSchema: Record<string, z.ZodTypeAny> =
+    {};
+  packageConfigurationProviderPlugins.forEach((plugin) => {
+    packageConfigurationProviderConfigSchema[plugin.id] =
+      createPluginConfigSchema(plugin);
+  });
+
   return z.object({
     revision: z.string(),
     path: z.string(),
-    jobConfigs: z.object({
-      analyzer: z
-        .object({
+    jobConfigs: z
+      .object({
+        analyzer: z
+          .object({
+            enabled: z.boolean(),
+            repositoryConfigPath: z.string().optional(),
+            allowDynamicVersions: z.boolean(),
+            skipExcluded: z.boolean(),
+            environmentDefinitions: environmentDefinitionsSchema.optional(),
+            environmentVariables: z.array(environmentVariableSchema).optional(),
+            infrastructureServices: z.array(zInfrastructureService).optional(),
+            keepAliveWorker: z.boolean(),
+            packageCurationProviders: z.array(z.string()),
+            packageCurationProviderConfig: z
+              .object(packageCurationProviderConfigSchema)
+              .optional(),
+            packageManagers: z
+              .object({
+                Bazel: packageManagerOptionsSchema,
+                Bower: packageManagerOptionsSchema,
+                Bundler: packageManagerOptionsSchema,
+                Cargo: packageManagerOptionsSchema,
+                Carthage: packageManagerOptionsSchema,
+                CocoaPods: packageManagerOptionsSchema,
+                Composer: packageManagerOptionsSchema,
+                Conan: packageManagerOptionsSchema,
+                Gleam: packageManagerOptionsSchema,
+                GoMod: packageManagerOptionsSchema,
+                Gradle: packageManagerOptionsSchema,
+                GradleInspector: packageManagerOptionsSchema,
+                Maven: packageManagerOptionsSchema,
+                NPM: packageManagerOptionsSchema,
+                NuGet: packageManagerOptionsSchema,
+                OrtProjectFile: packageManagerOptionsSchema,
+                PIP: packageManagerOptionsSchema,
+                Pipenv: packageManagerOptionsSchema,
+                PNPM: packageManagerOptionsSchema,
+                Poetry: packageManagerOptionsSchema,
+                Pub: packageManagerOptionsSchema,
+                SBT: packageManagerOptionsSchema,
+                SPDX: packageManagerOptionsSchema,
+                SpdxDocumentFile: packageManagerOptionsSchema,
+                Stack: packageManagerOptionsSchema,
+                SwiftPM: packageManagerOptionsSchema,
+                Tycho: packageManagerOptionsSchema,
+                Yarn: packageManagerOptionsSchema,
+                Yarn2: packageManagerOptionsSchema,
+              })
+              .refine((schema) => {
+                // Ensure that not both Gradle and GradleInspector are enabled at the same time.
+                return !(
+                  schema.Gradle.enabled && schema.GradleInspector.enabled
+                );
+              }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
+          })
+          .superRefine((data, ctx) => {
+            validateRequiredPluginOptions(
+              packageCurationProviderPlugins,
+              data.packageCurationProviders,
+              data.packageCurationProviderConfig as
+                | Record<
+                    string,
+                    Record<string, Record<string, unknown>> | undefined
+                  >
+                | undefined,
+              ctx,
+              'packageCurationProviderConfig'
+            );
+          }),
+        advisor: z
+          .object({
+            enabled: z.boolean(),
+            skipExcluded: z.boolean(),
+            keepAliveWorker: z.boolean(),
+            advisors: z.array(z.string()),
+            config: z.object(advisorConfigSchema).optional(),
+          })
+          .superRefine((data, ctx) => {
+            validateRequiredPluginOptions(
+              advisorPlugins,
+              data.advisors,
+              data.config as
+                | Record<
+                    string,
+                    Record<string, Record<string, unknown>> | undefined
+                  >
+                | undefined,
+              ctx
+            );
+          }),
+        scanner: z
+          .object({
+            enabled: z.boolean(),
+            skipConcluded: z.boolean(),
+            skipExcluded: z.boolean(),
+            keepAliveWorker: z.boolean(),
+            scanners: z.array(z.string()),
+            scannerScopes: z.record(
+              z.string(),
+              z.enum(['both', 'packages', 'projects']).optional()
+            ),
+            config: z.object(scannerConfigSchema).optional(),
+          })
+          .superRefine((data, ctx) => {
+            validateRequiredPluginOptions(
+              scannerPlugins,
+              data.scanners,
+              data.config as
+                | Record<
+                    string,
+                    Record<string, Record<string, unknown>> | undefined
+                  >
+                | undefined,
+              ctx
+            );
+          }),
+        evaluator: z.object({
           enabled: z.boolean(),
-          repositoryConfigPath: z.string().optional(),
-          allowDynamicVersions: z.boolean(),
-          skipExcluded: z.boolean(),
-          environmentDefinitions: environmentDefinitionsSchema.optional(),
-          environmentVariables: z.array(environmentVariableSchema).optional(),
-          infrastructureServices: z.array(zInfrastructureService).optional(),
+          ruleSet: z.string().optional(),
+          licenseClassificationsFile: z.string().optional(),
+          copyrightGarbageFile: z.string().optional(),
+          resolutionsFile: z.string().optional(),
           keepAliveWorker: z.boolean(),
-          packageCurationProviders: z.array(z.string()),
-          packageCurationProviderConfig: z
-            .object(packageCurationProviderConfigSchema)
+          packageConfigurationProviders: z.array(z.string()),
+          packageConfigurationProviderConfig: z
+            .object(packageConfigurationProviderConfigSchema)
             .optional(),
-          packageManagers: z
-            .object({
-              Bazel: packageManagerOptionsSchema,
-              Bower: packageManagerOptionsSchema,
-              Bundler: packageManagerOptionsSchema,
-              Cargo: packageManagerOptionsSchema,
-              Carthage: packageManagerOptionsSchema,
-              CocoaPods: packageManagerOptionsSchema,
-              Composer: packageManagerOptionsSchema,
-              Conan: packageManagerOptionsSchema,
-              Gleam: packageManagerOptionsSchema,
-              GoMod: packageManagerOptionsSchema,
-              Gradle: packageManagerOptionsSchema,
-              GradleInspector: packageManagerOptionsSchema,
-              Maven: packageManagerOptionsSchema,
-              NPM: packageManagerOptionsSchema,
-              NuGet: packageManagerOptionsSchema,
-              OrtProjectFile: packageManagerOptionsSchema,
-              PIP: packageManagerOptionsSchema,
-              Pipenv: packageManagerOptionsSchema,
-              PNPM: packageManagerOptionsSchema,
-              Poetry: packageManagerOptionsSchema,
-              Pub: packageManagerOptionsSchema,
-              SBT: packageManagerOptionsSchema,
-              SPDX: packageManagerOptionsSchema,
-              SpdxDocumentFile: packageManagerOptionsSchema,
-              Stack: packageManagerOptionsSchema,
-              SwiftPM: packageManagerOptionsSchema,
-              Tycho: packageManagerOptionsSchema,
-              Yarn: packageManagerOptionsSchema,
-              Yarn2: packageManagerOptionsSchema,
-            })
-            .refine((schema) => {
-              // Ensure that not both Gradle and GradleInspector are enabled at the same time.
-              return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
-            }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
-        })
-        .superRefine((data, ctx) => {
+        }),
+        reporter: z.object({
+          enabled: z.boolean(),
+          formats: z.array(z.string()),
+          deduplicateDependencyTree: z.boolean().optional(),
+          keepAliveWorker: z.boolean(),
+          packageConfigurationProviders: z.array(z.string()),
+          packageConfigurationProviderConfig: z
+            .object(packageConfigurationProviderConfigSchema)
+            .optional(),
+        }),
+        notifier: z.object({
+          enabled: z.boolean(),
+          recipientAddresses: z
+            .array(z.object({ email: z.string() }))
+            .optional(),
+          keepAliveWorker: z.boolean(),
+        }),
+        parameters: z.array(keyValueSchema).optional(),
+        ruleSet: z.string().optional(),
+      })
+      .superRefine((data, ctx) => {
+        if (data.evaluator.enabled) {
           validateRequiredPluginOptions(
-            packageCurationProviderPlugins,
-            data.packageCurationProviders,
-            data.packageCurationProviderConfig as
+            packageConfigurationProviderPlugins,
+            data.evaluator.packageConfigurationProviders,
+            data.evaluator.packageConfigurationProviderConfig as
               | Record<
                   string,
                   Record<string, Record<string, unknown>> | undefined
                 >
               | undefined,
             ctx,
-            'packageCurationProviderConfig'
+            ['evaluator', 'packageConfigurationProviderConfig']
           );
-        }),
-      advisor: z
-        .object({
-          enabled: z.boolean(),
-          skipExcluded: z.boolean(),
-          keepAliveWorker: z.boolean(),
-          advisors: z.array(z.string()),
-          config: z.object(advisorConfigSchema).optional(),
-        })
-        .superRefine((data, ctx) => {
+        }
+
+        if (data.reporter.enabled && !data.evaluator.enabled) {
           validateRequiredPluginOptions(
-            advisorPlugins,
-            data.advisors,
-            data.config as
+            packageConfigurationProviderPlugins,
+            data.reporter.packageConfigurationProviders,
+            data.reporter.packageConfigurationProviderConfig as
               | Record<
                   string,
                   Record<string, Record<string, unknown>> | undefined
                 >
               | undefined,
-            ctx
+            ctx,
+            ['reporter', 'packageConfigurationProviderConfig']
           );
-        }),
-      scanner: z
-        .object({
-          enabled: z.boolean(),
-          skipConcluded: z.boolean(),
-          skipExcluded: z.boolean(),
-          keepAliveWorker: z.boolean(),
-          scanners: z.array(z.string()),
-          scannerScopes: z.record(
-            z.string(),
-            z.enum(['both', 'packages', 'projects']).optional()
-          ),
-          config: z.object(scannerConfigSchema).optional(),
-        })
-        .superRefine((data, ctx) => {
-          validateRequiredPluginOptions(
-            scannerPlugins,
-            data.scanners,
-            data.config as
-              | Record<
-                  string,
-                  Record<string, Record<string, unknown>> | undefined
-                >
-              | undefined,
-            ctx
-          );
-        }),
-      evaluator: z.object({
-        enabled: z.boolean(),
-        ruleSet: z.string().optional(),
-        licenseClassificationsFile: z.string().optional(),
-        copyrightGarbageFile: z.string().optional(),
-        resolutionsFile: z.string().optional(),
-        keepAliveWorker: z.boolean(),
+        }
       }),
-      reporter: z.object({
-        enabled: z.boolean(),
-        formats: z.array(z.string()),
-        deduplicateDependencyTree: z.boolean().optional(),
-        keepAliveWorker: z.boolean(),
-      }),
-      notifier: z.object({
-        enabled: z.boolean(),
-        recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
-        keepAliveWorker: z.boolean(),
-      }),
-      parameters: z.array(keyValueSchema).optional(),
-      ruleSet: z.string().optional(),
-    }),
     labels: z.array(keyValueSchema).optional(),
     jobConfigContext: z.string().optional(),
     environmentConfigPath: z.string().optional(),
@@ -244,3 +297,94 @@ export const flattenErrors = (
 
   return result;
 };
+
+if (import.meta.vitest) {
+  const { describe, expect, it } = import.meta.vitest;
+
+  const packageConfigurationProviderPlugin: PreconfiguredPluginDescriptor = {
+    id: 'Dir',
+    type: 'PACKAGE_CONFIGURATION_PROVIDER',
+    displayName: 'Directory',
+    summary: 'A package configuration provider plugin.',
+    description: 'A package configuration provider plugin.',
+    options: [
+      {
+        name: 'path',
+        description: 'Provider path.',
+        type: 'STRING',
+        isFixed: false,
+        isNullable: false,
+        isRequired: true,
+      },
+    ],
+  };
+
+  function createValidFormData() {
+    const formData = defaultValues(
+      null,
+      [],
+      [],
+      false,
+      [],
+      [packageConfigurationProviderPlugin]
+    );
+
+    formData.revision = 'main';
+    formData.jobConfigs.evaluator.packageConfigurationProviders = ['Dir'];
+    formData.jobConfigs.evaluator.packageConfigurationProviderConfig = {
+      Dir: {
+        options: {
+          path: 'evaluator-package-configurations',
+        },
+        secrets: {},
+      },
+    };
+    formData.jobConfigs.reporter.packageConfigurationProviders = ['Dir'];
+    formData.jobConfigs.reporter.packageConfigurationProviderConfig = {
+      Dir: {
+        options: {},
+        secrets: {},
+      },
+    };
+
+    return formData;
+  }
+
+  describe('createRunFormSchema', () => {
+    it('ignores reporter package configuration providers when evaluator is enabled', () => {
+      const schema = createRunFormSchema(
+        [],
+        [],
+        [],
+        [packageConfigurationProviderPlugin]
+      );
+
+      const result = schema.safeParse(createValidFormData());
+
+      expect(result.success).toBe(true);
+    });
+
+    it('validates reporter package configuration providers when evaluator is disabled', () => {
+      const schema = createRunFormSchema(
+        [],
+        [],
+        [],
+        [packageConfigurationProviderPlugin]
+      );
+      const formData = createValidFormData();
+      formData.jobConfigs.evaluator.enabled = false;
+
+      const result = schema.safeParse(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.issues.map((issue) => issue.path)).toContainEqual([
+        'jobConfigs',
+        'reporter',
+        'packageConfigurationProviderConfig',
+        'Dir',
+        'options',
+        'path',
+      ]);
+    });
+  });
+}

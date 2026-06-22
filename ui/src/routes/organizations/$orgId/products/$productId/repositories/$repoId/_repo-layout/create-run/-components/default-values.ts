@@ -37,7 +37,8 @@ export function defaultValues(
   advisorPlugins: PreconfiguredPluginDescriptor[],
   scannerPlugins: PreconfiguredPluginDescriptor[],
   isSuperuser: boolean,
-  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[]
+  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[],
+  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[]
 ): CreateRunFormValues {
   /**
    * Constructs the default options for a package manager, either as a blank set of options
@@ -93,6 +94,16 @@ export function defaultValues(
   const packageCurationProviderFormValues = providerPluginConfigsToFormValues(
     ortRun?.jobConfigs.analyzer?.packageCurationProviders
   );
+  const packageConfigurationProviderPluginDefaultValues =
+    getPluginDefaultValues(packageConfigurationProviderPlugins);
+  const evaluatorPackageConfigurationProviderFormValues =
+    providerPluginConfigsToFormValues(
+      ortRun?.jobConfigs.evaluator?.packageConfigurationProviders
+    );
+  const reporterPackageConfigurationProviderFormValues =
+    providerPluginConfigsToFormValues(
+      ortRun?.jobConfigs.reporter?.packageConfigurationProviders
+    );
   const scannerDefaults = {
     scanners: ['ScanCode'],
     scannerScopes: {
@@ -170,12 +181,18 @@ export function defaultValues(
         copyrightGarbageFile: '',
         resolutionsFile: '',
         keepAliveWorker: false,
+        packageConfigurationProviders: [],
+        packageConfigurationProviderConfig:
+          packageConfigurationProviderPluginDefaultValues,
       },
       reporter: {
         enabled: true,
         formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
         deduplicateDependencyTree: false,
         keepAliveWorker: false,
+        packageConfigurationProviders: [],
+        packageConfigurationProviderConfig:
+          packageConfigurationProviderPluginDefaultValues,
       },
       notifier: {
         enabled: false,
@@ -289,6 +306,12 @@ export function defaultValues(
             enabled:
               ortRun.jobConfigs.evaluator !== undefined &&
               ortRun.jobConfigs.evaluator !== null,
+            packageConfigurationProviders:
+              evaluatorPackageConfigurationProviderFormValues.selectedPluginIds,
+            packageConfigurationProviderConfig: mergePluginConfigs(
+              evaluatorPackageConfigurationProviderFormValues.config,
+              packageConfigurationProviderPluginDefaultValues
+            ),
             keepAliveWorker:
               (ortRun.jobConfigs.evaluator?.keepAliveWorker && isSuperuser) ||
               baseDefaults.jobConfigs.evaluator.keepAliveWorker,
@@ -303,6 +326,12 @@ export function defaultValues(
               ) || baseDefaults.jobConfigs.reporter.formats,
             deduplicateDependencyTree:
               deduplicateDependencyTreeEnabled || undefined,
+            packageConfigurationProviders:
+              reporterPackageConfigurationProviderFormValues.selectedPluginIds,
+            packageConfigurationProviderConfig: mergePluginConfigs(
+              reporterPackageConfigurationProviderFormValues.config,
+              packageConfigurationProviderPluginDefaultValues
+            ),
             keepAliveWorker:
               (ortRun.jobConfigs.reporter?.keepAliveWorker && isSuperuser) ||
               baseDefaults.jobConfigs.reporter.keepAliveWorker,
@@ -362,7 +391,7 @@ if (import.meta.vitest) {
       labels: {},
     } as unknown as OrtRun;
 
-    const defaults = defaultValues(ortRun, [], [], false, []);
+    const defaults = defaultValues(ortRun, [], [], false, [], []);
 
     expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
       ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
@@ -370,26 +399,33 @@ if (import.meta.vitest) {
   });
 
   it('uses package curation provider plugin default values for fresh runs', () => {
-    const defaults = defaultValues(null, [], [], false, [
-      {
-        id: 'ClearlyDefined',
-        type: 'PACKAGE_CURATION_PROVIDER',
-        displayName: 'ClearlyDefined',
-        summary: 'A package curation provider plugin',
-        description: 'A package curation provider plugin.',
-        options: [
-          {
-            name: 'serverUrl',
-            description: 'Backend URL.',
-            type: 'STRING',
-            defaultValue: 'https://api.clearlydefined.io',
-            isFixed: true,
-            isNullable: false,
-            isRequired: true,
-          },
-        ],
-      },
-    ]);
+    const defaults = defaultValues(
+      null,
+      [],
+      [],
+      false,
+      [
+        {
+          id: 'ClearlyDefined',
+          type: 'PACKAGE_CURATION_PROVIDER',
+          displayName: 'ClearlyDefined',
+          summary: 'A package curation provider plugin',
+          description: 'A package curation provider plugin.',
+          options: [
+            {
+              name: 'serverUrl',
+              description: 'Backend URL.',
+              type: 'STRING',
+              defaultValue: 'https://api.clearlydefined.io',
+              isFixed: true,
+              isNullable: false,
+              isRequired: true,
+            },
+          ],
+        },
+      ],
+      []
+    );
 
     expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([]);
     expect(defaults.jobConfigs.analyzer.packageCurationProviderConfig).toEqual({
@@ -426,7 +462,7 @@ if (import.meta.vitest) {
       labels: {},
     } as unknown as OrtRun;
 
-    const defaults = defaultValues(ortRun, [], [], false, []);
+    const defaults = defaultValues(ortRun, [], [], false, [], []);
 
     expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([
       'ClearlyDefined',
@@ -438,6 +474,136 @@ if (import.meta.vitest) {
         },
         secrets: {
           token: 'clearly-defined-token',
+        },
+      },
+    });
+  });
+
+  it('uses package configuration provider plugin default values for fresh runs', () => {
+    const defaults = defaultValues(
+      null,
+      [],
+      [],
+      false,
+      [],
+      [
+        {
+          id: 'OrtConfig',
+          type: 'PACKAGE_CONFIGURATION_PROVIDER',
+          displayName: 'ORT Config',
+          summary: 'A package configuration provider plugin',
+          description: 'A package configuration provider plugin.',
+          options: [
+            {
+              name: 'path',
+              description: 'Provider path.',
+              type: 'STRING',
+              defaultValue: 'package-configurations.yml',
+              isFixed: true,
+              isNullable: false,
+              isRequired: true,
+            },
+          ],
+        },
+      ]
+    );
+
+    expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual(
+      []
+    );
+    expect(
+      defaults.jobConfigs.evaluator.packageConfigurationProviderConfig
+    ).toEqual({
+      OrtConfig: {
+        options: {
+          path: 'package-configurations.yml',
+        },
+        secrets: {},
+      },
+    });
+    expect(defaults.jobConfigs.reporter.packageConfigurationProviders).toEqual(
+      []
+    );
+    expect(
+      defaults.jobConfigs.reporter.packageConfigurationProviderConfig
+    ).toEqual({
+      OrtConfig: {
+        options: {
+          path: 'package-configurations.yml',
+        },
+        secrets: {},
+      },
+    });
+  });
+
+  it('preserves package configuration provider config from reruns', () => {
+    const ortRun = {
+      revision: 'main',
+      path: '',
+      jobConfigs: {
+        evaluator: {
+          packageConfigurationProviders: [
+            {
+              type: 'OrtConfig',
+              id: 'OrtConfig',
+              enabled: true,
+              options: {
+                path: 'evaluator-package-configurations.yml',
+              },
+              secrets: {
+                token: 'evaluator-token',
+              },
+            },
+          ],
+        },
+        reporter: {
+          packageConfigurationProviders: [
+            {
+              type: 'OrtConfig',
+              id: 'OrtConfig',
+              enabled: true,
+              options: {
+                path: 'reporter-package-configurations.yml',
+              },
+              secrets: {
+                token: 'reporter-token',
+              },
+            },
+          ],
+        },
+      },
+      labels: {},
+    } as unknown as OrtRun;
+
+    const defaults = defaultValues(ortRun, [], [], false, [], []);
+
+    expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual(
+      ['OrtConfig']
+    );
+    expect(
+      defaults.jobConfigs.evaluator.packageConfigurationProviderConfig
+    ).toEqual({
+      OrtConfig: {
+        options: {
+          path: 'evaluator-package-configurations.yml',
+        },
+        secrets: {
+          token: 'evaluator-token',
+        },
+      },
+    });
+    expect(defaults.jobConfigs.reporter.packageConfigurationProviders).toEqual([
+      'OrtConfig',
+    ]);
+    expect(
+      defaults.jobConfigs.reporter.packageConfigurationProviderConfig
+    ).toEqual({
+      OrtConfig: {
+        options: {
+          path: 'reporter-package-configurations.yml',
+        },
+        secrets: {
+          token: 'reporter-token',
         },
       },
     });
@@ -468,6 +634,7 @@ if (import.meta.vitest) {
         },
       ],
       false,
+      [],
       []
     );
 
