@@ -19,8 +19,9 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
-import { PreconfiguredPluginDescriptor } from '@/api';
+import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { MultiSelectField } from '@/components/form/multi-select-field';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
   AccordionItem,
@@ -42,6 +43,9 @@ type ReporterFieldsProps = {
   onToggle: () => void;
   reporterPlugins: PreconfiguredPluginDescriptor[];
   isSuperuser: boolean;
+  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
+  secrets: Secret[];
+  isRerun: boolean;
 };
 
 export const ReporterFields = ({
@@ -50,12 +54,16 @@ export const ReporterFields = ({
   onToggle,
   reporterPlugins,
   isSuperuser,
+  packageConfigurationProviderPlugins,
+  secrets,
+  isRerun,
 }: ReporterFieldsProps) => {
   const reporterOptions = reporterPlugins.map((plugin) => ({
     id: plugin.id,
     label: plugin.displayName,
     summary: plugin.summary,
   }));
+  const evaluatorEnabled = form.watch('jobConfigs.evaluator.enabled');
 
   return (
     <div className='flex flex-row align-middle'>
@@ -74,7 +82,7 @@ export const ReporterFields = ({
       />
       <AccordionItem value={value} className='flex-1'>
         <AccordionTrigger onClick={onToggle}>Reporter</AccordionTrigger>
-        <AccordionContent>
+        <AccordionContent className='flex flex-col gap-6'>
           <MultiSelectField
             form={form}
             name='jobConfigs.reporter.formats'
@@ -84,6 +92,25 @@ export const ReporterFields = ({
             }
             options={reporterOptions}
           />
+          {!evaluatorEnabled && (
+            <PluginMultiSelectField
+              form={form}
+              name='jobConfigs.reporter.packageConfigurationProviders'
+              configName='jobConfigs.reporter.packageConfigurationProviderConfig'
+              label='Package configuration providers'
+              description={
+                <>
+                  Configure the package configuration providers to use.
+                  Providers higher in the list take precedence over lower
+                  providers. Change the order of providers via drag & drop.
+                </>
+              }
+              plugins={packageConfigurationProviderPlugins}
+              secrets={secrets}
+              enableReordering
+              showSelectedPluginsFirst={isRerun}
+            />
+          )}
           {form.watch('jobConfigs.reporter.formats').includes('WebApp') && (
             <FormField
               control={form.control}

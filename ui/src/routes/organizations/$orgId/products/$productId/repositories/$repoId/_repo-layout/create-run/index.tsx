@@ -100,6 +100,10 @@ const CreateRunPage = () => {
     plugins?.data?.filter(
       (plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER'
     ) || [];
+  const packageConfigurationProviderPlugins =
+    plugins?.data?.filter(
+      (plugin) => plugin.type === 'PACKAGE_CONFIGURATION_PROVIDER'
+    ) || [];
 
   const {
     data: organization,
@@ -184,7 +188,8 @@ const CreateRunPage = () => {
   const formSchema = createRunFormSchema(
     advisorPlugins,
     scannerPlugins,
-    packageCurationProviderPlugins
+    packageCurationProviderPlugins,
+    packageConfigurationProviderPlugins
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -194,7 +199,8 @@ const CreateRunPage = () => {
       advisorPlugins,
       scannerPlugins,
       isSuperuser,
-      packageCurationProviderPlugins
+      packageCurationProviderPlugins,
+      packageConfigurationProviderPlugins
     ),
   });
 
@@ -547,6 +553,11 @@ const CreateRunPage = () => {
                 value='evaluator'
                 onToggle={() => toggleAccordionOpen('evaluator')}
                 isSuperuser={isSuperuser}
+                packageConfigurationProviderPlugins={
+                  packageConfigurationProviderPlugins
+                }
+                secrets={secrets.data || []}
+                isRerun={ortRun?.data != null}
               />
               <ReporterFields
                 form={form}
@@ -554,6 +565,11 @@ const CreateRunPage = () => {
                 onToggle={() => toggleAccordionOpen('reporter')}
                 reporterPlugins={reporterPlugins}
                 isSuperuser={isSuperuser}
+                packageConfigurationProviderPlugins={
+                  packageConfigurationProviderPlugins
+                }
+                secrets={secrets.data || []}
+                isRerun={ortRun?.data != null}
               />
               <NotifierFields
                 form={form}

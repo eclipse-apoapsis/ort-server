@@ -19,6 +19,8 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
+import { PreconfiguredPluginDescriptor, Secret } from '@/api';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
   AccordionItem,
@@ -31,7 +33,6 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
@@ -40,6 +41,9 @@ type EvaluatorFieldsProps = {
   value: string;
   onToggle: () => void;
   isSuperuser: boolean;
+  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
+  secrets: Secret[];
+  isRerun: boolean;
 };
 
 export const EvaluatorFields = ({
@@ -47,6 +51,9 @@ export const EvaluatorFields = ({
   value,
   onToggle,
   isSuperuser,
+  packageConfigurationProviderPlugins,
+  secrets,
+  isRerun,
 }: EvaluatorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -60,19 +67,32 @@ export const EvaluatorFields = ({
                 className='my-4 mr-4 data-[state=checked]:bg-green-500'
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                id='evaluator-enabled-switch'
               />
-              {!isSuperuser && (
-                <Label htmlFor='evaluator-enabled-switch'>Evaluator</Label>
-              )}
             </>
           </FormControl>
         )}
       />
-      {isSuperuser && (
-        <AccordionItem value={value} className='flex-1'>
-          <AccordionTrigger onClick={onToggle}>Evaluator</AccordionTrigger>
-          <AccordionContent>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Evaluator</AccordionTrigger>
+        <AccordionContent className='flex flex-col gap-6'>
+          <PluginMultiSelectField
+            form={form}
+            name='jobConfigs.evaluator.packageConfigurationProviders'
+            configName='jobConfigs.evaluator.packageConfigurationProviderConfig'
+            label='Package configuration providers'
+            description={
+              <>
+                Configure the package configuration providers to use. Providers
+                higher in the list take precedence over lower providers. Change
+                the order of providers via drag & drop.
+              </>
+            }
+            plugins={packageConfigurationProviderPlugins}
+            secrets={secrets}
+            enableReordering
+            showSelectedPluginsFirst={isRerun}
+          />
+          {isSuperuser && (
             <FormField
               control={form.control}
               name='jobConfigs.evaluator.keepAliveWorker'
@@ -95,9 +115,9 @@ export const EvaluatorFields = ({
                 </FormItem>
               )}
             />
-          </AccordionContent>
-        </AccordionItem>
-      )}
+          )}
+        </AccordionContent>
+      </AccordionItem>
     </div>
   );
 };
