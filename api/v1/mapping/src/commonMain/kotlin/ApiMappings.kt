@@ -33,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaratio
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as ApiFilterOperatorAndValue
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
@@ -128,7 +127,6 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
-import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -655,10 +653,6 @@ fun LicenseSource.mapToApi() = when (this) {
     LicenseSource.DECLARED -> ApiLicenseSource.DECLARED
     LicenseSource.DETECTED -> ApiLicenseSource.DETECTED
 }
-
-fun Identifier.mapToApi() = ApiIdentifier(type = type, namespace = namespace, name = name, version = version)
-
-fun ApiIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 
 fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(
     url = url,

@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.licensefindings
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
@@ -40,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.toSortOrder
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 
 import org.jetbrains.exposed.v1.core.Count
 import org.jetbrains.exposed.v1.core.CustomFunction

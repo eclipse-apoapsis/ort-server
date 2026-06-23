@@ -36,7 +36,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.api.v1.apiV1Model)
+                api(projects.shared.apiModel)
             }
         }
     }

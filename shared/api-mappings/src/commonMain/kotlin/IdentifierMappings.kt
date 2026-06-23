@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.shared.apimappings
 
-import kotlinx.serialization.Serializable
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier as ApiIdentifier
 
-@Serializable
-data class Identifier(
-    val type: String,
-    val namespace: String,
-    val name: String,
-    val version: String
-)
+fun Identifier.mapToApi() = ApiIdentifier(type = type, namespace = namespace, name = name, version = version)
+
+fun ApiIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)

@@ -21,7 +21,6 @@ package ort.eclipse.apoapsis.ortserver.components.search
 
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithVulnerability
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
@@ -32,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier as ApiIdentifier
 
 fun createRunWithPackage(
     fixtures: Fixtures,

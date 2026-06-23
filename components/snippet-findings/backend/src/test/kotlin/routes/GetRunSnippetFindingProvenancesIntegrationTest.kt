@@ -25,12 +25,12 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SeedResult
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingProvenance
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.seedData
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection

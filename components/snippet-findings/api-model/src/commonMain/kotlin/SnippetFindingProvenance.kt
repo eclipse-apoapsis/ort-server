@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.snippetfindings
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 
 @Serializable
 data class SnippetFindingProvenance(

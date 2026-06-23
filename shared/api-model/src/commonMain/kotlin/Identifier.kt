@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.licensefindings
+package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
-
 @Serializable
-data class PackageIdentifier(
-    val identifier: Identifier,
-    val purl: String?
+data class Identifier(
+    val type: String,
+    val namespace: String,
+    val name: String,
+    val version: String
 )
