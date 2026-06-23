@@ -29,8 +29,8 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Repeat, View } from 'lucide-react';
-import { useMemo } from 'react';
+import { GitCompare, Repeat, View } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
   JobSummary,
@@ -44,6 +44,7 @@ import {
   getOrganizationOptions,
   getProductOptions,
   getRepositoryOptions,
+  getRepositoryRunOptions,
   getRepositoryRunsOptions,
   getRepositoryRunsQueryKey,
   getRunStatisticsOptions,
@@ -66,12 +67,14 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
+import { diffResolvedJobConfigs } from '@/helpers/config-diff';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { isJobFinished } from '@/helpers/job-helpers';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
@@ -79,6 +82,7 @@ import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { buildRunFavorite } from '@/providers/home-data';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
+import { RunConfigurationDiffDialog } from './run-configuration-diff-dialog';
 
 type RepositoryTableProps = {
   orgId: string;
@@ -92,6 +96,48 @@ type RepositoryTableProps = {
   };
 };
 
+type RunComparisonSelection = {
+  baseRun?: OrtRunSummary;
+  comparedRun?: OrtRunSummary;
+  isDialogOpen: boolean;
+};
+
+type RunComparisonContext = {
+  selection: RunComparisonSelection;
+  onSelectRun: (summary: OrtRunSummary) => void;
+};
+
+const emptyRunComparisonSelection: RunComparisonSelection = {
+  isDialogOpen: false,
+};
+
+const selectRunForComparison = (
+  selection: RunComparisonSelection,
+  summary: OrtRunSummary
+): RunComparisonSelection => {
+  if (!selection.baseRun) {
+    return { baseRun: summary, isDialogOpen: false };
+  }
+
+  if (selection.baseRun.index === summary.index) {
+    return resetRunComparisonSelection();
+  }
+
+  if (!selection.comparedRun) {
+    return {
+      baseRun: selection.baseRun,
+      comparedRun: summary,
+      isDialogOpen: true,
+    };
+  }
+
+  return selection;
+};
+
+const resetRunComparisonSelection = (): RunComparisonSelection => ({
+  isDialogOpen: false,
+});
+
 const pollInterval = config.pollInterval;
 
 const columnHelper = createColumnHelper<OrtRunSummary>();
@@ -104,7 +150,27 @@ const showBadge = (jobSummary: JobSummary | null | undefined) => {
   );
 };
 
-const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
+const SummaryCard = ({
+  summary,
+  comparison,
+}: {
+  summary: OrtRunSummary;
+  comparison: RunComparisonContext;
+}) => {
+  const isSelectedForComparison =
+    comparison.selection.baseRun?.index === summary.index ||
+    comparison.selection.comparedRun?.index === summary.index;
+
+  const comparisonTooltip = isSelectedForComparison
+    ? 'Selected for comparison'
+    : comparison.selection.baseRun
+      ? 'Select the run to compare against the base run'
+      : 'Select the base run for comparison';
+
+  const handleComparisonPressedChange = () => {
+    comparison.onSelectRun(summary);
+  };
+
   const hasLabels = summary.labels && Object.keys(summary.labels).length > 0;
 
   const statistics = useQuery({
@@ -198,7 +264,31 @@ const SummaryCard = ({ summary }: { summary: OrtRunSummary }) => {
         </div>
         <Accordion type='multiple' className='w-full rounded-sm'>
           <AccordionItem value='configuration'>
-            <AccordionTrigger className='justify-end gap-2'>
+            <AccordionTrigger
+              className='w-auto flex-none justify-end gap-2'
+              headerClassName='items-center justify-end gap-2'
+              beforeTrigger={
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Toggle
+                      aria-label={comparisonTooltip}
+                      className={
+                        isSelectedForComparison
+                          ? 'border-yellow-500 dark:border-yellow-400'
+                          : undefined
+                      }
+                      pressed={isSelectedForComparison}
+                      variant='outline'
+                      size='xs'
+                      onPressedChange={handleComparisonPressedChange}
+                    >
+                      <GitCompare className='h-4 w-4' />
+                    </Toggle>
+                  </TooltipTrigger>
+                  <TooltipContent>{comparisonTooltip}</TooltipContent>
+                </Tooltip>
+              }
+            >
               <div className='text-sm'>Configuration</div>
             </AccordionTrigger>
             <AccordionContent>
@@ -281,7 +371,10 @@ const RunIndexCell = ({
   );
 };
 
-const createColumns = (favoriteContext: FavoriteContext) => [
+const createColumns = (
+  favoriteContext: FavoriteContext,
+  comparison: RunComparisonContext
+) => [
   columnHelper.accessor('index', {
     header: 'Index',
     size: 50,
@@ -293,7 +386,9 @@ const createColumns = (favoriteContext: FavoriteContext) => [
   columnHelper.display({
     id: 'card',
     header: 'Run Details',
-    cell: ({ row }) => <SummaryCard summary={row.original} />,
+    cell: ({ row }) => (
+      <SummaryCard summary={row.original} comparison={comparison} />
+    ),
     meta: {
       isGrow: true,
     },
@@ -433,6 +528,22 @@ export const RepositoryRunsTable = ({
   search,
 }: RepositoryTableProps) => {
   const setRunPageSize = useTablePrefsStore((state) => state.setRunPageSize);
+  const repositoryId = Number.parseInt(repoId);
+  const [comparisonSelection, setComparisonSelection] = useState(
+    emptyRunComparisonSelection
+  );
+
+  const handleSelectRunForComparison = useCallback((summary: OrtRunSummary) => {
+    setComparisonSelection((selection) =>
+      selectRunForComparison(selection, summary)
+    );
+  }, []);
+
+  const handleComparisonDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      setComparisonSelection(resetRunComparisonSelection());
+    }
+  };
 
   const { data: organization } = useQuery({
     ...getOrganizationOptions({
@@ -448,13 +559,52 @@ export const RepositoryRunsTable = ({
 
   const { data: repository } = useQuery({
     ...getRepositoryOptions({
-      path: { repositoryId: Number.parseInt(repoId) },
+      path: { repositoryId },
     }),
   });
 
+  const selectedBaseRunIndex = comparisonSelection.baseRun?.index;
+  const selectedComparedRunIndex = comparisonSelection.comparedRun?.index;
+  const hasSelectedRunPair =
+    selectedBaseRunIndex !== undefined &&
+    selectedComparedRunIndex !== undefined;
+
+  const baseRunQuery = useQuery({
+    ...getRepositoryRunOptions({
+      path: {
+        repositoryId,
+        ortRunIndex: selectedBaseRunIndex ?? 0,
+      },
+    }),
+    enabled: hasSelectedRunPair,
+  });
+
+  const comparedRunQuery = useQuery({
+    ...getRepositoryRunOptions({
+      path: {
+        repositoryId,
+        ortRunIndex: selectedComparedRunIndex ?? 0,
+      },
+    }),
+    enabled: hasSelectedRunPair,
+  });
+
   const columns = useMemo(
-    () => createColumns({ organization, product, repository }),
-    [organization, product, repository]
+    () =>
+      createColumns(
+        { organization, product, repository },
+        {
+          selection: comparisonSelection,
+          onSelectRun: handleSelectRunForComparison,
+        }
+      ),
+    [
+      organization,
+      product,
+      repository,
+      comparisonSelection,
+      handleSelectRunForComparison,
+    ]
   );
 
   const {
@@ -465,7 +615,7 @@ export const RepositoryRunsTable = ({
   } = useQuery({
     ...getRepositoryRunsOptions({
       path: {
-        repositoryId: Number.parseInt(repoId),
+        repositoryId,
       },
       query: { limit: pageSize, offset: pageIndex * pageSize, sort: '-index' },
     }),
@@ -486,6 +636,20 @@ export const RepositoryRunsTable = ({
     manualPagination: true,
   });
 
+  const comparisonDiff = useMemo(() => {
+    const baseConfig = baseRunQuery.data?.resolvedJobConfigs;
+    const comparedConfig = comparedRunQuery.data?.resolvedJobConfigs;
+
+    if (!baseConfig || !comparedConfig) {
+      return undefined;
+    }
+
+    return diffResolvedJobConfigs(baseConfig, comparedConfig);
+  }, [
+    baseRunQuery.data?.resolvedJobConfigs,
+    comparedRunQuery.data?.resolvedJobConfigs,
+  ]);
+
   if (runsIsPending) {
     return <LoadingIndicator />;
   }
@@ -495,20 +659,95 @@ export const RepositoryRunsTable = ({
     return;
   }
 
+  const selectedBaseRun = comparisonSelection.baseRun;
+  const selectedComparedRun = comparisonSelection.comparedRun;
+  const canRenderComparisonDialog =
+    selectedBaseRun !== undefined && selectedComparedRun !== undefined;
+
+  const isComparisonConfigurationMissing = Boolean(
+    baseRunQuery.data &&
+    comparedRunQuery.data &&
+    (!baseRunQuery.data.resolvedJobConfigs ||
+      !comparedRunQuery.data.resolvedJobConfigs)
+  );
+
   return (
-    <DataTable
-      table={table}
-      setCurrentPageOptions={(currentPage) => {
-        return {
-          search: { ...search, page: currentPage },
-        };
-      }}
-      setPageSizeOptions={(size) => {
-        setRunPageSize(size);
-        return {
-          search: { ...search, page: 1, pageSize: size },
-        };
-      }}
-    />
+    <>
+      <DataTable
+        table={table}
+        setCurrentPageOptions={(currentPage) => {
+          return {
+            search: { ...search, page: currentPage },
+          };
+        }}
+        setPageSizeOptions={(size) => {
+          setRunPageSize(size);
+          return {
+            search: { ...search, page: 1, pageSize: size },
+          };
+        }}
+      />
+      {canRenderComparisonDialog && (
+        <RunConfigurationDiffDialog
+          open={comparisonSelection.isDialogOpen}
+          onOpenChange={handleComparisonDialogOpenChange}
+          baseRunIndex={selectedBaseRun.index}
+          comparedRunIndex={selectedComparedRun.index}
+          diff={comparisonDiff}
+          isLoading={baseRunQuery.isPending || comparedRunQuery.isPending}
+          isError={baseRunQuery.isError || comparedRunQuery.isError}
+          isConfigurationMissing={isComparisonConfigurationMissing}
+        />
+      )}
+    </>
   );
 };
+
+if (import.meta.vitest) {
+  const { describe, expect, it } = import.meta.vitest;
+
+  const runSummary = (index: number) => ({ index }) as OrtRunSummary;
+
+  describe('selectRunForComparison', () => {
+    it('selects the first run as the base run', () => {
+      expect(
+        selectRunForComparison(emptyRunComparisonSelection, runSummary(1))
+      ).toEqual({
+        baseRun: runSummary(1),
+        isDialogOpen: false,
+      });
+    });
+
+    it('selects the second run and opens the dialog', () => {
+      expect(
+        selectRunForComparison(
+          { baseRun: runSummary(1), isDialogOpen: false },
+          runSummary(2)
+        )
+      ).toEqual({
+        baseRun: runSummary(1),
+        comparedRun: runSummary(2),
+        isDialogOpen: true,
+      });
+    });
+
+    it('clears the selection when selecting the base run again', () => {
+      expect(
+        selectRunForComparison(
+          { baseRun: runSummary(1), isDialogOpen: false },
+          runSummary(1)
+        )
+      ).toEqual({
+        isDialogOpen: false,
+      });
+    });
+  });
+
+  describe('resetRunComparisonSelection', () => {
+    it('clears selected runs and closes the dialog', () => {
+      expect(resetRunComparisonSelection()).toEqual({
+        isDialogOpen: false,
+      });
+    });
+  });
+}
