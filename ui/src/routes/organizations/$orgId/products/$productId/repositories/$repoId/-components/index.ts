@@ -25,4 +25,5 @@ export * from './notifier-fields';
 export * from './package-manager-field';
 export * from './reporter-fields';
 export * from './repository-runs-table';
+export * from './run-configuration-diff-dialog';
 export * from './scanner-fields';
