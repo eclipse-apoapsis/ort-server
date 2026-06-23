@@ -40,7 +40,12 @@ kotlin {
         }
     }
 
-    linuxX64()
+    linuxX64 {
+        binaries.all {
+            linkerOpts("-Wl,--as-needed")
+        }
+    }
+
     macosArm64()
     @Suppress("deprecation") macosX64()
     mingwX64()
