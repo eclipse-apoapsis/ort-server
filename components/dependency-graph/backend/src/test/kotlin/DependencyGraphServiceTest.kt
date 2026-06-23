@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.components.dependencygraph.backend
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphEdge
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphNode
@@ -42,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 
 import org.jetbrains.exposed.v1.jdbc.Database
 

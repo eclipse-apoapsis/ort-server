@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.processSortParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
@@ -69,7 +70,7 @@ internal fun Route.getRunDependencyGraph(
                             graphs = mapOf(
                                 "Maven" to DependencyGraph(
                                     packages = listOf(
-                                        org.eclipse.apoapsis.ortserver.api.v1.model.Identifier(
+                                        Identifier(
                                             type = "Maven",
                                             namespace = "com.example",
                                             name = "root",

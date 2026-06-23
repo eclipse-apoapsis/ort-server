@@ -28,7 +28,6 @@ import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
@@ -53,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier as ApiIdentifier
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SizedCollection

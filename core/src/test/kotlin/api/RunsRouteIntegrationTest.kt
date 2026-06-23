@@ -71,7 +71,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
@@ -143,7 +142,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolut
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection

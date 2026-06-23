@@ -44,7 +44,6 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
-    testImplementation(projects.api.v1.apiV1Mapping)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
 }

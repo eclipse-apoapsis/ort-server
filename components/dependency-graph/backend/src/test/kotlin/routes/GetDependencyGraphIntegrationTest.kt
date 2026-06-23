@@ -26,7 +26,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphEdge
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphNode
@@ -38,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphEdge as ModelDep
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphNode as ModelDependencyGraphNode
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot as ModelDependencyGraphRoot
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier as ModelIdentifier
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 
 class GetDependencyGraphIntegrationTest : DependencyGraphIntegrationTest({
     "GetDependencyGraph" should {

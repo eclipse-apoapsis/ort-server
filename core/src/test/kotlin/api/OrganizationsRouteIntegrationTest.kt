@@ -106,6 +106,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.D
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse

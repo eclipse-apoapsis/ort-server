@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.dependencygraph.backend
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphEdge
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphNode
@@ -42,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph as ModelDepende
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier as ModelIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Project as ModelProject
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.and

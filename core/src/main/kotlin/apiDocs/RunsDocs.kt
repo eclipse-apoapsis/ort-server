@@ -29,7 +29,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
-import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.LicenseSource
@@ -61,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
