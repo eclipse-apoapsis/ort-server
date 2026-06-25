@@ -384,7 +384,7 @@ export const HomeFavoritesSection = ({
     <Card>
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
-          <Star className='h-5 w-5 fill-white text-white' />
+          <Star className='fill-foreground text-foreground h-5 w-5 dark:fill-white dark:text-white' />
           Favorites
         </CardTitle>
         <CardDescription>
