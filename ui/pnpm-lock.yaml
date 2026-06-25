@@ -117,7 +117,7 @@ importers:
         specifier: 1.17.0
         version: 1.17.0(react@19.2.7)
       microdiff:
-        specifier: ^1.5.0
+        specifier: 1.5.0
         version: 1.5.0
       oidc-client-ts:
         specifier: 3.5.0
