@@ -73,7 +73,6 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.6.3
     restart: unless-stopped
-    entrypoint: /opt/keycloak_init/init-keycloak.sh
     command:
     - "start-dev"
     depends_on:
@@ -91,6 +90,8 @@ services:
       KC_DB_PASSWORD: postgres
       KC_DB_URL: "jdbc:postgresql://postgres:5432/ort_server"
       KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
     - "8081:8080"
     volumes:
@@ -103,6 +104,35 @@ services:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
         tag: "keycloak"
+
+  # Applies the declarative ORT Server realm configuration to Keycloak using
+  # keycloak-config-cli (https://github.com/adorsys/keycloak-config-cli).
+  # It creates and keeps the "ort-server" realm in sync with
+  # scripts/docker/keycloak/ort-server-realm.yaml and then exits.
+  keycloak-config:
+    image: adorsys/keycloak-config-cli:latest-26
+    restart: "no"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_AVAILABILITYCHECK_ENABLED: "true"
+      KEYCLOAK_AVAILABILITYCHECK_TIMEOUT: 120s
+      IMPORT_FILES_LOCATIONS: "/config/ort-server-realm.yaml"
+    volumes:
+    - type: bind
+      source: ./scripts/docker/keycloak/ort-server-realm.yaml
+      target: /config/ort-server-realm.yaml
+      read_only: true
+    logging:
+      driver: ${LOG_DRIVER:-gelf}
+      options:
+        # This is relative to the host, not the container.
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "keycloak-config"
 
   graphite:
     image: graphiteapp/graphite-statsd:1.1.10-5
@@ -160,6 +190,8 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+      keycloak-config:
+        condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
       graphite:
@@ -183,8 +215,12 @@ services:
       DB_SSL_MODE: disable
       KEYCLOAK_API_USER: "" # Set to empty to overwrite default value and force use of client credentials flow.
       KEYCLOAK_CLIENT_ID: ort-server-backend
+      KEYCLOAK_REALM: ort-server
+      CLI_KEYCLOAK_REALM: ort-server
       JWT_AUDIENCE: ort-server-api
-      JWT_URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
+      JWT_REALM: ort-server
+      JWT_ISSUER: "http://localhost:8081/realms/ort-server"
+      JWT_URI: "http://keycloak:8080/realms/ort-server/protocol/openid-connect/certs"
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
@@ -545,6 +581,7 @@ services:
       - "8082:8080"
     environment:
       UI_API_URL: "http://localhost:${ORT_SERVER_CORE_PORT:-8080}"
+      UI_AUTHORITY: "http://localhost:8081/realms/ort-server"
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:

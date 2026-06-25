@@ -11,11 +11,15 @@
       <env name="DB_USERNAME" value="postgres" />
       <env name="FILE_BASED_PATH" value="scripts/compose/secrets-provider" />
       <env name="JWT_AUDIENCE" value="ort-server" />
-      <env name="JWT_ISSUER" value="http://localhost:8081/realms/master" />
-      <env name="JWT_REALM" value="master" />
-      <env name="JWT_URI" value="http://localhost:8081/realms/master/protocol/openid-connect/certs" />
-      <env name="KEYCLOAK_ACCESS_TOKEN_URL" value="http://localhost:8081/realms/master/protocol/openid-connect/token" />
-      <env name="KEYCLOAK_API_URL" value="http://localhost:8081/admin/realms/master" />
+      <env name="JWT_ISSUER" value="http://localhost:8081/realms/ort-server" />
+      <env name="JWT_REALM" value="ort-server" />
+      <env name="JWT_URI" value="http://localhost:8081/realms/ort-server/protocol/openid-connect/certs" />
+      <env name="KEYCLOAK_ACCESS_TOKEN_URL" value="http://localhost:8081/realms/ort-server/protocol/openid-connect/token" />
+      <env name="KEYCLOAK_API_URL" value="http://localhost:8081/admin/realms/ort-server" />
+      <env name="KEYCLOAK_REALM" value="ort-server" />
+      <env name="KEYCLOAK_API_USER" value="" />
+      <env name="KEYCLOAK_CLIENT_ID" value="ort-server-backend" />
+      <env name="KEYCLOAK_API_SECRET" value="4WWmIYAPN4rOv7JfMmKzYGaxrI2NO5pr" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD" value="admin" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME" value="orchestrator_queue" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI" value="amqp://rabbitmq:5672" />

@@ -286,6 +286,7 @@ jobs:
       env:
         VITE_UI_URL: http://127.0.0.1:8082/
         VITE_CLIENT_ID: ort-server-ui
+        VITE_AUTHORITY: http://localhost:8081/realms/ort-server
       working-directory: ui
       run: |
         # Exit on error, undefined variables, and pipe failures
