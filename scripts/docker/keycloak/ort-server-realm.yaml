@@ -1,0 +1,129 @@
+# This file is used to configure the ORT Server realm in Keycloak using the Keycloak Config CLI:
+# https://github.com/adorsys/keycloak-config-cli
+# It applies the recommended configuration for the ORT Server realm as described here:
+# https://eclipse-apoapsis.github.io/ort-server/docs/admin-guide/guides/keycloak-config
+# This file is used by the Docker Compose setup and can be used as a template for other Keycloak setups.
+
+realm: ort-server
+displayName: ORT Server
+enabled: true
+
+clientScopes:
+  - name: ort-server-api-access
+    description: Used by ORT Server clients to map ort-server-api to the audience.
+    protocol: openid-connect
+    attributes:
+      include.in.token.scope: "false"
+    protocolMappers:
+      - name: ort-server-api-audience-mapper
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        consentRequired: false
+        config:
+          included.client.audience: ort-server-api
+          id.token.claim: "false"
+          lightweight.claim: "false"
+          access.token.claim: "true"
+          introspection.token.claim: "true"
+
+clients:
+  - clientId: ort-server-api
+    name: ORT Server API
+    description: Used only for the audience claim by other clients to grant access to the ORT Server API.
+    secret: HAWSvILHfI6ldcI4cZVMAj0X1KJTh744
+    standardFlowEnabled: false
+    defaultClientScopes: []
+    optionalClientScopes: []
+
+  - clientId: ort-server-backend
+    name: ORT Server Backend
+    description: Used by the ORT Server backend to manage the realm.
+    secret: 4WWmIYAPN4rOv7JfMmKzYGaxrI2NO5pr
+    standardFlowEnabled: false
+    serviceAccountsEnabled: true
+
+  - clientId: ort-server-ui
+    name: ORT Server UI
+    description: Used by the ORT Server UI for authentication.
+    publicClient: true
+    baseUrl: http://localhost:8082/
+    redirectUris:
+      - http://localhost:8082/*
+      - http://localhost:5173/*
+    webOrigins:
+      - "+"
+    attributes:
+      pkce.code.challenge.method: S256
+      post.logout.redirect.uris: http://localhost:8082/*##http://localhost:5173/*
+    defaultClientScopes:
+      - profile
+      - ort-server-api-access
+      - basic
+      - email
+    optionalClientScopes: []
+
+  - clientId: ort-server-cli
+    name: ORT Server CLI
+    description: Used by the ORT Server CLI for authentication.
+    publicClient: true
+    directAccessGrantsEnabled: true
+    redirectUris:
+      - http://localhost:8082/profile/token/callback
+      - http://localhost:5173/profile/token/callback
+    webOrigins:
+      - "+"
+    attributes:
+      pkce.code.challenge.method: S256
+    defaultClientScopes:
+      - profile
+      - ort-server-api-access
+      - basic
+      - email
+    optionalClientScopes:
+      - offline_access
+
+groups:
+  - name: SUPERUSERS
+
+# Disable the "Verify Profile" action to not require users to have an email in the Compose setup.
+requiredActions:
+  - alias: VERIFY_PROFILE
+    name: Verify Profile
+    providerId: VERIFY_PROFILE
+    enabled: false
+    defaultAction: false
+    priority: 100
+    config: {}
+
+users:
+  - username: admin
+    enabled: true
+    emailVerified: false
+    credentials:
+      - type: password
+        value: admin
+        temporary: false
+    groups:
+      - /SUPERUSERS
+    clientRoles:
+      realm-management:
+        - realm-admin
+
+  - username: ort-admin
+    firstName: ORT
+    lastName: Administrator User
+    enabled: true
+    emailVerified: false
+    credentials:
+      - type: password
+        value: password
+        temporary: false
+    groups:
+      - /SUPERUSERS
+
+  - username: service-account-ort-server-backend
+    enabled: true
+    serviceAccountClientId: ort-server-backend
+    clientRoles:
+      realm-management:
+        - realm-admin

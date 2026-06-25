@@ -125,17 +125,21 @@ Then execute the ORT Server in IntelliJ with the run configuration ["Run ORT Ser
 
 ### Updating Keycloak configuration
 
-On the first start, the Keycloak configuration is initialized from a [realm file](https://github.com/eclipse-apoapsis/ort-server/blob/main/scripts/docker/keycloak/master-realm.json).
-To update the configuration, you can either modify the realm file directly or export the current configuration from the running Keycloak container:
+The Keycloak configuration is managed declaratively with [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli).
+A dedicated `keycloak-config` service applies the realm configuration from a minimal [config file](https://github.com/eclipse-apoapsis/ort-server/blob/main/scripts/docker/keycloak/ort-server-realm.yaml) to the running Keycloak instance.
+This file contains the minimal configuration to apply the [recommended configuration](../guides/keycloak-config.md) and can be used as a template to configure your own Keycloak instance.
+
+To change the configuration, edit `scripts/docker/keycloak/ort-server-realm.yaml` and re-apply it:
 
 ```shell
-docker compose exec -it keycloak /bin/bash
-KC_HTTP_PORT=8081 /opt/keycloak/bin/kc.sh export --dir /opt/keycloak_init --users realm_file
+docker compose up keycloak-config
 ```
 
-Unfortunately, Keycloak keeps changing the order of entries in the exported JSON file, especially after version upgrades.
-To minimize the diff when making changes, it is recommended to export the configuration before making any changes and then again after applying the changes, and to put the changes in spearate commits.
-Otherwise, it can be hard to identify the actual changes.
+The `keycloak-config` service is idempotent: it runs once, reconciles the `ort-server` realm with the config file, and then exits.
+Keycloak does not need to be restarted for the changes to take effect.
+
+When adding new entities, it can be helpful to first configure them in the admin UI (`http://localhost:8081/admin`, username `admin`, password `admin`) and then copy the relevant, non-default parts into the config file.
+See the [keycloak-config-cli documentation](https://github.com/adorsys/keycloak-config-cli/blob/main/docs/FEATURES.md) for the list of supported features and the file format.
 
 ## Troubleshooting
 
