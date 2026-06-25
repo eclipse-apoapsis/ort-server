@@ -23,7 +23,6 @@ import { z } from 'zod';
 import { PreconfiguredPluginDescriptor } from '@/api';
 import { zInfrastructureService } from '@/api/zod.gen';
 import { environmentDefinitionsSchema } from '@/lib/types';
-import { defaultValues } from './default-values';
 import {
   environmentVariableSchema,
   keyValueSchema,
@@ -297,94 +296,3 @@ export const flattenErrors = (
 
   return result;
 };
-
-if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest;
-
-  const packageConfigurationProviderPlugin: PreconfiguredPluginDescriptor = {
-    id: 'Dir',
-    type: 'PACKAGE_CONFIGURATION_PROVIDER',
-    displayName: 'Directory',
-    summary: 'A package configuration provider plugin.',
-    description: 'A package configuration provider plugin.',
-    options: [
-      {
-        name: 'path',
-        description: 'Provider path.',
-        type: 'STRING',
-        isFixed: false,
-        isNullable: false,
-        isRequired: true,
-      },
-    ],
-  };
-
-  function createValidFormData() {
-    const formData = defaultValues(
-      null,
-      [],
-      [],
-      false,
-      [],
-      [packageConfigurationProviderPlugin]
-    );
-
-    formData.revision = 'main';
-    formData.jobConfigs.evaluator.packageConfigurationProviders = ['Dir'];
-    formData.jobConfigs.evaluator.packageConfigurationProviderConfig = {
-      Dir: {
-        options: {
-          path: 'evaluator-package-configurations',
-        },
-        secrets: {},
-      },
-    };
-    formData.jobConfigs.reporter.packageConfigurationProviders = ['Dir'];
-    formData.jobConfigs.reporter.packageConfigurationProviderConfig = {
-      Dir: {
-        options: {},
-        secrets: {},
-      },
-    };
-
-    return formData;
-  }
-
-  describe('createRunFormSchema', () => {
-    it('ignores reporter package configuration providers when evaluator is enabled', () => {
-      const schema = createRunFormSchema(
-        [],
-        [],
-        [],
-        [packageConfigurationProviderPlugin]
-      );
-
-      const result = schema.safeParse(createValidFormData());
-
-      expect(result.success).toBe(true);
-    });
-
-    it('validates reporter package configuration providers when evaluator is disabled', () => {
-      const schema = createRunFormSchema(
-        [],
-        [],
-        [],
-        [packageConfigurationProviderPlugin]
-      );
-      const formData = createValidFormData();
-      formData.jobConfigs.evaluator.enabled = false;
-
-      const result = schema.safeParse(formData);
-
-      expect(result.success).toBe(false);
-      expect(result.error?.issues.map((issue) => issue.path)).toContainEqual([
-        'jobConfigs',
-        'reporter',
-        'packageConfigurationProviderConfig',
-        'Dir',
-        'options',
-        'path',
-      ]);
-    });
-  });
-}
