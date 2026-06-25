@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
- *
+ 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,14 +17,21 @@
  * License-Filename: LICENSE
  */
 
-/**
- * Capitalizes the first letter of a string and converts the rest to lowercase.
- * @param str - The input string to capitalize
- * @returns The capitalized string
- */
-export function capitalize(str: string): string {
-  if (str.length === 0) {
-    return str;
-  }
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+import { expect, it } from 'vitest';
+
+import { extractInitials } from '@/helpers/extract-initials';
+
+it('extractInitials', () => {
+  expect(extractInitials('John')).toBe('J');
+  expect(extractInitials('John Doe')).toBe('JD');
+  expect(extractInitials('John A. Doe')).toBe('JD');
+
+  expect(extractInitials('lower case')).toBe('LC');
+  expect(extractInitials('Seven of 9')).toBe('S9');
+  expect(extractInitials('Über ätzend')).toBe('ÜÄ');
+  expect(extractInitials(' with  spaces   everywhere    ')).toBe('WE');
+
+  expect(extractInitials(undefined)).toBe(undefined);
+  expect(extractInitials('')).toBe(undefined);
+  expect(extractInitials('??')).toBe(undefined);
+});
