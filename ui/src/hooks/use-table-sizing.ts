@@ -25,7 +25,7 @@ const DEFAULT_MIN_SIZE = 40;
 /**
  * Clamp a size value between min and max bounds.
  */
-function clampSize(
+export function clampSize(
   size: number,
   max = Number.MAX_SAFE_INTEGER,
   min = DEFAULT_MIN_SIZE
@@ -33,7 +33,7 @@ function clampSize(
   return Math.max(Math.min(size, max), min);
 }
 
-type ColumnInfo = {
+export type ColumnInfo = {
   id: string;
   minSize: number;
   maxSize: number;
@@ -52,7 +52,7 @@ type ColumnInfo = {
  * 4. If a flex column is constrained by minSize/maxSize, remaining space is
  *    redistributed to other flex columns (iterative allocation)
  */
-function calculateColumnSizing(
+export function calculateColumnSizing(
   columns: ColumnInfo[],
   totalWidth: number
 ): Record<string, number> {
@@ -203,42 +203,4 @@ export function useTableSizing<TData>(table: Table<TData>) {
   }, []);
 
   return { containerRef, columnSizing };
-}
-
-//
-// Unit tests for the clampSize(), calculateColumnSizing() functions.
-//
-
-if (import.meta.vitest) {
-  const { it, expect } = import.meta.vitest;
-
-  // Test the clampSize() function
-
-  it('clamps size within min and max bounds', () => {
-    expect(clampSize(50, 100, 40)).toBe(50); // within bounds
-    expect(clampSize(30, 100, 40)).toBe(40); // below min
-    expect(clampSize(120, 100, 40)).toBe(100); // above max
-  });
-
-  // Test the calculateColumnSizing() function
-
-  it('calculates sizing for fixed, percentage, and grow columns', () => {
-    const columns: ColumnInfo[] = [
-      { id: 'col1', minSize: 40, maxSize: 200, isGrow: false, fixedSize: 100 },
-      {
-        id: 'col2',
-        minSize: 40,
-        maxSize: 300,
-        isGrow: false,
-        widthPercentage: 50,
-      },
-      { id: 'col3', minSize: 40, maxSize: 400, isGrow: true },
-    ];
-    const totalWidth = 600;
-
-    const sizing = calculateColumnSizing(columns, totalWidth);
-    expect(sizing['col1']).toBe(100); // fixed size
-    expect(sizing['col2']).toBe(300); // 50% of 600
-    expect(sizing['col3']).toBe(200); // remaining space
-  });
 }
