@@ -82,6 +82,12 @@ import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { buildRunFavorite } from '@/providers/home-data';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
+import {
+  emptyRunComparisonSelection,
+  resetRunComparisonSelection,
+  selectRunForComparison,
+  type RunComparisonSelection,
+} from './repository-runs-table-utils';
 import { RunConfigurationDiffDialog } from './run-configuration-diff-dialog';
 
 type RepositoryTableProps = {
@@ -96,47 +102,10 @@ type RepositoryTableProps = {
   };
 };
 
-type RunComparisonSelection = {
-  baseRun?: OrtRunSummary;
-  comparedRun?: OrtRunSummary;
-  isDialogOpen: boolean;
-};
-
 type RunComparisonContext = {
   selection: RunComparisonSelection;
   onSelectRun: (summary: OrtRunSummary) => void;
 };
-
-const emptyRunComparisonSelection: RunComparisonSelection = {
-  isDialogOpen: false,
-};
-
-const selectRunForComparison = (
-  selection: RunComparisonSelection,
-  summary: OrtRunSummary
-): RunComparisonSelection => {
-  if (!selection.baseRun) {
-    return { baseRun: summary, isDialogOpen: false };
-  }
-
-  if (selection.baseRun.index === summary.index) {
-    return resetRunComparisonSelection();
-  }
-
-  if (!selection.comparedRun) {
-    return {
-      baseRun: selection.baseRun,
-      comparedRun: summary,
-      isDialogOpen: true,
-    };
-  }
-
-  return selection;
-};
-
-const resetRunComparisonSelection = (): RunComparisonSelection => ({
-  isDialogOpen: false,
-});
 
 const pollInterval = config.pollInterval;
 
@@ -702,52 +671,3 @@ export const RepositoryRunsTable = ({
     </>
   );
 };
-
-if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest;
-
-  const runSummary = (index: number) => ({ index }) as OrtRunSummary;
-
-  describe('selectRunForComparison', () => {
-    it('selects the first run as the base run', () => {
-      expect(
-        selectRunForComparison(emptyRunComparisonSelection, runSummary(1))
-      ).toEqual({
-        baseRun: runSummary(1),
-        isDialogOpen: false,
-      });
-    });
-
-    it('selects the second run and opens the dialog', () => {
-      expect(
-        selectRunForComparison(
-          { baseRun: runSummary(1), isDialogOpen: false },
-          runSummary(2)
-        )
-      ).toEqual({
-        baseRun: runSummary(1),
-        comparedRun: runSummary(2),
-        isDialogOpen: true,
-      });
-    });
-
-    it('clears the selection when selecting the base run again', () => {
-      expect(
-        selectRunForComparison(
-          { baseRun: runSummary(1), isDialogOpen: false },
-          runSummary(1)
-        )
-      ).toEqual({
-        isDialogOpen: false,
-      });
-    });
-  });
-
-  describe('resetRunComparisonSelection', () => {
-    it('clears selected runs and closes the dialog', () => {
-      expect(resetRunComparisonSelection()).toEqual({
-        isDialogOpen: false,
-      });
-    });
-  });
-}

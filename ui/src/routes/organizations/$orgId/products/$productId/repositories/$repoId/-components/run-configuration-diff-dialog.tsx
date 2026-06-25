@@ -35,6 +35,10 @@ import type {
   RunConfigurationDiffStatus,
 } from '@/helpers/config-diff';
 import { cn } from '@/lib/utils';
+import {
+  formatRunConfigurationDiffSummary,
+  formatRunConfigurationDiffValue,
+} from './run-configuration-diff-dialog-utils';
 
 type RunConfigurationDiffDialogProps = {
   open: boolean;
@@ -51,44 +55,6 @@ type RunConfigurationDiffSectionProps = {
   title: string;
   status: RunConfigurationDiffStatus;
   entries: RunConfigurationDiffEntry[];
-};
-
-const maxValueLength = 280;
-
-function formatRunConfigurationDiffValue(value: unknown): string {
-  const formattedValue = formatValue(value);
-
-  if (formattedValue.length <= maxValueLength) {
-    return formattedValue;
-  }
-
-  return `${formattedValue.slice(0, maxValueLength - 1)}…`;
-}
-
-function formatRunConfigurationDiffSummary(diff: RunConfigurationDiff): string {
-  return `${diff.counts.added} added, ${diff.counts.removed} removed, ${diff.counts.modified} modified`;
-}
-
-const formatValue = (value: unknown): string => {
-  if (value === undefined) {
-    return 'undefined';
-  }
-
-  if (typeof value === 'string') {
-    return JSON.stringify(value);
-  }
-
-  if (
-    value === null ||
-    typeof value === 'boolean' ||
-    typeof value === 'number'
-  ) {
-    return String(value);
-  }
-
-  const jsonValue = JSON.stringify(value);
-
-  return jsonValue ?? String(value);
 };
 
 const RunConfigurationDiffEntryRow = ({
@@ -306,54 +272,4 @@ export function RunConfigurationDiffDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest;
-
-  describe('formatRunConfigurationDiffValue', () => {
-    it('quotes strings', () => {
-      expect(formatRunConfigurationDiffValue('ScanCode')).toBe('"ScanCode"');
-    });
-
-    it('formats primitive values compactly', () => {
-      expect(formatRunConfigurationDiffValue(true)).toBe('true');
-      expect(formatRunConfigurationDiffValue(1)).toBe('1');
-      expect(formatRunConfigurationDiffValue(null)).toBe('null');
-    });
-
-    it('formats objects and arrays as compact JSON', () => {
-      expect(formatRunConfigurationDiffValue({ enabled: true })).toBe(
-        '{"enabled":true}'
-      );
-      expect(formatRunConfigurationDiffValue(['ScanCode', 'FossID'])).toBe(
-        '["ScanCode","FossID"]'
-      );
-    });
-
-    it('truncates long values', () => {
-      expect(formatRunConfigurationDiffValue('a'.repeat(400))).toHaveLength(
-        maxValueLength
-      );
-      expect(formatRunConfigurationDiffValue('a'.repeat(400))).toMatch(/…$/u);
-    });
-  });
-
-  describe('formatRunConfigurationDiffSummary', () => {
-    it('formats added, removed, and modified counts', () => {
-      expect(
-        formatRunConfigurationDiffSummary({
-          added: [],
-          removed: [],
-          modified: [],
-          counts: {
-            added: 3,
-            removed: 1,
-            modified: 2,
-            total: 6,
-          },
-        })
-      ).toBe('3 added, 1 removed, 2 modified');
-    });
-  });
 }
