@@ -34,8 +34,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['tests/**'],
+    include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
     includeSource: ['src/**/*.{ts,tsx}'],
   },
 });
