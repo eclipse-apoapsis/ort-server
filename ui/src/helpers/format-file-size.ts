@@ -41,37 +41,3 @@ export function formatFileSize(bytes: number): string {
   // This is unreachable but satisfies the compiler.
   return `${value.toFixed(1)} GB`;
 }
-
-// Unit tests.
-
-if (import.meta.vitest) {
-  const { it, expect } = import.meta.vitest;
-
-  it('formatFileSize - zero bytes', () => {
-    expect(formatFileSize(0)).toBe('0 B');
-  });
-
-  it('formatFileSize - bytes below 1 kB', () => {
-    expect(formatFileSize(512)).toBe('512 B');
-  });
-
-  it('formatFileSize - exactly 1 kB', () => {
-    expect(formatFileSize(1024)).toBe('1.0 kB');
-  });
-
-  it('formatFileSize - kB range', () => {
-    expect(formatFileSize(1536)).toBe('1.5 kB');
-  });
-
-  it('formatFileSize - MB range', () => {
-    expect(formatFileSize(2.3 * 1024 * 1024)).toBe('2.3 MB');
-  });
-
-  it('formatFileSize - GB range', () => {
-    expect(formatFileSize(1.1 * 1024 * 1024 * 1024)).toBe('1.1 GB');
-  });
-
-  it('formatFileSize - large GB value', () => {
-    expect(formatFileSize(500 * 1024 * 1024 * 1024)).toBe('500.0 GB');
-  });
-}

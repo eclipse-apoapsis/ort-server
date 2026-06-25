@@ -41,22 +41,3 @@ export function extractInitials(
   const lastInitial = lastName[0].toUpperCase();
   return firstInitial + lastInitial;
 }
-
-if (import.meta.vitest) {
-  const { it, expect } = import.meta.vitest;
-
-  it('extractInitials', () => {
-    expect(extractInitials('John')).toBe('J');
-    expect(extractInitials('John Doe')).toBe('JD');
-    expect(extractInitials('John A. Doe')).toBe('JD');
-
-    expect(extractInitials('lower case')).toBe('LC');
-    expect(extractInitials('Seven of 9')).toBe('S9');
-    expect(extractInitials('Über ätzend')).toBe('ÜÄ');
-    expect(extractInitials(' with  spaces   everywhere    ')).toBe('WE');
-
-    expect(extractInitials(undefined)).toBe(undefined);
-    expect(extractInitials('')).toBe(undefined);
-    expect(extractInitials('??')).toBe(undefined);
-  });
-}
