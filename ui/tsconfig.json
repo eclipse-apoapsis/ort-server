@@ -23,8 +23,7 @@
     /* Paths */
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "types": ["vitest/importMeta"]
+    }
   },
   "include": ["src", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]

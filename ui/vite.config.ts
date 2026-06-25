@@ -35,6 +35,5 @@ export default defineConfig({
   },
   test: {
     include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
-    includeSource: ['src/**/*.{ts,tsx}'],
   },
 });
