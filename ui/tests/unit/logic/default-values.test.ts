@@ -1,0 +1,308 @@
+/*
+ * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+import { expect, it } from 'vitest';
+
+import type { OrtRun } from '@/api';
+import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/default-values';
+
+it('preserves multiple environment definitions from reruns', () => {
+  const ortRun = {
+    revision: 'main',
+    path: '',
+    jobConfigs: {
+      analyzer: {
+        environmentConfig: {
+          infrastructureServices: [],
+          environmentDefinitions: {
+            maven: [
+              {
+                service: 'service-a',
+                id: 'repository-a',
+                mirrorOf: '',
+              },
+              {
+                service: 'service-b',
+                id: 'repository-b',
+                mirrorOf: 'central',
+              },
+            ],
+          },
+        },
+      },
+    },
+    labels: {},
+  } as unknown as OrtRun;
+
+  const defaults = defaultValues(ortRun, [], [], false, [], []);
+
+  expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
+    ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
+  );
+});
+
+it('preserves package configuration provider config from reruns', () => {
+  const ortRun = {
+    revision: 'main',
+    path: '',
+    jobConfigs: {
+      evaluator: {
+        packageConfigurationProviders: [
+          {
+            type: 'OrtConfig',
+            id: 'OrtConfig',
+            enabled: true,
+            options: {
+              path: 'evaluator-package-configurations.yml',
+            },
+            secrets: {
+              token: 'evaluator-token',
+            },
+          },
+        ],
+      },
+      reporter: {
+        packageConfigurationProviders: [
+          {
+            type: 'OrtConfig',
+            id: 'OrtConfig',
+            enabled: true,
+            options: {
+              path: 'reporter-package-configurations.yml',
+            },
+            secrets: {
+              token: 'reporter-token',
+            },
+          },
+        ],
+      },
+    },
+    labels: {},
+  } as unknown as OrtRun;
+
+  const defaults = defaultValues(ortRun, [], [], false, [], []);
+
+  expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual([
+    'OrtConfig',
+  ]);
+  expect(
+    defaults.jobConfigs.evaluator.packageConfigurationProviderConfig
+  ).toEqual({
+    OrtConfig: {
+      options: {
+        path: 'evaluator-package-configurations.yml',
+      },
+      secrets: {
+        token: 'evaluator-token',
+      },
+    },
+  });
+  expect(defaults.jobConfigs.reporter.packageConfigurationProviders).toEqual([
+    'OrtConfig',
+  ]);
+  expect(
+    defaults.jobConfigs.reporter.packageConfigurationProviderConfig
+  ).toEqual({
+    OrtConfig: {
+      options: {
+        path: 'reporter-package-configurations.yml',
+      },
+      secrets: {
+        token: 'reporter-token',
+      },
+    },
+  });
+});
+
+it('preserves package curation provider config from reruns', () => {
+  const ortRun = {
+    revision: 'main',
+    path: '',
+    jobConfigs: {
+      analyzer: {
+        packageCurationProviders: [
+          {
+            type: 'ClearlyDefined',
+            id: 'ClearlyDefined',
+            enabled: true,
+            options: {
+              serverUrl: 'https://api.clearlydefined.io',
+            },
+            secrets: {
+              token: 'clearly-defined-token',
+            },
+          },
+        ],
+      },
+    },
+    labels: {},
+  } as unknown as OrtRun;
+
+  const defaults = defaultValues(ortRun, [], [], false, [], []);
+
+  expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([
+    'ClearlyDefined',
+  ]);
+  expect(defaults.jobConfigs.analyzer.packageCurationProviderConfig).toEqual({
+    ClearlyDefined: {
+      options: {
+        serverUrl: 'https://api.clearlydefined.io',
+      },
+      secrets: {
+        token: 'clearly-defined-token',
+      },
+    },
+  });
+});
+
+it('uses package configuration provider plugin default values for fresh runs', () => {
+  const defaults = defaultValues(
+    null,
+    [],
+    [],
+    false,
+    [],
+    [
+      {
+        id: 'OrtConfig',
+        type: 'PACKAGE_CONFIGURATION_PROVIDER',
+        displayName: 'ORT Config',
+        summary: 'A package configuration provider plugin',
+        description: 'A package configuration provider plugin.',
+        options: [
+          {
+            name: 'path',
+            description: 'Provider path.',
+            type: 'STRING',
+            defaultValue: 'package-configurations.yml',
+            isFixed: true,
+            isNullable: false,
+            isRequired: true,
+          },
+        ],
+      },
+    ]
+  );
+
+  expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual(
+    []
+  );
+  expect(
+    defaults.jobConfigs.evaluator.packageConfigurationProviderConfig
+  ).toEqual({
+    OrtConfig: {
+      options: {
+        path: 'package-configurations.yml',
+      },
+      secrets: {},
+    },
+  });
+  expect(defaults.jobConfigs.reporter.packageConfigurationProviders).toEqual(
+    []
+  );
+  expect(
+    defaults.jobConfigs.reporter.packageConfigurationProviderConfig
+  ).toEqual({
+    OrtConfig: {
+      options: {
+        path: 'package-configurations.yml',
+      },
+      secrets: {},
+    },
+  });
+});
+
+it('uses package curation provider plugin default values for fresh runs', () => {
+  const defaults = defaultValues(
+    null,
+    [],
+    [],
+    false,
+    [
+      {
+        id: 'ClearlyDefined',
+        type: 'PACKAGE_CURATION_PROVIDER',
+        displayName: 'ClearlyDefined',
+        summary: 'A package curation provider plugin',
+        description: 'A package curation provider plugin.',
+        options: [
+          {
+            name: 'serverUrl',
+            description: 'Backend URL.',
+            type: 'STRING',
+            defaultValue: 'https://api.clearlydefined.io',
+            isFixed: true,
+            isNullable: false,
+            isRequired: true,
+          },
+        ],
+      },
+    ],
+    []
+  );
+
+  expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([]);
+  expect(defaults.jobConfigs.analyzer.packageCurationProviderConfig).toEqual({
+    ClearlyDefined: {
+      options: {
+        serverUrl: 'https://api.clearlydefined.io',
+      },
+      secrets: {},
+    },
+  });
+});
+
+it('uses scanner plugin default values for fresh runs', () => {
+  const defaults = defaultValues(
+    null,
+    [],
+    [
+      {
+        id: 'DOS',
+        type: 'SCANNER',
+        displayName: 'Double Open Server',
+        summary: 'A scanner plugin',
+        description: 'A scanner plugin.',
+        options: [
+          {
+            name: 'url',
+            description: 'Backend URL.',
+            type: 'STRING',
+            defaultValue: 'https://dos-api.example/api/',
+            isFixed: true,
+            isNullable: false,
+            isRequired: true,
+          },
+        ],
+      },
+    ],
+    false,
+    [],
+    []
+  );
+
+  expect(defaults.jobConfigs.scanner.config).toEqual({
+    DOS: {
+      options: {
+        url: 'https://dos-api.example/api/',
+      },
+      secrets: {},
+    },
+  });
+});
