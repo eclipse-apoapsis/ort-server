@@ -17,22 +17,28 @@
  * License-Filename: LICENSE
  */
 
-import { PackageURL } from 'packageurl-js';
+import { expect, it } from 'vitest';
 
-import { Identifier } from '@/api';
+import {
+  identifierToPurl,
+  identifierToString,
+} from '@/helpers/identifier-conversion';
 
-export function identifierToPurl(pkg: Identifier | undefined | null): string {
-  if (!pkg) {
-    return '';
-  }
-  const purl = new PackageURL(pkg.type, pkg.namespace, pkg.name, pkg.version);
-  return purl.toString();
-}
+const id = {
+  type: 'Maven',
+  namespace: 'com.google.guava',
+  name: 'listenablefuture',
+  version: '9999.0-empty-to-avoid-conflict-with-guava',
+};
 
-export function identifierToString(pkg: Identifier | undefined | null): string {
-  if (!pkg) {
-    return '';
-  }
-  const { type, namespace, name, version } = pkg;
-  return `${type}:${namespace}:${name}:${version}`;
-}
+it('identifierToPurl', () => {
+  expect(identifierToPurl(id)).toBe(
+    'pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava'
+  );
+});
+
+it('identifierToString', () => {
+  expect(identifierToString(id)).toBe(
+    'Maven:com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
+  );
+});

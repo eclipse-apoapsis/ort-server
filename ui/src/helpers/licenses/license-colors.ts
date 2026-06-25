@@ -19,7 +19,7 @@
 
 import { normalizeLicenseExpression } from '@/helpers/licenses/spdx-expression';
 
-type RgbColor = {
+export type RgbColor = {
   red: number;
   green: number;
   blue: number;
@@ -31,7 +31,7 @@ export type LicenseBadgeColors = {
   color: 'black' | 'white';
 };
 
-type ParsedLicenseToken = {
+export type ParsedLicenseToken = {
   normalizedToken: string;
   family: string;
   majorVersion?: number;
@@ -82,7 +82,7 @@ function getSignedOffset(seed: string, magnitude: number): number {
  * - `WITH` exceptions are ignored for family extraction because they should not
  *   move the base license family into a completely different color region.
  */
-function parseLicenseToken(license: string): ParsedLicenseToken {
+export function parseLicenseToken(license: string): ParsedLicenseToken {
   const normalizedToken = normalizeLicenseExpression(license.trim());
   const tokenWithoutException =
     normalizedToken.split(/\s+WITH\s+/i)[0] || normalizedToken;
@@ -123,7 +123,7 @@ function parseLicenseToken(license: string): ParsedLicenseToken {
  * - `qualifierOffset` is deliberately tiny so `-only` and `-or-later` remain
  *   close to the same base license.
  */
-function getLicenseHue(token: ParsedLicenseToken): number {
+export function getLicenseHue(token: ParsedLicenseToken): number {
   const familyHue = hashString(token.family) % 360;
   const majorOffset =
     token.majorVersion !== undefined ? token.majorVersion * 9 : 0;
@@ -235,7 +235,7 @@ function getRelativeLuminance({ red, green, blue }: RgbColor): number {
  * the contrast calculation is based on relative luminance with the standard ratio formula:
  *   (lighter + 0.05) / (darker + 0.05)
  */
-function getContrastRatio(first: RgbColor, second: RgbColor): number {
+export function getContrastRatio(first: RgbColor, second: RgbColor): number {
   const firstLuminance = getRelativeLuminance(first);
   const secondLuminance = getRelativeLuminance(second);
   const lighter = Math.max(firstLuminance, secondLuminance);
@@ -288,98 +288,4 @@ export function getLicenseBadgeColors(license: string): LicenseBadgeColors {
     borderColor: toRgbCss(borderRgb),
     color: blackContrast >= whiteContrast ? 'black' : 'white',
   };
-}
-
-//
-// Unit tests for license color helpers.
-//
-
-if (import.meta.vitest) {
-  const { describe, it, expect } = import.meta.vitest;
-
-  const parseRgbCss = (value: string): RgbColor => {
-    const match = value.match(/^rgb\((\d+), (\d+), (\d+)\)$/);
-
-    if (!match) {
-      throw new Error(`Unexpected rgb color value: ${value}`);
-    }
-
-    return {
-      red: Number.parseInt(match[1] ?? '', 10),
-      green: Number.parseInt(match[2] ?? '', 10),
-      blue: Number.parseInt(match[3] ?? '', 10),
-    };
-  };
-
-  describe('getLicenseBadgeColors', () => {
-    it('returns deterministic colors for the same license', () => {
-      expect(getLicenseBadgeColors('MIT')).toEqual(
-        getLicenseBadgeColors('MIT')
-      );
-    });
-
-    it('normalizes loosely formatted input before generating colors', () => {
-      expect(getLicenseBadgeColors('Apache 2')).toEqual(
-        getLicenseBadgeColors('Apache-2.0')
-      );
-    });
-
-    it('keeps related Apache licenses visually close', () => {
-      expect(getLicenseBadgeColors('Apache-1.0').backgroundColor).not.toEqual(
-        getLicenseBadgeColors('Apache-2.0').backgroundColor
-      );
-      expect(getLicenseBadgeColors('Apache-1.0').color).toBe('black');
-      expect(getLicenseBadgeColors('Apache-2.0').color).toBe('black');
-    });
-
-    it('keeps related LGPL licenses visually close', () => {
-      expect(getLicenseBadgeColors('LGPL-2.0').backgroundColor).not.toEqual(
-        getLicenseBadgeColors('LGPL-2.1-only').backgroundColor
-      );
-      expect(getLicenseBadgeColors('LGPL-2.0').color).toBe('black');
-      expect(getLicenseBadgeColors('LGPL-2.1-only').color).toBe('black');
-    });
-
-    it('keeps related license families closer than unrelated ones in hue space', () => {
-      const apacheOneHue = getLicenseHue(parseLicenseToken('Apache-1.0'));
-      const apacheTwoHue = getLicenseHue(parseLicenseToken('Apache-2.0'));
-      const mitHue = getLicenseHue(parseLicenseToken('MIT'));
-      const apacheDistance = Math.abs(apacheOneHue - apacheTwoHue);
-      const unrelatedDistance = Math.abs(apacheOneHue - mitHue);
-
-      expect(apacheDistance).toBeLessThan(unrelatedDistance);
-    });
-
-    it('returns CSS rgb colors for background and border', () => {
-      const result = getLicenseBadgeColors('BSD-3-Clause');
-
-      expect(result.backgroundColor).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
-      expect(result.borderColor).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
-      expect(['black', 'white']).toContain(result.color);
-    });
-
-    it('keeps badge contrast at or above normal-text WCAG AA against the chosen text color', () => {
-      const samples = [
-        'Apache-2.0',
-        'Apache-1.0',
-        'LGPL-2.1-only',
-        'GPL-2.0-or-later',
-        'MIT',
-        'BSD-3-Clause',
-      ];
-
-      samples.forEach((license) => {
-        const colors = getLicenseBadgeColors(license);
-        const backgroundRgb = parseRgbCss(colors.backgroundColor);
-        const foregroundRgb =
-          colors.color === 'black'
-            ? { red: 0, green: 0, blue: 0 }
-            : { red: 255, green: 255, blue: 255 };
-
-        expect(
-          getContrastRatio(backgroundRgb, foregroundRgb)
-        ).toBeGreaterThanOrEqual(4.5);
-      });
-    });
-  });
 }

@@ -20,10 +20,7 @@
 import { IssueCategory } from '@/schemas';
 
 // A map where the key is the issue category and the value is an array of regular expressions.
-// Upon finding a new issue that is not categorized properly, please extend this map, and
-// provide a unit test for it in the same file.
-// Unit tests can be run from the /ui folder with:
-//   pnpm test
+// Upon finding a new issue that is not categorized properly, please extend this map.
 const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
   Deprecation: [/^deprecated .*/],
   Infrastructure: [
@@ -62,62 +59,3 @@ export const getIssueCategory = (message: string): IssueCategory => {
   }
   return 'Other';
 };
-
-//
-// Unit tests for the getIssueCategory() function.
-//
-
-if (import.meta.vitest) {
-  const { it, expect } = import.meta.vitest;
-
-  it('correctly categorizes deprecation issues', () => {
-    const messages = [
-      'deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs',
-      'deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported',
-      'deprecated uuid@3.4.0: Please upgrade  to version 7 or higher.',
-    ];
-
-    messages.forEach((message) => {
-      expect(getIssueCategory(message)).toBe('Deprecation');
-    });
-  });
-
-  it('correctly categorizes infrastructure issues', () => {
-    const messages = [
-      'The analyzer worker failed due to an unexpected error.',
-      "ERROR: Timeout after 30 seconds while scanning file 'example.txt'.",
-      'Missing scan results response body.',
-      "Unable to get an upload URL for 'foo.txt'.",
-      "Uploading 'foo.txt' to http:\\foo.com failed.",
-      'Failed to add scan job for the following packages:',
-      "Scan failed for job with ID 'djeh4gh3g39372':",
-      'StreamResetException: stream was reset: INTERNAL_ERROR',
-    ];
-
-    messages.forEach((message) => {
-      expect(getIssueCategory(message)).toBe('Infrastructure');
-    });
-  });
-
-  it('correctly categorizes missing data issues', () => {
-    const message =
-      "IOException: Could not resolve provenance for package 'Pod::RNVectorIcons:10.2.0' for source code origins [ARTIFACT, VCS].";
-    expect(getIssueCategory(message)).toBe('Missing Data');
-  });
-
-  it('correctly categorizes build system issues', () => {
-    const messages = [
-      "GradleInspector failed to resolve dependencies for path 'android/build.gradle':",
-      "Multiple projects with the same id 'NPM::project:1.0.0' found.",
-    ];
-
-    messages.forEach((message) => {
-      expect(getIssueCategory(message)).toBe('Build System');
-    });
-  });
-
-  it('correctly categorizes other issues', () => {
-    const message = 'Some other issue occurred.';
-    expect(getIssueCategory(message)).toBe('Other');
-  });
-}
