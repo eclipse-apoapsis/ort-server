@@ -185,7 +185,7 @@ export const HomeRecentRunsSection = ({
   <Card>
     <CardHeader>
       <CardTitle className='flex items-center gap-2'>
-        <PlayCircle className='h-5 w-5 text-white' />
+        <PlayCircle className='text-foreground h-5 w-5 dark:text-white' />
         Recently started runs
       </CardTitle>
       <CardDescription>

@@ -92,8 +92,9 @@ export const FavoriteButton = ({
         >
           <Star
             className={cn(
-              'h-4 w-4 text-white/50',
-              isFavorite && 'fill-white text-white'
+              'text-muted-foreground h-4 w-4 dark:text-white/50',
+              isFavorite &&
+                'fill-foreground text-foreground dark:fill-white dark:text-white'
             )}
           />
         </Button>
