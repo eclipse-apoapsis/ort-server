@@ -32,6 +32,13 @@ import {
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
+import {
+  getPluginsInDisplayOrder,
+  getSecretSelectDisplayValue,
+  mapSecretSelectValue,
+  moveItem,
+  UNDEFINED_SECRET_VALUE,
+} from '@/components/form/plugin-multi-select-field-utils';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -57,64 +64,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group.tsx';
 import { cn } from '@/lib/utils';
 
 export type ScannerScope = 'both' | 'packages' | 'projects';
-
-const UNDEFINED_SECRET_VALUE = '__undefined_secret__';
-
-function mapSecretSelectValue(value: string | undefined): string | undefined {
-  return value === UNDEFINED_SECRET_VALUE ? undefined : value;
-}
-
-function getSecretSelectDisplayValue(
-  value: string | undefined,
-  isRequired: boolean
-): string | undefined {
-  if (value === undefined) {
-    return isRequired ? undefined : UNDEFINED_SECRET_VALUE;
-  }
-
-  return value;
-}
-
-function moveItem<T>(items: readonly T[], fromIndex: number, toIndex: number) {
-  const newItems = [...items];
-  const [removed] = newItems.splice(fromIndex, 1);
-
-  if (removed !== undefined) {
-    newItems.splice(toIndex, 0, removed);
-  }
-
-  return newItems;
-}
-
-function getPluginsInDisplayOrder<T extends { id: string }>(
-  plugins: readonly T[],
-  selectedPluginIds: readonly string[],
-  showSelectedPluginsFirst: boolean,
-  pluginOrder?: readonly string[]
-) {
-  const pluginsById = new Map(plugins.map((plugin) => [plugin.id, plugin]));
-  const pluginIds = plugins.map((plugin) => plugin.id);
-  const selectedPluginIdSet = new Set(selectedPluginIds);
-  const selectedPluginIdsInPayloadOrder = selectedPluginIds.filter((pluginId) =>
-    pluginsById.has(pluginId)
-  );
-  const fallbackPluginOrder = showSelectedPluginsFirst
-    ? [
-        ...selectedPluginIdsInPayloadOrder,
-        ...pluginIds.filter((pluginId) => !selectedPluginIdSet.has(pluginId)),
-      ]
-    : pluginIds;
-  const orderedPluginIds = pluginOrder ?? fallbackPluginOrder;
-  const pluginOrderSet = new Set(orderedPluginIds);
-
-  return [
-    ...orderedPluginIds.flatMap((pluginId) => {
-      const plugin = pluginsById.get(pluginId);
-      return plugin ? [plugin] : [];
-    }),
-    ...plugins.filter((plugin) => !pluginOrderSet.has(plugin.id)),
-  ];
-}
 
 type SortablePluginListItemProps = {
   id: string;
@@ -601,84 +550,3 @@ export const PluginMultiSelectField = <
     />
   );
 };
-
-if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest;
-
-  describe('moveItem', () => {
-    it('moves an item from one index to another', () => {
-      expect(moveItem(['File', 'ClearlyDefined', 'OrtConfig'], 0, 2)).toEqual([
-        'ClearlyDefined',
-        'OrtConfig',
-        'File',
-      ]);
-    });
-  });
-
-  describe('getPluginsInDisplayOrder', () => {
-    const plugins = [
-      { id: 'ClearlyDefined' },
-      { id: 'DefaultFile' },
-      { id: 'OrtConfig' },
-    ];
-
-    it('keeps plugins in their original order by default', () => {
-      expect(
-        getPluginsInDisplayOrder(
-          plugins,
-          ['DefaultFile', 'ClearlyDefined'],
-          false
-        ).map((plugin) => plugin.id)
-      ).toEqual(['ClearlyDefined', 'DefaultFile', 'OrtConfig']);
-    });
-
-    it('shows enabled plugins first in payload order for an existing selection', () => {
-      expect(
-        getPluginsInDisplayOrder(
-          plugins,
-          ['DefaultFile', 'ClearlyDefined'],
-          true
-        ).map((plugin) => plugin.id)
-      ).toEqual(['DefaultFile', 'ClearlyDefined', 'OrtConfig']);
-    });
-
-    it('uses the explicitly sorted plugin order when set', () => {
-      expect(
-        getPluginsInDisplayOrder(
-          plugins,
-          ['DefaultFile', 'ClearlyDefined'],
-          false,
-          ['OrtConfig', 'DefaultFile', 'ClearlyDefined']
-        ).map((plugin) => plugin.id)
-      ).toEqual(['OrtConfig', 'DefaultFile', 'ClearlyDefined']);
-    });
-  });
-
-  describe('mapSecretSelectValue', () => {
-    it('maps the explicit not defined option to undefined', () => {
-      expect(mapSecretSelectValue(UNDEFINED_SECRET_VALUE)).toBeUndefined();
-    });
-
-    it('keeps actual secret names unchanged', () => {
-      expect(mapSecretSelectValue('apiKeySCANOSS')).toBe('apiKeySCANOSS');
-    });
-  });
-
-  describe('getSecretSelectDisplayValue', () => {
-    it('maps undefined to the explicit not defined option for optional fields', () => {
-      expect(getSecretSelectDisplayValue(undefined, false)).toBe(
-        UNDEFINED_SECRET_VALUE
-      );
-    });
-
-    it('keeps undefined for required fields so the placeholder is shown', () => {
-      expect(getSecretSelectDisplayValue(undefined, true)).toBeUndefined();
-    });
-
-    it('keeps actual secret names unchanged', () => {
-      expect(getSecretSelectDisplayValue('apiKeySCANOSS', false)).toBe(
-        'apiKeySCANOSS'
-      );
-    });
-  });
-}

@@ -18,7 +18,6 @@
  */
 
 import * as React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 
 import { LicenseBadge } from '@/components/licenses/license-badge';
 import {
@@ -131,79 +130,4 @@ export function SpdxExpressionBadgeGroup({
       {renderExpressionNode(parsedExpression.node)}
     </span>
   );
-}
-
-//
-// Unit tests for SPDX expression badge rendering.
-//
-
-if (import.meta.vitest) {
-  const { describe, it, expect } = import.meta.vitest;
-
-  describe('SpdxExpressionBadgeGroup', () => {
-    it('renders a single badge for an atomic SPDX expression', () => {
-      const markup = renderToStaticMarkup(
-        <SpdxExpressionBadgeGroup expression='MIT' />
-      );
-
-      expect(markup).toContain('MIT');
-      expect(markup.match(/data-slot="badge"/g)?.length).toBe(1);
-      expect(markup).not.toContain('AND');
-      expect(markup).not.toContain('OR');
-    });
-
-    it('renders conjunctions between multiple badges', () => {
-      const markup = renderToStaticMarkup(
-        <SpdxExpressionBadgeGroup expression='MIT AND Apache-2.0' />
-      );
-
-      expect(markup).toContain('MIT');
-      expect(markup).toContain('Apache-2.0');
-      expect(markup).toContain('and');
-      expect(markup.match(/data-slot="badge"/g)?.length).toBe(2);
-    });
-
-    it('renders parentheses when an OR group is nested inside an AND group', () => {
-      const markup = renderToStaticMarkup(
-        <SpdxExpressionBadgeGroup expression='MIT AND (Apache-2.0 OR BSD-3-Clause)' />
-      );
-
-      expect(markup).toContain('(');
-      expect(markup).toContain(')');
-      expect(markup).toContain('MIT');
-      expect(markup).toContain('Apache-2.0');
-      expect(markup).toContain('BSD-3-Clause');
-      expect(markup.match(/data-slot="badge"/g)?.length).toBe(3);
-    });
-
-    it('renders WITH expressions as a single badge', () => {
-      const markup = renderToStaticMarkup(
-        <SpdxExpressionBadgeGroup expression='GPL-2.0-only WITH Classpath-exception-2.0' />
-      );
-
-      expect(markup).toContain('GPL-2.0-only WITH Classpath-exception-2.0');
-      expect(markup.match(/data-slot="badge"/g)?.length).toBe(1);
-    });
-
-    it('renders deprecated GPL plus syntax as its normalized atomic badge', () => {
-      const markup = renderToStaticMarkup(
-        <SpdxExpressionBadgeGroup expression='GPL-2.0+' />
-      );
-
-      expect(markup).toContain('GPL-2.0-or-later');
-      expect(markup.match(/data-slot="badge"/g)?.length).toBe(1);
-    });
-
-    it('falls back to a single badge for invalid expressions', () => {
-      const markup = renderToStaticMarkup(
-        <SpdxExpressionBadgeGroup expression='MIT OR (' />
-      );
-
-      expect(markup).toContain('MIT OR (');
-      expect(markup.match(/data-slot="badge"/g)?.length).toBe(1);
-      expect(markup).not.toContain(
-        'class="text-muted-foreground text-xs font-medium uppercase"'
-      );
-    });
-  });
 }
