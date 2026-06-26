@@ -43,7 +43,8 @@ This table contains a description of the supported configuration properties:
 | rabbitMqUser     | The username to authenticate against the RabbitMQ server.                       | yes    |
 | rabbitMqPassword | The password to authenticate against the RabbitMQ server.                       | yes    |
 
-> [!NOTE]
-> It is possible to set configuration properties via environment variables.
-> Since each endpoint has its own messaging configuration, different environment variables are used.
-> Inspect the different `application.conf` files to find the variables in use.
+:::note
+It is possible to set configuration properties via environment variables.
+Since each endpoint has its own messaging configuration, different environment variables are used.
+Inspect the different `application.conf` files to find the variables in use.
+:::

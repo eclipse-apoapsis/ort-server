@@ -13,8 +13,9 @@ With a PostgreSQL database, this is currently only possible by using large objec
 Here the storage table only contains a reference to a large object (a long object ID) holding the actual data.
 The object is stored separately and needs to be accessed and manipulated by a PostgreSQL-specific API.
 
-> [!NOTE]
-> PostgreSQL also supports the `bytea` datatype, which is easier to use; but this type is only suitable for data of limited size because the full data is always read into memory.
+:::note
+PostgreSQL also supports the `bytea` datatype, which is easier to use; but this type is only suitable for data of limited size because the full data is always read into memory.
+:::
 
 One restriction of the large objects mechanism is that all access to data is only possible within an active transaction.
 This does not fit well to the `StorageProvider` interface, which hands over a stream to the client which is consumed later - at that time, the transaction is already gone.
