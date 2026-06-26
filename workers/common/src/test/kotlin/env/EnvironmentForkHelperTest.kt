@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withSystemProperty
 import io.kotest.matchers.nulls.beNull
@@ -42,6 +43,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -189,6 +191,49 @@ class EnvironmentForkHelperTest : StringSpec({
         MDC.get("ortRunId") shouldBe "456"
         MDC.get("analyzerJobId") shouldBe "789"
         MDC.get("component") shouldBe "analyzer-worker"
+    }
+
+    "Authentication information should be correctly persisted and restored" {
+        val usernameSecret = createSecret("user")
+        val repoPasswordSecret = createSecret("repoPassword")
+        val artifactoryPasswordSecret = createSecret("artifactoryPassword")
+        val repoService = createService("repo", usernameSecret, repoPasswordSecret)
+        val artifactoryService = createService("artifactory", usernameSecret, artifactoryPasswordSecret)
+        val secrets = mapOf(
+            usernameSecret.toAuthenticationInfo(),
+            repoPasswordSecret.toAuthenticationInfo(),
+            artifactoryPasswordSecret.toAuthenticationInfo()
+        )
+        val authInfo = AuthenticationInfo(
+            secrets = secrets,
+            services = listOf(repoService, artifactoryService)
+        )
+        val authenticator = installAuthenticatorMock(authInfo)
+        val testSecret = Path("testSecret")
+        val testSecretValue = "value of test secret"
+        val configManager = mockk<ConfigManager>()
+        every { configManager.getSecret(testSecret) } returns testSecretValue
+
+        val file = tempfile()
+        EnvironmentForkHelper.persistAuthenticationInfo(file)
+        EnvironmentForkHelper.setupAuthentication(file, configManager)
+
+        val slotResolver = mutableListOf<InfraSecretResolverFun>()
+        verify(exactly = 2) {
+            OrtServerAuthenticator.install(capture(slotResolver))
+        }
+        slotResolver.last().invoke(testSecret) shouldBe testSecretValue
+
+        val slotAuthInfo = slot<AuthenticationInfo>()
+        verify {
+            authenticator.updateAuthenticationInfo(capture(slotAuthInfo))
+        }
+
+        with(slotAuthInfo.captured) {
+            resolveSecret(usernameSecret) shouldBe secretValue(usernameSecret.name)
+            resolveSecret(repoPasswordSecret) shouldBe secretValue(repoPasswordSecret.name)
+            resolveSecret(artifactoryPasswordSecret) shouldBe secretValue(artifactoryPasswordSecret.name)
+        }
     }
 })
 
