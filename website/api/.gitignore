@@ -1,3 +1,4 @@
 # Ignore generated API docs
+*.json
 *.mdx
 sidebar.ts
