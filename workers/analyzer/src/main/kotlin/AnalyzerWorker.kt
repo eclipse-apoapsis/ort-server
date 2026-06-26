@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
@@ -32,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
@@ -108,7 +110,12 @@ internal class AnalyzerWorker(
                 envConfigFromJob,
                 repositoryServices
             )
-            val ortResult = runner.run(context, downloadResult.directory, job.configuration, resolvedEnvConfig)
+            val ortResult = runner.run(
+                context,
+                downloadResult.directory,
+                job.configuration.toRunnerConfig(context),
+                resolvedEnvConfig
+            )
 
             ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
             ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
@@ -220,3 +227,18 @@ internal class AnalyzerWorker(
 }
 
 private class AnalyzerException(message: String) : Exception(message)
+
+/**
+ * Create an [AnalyzerRunnerConfig] from this [AnalyzerJobConfiguration] to be used to analyze the current project.
+ * Use the given [context] to resolve the secrets in the plugin configuration.
+ */
+private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerContext): AnalyzerRunnerConfig =
+    AnalyzerRunnerConfig(
+        skipExcluded = skipExcluded,
+        allowDynamicVersions = allowDynamicVersions,
+        enabledPackageManagers = enabledPackageManagers,
+        disabledPackageManagers = disabledPackageManagers,
+        packageManagerOptions = packageManagerOptions,
+        repositoryConfigPath = repositoryConfigPath,
+        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders)
+    )

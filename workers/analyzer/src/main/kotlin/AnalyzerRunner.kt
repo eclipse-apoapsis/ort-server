@@ -134,32 +134,19 @@ class AnalyzerRunner(
     }
 
     /**
-     * Run the analyzer for the given [inputDir] using the provided [config] and return the resulting [OrtResult].
-     * Depending on the [environmentConfig], the analyzer is run in the same JVM or in a forked JVM with a customized
-     * environment.
+     * Run the analyzer for the given [inputDir] using the provided [runnerConfig] and return the resulting
+     * [OrtResult]. Depending on the [environmentConfig], the analyzer is run in the same JVM or in a forked JVM with a
+     * customized environment.
      */
     suspend fun run(
         context: WorkerContext,
         inputDir: File,
-        config: AnalyzerJobConfiguration,
+        runnerConfig: AnalyzerRunnerConfig,
         environmentConfig: ResolvedEnvironmentConfig
-    ): OrtResult {
-        val packageCurationProviderConfigs = context.resolveProviderPluginConfigSecrets(config.packageCurationProviders)
-        val runnerConfig = AnalyzerRunnerConfig(
-            allowDynamicVersions = config.allowDynamicVersions,
-            disabledPackageManagers = config.disabledPackageManagers,
-            enabledPackageManagers = config.enabledPackageManagers,
-            packageCurationProviders = packageCurationProviderConfigs,
-            packageManagerOptions = config.packageManagerOptions,
-            repositoryConfigPath = config.repositoryConfigPath,
-            skipExcluded = config.skipExcluded
-        )
-
-        return if (environmentConfig.environmentVariables.isEmpty()) {
-            runInProcess(inputDir, runnerConfig)
-        } else {
-            runForked(context, inputDir, runnerConfig, environmentConfig)
-        }
+    ): OrtResult = if (environmentConfig.environmentVariables.isEmpty()) {
+        runInProcess(inputDir, runnerConfig)
+    } else {
+        runForked(context, inputDir, runnerConfig, environmentConfig)
     }
 
     /**
