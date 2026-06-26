@@ -260,8 +260,9 @@ On this path, for each key of the secret a file is created whose content is the 
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
 This mechanism is useful not only for secrets but also for other kinds of external data that should be accessible from a pod, for instance, custom certificates.
 
-> [!NOTE]
-> The receiver part does not need any specific configuration settings except for the transport type itself.
+:::note
+The receiver part does not need any specific configuration settings except for the transport type itself.
+:::
 
 ## Inheritance of environment variables
 

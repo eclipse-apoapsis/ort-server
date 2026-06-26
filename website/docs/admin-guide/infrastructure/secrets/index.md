@@ -12,8 +12,9 @@ This implies that an API is available to create, read, modify, and update secret
 With such an API in place, users are enabled to fully manage the credentials required for their infrastructure
 themselves - without needing support from server administrators.
 
-> [!NOTE]
-> This document treats the terms _secrets_ and _credentials_ as synonyms.
+:::note
+This document treats the terms _secrets_ and _credentials_ as synonyms.
+:::
 
 This means that the ORT server needs to store secrets on behalf of its users.
 There is, however, a difference between secrets and other entities managed by users:
