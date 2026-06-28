@@ -93,7 +93,7 @@ Required configuration for the `ui` application:
 
 ### ORT Server CLI
 
-This client is used for authentication by the [ORT Server CLI](../../user-guide/cli/getting-started.md).
+This client is used for authentication by the [ORT Server CLI](../../user-guide/cli.md).
 The client supports both:
 
 - "Direct access grants" (Resource Owner Password Credentials) for the CLI
