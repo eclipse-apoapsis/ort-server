@@ -35,7 +35,7 @@ A repository represents a VCS repository, for example, a Git repository on GitHu
 
 ## Users
 
-To manage user rights, they can be assigned roles directly (see also [Authorization](../../admin-guide/architecture/authorization.md)) or indirectly by being members of a group.
+To manage user rights, they can be assigned roles directly (see also [Authorization](../../developer-guide/architecture/authorization.md)) or indirectly by being members of a group.
 
 ### Groups
 
