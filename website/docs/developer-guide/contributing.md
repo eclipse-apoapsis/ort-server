@@ -1,3 +1,7 @@
+---
+position: 2
+---
+
 # Contributing
 
 See the [contributing guide](https://github.com/eclipse-apoapsis/ort-server/?tab=contributing-ov-file) for general information on how to contribute to the ORT Server project.
