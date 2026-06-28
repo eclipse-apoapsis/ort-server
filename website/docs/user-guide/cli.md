@@ -1,4 +1,9 @@
-# Getting Started
+---
+position: 2
+title: CLI
+---
+
+# ORT Server CLI
 
 The ORT Server Client CLI (`osc`) is a command-line interface designed to interact with the ORT Server. It provides essential functionality for managing ORT runs and retrieving results.
 
