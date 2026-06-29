@@ -162,6 +162,7 @@ COPY --from=pythonbuild /opt/python /opt/python
 FROM ort-base-image AS nodebuild
 
 ARG BOWER_VERSION
+ARG COREPACK_VERSION
 ARG NODEJS_VERSION
 
 ENV NVM_DIR=/opt/nvm
