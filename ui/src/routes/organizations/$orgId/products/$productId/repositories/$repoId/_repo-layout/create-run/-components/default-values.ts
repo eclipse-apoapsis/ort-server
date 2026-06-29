@@ -273,7 +273,8 @@ export function defaultValues(
               baseDefaults.jobConfigs.advisor.advisors,
             config: mergePluginConfigs(
               ortRun?.jobConfigs?.advisor?.config,
-              advisorPluginDefaultValues
+              advisorPluginDefaultValues,
+              advisorPlugins
             ),
             keepAliveWorker:
               (ortRun.jobConfigs.advisor?.keepAliveWorker && isSuperuser) ||
@@ -299,7 +300,8 @@ export function defaultValues(
             ),
             config: mergePluginConfigs(
               ortRun.jobConfigs.scanner?.config,
-              scannerPluginDefaultValues
+              scannerPluginDefaultValues,
+              scannerPlugins
             ),
           },
           evaluator: {
@@ -642,6 +644,165 @@ if (import.meta.vitest) {
       DOS: {
         options: {
           url: 'https://dos-api.example/api/',
+        },
+        secrets: {},
+      },
+    });
+  });
+
+  it('applies fixed plugin option precedence for advisor and scanner reruns', () => {
+    const ortRun = {
+      revision: 'main',
+      path: '',
+      jobConfigs: {
+        advisor: {
+          advisors: ['OSV'],
+          config: {
+            OSV: {
+              options: {
+                url: 'https://rerun.example/advisor',
+                fixedNoDefault: 'legacy-advisor-fixed',
+                token: 'legacy-advisor-token',
+              },
+              secrets: {
+                fixedSecret: 'legacy-advisor-secret',
+              },
+            },
+          },
+        },
+        scanner: {
+          scanners: ['SCANOSS'],
+          config: {
+            SCANOSS: {
+              options: {
+                url: 'https://rerun.example/scanner',
+                fixedNoDefault: 'legacy-scanner-fixed',
+                token: 'legacy-scanner-token',
+              },
+              secrets: {
+                fixedSecret: 'legacy-scanner-secret',
+              },
+            },
+          },
+        },
+      },
+      labels: {},
+    } as unknown as OrtRun;
+
+    const advisorPlugins: PreconfiguredPluginDescriptor[] = [
+      {
+        id: 'OSV',
+        type: 'ADVISOR',
+        displayName: 'OSV',
+        summary: 'OSV advisor.',
+        description: 'OSV advisor.',
+        options: [
+          {
+            name: 'url',
+            description: 'Base URL.',
+            type: 'STRING',
+            defaultValue: 'https://default.example/advisor',
+            isFixed: true,
+            isNullable: false,
+            isRequired: true,
+          },
+          {
+            name: 'fixedNoDefault',
+            description: 'Fixed without default.',
+            type: 'STRING',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'fixedSecret',
+            description: 'Fixed secret option.',
+            type: 'SECRET',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'token',
+            description: 'Editable token.',
+            type: 'STRING',
+            defaultValue: 'default-token',
+            isFixed: false,
+            isNullable: false,
+            isRequired: false,
+          },
+        ],
+      },
+    ];
+
+    const scannerPlugins: PreconfiguredPluginDescriptor[] = [
+      {
+        id: 'SCANOSS',
+        type: 'SCANNER',
+        displayName: 'SCANOSS',
+        summary: 'SCANOSS scanner.',
+        description: 'SCANOSS scanner.',
+        options: [
+          {
+            name: 'url',
+            description: 'Base URL.',
+            type: 'STRING',
+            defaultValue: 'https://default.example/scanner',
+            isFixed: true,
+            isNullable: false,
+            isRequired: true,
+          },
+          {
+            name: 'fixedNoDefault',
+            description: 'Fixed without default.',
+            type: 'STRING',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'fixedSecret',
+            description: 'Fixed secret option.',
+            type: 'SECRET',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'token',
+            description: 'Editable token.',
+            type: 'STRING',
+            defaultValue: 'default-token',
+            isFixed: false,
+            isNullable: false,
+            isRequired: false,
+          },
+        ],
+      },
+    ];
+
+    const defaults = defaultValues(
+      ortRun,
+      advisorPlugins,
+      scannerPlugins,
+      false
+    );
+
+    expect(defaults.jobConfigs.advisor.config).toEqual({
+      OSV: {
+        options: {
+          url: 'https://default.example/advisor',
+          token: 'legacy-advisor-token',
+        },
+        secrets: {},
+      },
+    });
+
+    expect(defaults.jobConfigs.scanner.config).toEqual({
+      SCANOSS: {
+        options: {
+          url: 'https://default.example/scanner',
+          token: 'legacy-scanner-token',
         },
         secrets: {},
       },

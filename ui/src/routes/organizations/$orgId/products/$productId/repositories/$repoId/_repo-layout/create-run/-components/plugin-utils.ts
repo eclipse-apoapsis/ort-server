@@ -141,20 +141,24 @@ export const createPluginConfigSchema = (
 };
 
 /**
- * Merge the plugin configs from the last run with the default plugin configs. The configs from the last run take
- * precedence.
+ * Merge the plugin configs from the last run with the default plugin configs.
+ * For fixed options, values configured via plugin descriptors take precedence.
+ * For non-fixed options, values from the last run take precedence.
  */
 export function mergePluginConfigs(
   lastRunConfig: { [p: string]: PluginConfig } | null | undefined,
-  defaultConfig: Record<string, PluginConfig>
+  defaultConfig: Record<string, PluginConfig>,
+  plugins: PreconfiguredPluginDescriptor[]
 ): Record<string, PluginConfig> {
   const merged: Record<string, PluginConfig> = {};
+  const pluginById = new Map(plugins.map((plugin) => [plugin.id, plugin]));
 
   for (const pluginId of Object.keys(defaultConfig)) {
     const defaultPlugin = defaultConfig[pluginId];
     const ortPlugin = lastRunConfig?.[pluginId];
+    const pluginDescriptor = pluginById.get(pluginId);
 
-    merged[pluginId] = {
+    const mergedPlugin: PluginConfig = {
       options: {
         ...(defaultPlugin?.options ?? {}),
         ...(ortPlugin?.options ?? {}),
@@ -164,6 +168,22 @@ export function mergePluginConfigs(
         ...(ortPlugin?.secrets ?? {}),
       },
     };
+
+    for (const option of pluginDescriptor?.options ?? []) {
+      if (!option.isFixed) continue;
+
+      const section = option.type === 'SECRET' ? 'secrets' : 'options';
+      const defaultSection = defaultPlugin?.[section] ?? {};
+      const defaultValue = defaultSection[option.name];
+
+      if (defaultValue !== undefined) {
+        mergedPlugin[section][option.name] = defaultValue;
+      } else {
+        delete mergedPlugin[section][option.name];
+      }
+    }
+
+    merged[pluginId] = mergedPlugin;
   }
 
   if (lastRunConfig) {
@@ -534,6 +554,79 @@ if (import.meta.vitest) {
       scannerScopes: {
         SCANOSS: 'both',
       },
+    });
+  });
+
+  it('mergePluginConfigs enforces fixed option precedence and clears missing fixed defaults', () => {
+    const plugins: PreconfiguredPluginDescriptor[] = [
+      {
+        id: 'SCANOSS',
+        type: 'SCANNER',
+        displayName: 'SCANOSS',
+        summary: 'A scanner plugin.',
+        description: 'A scanner plugin.',
+        options: [
+          {
+            name: 'url',
+            description: 'The API URL.',
+            type: 'STRING',
+            defaultValue: 'https://scanner.example/api',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'fixedNoDefault',
+            description: 'A fixed option without default.',
+            type: 'STRING',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'fixedSecret',
+            description: 'A fixed secret option.',
+            type: 'SECRET',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+          {
+            name: 'timeout',
+            description: 'Timeout in seconds.',
+            type: 'INTEGER',
+            defaultValue: '30',
+            isFixed: false,
+            isNullable: false,
+            isRequired: false,
+          },
+        ],
+      },
+    ];
+
+    const merged = mergePluginConfigs(
+      {
+        SCANOSS: {
+          options: {
+            url: 'https://old.example/api',
+            fixedNoDefault: 'legacy-value',
+            timeout: '90',
+          },
+          secrets: {
+            fixedSecret: 'legacy-secret',
+          },
+        },
+      },
+      getPluginDefaultValues(plugins),
+      plugins
+    );
+
+    expect(merged.SCANOSS).toEqual({
+      options: {
+        url: 'https://scanner.example/api',
+        timeout: '90',
+      },
+      secrets: {},
     });
   });
 }
