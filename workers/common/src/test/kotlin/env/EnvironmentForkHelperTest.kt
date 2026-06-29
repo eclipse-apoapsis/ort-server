@@ -22,8 +22,6 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
-import io.kotest.extensions.system.OverrideMode
-import io.kotest.extensions.system.withSystemProperty
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -55,6 +53,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
+
+import org.ossreviewtoolkit.utils.common.Os
 
 import org.slf4j.MDC
 
@@ -139,7 +139,9 @@ class EnvironmentForkHelperTest : StringSpec({
         val authenticator = installAuthenticatorMock(authInfo)
 
         val userHomeDir = tempdir()
-        withSystemProperty("user.home", userHomeDir.absolutePath, mode = OverrideMode.SetOrOverride) {
+        mockkObject(Os) {
+            every { Os.userHomeDirectory } returns userHomeDir
+
             doFork()
 
             val slotListener = slot<AuthenticationListener>()

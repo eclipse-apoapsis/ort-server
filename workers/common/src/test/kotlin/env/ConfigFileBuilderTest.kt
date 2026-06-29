@@ -24,12 +24,12 @@ import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
-import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.should
 
-import java.util.Properties
+import io.mockk.every
+import io.mockk.mockkObject
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
@@ -37,6 +37,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedInfraSecretRe
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedSecretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
+
+import org.ossreviewtoolkit.utils.common.Os
 
 class ConfigFileBuilderTest : StringSpec({
     "A PrintWriter is exposed" {
@@ -119,11 +121,10 @@ class ConfigFileBuilderTest : StringSpec({
         val tempDir = tempdir()
         val fileName = "test.conf"
         val content = "test file content"
-        val systemProperties = Properties().apply {
-            setProperty("user.home", tempDir.absolutePath)
-        }
 
-        withSystemProperties(systemProperties, OverrideMode.SetOrOverride) {
+        mockkObject(Os) {
+            every { Os.userHomeDirectory } returns tempDir
+
             val builder = ConfigFileBuilder(undefinedSecretResolver, undefinedInfraSecretResolver)
             builder.buildInUserHome(fileName) {
                 printLines(content)
@@ -131,6 +132,24 @@ class ConfigFileBuilderTest : StringSpec({
         }
 
         val file = tempDir.resolve(fileName)
+        file.readLines() should containExactly(content)
+    }
+
+    "An alternative user home directory can be specified" {
+        val overriddenHome = tempdir()
+        val fileName = "test.conf"
+        val content = "test file content"
+
+        val builder = ConfigFileBuilder(
+            undefinedSecretResolver,
+            undefinedInfraSecretResolver,
+            userHomeDir = overriddenHome
+        )
+        builder.buildInUserHome(fileName) {
+            printLines(content)
+        }
+
+        val file = overriddenHome.resolve(fileName)
         file.readLines() should containExactly(content)
     }
 

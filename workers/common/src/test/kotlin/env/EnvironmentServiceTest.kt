@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -514,6 +515,44 @@ class EnvironmentServiceTest : WordSpec({
             val args2 = generator2.verify(context, definitions)
 
             args1.first shouldNotBe args2.first
+        }
+
+        "generate configuration files in a specific directory" {
+            val userHome = tempdir()
+            val definitions = listOf(
+                EnvironmentServiceDefinition(createInfrastructureService())
+            )
+            val context = mockContext()
+            val generator = mockGenerator()
+
+            val envConfig = mockk<EnvironmentConfig>(relaxed = true)
+            val resolvedConfig = ResolvedEnvironmentConfig(emptyList(), definitions)
+            val configLoader = mockConfigLoader(envConfig, resolvedConfig)
+
+            val service = mockk<InfrastructureServiceService>()
+            service.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(
+                service,
+                mockk(),
+                listOf(generator),
+                configLoader,
+                createMockAdminConfigService()
+            )
+
+            val configResult = environmentService.setUpEnvironment(
+                context,
+                repositoryFolder,
+                envConfig,
+                emptyList(),
+                userHome
+            )
+
+            configResult shouldBe resolvedConfig
+
+            val (builder, _) = generator.verify(context, definitions)
+
+            builder.userHomeDir shouldBe userHome
         }
 
         "handle infrastructure services not referenced by environment definitions" {

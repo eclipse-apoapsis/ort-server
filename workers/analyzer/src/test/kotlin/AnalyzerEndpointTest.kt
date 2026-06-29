@@ -25,9 +25,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.test.TestResult
-import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
-import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -38,10 +36,10 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
+import io.mockk.mockkObject
 import io.mockk.runs
 
 import java.io.File
-import java.util.Properties
 
 import kotlin.time.Instant
 
@@ -84,6 +82,8 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
+
+import org.ossreviewtoolkit.utils.common.Os
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -358,13 +358,12 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
 
             val repositoryFolder = File("src/test/resources/mavenProject")
             val homeFolder = tempdir()
-            val properties = Properties().apply {
-                setProperty("user.home", homeFolder.absolutePath)
-            }
 
             val environmentService by inject<EnvironmentService>()
 
-            withSystemProperties(properties, mode = OverrideMode.SetOrOverride) {
+            mockkObject(Os) {
+                every { Os.userHomeDirectory } returns homeFolder
+
                 environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
             }
 
