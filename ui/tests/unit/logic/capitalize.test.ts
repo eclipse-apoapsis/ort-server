@@ -21,42 +21,21 @@ import { expect, it } from 'vitest';
 
 import { capitalize } from '@/helpers/capitalize';
 
-it('capitalize - lowercase word', () => {
-  expect(capitalize('hello')).toBe('Hello');
-});
-
-it('capitalize - mixed case', () => {
-  expect(capitalize('hELLO')).toBe('Hello');
-});
-
-it('capitalize - all uppercase', () => {
-  expect(capitalize('WORLD')).toBe('World');
-});
-
-it('capitalize - already capitalized', () => {
-  expect(capitalize('TypeScript')).toBe('Typescript');
-});
-
-it('capitalize - single character lowercase', () => {
-  expect(capitalize('a')).toBe('A');
-});
-
-it('capitalize - single character uppercase', () => {
-  expect(capitalize('Z')).toBe('Z');
-});
-
-it('capitalize - empty string', () => {
-  expect(capitalize('')).toBe('');
-});
-
-it('capitalize - string with spaces', () => {
-  expect(capitalize('hello world')).toBe('Hello world');
-});
-
-it('capitalize - string with numbers', () => {
-  expect(capitalize('123abc')).toBe('123abc');
-});
-
-it('capitalize - string starting with special character', () => {
-  expect(capitalize('!important')).toBe('!important');
+it.each([
+  { name: 'lowercase word', input: 'hello', expected: 'Hello' },
+  { name: 'mixed case', input: 'hELLO', expected: 'Hello' },
+  { name: 'all uppercase', input: 'WORLD', expected: 'World' },
+  { name: 'already capitalized', input: 'TypeScript', expected: 'Typescript' },
+  { name: 'single character lowercase', input: 'a', expected: 'A' },
+  { name: 'single character uppercase', input: 'Z', expected: 'Z' },
+  { name: 'empty string', input: '', expected: '' },
+  { name: 'string with spaces', input: 'hello world', expected: 'Hello world' },
+  { name: 'string with numbers', input: '123abc', expected: '123abc' },
+  {
+    name: 'string starting with special character',
+    input: '!important',
+    expected: '!important',
+  },
+])('capitalize - $name', ({ input, expected }) => {
+  expect(capitalize(input)).toBe(expected);
 });

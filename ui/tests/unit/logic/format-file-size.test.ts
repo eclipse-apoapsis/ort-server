@@ -21,30 +21,18 @@ import { expect, it } from 'vitest';
 
 import { formatFileSize } from '@/helpers/format-file-size';
 
-it('formatFileSize - zero bytes', () => {
-  expect(formatFileSize(0)).toBe('0 B');
-});
-
-it('formatFileSize - bytes below 1 kB', () => {
-  expect(formatFileSize(512)).toBe('512 B');
-});
-
-it('formatFileSize - exactly 1 kB', () => {
-  expect(formatFileSize(1024)).toBe('1.0 kB');
-});
-
-it('formatFileSize - kB range', () => {
-  expect(formatFileSize(1536)).toBe('1.5 kB');
-});
-
-it('formatFileSize - MB range', () => {
-  expect(formatFileSize(2.3 * 1024 * 1024)).toBe('2.3 MB');
-});
-
-it('formatFileSize - GB range', () => {
-  expect(formatFileSize(1.1 * 1024 * 1024 * 1024)).toBe('1.1 GB');
-});
-
-it('formatFileSize - large GB value', () => {
-  expect(formatFileSize(500 * 1024 * 1024 * 1024)).toBe('500.0 GB');
+it.each([
+  { name: 'zero bytes', bytes: 0, expected: '0 B' },
+  { name: 'bytes below 1 kB', bytes: 512, expected: '512 B' },
+  { name: 'exactly 1 kB', bytes: 1024, expected: '1.0 kB' },
+  { name: 'kB range', bytes: 1536, expected: '1.5 kB' },
+  { name: 'MB range', bytes: 2.3 * 1024 * 1024, expected: '2.3 MB' },
+  { name: 'GB range', bytes: 1.1 * 1024 * 1024 * 1024, expected: '1.1 GB' },
+  {
+    name: 'large GB value',
+    bytes: 500 * 1024 * 1024 * 1024,
+    expected: '500.0 GB',
+  },
+])('formatFileSize - $name', ({ bytes, expected }) => {
+  expect(formatFileSize(bytes)).toBe(expected);
 });
