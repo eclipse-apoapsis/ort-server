@@ -19,13 +19,11 @@
 
 import { expect, it } from 'vitest';
 
-import type { OrtRun } from '@/api';
 import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/default-values';
+import { createOrtRun, createPluginDescriptor } from '../fixtures/create-run';
 
 it('preserves multiple environment definitions from reruns', () => {
-  const ortRun = {
-    revision: 'main',
-    path: '',
+  const ortRun = createOrtRun({
     jobConfigs: {
       analyzer: {
         environmentConfig: {
@@ -47,8 +45,7 @@ it('preserves multiple environment definitions from reruns', () => {
         },
       },
     },
-    labels: {},
-  } as unknown as OrtRun;
+  });
 
   const defaults = defaultValues(ortRun, [], [], false, [], []);
 
@@ -58,9 +55,7 @@ it('preserves multiple environment definitions from reruns', () => {
 });
 
 it('preserves package configuration provider config from reruns', () => {
-  const ortRun = {
-    revision: 'main',
-    path: '',
+  const ortRun = createOrtRun({
     jobConfigs: {
       evaluator: {
         packageConfigurationProviders: [
@@ -93,8 +88,7 @@ it('preserves package configuration provider config from reruns', () => {
         ],
       },
     },
-    labels: {},
-  } as unknown as OrtRun;
+  });
 
   const defaults = defaultValues(ortRun, [], [], false, [], []);
 
@@ -131,9 +125,7 @@ it('preserves package configuration provider config from reruns', () => {
 });
 
 it('preserves package curation provider config from reruns', () => {
-  const ortRun = {
-    revision: 'main',
-    path: '',
+  const ortRun = createOrtRun({
     jobConfigs: {
       analyzer: {
         packageCurationProviders: [
@@ -151,8 +143,7 @@ it('preserves package curation provider config from reruns', () => {
         ],
       },
     },
-    labels: {},
-  } as unknown as OrtRun;
+  });
 
   const defaults = defaultValues(ortRun, [], [], false, [], []);
 
@@ -179,12 +170,9 @@ it('uses package configuration provider plugin default values for fresh runs', (
     false,
     [],
     [
-      {
+      createPluginDescriptor({
         id: 'OrtConfig',
         type: 'PACKAGE_CONFIGURATION_PROVIDER',
-        displayName: 'ORT Config',
-        summary: 'A package configuration provider plugin',
-        description: 'A package configuration provider plugin.',
         options: [
           {
             name: 'path',
@@ -196,7 +184,7 @@ it('uses package configuration provider plugin default values for fresh runs', (
             isRequired: true,
           },
         ],
-      },
+      }),
     ]
   );
 
@@ -235,12 +223,9 @@ it('uses package curation provider plugin default values for fresh runs', () => 
     [],
     false,
     [
-      {
+      createPluginDescriptor({
         id: 'ClearlyDefined',
         type: 'PACKAGE_CURATION_PROVIDER',
-        displayName: 'ClearlyDefined',
-        summary: 'A package curation provider plugin',
-        description: 'A package curation provider plugin.',
         options: [
           {
             name: 'serverUrl',
@@ -252,7 +237,7 @@ it('uses package curation provider plugin default values for fresh runs', () => 
             isRequired: true,
           },
         ],
-      },
+      }),
     ],
     []
   );
@@ -273,12 +258,9 @@ it('uses scanner plugin default values for fresh runs', () => {
     null,
     [],
     [
-      {
+      createPluginDescriptor({
         id: 'DOS',
         type: 'SCANNER',
-        displayName: 'Double Open Server',
-        summary: 'A scanner plugin',
-        description: 'A scanner plugin.',
         options: [
           {
             name: 'url',
@@ -290,7 +272,7 @@ it('uses scanner plugin default values for fresh runs', () => {
             isRequired: true,
           },
         ],
-      },
+      }),
     ],
     false,
     [],
