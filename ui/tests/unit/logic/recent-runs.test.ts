@@ -52,6 +52,18 @@ const createInput = (runId: number): RecentRunItemInput => ({
   createdAt: `2026-06-16T12:00:0${runId}.000Z`,
 });
 
+const seedRecentRuns = (runIds: number[], limit: number): RecentRunItem[] =>
+  runIds.reduce<RecentRunItem[]>(
+    (recentRuns, runId) =>
+      addRecentRunItem(
+        recentRuns,
+        createInput(runId),
+        limit,
+        new Date(`2026-06-16T12:00:0${runId}.000Z`)
+      ),
+    []
+  );
+
 it('adds recent runs newest first', () => {
   const first = addRecentRunItem(
     [],
@@ -97,31 +109,13 @@ it('de-duplicates recent runs by ID', () => {
 });
 
 it('limits the number of recent runs', () => {
-  const runs = [1, 2, 3].reduce<RecentRunItem[]>(
-    (recentRuns, runId) =>
-      addRecentRunItem(
-        recentRuns,
-        createInput(runId),
-        2,
-        new Date(`2026-06-16T12:00:0${runId}.000Z`)
-      ),
-    []
-  );
+  const runs = seedRecentRuns([1, 2, 3], 2);
 
   expect(runs.map((run) => run.runId)).toStrictEqual([3, 2]);
 });
 
 it('removes a recent run by ID', () => {
-  const runs = [1, 2, 3].reduce<RecentRunItem[]>(
-    (recentRuns, runId) =>
-      addRecentRunItem(
-        recentRuns,
-        createInput(runId),
-        10,
-        new Date(`2026-06-16T12:00:0${runId}.000Z`)
-      ),
-    []
-  );
+  const runs = seedRecentRuns([1, 2, 3], 10);
 
   expect(removeRecentRunItem(runs, buildRecentRunId(2))).toStrictEqual([
     runs[0],
