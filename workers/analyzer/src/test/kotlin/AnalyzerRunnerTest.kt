@@ -25,7 +25,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactly
-import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldContainAll
@@ -54,14 +53,10 @@ import java.time.Instant
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
-import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
-import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
-import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
-import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
 import org.ossreviewtoolkit.model.AnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun
@@ -134,10 +129,10 @@ class AnalyzerRunnerTest : WordSpec({
         context: WorkerContext = createWorkerContext(),
         inputDir: File = projectDir,
         config: AnalyzerRunnerConfig = testRunnerConfig,
-        environmentConfig: ResolvedEnvironmentConfig = ResolvedEnvironmentConfig(),
+        environment: Map<String, String> = emptyMap(),
         runner: AnalyzerRunner = AnalyzerRunner(ConfigFactory.empty())
     ): OrtResult =
-        runner.run(context, inputDir, config, environmentConfig)
+        runner.run(context, inputDir, config, environment)
 
     afterSpec {
         unmockkAll()
@@ -289,13 +284,9 @@ class AnalyzerRunnerTest : WordSpec({
             val exchangeDir = tempdir()
             val inputDir = File("some/folder/to/analyze")
 
-            val secret1 = mockk<Secret>()
-            val secret2 = mockk<Secret>()
-            val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(
-                    SecretVariableDefinition("MY_ENV_VAR", secret1),
-                    SecretVariableDefinition("ANOTHER_ENV_VAR", secret2)
-                )
+            val environmentVariables = mapOf(
+                "MY_ENV_VAR" to "someValue",
+                "ANOTHER_ENV_VAR" to "someSecretValue"
             )
 
             val context = createWorkerContext(tempDir = exchangeDir)
@@ -335,13 +326,13 @@ class AnalyzerRunnerTest : WordSpec({
 
             val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
             coEvery {
-                runner.createProcessBuilder(context, exchangeDir, inputDir, environmentConfig)
+                runner.createProcessBuilder(exchangeDir, inputDir, environmentVariables)
             } returns processBuilder
 
             val result = run(
                 context,
                 config = runnerConfig,
-                environmentConfig = environmentConfig,
+                environment = environmentVariables,
                 inputDir = inputDir,
                 runner = runner
             )
@@ -372,18 +363,16 @@ class AnalyzerRunnerTest : WordSpec({
 
             val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
             coEvery {
-                runner.createProcessBuilder(any(), any(), any(), any())
+                runner.createProcessBuilder(any(), any(), any())
             } returns processBuilder
 
-            val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(SecretVariableDefinition("MY_ENV_VAR", mockk()))
-            )
+            val environmentVariables = mapOf("MY_ENV_VAR" to "someValue")
 
             val forkError = "test.ForkException: Something went terribly wrong."
             exchangeDir.resolve("analyzer-error.txt").writeText(forkError)
 
             val exception = shouldThrow<IOException> {
-                run(context, inputDir = inputDir, environmentConfig = environmentConfig, runner = runner)
+                run(context, inputDir = inputDir, environment = environmentVariables, runner = runner)
             }
 
             exception.message shouldContain forkError
@@ -403,15 +392,13 @@ class AnalyzerRunnerTest : WordSpec({
 
             val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
             coEvery {
-                runner.createProcessBuilder(any(), any(), any(), any())
+                runner.createProcessBuilder(any(), any(), any())
             } returns processBuilder
 
-            val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(SecretVariableDefinition("MY_ENV_VAR", mockk()))
-            )
+            val environmentVariables = mapOf("MY_ENV_VAR" to "someValue")
 
             val exception = shouldThrow<IOException> {
-                run(context, inputDir = inputDir, environmentConfig = environmentConfig, runner = runner)
+                run(context, inputDir = inputDir, environment = environmentVariables, runner = runner)
             }
 
             exception.message shouldContain "The forked process died"
@@ -420,26 +407,12 @@ class AnalyzerRunnerTest : WordSpec({
 
     "createProcessBuilder" should {
         "create a process builder with the correct environment" {
-            val secret1 = mockk<Secret>()
-            val secret2 = mockk<Secret>()
-            val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(
-                    SecretVariableDefinition("MY_ENV_VAR", secret1),
-                    SecretVariableDefinition("ANOTHER_ENV_VAR", secret2),
-                    SimpleVariableDefinition("SIMPLE_ENV_VAR", "simpleValue"),
-                    SimpleVariableDefinition("ANOTHER_SIMPLE_ENV_VAR", "anotherSimpleValue")
-                )
+            val environmentVariables = mapOf(
+                "MY_ENV_VAR" to "secret1",
+                "ANOTHER_ENV_VAR" to "secret2",
+                "SIMPLE_ENV_VAR" to "simpleValue",
+                "ANOTHER_SIMPLE_ENV_VAR" to "anotherSimpleValue"
             )
-
-            val secretsToResolve = mutableListOf<Secret>()
-            val context = mockk<WorkerContext> {
-                coEvery { resolveSecrets(*varargAll { secretsToResolve.add(it) }) } answers {
-                    mapOf(
-                        secret1 to "mySecret",
-                        secret2 to "anotherSecret"
-                    )
-                }
-            }
 
             val exchangeDir = File("exchangeDir")
             val inputDir = File("inputDir")
@@ -451,16 +424,9 @@ class AnalyzerRunnerTest : WordSpec({
                         "${exchangeDir.absolutePath} ${inputDir.absolutePath}"
             )
             val runner = AnalyzerRunner(ConfigFactory.empty())
-            val processBuilder = runner.createProcessBuilder(context, exchangeDir, inputDir, environmentConfig)
+            val processBuilder = runner.createProcessBuilder(exchangeDir, inputDir, environmentVariables)
 
-            secretsToResolve should containExactlyInAnyOrder(secret1, secret2)
-
-            processBuilder.environment() shouldContainAll mapOf(
-                "MY_ENV_VAR" to "mySecret",
-                "ANOTHER_ENV_VAR" to "anotherSecret",
-                "SIMPLE_ENV_VAR" to "simpleValue",
-                "ANOTHER_SIMPLE_ENV_VAR" to "anotherSimpleValue"
-            )
+            processBuilder.environment() shouldContainAll environmentVariables
 
             processBuilder.command() shouldContainExactly expectedCommands
         }
@@ -471,10 +437,6 @@ class AnalyzerRunnerTest : WordSpec({
                 "analyzer.forkCommandSeparator" to "*"
             )
             val config = ConfigFactory.parseMap(configMap)
-
-            val context = mockk<WorkerContext> {
-                coEvery { resolveSecrets(*anyVararg()) } returns emptyMap()
-            }
 
             val exchangeDir = File("exchangeDir")
             val inputDir = File("inputDir")
@@ -488,8 +450,7 @@ class AnalyzerRunnerTest : WordSpec({
             )
 
             val runner = AnalyzerRunner(config)
-            val processBuilder =
-                runner.createProcessBuilder(context, exchangeDir, inputDir, ResolvedEnvironmentConfig())
+            val processBuilder = runner.createProcessBuilder(exchangeDir, inputDir, emptyMap())
 
             processBuilder.command() shouldContainExactly expectedCommands
         }

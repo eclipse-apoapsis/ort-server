@@ -36,6 +36,9 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.resolutions.OrtServerResolutionProvider
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
@@ -111,11 +114,12 @@ internal class AnalyzerWorker(
                 envConfigFromJob,
                 repositoryServices
             )
+            val environment = resolveEnvironmentVariables(context, resolvedEnvConfig)
             val ortResult = runner.run(
                 context,
                 downloadResult.directory,
                 job.configuration.toRunnerConfig(context),
-                resolvedEnvConfig
+                environment
             )
 
             ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
@@ -244,3 +248,28 @@ private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerConte
         repositoryConfigPath = repositoryConfigPath,
         packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders)
     )
+
+/**
+ * Return a [Map] with all environment variables configured in the given [environmentConfig] with secrets resolved.
+ * Use the given [context] to resolve secret values.
+ */
+private suspend fun resolveEnvironmentVariables(
+    context: WorkerContext,
+    environmentConfig: ResolvedEnvironmentConfig
+): Map<String, String> {
+    val allSecrets = environmentConfig.environmentVariables
+        .filterIsInstance<SecretVariableDefinition>()
+        .map { it.valueSecret }
+    val resolvedSecrets = allSecrets.takeUnless { it.isEmpty() }?.let {
+        context.resolveSecrets(*allSecrets.toTypedArray())
+    }.orEmpty()
+    val environment = mutableMapOf<String, String>()
+    environmentConfig.environmentVariables.forEach { variable ->
+        when (variable) {
+            is SecretVariableDefinition -> environment[variable.name] = resolvedSecrets.getValue(variable.valueSecret)
+            is SimpleVariableDefinition -> environment[variable.name] = variable.value
+        }
+    }
+
+    return environment
+}

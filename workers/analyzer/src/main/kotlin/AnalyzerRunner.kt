@@ -34,9 +34,6 @@ import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefaul
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
-import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
-import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
-import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
 import org.ossreviewtoolkit.analyzer.Analyzer
 import org.ossreviewtoolkit.analyzer.determineEnabledPackageManagers
@@ -135,23 +132,23 @@ class AnalyzerRunner(
 
     /**
      * Run the analyzer for the given [inputDir] using the provided [runnerConfig] and return the resulting
-     * [OrtResult]. Depending on the [environmentConfig], the analyzer is run in the same JVM or in a forked JVM with a
-     * customized environment.
+     * [OrtResult]. Depending on the [environmentVariables], the analyzer is run in the same JVM or in a forked JVM
+     * with a customized environment.
      */
     suspend fun run(
         context: WorkerContext,
         inputDir: File,
         runnerConfig: AnalyzerRunnerConfig,
-        environmentConfig: ResolvedEnvironmentConfig
-    ): OrtResult = if (environmentConfig.environmentVariables.isEmpty()) {
+        environmentVariables: Map<String, String>
+    ): OrtResult = if (environmentVariables.isEmpty()) {
         runInProcess(inputDir, runnerConfig)
     } else {
-        runForked(context, inputDir, runnerConfig, environmentConfig)
+        runForked(context, inputDir, runnerConfig, environmentVariables)
     }
 
     /**
      * Create a [ProcessBuilder] for running the [AnalyzerRunner] in a forked JVM with a customized environment.
-     * Use the given [context] to resolve secrets from the [environmentConfig] and set them as environment variables.
+     * Pass all variables from the given [environment] to the environment of the newly started process.
      * Generate the command line arguments for the forked process based on the configuration of the Analyzer worker
      * and the given [exchangeDir] and [inputDir]: The command and the arguments to launch a new JVM process can be
      * defined in the following configuration properties:
@@ -162,11 +159,10 @@ class AnalyzerRunner(
      *    - `${LAUNCH}`: Will be replaced by the fully qualified name of the main class to be executed and the
      *      arguments to be passed to it.
      */
-    internal suspend fun createProcessBuilder(
-        context: WorkerContext,
+    internal fun createProcessBuilder(
         exchangeDir: File,
         inputDir: File,
-        environmentConfig: ResolvedEnvironmentConfig
+        environment: Map<String, String>
     ): ProcessBuilder {
         val placeholders = mapOf(
             CLASSPATH_PLACEHOLDER to System.getProperty("java.class.path"),
@@ -179,23 +175,13 @@ class AnalyzerRunner(
             .redirectError(ProcessBuilder.Redirect.INHERIT)
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
 
-        val allSecrets = environmentConfig.environmentVariables
-            .filterIsInstance<SecretVariableDefinition>()
-            .map { it.valueSecret }
-        val resolvedSecrets = context.resolveSecrets(*allSecrets.toTypedArray())
-        val environment = processBuilder.environment()
-        environmentConfig.environmentVariables.forEach { variable ->
-            when (variable) {
-                is SecretVariableDefinition -> environment[variable.name] = resolvedSecrets[variable.valueSecret]
-                is SimpleVariableDefinition -> environment[variable.name] = variable.value
-            }
-        }
+        processBuilder.environment() += environment
 
         return processBuilder
     }
 
     /**
-     * Run the Analyzer in a forked JVM with a customized [environmentConfig] using the given [context],
+     * Run the Analyzer in a forked JVM with a customized [environment] using the given [context],
      * [project directory][inputDir], and [config]. This function is used if custom environment variables need to be
      * set.
      */
@@ -203,12 +189,12 @@ class AnalyzerRunner(
         context: WorkerContext,
         inputDir: File,
         config: AnalyzerRunnerConfig,
-        environmentConfig: ResolvedEnvironmentConfig
+        environment: Map<String, String>
     ): OrtResult {
         val exchangeDir = context.createTempDir()
         exchangeDir.resolve(ANALYZER_CONFIG_FILE).writeValue(config)
 
-        val processBuilder = createProcessBuilder(context, exchangeDir, inputDir, environmentConfig)
+        val processBuilder = createProcessBuilder(exchangeDir, inputDir, environment)
 
         logger.info("Starting forked AnalyzerRunner with command: ${processBuilder.command()}")
         withContext(Dispatchers.IO) {

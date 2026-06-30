@@ -25,6 +25,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -62,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -73,6 +75,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue
@@ -359,7 +363,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val contextFactory = mockContextFactory(context)
 
-        val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
+        val resolvedEnvConfig = ResolvedEnvironmentConfig()
         val envService = mockk<EnvironmentService> {
             coEvery { findInfrastructureServicesForRepository(context, envConfig) } returns emptyList()
             coEvery { setUpEnvironment(context, projectDir, envConfig, emptyList()) } returns resolvedEnvConfig
@@ -368,7 +372,7 @@ class AnalyzerWorkerTest : StringSpec({
         val runnerConfig = runnerConfig(jobConfig, packageCurationProvidersConfigs)
         val testException = IllegalStateException("AnalyzerRunner test exception")
         val runner = mockk<AnalyzerRunner> {
-            coEvery { run(context, any(), runnerConfig, resolvedEnvConfig) } throws testException
+            coEvery { run(context, any(), runnerConfig, emptyMap()) } throws testException
         }
 
         val worker = AnalyzerWorker(
@@ -413,7 +417,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val contextFactory = mockContextFactory(context)
 
-        val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
+        val resolvedEnvConfig = ResolvedEnvironmentConfig()
         val envService = mockk<EnvironmentService> {
             coEvery { findInfrastructureServicesForRepository(context, any()) } returns emptyList()
             coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns resolvedEnvConfig
@@ -426,7 +430,7 @@ class AnalyzerWorkerTest : StringSpec({
                     context,
                     any(),
                     runnerConfig(analyzerJob.configuration),
-                    resolvedEnvConfig
+                    emptyMap()
                 )
             } throws testException
         }
@@ -448,6 +452,99 @@ class AnalyzerWorkerTest : StringSpec({
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
+    }
+
+    "AnalyzerRunner should be invoked correctly with resolved environment variables" {
+        val envConfig = mockk<EnvironmentConfig>()
+        val jobConfig = AnalyzerJobConfiguration(
+            environmentConfig = envConfig,
+            enabledPackageManagers = listOf("Maven"),
+            packageCurationProviders = listOf(mockk())
+        )
+        val job = analyzerJob.copy(configuration = jobConfig)
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns job
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns job
+            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val secret1 = mockk<Secret>()
+        val secret2 = mockk<Secret>()
+        val resolvedEnvConfig = ResolvedEnvironmentConfig(
+            environmentVariables = setOf(
+                SecretVariableDefinition("MY_ENV_VAR", secret1),
+                SecretVariableDefinition("ANOTHER_ENV_VAR", secret2),
+                SimpleVariableDefinition("SIMPLE_ENV_VAR", "simpleValue"),
+                SimpleVariableDefinition("ANOTHER_SIMPLE_ENV_VAR", "anotherSimpleValue")
+            )
+        )
+        val expectedEnvironmentVariables = mapOf(
+            "MY_ENV_VAR" to "mySecret",
+            "ANOTHER_ENV_VAR" to "anotherSecret",
+            "SIMPLE_ENV_VAR" to "simpleValue",
+            "ANOTHER_SIMPLE_ENV_VAR" to "anotherSimpleValue"
+        )
+
+        val secretsToResolve = mutableListOf<Secret>()
+        val packageCurationProvidersConfigs = listOf(mockk<ProviderPluginConfiguration>())
+        val context = mockWorkerContext {
+            coEvery {
+                resolveProviderPluginConfigSecrets(jobConfig.packageCurationProviders)
+            } returns packageCurationProvidersConfigs
+
+            coEvery { resolveSecrets(*varargAll { secretsToResolve.add(it) }) } answers {
+                mapOf(
+                    secret1 to "mySecret",
+                    secret2 to "anotherSecret"
+                )
+            }
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            coEvery { findInfrastructureServicesForRepository(context, envConfig) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, envConfig, emptyList()) } returns resolvedEnvConfig
+        }
+
+        val runnerConfig = runnerConfig(jobConfig, packageCurationProvidersConfigs)
+        val testException = IllegalStateException("AnalyzerRunner test exception")
+        val runner = mockk<AnalyzerRunner> {
+            coEvery { run(context, any(), runnerConfig, expectedEnvironmentVariables) } throws testException
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runner,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockk(relaxed = true),
+            mockIssueResolutionService()
+        )
+
+        mockkTransaction {
+            when (val result = worker.testRun()) {
+                is RunResult.Failed -> result.error shouldBe testException
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
+            }
+        }
+
+        secretsToResolve should containExactlyInAnyOrder(secret1, secret2)
     }
 
     "A failure result should be returned in case of an error" {
