@@ -39,4 +39,9 @@ it('formatTimestamp', () => {
   expect(formatTimestamp('2024-06-11T13:07:45Z', 'UTC', 'fi-FI')).toBe(
     '11.06.2024 klo 13.07.45'
   );
+
+  expect(formatTimestamp('not-a-timestamp', 'UTC', 'en-US')).toBe(
+    'Invalid Date'
+  );
+  expect(formatTimestamp('', 'UTC', 'en-US')).toBe('Invalid Date');
 });

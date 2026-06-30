@@ -62,9 +62,15 @@ it('correctly categorizes infrastructure issues', () => {
 });
 
 it('correctly categorizes missing data issues', () => {
-  const message =
-    "IOException: Could not resolve provenance for package 'Pod::RNVectorIcons:10.2.0' for source code origins [ARTIFACT, VCS].";
-  expect(getIssueCategory(message)).toBe('Missing Data');
+  const messages = [
+    "IOException: Could not resolve provenance for package 'Pod::RNVectorIcons:10.2.0' for source code origins [ARTIFACT, VCS].",
+    "Could not resolve provenance for package 'NPM::lodash:4.17.21' for source code origins [VCS].",
+    "Could not resolve provenance for package 'Maven:org.example:lib:2.0.0' for source code origins [ARTIFACT].",
+  ];
+
+  messages.forEach((message) => {
+    expect(getIssueCategory(message)).toBe('Missing Data');
+  });
 });
 
 it('correctly categorizes other issues', () => {
