@@ -21,159 +21,160 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.file.beEmptyDirectory
-import io.kotest.matchers.file.shouldContainFile
-import io.kotest.matchers.file.shouldNotExist
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldNotBeEmpty
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
 
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.verify
 
 import java.io.IOException
 
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 
 import org.ossreviewtoolkit.downloader.VersionControlSystem
-import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.downloader.WorkingTree
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.api.PluginConfig
-import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
-import org.ossreviewtoolkit.utils.common.ProcessCapture
 
 class AnalyzerDownloaderTest : WordSpec({
     val downloader = AnalyzerDownloader()
 
+    val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
+    val revision = "abc123def456"
+    val resolvedRevision = "def456abc123def456abc123def456abc123def456"
+
+    fun createMockVcs(mockWorkingTree: WorkingTree): VersionControlSystem =
+        mockk<VersionControlSystem> {
+            every { type } returns VcsType.GIT
+            every { initWorkingTree(any(), any()) } returns mockWorkingTree
+            every { updateWorkingTree(any(), any(), any(), any()) } returns Result.success(resolvedRevision)
+            every { getWorkingTree(any()) } returns mockWorkingTree
+        }
+
+    fun createMockWorkingTree(): WorkingTree =
+        mockk<WorkingTree> {
+            every { getRevision() } returns resolvedRevision
+        }
+
     "downloadRepository" should {
         "use the default branch if an empty revision is given" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
+            val defaultBranch = "main"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
+            every { mockVcs.getDefaultBranchName(repositoryUrl) } returns defaultBranch
+            every {
+                mockVcs.updateWorkingTree(any(), defaultBranch, any(), any())
+            } returns Result.success(resolvedRevision)
 
-            val result = downloader.downloadRepository(repositoryUrl, revision = "")
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(repositoryUrl, any()) } returns mockVcs
 
-            result.initRevision shouldBe "main"
+                val result = downloader.downloadRepository(repositoryUrl, revision = "")
 
-            with(ProcessCapture("git", "branch", "--show-current", workingDir = result.directory).requireSuccess()) {
-                stdout.trim() shouldBe "main"
+                result.initRevision shouldBe defaultBranch
+                result.resolvedRevision shouldBe resolvedRevision
             }
         }
 
         "return the initial and resolved revisions" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
 
-            val result = downloader.downloadRepository(repositoryUrl, revision = "main")
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(repositoryUrl, any()) } returns mockVcs
 
-            result.initRevision shouldBe "main"
-            result.resolvedRevision shouldBe GitFactory.create().getWorkingTree(result.directory).getRevision()
+                val result = downloader.downloadRepository(repositoryUrl, revision = revision)
+
+                result.initRevision shouldBe revision
+                result.resolvedRevision shouldBe resolvedRevision
+            }
         }
 
         "not recursively clone a Git repository if submoduleFetchStrategy is DISABLED" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val revision = "fcea94bab5835172e826afddb9f6427274c983b9"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
 
-            val outputDir = downloader.downloadRepository(
-                repositoryUrl, revision, submoduleFetchStrategy = SubmoduleFetchStrategy.DISABLED
-            ).directory
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(repositoryUrl, any()) } returns mockVcs
 
-            outputDir shouldContainFile "LICENSE"
-            outputDir shouldContainFile "README.md"
+                downloader.downloadRepository(
+                    repositoryUrl,
+                    revision,
+                    submoduleFetchStrategy = SubmoduleFetchStrategy.DISABLED
+                )
 
-            outputDir.resolve("commons-text") should beEmptyDirectory()
-            outputDir.resolve("test-data-npm") should beEmptyDirectory()
-
-            val workingTree = VersionControlSystem.forDirectory(outputDir)
-            workingTree.shouldNotBeNull()
-            workingTree.getNested().shouldBeEmpty()
+                verify(exactly = 1) { mockVcs.updateWorkingTree(any(), any(), any(), recursive = false) }
+            }
         }
 
         "clone only the top level of a Git repository if submoduleFetchStrategy is TOP_LEVEL_ONLY" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val revision = "fcea94bab5835172e826afddb9f6427274c983b9"
+            val submodulesRepositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
 
-            val outputDir = downloader.downloadRepository(
-                repositoryUrl, revision, submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
-            ).directory
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(submodulesRepositoryUrl, any()) } returns mockVcs
 
-            outputDir shouldContainFile "LICENSE"
-            outputDir shouldContainFile "README.md"
-
-            outputDir.resolve("commons-text") shouldNot beEmptyDirectory()
-            outputDir.resolve("test-data-npm") shouldNot beEmptyDirectory()
-
-            val workingTree = VersionControlSystem.forDirectory(outputDir)
-            workingTree.shouldNotBeNull()
-            workingTree.getNested() shouldContainExactly mapOf(
-                "commons-text" to VcsInfo(
-                    type = VcsType.GIT,
-                    url = "https://github.com/apache/commons-text.git",
-                    revision = "7643b12421100d29fd2b78053e77bcb04a251b2e"
-                ),
-                "test-data-npm" to VcsInfo(
-                    type = VcsType.GIT,
-                    url = "https://github.com/oss-review-toolkit/ort-test-data-npm.git",
-                    revision = "ad0367b7b9920144a47b8d30cc0c84cea102b821"
+                downloader.downloadRepository(
+                    submodulesRepositoryUrl,
+                    revision,
+                    submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
                 )
-            )
+
+                verify(exactly = 1) {
+                    VersionControlSystem.forUrl(
+                        submodulesRepositoryUrl,
+                        match { config ->
+                            config[VcsType.GIT.toString()]?.options?.get("updateNestedSubmodules") == false.toString()
+                        }
+                    )
+                }
+                verify(exactly = 1) { mockVcs.updateWorkingTree(any(), any(), any(), recursive = true) }
+            }
         }
 
         "fully recursively clone a Git repository if submoduleFetchStrategy is FULLY_RECURSIVE" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val revision = "fcea94bab5835172e826afddb9f6427274c983b9"
+            val submodulesRepositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
 
-            val outputDir = downloader.downloadRepository(
-                repositoryUrl, revision, submoduleFetchStrategy = SubmoduleFetchStrategy.FULLY_RECURSIVE
-            ).directory
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(submodulesRepositoryUrl, any()) } returns mockVcs
 
-            outputDir shouldContainFile "LICENSE"
-            outputDir shouldContainFile "README.md"
-
-            outputDir.resolve("commons-text") shouldNot beEmptyDirectory()
-            outputDir.resolve("test-data-npm") shouldNot beEmptyDirectory()
-
-            val workingTree = VersionControlSystem.forDirectory(outputDir)
-            workingTree.shouldNotBeNull()
-            workingTree.getNested() shouldContainExactly mapOf(
-                "commons-text" to VcsInfo(
-                    type = VcsType.GIT,
-                    url = "https://github.com/apache/commons-text.git",
-                    revision = "7643b12421100d29fd2b78053e77bcb04a251b2e"
-                ),
-                "test-data-npm" to VcsInfo(
-                    type = VcsType.GIT,
-                    url = "https://github.com/oss-review-toolkit/ort-test-data-npm.git",
-                    revision = "ad0367b7b9920144a47b8d30cc0c84cea102b821"
-                ),
-                "test-data-npm/isarray" to VcsInfo(
-                    type = VcsType.GIT,
-                    url = "https://github.com/juliangruber/isarray.git",
-                    revision = "63ea4ca0a0d6b0574d6a470ebd26880c3026db4a"
-                ),
-                "test-data-npm/long.js" to VcsInfo(
-                    type = VcsType.GIT,
-                    url = "https://github.com/dcodeIO/long.js.git",
-                    revision = "941c5c62471168b5d18153755c2a7b38d2560e58"
+                downloader.downloadRepository(
+                    submodulesRepositoryUrl,
+                    revision,
+                    submoduleFetchStrategy = SubmoduleFetchStrategy.FULLY_RECURSIVE
                 )
-            )
+
+                verify(exactly = 1) {
+                    VersionControlSystem.forUrl(submodulesRepositoryUrl, emptyMap())
+                }
+                verify(exactly = 1) { mockVcs.updateWorkingTree(any(), any(), any(), recursive = true) }
+            }
         }
 
         "clone a sub-directory of a Git repository" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
-            val revision = "63b81fda7961c7426672469caaf4fb350a9d4ee0"
             val subPath = "pkg1"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
 
-            val outputDir = downloader.downloadRepository(repositoryUrl, revision, subPath).directory
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(repositoryUrl, any()) } returns mockVcs
 
-            outputDir shouldContainFile "LICENSE"
-            outputDir shouldContainFile "README.md"
+                downloader.downloadRepository(repositoryUrl, revision, subPath)
 
-            outputDir.resolve("pkg1") shouldNot beEmptyDirectory()
-            outputDir.resolve("pkg2").shouldNotExist()
-            outputDir.resolve("pkg3").shouldNotExist()
-            outputDir.resolve("pkg4").shouldNotExist()
+                verify(exactly = 1) {
+                    mockVcs.initWorkingTree(
+                        any(),
+                        match { vcsInfo -> vcsInfo.path == subPath }
+                    )
+                }
+            }
         }
 
         "throw an exception if the VCS type cannot be determined from the URL" {
@@ -187,39 +188,43 @@ class AnalyzerDownloaderTest : WordSpec({
         }
 
         "throw an exception if the repository cannot be cloned" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val revision = "invalid-revision"
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
+            every {
+                mockVcs.updateWorkingTree(any(), any(), any(), any())
+            } returns Result.failure(IOException("Failed to update working tree to revision 'invalid-revision'."))
 
-            shouldThrow<IOException> {
-                downloader.downloadRepository(repositoryUrl, revision)
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(repositoryUrl, any()) } returns mockVcs
+
+                shouldThrow<IOException> {
+                    downloader.downloadRepository(repositoryUrl, revision = "invalid-revision")
+                }
             }
         }
     }
 
     "buildCustomVcsPluginConfigurations" should {
         "return an empty map if the submoduleFetchStrategy is null" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val submoduleFetchStrategy = null
-
-            val configurations = downloader.buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
+            val configurations = downloader.buildCustomVcsPluginConfigMap(repositoryUrl, null)
 
             configurations.shouldBeEmpty()
         }
 
         "return an empty map if the submoduleFetchStrategy is DISABLED" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val submoduleFetchStrategy = SubmoduleFetchStrategy.DISABLED
-
-            val configurations = downloader.buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
+            val configurations = downloader.buildCustomVcsPluginConfigMap(
+                repositoryUrl,
+                SubmoduleFetchStrategy.DISABLED
+            )
 
             configurations.shouldBeEmpty()
         }
 
         "return custom configuration for git if the submoduleFetchStrategy is TOP_LEVEL_ONLY" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
-
-            val configurations = downloader.buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
+            val configurations = downloader.buildCustomVcsPluginConfigMap(
+                repositoryUrl,
+                SubmoduleFetchStrategy.TOP_LEVEL_ONLY
+            )
 
             configurations.shouldNotBeEmpty()
 
@@ -231,21 +236,18 @@ class AnalyzerDownloaderTest : WordSpec({
         }
 
         "return an empty map if the submoduleFetchStrategy is FULLY_RECURSIVE" {
-            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
-            val submoduleFetchStrategy = SubmoduleFetchStrategy.FULLY_RECURSIVE
-
-            val configurations = downloader.buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
+            val configurations = downloader.buildCustomVcsPluginConfigMap(
+                repositoryUrl,
+                SubmoduleFetchStrategy.FULLY_RECURSIVE
+            )
 
             configurations.shouldBeEmpty()
         }
 
         "throw an IllegalArgumentException if the submoduleFetchStrategy is TOP_LEVEL_ONLY " +
                 "and the VCS type is not GIT" {
-            val repositoryUrl = "https://example.com"
-            val submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
-
             shouldThrow<IllegalArgumentException> {
-                downloader.buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
+                downloader.buildCustomVcsPluginConfigMap("https://example.com", SubmoduleFetchStrategy.TOP_LEVEL_ONLY)
             }
         }
     }
