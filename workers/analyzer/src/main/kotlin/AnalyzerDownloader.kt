@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import java.io.File
 
+import kotlin.io.path.createTempDirectory
+
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 
 import org.ossreviewtoolkit.downloader.VcsHost
@@ -28,22 +30,53 @@ import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.api.PluginConfig
-import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerDownloader::class.java)
 
 class AnalyzerDownloader {
+    companion object {
+        /**
+         * Look up the directory of the download for the given [runId] under the given [root] directory based on the
+         * naming conventions applied by this class. Return *null* if the directory cannot be determined or an error
+         * occurs. This is useful if the download was done in a different phase of the analyzer run.
+         */
+        fun findDownloadDir(root: File, runId: Long): File? =
+            runCatching {
+                val dirName = downloadDirName(runId)
+
+                root.listFiles { file -> file.isDirectory && dirName in file.name }.single()
+            }.onFailure {
+                logger.warn("Could not find download directory for runId '$runId' under root '$root'.", it)
+            }.getOrNull()
+
+        /**
+         * Generate a name for a directory in which to download the repository for the run with the given [runId].
+         * Based on this name, a temporary directory is created.
+         */
+        private fun downloadDirName(runId: Long?): String {
+            val runComponent = runId?.let { "-$it" }.orEmpty()
+            return "analyzer-worker$runComponent-download"
+        }
+    }
+
+    /**
+     * Download a VCS repository with the given [repositoryUrl], [revision], and optional [path] using ORT's Downloader
+     * component. In case of a Git repository, apply the given [submoduleFetchStrategy]. Allow specifying the parent
+     * [targetDir] for the download and the name of the download folder based on the provided [runId].
+     */
     fun downloadRepository(
         repositoryUrl: String,
         revision: String,
         path: String = "",
-        submoduleFetchStrategy: SubmoduleFetchStrategy? = SubmoduleFetchStrategy.FULLY_RECURSIVE
+        submoduleFetchStrategy: SubmoduleFetchStrategy? = SubmoduleFetchStrategy.FULLY_RECURSIVE,
+        targetDir: File? = null,
+        runId: Long? = null
     ): DownloadResult {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
-        val outputDir = createOrtTempDir("analyzer-worker")
+        val outputDir = createTempDirectory(targetDir?.toPath(), downloadDirName(runId)).toFile()
 
         val config = buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
         val vcs = VersionControlSystem.forUrl(repositoryUrl, config)

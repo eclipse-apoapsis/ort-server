@@ -21,10 +21,14 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldNotBeEmpty
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
 import io.mockk.mockk
@@ -202,6 +206,28 @@ class AnalyzerDownloaderTest : WordSpec({
                 }
             }
         }
+
+        "allow customizing the download folder" {
+            val targetDir = tempdir()
+            val runId = 20260630054526L
+            val mockWorkingTree = createMockWorkingTree()
+            val mockVcs = createMockVcs(mockWorkingTree)
+
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(repositoryUrl, any()) } returns mockVcs
+
+                val result = downloader.downloadRepository(
+                    repositoryUrl,
+                    revision = revision,
+                    targetDir = targetDir,
+                    runId = runId
+                )
+
+                result.directory.isDirectory shouldBe true
+                result.directory.parentFile shouldBe targetDir
+                result.directory.name shouldContain runId.toString()
+            }
+        }
     }
 
     "buildCustomVcsPluginConfigurations" should {
@@ -249,6 +275,50 @@ class AnalyzerDownloaderTest : WordSpec({
             shouldThrow<IllegalArgumentException> {
                 downloader.buildCustomVcsPluginConfigMap("https://example.com", SubmoduleFetchStrategy.TOP_LEVEL_ONLY)
             }
+        }
+    }
+
+    "findDownloadDir" should {
+        "find an existing download directory" {
+            val runId = 20260630061242L
+            val root = tempdir()
+            val downloadDir = root.resolve("Temp-analyzer-worker-$runId-download0123456789")
+            downloadDir.mkdirs()
+            val otherDirs = listOf("foo", "bar", "baz", "analyzer-worker-20260630061243-download")
+            otherDirs.forEach { root.resolve(it).mkdirs() }
+
+            val foundDir = AnalyzerDownloader.findDownloadDir(root, runId)
+
+            foundDir shouldBe downloadDir
+        }
+
+        "return null if no directory for the given runId can be found" {
+            val runId = 20260630065648L
+            val root = tempdir()
+            val dirs = listOf("foo", "bar", "baz", "analyzer-worker-20260630061242-download")
+            dirs.forEach { root.resolve(it).mkdirs() }
+
+            val foundDir = AnalyzerDownloader.findDownloadDir(root, runId)
+
+            foundDir should beNull()
+        }
+
+        "return null if no unique directory for the given runId can be found" {
+            val runId = 20260630065927L
+            val root = tempdir()
+            val dirs = listOf(
+                "analyzer-worker-$runId-download-1",
+                "analyzer-worker-$runId-download-2"
+            )
+            dirs.forEach { root.resolve(it).mkdirs() }
+
+            val foundDir = AnalyzerDownloader.findDownloadDir(root, runId)
+
+            foundDir should beNull()
+        }
+
+        "return null for a non-existing root directory" {
+            AnalyzerDownloader.findDownloadDir(tempdir().resolve("non-existing"), 20260630065927L) should beNull()
         }
     }
 })
