@@ -19,16 +19,13 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { PreconfiguredPluginDescriptor } from '@/api';
 import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/default-values';
 import { createRunFormSchema } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/run-schema';
+import { createPluginDescriptor } from '../fixtures/create-run';
 
-const packageConfigurationProviderPlugin: PreconfiguredPluginDescriptor = {
+const packageConfigurationProviderPlugin = createPluginDescriptor({
   id: 'Dir',
   type: 'PACKAGE_CONFIGURATION_PROVIDER',
-  displayName: 'Directory',
-  summary: 'A package configuration provider plugin.',
-  description: 'A package configuration provider plugin.',
   options: [
     {
       name: 'path',
@@ -39,7 +36,7 @@ const packageConfigurationProviderPlugin: PreconfiguredPluginDescriptor = {
       isRequired: true,
     },
   ],
-};
+});
 
 function createValidFormData() {
   const formData = defaultValues(

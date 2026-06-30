@@ -26,6 +26,7 @@ import {
   providerPluginConfigsToFormValues,
   reconstructScannerSelection,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/plugin-utils';
+import { createPluginDescriptor } from '../fixtures/create-run';
 
 it('createPluginPayload omits blank secret values from the payload', () => {
   const payload = createPluginPayload(
@@ -87,12 +88,8 @@ it('createProviderPluginPayload creates provider configurations for selected plu
 
 it('getPluginDefaultValues ignores default values for secret options', () => {
   const defaults = getPluginDefaultValues([
-    {
+    createPluginDescriptor({
       id: 'SCANOSS',
-      type: 'SCANNER',
-      displayName: 'SCANOSS',
-      summary: 'A scanner plugin.',
-      description: 'A scanner plugin.',
       options: [
         {
           name: 'apiKey',
@@ -104,7 +101,7 @@ it('getPluginDefaultValues ignores default values for secret options', () => {
           isRequired: false,
         },
       ],
-    },
+    }),
   ]);
 
   expect(defaults.SCANOSS?.secrets).toEqual({});
