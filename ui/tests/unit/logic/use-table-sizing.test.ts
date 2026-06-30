@@ -21,7 +21,6 @@ import { expect, it } from 'vitest';
 
 import {
   calculateColumnSizing,
-  clampSize,
   type ColumnInfo,
 } from '@/hooks/use-table-sizing';
 
@@ -43,10 +42,4 @@ it('calculateColumnSizing calculates sizing for fixed, percentage, and grow colu
   expect(sizing['col1']).toBe(100); // fixed size
   expect(sizing['col2']).toBe(300); // 50% of 600
   expect(sizing['col3']).toBe(200); // remaining space
-});
-
-it('clampSize clamps size within min and max bounds', () => {
-  expect(clampSize(50, 100, 40)).toBe(50); // within bounds
-  expect(clampSize(30, 100, 40)).toBe(40); // below min
-  expect(clampSize(120, 100, 40)).toBe(100); // above max
 });

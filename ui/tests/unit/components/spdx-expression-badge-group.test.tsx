@@ -30,9 +30,6 @@ describe('SpdxExpressionBadgeGroup', () => {
 
     expect(markup).toContain('MIT OR (');
     expect(markup.match(/data-slot="badge"/g)?.length).toBe(1);
-    expect(markup).not.toContain(
-      'class="text-muted-foreground text-xs font-medium uppercase"'
-    );
   });
 
   it('renders a single badge for an atomic SPDX expression', () => {

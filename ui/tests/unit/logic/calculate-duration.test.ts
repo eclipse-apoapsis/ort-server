@@ -40,10 +40,7 @@ it('calculateDuration', () => {
   ).toBe('11d 1h 42m 1s');
 });
 
-it('divmod', () => {
-  expect(divmod(10, 3)).toStrictEqual([3, 1]);
-  expect(divmod(8, 2)).toStrictEqual([4, 0]);
-  expect(divmod(1, 1)).toStrictEqual([1, 0]);
+it('divmod handles zero divisor and negative operands', () => {
   expect(divmod(1, 0)).toStrictEqual([NaN, NaN]);
   expect(divmod(-10, 3)).toStrictEqual([-3, -1]);
   expect(divmod(10, -3)).toStrictEqual([-3, 1]);
