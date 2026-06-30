@@ -19,30 +19,30 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { AppliedIssueResolution, IssueResolution } from '@/api';
 import { getDisplayItems } from '@/components/resolutions/utils';
-import type { ItemWithResolutions } from '@/helpers/resolutions';
+import { createIssue } from '../fixtures/resolutions';
 
 describe('getDisplayItems', () => {
   it('match applied and unapplied server issue resolutions by message hash', () => {
-    const unappliedResolution = {
+    const unappliedResolution: IssueResolution = {
       message: 'Very long issue message copied from the server',
       messageHash: 'sha1-message-hash',
       reason: 'BUILD_TOOL_ISSUE',
       comment: 'Updated comment',
       source: 'SERVER',
     };
-    const appliedResolution = {
+    const appliedResolution: AppliedIssueResolution = {
       ...unappliedResolution,
       message: 'Older persisted server message representation',
       isDeleted: false,
     };
 
-    const item = {
-      source: 'Analyzer',
+    const item = createIssue({
       message: unappliedResolution.message,
       resolutions: [appliedResolution],
       unappliedResolutions: [unappliedResolution],
-    } as unknown as ItemWithResolutions;
+    });
 
     expect(getDisplayItems(item, true)).toStrictEqual([
       {
