@@ -19,16 +19,19 @@
 
 import { expect, it } from 'vitest';
 
-import { Issue, RuleViolation, VulnerabilityWithDetails } from '@/api';
 import {
   getAppliedIssueResolutions,
   getResolutionAccordionDefaultValue,
   getResolutionAccordionLabel,
 } from '@/helpers/resolutions';
+import {
+  createIssue,
+  createRuleViolation,
+  createVulnerability,
+} from '../fixtures/resolutions';
 
 it('getAppliedIssueResolutions returns applied server issue resolutions without re-filtering by message', () => {
-  const issue = {
-    source: 'Analyzer',
+  const issue = createIssue({
     message: 'Rendered issue message',
     resolutions: [
       {
@@ -41,8 +44,7 @@ it('getAppliedIssueResolutions returns applied server issue resolutions without 
         isDeleted: false,
       },
     ],
-    unappliedResolutions: [],
-  } as unknown as Issue;
+  });
 
   expect(getAppliedIssueResolutions(issue)).toStrictEqual(
     issue.resolutions ?? []
@@ -50,12 +52,10 @@ it('getAppliedIssueResolutions returns applied server issue resolutions without 
 });
 
 it('getResolutionAccordionDefaultValue expands details by default when a rule violation has no resolution activity', () => {
-  const ruleViolation = {
-    rule: 'TEST_RULE',
-    message: 'Rule violation message',
+  const ruleViolation = createRuleViolation({
     resolutions: [],
     unappliedResolutions: [],
-  } as unknown as RuleViolation;
+  });
 
   expect(getResolutionAccordionDefaultValue(ruleViolation)).toStrictEqual([
     'details',
@@ -63,8 +63,7 @@ it('getResolutionAccordionDefaultValue expands details by default when a rule vi
 });
 
 it('getResolutionAccordionDefaultValue expands resolutions by default when an issue has pending resolutions', () => {
-  const issue = {
-    source: 'Analyzer',
+  const issue = createIssue({
     message: 'Rendered issue message',
     resolutions: [],
     unappliedResolutions: [
@@ -75,7 +74,7 @@ it('getResolutionAccordionDefaultValue expands resolutions by default when an is
         source: 'SERVER',
       },
     ],
-  } as unknown as Issue;
+  });
 
   expect(getResolutionAccordionDefaultValue(issue)).toStrictEqual([
     'resolutions',
@@ -83,19 +82,9 @@ it('getResolutionAccordionDefaultValue expands resolutions by default when an is
 });
 
 it('getResolutionAccordionLabel returns an item-specific label', () => {
-  const issue = {
-    source: 'Analyzer',
-    message: 'Issue message',
-  } as unknown as Issue;
-  const ruleViolation = {
-    rule: 'TEST_RULE',
-    message: 'Rule violation message',
-  } as unknown as RuleViolation;
-  const vulnerability = {
-    vulnerability: {
-      externalId: 'CVE-2026-1234',
-    },
-  } as unknown as VulnerabilityWithDetails;
+  const issue = createIssue();
+  const ruleViolation = createRuleViolation();
+  const vulnerability = createVulnerability();
 
   expect(getResolutionAccordionLabel(issue)).toBe('Resolve issue');
   expect(getResolutionAccordionLabel(ruleViolation)).toBe(
