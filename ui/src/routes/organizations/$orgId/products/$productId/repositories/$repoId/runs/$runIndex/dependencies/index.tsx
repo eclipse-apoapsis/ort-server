@@ -67,6 +67,7 @@ import {
 } from './-components/dependency-graph-utils';
 import { DependencyTreeNode } from './-components/dependency-tree-node';
 import { HighlightedMatch } from './-components/highlighted-match';
+import { TreeBranch } from './-components/tree-branch';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -305,60 +306,80 @@ const ManagerDependenciesTab = ({
                     </div>
                   </TreeToggle>
 
-                  <CollapsibleContent className='ml-4 border-l pl-4'>
+                  <CollapsibleContent>
                     <div className='space-y-2'>
                       {visibleScopes.map(
-                        ({
-                          packageCount,
-                          rootNodeIndexes,
-                          scopeName,
-                          scopeLabel,
-                        }) => {
+                        (
+                          {
+                            packageCount,
+                            rootNodeIndexes,
+                            scopeName,
+                            scopeLabel,
+                          },
+                          scopePosition
+                        ) => {
                           const scopeOpen = Boolean(
                             searchTerm &&
                             rootNodeIndexes.some(matchesNodeSubtree) &&
                             !matchesSearch(scopeLabel, searchTerm)
                           );
+                          const visibleRootNodeIndexes = searchTerm
+                            ? rootNodeIndexes.filter(matchesNodeSubtree)
+                            : rootNodeIndexes;
 
                           return (
-                            <Collapsible
+                            <TreeBranch
                               key={scopeName}
-                              className='group space-y-2'
-                              open={searchTerm ? scopeOpen : undefined}
+                              isLast={
+                                scopePosition === visibleScopes.length - 1
+                              }
                             >
-                              <TreeToggle
-                                isOpen={searchTerm ? scopeOpen : undefined}
+                              <Collapsible
+                                className='group space-y-2'
+                                open={searchTerm ? scopeOpen : undefined}
                               >
-                                <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                                  {scopeLabel && (
-                                    <Badge variant='outline'>
-                                      <HighlightedMatch
-                                        searchTerm={searchTerm}
-                                        text={scopeLabel}
-                                      />
-                                    </Badge>
-                                  )}
-                                  <PackageCountBadge count={packageCount} />
-                                </div>
-                              </TreeToggle>
+                                <TreeToggle
+                                  isOpen={searchTerm ? scopeOpen : undefined}
+                                >
+                                  <div className='flex min-w-0 flex-wrap items-center gap-2'>
+                                    {scopeLabel && (
+                                      <Badge variant='outline'>
+                                        <HighlightedMatch
+                                          searchTerm={searchTerm}
+                                          text={scopeLabel}
+                                        />
+                                      </Badge>
+                                    )}
+                                    <PackageCountBadge count={packageCount} />
+                                  </div>
+                                </TreeToggle>
 
-                              <CollapsibleContent className='ml-4 border-l pt-2 pl-4'>
-                                <div className='space-y-2'>
-                                  {rootNodeIndexes.map((nodeIndex) => (
-                                    <DependencyTreeNode
-                                      key={`${scopeName}-${nodeIndex}`}
-                                      adjacency={adjacency}
-                                      graph={graph}
-                                      matchesNodeSubtree={matchesNodeSubtree}
-                                      nodeIndex={nodeIndex}
-                                      packageIdType={packageIdType}
-                                      path={new Set<number>()}
-                                      searchTerm={searchTerm}
-                                    />
-                                  ))}
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
+                                <CollapsibleContent className='pt-2'>
+                                  <div className='space-y-2'>
+                                    {visibleRootNodeIndexes.map(
+                                      (nodeIndex, nodePosition) => (
+                                        <DependencyTreeNode
+                                          key={`${scopeName}-${nodeIndex}`}
+                                          adjacency={adjacency}
+                                          graph={graph}
+                                          isLast={
+                                            nodePosition ===
+                                            visibleRootNodeIndexes.length - 1
+                                          }
+                                          matchesNodeSubtree={
+                                            matchesNodeSubtree
+                                          }
+                                          nodeIndex={nodeIndex}
+                                          packageIdType={packageIdType}
+                                          path={new Set<number>()}
+                                          searchTerm={searchTerm}
+                                        />
+                                      )
+                                    )}
+                                  </div>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            </TreeBranch>
                           );
                         }
                       )}

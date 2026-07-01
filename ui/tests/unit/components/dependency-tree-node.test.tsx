@@ -56,6 +56,7 @@ describe('DependencyTreeNode', () => {
       <DependencyTreeNode
         adjacency={adjacency}
         graph={graph}
+        isLast={true}
         matchesNodeSubtree={() => true}
         nodeIndex={1}
         packageIdType='ORT_ID'
@@ -75,6 +76,7 @@ describe('DependencyTreeNode', () => {
           ...graph,
           edges: [{ from: 0, to: 1 }],
         }}
+        isLast={true}
         matchesNodeSubtree={(nodeIndex) => nodeIndex === 1}
         nodeIndex={0}
         packageIdType='ORT_ID'
@@ -93,6 +95,7 @@ describe('DependencyTreeNode', () => {
       <DependencyTreeNode
         adjacency={adjacency}
         graph={graph}
+        isLast={true}
         matchesNodeSubtree={() => true}
         nodeIndex={0}
         packageIdType='ORT_ID'
@@ -112,6 +115,7 @@ describe('DependencyTreeNode', () => {
           ...graph,
           edges: [{ from: 0, to: 1 }],
         }}
+        isLast={true}
         matchesNodeSubtree={() => true}
         nodeIndex={1}
         packageIdType='PURL'
