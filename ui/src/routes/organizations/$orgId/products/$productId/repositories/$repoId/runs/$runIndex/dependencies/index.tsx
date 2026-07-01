@@ -19,13 +19,7 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import {
-  ChevronDown,
-  ChevronRight,
-  ChevronsUpDown,
-  ChevronUp,
-  X,
-} from 'lucide-react';
+import { ChevronDown, ChevronsUpDown, ChevronUp, X } from 'lucide-react';
 import { useState } from 'react';
 
 import type { DependencyGraph } from '@/api';
@@ -68,6 +62,7 @@ import {
 import { DependencyTreeNode } from './-components/dependency-tree-node';
 import { HighlightedMatch } from './-components/highlighted-match';
 import { TreeBranch } from './-components/tree-branch';
+import { TreeToggleIcon } from './-components/tree-toggle-icon';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -182,27 +177,20 @@ const PackageCountBadge = ({ count }: { count?: number | null }) => {
 
 const TreeToggle = ({
   children,
-  isOpen,
   className,
 }: {
   children: React.ReactNode;
-  isOpen?: boolean;
   className?: string;
 }) => (
   <CollapsibleTrigger asChild>
     <button
       type='button'
       className={cn(
-        'flex w-full items-start gap-2 rounded-sm text-left',
+        'group/toggle flex w-full items-start gap-2 rounded-sm text-left',
         className
       )}
     >
-      <ChevronRight
-        className={cn(
-          'text-muted-foreground mt-0.5 size-4 shrink-0 transition-transform',
-          isOpen && 'rotate-90'
-        )}
-      />
+      <TreeToggleIcon />
       <div className='min-w-0 flex-1'>{children}</div>
     </button>
   </CollapsibleTrigger>
@@ -291,10 +279,10 @@ const ManagerDependenciesTab = ({
               return projectHasVisibleScopes ? (
                 <Collapsible
                   key={projectLabel}
-                  className='group space-y-2'
+                  className='space-y-2'
                   open={searchTerm ? projectOpen : undefined}
                 >
-                  <TreeToggle isOpen={searchTerm ? projectOpen : undefined}>
+                  <TreeToggle>
                     <div className='flex min-w-0 flex-wrap items-center gap-2'>
                       <span className='block min-w-0 text-sm font-semibold break-all'>
                         <HighlightedMatch
@@ -335,12 +323,10 @@ const ManagerDependenciesTab = ({
                               }
                             >
                               <Collapsible
-                                className='group space-y-2'
+                                className='space-y-2'
                                 open={searchTerm ? scopeOpen : undefined}
                               >
-                                <TreeToggle
-                                  isOpen={searchTerm ? scopeOpen : undefined}
-                                >
+                                <TreeToggle>
                                   <div className='flex min-w-0 flex-wrap items-center gap-2'>
                                     {scopeLabel && (
                                       <Badge variant='outline'>
@@ -388,7 +374,7 @@ const ManagerDependenciesTab = ({
                 </Collapsible>
               ) : (
                 <div key={projectLabel} className='flex items-start gap-2'>
-                  <div className='mt-0.5 size-4 shrink-0' />
+                  <div className='mt-[3px] size-4 shrink-0' />
                   <div className='flex min-w-0 flex-wrap items-center gap-2'>
                     <span className='block min-w-0 text-sm font-semibold break-all'>
                       <HighlightedMatch
