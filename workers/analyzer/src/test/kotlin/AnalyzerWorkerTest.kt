@@ -137,9 +137,10 @@ private val analyzerJob = AnalyzerJob(
 )
 
 /**
- * Helper function to invoke this worker with test parameters.
+ * Helper function to invoke this worker with the given [phase] and test parameters.
  */
-private suspend fun AnalyzerWorker.testRun(): RunResult = run(JOB_ID, TRACE_ID)
+private suspend fun AnalyzerWorker.testRun(phase: AnalyzerPhase): RunResult =
+    run(JOB_ID, TRACE_ID, phase, emptyArray())
 
 @Suppress("LargeClass")
 class AnalyzerWorkerTest : StringSpec({
@@ -177,19 +178,18 @@ class AnalyzerWorkerTest : StringSpec({
             } returns ResolvedEnvironmentConfig()
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, AnalyzerRunner(ConfigFactory.empty()))
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -237,19 +237,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, AnalyzerRunner(ConfigFactory.empty()))
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -301,19 +300,18 @@ class AnalyzerWorkerTest : StringSpec({
             } returns ResolvedEnvironmentConfig()
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, AnalyzerRunner(ConfigFactory.empty()))
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -375,19 +373,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(context, any(), runnerConfig, emptyMap()) } throws testException
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runner,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runner)
 
         mockkTransaction {
-            when (val result = worker.testRun()) {
+            when (val result = worker.testRun(phase)) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
@@ -435,19 +432,18 @@ class AnalyzerWorkerTest : StringSpec({
             } throws testException
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runner,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runner)
 
         mockkTransaction {
-            when (val result = worker.testRun()) {
+            when (val result = worker.testRun(phase)) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
@@ -526,19 +522,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(context, any(), runnerConfig, expectedEnvironmentVariables) } throws testException
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runner,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runner)
 
         mockkTransaction {
-            when (val result = worker.testRun()) {
+            when (val result = worker.testRun(phase)) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
@@ -553,19 +548,18 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } throws testException
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            mockk(),
-            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             mockk(),
             mockk(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(mockk(), AnalyzerRunner(ConfigFactory.empty()))
 
         mockkTransaction {
-            when (val result = worker.testRun()) {
+            when (val result = worker.testRun(phase)) {
                 is RunResult.Failed -> result.error shouldBe testException
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
@@ -578,19 +572,18 @@ class AnalyzerWorkerTest : StringSpec({
             every { getAnalyzerJob(any()) } returns invalidJob
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            mockk(),
-            AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             mockk(),
             mockk(),
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(mockk(), AnalyzerRunner(ConfigFactory.empty()))
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Ignored
         }
@@ -674,19 +667,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(any(), any(), any(), any()) } answers { ortResult }
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -762,19 +754,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(any(), any(), any(), any()) } answers { ortResult }
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.FinishedWithIssues
             resolvedItemsSlot.captured.issues should beEmpty()
@@ -815,19 +806,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(any(), any(), any(), any()) } returns OrtTestData.result
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -882,19 +872,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(any(), any(), any(), any()) } returns ortResultWithoutCurations
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -948,19 +937,18 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { run(any(), any(), any(), any()) } returns ortResultWithExcludedProject
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
 
@@ -1011,19 +999,18 @@ class AnalyzerWorkerTest : StringSpec({
             }
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.FinishedWithIssues
         }
@@ -1087,19 +1074,18 @@ class AnalyzerWorkerTest : StringSpec({
             }
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
         }
@@ -1141,19 +1127,18 @@ class AnalyzerWorkerTest : StringSpec({
             }
         }
 
-        val worker = AnalyzerWorker(
+        val phase = FullPhase(
             mockk(),
-            downloader,
-            runnerMock,
             ortRunService,
             contextFactory,
             envService,
             mockk(relaxed = true),
             mockIssueResolutionService()
         )
+        val worker = AnalyzerWorker(downloader, runnerMock)
 
         mockkTransaction {
-            val result = worker.testRun()
+            val result = worker.testRun(phase)
 
             result shouldBe RunResult.Success
         }

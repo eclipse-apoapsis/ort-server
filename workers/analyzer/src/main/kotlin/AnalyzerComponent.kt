@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 /**
@@ -55,10 +56,12 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
     override val endpointHandler: EndpointHandler<AnalyzerRequest> = { message ->
         val analyzerWorker by inject<AnalyzerWorker>()
         val publisher by inject<MessagePublisher>()
+        // TODO: Obtain the current phase from the command line arguments.
+        val phase by inject<AnalyzerPhase>()
         val jobId = message.payload.analyzerJobId
 
         withMdcContext(AnalyzerEndpoint.jobMdcKey(jobId)) {
-            val response = when (val result = analyzerWorker.run(jobId, message.header.traceId)) {
+            val response = when (val result = analyzerWorker.run(jobId, message.header.traceId, phase, emptyArray())) {
                 is RunResult.Success -> {
                     logger.info("Analyzer job '$jobId' succeeded.")
                     Message(message.header, AnalyzerWorkerResult(jobId))
@@ -99,6 +102,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         singleOf(::AnalyzerDownloader)
         singleOf(::AnalyzerRunner)
         singleOf(::AnalyzerWorker)
+        singleOf(::FullPhase).bind(AnalyzerPhase::class)
         single<AuthorizationService> { DbAuthorizationService(get()) }
         singleOf(::RepositoryService)
         singleOf(::IssueResolutionEventStore)

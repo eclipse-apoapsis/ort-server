@@ -204,7 +204,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         "A message to analyze a project should be processed" {
             runEndpointTest {
                 declareMock<AnalyzerWorker> {
-                    coEvery { run(JOB_ID, TRACE_ID) } returns RunResult.Success
+                    coEvery { run(JOB_ID, TRACE_ID, any(), any()) } returns RunResult.Success
                 }
 
                 sendAnalyzerRequest()
@@ -218,7 +218,9 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         "An error message should be sent back in case of a processing error" {
             runEndpointTest {
                 declareMock<AnalyzerWorker> {
-                    coEvery { run(JOB_ID, TRACE_ID) } returns RunResult.Failed(IllegalStateException("Test exception"))
+                    coEvery {
+                        run(JOB_ID, TRACE_ID, any(), any())
+                    } returns RunResult.Failed(IllegalStateException("Test exception"))
                 }
 
                 sendAnalyzerRequest()
@@ -232,7 +234,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         "A 'run finished with issues' message should be sent when ORT issues are over the threshold" {
             runEndpointTest {
                 declareMock<AnalyzerWorker> {
-                    coEvery { run(JOB_ID, TRACE_ID) } returns RunResult.FinishedWithIssues
+                    coEvery { run(JOB_ID, TRACE_ID, any(), any()) } returns RunResult.FinishedWithIssues
                 }
 
                 sendAnalyzerRequest()
@@ -246,7 +248,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         "No response should be sent if the request is ignored" {
             runEndpointTest {
                 declareMock<AnalyzerWorker> {
-                    coEvery { run(JOB_ID, TRACE_ID) } returns RunResult.Ignored
+                    coEvery { run(JOB_ID, TRACE_ID, any(), any()) } returns RunResult.Ignored
                 }
 
                 sendAnalyzerRequest()
