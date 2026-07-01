@@ -33,7 +33,6 @@ import z from 'zod';
 
 import { VulnerabilityRating, VulnerabilityWithStats } from '@/api';
 import {
-  getOrganizationOptions,
   getOrganizationVulnerabilitiesOptions,
   getOrganizationVulnerabilityAdvisorsOptions,
 } from '@/api/@tanstack/react-query.gen';
@@ -575,13 +574,6 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
     ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getOrganizationOptions({
-        path: { organizationId: Number.parseInt(params.orgId) },
-      }),
-    });
-  },
   component: OrganizationVulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,
 });

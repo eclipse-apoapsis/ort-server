@@ -226,13 +226,5 @@ const ProductSettingsPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/settings/'
 )({
-  loader: async ({ context: { queryClient }, params }) => {
-    const productId = Number.parseInt(params.productId);
-    await queryClient.prefetchQuery({
-      ...getProductOptions({
-        path: { productId },
-      }),
-    });
-  },
   component: ProductSettingsPage,
 });

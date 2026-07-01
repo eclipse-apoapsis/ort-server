@@ -223,15 +223,5 @@ const OrganizationSettingsPage = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/settings/')({
-  loader: async ({ context: { queryClient }, params }) => {
-    const organizationId = Number.parseInt(params.orgId);
-    await queryClient.prefetchQuery({
-      ...getOrganizationOptions({
-        path: {
-          organizationId,
-        },
-      }),
-    });
-  },
   component: OrganizationSettingsPage,
 });

@@ -33,7 +33,6 @@ import z from 'zod';
 
 import { VulnerabilityRating, VulnerabilityWithStats } from '@/api';
 import {
-  getProductOptions,
   getProductVulnerabilitiesOptions,
   getProductVulnerabilityAdvisorsOptions,
 } from '@/api/@tanstack/react-query.gen';
@@ -582,13 +581,6 @@ export const Route = createFileRoute(
     ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getProductOptions({
-        path: { productId: Number.parseInt(params.productId) },
-      }),
-    });
-  },
   component: ProductVulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,
 });

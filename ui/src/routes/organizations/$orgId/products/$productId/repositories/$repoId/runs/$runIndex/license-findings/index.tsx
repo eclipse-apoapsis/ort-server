@@ -20,7 +20,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import z from 'zod';
 
-import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   detectedLicenseSearchParameterSchema,
@@ -47,16 +46,6 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/'
 )({
   validateSearch: licenseFindingsSearchSchema,
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getRepositoryRunOptions({
-        path: {
-          repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runIndex),
-        },
-      }),
-    });
-  },
   component: LicenseFindingsView,
   pendingComponent: LoadingIndicator,
 });

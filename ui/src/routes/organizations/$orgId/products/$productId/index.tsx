@@ -180,13 +180,6 @@ export const Route = createFileRoute(
     ...paginationSearchParameterSchema.shape,
     ...filterByNameSearchParameterSchema.shape,
   }),
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getProductOptions({
-        path: { productId: Number.parseInt(params.productId) },
-      }),
-    });
-  },
   component: ProductComponent,
   pendingComponent: LoadingIndicator,
 });

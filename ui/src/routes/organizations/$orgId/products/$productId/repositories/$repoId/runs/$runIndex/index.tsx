@@ -146,16 +146,6 @@ const RunComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/'
 )({
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getRepositoryRunOptions({
-        path: {
-          repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runIndex),
-        },
-      }),
-    });
-  },
   component: RunComponent,
   pendingComponent: LoadingIndicator,
 });

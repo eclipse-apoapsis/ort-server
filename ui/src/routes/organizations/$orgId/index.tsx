@@ -189,13 +189,6 @@ export const Route = createFileRoute('/organizations/$orgId/')({
     ...paginationSearchParameterSchema.shape,
     ...filterByNameSearchParameterSchema.shape,
   }),
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getOrganizationOptions({
-        path: { organizationId: Number.parseInt(params.orgId) },
-      }),
-    });
-  },
   component: OrganizationComponent,
   pendingComponent: LoadingIndicator,
 });

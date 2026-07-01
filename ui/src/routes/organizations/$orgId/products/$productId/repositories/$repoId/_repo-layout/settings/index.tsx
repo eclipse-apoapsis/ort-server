@@ -295,13 +295,5 @@ const RepositorySettingsPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/'
 )({
-  loader: async ({ context: { queryClient }, params }) => {
-    const repositoryId = Number.parseInt(params.repoId);
-    await queryClient.prefetchQuery({
-      ...getRepositoryOptions({
-        path: { repositoryId },
-      }),
-    });
-  },
   component: RepositorySettingsPage,
 });

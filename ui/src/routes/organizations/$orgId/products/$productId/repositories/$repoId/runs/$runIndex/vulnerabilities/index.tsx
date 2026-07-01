@@ -637,16 +637,6 @@ export const Route = createFileRoute(
     ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.prefetchQuery({
-      ...getRepositoryRunOptions({
-        path: {
-          repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: Number.parseInt(params.runIndex),
-        },
-      }),
-    });
-  },
   component: VulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,
 });
