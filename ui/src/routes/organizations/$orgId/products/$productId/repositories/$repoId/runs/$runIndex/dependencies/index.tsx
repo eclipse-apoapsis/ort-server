@@ -22,7 +22,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDown, ChevronsUpDown, ChevronUp, X } from 'lucide-react';
 import { useState } from 'react';
 
-import type { DependencyGraph } from '@/api';
+import type { DependencyGraph, DependencyGraphScope } from '@/api';
 import {
   getRepositoryRunOptions,
   getRunDependencyGraphOptions,
@@ -215,18 +215,22 @@ const ManagerDependenciesTab = ({
     packageIdType
   );
 
-  const visibleProjectGroups = graph.projectGroups.filter(
-    ({ projectLabel, scopes }) => {
-      if (!searchTerm) return true;
-      if (matchesSearch(projectLabel, searchTerm)) return true;
+  // The search never hides parts of the graph; it only decides which branches
+  // are auto-expanded to reveal the matches. A scope is considered to contain a
+  // match when its own label matches or any of its node subtrees does.
+  const scopeHasMatch = ({
+    rootNodeIndexes,
+    scopeLabel,
+  }: DependencyGraphScope) =>
+    matchesSearch(scopeLabel, searchTerm) ||
+    rootNodeIndexes.some(matchesNodeSubtree);
 
-      return scopes.some(({ rootNodeIndexes, scopeLabel }) => {
-        if (matchesSearch(scopeLabel, searchTerm)) return true;
-
-        return rootNodeIndexes.some(matchesNodeSubtree);
-      });
-    }
-  );
+  const hasMatches =
+    !searchTerm ||
+    graph.projectGroups.some(
+      ({ projectLabel, scopes }) =>
+        matchesSearch(projectLabel, searchTerm) || scopes.some(scopeHasMatch)
+    );
 
   return (
     <TabsContent value={managerName} className='space-y-4'>
@@ -250,131 +254,33 @@ const ManagerDependenciesTab = ({
         )}
       </div>
 
-      {visibleProjectGroups.length === 0 ? (
+      {searchTerm && !hasMatches && (
         <div className='text-muted-foreground text-sm'>
-          {searchTerm
-            ? 'No matching dependencies found for this package manager.'
-            : 'No scopes are available for this dependency graph.'}
+          No packages match your search. Showing the full graph.
+        </div>
+      )}
+
+      {graph.projectGroups.length === 0 ? (
+        <div className='text-muted-foreground text-sm'>
+          No scopes are available for this dependency graph.
         </div>
       ) : (
         <div className='space-y-2'>
-          {visibleProjectGroups.map(
-            ({ packageCount, projectLabel, scopes }) => {
-              const visibleScopes = scopes.filter(
-                ({ rootNodeIndexes, scopeLabel }) => {
-                  if (!searchTerm) return true;
-                  if (matchesSearch(scopeLabel, searchTerm)) return true;
+          {graph.projectGroups.map(({ packageCount, projectLabel, scopes }) => {
+            const projectOpen =
+              searchTerm.length > 0 && scopes.some(scopeHasMatch);
 
-                  return rootNodeIndexes.some(matchesNodeSubtree);
-                }
-              );
-
-              const projectHasVisibleScopes = visibleScopes.length > 0;
-              const projectOpen = Boolean(
-                searchTerm &&
-                projectHasVisibleScopes &&
-                !matchesSearch(projectLabel, searchTerm)
-              );
-
-              return projectHasVisibleScopes ? (
-                <Collapsible
-                  key={projectLabel}
-                  className='space-y-2'
-                  open={searchTerm ? projectOpen : undefined}
-                >
-                  <TreeToggle>
-                    <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                      <span className='block min-w-0 text-sm font-semibold break-all'>
-                        <HighlightedMatch
-                          searchTerm={searchTerm}
-                          text={projectLabel}
-                        />
-                      </span>
-                      <PackageCountBadge count={packageCount} />
-                    </div>
-                  </TreeToggle>
-
-                  <CollapsibleContent>
-                    <div className='space-y-2'>
-                      {visibleScopes.map(
-                        (
-                          {
-                            packageCount,
-                            rootNodeIndexes,
-                            scopeName,
-                            scopeLabel,
-                          },
-                          scopePosition
-                        ) => {
-                          const scopeOpen = Boolean(
-                            searchTerm &&
-                            rootNodeIndexes.some(matchesNodeSubtree) &&
-                            !matchesSearch(scopeLabel, searchTerm)
-                          );
-                          const visibleRootNodeIndexes = searchTerm
-                            ? rootNodeIndexes.filter(matchesNodeSubtree)
-                            : rootNodeIndexes;
-
-                          return (
-                            <TreeBranch
-                              key={scopeName}
-                              isLast={
-                                scopePosition === visibleScopes.length - 1
-                              }
-                            >
-                              <Collapsible
-                                className='space-y-2'
-                                open={searchTerm ? scopeOpen : undefined}
-                              >
-                                <TreeToggle>
-                                  <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                                    {scopeLabel && (
-                                      <Badge variant='outline'>
-                                        <HighlightedMatch
-                                          searchTerm={searchTerm}
-                                          text={scopeLabel}
-                                        />
-                                      </Badge>
-                                    )}
-                                    <PackageCountBadge count={packageCount} />
-                                  </div>
-                                </TreeToggle>
-
-                                <CollapsibleContent className='pt-2'>
-                                  <div className='space-y-2'>
-                                    {visibleRootNodeIndexes.map(
-                                      (nodeIndex, nodePosition) => (
-                                        <DependencyTreeNode
-                                          key={`${scopeName}-${nodeIndex}`}
-                                          adjacency={adjacency}
-                                          graph={graph}
-                                          isLast={
-                                            nodePosition ===
-                                            visibleRootNodeIndexes.length - 1
-                                          }
-                                          matchesNodeSubtree={
-                                            matchesNodeSubtree
-                                          }
-                                          nodeIndex={nodeIndex}
-                                          packageIdType={packageIdType}
-                                          path={new Set<number>()}
-                                          searchTerm={searchTerm}
-                                        />
-                                      )
-                                    )}
-                                  </div>
-                                </CollapsibleContent>
-                              </Collapsible>
-                            </TreeBranch>
-                          );
-                        }
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              ) : (
-                <div key={projectLabel} className='flex items-start gap-2'>
-                  <div className='mt-[3px] size-4 shrink-0' />
+            return scopes.length > 0 ? (
+              // Keying on the search term remounts the tree whenever the search
+              // changes, so the `defaultOpen` auto-expansion is recomputed for
+              // the new matches while leaving nodes freely toggleable in
+              // between.
+              <Collapsible
+                key={`${projectLabel}-${searchTerm}`}
+                className='space-y-2'
+                defaultOpen={projectOpen}
+              >
+                <TreeToggle>
                   <div className='flex min-w-0 flex-wrap items-center gap-2'>
                     <span className='block min-w-0 text-sm font-semibold break-all'>
                       <HighlightedMatch
@@ -384,10 +290,92 @@ const ManagerDependenciesTab = ({
                     </span>
                     <PackageCountBadge count={packageCount} />
                   </div>
+                </TreeToggle>
+
+                <CollapsibleContent>
+                  <div className='space-y-2'>
+                    {scopes.map(
+                      (
+                        {
+                          packageCount,
+                          rootNodeIndexes,
+                          scopeName,
+                          scopeLabel,
+                        },
+                        scopePosition
+                      ) => {
+                        const scopeOpen =
+                          searchTerm.length > 0 &&
+                          rootNodeIndexes.some(matchesNodeSubtree);
+
+                        return (
+                          <TreeBranch
+                            key={scopeName}
+                            isLast={scopePosition === scopes.length - 1}
+                          >
+                            <Collapsible
+                              className='space-y-2'
+                              defaultOpen={scopeOpen}
+                            >
+                              <TreeToggle>
+                                <div className='flex min-w-0 flex-wrap items-center gap-2'>
+                                  {scopeLabel && (
+                                    <Badge variant='outline'>
+                                      <HighlightedMatch
+                                        searchTerm={searchTerm}
+                                        text={scopeLabel}
+                                      />
+                                    </Badge>
+                                  )}
+                                  <PackageCountBadge count={packageCount} />
+                                </div>
+                              </TreeToggle>
+
+                              <CollapsibleContent className='pt-2'>
+                                <div className='space-y-2'>
+                                  {rootNodeIndexes.map(
+                                    (nodeIndex, nodePosition) => (
+                                      <DependencyTreeNode
+                                        key={`${scopeName}-${nodeIndex}`}
+                                        adjacency={adjacency}
+                                        graph={graph}
+                                        isLast={
+                                          nodePosition ===
+                                          rootNodeIndexes.length - 1
+                                        }
+                                        matchesNodeSubtree={matchesNodeSubtree}
+                                        nodeIndex={nodeIndex}
+                                        packageIdType={packageIdType}
+                                        path={new Set<number>()}
+                                        searchTerm={searchTerm}
+                                      />
+                                    )
+                                  )}
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </TreeBranch>
+                        );
+                      }
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ) : (
+              <div key={projectLabel} className='flex items-start gap-2'>
+                <div className='mt-[3px] size-4 shrink-0' />
+                <div className='flex min-w-0 flex-wrap items-center gap-2'>
+                  <span className='block min-w-0 text-sm font-semibold break-all'>
+                    <HighlightedMatch
+                      searchTerm={searchTerm}
+                      text={projectLabel}
+                    />
+                  </span>
+                  <PackageCountBadge count={packageCount} />
                 </div>
-              );
-            }
-          )}
+              </div>
+            );
+          })}
         </div>
       )}
     </TabsContent>

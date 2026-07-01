@@ -68,7 +68,7 @@ describe('DependencyTreeNode', () => {
     expect(markup).toContain('cycle');
   });
 
-  it('renders only matching branches when children are filtered', () => {
+  it('expands the path to a matching descendant', () => {
     const markup = renderToStaticMarkup(
       <DependencyTreeNode
         adjacency={new Map<number, number[]>([[0, [1]]])}
@@ -88,6 +88,80 @@ describe('DependencyTreeNode', () => {
     expect(markup).toContain('Maven:com.example:root:1.0');
     expect(markup).toContain('library');
     expect(markup).toContain('DYNAMIC');
+  });
+
+  it('keeps the full graph intact while searching, collapsing the transitive dependencies of matches', () => {
+    const searchGraph: DependencyGraph = {
+      edges: [
+        { from: 0, to: 1 },
+        { from: 0, to: 3 },
+        { from: 1, to: 2 },
+      ],
+      nodes: [
+        { fragment: 0, linkage: 'PROJECT_DYNAMIC', packageCount: 2, pkg: 0 },
+        { fragment: 1, linkage: 'DYNAMIC', packageCount: 1, pkg: 1 },
+        { fragment: 2, linkage: 'DYNAMIC', packageCount: 0, pkg: 2 },
+        { fragment: 3, linkage: 'DYNAMIC', packageCount: 0, pkg: 3 },
+      ],
+      packageCount: 4,
+      packages: [
+        {
+          name: 'root',
+          namespace: 'com.example',
+          type: 'Maven',
+          version: '1.0',
+        },
+        {
+          name: 'library',
+          namespace: 'com.example',
+          type: 'Maven',
+          version: '2.0',
+        },
+        {
+          name: 'transitive',
+          namespace: 'com.example',
+          type: 'Maven',
+          version: '3.0',
+        },
+        {
+          name: 'other',
+          namespace: 'com.example',
+          type: 'Maven',
+          version: '4.0',
+        },
+      ],
+      purls: [] as unknown as string[],
+      projectGroups: [],
+    };
+    const searchAdjacency = new Map<number, number[]>([
+      [0, [1, 3]],
+      [1, [2]],
+    ]);
+
+    const markup = renderToStaticMarkup(
+      <DependencyTreeNode
+        adjacency={searchAdjacency}
+        graph={searchGraph}
+        isLast={true}
+        // The subtrees of the root and the match contain "library".
+        matchesNodeSubtree={(nodeIndex) => nodeIndex === 0 || nodeIndex === 1}
+        nodeIndex={0}
+        packageIdType='ORT_ID'
+        path={new Set<number>()}
+        searchTerm='library'
+      />
+    );
+
+    // The path to the match is expanded and the match is shown (the label is
+    // split into spans by the search highlighter, so match on the term)...
+    expect(markup).toContain('root');
+    expect(markup).toContain('library');
+    // ...a non-matching sibling branch is still present (graph stays intact)...
+    expect(markup).toContain('Maven:com.example:other:4.0');
+    // ...but the match's own transitive dependency stays collapsed...
+    expect(markup).not.toContain('transitive');
+    // ...and the match still renders as an expandable (collapsed) node.
+    expect(markup).toContain('lucide-square-plus');
   });
 
   it('renders the node label and linkage badge', () => {

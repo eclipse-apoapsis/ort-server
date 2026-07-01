@@ -27,7 +27,6 @@ import {
 import type { PackageIdType } from '@/schemas';
 import {
   formatDependencyGraphPackageLabel,
-  matchesSearch,
   type AdjacencyMap,
 } from './dependency-graph-utils';
 import { HighlightedMatch } from './highlighted-match';
@@ -62,25 +61,27 @@ export const DependencyTreeNode = ({
   const childIndexes = (adjacency.get(nodeIndex) ?? []).filter(
     (childNodeIndex) => graph.nodes[childNodeIndex]
   );
-  const visibleChildIndexes = searchTerm
-    ? childIndexes.filter(matchesNodeSubtree)
-    : childIndexes;
   const nodeLabel = formatDependencyGraphPackageLabel(
     graph,
     node.pkg,
     packageIdType
   );
-  const nodeMatches = matchesSearch(nodeLabel, searchTerm);
-  const hasChildren = visibleChildIndexes.length > 0;
-  const isVisible = !searchTerm || nodeMatches || hasChildren;
+  const hasChildren = childIndexes.length > 0;
+  // While searching, the full graph stays intact: a node only starts out
+  // expanded when one of its descendants matches, so the path to a finding is
+  // revealed while the finding's own subtree (and unrelated branches) stay
+  // collapsed. This is only the initial state (`defaultOpen`) — the node stays
+  // uncontrolled so it can still be toggled by hand. The tree is remounted when
+  // the search term changes (see the keys in the route), which recomputes these
+  // defaults for the new search.
+  const defaultOpen =
+    searchTerm.length > 0 && childIndexes.some(matchesNodeSubtree);
   const nextPath = new Set(path);
   nextPath.add(nodeIndex);
 
-  if (!isVisible) return null;
-
   return (
     <TreeBranch isLast={isLast}>
-      <Collapsible open={searchTerm ? hasChildren : undefined}>
+      <Collapsible defaultOpen={defaultOpen}>
         {hasChildren ? (
           <CollapsibleTrigger asChild>
             <button
@@ -116,9 +117,8 @@ export const DependencyTreeNode = ({
 
         {hasChildren && (
           <CollapsibleContent className='space-y-2 pt-2'>
-            {visibleChildIndexes.map((childNodeIndex, childPosition) => {
-              const childIsLast =
-                childPosition === visibleChildIndexes.length - 1;
+            {childIndexes.map((childNodeIndex, childPosition) => {
+              const childIsLast = childPosition === childIndexes.length - 1;
 
               if (path.has(childNodeIndex)) {
                 const childNode = graph.nodes[childNodeIndex];
