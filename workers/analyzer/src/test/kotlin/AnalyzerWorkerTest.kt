@@ -25,7 +25,9 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -36,6 +38,7 @@ import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.spyk
@@ -43,6 +46,7 @@ import io.mockk.verify
 
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -73,6 +77,7 @@ import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
@@ -85,6 +90,7 @@ import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.IssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
 import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.model.readValue
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -102,7 +108,7 @@ private val repository = Repository(
 private val hierarchy = Hierarchy(repository, mockk(), mockk())
 
 private val ortRun = OrtRun(
-    id = 1L,
+    id = 12L,
     index = 1L,
     organizationId = 1L,
     productId = 1L,
@@ -127,7 +133,7 @@ private val ortRun = OrtRun(
 
 private val analyzerJob = AnalyzerJob(
     id = JOB_ID,
-    ortRunId = 12,
+    ortRunId = ortRun.id,
     createdAt = Clock.System.now(),
     startedAt = Clock.System.now(),
     finishedAt = null,
@@ -137,10 +143,10 @@ private val analyzerJob = AnalyzerJob(
 )
 
 /**
- * Helper function to invoke this worker with the given [phase] and test parameters.
+ * Helper function to invoke this worker with the given [phase], [args] and further test parameters.
  */
-private suspend fun AnalyzerWorker.testRun(phase: AnalyzerPhase): RunResult =
-    run(JOB_ID, TRACE_ID, phase, emptyArray())
+private suspend fun AnalyzerWorker.testRun(phase: AnalyzerPhase, args: Array<String> = emptyArray()): RunResult =
+    run(JOB_ID, TRACE_ID, phase, args)
 
 @Suppress("LargeClass")
 class AnalyzerWorkerTest : StringSpec({
@@ -1143,16 +1149,136 @@ class AnalyzerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
         }
     }
+
+    "The preparation phase should be executed" {
+        val exchangeDir = tempdir()
+        val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
+
+        val jobConfig = AnalyzerJobConfiguration(
+            enabledPackageManagers = listOf("Maven"),
+            packageCurationProviders = listOf(mockk())
+        )
+        val job = analyzerJob.copy(configuration = jobConfig)
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns job
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns job
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            every {
+                downloadRepository(any(), any(), runId = ortRun.id, targetDir = jobDir)
+            } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val pluginConfigs = listOf(
+            ProviderPluginConfiguration(
+                type = "test-provider",
+                options = mapOf("option1" to "value1", "option2" to "value2"),
+                secrets = mapOf("password" to "secret-password")
+            )
+        )
+
+        val context = mockWorkerContext {
+            coEvery { resolveProviderPluginConfigSecrets(jobConfig.packageCurationProviders) } returns pluginConfigs
+        }
+
+        val refContextOpen = AtomicBoolean()
+        val contextFactory = mockContextFactory(context, refContextOpen)
+
+        val infrastructureServices = listOf<InfrastructureService>(mockk(relaxed = true), mockk(relaxed = true))
+        val envService = mockk<EnvironmentService> {
+            coEvery { findInfrastructureServicesForRepository(context, null) } returns infrastructureServices
+            coEvery { setupAuthentication(context, infrastructureServices) } just runs
+            coEvery {
+                setUpEnvironment(context, projectDir, null, infrastructureServices, any())
+            } returns ResolvedEnvironmentConfig(
+                environmentVariables = setOf(
+                    SimpleVariableDefinition("SIMPLE_ENV_VAR", "simpleValue")
+                )
+            )
+        }
+
+        mockkObject(EnvironmentForkHelper) {
+            every { EnvironmentForkHelper.persistAuthenticationInfo(any()) } answers {
+                refContextOpen.get() shouldBe true
+            }
+
+            val phase = PreparationPhase(
+                ortRunService,
+                contextFactory,
+                envService
+            )
+            val runner = mockk<AnalyzerRunner>()
+            val worker = AnalyzerWorker(downloader, runner)
+
+            mockkTransaction {
+                val result = worker.testRun(phase, arrayOf(exchangeDir.absolutePath))
+
+                result shouldBe RunResult.Ignored
+
+                verify(exactly = 1) {
+                    ortRunService.updateResolvedRevision(ortRun.id, "resolvedRevision")
+
+                    EnvironmentForkHelper.persistAuthenticationInfo(jobDir.resolve(AUTH_INFO_FILE))
+                }
+
+                coVerifyOrder {
+                    envService.setupAuthentication(context, infrastructureServices)
+                    downloader.downloadRepository(
+                        repository.url,
+                        ortRun.revision,
+                        targetDir = jobDir,
+                        runId = ortRun.id
+                    )
+                    envService.setUpEnvironment(
+                        context,
+                        projectDir,
+                        null,
+                        infrastructureServices,
+                        jobDir.resolve(CONFIG_DIR)
+                    )
+                }
+
+                coVerify(exactly = 0) {
+                    runner.run(any(), any(), any(), any())
+                }
+            }
+        }
+
+        val exchangeFile = jobDir.resolve(PREPARATION_EXCHANGE_FILE)
+        val preparationExchange = exchangeFile.readValue<PreparationExchange>()
+
+        with(preparationExchange) {
+            environment shouldBe mapOf("SIMPLE_ENV_VAR" to "simpleValue")
+
+            runnerConfig.packageCurationProviders shouldContainExactlyInAnyOrder pluginConfigs
+            runnerConfig.enabledPackageManagers shouldContainExactlyInAnyOrder listOf("Maven")
+
+            runId shouldBe ortRun.id
+        }
+    }
 })
 
 /**
- * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
+ * Create a mock [WorkerContextFactory] and prepare it to return the given [context]. Use the given [refContextOpen] to
+ * track when the context is open.
  */
-private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
-    val slot = slot<suspend (WorkerContext) -> RunResult>()
+private fun mockContextFactory(
+    context: WorkerContext = mockk(),
+    refContextOpen: AtomicBoolean = AtomicBoolean()
+): WorkerContextFactory {
+    val slot = slot<suspend (WorkerContext) -> Any>()
     return mockk {
         coEvery { withContext(analyzerJob.ortRunId, capture(slot)) } coAnswers {
-            slot.captured(context)
+            refContextOpen.set(true)
+            slot.captured(context).also {
+                refContextOpen.set(false)
+            }
         }
     }
 }

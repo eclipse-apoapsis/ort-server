@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import kotlinx.serialization.Serializable
+
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
@@ -27,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
  * The configuration for the [AnalyzerRunner], containing the parts of [AnalyzerJobConfiguration] that are required to
  * execute the ORT analyzer.
  */
+@Serializable
 data class AnalyzerRunnerConfig(
     /** See [AnalyzerJobConfiguration.allowDynamicVersions]. */
     val allowDynamicVersions: Boolean,

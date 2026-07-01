@@ -19,14 +19,39 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import java.io.File
+
+import kotlinx.serialization.Serializable
+
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 
 import org.jetbrains.exposed.v1.jdbc.Database
+
+import org.ossreviewtoolkit.model.writeValue
+
+import org.slf4j.LoggerFactory
+
+/** The prefix of folder names created for the data exchange between different phases. */
+internal const val JOB_DIR_PREFIX = "analyzer-job-"
+
+/** The name of the file to store authentication information. */
+internal const val AUTH_INFO_FILE = "auth-info.json"
+
+/** The name of the file with data from the preparation phase. */
+internal const val PREPARATION_EXCHANGE_FILE = "preparation-exchange.json"
+
+/** The name of the directory in which package manager configuration files are created. */
+internal const val CONFIG_DIR = "conf"
+
+private val logger = LoggerFactory.getLogger(AnalyzerPhase::class.java)
 
 /**
  * An interface representing a phase of the Analyzer execution.
@@ -82,9 +107,7 @@ internal class FullPhase(
     private val issueResolutionService: IssueResolutionService
 ) : AnalyzerPhase {
     override suspend fun run(worker: AnalyzerWorker, jobId: Long, args: Array<String>): RunResult {
-        require(args.isEmpty()) {
-            "Unexpected arguments passed to the 'FULL' phase: '${args.joinToString(" ")}'."
-        }
+        checkArgs(this, args, 0, 0)
 
         val job = ortRunService.getValidAnalyzerJob(jobId)
 
@@ -95,3 +118,127 @@ internal class FullPhase(
         }
     }
 }
+
+/**
+ * An implementation of [AnalyzerPhase] which performs the necessary preparation steps before the ORT Analyzer can be
+ * invoked. This phase is concerned with cloning the repository, creating the package manager configuration files based
+ * on the environment configuration, and resolving all secrets that need to be available during the analysis.
+ *
+ * The [run] function expects an argument pointing to the root path of a shared directory structure under which the
+ * results of this phase should be persisted. The class creates a subdirectory for the current job below this
+ * structure.
+ */
+internal class PreparationPhase(
+    /** The service to access and update information about the current run. */
+    private val ortRunService: OrtRunService,
+
+    /** The factory to create a worker context. */
+    private val contextFactory: WorkerContextFactory,
+
+    /** The service to set up the environment for the analysis. */
+    private val environmentService: EnvironmentService
+) : AnalyzerPhase {
+    override suspend fun run(
+        worker: AnalyzerWorker,
+        jobId: Long,
+        args: Array<String>
+    ): RunResult {
+        val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 1))
+        val job = ortRunService.getValidAnalyzerJob(jobId)
+
+        val prepareExchange = contextFactory.withContext(job.ortRunId) { context ->
+            val configDir = exchangeDir.resolve(CONFIG_DIR).apply { mkdirs() }
+            val prepareResult = worker.prepare(context, job, ortRunService, environmentService, exchangeDir, configDir)
+
+            val authInfoFile = exchangeDir.resolve(AUTH_INFO_FILE)
+            logger.info("Writing auth info file '{}'.", authInfoFile)
+            EnvironmentForkHelper.persistAuthenticationInfo(authInfoFile)
+
+            PreparationExchange(
+                environment = prepareResult.resolvedEnvironment,
+                runnerConfig = job.configuration.toRunnerConfig(context),
+                runId = job.ortRunId
+            )
+        }
+
+        writeExchangeFile(exchangeDir, PREPARATION_EXCHANGE_FILE, prepareExchange)
+
+        return RunResult.Ignored
+    }
+}
+
+/**
+ * A data class to hold results of the preparation phase that needs to be exchanged with later phases.
+ * [PreparationPhase] creates such an object and serializes it to a file on a shared volume. From there, it is picked
+ * up to start the analysis.
+ */
+@Serializable
+internal data class PreparationExchange(
+    /** A map with environment variables that need to be set for the analysis phase. */
+    val environment: Map<String, String>,
+
+    /** The resolved configuration for the [AnalyzerRunner]. */
+    val runnerConfig: AnalyzerRunnerConfig,
+
+    /** The ID of the run that is analyzed. */
+    val runId: Long
+)
+
+/**
+ * Return a directory to be used for exchanging information between the different phases for the Analyzer job with the
+ * given [jobId] based on the provided [args]. The root path of the volume to be used for this purpose is expected to
+ * be in the first argument. Throw an exception if no valid root path is specified here.
+ */
+private fun exchangeDirectory(jobId: Long, args: Array<String>): File {
+    require(args.isNotEmpty()) {
+        "Expected an argument for the exchange directory."
+    }
+
+    val exchangeRoot = File(args[0])
+    require(exchangeRoot.isDirectory) {
+        "Root directory for exchange files is not a valid directory: '${exchangeRoot.absolutePath}'."
+    }
+
+    return File(exchangeRoot, "$JOB_DIR_PREFIX$jobId").also { it.mkdirs() }
+}
+
+/**
+ * Check whether the number of arguments for [phase] in the given [args] is in the valid range of [minCount], and
+ * [maxCount]. Throw an exception with a meaningful message if this is not the case.
+ */
+private fun checkArgs(phase: AnalyzerPhase, args: Array<String>, minCount: Int, maxCount: Int): Array<String> {
+    require(args.size in minCount..maxCount) {
+        "Unexpected arguments passed to phase '${phase.javaClass.simpleName}': '${args.joinToString(" ")}'."
+    }
+
+    return args
+}
+
+/**
+ * Write a file with the given [name] and [data] in the [exchangeDir] for this [AnalyzerPhase]. Log this operation.
+ */
+private inline fun <reified T : Any> AnalyzerPhase.writeExchangeFile(
+    exchangeDir: File,
+    name: String,
+    data: T
+) {
+    val exchangeFile = exchangeDir.resolve(name)
+    logger.info("[{}]: Writing exchange file '{}'.", javaClass.simpleName, exchangeFile)
+
+    exchangeFile.writeValue(data)
+}
+
+/**
+ * Create an [AnalyzerRunnerConfig] from this [AnalyzerJobConfiguration] to be used to analyze the current project.
+ * Use the given [context] to resolve the secrets in the plugin configuration.
+ */
+private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerContext): AnalyzerRunnerConfig =
+    AnalyzerRunnerConfig(
+        skipExcluded = skipExcluded,
+        allowDynamicVersions = allowDynamicVersions,
+        enabledPackageManagers = enabledPackageManagers,
+        disabledPackageManagers = disabledPackageManagers,
+        packageManagerOptions = packageManagerOptions,
+        repositoryConfigPath = repositoryConfigPath,
+        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders)
+    )

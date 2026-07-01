@@ -93,13 +93,18 @@ internal class AnalyzerWorker(
     /**
      * Prepare the execution of the ORT Analyzer for the current [analyzerJob]. Use the given [context] and
      * [environmentService] to resolve required secrets and set up the environment for the analysis. Use the given
-     * [ortRunService] to read and update information about the current run.
+     * [ortRunService] to read and update information about the current run. Clone the repository into the given
+     * [downloadDir] if specified; otherwise, use a temporary directory for this purpose. Generate package manager
+     * configuration files in the given [configDir] if specified; otherwise, generate them directly in the user's
+     * home directory.
      */
     internal suspend fun prepare(
         context: WorkerContext,
         analyzerJob: AnalyzerJob,
         ortRunService: OrtRunService,
-        environmentService: EnvironmentService
+        environmentService: EnvironmentService,
+        downloadDir: File? = null,
+        configDir: File? = null
     ): PrepareResult {
         val ortRun = ortRunService.getOrtRun(analyzerJob.ortRunId)
             ?: throw IllegalArgumentException("The ORT run '${analyzerJob.ortRunId}' does not exist.")
@@ -132,7 +137,9 @@ internal class AnalyzerWorker(
             repository.url,
             ortRun.revision,
             ortRun.path.orEmpty(),
-            job.configuration.submoduleFetchStrategy
+            job.configuration.submoduleFetchStrategy,
+            targetDir = downloadDir,
+            runId = ortRun.id.takeUnless { downloadDir == null }
         )
 
         if (downloadResult.initRevision != ortRun.revision) {
@@ -148,7 +155,8 @@ internal class AnalyzerWorker(
             context,
             downloadResult.directory,
             envConfigFromJob,
-            repositoryServices
+            repositoryServices,
+            configDir
         )
         val environment = resolveEnvironmentVariables(context, resolvedEnvConfig)
 

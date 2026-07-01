@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.string.shouldContain
 
 import io.mockk.mockk
 
@@ -38,6 +40,50 @@ class AnalyzerPhaseTest : WordSpec({
 
             shouldThrow<IllegalArgumentException> {
                 phase.run(mockk(), 42L, arrayOf("not-expected"))
+            }
+        }
+    }
+
+    "PreparationPhase" should {
+        "throw if no exchange dir parameter is provided" {
+            val phase = PreparationPhase(
+                mockk(),
+                mockk(),
+                mockk()
+            )
+
+            shouldThrow<IllegalArgumentException> {
+                phase.run(mockk(), 42L, emptyArray())
+            }
+        }
+
+        "throw if an exchange dir parameter pointing to a non-existing directory is provided" {
+            val nonExistingDir = "non-existing-directory"
+
+            val phase = PreparationPhase(
+                mockk(),
+                mockk(),
+                mockk()
+            )
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                phase.run(mockk(), 42L, arrayOf(nonExistingDir))
+            }
+
+            exception.message shouldContain nonExistingDir
+        }
+
+        "throw if too many arguments are provided" {
+            val exchangeDir = tempdir()
+
+            val phase = PreparationPhase(
+                mockk(),
+                mockk(),
+                mockk()
+            )
+
+            shouldThrow<IllegalArgumentException> {
+                phase.run(mockk(), 42L, arrayOf(exchangeDir.absolutePath, "extra-arg"))
             }
         }
     }
