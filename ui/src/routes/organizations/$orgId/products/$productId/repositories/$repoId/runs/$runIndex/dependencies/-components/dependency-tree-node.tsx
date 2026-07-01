@@ -17,8 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { ChevronRight } from 'lucide-react';
-
 import type { DependencyGraph } from '@/api';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -34,6 +32,7 @@ import {
 } from './dependency-graph-utils';
 import { HighlightedMatch } from './highlighted-match';
 import { TreeBranch } from './tree-branch';
+import { TreeToggleIcon } from './tree-toggle-icon';
 
 export const DependencyTreeNode = ({
   adjacency,
@@ -86,9 +85,9 @@ export const DependencyTreeNode = ({
           <CollapsibleTrigger asChild>
             <button
               type='button'
-              className='flex w-full items-start gap-2 rounded-sm text-left'
+              className='group/toggle flex w-full items-start gap-2 rounded-sm text-left'
             >
-              <ChevronRight className='text-muted-foreground mt-0.5 size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90' />
+              <TreeToggleIcon />
               <div className='flex min-w-0 flex-1 flex-wrap items-center gap-2'>
                 <span className='min-w-0 text-sm font-medium break-all'>
                   <HighlightedMatch searchTerm={searchTerm} text={nodeLabel} />
@@ -104,7 +103,7 @@ export const DependencyTreeNode = ({
           </CollapsibleTrigger>
         ) : (
           <div className='flex items-start gap-2'>
-            <div className='mt-0.5 size-4 shrink-0' />
+            <div className='mt-[3px] size-4 shrink-0' />
             <div className='flex min-w-0 flex-1 flex-wrap items-center gap-2'>
               <span className='min-w-0 text-sm font-medium break-all'>
                 <HighlightedMatch searchTerm={searchTerm} text={nodeLabel} />
