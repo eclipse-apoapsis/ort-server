@@ -56,6 +56,7 @@ import {
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
+import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
@@ -264,6 +265,7 @@ const ProjectsComponent = () => {
       path: { runId: ortRun.id },
       query: { limit: ALL_ITEMS },
     }),
+    staleTime: routePrefetchStaleTime,
   });
 
   // Use memoizing to ensure that the filter options (decuplidated SPDX expressions
@@ -513,6 +515,7 @@ export const Route = createFileRoute(
         path: { runId: ortRun.id },
         query: { limit: ALL_ITEMS },
       }),
+      staleTime: routePrefetchStaleTime,
     });
   },
   component: ProjectsComponent,

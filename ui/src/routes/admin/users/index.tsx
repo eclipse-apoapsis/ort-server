@@ -58,6 +58,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ApiError } from '@/lib/api-error';
+import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 
@@ -207,7 +208,10 @@ const Users = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const { data: users } = useSuspenseQuery({ ...getUsersOptions() });
+  const { data: users } = useSuspenseQuery({
+    ...getUsersOptions(),
+    staleTime: routePrefetchStaleTime,
+  });
 
   const table = useReactTable({
     data: users || [],
@@ -274,6 +278,7 @@ export const Route = createFileRoute('/admin/users/')({
   loader: async ({ context: { queryClient } }) => {
     await queryClient.ensureQueryData({
       ...getUsersOptions(),
+      staleTime: routePrefetchStaleTime,
     });
   },
   component: Users,

@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants.ts';
-import { queryClient } from '@/lib/query-client.ts';
+import { queryClient, routePrefetchStaleTime } from '@/lib/query-client.ts';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
 import { Route as LayoutRoute } from '@/routes/admin/plugins/route.tsx';
@@ -383,6 +383,7 @@ const PluginTemplatesComponent = () => {
         pluginId: pluginId,
       },
     }),
+    staleTime: routePrefetchStaleTime,
   });
 
   if (!plugin) {
@@ -477,6 +478,7 @@ export const Route = createFileRoute('/admin/plugins/$pluginType/$pluginId/')({
           pluginId: params.pluginId,
         },
       }),
+      staleTime: routePrefetchStaleTime,
     });
   },
   component: PluginTemplatesComponent,

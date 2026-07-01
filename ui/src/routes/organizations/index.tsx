@@ -47,6 +47,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsSuperuser } from '@/hooks/use-authorization';
+import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toastError } from '@/lib/toast';
 import {
   filterByNameSearchParameterSchema,
@@ -80,6 +81,7 @@ export const OrganizationsPage = () => {
     ...getOrganizationsOptions({
       query: { limit: 1 },
     }),
+    staleTime: routePrefetchStaleTime,
   });
 
   const {
@@ -95,6 +97,7 @@ export const OrganizationsPage = () => {
         filter: nameFilter,
       },
     }),
+    staleTime: routePrefetchStaleTime,
   });
 
   const columns = useMemo(
@@ -256,11 +259,13 @@ export const Route = createFileRoute('/organizations/')({
             filter: filter || undefined,
           },
         }),
+        staleTime: routePrefetchStaleTime,
       }),
       queryClient.prefetchQuery({
         ...getOrganizationsOptions({
           query: { limit: 1 },
         }),
+        staleTime: routePrefetchStaleTime,
       }),
     ]);
   },

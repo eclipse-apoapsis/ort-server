@@ -22,6 +22,8 @@ import { AxiosError } from 'axios';
 
 import { authRef } from '@/hooks/use-user';
 
+export const routePrefetchStaleTime = 30_000;
+
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: async (error) => {
