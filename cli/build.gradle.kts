@@ -82,6 +82,8 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation(ortLibs.utils.common)
+
+                runtimeOnly(libs.logback)
             }
         }
 
