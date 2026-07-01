@@ -133,6 +133,7 @@ export const Route = createFileRoute('/organizations/$orgId')({
         ...getOrganizationOptions({
           path: { organizationId: organizationId },
         }),
+        revalidateIfStale: true,
       });
 
       const organizationPermissions = await fetchOrganizationPermissions(

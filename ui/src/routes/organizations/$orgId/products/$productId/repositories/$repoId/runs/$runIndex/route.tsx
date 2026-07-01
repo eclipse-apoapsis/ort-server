@@ -185,6 +185,7 @@ export const Route = createFileRoute(
           ortRunIndex: Number.parseInt(params.runIndex),
         },
       }),
+      revalidateIfStale: true,
     });
     context.breadcrumbs.run = run.index.toString();
   },

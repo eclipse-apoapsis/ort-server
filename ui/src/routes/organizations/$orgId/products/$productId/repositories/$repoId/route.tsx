@@ -38,6 +38,7 @@ export const Route = createFileRoute(
           repositoryId: repositoryId,
         },
       }),
+      revalidateIfStale: true,
     });
 
     const repositoryPermissions = await fetchRepositoryPermissions(

@@ -133,6 +133,7 @@ export const Route = createFileRoute(
         ...getProductOptions({
           path: { productId: productId },
         }),
+        revalidateIfStale: true,
       });
 
       const productPermissions = await fetchProductPermissions(
