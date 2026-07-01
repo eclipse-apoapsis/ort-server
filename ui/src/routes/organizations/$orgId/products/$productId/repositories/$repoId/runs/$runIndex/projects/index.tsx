@@ -498,6 +498,23 @@ export const Route = createFileRoute(
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
+  loader: async ({ context: { queryClient }, params }) => {
+    const ortRun = await queryClient.ensureQueryData({
+      ...getRepositoryRunOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
+
+    await queryClient.prefetchQuery({
+      ...getRunProjectsOptions({
+        path: { runId: ortRun.id },
+        query: { limit: ALL_ITEMS },
+      }),
+    });
+  },
   component: ProjectsComponent,
   pendingComponent: LoadingIndicator,
 });
