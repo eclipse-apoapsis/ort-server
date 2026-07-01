@@ -26,7 +26,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 import type { PackageIdType } from '@/schemas';
 import {
   formatDependencyGraphPackageLabel,
@@ -34,10 +33,12 @@ import {
   type AdjacencyMap,
 } from './dependency-graph-utils';
 import { HighlightedMatch } from './highlighted-match';
+import { TreeBranch } from './tree-branch';
 
 export const DependencyTreeNode = ({
   adjacency,
   graph,
+  isLast,
   matchesNodeSubtree,
   nodeIndex,
   packageIdType,
@@ -46,6 +47,7 @@ export const DependencyTreeNode = ({
 }: {
   adjacency: AdjacencyMap;
   graph: DependencyGraph;
+  isLast: boolean;
   matchesNodeSubtree: (nodeIndex: number) => boolean;
   nodeIndex: number;
   packageIdType: PackageIdType;
@@ -78,7 +80,7 @@ export const DependencyTreeNode = ({
   if (!isVisible) return null;
 
   return (
-    <div className={cn('space-y-2', path.size > 0 && 'ml-4 border-l pl-4')}>
+    <TreeBranch isLast={isLast}>
       <Collapsible open={searchTerm ? hasChildren : undefined}>
         {hasChildren ? (
           <CollapsibleTrigger asChild>
@@ -115,7 +117,10 @@ export const DependencyTreeNode = ({
 
         {hasChildren && (
           <CollapsibleContent className='space-y-2 pt-2'>
-            {visibleChildIndexes.map((childNodeIndex) => {
+            {visibleChildIndexes.map((childNodeIndex, childPosition) => {
+              const childIsLast =
+                childPosition === visibleChildIndexes.length - 1;
+
               if (path.has(childNodeIndex)) {
                 const childNode = graph.nodes[childNodeIndex];
                 const childLabel = childNode
@@ -127,9 +132,9 @@ export const DependencyTreeNode = ({
                   : '';
 
                 return (
-                  <div
+                  <TreeBranch
                     key={`${nodeIndex}-${childNodeIndex}-cycle`}
-                    className='ml-4 border-l pl-4'
+                    isLast={childIsLast}
                   >
                     <div className='flex flex-wrap items-center gap-2'>
                       <span className='min-w-0 text-sm font-medium break-all'>
@@ -140,7 +145,7 @@ export const DependencyTreeNode = ({
                       </span>
                       <Badge variant='outline'>cycle</Badge>
                     </div>
-                  </div>
+                  </TreeBranch>
                 );
               }
 
@@ -149,6 +154,7 @@ export const DependencyTreeNode = ({
                   key={`${nodeIndex}-${childNodeIndex}`}
                   adjacency={adjacency}
                   graph={graph}
+                  isLast={childIsLast}
                   matchesNodeSubtree={matchesNodeSubtree}
                   nodeIndex={childNodeIndex}
                   packageIdType={packageIdType}
@@ -160,6 +166,6 @@ export const DependencyTreeNode = ({
           </CollapsibleContent>
         )}
       </Collapsible>
-    </div>
+    </TreeBranch>
   );
 };
