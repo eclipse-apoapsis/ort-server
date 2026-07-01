@@ -76,7 +76,7 @@ fun main(args: Array<String>) {
                 cli.currentContext.exitProcess(e.statusCode)
             }
 
-            else -> cli.echoError("An unexpected error occurred.")
+            else -> cli.echoError("An unhandled error occurred: ${e.message}")
         }
     }
 
