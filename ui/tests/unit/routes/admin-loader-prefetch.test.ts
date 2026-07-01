@@ -19,22 +19,24 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { Route as AdminPluginTemplatesRoute } from '@/routes/admin/plugins/$pluginType/$pluginId/index';
 import { Route as AdminRunsRoute } from '@/routes/admin/runs/index';
 import { Route as AdminUsersRoute } from '@/routes/admin/users/index';
 import { createDeferred } from '../fixtures/loader-test-utils';
 
-const expectLoaderToAwaitPrefetch = async (
+const expectLoaderToAwaitQuery = async (
   loader: (options: unknown) => Promise<void>,
+  queryMethod: 'ensureQueryData' | 'prefetchQuery',
   options: unknown
 ) => {
-  const prefetch = createDeferred<undefined>();
-  const prefetchQuery = vi.fn().mockReturnValue(prefetch.promise);
+  const deferredQuery = createDeferred<undefined>();
+  const queryFn = vi.fn().mockReturnValue(deferredQuery.promise);
   let resolved = false;
 
   const loaderPromise = loader({
     ...(options as object),
     context: {
-      queryClient: { prefetchQuery },
+      queryClient: { [queryMethod]: queryFn },
     },
   }).then(() => {
     resolved = true;
@@ -42,10 +44,10 @@ const expectLoaderToAwaitPrefetch = async (
 
   await Promise.resolve();
 
-  expect(prefetchQuery).toHaveBeenCalledTimes(1);
+  expect(queryFn).toHaveBeenCalledTimes(1);
   expect(resolved).toBe(false);
 
-  prefetch.resolve(undefined);
+  deferredQuery.resolve(undefined);
   await loaderPromise;
 
   expect(resolved).toBe(true);
@@ -57,7 +59,7 @@ describe('admin route loaders', () => {
       options: unknown
     ) => Promise<void>;
 
-    await expectLoaderToAwaitPrefetch(loader, {
+    await expectLoaderToAwaitQuery(loader, 'prefetchQuery', {
       deps: {
         page: 2,
         pageSize: 25,
@@ -67,14 +69,28 @@ describe('admin route loaders', () => {
     });
   });
 
-  it('awaits the users prefetch before resolving', async () => {
+  it('awaits the users query before resolving', async () => {
     const loader = AdminUsersRoute.options.loader as unknown as (
       options: unknown
     ) => Promise<void>;
 
-    await expectLoaderToAwaitPrefetch(loader, {
+    await expectLoaderToAwaitQuery(loader, 'ensureQueryData', {
       deps: {},
       params: {},
+    });
+  });
+
+  it('awaits the plugin templates query before resolving', async () => {
+    const loader = AdminPluginTemplatesRoute.options.loader as unknown as (
+      options: unknown
+    ) => Promise<void>;
+
+    await expectLoaderToAwaitQuery(loader, 'prefetchQuery', {
+      deps: {},
+      params: {
+        pluginType: 'scanner',
+        pluginId: 'ScanCode',
+      },
     });
   });
 });
