@@ -99,6 +99,10 @@ kotlin {
     }
 }
 
+tasks.named<JavaExec>("runJvm") {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
+
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
 
