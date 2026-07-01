@@ -54,9 +54,6 @@ import {
 } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-// Fetch the default page size to loader from the store.
-const defaultPageSize = useTablePrefsStore.getState().orgPageSize;
-
 const columnHelper = createColumnHelper<Organization>();
 
 export const OrganizationsPage = () => {
@@ -235,16 +232,37 @@ export const Route = createFileRoute('/organizations/')({
     ...paginationSearchParameterSchema.shape,
     ...filterByNameSearchParameterSchema.shape,
   }),
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context: { queryClient }, deps: { page, pageSize } }) => {
-    queryClient.prefetchQuery({
-      ...getOrganizationsOptions({
-        query: {
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        },
+  loaderDeps: ({ search: { page, pageSize, filter } }) => ({
+    page,
+    pageSize,
+    filter,
+  }),
+  loader: async ({
+    context: { queryClient },
+    deps: { page, pageSize, filter },
+  }) => {
+    // Read the default page size from the store at loader time so the
+    // prefetched query key matches the component, which reads the same
+    // (live) preference. A module-level snapshot would go stale after the
+    // user changes their page-size preference during the session.
+    const limit = pageSize || useTablePrefsStore.getState().orgPageSize;
+
+    await Promise.all([
+      queryClient.prefetchQuery({
+        ...getOrganizationsOptions({
+          query: {
+            limit,
+            offset: page ? (page - 1) * limit : 0,
+            filter: filter || undefined,
+          },
+        }),
       }),
-    });
+      queryClient.prefetchQuery({
+        ...getOrganizationsOptions({
+          query: { limit: 1 },
+        }),
+      }),
+    ]);
   },
   component: OrganizationsPage,
   pendingComponent: LoadingIndicator,
