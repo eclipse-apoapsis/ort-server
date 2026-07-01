@@ -414,7 +414,7 @@ export const Route = createFileRoute('/admin/runs/')({
     context: { queryClient },
     deps: { page, pageSize, status },
   }) => {
-    queryClient.prefetchQuery({
+    await queryClient.prefetchQuery({
       ...getRunsOptions({
         query: {
           limit: pageSize || defaultPageSize,

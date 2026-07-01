@@ -272,7 +272,7 @@ const Users = () => {
 export const Route = createFileRoute('/admin/users/')({
   validateSearch: paginationSearchParameterSchema,
   loader: async ({ context: { queryClient } }) => {
-    queryClient.prefetchQuery({
+    await queryClient.prefetchQuery({
       ...getUsersOptions(),
     });
   },
