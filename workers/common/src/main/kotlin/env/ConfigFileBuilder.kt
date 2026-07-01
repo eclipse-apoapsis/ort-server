@@ -33,6 +33,9 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveSecrets
 
+import org.ossreviewtoolkit.utils.common.Os
+import org.ossreviewtoolkit.utils.common.div
+
 import org.slf4j.LoggerFactory
 
 /**
@@ -66,7 +69,13 @@ class ConfigFileBuilder(
      * An optional globally configured Maven Central mirror that can be used when generating config files for package
      * managers that use the Maven ecosystem.
      */
-    val globalMavenCentralMirror: MavenCentralMirror? = null
+    val globalMavenCentralMirror: MavenCentralMirror? = null,
+
+    /**
+     * An optional alternative directory to be used as user home path. This can be used to generate configuration files
+     * in a different location, for instance, during a preparation step before performing the actual analysis.
+     */
+    val userHomeDir: File? = null
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)
@@ -190,7 +199,8 @@ class ConfigFileBuilder(
      * given [block].
      */
     suspend fun buildInUserHome(name: String, block: suspend PrintWriter.() -> Unit) {
-        build(File(System.getProperty("user.home"), name), block)
+        val target = (userHomeDir ?: Os.userHomeDirectory) / name
+        build(target, block)
     }
 
     /**

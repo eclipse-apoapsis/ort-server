@@ -31,7 +31,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
@@ -45,7 +44,6 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
@@ -80,7 +78,7 @@ internal class WorkerContextImpl(
     private val ortRunId: Long,
 
     /** The service for accessing secrets. */
-    private val secretService: SecretService
+    private val secretService: SecretResolverService
 ) : WorkerContext {
     /** A cache for the secrets that have already been loaded. */
     private val secretsCache = ConcurrentHashMap<Secret, Deferred<String>>()
@@ -117,7 +115,7 @@ internal class WorkerContextImpl(
     }
 
     private val hierarchySecrets by lazy {
-        runBlocking { secretService.listForHierarchy(hierarchy) }.associateBy { it.name }
+        secretService.listForHierarchy(hierarchy).associateBy { it.name }
     }
 
     override val secretResolverFun: SecretResolverFun

@@ -69,6 +69,7 @@ dependencies {
     testImplementation(testFixtures(projects.storage.storageSpi))
 
     testImplementation(libs.jsonSchemaValidator)
+    testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)

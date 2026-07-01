@@ -36,16 +36,23 @@ import org.koin.dsl.module
 /**
  * Return a [Module] with bean definitions required to obtain a [WorkerContextFactory] and other functionality that is
  * typically needed by workers. Workers requiring a [WorkerContext] can integrate this module and then obtain a
- * factory via injection.
+ * factory via injection. Per default, the module provides a [SecretResolverService] that queries the configured
+ * secret storage. It is possible to override this by passing in a non-null [secretResolverService]. This is useful to
+ * restrict the access to secrets in some scenarios.
  */
-fun workerContextModule(): Module = module {
+fun workerContextModule(secretResolverService: SecretResolverService? = null): Module = module {
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
-    single<SecretRepository> { DaoSecretRepository(get()) }
 
-    single {
-        val secretStorage = SecretStorage.createStorage(get())
-        SecretService(get(), get(), secretStorage)
+    if (secretResolverService != null) {
+        single { secretResolverService }
+    } else {
+        single<SecretRepository> { DaoSecretRepository(get()) }
+        single {
+            val secretStorage = SecretStorage.createStorage(get())
+            SecretService(get(), get(), secretStorage)
+        }
+        single { SecretResolverService.wrapSecretService(get()) }
     }
 
     singleOf(::WorkerContextFactory)

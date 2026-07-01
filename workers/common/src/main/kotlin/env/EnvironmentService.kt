@@ -100,28 +100,33 @@ class EnvironmentService(
      * checked out to the given [repositoryFolder]. The credentials of this repository - if any - are defined by the
      * given [repositoryServices]. If an optional [config] is provided, it will be merged with the parsed configuration.
      * In case of overlapping entries, the provided [config] will take priority over the parsed configuration.
+     * Optionally, generate configuration files in the specified [userHome] directory; if this is undefined, obtain the
+     * location of this folder from the corresponding system property.
      */
     suspend fun setUpEnvironment(
         context: WorkerContext,
         repositoryFolder: File,
         config: EnvironmentConfig?,
-        repositoryServices: List<InfrastructureService>
+        repositoryServices: List<InfrastructureService>,
+        userHome: File? = null
     ): ResolvedEnvironmentConfig {
         val environmentConfigPath = context.ortRun.environmentConfigPath
         val mergedConfig = configLoader.resolveAndParse(repositoryFolder, environmentConfigPath).merge(config)
         val resolvedConfig = configLoader.resolve(mergedConfig, context.hierarchy)
 
-        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryServices)
+        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryServices, userHome)
     }
 
     /**
      * Set up the analysis environment based on the given resolved [config]. Use the given [context]. Also take the
-     * given [repositoryServices] into account that have been used to download the repository.
+     * given [repositoryServices] into account that have been used to download the repository. Generate configuration
+     * files in the given [userHome] directory.
      */
     private suspend fun setUpEnvironmentForConfig(
         context: WorkerContext,
         config: ResolvedEnvironmentConfig,
-        repositoryServices: List<InfrastructureService>
+        repositoryServices: List<InfrastructureService>,
+        userHome: File?
     ): ResolvedEnvironmentConfig {
         val environmentServices = config.environmentDefinitions.map { it.service }
         val infraServices = config.infrastructureServices.toMutableSet()
@@ -138,18 +143,20 @@ class EnvironmentService(
 
         assignServicesToOrtRun(context, adjustedServices)
 
-        generateConfigFiles(context, allEnvironmentDefinitions)
+        generateConfigFiles(context, allEnvironmentDefinitions, userHome)
 
         return config
     }
 
     /**
      * Generate all configuration files supported by the managed [EnvironmentConfigGenerator]s based on the passed in
-     * [definitions]. Use the given [context] to access required information.
+     * [definitions]. Use the given [context] to access required information. Generate configuration files in the
+     * specified [userHome] directory.
      */
     private suspend fun generateConfigFiles(
         context: WorkerContext,
-        definitions: Collection<EnvironmentServiceDefinition>
+        definitions: Collection<EnvironmentServiceDefinition>,
+        userHome: File?
     ) {
         val adminConfig = adminConfigService.loadAdminConfig(
             context.resolvedConfigurationContext,
@@ -164,7 +171,8 @@ class EnvironmentService(
                 val builder = ConfigFileBuilder(
                     context.secretResolverFun,
                     context.configManager::getSecret,
-                    adminConfig.mavenCentralMirror
+                    adminConfig.mavenCentralMirror,
+                    userHome
                 )
                 async { generator.generateApplicable(builder, definitions) }
             }.awaitAll()
@@ -179,7 +187,7 @@ class EnvironmentService(
      */
     suspend fun setupAuthentication(context: WorkerContext, services: Collection<InfrastructureService>) {
         val definitions = resolveInfrastructureServices(context, services).map(::EnvironmentServiceDefinition)
-        generateConfigFiles(context, definitions)
+        generateConfigFiles(context, definitions, null)
     }
 
     /**

@@ -36,7 +36,6 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -55,9 +54,7 @@ import java.time.Instant
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
-import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -108,6 +105,20 @@ import org.ossreviewtoolkit.utils.spdxexpression.toSpdx
 
 private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 
+private val testRunnerConfig = AnalyzerRunnerConfig(
+    allowDynamicVersions = false,
+    skipExcluded = false,
+    enabledPackageManagers = listOf("Maven", "Gradle"),
+    disabledPackageManagers = listOf("NPM"),
+    packageManagerOptions = mapOf(
+        "Maven" to PackageManagerConfiguration(
+            listOf("Gradle"),
+            options = mapOf("foo" to "bar")
+        )
+    ),
+    repositoryConfigPath = null
+)
+
 class AnalyzerRunnerTest : WordSpec({
     fun createWorkerContext(
         providerPluginConfigs: List<ResolvableProviderPluginConfig> = emptyList(),
@@ -122,7 +133,7 @@ class AnalyzerRunnerTest : WordSpec({
     suspend fun run(
         context: WorkerContext = createWorkerContext(),
         inputDir: File = projectDir,
-        config: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
+        config: AnalyzerRunnerConfig = testRunnerConfig,
         environmentConfig: ResolvedEnvironmentConfig = ResolvedEnvironmentConfig(),
         runner: AnalyzerRunner = AnalyzerRunner(ConfigFactory.empty())
     ): OrtResult =
@@ -238,7 +249,7 @@ class AnalyzerRunnerTest : WordSpec({
         }
 
         "use the .ort.yml defined by repositoryConfigPath" {
-            val repository = run(config = AnalyzerJobConfiguration(repositoryConfigPath = ".custom.ort.yml")).repository
+            val repository = run(config = testRunnerConfig.copy(repositoryConfigPath = ".custom.ort.yml")).repository
 
             repository.config shouldBe RepositoryConfiguration(
                 analyzer = RepositoryAnalyzerConfiguration(
@@ -259,49 +270,16 @@ class AnalyzerRunnerTest : WordSpec({
 
         "fail if repositoryConfigPath points to a file outside the analyzed directory" {
             shouldThrow<IllegalArgumentException> {
-                run(config = AnalyzerJobConfiguration(repositoryConfigPath = "../.ort.yml"))
+                run(config = testRunnerConfig.copy(repositoryConfigPath = "../.ort.yml"))
             }
         }
 
-        "pass all the properties to ORT Analyzer" {
-            val enabledPackageManagers = listOf("conan", "npm")
-            val disabledPackageManagers = listOf("maven")
-            val packageManagerOptions = mapOf("conan" to PackageManagerConfiguration(listOf("npm")))
-            val packageCurationProviderConfigs = listOf(ResolvableProviderPluginConfig(type = "OrtConfig"))
-            val resolvedPackageCurationProviderConfigs = listOf(ProviderPluginConfiguration(type = "OrtConfig"))
-
-            val config = AnalyzerJobConfiguration(
-                allowDynamicVersions = true,
-                enabledPackageManagers = enabledPackageManagers,
-                disabledPackageManagers = disabledPackageManagers,
-                packageCurationProviders = packageCurationProviderConfigs,
-                packageManagerOptions = packageManagerOptions,
-                skipExcluded = true
-            )
-
-            val result = run(
-                context = createWorkerContext(packageCurationProviderConfigs, resolvedPackageCurationProviderConfigs),
-                config = config
-            )
-            val analyzerResult = result.analyzer.shouldNotBeNull()
-
-            analyzerResult.config shouldBe AnalyzerConfiguration(
-                true,
-                enabledPackageManagers,
-                disabledPackageManagers,
-                packageManagerOptions.map { entry -> entry.key to entry.value.mapToOrt() }.toMap(),
-                true
-            )
-
-            result.resolvedConfiguration.packageCurations.map { it.provider.id } should
-                    containExactly("RepositoryConfiguration", "OrtConfig")
-        }
-
         "return an unmanaged project for a directory with only an empty subdirectory" {
+            val config = testRunnerConfig.copy(enabledPackageManagers = null)
             val inputDir = createOrtTempDir().resolve("project")
             inputDir.resolve("subdirectory").safeMkdirs()
 
-            val result = run(inputDir = inputDir).analyzer?.result
+            val result = run(inputDir = inputDir, config = config).analyzer?.result
 
             result.shouldNotBeNull()
             result.projects.map { it.id } should containExactly(Identifier("Unmanaged::project"))
@@ -353,7 +331,7 @@ class AnalyzerRunnerTest : WordSpec({
             val ortResult = OrtResult.EMPTY.copy(analyzer = analyzerRun)
             exchangeDir.resolve("analyzer-result.yml").writeValue(ortResult)
 
-            val jobConfig = AnalyzerJobConfiguration(skipExcluded = true)
+            val runnerConfig = testRunnerConfig.copy(skipExcluded = true)
 
             val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
             coEvery {
@@ -362,15 +340,15 @@ class AnalyzerRunnerTest : WordSpec({
 
             val result = run(
                 context,
-                config = jobConfig,
+                config = runnerConfig,
                 environmentConfig = environmentConfig,
                 inputDir = inputDir,
                 runner = runner
             )
 
             result shouldBe ortResult
-            val persistedConfig = exchangeDir.resolve("analyzer-config.json").readValue<AnalyzerJobConfiguration>()
-            persistedConfig shouldBe jobConfig
+            val persistedConfig = exchangeDir.resolve("analyzer-config.json").readValue<AnalyzerRunnerConfig>()
+            persistedConfig shouldBe runnerConfig
 
             verify {
                 processBuilder.start()
@@ -437,145 +415,6 @@ class AnalyzerRunnerTest : WordSpec({
             }
 
             exception.message shouldContain "The forked process died"
-        }
-
-        "resolve package curation provider secrets when running in process" {
-            val inputDir = createOrtTempDir().resolve("project").safeMkdirs()
-
-            val packageCurationProviderConfigs = listOf(
-                ResolvableProviderPluginConfig(
-                    type = "type1",
-                    options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to ResolvableSecret("ref1", SecretSource.ADMIN))
-                ),
-                ResolvableProviderPluginConfig(
-                    type = "type2",
-                    options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to ResolvableSecret("ref2", SecretSource.ADMIN))
-                )
-            )
-
-            val resolvedPackageCurationProviderConfigs = listOf(
-                ProviderPluginConfiguration(
-                    type = "type1",
-                    options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to "value1")
-                ),
-                ProviderPluginConfiguration(
-                    type = "type2",
-                    options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to "value2")
-                )
-            )
-
-            val config = AnalyzerJobConfiguration(packageCurationProviders = packageCurationProviderConfigs)
-
-            val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
-
-            run(
-                context = createWorkerContext(
-                    providerPluginConfigs = packageCurationProviderConfigs,
-                    resolvedProviderPluginConfigs = resolvedPackageCurationProviderConfigs
-                ),
-                config = config,
-                inputDir = inputDir,
-                runner = runner
-            )
-
-            verify(exactly = 1) {
-                runner.runInProcess(
-                    inputDir,
-                    AnalyzerRunnerConfig(
-                        allowDynamicVersions = config.allowDynamicVersions,
-                        disabledPackageManagers = config.disabledPackageManagers,
-                        enabledPackageManagers = config.enabledPackageManagers,
-                        packageCurationProviders = resolvedPackageCurationProviderConfigs,
-                        packageManagerOptions = config.packageManagerOptions,
-                        repositoryConfigPath = config.repositoryConfigPath,
-                        skipExcluded = config.skipExcluded
-                    )
-                )
-            }
-        }
-
-        "resolve package curation provider secrets when running in a fork" {
-            val inputDir = createOrtTempDir().resolve("project").safeMkdirs()
-
-            val packageCurationProviderConfigs = listOf(
-                ResolvableProviderPluginConfig(
-                    type = "type1",
-                    options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to ResolvableSecret("ref1", SecretSource.ADMIN))
-                ),
-                ResolvableProviderPluginConfig(
-                    type = "type2",
-                    options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to ResolvableSecret("ref2", SecretSource.ADMIN))
-                )
-            )
-
-            val resolvedPackageCurationProviderConfigs = listOf(
-                ProviderPluginConfiguration(
-                    type = "type1",
-                    options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to "value1")
-                ),
-                ProviderPluginConfiguration(
-                    type = "type2",
-                    options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to "value2")
-                )
-            )
-
-            val environmentConfig = ResolvedEnvironmentConfig(
-                environmentVariables = setOf(
-                    SecretVariableDefinition("ENV_VAR", mockk())
-                )
-            )
-
-            val process = createProcessMock()
-            val processBuilder = mockk<ProcessBuilder> {
-                every { start() } returns process
-                every { command() } returns listOf("some", "command")
-            }
-
-            val config = AnalyzerJobConfiguration(packageCurationProviders = packageCurationProviderConfigs)
-
-            val runner = spyk(AnalyzerRunner(ConfigFactory.empty()))
-
-            coEvery { runner.createProcessBuilder(any(), any(), any(), any()) } returns processBuilder
-
-            // Expect an exception because making the run succeed would require additional setup which is not required
-            // for this test. The relevant part is that the `runForked` call can be verified below.
-            shouldThrow<IOException> {
-                run(
-                    context = createWorkerContext(
-                        providerPluginConfigs = packageCurationProviderConfigs,
-                        resolvedProviderPluginConfigs = resolvedPackageCurationProviderConfigs
-                    ),
-                    config = config,
-                    inputDir = inputDir,
-                    runner = runner,
-                    environmentConfig = environmentConfig
-                )
-            }
-
-            coVerify(exactly = 1) {
-                runner.runForked(
-                    any(),
-                    inputDir,
-                    AnalyzerRunnerConfig(
-                        allowDynamicVersions = config.allowDynamicVersions,
-                        disabledPackageManagers = config.disabledPackageManagers,
-                        enabledPackageManagers = config.enabledPackageManagers,
-                        packageCurationProviders = resolvedPackageCurationProviderConfigs,
-                        packageManagerOptions = config.packageManagerOptions,
-                        repositoryConfigPath = config.repositoryConfigPath,
-                        skipExcluded = config.skipExcluded
-                    ),
-                    environmentConfig
-                )
-            }
         }
     }
 

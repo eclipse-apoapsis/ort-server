@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -28,6 +29,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
@@ -64,12 +66,11 @@ object EnvironmentForkHelper {
     fun prepareFork(out: OutputStream) {
         logger.info("Preparing forked process...")
 
-        val authenticator = OrtServerAuthenticator.install()
-        val authInfo = authenticator.authenticationInfo
+        val authInfo = fetchAuthenticationInfo()
         val mdcContext = MDC.getCopyOfContextMap().orEmpty()
 
         val forkData = SerializableForkData(
-            authInfo = authInfo.toSerializableAuthenticationInfo(),
+            authInfo = authInfo,
             mdcContext = mdcContext
         )
 
@@ -77,6 +78,16 @@ object EnvironmentForkHelper {
 
         logger.info("Wrote authentication information about {} services to forked process.", authInfo.services.size)
         logger.info("Wrote MDC context with {} entries to forked process.", mdcContext.size)
+    }
+
+    /**
+     * Write the current authentication information (the set of infrastructure services with their credentials) to the
+     * specified [target] file. At a later point of time, it is then possible to restore this information again.
+     */
+    fun persistAuthenticationInfo(target: File) {
+        target.outputStream().use { out ->
+            Json.encodeToStream(fetchAuthenticationInfo(), out)
+        }
     }
 
     /**
@@ -110,10 +121,43 @@ object EnvironmentForkHelper {
     }
 
     /**
+     * Set up authentication information from the given [source] file and the provided [configManager]. Using this
+     * function, the data previously stored via [persistAuthenticationInfo] can be restored.
+     */
+    fun setupAuthentication(source: File, configManager: ConfigManager) {
+        val authInfo = source.inputStream().use { stream ->
+            Json.decodeFromStream<SerializableAuthenticationInfo>(stream)
+        }
+
+        restoreAuthentication(authInfo, configManager)
+    }
+
+    /**
      * Restore the MDC context from the given [context] map.
      */
     private fun restoreMdcContext(context: Map<String, String>) =
         if (context.isEmpty()) MDC.clear() else MDC.setContextMap(context)
+
+    /**
+     * Obtain authentication information from the authenticator and return it in a form that can be serialized.
+     */
+    private fun fetchAuthenticationInfo(): SerializableAuthenticationInfo {
+        val authenticator = OrtServerAuthenticator.install()
+        val authInfo = authenticator.authenticationInfo
+        return authInfo.toSerializableAuthenticationInfo()
+    }
+
+    /**
+     * Initialize the authenticator with the given deserialized [serAuthInfo] and the provided [configManager].
+     */
+    private fun restoreAuthentication(serAuthInfo: SerializableAuthenticationInfo, configManager: ConfigManager) {
+        val authInfo = serAuthInfo.toAuthenticationInfo()
+        val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(configManager))
+        authenticator.updateAuthenticationInfo(authInfo)
+
+        val netrcManager = NetRcManager.create(secretResolver(authInfo))
+        authenticator.updateAuthenticationListener(netrcManager)
+    }
 
     /**
      * Convert this [AuthenticationInfo] to a [SerializableAuthenticationInfo] that can be passed to a forked process.

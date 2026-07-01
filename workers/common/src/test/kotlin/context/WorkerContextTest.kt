@@ -784,8 +784,12 @@ private class ContextFactoryTestHelper {
     )
 
     /** The factory to be tested. */
-    val factory: WorkerContextFactory =
-        WorkerContextFactory(config, ortRunRepository, repositoryRepository, secretService)
+    val factory: WorkerContextFactory = WorkerContextFactory(
+            config,
+            ortRunRepository,
+            repositoryRepository,
+            SecretResolverService.wrapSecretService(secretService)
+        )
 
     /**
      * Prepare the mock [OrtRunRepository] to be queried for the test run ID. Return a mock run that is also returned
