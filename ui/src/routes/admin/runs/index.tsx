@@ -414,15 +414,22 @@ export const Route = createFileRoute('/admin/runs/')({
     context: { queryClient },
     deps: { page, pageSize, status },
   }) => {
-    await queryClient.prefetchQuery({
-      ...getRunsOptions({
-        query: {
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          status: status?.join(','),
-        },
+    await Promise.all([
+      queryClient.prefetchQuery({
+        ...getRunsOptions({
+          query: {
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+            status: status?.join(','),
+          },
+        }),
       }),
-    });
+      queryClient.prefetchQuery({
+        ...getRunsOptions({
+          query: { limit: 1 },
+        }),
+      }),
+    ]);
   },
   component: RunsComponent,
   pendingComponent: LoadingIndicator,

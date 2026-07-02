@@ -22,12 +22,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { Route as AdminPluginTemplatesRoute } from '@/routes/admin/plugins/$pluginType/$pluginId/index';
 import { Route as AdminRunsRoute } from '@/routes/admin/runs/index';
 import { Route as AdminUsersRoute } from '@/routes/admin/users/index';
-import { createDeferred } from '../fixtures/loader-test-utils';
+import {
+  createDeferred,
+  getQueryKeyRequest,
+} from '../fixtures/loader-test-utils';
 
 const expectLoaderToAwaitQuery = async (
   loader: (options: unknown) => Promise<void>,
   queryMethod: 'ensureQueryData' | 'prefetchQuery',
-  options: unknown
+  options: unknown,
+  expectedQueryCalls = 1
 ) => {
   const deferredQuery = createDeferred<undefined>();
   const queryFn = vi.fn().mockReturnValue(deferredQuery.promise);
@@ -44,29 +48,48 @@ const expectLoaderToAwaitQuery = async (
 
   await Promise.resolve();
 
-  expect(queryFn).toHaveBeenCalledTimes(1);
+  expect(queryFn).toHaveBeenCalledTimes(expectedQueryCalls);
   expect(resolved).toBe(false);
 
   deferredQuery.resolve(undefined);
   await loaderPromise;
 
   expect(resolved).toBe(true);
+
+  return queryFn;
 };
 
 describe('admin route loaders', () => {
-  it('awaits the runs prefetch before resolving', async () => {
+  it('awaits the runs and total count prefetches before resolving', async () => {
     const loader = AdminRunsRoute.options.loader as unknown as (
       options: unknown
     ) => Promise<void>;
 
-    await expectLoaderToAwaitQuery(loader, 'prefetchQuery', {
-      deps: {
-        page: 2,
-        pageSize: 25,
-        status: ['FINISHED'],
+    const queryFn = await expectLoaderToAwaitQuery(
+      loader,
+      'prefetchQuery',
+      {
+        deps: {
+          page: 2,
+          pageSize: 25,
+          status: ['FINISHED'],
+        },
+        params: {},
       },
-      params: {},
+      2
+    );
+
+    const runsRequest = getQueryKeyRequest(queryFn.mock.calls[0]![0]);
+    expect(runsRequest._id).toBe('getRuns');
+    expect(runsRequest.query).toEqual({
+      limit: 25,
+      offset: 25,
+      status: 'FINISHED',
     });
+
+    const totalCountRequest = getQueryKeyRequest(queryFn.mock.calls[1]![0]);
+    expect(totalCountRequest._id).toBe('getRuns');
+    expect(totalCountRequest.query).toEqual({ limit: 1 });
   });
 
   it('awaits the users query before resolving', async () => {
