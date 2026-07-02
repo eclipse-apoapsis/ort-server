@@ -19,23 +19,29 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import com.typesafe.config.ConfigFactory
+
 import java.io.File
 
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.writeValue
+import org.ossreviewtoolkit.utils.common.Os
 
 import org.slf4j.LoggerFactory
 
@@ -50,6 +56,8 @@ internal const val PREPARATION_EXCHANGE_FILE = "preparation-exchange.json"
 
 /** The name of the directory in which package manager configuration files are created. */
 internal const val CONFIG_DIR = "conf"
+
+internal const val ORT_RESULT_FILE = "ort-result.json"
 
 private val logger = LoggerFactory.getLogger(AnalyzerPhase::class.java)
 
@@ -168,6 +176,96 @@ internal class PreparationPhase(
 }
 
 /**
+ * An implementation of [AnalyzerPhase] that runs the ORT Analyzer in the environment prepared by [PreparationPhase].
+ *
+ * The [run] function expects the directory containing the results of the preparation phase as first argument. It reads
+ * the relevant files in this directory and delegates to [AnalyzerWorker] to perform the Analysis. It then writes the
+ * resulting ORT result in this directory as well.
+ *
+ * An optional second argument can point to a path of a file that should be created once the analysis is done. This can
+ * be used as a synchronization mechanism to signal the completion of the analysis phase.
+ */
+internal class AnalysisPhase : AnalyzerPhase {
+    override suspend fun run(
+        worker: AnalyzerWorker,
+        jobId: Long,
+        args: Array<String>
+    ): RunResult {
+        val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 2))
+
+        val prepareResult = createPrepareResult(exchangeDir, jobId)
+        copyConfigFiles(exchangeDir)
+        setUpEnvironment()
+
+        val result = worker.analyze(prepareResult)
+        writeExchangeFile(exchangeDir, ORT_RESULT_FILE, result)
+
+        writeSyncFile(args)
+        return RunResult.Ignored
+    }
+
+    /**
+     * Load the required data of the preparation phase from the given [exchangeDir] for the Analyzer job with the given
+     * [jobId] to create a [PrepareResult].
+     */
+    private fun createPrepareResult(
+        exchangeDir: File,
+        jobId: Long
+    ): PrepareResult {
+        val preparationExchange = readExchangeFile<PreparationExchange>(exchangeDir, PREPARATION_EXCHANGE_FILE)
+
+        // An empty config manager is sufficient here, since no infrastructure secrets are queried in this phase.
+        val configManager = ConfigManager.create(ConfigFactory.empty())
+        EnvironmentForkHelper.setupAuthentication(exchangeDir.resolve(AUTH_INFO_FILE), configManager)
+
+        val cloneDirectory = requireNotNull(
+            AnalyzerDownloader.findDownloadDir(exchangeDir, preparationExchange.runId)
+        ) {
+            "Could not find the directory with the cloned repository for Analyzer job $jobId."
+        }
+
+        return PrepareResult(
+            cloneDirectory = cloneDirectory,
+            resolvedEnvironment = preparationExchange.environment,
+            runnerConfig = preparationExchange.runnerConfig
+        )
+    }
+
+    /**
+     * Copy the package manager configuration files created during the preparation phase from the given [exchangeDir]
+     * to the user's home directory.
+     */
+    private fun copyConfigFiles(exchangeDir: File) {
+        val configDir = exchangeDir.resolve(CONFIG_DIR)
+        val userHomeDir = Os.userHomeDirectory
+        logger.info("Copying configuration files from '{}' to '{}'.", configDir, userHomeDir)
+
+        configDir.copyRecursively(target = userHomeDir, overwrite = true)
+    }
+
+    /**
+     * Set up the current environment, so that the ORT Analyzer can run. Because this phase does not use a
+     * [WorkerContext], some initialization steps have to be performed manually.
+     */
+    private fun setUpEnvironment() {
+        logger.info("Setting up the ORT environment for the analysis phase.")
+        WorkerOrtConfig.create().setUpOrtEnvironment()
+    }
+
+    /**
+     * Write the sync file to indicate that this phase is complete if configured in the given [args].
+     */
+    private fun writeSyncFile(args: Array<String>) {
+        if (args.size == 2) {
+            val syncFile = File(args[1])
+            syncFile.parentFile?.mkdirs()
+            logger.info("Writing sync file '{}'.", syncFile)
+            syncFile.writeText("done")
+        }
+    }
+}
+
+/**
  * A data class to hold results of the preparation phase that needs to be exchanged with later phases.
  * [PreparationPhase] creates such an object and serializes it to a file on a shared volume. From there, it is picked
  * up to start the analysis.
@@ -226,6 +324,17 @@ private inline fun <reified T : Any> AnalyzerPhase.writeExchangeFile(
     logger.info("[{}]: Writing exchange file '{}'.", javaClass.simpleName, exchangeFile)
 
     exchangeFile.writeValue(data)
+}
+
+/**
+ * Read a file with the given [name] in the [exchangeDir] for this [AnalyzerPhase]. Return the deserialized data.
+ * Log this operation.
+ */
+private inline fun <reified T : Any> AnalyzerPhase.readExchangeFile(exchangeDir: File, name: String): T {
+    val exchangeFile = exchangeDir.resolve(name)
+    logger.info("[{}]: Reading exchange file '{}'.", javaClass.simpleName, exchangeFile)
+
+    return exchangeFile.readValue()
 }
 
 /**

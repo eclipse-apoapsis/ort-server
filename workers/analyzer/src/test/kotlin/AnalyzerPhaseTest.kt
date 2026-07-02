@@ -87,4 +87,16 @@ class AnalyzerPhaseTest : WordSpec({
             }
         }
     }
+
+    "AnalysisPhase" should {
+        "throw if too many arguments are provided" {
+            val exchangeDir = tempdir()
+
+            val phase = AnalysisPhase()
+
+            shouldThrow<IllegalArgumentException> {
+                phase.run(mockk(), 42L, arrayOf(exchangeDir.absolutePath, "sync", "extra-arg"))
+            }
+        }
+    }
 })

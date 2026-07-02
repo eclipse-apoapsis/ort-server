@@ -71,12 +71,14 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_SECONDS
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
@@ -85,12 +87,15 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariab
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.IssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.readValue
+import org.ossreviewtoolkit.model.writeValue
+import org.ossreviewtoolkit.utils.common.Os
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -1259,6 +1264,127 @@ class AnalyzerWorkerTest : StringSpec({
             runnerConfig.enabledPackageManagers shouldContainExactlyInAnyOrder listOf("Maven")
 
             runId shouldBe ortRun.id
+        }
+    }
+
+    "The analysis phase should be executed" {
+        val exchangeDir = tempdir()
+        val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
+        val cloneDir = jobDir.resolve("analyzer-worker-${ortRun.id}-download").apply { mkdirs() }
+        val prepareResult = PrepareResult(
+            cloneDirectory = cloneDir,
+            resolvedEnvironment = mapOf("SOME_VARIABLE" to "someValue"),
+            runnerConfig = AnalyzerRunnerConfig(
+                allowDynamicVersions = true,
+                skipExcluded = false,
+                enabledPackageManagers = listOf("Maven"),
+                disabledPackageManagers = listOf("Gradle"),
+                packageManagerOptions = mapOf(
+                    "Maven" to PackageManagerConfiguration(
+                        options = mapOf("someOption" to "someValue")
+                    )
+                ),
+                packageCurationProviders = listOf(
+                    ProviderPluginConfiguration(
+                        type = "test-provider",
+                        options = mapOf("option1" to "value1", "option2" to "value2"),
+                        secrets = mapOf("password" to "secret-password")
+                    )
+            ),
+                repositoryConfigPath = "test/path"
+            )
+        )
+        val prepareExchange = PreparationExchange(
+            environment = prepareResult.resolvedEnvironment,
+            runnerConfig = prepareResult.runnerConfig,
+            runId = ortRun.id
+        )
+        val prepareFile = jobDir.resolve(PREPARATION_EXCHANGE_FILE)
+        prepareFile.writeValue(prepareExchange)
+
+        val userHomeDir = tempdir()
+        val configDir = jobDir.resolve(CONFIG_DIR)
+        val subConfigDir = configDir.resolve("sub-config").apply { mkdirs() }
+        configDir.resolve("settings.xml").writeText("Maven configuration")
+        subConfigDir.resolve("test.conf").writeText("Test configuration")
+
+        val ortResult = OrtTestData.result.copy(scanner = null, advisor = null)
+        val runner = mockk<AnalyzerRunner> {
+            coEvery {
+                run(prepareResult.cloneDirectory, prepareResult.runnerConfig, prepareResult.resolvedEnvironment)
+            } answers {
+                Os.userHomeDirectory.resolve("settings.xml").readText() shouldBe "Maven configuration"
+                Os.userHomeDirectory.resolve("sub-config/test.conf").readText() shouldBe "Test configuration"
+                ortResult
+            }
+        }
+
+        mockkObject(EnvironmentForkHelper, Os, WorkerOrtConfig) {
+            val workerOrtConfig = mockk<WorkerOrtConfig> {
+                every { setUpOrtEnvironment() } just runs
+            }
+            every { WorkerOrtConfig.create() } returns workerOrtConfig
+            every { EnvironmentForkHelper.setupAuthentication(any(), any()) } just runs
+            every { Os.userHomeDirectory } returns userHomeDir
+
+            val worker = AnalyzerWorker(mockk(), runner)
+            worker.testRun(AnalysisPhase(), arrayOf(exchangeDir.absolutePath)) shouldBe RunResult.Ignored
+
+            val analysisResult: OrtResult = jobDir.resolve(ORT_RESULT_FILE).readValue()
+            analysisResult shouldBe ortResult
+
+            verify {
+                EnvironmentForkHelper.setupAuthentication(jobDir.resolve(AUTH_INFO_FILE), any())
+                workerOrtConfig.setUpOrtEnvironment()
+            }
+        }
+    }
+
+    "The analysis phase should write a sync file when it is done" {
+        val exchangeDir = tempdir()
+        val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
+        val downloadDir = jobDir.resolve("analyzer-worker-${ortRun.id}-download")
+        downloadDir.mkdirs()
+        val syncFile = exchangeDir.resolve("some/sync/i-am-done.sync")
+        val prepareResult = PrepareResult(
+            cloneDirectory = tempdir(),
+            resolvedEnvironment = emptyMap(),
+            runnerConfig = AnalyzerRunnerConfig(
+                allowDynamicVersions = true,
+                skipExcluded = false,
+                enabledPackageManagers = null,
+                disabledPackageManagers = null,
+                packageManagerOptions = null,
+                packageCurationProviders = emptyList(),
+                repositoryConfigPath = null
+            )
+        )
+        val prepareExchange = PreparationExchange(
+            environment = prepareResult.resolvedEnvironment,
+            runnerConfig = prepareResult.runnerConfig,
+            runId = ortRun.id
+        )
+        val prepareFile = jobDir.resolve(PREPARATION_EXCHANGE_FILE)
+        prepareFile.writeValue(prepareExchange)
+        jobDir.resolve(CONFIG_DIR).mkdirs() // Config directory must exist.
+
+        val ortResult = OrtTestData.result.copy(scanner = null, advisor = null)
+        val runner = mockk<AnalyzerRunner> {
+            coEvery { run(any(), any(), any()) } returns ortResult
+        }
+
+        mockkObject(EnvironmentForkHelper, WorkerOrtConfig) {
+            every { WorkerOrtConfig.create() } returns mockk(relaxed = true)
+            every { EnvironmentForkHelper.setupAuthentication(any(), any()) } just runs
+
+            val worker = AnalyzerWorker(mockk(), runner)
+            val result = worker.testRun(
+                AnalysisPhase(),
+                arrayOf(exchangeDir.absolutePath, syncFile.absolutePath)
+            )
+            result shouldBe RunResult.Ignored
+
+            syncFile.isFile shouldBe true
         }
     }
 })
