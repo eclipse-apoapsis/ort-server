@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.utils.common.Os
@@ -261,6 +262,52 @@ internal class AnalysisPhase : AnalyzerPhase {
             syncFile.parentFile?.mkdirs()
             logger.info("Writing sync file '{}'.", syncFile)
             syncFile.writeText("done")
+        }
+    }
+}
+
+/**
+ * An implementation of [AnalyzerPhase] that collects the results from the analysis and stores them in the database.
+ *
+ * The results, in form of a serialized ORT result, are expected to be found in a job-specific directory on an exchange
+ * volume whose root path is passed as single argument.
+ */
+internal class ResultPhase(
+    /** The database to access the job and store the results. */
+    private val db: Database,
+
+    /** The service to access and update information about the current run. */
+    private val ortRunService: OrtRunService,
+
+    /** The factory to create a worker context. */
+    private val contextFactory: WorkerContextFactory,
+
+    /** The service to access the global server configuration. */
+    private val adminConfigService: AdminConfigService,
+
+    /** The service to handle issues. */
+    private val issueResolutionService: IssueResolutionService
+) : AnalyzerPhase {
+    override suspend fun run(
+        worker: AnalyzerWorker,
+        jobId: Long,
+        args: Array<String>
+    ): RunResult {
+        val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 1))
+        val job = ortRunService.getValidAnalyzerJob(jobId)
+
+        val result: OrtResult = readExchangeFile(exchangeDir, ORT_RESULT_FILE)
+
+        return contextFactory.withContext(job.ortRunId) { context ->
+            worker.processResult(
+                context,
+                job,
+                result,
+                db,
+                ortRunService,
+                adminConfigService,
+                issueResolutionService
+            )
         }
     }
 }

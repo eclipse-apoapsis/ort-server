@@ -71,8 +71,10 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_SECONDS
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -1385,6 +1387,72 @@ class AnalyzerWorkerTest : StringSpec({
             result shouldBe RunResult.Ignored
 
             syncFile.isFile shouldBe true
+        }
+    }
+
+    "The result phase should be executed" {
+        val exchangeDir = tempdir()
+        val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { storePackageCurationAssociations(any(), any()) } just runs
+            every { storeResolvedItems(any(), any()) } just runs
+        }
+
+        val context = mockWorkerContext()
+        val contextFactory = mockContextFactory(context)
+
+        val analyzerIssue = Issue(
+            timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+            source = "analyzer",
+            message = "Analyzer issue",
+            severity = Severity.ERROR
+        )
+        val ortResult = OrtTestData.result.copy(
+            analyzer = OrtTestData.result.analyzer?.copy(
+                result = OrtTestData.result.analyzer?.result!!.copy(
+                    issues = mapOf(OrtIdentifier("Maven:com.example:package:1.0") to listOf(analyzerIssue))
+                )
+            )
+        )
+
+        jobDir.resolve(ORT_RESULT_FILE).writeValue(ortResult)
+
+        val phase = ResultPhase(
+            mockk(),
+            ortRunService,
+            contextFactory,
+            mockk(relaxed = true),
+            mockIssueResolutionService()
+        )
+        val worker = AnalyzerWorker(mockk(), mockk())
+
+        mockkTransaction {
+            val result = worker.testRun(phase, arrayOf(exchangeDir.absolutePath))
+
+            result shouldBe RunResult.FinishedWithIssues
+
+            verify(exactly = 1) {
+                ortRunService.storeAnalyzerRun(
+                    withArg {
+                        // There is no exact match because of different orders of elements in sets.
+                        val expectedAnalyzerRun = ortResult.analyzer?.mapToModel(JOB_ID)
+                        it.analyzerJobId shouldBe JOB_ID
+                        it.config shouldBe expectedAnalyzerRun?.config
+                        it.environment shouldBe expectedAnalyzerRun?.environment
+                        it.packages.map(Package::identifier) shouldBe
+                                expectedAnalyzerRun?.packages?.map(Package::identifier)
+                    },
+                    any()
+                )
+                ortRunService.storeRepositoryInformation(ortRun.id, OrtTestData.result.repository)
+            }
         }
     }
 })
