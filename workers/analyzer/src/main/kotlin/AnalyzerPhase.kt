@@ -113,7 +113,7 @@ internal class FullPhase(
 
         return contextFactory.withContext(job.ortRunId) { context ->
             val prepareResult = worker.prepare(context, job, ortRunService, environmentService)
-            val ortResult = worker.analyze(context, job, prepareResult)
+            val ortResult = worker.analyze(prepareResult)
             worker.processResult(context, job, ortResult, db, ortRunService, adminConfigService, issueResolutionService)
         }
     }

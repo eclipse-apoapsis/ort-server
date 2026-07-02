@@ -32,7 +32,6 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 
 import org.ossreviewtoolkit.analyzer.Analyzer
@@ -46,7 +45,9 @@ import org.ossreviewtoolkit.model.readValueOrNull
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.SimplePackageCurationProvider
+import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.ORT_REPO_CONFIG_FILENAME
+import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
 
@@ -136,14 +137,13 @@ class AnalyzerRunner(
      * with a customized environment.
      */
     suspend fun run(
-        context: WorkerContext,
         inputDir: File,
         runnerConfig: AnalyzerRunnerConfig,
         environmentVariables: Map<String, String>
     ): OrtResult = if (environmentVariables.isEmpty()) {
         runInProcess(inputDir, runnerConfig)
     } else {
-        runForked(context, inputDir, runnerConfig, environmentVariables)
+        runForked(inputDir, runnerConfig, environmentVariables)
     }
 
     /**
@@ -186,30 +186,33 @@ class AnalyzerRunner(
      * set.
      */
     internal suspend fun runForked(
-        context: WorkerContext,
         inputDir: File,
         config: AnalyzerRunnerConfig,
         environment: Map<String, String>
     ): OrtResult {
-        val exchangeDir = context.createTempDir()
-        exchangeDir.resolve(ANALYZER_CONFIG_FILE).writeValue(config)
+        val exchangeDir = createOrtTempDir()
+        try {
+            exchangeDir.resolve(ANALYZER_CONFIG_FILE).writeValue(config)
 
-        val processBuilder = createProcessBuilder(exchangeDir, inputDir, environment)
+            val processBuilder = createProcessBuilder(exchangeDir, inputDir, environment)
 
-        logger.info("Starting forked AnalyzerRunner with command: ${processBuilder.command()}")
-        withContext(Dispatchers.IO) {
-            val process = processBuilder.start()
-            process.outputStream.use { pipe ->
-                EnvironmentForkHelper.prepareFork(pipe)
+            logger.info("Starting forked AnalyzerRunner with command: ${processBuilder.command()}")
+            withContext(Dispatchers.IO) {
+                val process = processBuilder.start()
+                process.outputStream.use { pipe ->
+                    EnvironmentForkHelper.prepareFork(pipe)
+                }
+
+                val exitCode = process.waitFor()
+
+                logger.info("Forked AnalyzerRunner process finished with exit code $exitCode.")
             }
 
-            val exitCode = process.waitFor()
-
-            logger.info("Forked AnalyzerRunner process finished with exit code $exitCode.")
+            return exchangeDir.resolve(ANALYZER_RESULT_FILE).takeIf { it.isFile }?.readValue()
+                ?: handleForkError(exchangeDir)
+        } finally {
+            exchangeDir.safeDeleteRecursively()
         }
-
-        return exchangeDir.resolve(ANALYZER_RESULT_FILE).takeIf { it.isFile }?.readValue()
-            ?: handleForkError(exchangeDir)
     }
 
     /**

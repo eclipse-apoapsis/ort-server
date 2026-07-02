@@ -160,18 +160,21 @@ internal class AnalyzerWorker(
         )
         val environment = resolveEnvironmentVariables(context, resolvedEnvConfig)
 
-        return PrepareResult(downloadResult.directory, environment)
+        return PrepareResult(
+            downloadResult.directory,
+            environment,
+            job.configuration.toRunnerConfig(context)
+        )
     }
 
     /**
-     * Invoke the [AnalyzerRunner] on the prepared environment for the current [job] using the given [context] and the
-     * [prepareResult] from the preparation phase. Return the [OrtResult] produced by the ORT Analyzer.
+     * Invoke the [AnalyzerRunner] on the prepared environment as defined by the [prepareResult] from the preparation
+     * phase. Return the [OrtResult] produced by the ORT Analyzer.
      */
-    internal suspend fun analyze(context: WorkerContext, job: AnalyzerJob, prepareResult: PrepareResult): OrtResult =
+    internal suspend fun analyze(prepareResult: PrepareResult): OrtResult =
         runner.run(
-            context,
             prepareResult.cloneDirectory,
-            job.configuration.toRunnerConfig(context),
+            prepareResult.runnerConfig,
             prepareResult.resolvedEnvironment
         )
 
@@ -293,7 +296,10 @@ internal data class PrepareResult(
     val cloneDirectory: File,
 
     /** The environment variables to be passed to a forked Analyzer process if any. */
-    val resolvedEnvironment: Map<String, String>
+    val resolvedEnvironment: Map<String, String>,
+
+    /** The configuration for the [AnalyzerRunner]. */
+    val runnerConfig: AnalyzerRunnerConfig
 )
 
 private class AnalyzerException(message: String) : Exception(message)

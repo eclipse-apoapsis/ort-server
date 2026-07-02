@@ -376,7 +376,7 @@ class AnalyzerWorkerTest : StringSpec({
         val runnerConfig = runnerConfig(jobConfig, packageCurationProvidersConfigs)
         val testException = IllegalStateException("AnalyzerRunner test exception")
         val runner = mockk<AnalyzerRunner> {
-            coEvery { run(context, any(), runnerConfig, emptyMap()) } throws testException
+            coEvery { run(any(), runnerConfig, emptyMap()) } throws testException
         }
 
         val phase = FullPhase(
@@ -430,7 +430,6 @@ class AnalyzerWorkerTest : StringSpec({
         val runner = mockk<AnalyzerRunner> {
             coEvery {
                 run(
-                    context,
                     any(),
                     runnerConfig(analyzerJob.configuration),
                     emptyMap()
@@ -525,7 +524,7 @@ class AnalyzerWorkerTest : StringSpec({
         val runnerConfig = runnerConfig(jobConfig, packageCurationProvidersConfigs)
         val testException = IllegalStateException("AnalyzerRunner test exception")
         val runner = mockk<AnalyzerRunner> {
-            coEvery { run(context, any(), runnerConfig, expectedEnvironmentVariables) } throws testException
+            coEvery { run(any(), runnerConfig, expectedEnvironmentVariables) } throws testException
         }
 
         val phase = FullPhase(
@@ -670,7 +669,7 @@ class AnalyzerWorkerTest : StringSpec({
         )
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } answers { ortResult }
+            coEvery { run(any(), any(), any()) } answers { ortResult }
         }
 
         val phase = FullPhase(
@@ -757,7 +756,7 @@ class AnalyzerWorkerTest : StringSpec({
         )
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } answers { ortResult }
+            coEvery { run(any(), any(), any()) } answers { ortResult }
         }
 
         val phase = FullPhase(
@@ -809,7 +808,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } returns OrtTestData.result
+            coEvery { run(any(), any(), any()) } returns OrtTestData.result
         }
 
         val phase = FullPhase(
@@ -875,7 +874,7 @@ class AnalyzerWorkerTest : StringSpec({
         )
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } returns ortResultWithoutCurations
+            coEvery { run(any(), any(), any()) } returns ortResultWithoutCurations
         }
 
         val phase = FullPhase(
@@ -940,7 +939,7 @@ class AnalyzerWorkerTest : StringSpec({
         )
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } returns ortResultWithExcludedProject
+            coEvery { run(any(), any(), any()) } returns ortResultWithExcludedProject
         }
 
         val phase = FullPhase(
@@ -994,7 +993,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } answers {
+            coEvery { run(any(), any(), any()) } answers {
                 OrtTestData.result.copy(
                     repository = OrtTestData.result.repository.copy(
                         config = OrtTestData.result.repository.config.copy(
@@ -1053,7 +1052,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } answers {
+            coEvery { run(any(), any(), any()) } answers {
                 OrtTestData.result.copy(
                     resolvedConfiguration = OrtTestData.result.resolvedConfiguration.copy(
                         resolutions = OrtTestData.result.resolvedConfiguration.resolutions?.copy(
@@ -1128,7 +1127,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
-            coEvery { run(any(), any(), any(), any()) } answers {
+            coEvery { run(any(), any(), any()) } answers {
                 OrtTestData.result
             }
         }
@@ -1245,7 +1244,7 @@ class AnalyzerWorkerTest : StringSpec({
                 }
 
                 coVerify(exactly = 0) {
-                    runner.run(any(), any(), any(), any())
+                    runner.run(any(), any(), any())
                 }
             }
         }

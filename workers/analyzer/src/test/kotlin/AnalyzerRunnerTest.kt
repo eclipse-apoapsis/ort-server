@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactly
@@ -39,6 +40,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.unmockkAll
@@ -52,10 +54,8 @@ import java.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
-import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 
 import org.ossreviewtoolkit.model.AnalyzerResult
@@ -92,6 +92,7 @@ import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.writeValue
+import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
@@ -115,24 +116,13 @@ private val testRunnerConfig = AnalyzerRunnerConfig(
 )
 
 class AnalyzerRunnerTest : WordSpec({
-    fun createWorkerContext(
-        providerPluginConfigs: List<ResolvableProviderPluginConfig> = emptyList(),
-        resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
-        tempDir: File = tempdir()
-    ): WorkerContext =
-        mockk {
-            every { createTempDir() } returns tempDir
-            coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
-        }
-
     suspend fun run(
-        context: WorkerContext = createWorkerContext(),
         inputDir: File = projectDir,
         config: AnalyzerRunnerConfig = testRunnerConfig,
         environment: Map<String, String> = emptyMap(),
         runner: AnalyzerRunner = AnalyzerRunner(ConfigFactory.empty())
     ): OrtResult =
-        runner.run(context, inputDir, config, environment)
+        runner.run(inputDir, config, environment)
 
     afterSpec {
         unmockkAll()
@@ -281,15 +271,13 @@ class AnalyzerRunnerTest : WordSpec({
         }
 
         "start a forked process if custom environment variables are provided" {
-            val exchangeDir = tempdir()
+            val exchangeDir = mockTempDir()
             val inputDir = File("some/folder/to/analyze")
 
             val environmentVariables = mapOf(
                 "MY_ENV_VAR" to "someValue",
                 "ANOTHER_ENV_VAR" to "someSecretValue"
             )
-
-            val context = createWorkerContext(tempDir = exchangeDir)
 
             val processStream = mockk<OutputStream> {
                 every { close() } just runs
@@ -328,9 +316,9 @@ class AnalyzerRunnerTest : WordSpec({
             coEvery {
                 runner.createProcessBuilder(exchangeDir, inputDir, environmentVariables)
             } returns processBuilder
+            every { runner.createOrtTempDir() } returns exchangeDir
 
             val result = run(
-                context,
                 config = runnerConfig,
                 environment = environmentVariables,
                 inputDir = inputDir,
@@ -346,14 +334,13 @@ class AnalyzerRunnerTest : WordSpec({
                 process.waitFor()
                 EnvironmentForkHelper.prepareFork(processStream)
                 processStream.close()
+                exchangeDir.safeDeleteRecursively()
             }
         }
 
         "handle errors from the forked process" {
-            val exchangeDir = tempdir()
+            val exchangeDir = mockTempDir()
             val inputDir = File("analyze/this/folder")
-
-            val context = createWorkerContext(tempDir = exchangeDir)
 
             val process = createProcessMock()
             val processBuilder = mockk<ProcessBuilder> {
@@ -365,6 +352,7 @@ class AnalyzerRunnerTest : WordSpec({
             coEvery {
                 runner.createProcessBuilder(any(), any(), any())
             } returns processBuilder
+            every { runner.createOrtTempDir() } returns exchangeDir
 
             val environmentVariables = mapOf("MY_ENV_VAR" to "someValue")
 
@@ -372,17 +360,14 @@ class AnalyzerRunnerTest : WordSpec({
             exchangeDir.resolve("analyzer-error.txt").writeText(forkError)
 
             val exception = shouldThrow<IOException> {
-                run(context, inputDir = inputDir, environment = environmentVariables, runner = runner)
+                run(inputDir = inputDir, environment = environmentVariables, runner = runner)
             }
 
             exception.message shouldContain forkError
         }
 
         "handle errors from the forked process when the error file does not exist" {
-            val exchangeDir = tempdir()
             val inputDir = File("analyze/this/folder")
-
-            val context = createWorkerContext(tempDir = exchangeDir)
 
             val process = createProcessMock()
             val processBuilder = mockk<ProcessBuilder> {
@@ -398,7 +383,7 @@ class AnalyzerRunnerTest : WordSpec({
             val environmentVariables = mapOf("MY_ENV_VAR" to "someValue")
 
             val exception = shouldThrow<IOException> {
-                run(context, inputDir = inputDir, environment = environmentVariables, runner = runner)
+                run(inputDir = inputDir, environment = environmentVariables, runner = runner)
             }
 
             exception.message shouldContain "The forked process died"
@@ -534,3 +519,17 @@ private fun createProcessMock(pipeStream: OutputStream = ByteArrayOutputStream()
         every { waitFor() } returns 0
         every { outputStream } returns pipeStream
     }
+
+/**
+ * Create a temporary directory and prevent that it gets deleted. This is a bit tricky: AnalyzerRunner creates a
+ * temporary directory for the communication with the forked Java process. The directory is then deleted afterward.
+ * The test needs to inspect the files written into this directory. Therefore, a known directory needs to be injected,
+ * and its deletion needs to be prevented.
+ */
+fun TestConfiguration.mockTempDir(): File {
+    mockkStatic(File::safeDeleteRecursively, Any::createOrtTempDir)
+    val dir = tempdir()
+    every { dir.safeDeleteRecursively() } just runs
+
+    return dir
+}
