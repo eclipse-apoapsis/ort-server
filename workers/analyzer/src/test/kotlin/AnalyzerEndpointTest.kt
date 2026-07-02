@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import com.typesafe.config.Config
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.spec.tempdir
@@ -204,7 +205,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         "A message to analyze a project should be processed" {
             runEndpointTest {
                 declareMock<AnalyzerWorker> {
-                    coEvery { run(JOB_ID, TRACE_ID, any(), any()) } returns RunResult.Success
+                    coEvery { run(JOB_ID, TRACE_ID, any<FullPhase>(), emptyArray()) } returns RunResult.Success
                 }
 
                 sendAnalyzerRequest()
@@ -256,6 +257,65 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 MessageSenderFactoryForTesting.expectNoMessage(OrchestratorEndpoint)
             }
         }
+
+        "The preparation phase should be run" {
+            val args = arrayOf("preparation", "/data/exchange")
+            runEndpointTest(args) {
+                declareMock<AnalyzerWorker> {
+                    coEvery {
+                        run(JOB_ID, TRACE_ID, any<PreparationPhase>(), arrayOf(args[1]))
+                    } returns RunResult.Ignored
+                }
+
+                sendAnalyzerRequest()
+
+                MessageSenderFactoryForTesting.expectNoMessage(OrchestratorEndpoint)
+            }
+        }
+
+        "The analysis phase should be run" {
+            val args = arrayOf("Analysis", "/data/exchange", "sync.sig")
+            runEndpointTest(args) {
+                declareMock<AnalyzerWorker> {
+                    coEvery {
+                        run(JOB_ID, TRACE_ID, any<AnalysisPhase>(), arrayOf(args[1], args[2]))
+                    } returns RunResult.Ignored
+                }
+
+                sendAnalyzerRequest()
+
+                MessageSenderFactoryForTesting.expectNoMessage(OrchestratorEndpoint)
+            }
+        }
+
+        "The result phase should be run" {
+            val args = arrayOf("RESULT", "/data/exchange")
+            runEndpointTest(args) {
+                declareMock<AnalyzerWorker> {
+                    coEvery {
+                        run(JOB_ID, TRACE_ID, any<ResultPhase>(), arrayOf(args[1]))
+                    } returns RunResult.Success
+                }
+
+                sendAnalyzerRequest()
+
+                val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
+                resultMessage.header shouldBe messageHeader
+                resultMessage.payload shouldBe AnalyzerWorkerResult(JOB_ID)
+            }
+        }
+
+        "An unsupported phase should be handled" {
+            val unsupportedPhase = "do-nothing"
+            val args = arrayOf(unsupportedPhase)
+            runEndpointTest(args) {
+                val exception = shouldThrow<IllegalArgumentException> {
+                    sendAnalyzerRequest()
+                }
+
+                exception.message shouldContain "'$unsupportedPhase'"
+            }
+        }
     }
 
     /**
@@ -269,10 +329,10 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
     }
 
     /**
-     * Run [block] as a test for the Analyzer endpoint. Start the endpoint with a configuration that selects the
-     * testing transport. Then execute the given [block].
+     * Run [block] as a test for the Analyzer endpoint with the given [args]. Start the endpoint with a configuration
+     * that selects the testing transport. Then execute the given [block].
      */
-    private suspend fun runEndpointTest(block: suspend () -> Unit) {
+    private suspend fun runEndpointTest(args: Array<String> = emptyArray(), block: suspend () -> Unit) {
         withMockDatabaseModule {
             val environment = mapOf(
                 "ANALYZER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
@@ -282,7 +342,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             )
 
             withEnvironment(environment) {
-                main()
+                main(args)
 
                 MockProvider.register { mockkClass(it) }
 

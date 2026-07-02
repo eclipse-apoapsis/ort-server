@@ -45,23 +45,47 @@ import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
+
+/** The name of the preparation phase. */
+private const val PREPARATION_PHASE = "preparation"
+
+/** The name of the analysis phase. */
+private const val ANALYSIS_PHASE = "analysis"
+
+/** The name of the result phase. */
+private const val RESULT_PHASE = "result"
+
+/** The name of the full phase which includes all other phases. */
+private const val FULL_PHASE = "full"
+
+/** A set with the names of all supported phases. */
+private val VALID_PHASES = setOf(PREPARATION_PHASE, ANALYSIS_PHASE, RESULT_PHASE, FULL_PHASE)
 
 /**
  * The central entry point into the Analyzer service. The class processes messages to analyze repositories by
  * delegating to helper objects.
  */
-class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
+class AnalyzerComponent(
+    /** The command line arguments passed to the Analyzer endpoint. */
+    private val args: Array<String>
+) : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
     override val endpointHandler: EndpointHandler<AnalyzerRequest> = { message ->
         val analyzerWorker by inject<AnalyzerWorker>()
         val publisher by inject<MessagePublisher>()
-        // TODO: Obtain the current phase from the command line arguments.
-        val phase by inject<AnalyzerPhase>()
         val jobId = message.payload.analyzerJobId
 
         withMdcContext(AnalyzerEndpoint.jobMdcKey(jobId)) {
-            val response = when (val result = analyzerWorker.run(jobId, message.header.traceId, phase, emptyArray())) {
+            val result = analyzerWorker.run(
+                jobId,
+                message.header.traceId,
+                getPhase(),
+                args.drop(1).toTypedArray()
+            )
+
+            val response = when (result) {
                 is RunResult.Success -> {
                     logger.info("Analyzer job '$jobId' succeeded.")
                     Message(message.header, AnalyzerWorkerResult(jobId))
@@ -102,10 +126,26 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         singleOf(::AnalyzerDownloader)
         singleOf(::AnalyzerRunner)
         singleOf(::AnalyzerWorker)
-        singleOf(::FullPhase).bind(AnalyzerPhase::class)
+        singleOf(::FullPhase) { qualifier = named("full") }.bind(AnalyzerPhase::class)
+        singleOf(::PreparationPhase) { qualifier = named(PREPARATION_PHASE) }.bind(AnalyzerPhase::class)
+        singleOf(::AnalysisPhase) { qualifier = named(ANALYSIS_PHASE) }.bind(AnalyzerPhase::class)
+        singleOf(::ResultPhase) { qualifier = named(RESULT_PHASE) }.bind(AnalyzerPhase::class)
         single<AuthorizationService> { DbAuthorizationService(get()) }
         singleOf(::RepositoryService)
         singleOf(::IssueResolutionEventStore)
         singleOf(::IssueResolutionService)
+    }
+
+    /**
+     * Obtain the current phase for the Analyzer run from the dependency definitions based on the command line
+     * arguments. If no argument is specified, use the `FULL` phase.
+     */
+    private fun getPhase(): AnalyzerPhase {
+        val phase = args.firstOrNull()?.lowercase() ?: "full"
+        require(phase in VALID_PHASES) {
+            "Invalid phase '$phase'. Valid phases are: $VALID_PHASES (ignoring case)."
+        }
+
+        return getKoin().get(named(phase))
     }
 }

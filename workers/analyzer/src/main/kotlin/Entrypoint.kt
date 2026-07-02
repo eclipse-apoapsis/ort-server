@@ -32,13 +32,22 @@ private val logger = LoggerFactory.getLogger(AnalyzerComponent::class.java)
 /**
  * This is the entry point of the Analyzer worker. It calls the Analyzer from ORT programmatically by
  * interfacing on its APIs.
+ *
+ * Per default, a whole analysis is performed. This can be changed via command line arguments. The first argument is
+ * interpreted as the name of the analyzer phase to execute; further arguments are then passed to the phase. The
+ * following phases are supported (names are case-insensitive):
+ * - _preparation_ for the preparation phase
+ * - _analysis_ for the analysis phase
+ * - _result_ for the result phase
+ * - The phase _full_ can be exlicitly specified to run the whole analysis. This has the same effect as providing no
+ *   argument at all.
  */
-suspend fun main() {
+suspend fun main(args: Array<String>) {
     withMdcContext(StandardMdcKeys.COMPONENT to "analyzer-worker") {
-        logger.info("Starting ORT-Server Analyzer endpoint.")
+        logger.info("Starting ORT-Server Analyzer endpoint with arguments {}.", args.contentToString())
 
         enableOrtStackTraces()
         Os.fixupUserHomeProperty()
-        AnalyzerComponent().start()
+        AnalyzerComponent(args).start()
     }
 }
