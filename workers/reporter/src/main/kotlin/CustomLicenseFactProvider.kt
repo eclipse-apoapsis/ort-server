@@ -67,15 +67,15 @@ internal class CustomLicenseFactProvider(
             .also { logger.debug("Found custom license texts: {}.", it) }
     }
 
-    override fun getLicenseText(licenseId: String): LicenseText? {
-        logger.debug("Request for license text of '{}'.", licenseId)
+    override fun getLicenseText(licenseOrExceptionId: String): LicenseText? {
+        logger.debug("Request for license text of '{}'.", licenseOrExceptionId)
 
-        if (hasLicenseText(licenseId)) {
-            logger.debug("Loading license text of '{}' from config directory.", licenseId)
+        if (hasLicenseText(licenseOrExceptionId)) {
+            logger.debug("Loading license text of '{}' from config directory.", licenseOrExceptionId)
             return LicenseText(
                 configManager.getFileAsString(
                     configurationContext,
-                    Path("${licenseTextDir.path}/$licenseId")
+                    Path("${licenseTextDir.path}/$licenseOrExceptionId")
                 )
             )
         }
@@ -83,5 +83,5 @@ internal class CustomLicenseFactProvider(
         return null
     }
 
-    override fun hasLicenseText(licenseId: String) = licenseId in knownLicenseTexts
+    override fun hasLicenseText(licenseOrExceptionId: String) = licenseOrExceptionId in knownLicenseTexts
 }
