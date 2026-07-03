@@ -46,7 +46,7 @@
     "@tanstack/react-router": "1.170.16",
     "@tanstack/react-router-devtools": "1.167.0",
     "@tanstack/react-table": "8.21.3",
-    "ae-cvss-calculator": "1.0.12",
+    "ae-cvss-calculator": "1.0.13",
     "axios": "1.18.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

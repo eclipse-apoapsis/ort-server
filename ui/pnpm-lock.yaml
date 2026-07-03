@@ -93,8 +93,8 @@ importers:
         specifier: 8.21.3
         version: 8.21.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       ae-cvss-calculator:
-        specifier: 1.0.12
-        version: 1.0.12
+        specifier: 1.0.13
+        version: 1.0.13
       axios:
         specifier: 1.18.1
         version: 1.18.1
@@ -1707,8 +1707,8 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  ae-cvss-calculator@1.0.12:
-    resolution: {integrity: sha512-YVO+dhb8sZubNeL9pqSlN5hyZGC8hkAwnThnd3EimUGZtJEMeuy4kMb7zMCAsBiMr/RxklH0oY7DCsFV/B7peg==}
+  ae-cvss-calculator@1.0.13:
+    resolution: {integrity: sha512-QnPO1O5gZ/1NM+X4fbfqN/y5rImEZ8CSkbSk7Arv4RrmxPzxLXr9RSLmsQJykDtXFUXn9wHLxC0/fe/pO78t3w==}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -4794,7 +4794,7 @@ snapshots:
 
   acorn@8.16.0: {}
 
-  ae-cvss-calculator@1.0.12: {}
+  ae-cvss-calculator@1.0.13: {}
 
   agent-base@6.0.2:
     dependencies:
