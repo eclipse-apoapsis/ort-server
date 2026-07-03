@@ -24,6 +24,7 @@ import { OidcClient } from 'oidc-client-ts';
 import { useCallback, useState } from 'react';
 
 import { getCliOidcConfigOptions } from '@/api/@tanstack/react-query.gen';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -61,6 +62,7 @@ const TokenPage = () => {
     getCliOidcConfigOptions()
   );
   const cliClientId = cliOidcConfig?.clientId;
+  const cliLoginCommand = `osc auth login --url=${config.API_URL} --token=<your-token>`;
 
   const createOidcClient = useCallback(() => {
     if (!cliClientId) return undefined;
@@ -137,11 +139,17 @@ const TokenPage = () => {
                 />
                 <span className='sr-only'>(opens in a new tab)</span>
               </a>{' '}
-              using the{' '}
-              <code className='bg-muted rounded px-1 py-0.5 font-mono text-xs'>
-                --token
-              </code>{' '}
-              option.
+              using{' '}
+              <span className='inline-flex items-center'>
+                <code className='bg-muted rounded px-1 py-0.5 font-mono text-xs'>
+                  {cliLoginCommand}
+                </code>
+                <CopyToClipboard
+                  copyText={cliLoginCommand}
+                  className='h-5 pr-0.5 pl-1 align-middle'
+                />
+              </span>
+              {'.'}
             </p>
             <p>
               2. Use it as a refresh token to request a short-lived access token
