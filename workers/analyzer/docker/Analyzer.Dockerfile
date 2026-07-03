@@ -576,3 +576,5 @@ COPY --from=gleam --chown=$USER:$USER $GLEAM_HOME $GLEAM_HOME
 
 # Make sure the user executing the container has access rights in the $CARGO_HOME directory.
 RUN sudo chgrp -R 0 $CARGO_HOME && sudo chmod -R g+rwX $CARGO_HOME
+
+COPY scripts/await.sh /etc/analyzer_scripts/await.sh
