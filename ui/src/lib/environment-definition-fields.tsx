@@ -56,10 +56,7 @@ type EnumFieldDef = {
 };
 
 export type FieldDef =
-  | ServiceFieldDef
-  | StringFieldDef
-  | BooleanFieldDef
-  | EnumFieldDef;
+  ServiceFieldDef | StringFieldDef | BooleanFieldDef | EnumFieldDef;
 
 export type FieldEntry = { key: string; def: FieldDef };
 

@@ -20,9 +20,7 @@
 import { Issue, RuleViolation, VulnerabilityWithDetails } from '@/api';
 
 export type ItemWithResolutions =
-  | Issue
-  | RuleViolation
-  | VulnerabilityWithDetails;
+  Issue | RuleViolation | VulnerabilityWithDetails;
 
 export function isVulnerabilityItem(
   item: ItemWithResolutions

@@ -112,9 +112,7 @@ function getManagedDisplayItems(
     | AppliedRuleViolationResolution[]
     | AppliedVulnerabilityResolution[],
   unappliedResolutions:
-    | IssueResolution[]
-    | RuleViolationResolution[]
-    | VulnerabilityResolution[],
+    IssueResolution[] | RuleViolationResolution[] | VulnerabilityResolution[],
   canManage: boolean
 ): ResolutionDisplayItem[] {
   const unappliedBySource = new Map(

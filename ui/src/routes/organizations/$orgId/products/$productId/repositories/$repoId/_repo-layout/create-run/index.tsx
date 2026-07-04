@@ -139,12 +139,7 @@ const CreateRunPage = () => {
   });
 
   type AccordionSection =
-    | 'analyzer'
-    | 'advisor'
-    | 'scanner'
-    | 'evaluator'
-    | 'reporter'
-    | 'notifier';
+    'analyzer' | 'advisor' | 'scanner' | 'evaluator' | 'reporter' | 'notifier';
 
   const [openAccordions, setOpenAccordions] = useState<AccordionSection[]>([]);
 
