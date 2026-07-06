@@ -94,13 +94,6 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                         GeneratorLogger.entryAdded(entry, NPMRC_FILE_NAME, definition.service)
                     }
                 }
-
-                if (definition.alwaysAuth) {
-                    "$uriFragment:always-auth=true".also { entry ->
-                        println(entry)
-                        GeneratorLogger.entryAdded(entry, NPMRC_FILE_NAME, definition.service)
-                    }
-                }
             }
 
             printProxySettings { proxyConfig ->

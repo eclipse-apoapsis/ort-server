@@ -68,7 +68,6 @@ class NpmRcGeneratorTest : WordSpec({
             val expectedLines = """
                 $REGISTRY_URI_FRAGMENT:username=${MockConfigFileBuilder.testSecretRef(usernameSecret)}
                 $REGISTRY_URI_FRAGMENT:_password=${MockConfigFileBuilder.testSecretRef(passwordSecret)}
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -106,11 +105,9 @@ class NpmRcGeneratorTest : WordSpec({
             val expectedLines = """
                 $REGISTRY_URI_FRAGMENT:username=${MockConfigFileBuilder.testSecretRef(usernameSecret)}
                 $REGISTRY_URI_FRAGMENT:_password=${MockConfigFileBuilder.testSecretRef(passwordSecret1)}
-                $REGISTRY_URI_FRAGMENT:always-auth=true
 
                 $otherRegistryFragment:username=${MockConfigFileBuilder.testSecretRef(usernameSecret)}
                 $otherRegistryFragment:_password=${MockConfigFileBuilder.testSecretRef(passwordSecret2)}
-                $otherRegistryFragment:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -152,7 +149,6 @@ class NpmRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 $REGISTRY_URI_FRAGMENT:_auth=${MockConfigFileBuilder.testSecretRef(passwordSecret)}
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -172,7 +168,6 @@ class NpmRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 $REGISTRY_URI_FRAGMENT:_authToken=${MockConfigFileBuilder.testSecretRef(passwordSecret)}
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -198,28 +193,9 @@ class NpmRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 $REGISTRY_URI_FRAGMENT:_auth=$authBase64
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
-        }
-
-        "skip the always-auth line if the flag is false" {
-            val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
-            val definition = NpmDefinition(
-                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI, passwordSecret = passwordSecret),
-                emptySet(),
-                authMode = NpmAuthMode.PASSWORD_AUTH,
-                alwaysAuth = false
-            )
-
-            val mockBuilder = MockConfigFileBuilder()
-
-            NpmRcGenerator().generate(mockBuilder.builder, listOf(definition))
-
-            val generated = mockBuilder.generatedText().trim()
-
-            generated shouldBe "$REGISTRY_URI_FRAGMENT:_auth=${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
         }
 
         "print the email if it is present" {
@@ -239,7 +215,6 @@ class NpmRcGeneratorTest : WordSpec({
             val expectedLines = """
                 $REGISTRY_URI_FRAGMENT:_auth=${MockConfigFileBuilder.testSecretRef(passwordSecret)}
                 $REGISTRY_URI_FRAGMENT:email=$email
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -262,7 +237,6 @@ class NpmRcGeneratorTest : WordSpec({
             val expectedLines = """
                 @$scope:registry=$NPM_REGISTRY_URI
                 $REGISTRY_URI_FRAGMENT:_auth=${MockConfigFileBuilder.testSecretRef(passwordSecret)}
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -288,7 +262,6 @@ class NpmRcGeneratorTest : WordSpec({
             val expectedLines = """
                 @$scope:registry=$NPM_REGISTRY_URI
                 $REGISTRY_URI_FRAGMENT:_auth=${MockConfigFileBuilder.testSecretRef(passwordSecret)}
-                $REGISTRY_URI_FRAGMENT:always-auth=true
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines

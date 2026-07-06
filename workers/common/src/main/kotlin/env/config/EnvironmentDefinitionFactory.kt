@@ -163,8 +163,7 @@ class EnvironmentDefinitionFactory {
                 credentialsTypes = credentialsTypes(),
                 scope = getOptionalProperty("scope"),
                 email = getOptionalProperty("email"),
-                authMode = getEnumProperty("authMode", NpmAuthMode.PASSWORD),
-                alwaysAuth = getBooleanProperty("alwaysAuth", true)
+                authMode = getEnumProperty("authMode", NpmAuthMode.PASSWORD)
             )
         }
 

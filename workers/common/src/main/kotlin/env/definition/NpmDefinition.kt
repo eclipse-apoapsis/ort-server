@@ -86,11 +86,5 @@ class NpmDefinition(
     /**
      * Defines the way authentication should be handled for this private registry.
      */
-    val authMode: NpmAuthMode = NpmAuthMode.PASSWORD,
-
-    /**
-     * A flag to control the generation of the `always-auth` property for this registry. Via this flag, NPM can be
-     * instructed to always send authentication information.
-     */
-    val alwaysAuth: Boolean = true
+    val authMode: NpmAuthMode = NpmAuthMode.PASSWORD
 ) : EnvironmentServiceDefinition(service, credentialsTypes)

@@ -219,8 +219,7 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 val properties = mapOf(
                     "scope" to scope,
                     "email" to email,
-                    "authMode" to authMode.name,
-                    "alwaysAuth" to "false"
+                    "authMode" to authMode.name
                 )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.NPM_TYPE, properties)
@@ -229,7 +228,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 definition.scope shouldBe scope
                 definition.email shouldBe email
                 definition.authMode shouldBe authMode
-                definition.alwaysAuth shouldBe false
             }
 
             "be created with default values" {
@@ -241,7 +239,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 definition.scope should beNull()
                 definition.email should beNull()
                 definition.authMode shouldBe NpmAuthMode.PASSWORD
-                definition.alwaysAuth shouldBe true
             }
 
             "fail if there are unsupported properties" {
@@ -271,16 +268,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
 
                 exception.message shouldContain properties.getValue("authMode")
                 exception.message shouldContain NpmAuthMode.PASSWORD_AUTH.name
-            }
-
-            "fail for an invalid boolean value" {
-                val properties = mapOf("alwaysAuth" to "maybe")
-
-                val exception = createFailed(EnvironmentDefinitionFactory.NPM_TYPE, properties)
-
-                exception.message shouldContain properties.getValue("alwaysAuth")
-                exception.message shouldContain "TRUE"
-                exception.message shouldContain "FALSE"
             }
 
             "allow overriding the credentials types" {
@@ -402,11 +389,9 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
 
         "A Yarn definition" should {
             "be created with the provided values" {
-                val alwaysAuth = "false"
                 val authMode = YarnAuthMode.AUTH_IDENT
 
                 val properties = mapOf(
-                    "alwaysAuth" to alwaysAuth,
                     "authMode" to authMode.name
                 )
 
@@ -414,7 +399,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
 
                 definition.shouldBeInstanceOf<YarnDefinition>()
                 definition.authMode shouldBe authMode
-                definition.alwaysAuth shouldBe false
             }
 
             "be created with default values" {
@@ -424,7 +408,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
 
                 definition.shouldBeInstanceOf<YarnDefinition>()
                 definition.authMode shouldBe YarnAuthMode.AUTH_TOKEN
-                definition.alwaysAuth shouldBe true
             }
 
             "fail if there are unsupported properties" {
@@ -459,16 +442,6 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 exception.message shouldContain properties.getValue("authMode")
                 exception.message shouldContain YarnAuthMode.AUTH_TOKEN.name
                 exception.message shouldContain YarnAuthMode.AUTH_IDENT.name
-            }
-
-            "fail for an invalid boolean value" {
-                val properties = mapOf("alwaysAuth" to "maybe")
-
-                val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
-
-                exception.message shouldContain properties.getValue("alwaysAuth")
-                exception.message shouldContain "TRUE"
-                exception.message shouldContain "FALSE"
             }
 
             "allow overriding the credentials types" {
