@@ -76,7 +76,10 @@ object EnvironmentForkHelper {
 
         Json.encodeToStream(forkData, out)
 
-        logger.info("Wrote authentication information about {} services to forked process.", authInfo.services.size)
+        logger.info(
+            "Wrote authentication information about {} services to forked process.",
+            authInfo.infosByType[OrtServerAuthenticator.PROJECT_SERVICES]?.services.orEmpty().size
+        )
         logger.info("Wrote MDC context with {} entries to forked process.", mdcContext.size)
     }
 
@@ -99,22 +102,16 @@ object EnvironmentForkHelper {
         logger.info("Setting up forked process...")
 
         val forkData = Json.decodeFromStream<SerializableForkData>(pipe)
-        val authInfo = forkData.authInfo.toAuthenticationInfo()
+        val authInfos = forkData.authInfo
         val mdcContext = forkData.mdcContext
 
         restoreMdcContext(mdcContext)
-
-        logger.info("Read authentication information about {} services from forked process.", authInfo.services.size)
         logger.info("Read MDC context with {} entries from forked process.", mdcContext.size)
 
         val config = WorkerOrtConfig.create()
         config.setUpOrtEnvironment()
 
-        val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(config.configManager))
-        authenticator.updateAuthenticationInfo(authInfo)
-
-        val netrcManager = NetRcManager.create(secretResolver(authInfo))
-        authenticator.updateAuthenticationListener(netrcManager)
+        restoreAuthentication(authInfos, config.configManager)
 
         logger.info("Enabling ORT stack traces for the AnalyzerRunner forked process.")
         enableOrtStackTraces()
@@ -125,11 +122,11 @@ object EnvironmentForkHelper {
      * function, the data previously stored via [persistAuthenticationInfo] can be restored.
      */
     fun setupAuthentication(source: File, configManager: ConfigManager) {
-        val authInfo = source.inputStream().use { stream ->
-            Json.decodeFromStream<SerializableAuthenticationInfo>(stream)
+        val authInfos = source.inputStream().use { stream ->
+            Json.decodeFromStream<SerializableAuthenticationInfos>(stream)
         }
 
-        restoreAuthentication(authInfo, configManager)
+        restoreAuthentication(authInfos, configManager)
     }
 
     /**
@@ -141,22 +138,36 @@ object EnvironmentForkHelper {
     /**
      * Obtain authentication information from the authenticator and return it in a form that can be serialized.
      */
-    private fun fetchAuthenticationInfo(): SerializableAuthenticationInfo {
-        val authenticator = OrtServerAuthenticator.install()
-        val authInfo = authenticator.authenticationInfo
-        return authInfo.toSerializableAuthenticationInfo()
+    private fun fetchAuthenticationInfo(): SerializableAuthenticationInfos {
+        val authenticator = OrtServerAuthenticator.install(loadEnvironmentServices = false)
+        return authenticator.authenticationInfo.toSerializableAuthenticationInfos()
     }
 
     /**
-     * Initialize the authenticator with the given deserialized [serAuthInfo] and the provided [configManager].
+     * Initialize the authenticator with the given deserialized [serAuthInfos] and the provided [configManager].
      */
-    private fun restoreAuthentication(serAuthInfo: SerializableAuthenticationInfo, configManager: ConfigManager) {
-        val authInfo = serAuthInfo.toAuthenticationInfo()
-        val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(configManager))
-        authenticator.updateAuthenticationInfo(authInfo)
+    private fun restoreAuthentication(serAuthInfos: SerializableAuthenticationInfos, configManager: ConfigManager) {
+        val authInfos = serAuthInfos.toAuthenticationInfos()
+        val authenticator = OrtServerAuthenticator.install(
+            infraSecretResolverFromConfig(configManager),
+            loadEnvironmentServices = false
+        )
 
-        val netrcManager = NetRcManager.create(secretResolver(authInfo))
-        authenticator.updateAuthenticationListener(netrcManager)
+        val projectAuthInfo = authInfos[OrtServerAuthenticator.PROJECT_SERVICES]
+        if (projectAuthInfo != null) {
+            logger.info(
+                "Read authentication information about {} services from forked process.",
+                projectAuthInfo.services.size
+            )
+
+            val netrcManager = NetRcManager.create(secretResolver(projectAuthInfo))
+            authenticator.updateAuthenticationListener(netrcManager)
+        }
+
+        authInfos.entries.forEach { (type, authInfo) ->
+            logger.info("Restoring authentication information for service type '$type'.")
+            authenticator.updateAuthenticationInfo(authInfo, type)
+        }
     }
 
     /**
@@ -169,6 +180,15 @@ object EnvironmentForkHelper {
         )
 
     /**
+     * Convert this [Map] with authentication information for different types of services to a
+     * [SerializableAuthenticationInfos] object that can be passed to a forked process.
+     */
+    private fun Map<String, AuthenticationInfo>.toSerializableAuthenticationInfos(): SerializableAuthenticationInfos =
+        SerializableAuthenticationInfos(
+            infosByType = mapValues { (_, authInfo) -> authInfo.toSerializableAuthenticationInfo() }
+        )
+
+    /**
      * Convert this [SerializableAuthenticationInfo] back to an [AuthenticationInfo] that can be used for
      * authentication.
      */
@@ -177,6 +197,13 @@ object EnvironmentForkHelper {
             secrets = secrets,
             services = services.map { it.toInfrastructureService() }
         )
+
+    /**
+     * Convert this [SerializableAuthenticationInfos] back to a [Map] with authentication information for different
+     * types of services.
+     */
+    private fun SerializableAuthenticationInfos.toAuthenticationInfos(): Map<String, AuthenticationInfo> =
+        infosByType.mapValues { (_, authInfo) -> authInfo.toAuthenticationInfo() }
 
     /**
      * Convert this [ResolvedInfrastructureService] to a serializable [InfrastructureServiceDeclaration]
@@ -226,7 +253,7 @@ object EnvironmentForkHelper {
 @Serializable
 private data class SerializableForkData(
     /** Authentication information for services. */
-    val authInfo: SerializableAuthenticationInfo,
+    val authInfo: SerializableAuthenticationInfos,
 
     /** The MDC context to be restored in the forked process. */
     val mdcContext: Map<String, String>
@@ -244,4 +271,13 @@ private data class SerializableAuthenticationInfo(
 
     /** A list with information about available infrastructure services. */
     val services: List<InfrastructureServiceDeclaration>
+)
+
+/**
+ * A data class holding the authentication information for different types of services that needs to be serialized to
+ * a forked process.
+ */
+@Serializable
+private data class SerializableAuthenticationInfos(
+    val infosByType: Map<String, SerializableAuthenticationInfo>
 )

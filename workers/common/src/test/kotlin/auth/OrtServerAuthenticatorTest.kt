@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.auth
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.extensions.system.withEnvironment
-import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -98,6 +98,27 @@ class OrtServerAuthenticatorTest : WordSpec() {
                         userName shouldBe USERNAME
                         password shouldBe PASSWORD.toCharArray()
                     }
+                }
+            }
+
+            "not read authentication for services defined by environment variables if disabled" {
+                val url = "https://${usernameSecret.path}:${passwordSecret.path}@example.com/test"
+                val env = mapOf("TEST_SERVICE_URL" to url)
+                val secretResolverFun: InfraSecretResolverFun = { it.path }
+
+                withEnvironment(env) {
+                    OrtServerAuthenticator.install(secretResolverFun, loadEnvironmentServices = false)
+
+                    Authenticator.requestPasswordAuthentication(
+                        "example.com",
+                        null,
+                        443,
+                        "tcp",
+                        "hello",
+                        "https",
+                        URI.create("https://example.com/test").toURL(),
+                        Authenticator.RequestorType.SERVER
+                    ) should beNull()
                 }
             }
         }
@@ -573,8 +594,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
             "initially be empty" {
                 val authenticator = OrtServerAuthenticator.install()
 
-                authenticator.authenticationInfo.services should beEmpty()
-                authenticator.authenticationInfo.secrets.keys should beEmpty()
+                authenticator.authenticationInfo.filterNot { it.key == "environmentServices" } should beEmpty()
             }
 
             "return the current authentication information" {
@@ -583,10 +603,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 )
                 val info = createAuthInfo(services)
 
-                val authenticator = OrtServerAuthenticator.install()
+                val authenticator = OrtServerAuthenticator.install(loadEnvironmentServices = false)
                 authenticator.updateAuthenticationInfo(info)
 
-                authenticator.authenticationInfo shouldBe info
+                authenticator.authenticationInfo shouldBe mapOf(OrtServerAuthenticator.PROJECT_SERVICES to info)
             }
         }
     }

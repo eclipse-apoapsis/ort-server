@@ -61,7 +61,6 @@ import org.slf4j.MDC
 class EnvironmentForkHelperTest : StringSpec({
     beforeEach {
         mockkObject(OrtServerAuthenticator)
-        every { OrtServerAuthenticator.install() } returns mockk(relaxed = true)
     }
 
     afterEach {
@@ -77,15 +76,19 @@ class EnvironmentForkHelperTest : StringSpec({
         val artifactoryService = createService("artifactory", usernameSecret, artifactoryPasswordSecret)
         val secrets = mapOf(
             usernameSecret.toAuthenticationInfo(),
-            repoPasswordSecret.toAuthenticationInfo(),
-            artifactoryPasswordSecret.toAuthenticationInfo()
+            repoPasswordSecret.toAuthenticationInfo()
         )
-        val authInfo = AuthenticationInfo(
+        val authInfo1 = AuthenticationInfo(
             secrets = secrets,
-            services = listOf(repoService, artifactoryService)
+            services = listOf(repoService)
         )
+        val authInfo2 = AuthenticationInfo(
+            secrets = mapOf(artifactoryPasswordSecret.toAuthenticationInfo()),
+            services = listOf(artifactoryService)
+        )
+        val authInfoMap = mapOf("source1" to authInfo1, "source2" to authInfo2)
 
-        val authenticator = installAuthenticatorMock(authInfo)
+        val authenticator = installAuthenticatorMock(authInfoMap)
 
         val config = doFork()
         val testSecret = Path("testSecret")
@@ -99,18 +102,22 @@ class EnvironmentForkHelperTest : StringSpec({
 
         val slotResolver = mutableListOf<InfraSecretResolverFun>()
         verify(exactly = 2) {
-            OrtServerAuthenticator.install(capture(slotResolver))
+            OrtServerAuthenticator.install(capture(slotResolver), any())
         }
         slotResolver.last().invoke(testSecret) shouldBe testSecretValue
 
-        val slotAuthInfo = slot<AuthenticationInfo>()
+        val slotAuthInfo1 = slot<AuthenticationInfo>()
+        val slotAuthInfo2 = slot<AuthenticationInfo>()
         verify {
-            authenticator.updateAuthenticationInfo(capture(slotAuthInfo))
+            authenticator.updateAuthenticationInfo(capture(slotAuthInfo1), "source1")
+            authenticator.updateAuthenticationInfo(capture(slotAuthInfo2), "source2")
         }
 
-        with(slotAuthInfo.captured) {
+        with(slotAuthInfo1.captured) {
             resolveSecret(usernameSecret) shouldBe secretValue(usernameSecret.name)
             resolveSecret(repoPasswordSecret) shouldBe secretValue(repoPasswordSecret.name)
+        }
+        with(slotAuthInfo2.captured) {
             resolveSecret(artifactoryPasswordSecret) shouldBe secretValue(artifactoryPasswordSecret.name)
         }
     }
@@ -136,7 +143,7 @@ class EnvironmentForkHelperTest : StringSpec({
             services = listOf(service1, service2)
         )
 
-        val authenticator = installAuthenticatorMock(authInfo)
+        val authenticator = installAuthenticatorMock(mapOf(OrtServerAuthenticator.PROJECT_SERVICES to authInfo))
 
         val userHomeDir = tempdir()
         mockkObject(Os) {
@@ -203,14 +210,18 @@ class EnvironmentForkHelperTest : StringSpec({
         val artifactoryService = createService("artifactory", usernameSecret, artifactoryPasswordSecret)
         val secrets = mapOf(
             usernameSecret.toAuthenticationInfo(),
-            repoPasswordSecret.toAuthenticationInfo(),
-            artifactoryPasswordSecret.toAuthenticationInfo()
+            repoPasswordSecret.toAuthenticationInfo()
         )
-        val authInfo = AuthenticationInfo(
+        val authInfo1 = AuthenticationInfo(
             secrets = secrets,
-            services = listOf(repoService, artifactoryService)
+            services = listOf(repoService)
         )
-        val authenticator = installAuthenticatorMock(authInfo)
+        val authInfo2 = AuthenticationInfo(
+            secrets = mapOf(artifactoryPasswordSecret.toAuthenticationInfo()),
+            services = listOf(artifactoryService)
+        )
+        val authInfoMap = mapOf("source1" to authInfo1, "source2" to authInfo2)
+        val authenticator = installAuthenticatorMock(authInfoMap)
         val testSecret = Path("testSecret")
         val testSecretValue = "value of test secret"
         val configManager = mockk<ConfigManager>()
@@ -222,18 +233,22 @@ class EnvironmentForkHelperTest : StringSpec({
 
         val slotResolver = mutableListOf<InfraSecretResolverFun>()
         verify(exactly = 2) {
-            OrtServerAuthenticator.install(capture(slotResolver))
+            OrtServerAuthenticator.install(capture(slotResolver), any())
         }
         slotResolver.last().invoke(testSecret) shouldBe testSecretValue
 
-        val slotAuthInfo = slot<AuthenticationInfo>()
+        val slotAuthInfo1 = slot<AuthenticationInfo>()
+        val slotAuthInfo2 = slot<AuthenticationInfo>()
         verify {
-            authenticator.updateAuthenticationInfo(capture(slotAuthInfo))
+            authenticator.updateAuthenticationInfo(capture(slotAuthInfo1), "source1")
+            authenticator.updateAuthenticationInfo(capture(slotAuthInfo2), "source2")
         }
 
-        with(slotAuthInfo.captured) {
+        with(slotAuthInfo1.captured) {
             resolveSecret(usernameSecret) shouldBe secretValue(usernameSecret.name)
             resolveSecret(repoPasswordSecret) shouldBe secretValue(repoPasswordSecret.name)
+        }
+        with(slotAuthInfo2.captured) {
             resolveSecret(artifactoryPasswordSecret) shouldBe secretValue(artifactoryPasswordSecret.name)
         }
     }
@@ -264,13 +279,13 @@ private fun doFork(): WorkerOrtConfig {
  * Create a mock [OrtServerAuthenticator] and prepare the installation function to return it. Configure the mock to
  * expect some interactions and return the given [authInfo] when asked for it.
  */
-private fun installAuthenticatorMock(authInfo: AuthenticationInfo): OrtServerAuthenticator =
+private fun installAuthenticatorMock(authInfo: Map<String, AuthenticationInfo>): OrtServerAuthenticator =
     mockk<OrtServerAuthenticator> {
         every { authenticationInfo } returns authInfo
-        every { updateAuthenticationInfo(any()) } just runs
+        every { updateAuthenticationInfo(any(), any()) } just runs
         every { updateAuthenticationListener(any()) } just runs
     }.also {
-        every { OrtServerAuthenticator.install(any()) } returns it
+        every { OrtServerAuthenticator.install(any(), false) } returns it
     }
 
 /**

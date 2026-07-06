@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.auth
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicReference
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -59,39 +61,62 @@ private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
  */
 internal class OrtServerAuthenticator(
     /** The original authenticator that was active when this instance was installed. */
-    original: Authenticator? = null,
-
-    /** The function to resolve secrets passed in URLs. */
-    secretResolverFun: InfraSecretResolverFun
+    original: Authenticator? = null
 ) : OrtAuthenticator(original) {
     companion object {
-        /** Empty authentication information to be used before this authenticator gets initialized. */
-        private val emptyAuthenticationInfo = AuthenticationInfo(emptyMap(), emptyList())
+        /** Constant for the default type of services, which are services defined by the projects to be analyzed. */
+        const val PROJECT_SERVICES = "projectServices"
+
+        /** Constant for the type of services that are defined via environment variables. */
+        private const val ENVIRONMENT_SERVICES = "environmentServices"
 
         /**
-         * Install this authenticator as the global default if it is not already installed. Use the provided
-         * [secretResolverFun] to resolve credentials that are passed in URLs.
+         * Install this authenticator as the global default if it is not already installed. If the
+         * [loadEnvironmentServices] flag is set, scan the current environment variables for definitions of
+         * infrastructure services. In this case, use the provided [secretResolverFun] to resolve their credentials.
          */
         @Synchronized
-        fun install(secretResolverFun: InfraSecretResolverFun = undefinedInfraSecretResolver): OrtServerAuthenticator {
+        fun install(
+            secretResolverFun: InfraSecretResolverFun = undefinedInfraSecretResolver,
+            loadEnvironmentServices: Boolean = true
+        ): OrtServerAuthenticator {
             val active = getDefault()
             return active as? OrtServerAuthenticator
-                ?: OrtServerAuthenticator(active, secretResolverFun).also {
+                ?: OrtServerAuthenticator(active).also {
                     setDefault(it)
                     logger.info("OrtServerAuthenticator was successfully installed.")
+
+                    if (loadEnvironmentServices) {
+                       logger.info("Loading infrastructure services from environment variables.")
+                       it.serviceDataByType[ENVIRONMENT_SERVICES] = loadEnvironmentServices(secretResolverFun)
+                    }
                 }
+        }
+
+        /**
+         * Iterate over the currently defined environment variables to find variables that declare infrastructure
+         * services. Use the given [secretResolverFun] to resolve their credentials.
+         */
+        private fun loadEnvironmentServices(secretResolverFun: InfraSecretResolverFun): ServiceData {
+            val environmentServices = getAuthenticationInfoFromEnvironment(secretResolverFun)
+
+            return ServiceData(
+                    authenticationInfo = environmentServices,
+                    authenticatedServices = AuthenticatedServices.create(
+                        environmentServices.services,
+                        enableFuzzyMatching = false
+                    )
+                )
         }
     }
 
     /**
-     * A reference to the current set of services for which authentication information is available. It is not
-     * expected that the services are updated concurrently, but they may be accessed from different threads.
-     * Therefore, an atomic reference is used to ensure safe publishing of changes.
+     * A map storing a set of services for which authentication information is available for different types of
+     * services. This supports different sources of authentication information which can be updated independently of
+     * each other. It is not expected that the data is updated concurrently, but it may be accessed from different
+     * threads. Therefore, a concurrent map is used to ensure safe publishing of changes.
      */
-    private val refServices = AtomicReference(ServiceData(AuthenticatedServices.empty(), emptyAuthenticationInfo))
-
-    private val refUserInfoSecretServices =
-        AtomicReference(ServiceData(AuthenticatedServices.empty(), emptyAuthenticationInfo))
+    private val serviceDataByType = ConcurrentHashMap<String, ServiceData>()
 
     /**
      * A reference to the listener to be notified about successful authentications. This listener can be set
@@ -99,36 +124,24 @@ internal class OrtServerAuthenticator(
      */
     private val refListener = AtomicReference<AuthenticationListener>()
 
-    /** The current authentication information. */
+    /** The current authentication information for the different types of services. */
     val authenticationInfo
-        get() = refServices.get().authenticationInfo
-
-    init {
-        val userInfoSecretServices = getAuthenticationInfoFromEnvironment(secretResolverFun)
-        refUserInfoSecretServices.set(
-            ServiceData(
-                authenticationInfo = userInfoSecretServices,
-                authenticatedServices = AuthenticatedServices.create(
-                    userInfoSecretServices.services,
-                    enableFuzzyMatching = false
-                )
-            )
-        )
-    }
+        get() = serviceDataByType.mapValues { it.value.authenticationInfo }
 
     override val delegateAuthenticators: List<Authenticator> = listOfNotNull(
         UserInfoAuthenticator(),
-        ServicesAuthenticator(refUserInfoSecretServices, AtomicReference()),
+        ServicesAuthenticator(serviceDataByType, ENVIRONMENT_SERVICES, AtomicReference()),
         original,
-        ServicesAuthenticator(refServices, refListener)
+        ServicesAuthenticator(serviceDataByType, PROJECT_SERVICES, refListener)
     )
 
     /**
-     * Update the current [information about authentication][info]. This function is called when there are changes in
-     * the credentials currently available, for instance if new infrastructure services are declared in the
-     * repository that is currently processed.
+     * Update the current [information about authentication][info] for the given [type] of services. This function is
+     * called when there are changes in the credentials currently available, for instance, if new infrastructure
+     * services are declared in the repository that is currently processed. It is also used to restore authentication
+     * information that has been persisted earlier.
      */
-    fun updateAuthenticationInfo(info: AuthenticationInfo) {
+    fun updateAuthenticationInfo(info: AuthenticationInfo, type: String = PROJECT_SERVICES) {
         logger.info("Updating the list of authenticated services. Setting ${info.services.size} services.")
 
         val authenticatedServices = AuthenticatedServices.create(
@@ -136,7 +149,7 @@ internal class OrtServerAuthenticator(
             enableFuzzyMatching = true
         )
 
-        refServices.set(ServiceData(authenticatedServices, info))
+        serviceDataByType[type] = ServiceData(authenticatedServices, info)
     }
 
     /**
@@ -166,12 +179,21 @@ private data class ServiceData(
         authenticatedServices.getAuthenticatedServiceFor(host, url)
 }
 
+/** Constant for an empty [ServiceData] object to be used if an unknown type of services is queried. */
+private val emptyServiceData = ServiceData(
+    AuthenticatedServices.empty(),
+    AuthenticationInfo(emptyMap(), emptyList())
+)
+
 /**
  * Implementation of an [Authenticator] which uses the current set of infrastructure services to authenticate requests.
  */
 private class ServicesAuthenticator(
-    /** A reference to the set of services for which authentication information is available. */
-    private val refServices: AtomicReference<ServiceData>,
+    /** A reference to the map of services for which authentication information is available. */
+    private val servicesByType: ConcurrentMap<String, ServiceData>,
+
+    /** The specific type of services this authenticator has to deal with. */
+    private val serviceType: String,
 
     /** A reference to a listener to be notified on successful authentications. */
     private val authenticationListener: AtomicReference<AuthenticationListener>
@@ -181,7 +203,7 @@ private class ServicesAuthenticator(
 
         logger.info("Request for password authentication for '${requestingURL ?: requestingHost}'.")
 
-        return with(refServices.get()) {
+        return with(servicesByType.getOrDefault(serviceType, emptyServiceData)) {
             getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
                 logger.info("Using credentials from service '${service.name}'.")
 
