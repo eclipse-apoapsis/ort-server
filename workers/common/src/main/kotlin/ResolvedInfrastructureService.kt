@@ -51,6 +51,43 @@ data class ResolvedInfrastructureService(
      */
     val credentialsTypes: Set<CredentialsType> = emptySet()
 ) {
+    companion object {
+        /**
+         * Create a [ResolvedInfrastructureService] with the given [name], [url], and optional [description] for
+         * which only the names for the username and password secrets are available. Create dummy [Secret] objects for
+         * these credentials.
+         */
+        fun createWithSecretNames(
+            name: String,
+            url: String,
+            usernameSecretName: String,
+            passwordSecretName: String,
+            description: String? = null
+        ): ResolvedInfrastructureService =
+            ResolvedInfrastructureService(
+                name = name,
+                url = url,
+                description = description,
+                usernameSecret = createDummySecret(usernameSecretName),
+                passwordSecret = createDummySecret(passwordSecretName)
+            )
+
+        /**
+         * Create a dummy secret with the given [path] that can be used to look up authentication information, but does
+         * not contain any other meaningful properties.
+         */
+        private fun createDummySecret(path: String): Secret =
+            Secret(
+                id = 0,
+                path = path,
+                name = path,
+                description = null,
+                organizationId = null,
+                productId = null,
+                repositoryId = null
+            )
+    }
+
     /** Convert this [ResolvedInfrastructureService] to an [InfrastructureService]. */
     fun toInfrastructureService(): InfrastructureService =
         InfrastructureService(

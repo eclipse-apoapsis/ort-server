@@ -90,6 +90,9 @@ internal class OrtServerAuthenticator(
      */
     private val refServices = AtomicReference(ServiceData(AuthenticatedServices.empty(), emptyAuthenticationInfo))
 
+    private val refUserInfoSecretServices =
+        AtomicReference(ServiceData(AuthenticatedServices.empty(), emptyAuthenticationInfo))
+
     /**
      * A reference to the listener to be notified about successful authentications. This listener can be set
      * dynamically when setting up the environment for a worker.
@@ -100,9 +103,22 @@ internal class OrtServerAuthenticator(
     val authenticationInfo
         get() = refServices.get().authenticationInfo
 
+    init {
+        val userInfoSecretServices = getAuthenticationInfoFromEnvironment(secretResolverFun)
+        refUserInfoSecretServices.set(
+            ServiceData(
+                authenticationInfo = userInfoSecretServices,
+                authenticatedServices = AuthenticatedServices.create(
+                    userInfoSecretServices.services,
+                    enableFuzzyMatching = false
+                )
+            )
+        )
+    }
+
     override val delegateAuthenticators: List<Authenticator> = listOfNotNull(
         UserInfoAuthenticator(),
-        UserInfoSecretAuthenticator.create(secretResolverFun),
+        ServicesAuthenticator(refUserInfoSecretServices, AtomicReference()),
         original,
         ServicesAuthenticator(refServices, refListener)
     )
@@ -117,8 +133,6 @@ internal class OrtServerAuthenticator(
 
         val authenticatedServices = AuthenticatedServices.create(
             info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes },
-            ResolvedInfrastructureService::url,
-            ResolvedInfrastructureService::name,
             enableFuzzyMatching = true
         )
 
@@ -140,7 +154,7 @@ internal class OrtServerAuthenticator(
  */
 private data class ServiceData(
     /** The object managing the known infrastructure services. */
-    private val authenticatedServices: AuthenticatedServices<ResolvedInfrastructureService>,
+    private val authenticatedServices: AuthenticatedServices,
 
     /** The object with authentication information. */
     val authenticationInfo: AuthenticationInfo

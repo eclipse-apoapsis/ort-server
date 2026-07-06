@@ -21,8 +21,10 @@ package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -67,6 +69,36 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val authenticator = OrtServerAuthenticator.install()
 
                 OrtServerAuthenticator.install() shouldBeSameInstanceAs authenticator
+            }
+
+            "read authentication for services defined by environment variables" {
+                val url = "https://${usernameSecret.path}:${passwordSecret.path}@example.com/test"
+                val env = mapOf("TEST_SERVICE_URL" to url)
+                val secretValues = mapOf(
+                    usernameSecret.path to USERNAME,
+                    passwordSecret.path to PASSWORD
+                )
+                val secretResolverFun: InfraSecretResolverFun = {
+                    secretValues[it.path] ?: error("Secret ${it.path} not found")
+                }
+
+                withEnvironment(env) {
+                    OrtServerAuthenticator.install(secretResolverFun)
+
+                    Authenticator.requestPasswordAuthentication(
+                        "example.com",
+                        null,
+                        443,
+                        "tcp",
+                        "hello",
+                        "https",
+                        URI.create("https://example.com/test").toURL(),
+                        Authenticator.RequestorType.SERVER
+                    ).shouldNotBeNull {
+                        userName shouldBe USERNAME
+                        password shouldBe PASSWORD.toCharArray()
+                    }
+                }
             }
         }
 

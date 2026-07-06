@@ -26,9 +26,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
+
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 
 class UserInfoSecretAuthenticatorTest : StringSpec({
     "A URL with credentials defined in a 'URL' variable should be handled correctly" {
@@ -43,10 +44,6 @@ class UserInfoSecretAuthenticatorTest : StringSpec({
             userName shouldBe testSecrets[USERNAME_SECRET]
             String(password) shouldBe testSecrets[PASSWORD_SECRET]
         }
-    }
-
-    "A RequestorType other than SERVER should be ignored" {
-        testAuthentication("https://test.example.com:8080/test", Authenticator.RequestorType.PROXY) should beNull()
     }
 
     "A request for an unknown URL without credentials should return null" {
@@ -69,21 +66,6 @@ class UserInfoSecretAuthenticatorTest : StringSpec({
             userName shouldBe testSecrets[USERNAME_SECRET]
             String(password) shouldBe "unknownPwd"
         }
-    }
-
-    "A request without a URL should return null" {
-        val authenticator = UserInfoSecretAuthenticator.create(testResolverFun)
-
-        authenticator.requestPasswordAuthenticationInstance(
-            "test.example.com",
-            null,
-            443,
-            "https",
-            "prompt",
-            null,
-            null,
-            Authenticator.RequestorType.SERVER
-        ) should beNull()
     }
 
     "A prefix match for a URL should be performed" {
@@ -134,26 +116,26 @@ private val testResolverFun: InfraSecretResolverFun = { secret ->
 }
 
 /**
- * Create a test [UserInfoSecretAuthenticator] instance and invoke it for the given [url] and [requestorType]. Return
- * the resulting [PasswordAuthentication].
+ * Extract authentication information from the given [test environment][env] and try to resolve the given [url]
+ * against it.
  */
 private fun testAuthentication(
     url: String,
-    requestorType: Authenticator.RequestorType = Authenticator.RequestorType.SERVER,
     env: Map<String, String> = testEnvironment
 ): PasswordAuthentication? =
     withEnvironment(env) {
-        val authenticator = UserInfoSecretAuthenticator.create(testResolverFun)
+        val authInfo = getAuthenticationInfoFromEnvironment(testResolverFun)
+        val services = AuthenticatedServices.create(
+            authInfo.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes },
+            enableFuzzyMatching = false
+        )
 
         val authUrl = URI.create(url).toURL()
-        authenticator.requestPasswordAuthenticationInstance(
-            authUrl.host,
-            null,
-            authUrl.port,
-            authUrl.protocol,
-            null,
-            null,
-            authUrl,
-            requestorType
-        )
+        services.getAuthenticatedServiceFor(authUrl.host, authUrl)?.let { service ->
+            authInfo.secrets[service.usernameSecret.path]?.let { username ->
+                authInfo.secrets[service.passwordSecret.path]?.let { password ->
+                    PasswordAuthentication(username, password.toCharArray())
+                }
+            }
+        }
     }

@@ -25,41 +25,38 @@ import java.util.Locale
 
 import org.apache.commons.text.similarity.FuzzyScore
 
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AuthenticatedServices::class.java)
 
 /**
- * An internal helper class that manages a collection of services of type [T] and offers functionality to find a
- * service that is the best match for a given URL.
+ * An internal helper class that manages a collection of resolved infrastructure services and offers functionality to
+ * find a service that is the best match for a given URL.
  */
-internal class AuthenticatedServices<T> private constructor(
+internal class AuthenticatedServices private constructor(
     /** A [Map] storing the known services grouped by their host name. */
-    private val servicesByHost: Map<String, Collection<AuthenticatedService<T>>>,
+    private val servicesByHost: Map<String, Collection<ResolvedInfrastructureService>>,
 
     /** A flag whether fuzzy search is enabled if no prefix match is found. */
     private val enableFuzzyMatching: Boolean
 ) {
     companion object {
         /**
-         * Create an instance of [AuthenticatedServices] from a given collection of [services]. Use the given
-         * [urlExtractor] and [nameExtractor] functions to obtain the corresponding properties from the services.
-         * Use the [enableFuzzyMatching] flag to control the behavior if no prefix match is found for a URL.
+         * Create an instance of [AuthenticatedServices] from a given collection of [services]. Use the
+         * [enableFuzzyMatching] flag to control the behavior if no prefix match is found for a URL.
          */
-        fun <T> create(
-            services: Collection<T>,
-            urlExtractor: (T) -> String,
-            nameExtractor: (T) -> String,
+        fun create(
+            services: Collection<ResolvedInfrastructureService>,
             enableFuzzyMatching: Boolean
-        ): AuthenticatedServices<T> {
+        ): AuthenticatedServices {
             val validatedServices = services.mapNotNull { service ->
                 runCatching {
-                    val authService = AuthenticatedService(service, urlExtractor(service), nameExtractor(service))
-                    URI.create(authService.serviceUrl) to authService
+                    URI.create(service.url) to service
                 }.onFailure {
                     logger.error(
-                        "Invalid URI for service '${nameExtractor(service)}': '${urlExtractor(service)}'. " +
-                                "Ignoring service.",
+                        "Invalid URI for service '${service.name}': '${service.url}'. Ignoring service.",
                         it
                     )
                 }.getOrNull()
@@ -74,7 +71,7 @@ internal class AuthenticatedServices<T> private constructor(
          * Return an instance of [AuthenticatedServices] that does not contain any services and therefore cannot handle
          * any authentication requests.
          */
-        fun <T> empty(): AuthenticatedServices<T> =
+        fun empty(): AuthenticatedServices =
             AuthenticatedServices(emptyMap(), enableFuzzyMatching = false)
     }
 
@@ -83,7 +80,7 @@ internal class AuthenticatedServices<T> private constructor(
      * are multiple services for the same host, try to find the best match. Return `null` if no unique matching service
      * is found.
      */
-    fun getAuthenticatedServiceFor(host: String, url: URL?): T? {
+    fun getAuthenticatedServiceFor(host: String, url: URL?): ResolvedInfrastructureService? {
         val hostName = url?.host ?: host
         val services = servicesByHost[hostName].orEmpty()
 
@@ -91,31 +88,16 @@ internal class AuthenticatedServices<T> private constructor(
                 services.singleOrNull()?.takeIf { url == null }?.also {
                     logger.debug("Using single service for host '{}'.", hostName)
                 } ?: findBestMatchingService(services, url, enableFuzzyMatching)
-                )?.service
+                )
     }
 }
 
 /**
- * An internally used data class that holds the relevant information about a single service that requires
- * authentication.
+ * Return a [ResolvedInfrastructureService] instance whose URI is guaranteed to end on a slash. This is needed for
+ * correct prefix matching.
  */
-private data class AuthenticatedService<T>(
-    /** The reference to the service. */
-    val service: T,
-
-    /** The URL of this service. */
-    val serviceUrl: String,
-
-    /** A name for this service. */
-    val serviceName: String
-)
-
-/**
- * Return an [AuthenticatedService] instance whose URI is guaranteed to end on a slash. This is needed for correct
- * prefix matching.
- */
-private fun <T> AuthenticatedService<T>.withTrailingSlash(): AuthenticatedService<T> =
-    this.takeIf { serviceUrl.endsWith('/') } ?: copy(serviceUrl = "$serviceUrl/")
+private fun ResolvedInfrastructureService.withTrailingSlash(): ResolvedInfrastructureService =
+    this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
 
 /**
  * Try to find the best matching service in the given list of [services] for the given [url]. This function is used if
@@ -123,23 +105,23 @@ private fun <T> AuthenticatedService<T>.withTrailingSlash(): AuthenticatedServic
  * closely matching the given [url] if [enableFuzzyMatching] is *true*. If no services are available for the host,
  * result is *null*.
  */
-private fun <T> findBestMatchingService(
-    services: Collection<AuthenticatedService<T>>,
+private fun findBestMatchingService(
+    services: Collection<ResolvedInfrastructureService>,
     url: URL?,
     enableFuzzyMatching: Boolean
-): AuthenticatedService<T>? {
+): ResolvedInfrastructureService? {
     logger.debug(
         "Finding best matching service for '{}' from {}.",
         url?.toString(),
-        services.joinToString { "${it.serviceName} (${it.serviceUrl})" }
+        services.joinToString { "${it.name} (${it.url})" }
     )
 
     val matchingServices = url?.let { requestUrl ->
         val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-        services.filter { strUrl.startsWith(it.serviceUrl) || it.serviceUrl == strUrl }
+        services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
     } ?: services
 
-    return matchingServices.maxByOrNull { it.serviceUrl.length }
+    return matchingServices.maxByOrNull { it.url.length }
         ?: findMostSimilarService(services, url, enableFuzzyMatching)
 }
 
@@ -154,11 +136,11 @@ private val fuzzyScore = FuzzyScore(Locale.US)
  * can be found based on prefix matching. If there are services at all and [enableFuzzyMatching] is *true*, it tries to
  * find the best match using a fuzzy search.
  */
-private fun <T> findMostSimilarService(
-    services: Collection<AuthenticatedService<T>>,
+private fun findMostSimilarService(
+    services: Collection<ResolvedInfrastructureService>,
     url: URL?,
     enableFuzzyMatching: Boolean
-): AuthenticatedService<T>? {
+): ResolvedInfrastructureService? {
     if (services.isEmpty() || url == null || !enableFuzzyMatching) return null
 
     if (services.size < 2) {
@@ -178,7 +160,7 @@ private fun <T> findMostSimilarService(
     )
 
     val sortedServicesWithScores = services.map { service ->
-        service to fuzzyScore.fuzzyScore(service.serviceUrl.removeSuffix("/"), strUrl)
+        service to fuzzyScore.fuzzyScore(service.url.removeSuffix("/"), strUrl)
     }.sortedByDescending { it.second }
 
     return sortedServicesWithScores.first().takeUnless { sortedServicesWithScores[1].second == it.second }?.first
@@ -188,7 +170,7 @@ private fun <T> findMostSimilarService(
                     "Found multiple services with the same matching score for '{}': {}.",
                     strUrl,
                     sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
-                        .joinToString { "${it.first.serviceName} (${it.first.serviceUrl})" }
+                        .joinToString { "${it.first.name} (${it.first.url})" }
                 )
             }
         }
