@@ -97,9 +97,11 @@ private fun createConfig(): MonitorConfig =
 /**
  * Create a dummy job.
  */
-private fun createJob(): V1Job =
+private fun createJob(): JobData = JobData(
     mockk<V1Job> {
         every { metadata } returns mockk {
             every { name } returns "someJob"
         }
-    }
+    },
+    failed = false
+)

@@ -28,6 +28,9 @@ import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
+import io.kubernetes.client.openapi.models.V1ContainerState
+import io.kubernetes.client.openapi.models.V1ContainerStateTerminated
+import io.kubernetes.client.openapi.models.V1ContainerStatus
 import io.kubernetes.client.openapi.models.V1Job
 import io.kubernetes.client.openapi.models.V1JobCondition
 import io.kubernetes.client.openapi.models.V1JobList
@@ -35,6 +38,7 @@ import io.kubernetes.client.openapi.models.V1JobStatus
 import io.kubernetes.client.openapi.models.V1ObjectMeta
 import io.kubernetes.client.openapi.models.V1Pod
 import io.kubernetes.client.openapi.models.V1PodList
+import io.kubernetes.client.openapi.models.V1PodStatus
 
 import io.mockk.every
 import io.mockk.just
@@ -66,7 +70,7 @@ class JobHandlerTest : WordSpec({
         "delete a job with all its pods" {
             val podNames = listOf("pod1", "pod2", "andAnotherPod")
             val jobName = "jobToDelete"
-            val job = createJob(jobName)
+            val job = createJobData(jobName)
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
@@ -95,7 +99,7 @@ class JobHandlerTest : WordSpec({
 
             val handler = createJobHandler(jobApi, coreApi)
 
-            handler.deleteAndNotifyIfFailed(V1Job())
+            handler.deleteAndNotifyIfFailed(JobData(V1Job(), failed = false))
 
             verify(exactly = 0) {
                 jobApi.deleteNamespacedJob(any(), any())
@@ -105,7 +109,7 @@ class JobHandlerTest : WordSpec({
         "handle exceptions when deleting elements" {
             val podNames = listOf("pod1", "pod2", "andAnotherPod")
             val jobName = "jobToDelete"
-            val job = createJob(jobName)
+            val job = createJobData(jobName)
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
@@ -131,12 +135,7 @@ class JobHandlerTest : WordSpec({
         "delete a failed job and trigger a notification" {
             val podNames = listOf("pod1", "pod2", "andAnotherPod")
             val jobName = "jobToDelete"
-            val failedStatus = V1JobStatus().apply {
-                addConditionsItem(
-                    V1JobCondition().apply { type("Failed") }
-                )
-            }
-            val job = createJob(jobName, failedStatus)
+            val job = createJobData(jobName, failed = true)
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
@@ -147,7 +146,7 @@ class JobHandlerTest : WordSpec({
             every { jobApi.deleteNamespacedJob(any(), any()) } returns null
 
             val notifier = mockk<FailedJobNotifier> {
-                every { sendFailedJobNotification(job) } just runs
+                every { sendFailedJobNotification(job.job) } just runs
             }
 
             val handler = createJobHandler(jobApi, coreApi, notifier)
@@ -155,7 +154,7 @@ class JobHandlerTest : WordSpec({
             handler.deleteAndNotifyIfFailed(job)
 
             verify {
-                notifier.sendFailedJobNotification(job)
+                notifier.sendFailedJobNotification(job.job)
 
                 podNames.forAll {
                     coreApi.deleteNamespacedPod(it, NAMESPACE)
@@ -167,12 +166,7 @@ class JobHandlerTest : WordSpec({
 
         "not delete a failed job if sending the notification fails" {
             val jobName = "failedJobWithNotificationProblem"
-            val failedStatus = V1JobStatus().apply {
-                addConditionsItem(
-                    V1JobCondition().apply { type("Failed") }
-                )
-            }
-            val job = createJob(jobName, failedStatus)
+            val job = createJobData(jobName, failed = true)
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(any()) } throws IllegalStateException("Test exception")
@@ -190,12 +184,7 @@ class JobHandlerTest : WordSpec({
 
         "skip jobs that have already been processed recently" {
             val jobName = "jobToDeleteOnlyOnce"
-            val failedStatus = V1JobStatus().apply {
-                addConditionsItem(
-                    V1JobCondition().apply { type("Failed") }
-                )
-            }
-            val job = createJob(jobName, failedStatus)
+            val job = createJobData(jobName, failed = true)
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
@@ -205,7 +194,7 @@ class JobHandlerTest : WordSpec({
             every { coreApi.deleteNamespacedPod(any(), any()) } returns null
 
             val notifier = mockk<FailedJobNotifier> {
-                every { sendFailedJobNotification(job) } just runs
+                every { sendFailedJobNotification(job.job) } just runs
             }
 
             val handler = createJobHandler(jobApi, coreApi, notifier)
@@ -214,7 +203,7 @@ class JobHandlerTest : WordSpec({
             handler.deleteAndNotifyIfFailed(job)
 
             verify(exactly = 1) {
-                notifier.sendFailedJobNotification(job)
+                notifier.sendFailedJobNotification(job.job)
 
                 jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
@@ -222,12 +211,7 @@ class JobHandlerTest : WordSpec({
 
         "clean up the recently processed jobs" {
             val jobName = "jobToDeleteMultipleTimes"
-            val failedStatus = V1JobStatus().apply {
-                addConditionsItem(
-                    V1JobCondition().apply { type("Failed") }
-                )
-            }
-            val job = createJob(jobName, failedStatus)
+            val job = createJobData(jobName, failed = true)
 
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
@@ -243,19 +227,19 @@ class JobHandlerTest : WordSpec({
             every { coreApi.deleteNamespacedPod(any(), any()) } returns null
 
             val notifier = mockk<FailedJobNotifier> {
-                every { sendFailedJobNotification(job) } just runs
+                every { sendFailedJobNotification(job.job) } just runs
             }
 
             val handler = createJobHandler(jobApi, coreApi, notifier, 1.milliseconds)
             handler.deleteAndNotifyIfFailed(job)
-            handler.deleteAndNotifyIfFailed(createJob("anotherJob"))
-            handler.deleteAndNotifyIfFailed(createJob("oneMoreJob"))
+            handler.deleteAndNotifyIfFailed(createJobData("anotherJob"))
+            handler.deleteAndNotifyIfFailed(createJobData("oneMoreJob"))
 
             delay(2.milliseconds)
             handler.deleteAndNotifyIfFailed(job)
 
             verify(exactly = 2) {
-                notifier.sendFailedJobNotification(job)
+                notifier.sendFailedJobNotification(job.job)
 
                 jobApi.deleteNamespacedJob(jobName, NAMESPACE)
             }
@@ -288,35 +272,33 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val jobList = V1JobList().apply { items = listOf(matchJob1, runningJob, youngJob, matchJob2, matchJob3) }
+            val jobList = listOf(matchJob1, runningJob, youngJob, matchJob2, matchJob3)
+            val jobsWithPods = listOf(runningJob, youngJob, matchJob2, matchJob3)
+            coreApi.mockPodLists(
+                jobsWithPods.map { (it.metadata?.name.orEmpty()) to emptyList() }
+            )
 
-            val request = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
-                every { execute() } returns jobList
-            }
-
-            every { jobApi.listNamespacedJob(NAMESPACE) } returns request
-            every { request.labelSelector(any()) } returns request
-            every { request.watch(false) } returns request
+            jobApi.mockJobList(jobList)
 
             val handler = createJobHandler(jobApi, coreApi)
             val jobs = handler.findJobsCompletedBefore(referenceTime)
 
-            jobs should containExactlyInAnyOrder(matchJob1, matchJob2, matchJob3)
+            val expectedData = listOf(
+                JobData(matchJob1, failed = false),
+                JobData(matchJob2, failed = false),
+                JobData(matchJob3, failed = true)
+            )
+            jobs should containExactlyInAnyOrder(expectedData)
         }
 
         "query only jobs for ORT Server workers" {
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val jobList = V1JobList().apply { items = listOf(createJob("testJob")) }
+            val jobList = listOf(createJob("testJob"))
+            val request = jobApi.mockJobList(jobList)
 
-            val request = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
-                every { execute() } returns jobList
-            }
-
-            every { jobApi.listNamespacedJob(NAMESPACE) } returns request
-            every { request.labelSelector(any()) } returns request
-            every { request.watch(false) } returns request
+            coreApi.mockPodList("testJob", emptyList())
 
             val handler = createJobHandler(jobApi, coreApi)
             handler.findJobsCompletedBefore(OffsetDateTime.now())
@@ -341,6 +323,51 @@ class JobHandlerTest : WordSpec({
                     "scanner"
                 )
             }
+        }
+
+        "include jobs with pods in failure state" {
+            val referenceTime = OffsetDateTime.of(2026, Month.JULY.value, 7, 11, 41, 5, 0, ZoneOffset.ofHours(2))
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            val failedJob = createJob("failedJob")
+            val failedPod = createPod("failedPod").apply {
+                status = V1PodStatus().apply {
+                    containerStatuses = listOf(
+                        V1ContainerStatus().apply {
+                            state = V1ContainerState().apply {
+                                terminated = V1ContainerStateTerminated()
+                                    .apply { exitCode = 1 }
+                            }
+                        }
+                    )
+                }
+            }
+
+            val otherJob = createJob("otherJob")
+            val otherPod = createPod("otherPod").apply {
+                status = V1PodStatus().apply {
+                    containerStatuses = listOf(
+                        V1ContainerStatus().apply {
+                            state = V1ContainerState().apply {
+                                terminated = V1ContainerStateTerminated()
+                                    .apply { exitCode = 0 }
+                            }
+                        },
+                        V1ContainerStatus()
+                    )
+                }
+            }
+
+            coreApi.mockPodLists(
+                listOf("otherJob" to listOf(otherPod), "failedJob" to listOf(failedPod))
+            )
+            jobApi.mockJobList(listOf(otherJob, failedJob))
+
+            val handler = createJobHandler(jobApi, coreApi)
+            val jobs = handler.findJobsCompletedBefore(referenceTime)
+
+            jobs should containExactlyInAnyOrder(JobData(failedJob, failed = true))
         }
     }
 
@@ -517,6 +544,15 @@ private fun createJob(name: String, status: V1JobStatus = V1JobStatus()): V1Job 
     }
 
 /**
+ * Create a [JobData] object containing a [V1Job] with the given [name], and the given [failed] flag.
+ */
+private fun createJobData(name: String, failed: Boolean = false): JobData =
+    JobData(
+        job = createJob(name),
+        failed = failed
+    )
+
+/**
  * Create a [V1Job] object with the given [name].
  */
 private fun createPod(name: String): V1Pod =
@@ -558,4 +594,22 @@ private fun CoreV1Api.mockPodLists(jobs: Collection<Pair<String, Collection<V1Po
     }
 
     every { listNamespacedPod(NAMESPACE) } returnsMany requests
+}
+
+/**
+ * Prepare this [BatchV1Api] mock to expect a list operation for jobs and return a [V1JobList] containing the given
+ * [jobs].
+ */
+private fun BatchV1Api.mockJobList(jobs: Collection<V1Job>): BatchV1Api.APIlistNamespacedJobRequest {
+    val jobList = V1JobList().apply { items = jobs.toList() }
+
+    val request = mockk<BatchV1Api.APIlistNamespacedJobRequest> {
+        every { execute() } returns jobList
+    }
+
+    every { listNamespacedJob(NAMESPACE) } returns request
+    every { request.labelSelector(any()) } returns request
+    every { request.watch(false) } returns request
+
+    return request
 }

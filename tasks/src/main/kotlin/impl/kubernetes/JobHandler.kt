@@ -140,10 +140,11 @@ internal class JobHandler(
     private val recentJobsMutex = Mutex()
 
     /**
-     * Return a list with all currently existing jobs that have been completed before the given [time].
+     * Return a list with all currently existing jobs that have been completed before the given [time]. This includes
+     * failed jobs.
      */
-    fun findJobsCompletedBefore(time: OffsetDateTime): List<V1Job> =
-        listJobs(workerJobsLabelSelector).filter { it.completedBefore(time) }
+    fun findJobsCompletedBefore(time: OffsetDateTime): List<JobData> =
+        listJobs(workerJobsLabelSelector).mapNotNull { getCompletedOrFailedJob(it, time) }
 
     /**
      * Return a list with all currently active jobs for the worker defined by the given [endpoint].
@@ -155,18 +156,18 @@ internal class JobHandler(
     }
 
     /**
-     * Delete the given [job]. Check whether it is a failed job. If so, try sending a corresponding notification
-     * using [notifier] and delete the job only if this is successful. This operation is needed by both the reaper
-     * and the monitor components when they detect a completed job.
+     * Delete the job referenced by the given [jobData]. Check whether it is a failed job. If so, try sending a
+     * corresponding notification using [notifier] and delete the job only if this is successful.
      */
-    suspend fun deleteAndNotifyIfFailed(job: V1Job) {
+    suspend fun deleteAndNotifyIfFailed(jobData: JobData) {
+        val job = jobData.job
         job.metadata?.name?.takeIf { canProcess(it) }?.let { jobName ->
             withMdcContext(
                 StandardMdcKeys.TRACE_ID to (job.traceId().takeIf { it.isNotEmpty() } ?: "unknown"),
                 StandardMdcKeys.ORT_RUN_ID to (job.ortRunId?.toString() ?: "unknown")
             ) {
                 runCatching {
-                    if (job.isFailed()) {
+                    if (jobData.failed) {
                         logger.info("Detected a failed job '{}'.", jobName)
                         logger.debug("Details of the failed job: {}", job)
 
@@ -197,11 +198,11 @@ internal class JobHandler(
     /**
      * Find all pods that have been created for the job with the specified [jobName].
      */
-    private fun findPodsForJob(jobName: String): List<V1Pod> {
-        val selector = "job-name=$jobName"
+    private fun findPodsForJob(jobName: String?): List<V1Pod> = jobName?.let {
+        val selector = "job-name=$it"
 
-        return api.listNamespacedPod(config.namespace).labelSelector(selector).watch(false).execute().items
-    }
+        api.listNamespacedPod(config.namespace).labelSelector(selector).watch(false).execute().items
+    }.orEmpty()
 
     /**
      * Delete the given [pod]. Kubernetes does not automatically remove completed pods. Therefore, this class does the
@@ -249,4 +250,38 @@ internal class JobHandler(
      */
     private fun listJobs(labelSelector: String?): List<V1Job> =
         jobApi.listNamespacedJob(config.namespace).labelSelector(labelSelector).watch(false).execute().items
+
+    /**
+     * Check whether the given [job] has completed normally before the given [referenceTime] or is in failure state.
+     * If so, return a corresponding [JobData] object. Return *null* otherwise.
+     */
+    private fun getCompletedOrFailedJob(job: V1Job, referenceTime: OffsetDateTime): JobData? =
+        if (job.completedBefore(referenceTime)) {
+            JobData(job, job.isFailed())
+        } else {
+            val hasPodsInErrorState = findPodsForJob(job.metadata?.name).any { pod ->
+                pod.status?.containerStatuses.orEmpty().any { containerStatus ->
+                    val terminated = containerStatus.state?.terminated
+                    terminated != null && terminated.exitCode != 0
+                }
+            }
+
+            if (hasPodsInErrorState) {
+                JobData(job, true)
+            } else {
+                null
+            }
+        }
 }
+
+/**
+ * A data class to collect information about a specific Kubernetes job. In addition to the job itself, the class
+ * stores some properties that cannot be easily detected from the job metadata itself.
+ */
+internal data class JobData(
+    /** Reference to the Kubernetes job object. */
+    val job: V1Job,
+
+    /** A flag whether this job has failed. */
+    val failed: Boolean
+)
