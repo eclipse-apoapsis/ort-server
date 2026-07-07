@@ -39,6 +39,8 @@ function optionTypeToZodType(type: PluginOptionType): ZodType {
         if (typeof val === 'string') return val === 'true';
         return val;
       }, z.boolean());
+    case 'ENUM':
+      return z.string();
     case 'INTEGER':
       return z.coerce.string();
     case 'LONG':
