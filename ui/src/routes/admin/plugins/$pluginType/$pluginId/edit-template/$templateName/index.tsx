@@ -113,10 +113,6 @@ function parseStoredValue(
       return value === 'true';
     case 'INTEGER':
       return Number(value);
-    case 'LONG':
-      return value;
-    case 'STRING_LIST':
-      return value;
     default:
       return value;
   }
