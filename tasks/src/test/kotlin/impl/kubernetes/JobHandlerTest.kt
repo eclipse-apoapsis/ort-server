@@ -71,15 +71,7 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val podList = V1PodList().apply { items = podNames.map(::createPod) }
-
-            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
-                every { execute() } returns podList
-            }
-
-            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
-            every { request.labelSelector("job-name=$jobName") } returns request
-            every { request.watch(false) } returns request
+            coreApi.mockPodList(jobName, podNames.map(::createPod))
 
             every { coreApi.deleteNamespacedPod(any(), any()) } returns null
             every { jobApi.deleteNamespacedJob(any(), any()) } returns null
@@ -118,15 +110,7 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val podList = V1PodList().apply { items = podNames.map(::createPod) }
-
-            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
-                every { execute() } returns podList
-            }
-
-            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
-            every { request.labelSelector("job-name=$jobName") } returns request
-            every { request.watch(false) } returns request
+            coreApi.mockPodList(jobName, podNames.map(::createPod))
 
             every { coreApi.deleteNamespacedPod(any(), any()) } throws IOException("Test exception when deleting pod.")
             every { jobApi.deleteNamespacedJob(any(), any()) } throws IOException("Test exception when deleting job.")
@@ -157,15 +141,7 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val podList = V1PodList().apply { items = podNames.map(::createPod) }
-
-            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
-                every { execute() } returns podList
-            }
-
-            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
-            every { request.labelSelector("job-name=$jobName") } returns request
-            every { request.watch(false) } returns request
+            coreApi.mockPodList(jobName, podNames.map(::createPod))
 
             every { coreApi.deleteNamespacedPod(any(), any()) } returns null
             every { jobApi.deleteNamespacedJob(any(), any()) } returns null
@@ -224,15 +200,7 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val podList = V1PodList()
-
-            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
-                every { execute() } returns podList
-            }
-
-            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
-            every { request.labelSelector("job-name=$jobName") } returns request
-            every { request.watch(false) } returns request
+            coreApi.mockPodList(jobName, emptyList())
 
             every { coreApi.deleteNamespacedPod(any(), any()) } returns null
 
@@ -264,15 +232,13 @@ class JobHandlerTest : WordSpec({
             val coreApi = mockk<CoreV1Api>()
             val jobApi = mockk<BatchV1Api>()
 
-            val podList = V1PodList()
-
-            val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
-                every { execute() } returns podList
-            }
-
-            every { coreApi.listNamespacedPod(NAMESPACE) } returns request
-            every { request.labelSelector(any()) } returns request
-            every { request.watch(false) } returns request
+            val jobsToList = listOf<Pair<String, List<V1Pod>>>(
+                jobName to emptyList(),
+                "anotherJob" to emptyList(),
+                "oneMoreJob" to emptyList(),
+                jobName to emptyList()
+            )
+            coreApi.mockPodLists(jobsToList)
 
             every { coreApi.deleteNamespacedPod(any(), any()) } returns null
 
@@ -565,3 +531,31 @@ private fun createMetadata(name: String): V1ObjectMeta =
     V1ObjectMeta().apply {
         name(name)
     }
+
+/**
+ * Prepare this API mock to expect a list operation for the pods of the job with the given [jobName]. The operation
+ * shall return a [V1PodList] containing the given [pods].
+ */
+private fun CoreV1Api.mockPodList(jobName: String, pods: Collection<V1Pod>) {
+    mockPodLists(listOf(jobName to pods))
+}
+
+/**
+ * Prepare this API mock to expect multiple list operations for the pods of jobs as defined by the given [jobs]
+ * collection.
+ */
+private fun CoreV1Api.mockPodLists(jobs: Collection<Pair<String, Collection<V1Pod>>>) {
+    val requests = jobs.map { (jobName, pods) ->
+        val podList = V1PodList().apply { items = pods.toList() }
+
+        val request = mockk<CoreV1Api.APIlistNamespacedPodRequest> {
+            every { execute() } returns podList
+        }
+
+        every { request.labelSelector("job-name=$jobName") } returns request
+        every { request.watch(false) } returns request
+        request
+    }
+
+    every { listNamespacedPod(NAMESPACE) } returnsMany requests
+}
