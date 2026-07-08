@@ -27,6 +27,8 @@ function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
       return z.boolean().default(false);
     case 'ENUM':
       return z.string();
+    case 'ENUM_LIST':
+      return z.string();
     case 'INTEGER':
       return z.coerce.number();
     case 'LONG':
