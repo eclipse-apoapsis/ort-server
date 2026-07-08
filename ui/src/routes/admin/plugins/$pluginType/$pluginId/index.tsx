@@ -217,7 +217,7 @@ const PluginTemplateCard = ({
   });
 
   return (
-    <Card key={template.name} className='mb-2'>
+    <Card className='mb-2'>
       <CardHeader className='flex flex-row items-center justify-between'>
         <CardTitle>{template.name}</CardTitle>
         <div className='flex items-center gap-1'>
@@ -456,6 +456,7 @@ const PluginTemplatesComponent = () => {
         {pluginTemplates.length > 0 ? (
           pluginTemplates.map((template) => (
             <PluginTemplateCard
+              key={template.name}
               plugin={plugin}
               template={template}
               organizationOptions={organizationOptions}
