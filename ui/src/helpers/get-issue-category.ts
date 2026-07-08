@@ -22,7 +22,7 @@ import { IssueCategory } from '@/schemas';
 // A map where the key is the issue category and the value is an array of regular expressions.
 // Upon finding a new issue that is not categorized properly, please extend this map.
 const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
-  Deprecation: [/^deprecated .*/],
+  Deprecation: [/^deprecated\b.*/],
   Infrastructure: [
     /The .* worker failed due to an unexpected error.*/,
     /ERROR: Timeout after .* seconds while scanning file '.*'\./,

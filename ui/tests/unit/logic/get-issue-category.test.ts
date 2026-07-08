@@ -37,6 +37,7 @@ it('correctly categorizes deprecation issues', () => {
     'deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs',
     'deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported',
     'deprecated uuid@3.4.0: Please upgrade  to version 7 or higher.',
+    'deprecated',
   ];
 
   messages.forEach((message) => {
