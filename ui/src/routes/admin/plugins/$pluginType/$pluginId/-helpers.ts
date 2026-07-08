@@ -19,9 +19,9 @@
 
 import { z, ZodType } from 'zod';
 
-import { PluginOptionType } from '@/api';
+import { PluginOption, PluginOptionType } from '@/api';
 
-export function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
+function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
       return z.boolean().default(false);
@@ -40,4 +40,21 @@ export function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
     default:
       throw new Error(`Unsupported option type: ${type}`);
   }
+}
+
+export function buildPluginOptionsFormShape(options: Array<PluginOption>) {
+  const shape: Record<string, ZodType> = {};
+  for (const opt of options) {
+    let schema = pluginOptionTypeToZodType(opt.type);
+    if (opt.isNullable) {
+      schema = schema.nullable();
+    }
+    if (!opt.isRequired) {
+      schema = schema.optional();
+    }
+    shape[opt.name] = schema;
+    shape[`${opt.name}_isFinal`] = z.boolean().default(false);
+    shape[`${opt.name}_isNotSet`] = z.boolean().default(false);
+  }
+  return shape;
 }

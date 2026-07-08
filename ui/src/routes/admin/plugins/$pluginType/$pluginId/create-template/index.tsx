@@ -28,7 +28,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
-import { z, ZodType } from 'zod';
+import { z } from 'zod';
 
 import { PluginOption, PluginOptionTemplate } from '@/api';
 import { createPluginTemplateMutation } from '@/api/@tanstack/react-query.gen';
@@ -59,27 +59,14 @@ import { Switch } from '@/components/ui/switch';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
-import { pluginOptionTypeToZodType } from '../-helpers.ts';
+import { buildPluginOptionsFormShape } from '../-helpers.ts';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
 const templateName = 'Template Name';
 
 function buildFormSchema(options: Array<PluginOption>) {
-  const shape: Record<string, ZodType> = {};
+  const shape = buildPluginOptionsFormShape(options);
   shape[templateName] = z.string().min(1);
-  for (const opt of options) {
-    let schema = pluginOptionTypeToZodType(opt.type);
-    if (opt.isNullable) {
-      schema = schema.nullable();
-    }
-    if (!opt.isRequired) {
-      schema = schema.optional();
-    }
-    shape[opt.name] = schema;
-    shape[`${opt.name}_isFinal`] = z.boolean().default(false);
-    shape[`${opt.name}_isNotSet`] = z.boolean().default(false);
-  }
-
   return z.object(shape);
 }
 
