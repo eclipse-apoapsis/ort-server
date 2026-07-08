@@ -34,6 +34,7 @@ import { PluginOption, PluginOptionType } from '@/api';
 import {
   getPluginTemplateOptions,
   getPluginTemplateQueryKey,
+  getPluginTemplatesQueryKey,
   updatePluginTemplateOptionsMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { OptionalInput } from '@/components/form/optional-input';
@@ -152,6 +153,14 @@ const EditTemplate = () => {
               pluginType: params.pluginType,
               pluginId: params.pluginId,
               templateName: params.templateName,
+            },
+          }),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getPluginTemplatesQueryKey({
+            path: {
+              pluginType: params.pluginType,
+              pluginId: params.pluginId,
             },
           }),
         });

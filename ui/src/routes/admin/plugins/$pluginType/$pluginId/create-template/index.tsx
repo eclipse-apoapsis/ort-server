@@ -31,7 +31,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { PluginOption } from '@/api';
-import { createPluginTemplateMutation } from '@/api/@tanstack/react-query.gen';
+import {
+  createPluginTemplateMutation,
+  getPluginTemplatesQueryKey,
+} from '@/api/@tanstack/react-query.gen';
 import { OptionalInput } from '@/components/form/optional-input';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -57,6 +60,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { ApiError } from '@/lib/api-error';
+import { queryClient } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
 import {
@@ -122,6 +126,14 @@ const CreateTemplate = () => {
       onSuccess() {
         toast.info('Create Template', {
           description: `Template created successfully.`,
+        });
+        queryClient.invalidateQueries({
+          queryKey: getPluginTemplatesQueryKey({
+            path: {
+              pluginType: params.pluginType,
+              pluginId: params.pluginId,
+            },
+          }),
         });
         navigate({
           to: '/admin/plugins/$pluginType/$pluginId',
