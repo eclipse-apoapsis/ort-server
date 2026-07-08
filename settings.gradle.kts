@@ -133,7 +133,7 @@ rootProject.children.single { it.name == "components" }.children.forEach { compo
 
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
-    id("com.autonomousapps.build-health").version("3.15.0")
+    id("com.autonomousapps.build-health").version("3.16.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 
     // Required for the build-health plugin. Keep the version in sync with the one from the version catalog.
