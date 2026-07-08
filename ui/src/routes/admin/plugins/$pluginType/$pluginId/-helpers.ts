@@ -28,7 +28,7 @@ function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
     case 'ENUM':
       return z.string();
     case 'ENUM_LIST':
-      return z.string();
+      return z.array(z.string()).default([]);
     case 'INTEGER':
       return z.coerce.number();
     case 'LONG':
@@ -41,6 +41,28 @@ function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
       return z.string();
     default:
       throw new Error(`Unsupported option type: ${type}`);
+  }
+}
+
+export function parseStoredPluginOptionValue(
+  value: string | null | undefined,
+  type: PluginOptionType
+): unknown {
+  if (value === null || value === undefined) {
+    return type === 'ENUM_LIST' ? [] : '';
+  }
+  switch (type) {
+    case 'BOOLEAN':
+      return value === 'true';
+    case 'INTEGER':
+      return Number(value);
+    case 'ENUM_LIST':
+      return value
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter((entry) => entry !== '');
+    default:
+      return value;
   }
 }
 

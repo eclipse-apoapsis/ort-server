@@ -61,6 +61,7 @@ import { PluginOptionFormFields } from '@/routes/admin/plugins/$pluginType/$plug
 import {
   buildPluginOptionsFormShape,
   buildPluginTemplateRequestBody,
+  parseStoredPluginOptionValue,
 } from '../-helpers.ts';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
@@ -97,7 +98,11 @@ const CreateTemplate = () => {
       ...(plugin?.options?.reduce(
         (acc, option) => {
           acc[option.name] =
-            option.type === 'BOOLEAN' ? false : (option.defaultValue ?? '');
+            option.type === 'BOOLEAN'
+              ? false
+              : option.type === 'ENUM_LIST'
+                ? parseStoredPluginOptionValue(option.defaultValue, option.type)
+                : (option.defaultValue ?? '');
           acc[`${option.name}_isFinal`] = false;
           acc[`${option.name}_isNotSet`] = true;
           return acc;

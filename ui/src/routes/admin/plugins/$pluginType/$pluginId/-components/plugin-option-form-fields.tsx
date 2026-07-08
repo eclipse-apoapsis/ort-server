@@ -34,7 +34,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import MultipleSelector, {
+  Option as MultipleSelectorOption,
+} from '@/components/ui/multiple-selector';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { parseStoredPluginOptionValue } from '../-helpers.ts';
 
 type Props = {
   options: PluginOption[];
@@ -71,6 +82,49 @@ export function PluginOptionFormFields({ options, form }: Props) {
                     onCheckedChange={(checked) => {
                       field.onChange(checked);
                       form.setValue(`${option.name}_isNotSet`, false);
+                    }}
+                  />
+                ) : option.type === 'ENUM' ? (
+                  <Select
+                    value={typeof field.value === 'string' ? field.value : ''}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      handleValueChange(option.name, value);
+                    }}
+                  >
+                    <SelectTrigger className='w-[280px]'>
+                      <SelectValue placeholder='Select a value' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(option.enumEntries ?? []).map((entry) => (
+                        <SelectItem key={entry} value={entry}>
+                          {entry}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : option.type === 'ENUM_LIST' ? (
+                  <MultipleSelector
+                    className='min-w-[280px]'
+                    placeholder='Select values'
+                    hidePlaceholderWhenSelected
+                    value={(Array.isArray(field.value)
+                      ? (field.value as string[])
+                      : []
+                    ).map<MultipleSelectorOption>((entry) => ({
+                      value: entry,
+                      label: entry,
+                    }))}
+                    options={(
+                      option.enumEntries ?? []
+                    ).map<MultipleSelectorOption>((entry) => ({
+                      value: entry,
+                      label: entry,
+                    }))}
+                    onChange={(selected) => {
+                      const values = selected.map((s) => s.value);
+                      field.onChange(values);
+                      handleValueChange(option.name, values.join(','));
                     }}
                   />
                 ) : option.isRequired ? (
@@ -149,7 +203,12 @@ export function PluginOptionFormFields({ options, form }: Props) {
                         option.name,
                         option.type === 'BOOLEAN'
                           ? false
-                          : (option.defaultValue ?? '')
+                          : option.type === 'ENUM_LIST'
+                            ? parseStoredPluginOptionValue(
+                                option.defaultValue,
+                                option.type
+                              )
+                            : (option.defaultValue ?? '')
                       );
                     }
                   }}

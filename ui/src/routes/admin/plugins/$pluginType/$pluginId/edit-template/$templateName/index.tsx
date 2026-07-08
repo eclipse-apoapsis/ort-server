@@ -28,7 +28,7 @@ import { Loader2 } from 'lucide-react';
 import { FieldValues, Resolver, useForm, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
-import { PluginOption, PluginOptionType } from '@/api';
+import { PluginOption } from '@/api';
 import {
   getPluginTemplateOptions,
   getPluginTemplateQueryKey,
@@ -59,26 +59,12 @@ import { PluginOptionFormFields } from '@/routes/admin/plugins/$pluginType/$plug
 import {
   buildPluginOptionsFormShape,
   buildPluginTemplateRequestBody,
+  parseStoredPluginOptionValue,
 } from '../../-helpers.ts';
 import { Route as LayoutRoute } from '../../../../route.tsx';
 
 function buildFormSchema(options: Array<PluginOption>) {
   return z.object(buildPluginOptionsFormShape(options));
-}
-
-function parseStoredValue(
-  value: string | null | undefined,
-  type: PluginOptionType
-): unknown {
-  if (value === null || value === undefined) return '';
-  switch (type) {
-    case 'BOOLEAN':
-      return value === 'true';
-    case 'INTEGER':
-      return Number(value);
-    default:
-      return value;
-  }
 }
 
 type FormValues = Record<string, unknown>;
@@ -114,10 +100,12 @@ const EditTemplate = () => {
           (o) => o.option === option.name
         );
         acc[option.name] = templateOption
-          ? parseStoredValue(templateOption.value, option.type)
+          ? parseStoredPluginOptionValue(templateOption.value, option.type)
           : option.type === 'BOOLEAN'
             ? false
-            : (option.defaultValue ?? '');
+            : option.type === 'ENUM_LIST'
+              ? parseStoredPluginOptionValue(option.defaultValue, option.type)
+              : (option.defaultValue ?? '');
         acc[`${option.name}_isFinal`] = templateOption?.isFinal ?? false;
         acc[`${option.name}_isNotSet`] = !templateOption;
         return acc;
