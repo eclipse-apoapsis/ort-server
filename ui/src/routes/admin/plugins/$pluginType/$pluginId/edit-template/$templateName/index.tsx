@@ -30,7 +30,7 @@ import { ChangeEvent } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { PluginOption, PluginOptionTemplate, PluginOptionType } from '@/api';
+import { PluginOption, PluginOptionType } from '@/api';
 import {
   getPluginTemplateOptions,
   getPluginTemplateQueryKey,
@@ -63,7 +63,10 @@ import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
-import { buildPluginOptionsFormShape } from '../../-helpers.ts';
+import {
+  buildPluginOptionsFormShape,
+  buildPluginTemplateRequestBody,
+} from '../../-helpers.ts';
 import { Route as LayoutRoute } from '../../../../route.tsx';
 
 function buildFormSchema(options: Array<PluginOption>) {
@@ -167,35 +170,10 @@ const EditTemplate = () => {
     });
 
   async function onSubmit(formValues: FormValues) {
-    const requestBody: PluginOptionTemplate[] =
-      plugin?.options
-        ?.filter((option) => !formValues[`${option.name}_isNotSet`])
-        ?.map((option) => {
-          const value = formValues[option.name];
-          const isFinal = Boolean(formValues[`${option.name}_isFinal`]);
-
-          let stringValue: string | null;
-          if (value === null || value === undefined) {
-            stringValue = null;
-          } else if (Array.isArray(value)) {
-            stringValue = value.join(',');
-          } else if (
-            typeof value === 'bigint' ||
-            typeof value === 'number' ||
-            typeof value === 'boolean'
-          ) {
-            stringValue = value.toString();
-          } else {
-            stringValue = value as string;
-          }
-
-          return {
-            option: option.name,
-            type: option.type,
-            value: stringValue,
-            isFinal,
-          };
-        }) ?? [];
+    const requestBody = buildPluginTemplateRequestBody(
+      plugin?.options,
+      formValues
+    );
 
     await updateTemplate({
       path: {

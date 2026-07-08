@@ -19,7 +19,7 @@
 
 import { z, ZodType } from 'zod';
 
-import { PluginOption, PluginOptionType } from '@/api';
+import { PluginOption, PluginOptionTemplate, PluginOptionType } from '@/api';
 
 function pluginOptionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
@@ -59,4 +59,40 @@ export function buildPluginOptionsFormShape(options: Array<PluginOption>) {
     shape[`${opt.name}_isNotSet`] = z.boolean().default(false);
   }
   return shape;
+}
+
+export function buildPluginTemplateRequestBody(
+  options: PluginOption[] | undefined,
+  formValues: Record<string, unknown>
+): PluginOptionTemplate[] {
+  return (
+    options
+      ?.filter((option) => !formValues[`${option.name}_isNotSet`])
+      ?.map((option) => {
+        const value = formValues[option.name];
+        const isFinal = Boolean(formValues[`${option.name}_isFinal`]);
+
+        let stringValue: string | null;
+        if (value === null || value === undefined) {
+          stringValue = null;
+        } else if (Array.isArray(value)) {
+          stringValue = value.join(',');
+        } else if (
+          typeof value === 'bigint' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean'
+        ) {
+          stringValue = value.toString();
+        } else {
+          stringValue = value as string;
+        }
+
+        return {
+          option: option.name,
+          type: option.type,
+          value: stringValue,
+          isFinal,
+        };
+      }) ?? []
+  );
 }
