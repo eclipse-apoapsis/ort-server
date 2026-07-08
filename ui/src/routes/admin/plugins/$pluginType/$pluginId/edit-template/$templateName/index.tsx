@@ -63,33 +63,13 @@ import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
+import { pluginOptionTypeToZodType } from '../../-helpers.ts';
 import { Route as LayoutRoute } from '../../../../route.tsx';
-
-function optionTypeToZodType(type: PluginOptionType): ZodType {
-  switch (type) {
-    case 'BOOLEAN':
-      return z.boolean().default(false);
-    case 'ENUM':
-      return z.string();
-    case 'INTEGER':
-      return z.coerce.number();
-    case 'LONG':
-      return z.coerce.bigint();
-    case 'SECRET':
-      return z.string();
-    case 'STRING':
-      return z.string();
-    case 'STRING_LIST':
-      return z.string();
-    default:
-      throw new Error(`Unsupported option type: ${type}`);
-  }
-}
 
 function buildFormSchema(options: Array<PluginOption>) {
   const shape: Record<string, ZodType> = {};
   for (const opt of options) {
-    let schema = optionTypeToZodType(opt.type);
+    let schema = pluginOptionTypeToZodType(opt.type);
     if (opt.isNullable) {
       schema = schema.nullable();
     }
