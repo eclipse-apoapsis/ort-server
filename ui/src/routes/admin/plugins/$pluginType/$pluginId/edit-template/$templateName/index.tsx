@@ -18,7 +18,6 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckedState } from '@radix-ui/react-checkbox';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -26,8 +25,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
-import { ChangeEvent } from 'react';
-import { Resolver, useForm } from 'react-hook-form';
+import { FieldValues, Resolver, useForm, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
 import { PluginOption, PluginOptionType } from '@/api';
@@ -37,8 +35,6 @@ import {
   getPluginTemplatesQueryKey,
   updatePluginTemplateOptionsMutation,
 } from '@/api/@tanstack/react-query.gen';
-import { OptionalInput } from '@/components/form/optional-input';
-import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -48,22 +44,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
-  FormControl,
   FormDescription,
-  FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
+import { PluginOptionFormFields } from '@/routes/admin/plugins/$pluginType/$pluginId/-components/plugin-option-form-fields.tsx';
 import {
   buildPluginOptionsFormShape,
   buildPluginTemplateRequestBody,
@@ -131,14 +123,6 @@ const EditTemplate = () => {
         return acc;
       }, {} as FormValues) ?? {},
   });
-
-  function handleValueChange(optionName: string, value: string) {
-    if (value !== '') {
-      form.setValue(`${optionName}_isNotSet`, false);
-    } else {
-      form.setValue(`${optionName}_isNotSet`, true);
-    }
-  }
 
   const { mutateAsync: updateTemplate, isPending: isUpdateTemplatePending } =
     useMutation({
@@ -215,138 +199,12 @@ const EditTemplate = () => {
               <Input value={params.templateName} disabled />
               <FormDescription>The name of the template.</FormDescription>
             </FormItem>
-            {plugin?.options?.map((option) => {
-              const isNotSet = form.watch(`${option.name}_isNotSet`);
-
-              return (
-                <FormItem key={option.name}>
-                  <FormLabel>
-                    {option.name}
-                    <Badge className='ml-2 bg-blue-200 text-black'>
-                      {option.type}
-                    </Badge>
-                  </FormLabel>
-                  <div
-                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-                  >
-                    <FormField
-                      control={form.control}
-                      name={option.name}
-                      render={({ field }) => (
-                        <FormControl>
-                          {option.type === 'BOOLEAN' ? (
-                            <Switch
-                              checked={field.value as boolean}
-                              onCheckedChange={(checked) => {
-                                field.onChange(checked);
-                                form.setValue(`${option.name}_isNotSet`, false);
-                              }}
-                            />
-                          ) : option.isRequired ? (
-                            <Input
-                              {...field}
-                              type={
-                                option.type === 'INTEGER' ||
-                                option.type === 'LONG'
-                                  ? 'number'
-                                  : 'text'
-                              }
-                              value={
-                                typeof field.value === 'string' ||
-                                typeof field.value === 'number'
-                                  ? field.value
-                                  : ''
-                              }
-                              onChange={(e) => {
-                                field.onChange(e);
-                                handleValueChange(option.name, e.target.value);
-                              }}
-                            />
-                          ) : (
-                            <OptionalInput
-                              {...field}
-                              type={
-                                option.type === 'INTEGER' ||
-                                option.type === 'LONG'
-                                  ? 'number'
-                                  : 'text'
-                              }
-                              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                field.onChange(e);
-                                handleValueChange(option.name, e.target.value);
-                              }}
-                            />
-                          )}
-                        </FormControl>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`${option.name}_isFinal`}
-                      render={({ field }) => (
-                        <label
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          <Checkbox
-                            checked={field.value as CheckedState}
-                            onCheckedChange={field.onChange}
-                            disabled={Boolean(isNotSet)}
-                          />
-                          <p className='text-sm'>Final</p>
-                        </label>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`${option.name}_isNotSet`}
-                      render={({ field }) => (
-                        <label
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          <Checkbox
-                            checked={field.value as CheckedState}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              if (checked) {
-                                form.setValue(
-                                  option.name,
-                                  option.type === 'BOOLEAN'
-                                    ? false
-                                    : (option.defaultValue ?? '')
-                                );
-                              }
-                            }}
-                          />
-                          <p className='text-sm'>Undefined</p>
-                        </label>
-                      )}
-                    />
-                  </div>
-                  <FormDescription>
-                    {option.description}
-                    {option.type === 'SECRET' && (
-                      <>
-                        <br />
-                        <span className='text-red-500'>
-                          Enter the name of the secret, not the value! A secret
-                          with this name must be configured in the context of
-                          the ORT run.
-                        </span>
-                      </>
-                    )}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              );
-            })}
+            {plugin?.options && (
+              <PluginOptionFormFields
+                options={plugin.options}
+                form={form as unknown as UseFormReturn<FieldValues>}
+              />
+            )}
           </CardContent>
           <CardFooter className='mt-6 gap-4'>
             <Button type='submit' disabled={isUpdateTemplatePending}>
