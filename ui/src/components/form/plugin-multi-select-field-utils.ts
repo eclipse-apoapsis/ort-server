@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+export const UNDEFINED_ENUM_VALUE = '__undefined_enum__';
 export const UNDEFINED_SECRET_VALUE = '__undefined_secret__';
 
 export function getPluginsInDisplayOrder<T extends { id: string }>(
@@ -64,6 +65,23 @@ export function mapSecretSelectValue(
   value: string | undefined
 ): string | undefined {
   return value === UNDEFINED_SECRET_VALUE ? undefined : value;
+}
+
+export function getEnumSelectDisplayValue(
+  value: string | undefined,
+  isRequired: boolean
+): string | undefined {
+  if (value === undefined || value === '') {
+    return isRequired ? undefined : UNDEFINED_ENUM_VALUE;
+  }
+
+  return value;
+}
+
+export function mapEnumSelectValue(
+  value: string | undefined
+): string | undefined {
+  return value === UNDEFINED_ENUM_VALUE ? undefined : value;
 }
 
 export function moveItem<T>(

@@ -33,10 +33,13 @@ import {
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import {
+  getEnumSelectDisplayValue,
   getPluginsInDisplayOrder,
   getSecretSelectDisplayValue,
+  mapEnumSelectValue,
   mapSecretSelectValue,
   moveItem,
+  UNDEFINED_ENUM_VALUE,
   UNDEFINED_SECRET_VALUE,
 } from '@/components/form/plugin-multi-select-field-utils';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -371,6 +374,40 @@ export const PluginMultiSelectField = <
                                     )}
                                 </Select>
                               )
+                            ) : option.type === 'ENUM' &&
+                              option.enumEntries &&
+                              option.enumEntries.length > 0 ? (
+                              <Select
+                                onValueChange={(value) => {
+                                  field.onChange(mapEnumSelectValue(value));
+                                }}
+                                value={getEnumSelectDisplayValue(
+                                  typeof field.value === 'string'
+                                    ? field.value
+                                    : undefined,
+                                  option.isRequired
+                                )}
+                                disabled={option.isFixed}
+                              >
+                                <SelectTrigger className='w-[280px]'>
+                                  <SelectValue placeholder='Select a value' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {!option.isRequired && (
+                                    <SelectItem value={UNDEFINED_ENUM_VALUE}>
+                                      {option.defaultValue != null &&
+                                      option.defaultValue !== ''
+                                        ? 'Reset to default'
+                                        : 'Not defined'}
+                                    </SelectItem>
+                                  )}
+                                  {option.enumEntries.map((entry) => (
+                                    <SelectItem key={entry} value={entry}>
+                                      {entry}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             ) : option.isRequired ? (
                               <Input
                                 {...field}
