@@ -196,20 +196,20 @@ class DaoOrtRunRepositoryTest : WordSpec({
     }
 
     "getByIndex" should {
-            "return the correct run" {
-                val ortRun = ortRunRepository.create(
-                    repositoryId,
-                    "revision",
-                    null,
-                    jobConfigurations,
-                    null,
-                    labelsMap,
-                    traceId = "some-trace-id",
-                    null
-                )
+        "return the correct run" {
+            val ortRun = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = "some-trace-id",
+                null
+            )
 
-                ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
-            }
+            ortRunRepository.getByIndex(repositoryId, ortRun.index) shouldBe ortRun
+        }
     }
 
     "get" should {
