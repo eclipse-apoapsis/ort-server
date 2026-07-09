@@ -55,6 +55,9 @@ data class PreconfiguredPluginOption(
     /** The type of the option. */
     val type: PluginOptionType,
 
+    /** The allowed values if [type] is [PluginOptionType.ENUM] or [PluginOptionType.ENUM_LIST]. */
+    val enumEntries: List<String>?,
+
     /** The default value of the option, if any. */
     val defaultValue: String?,
 

@@ -162,6 +162,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
                                 name = it.name,
                                 description = it.description,
                                 type = it.type.mapToApi(),
+                                enumEntries = it.enumEntries?.map { entry -> entry.alternativeName ?: entry.name },
                                 defaultValue = it.defaultValue,
                                 isFixed = false,
                                 isNullable = it.isNullable,

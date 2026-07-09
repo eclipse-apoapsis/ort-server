@@ -232,6 +232,7 @@ class PluginTemplateService(
                                     name = option.name,
                                     description = option.description,
                                     type = option.type,
+                                    enumEntries = option.enumEntries,
                                     defaultValue = templateOption?.value ?: option.defaultValue,
                                     isFixed = templateOption?.isFinal == true,
                                     isNullable = option.isNullable,
