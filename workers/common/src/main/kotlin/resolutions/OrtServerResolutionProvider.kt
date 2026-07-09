@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.Vul
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.runs.Issue as ServerIssue
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution as ServerIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution as ServerRuleViolationResolution
@@ -38,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
+import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.config.Resolutions
@@ -145,35 +147,44 @@ class OrtServerResolutionProvider(
         allVulnerabilityResolutions.filter { it.matches(vulnerability) }
 
     /**
-     * Return a [ResolvedItemsResult] that maps the provided [issues], [ruleViolations], and [vulnerabilities] to their
-     * matching resolutions from this provider. This is similar to ORT's `ConfigurationResolver.resolveResolutions()`,
-     * but returns the full mappings instead of just the distinct resolutions.
+     * Return a [ResolvedItemsResult] that maps the provided [issuesByIdentifier], [ruleViolations], and
+     * [vulnerabilities] to their matching resolutions from this provider. This is similar to ORT's
+     * `ConfigurationResolver.resolveResolutions()`, but returns the full mappings instead of just the distinct
+     * resolutions.
      */
     fun matchResolutions(
-        issues: List<Issue>,
+        issuesByIdentifier: Map<Identifier, List<Issue>>,
         ruleViolations: List<RuleViolation>,
         vulnerabilities: List<Vulnerability>
     ): ResolvedItemsResult {
-        val issueResolutions = issues.associateWith { issue ->
-            buildList {
-                addAll(
-                    globalResolutions.issues
-                        .filter { it.matches(issue) }
-                        .map { it.mapToModel(ResolutionSource.GLOBAL_FILE) }
-                )
-                addAll(
-                    repositoryConfigurationResolutions.issues
-                        .filter { it.matches(issue) }
-                        .map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
-                )
-                addAll(
-                    managedIssueResolutions.filter { resolution ->
-                        checkNotNull(resolution.messageHash) == calculateResolutionMessageHash(issue.message)
+        val issueResolutions = mutableMapOf<ServerIssue, List<ServerIssueResolution>>()
+
+        issuesByIdentifier.forEach { (identifier, issues) ->
+            issueResolutions.putAll(
+                issues.associateWith { issue ->
+                    buildList {
+                        addAll(
+                            globalResolutions.issues
+                                .filter { it.matches(issue) }
+                                .map { it.mapToModel(ResolutionSource.GLOBAL_FILE) }
+                        )
+                        addAll(
+                            repositoryConfigurationResolutions.issues
+                                .filter { it.matches(issue) }
+                                .map { it.mapToModel(ResolutionSource.REPOSITORY_FILE) }
+                        )
+                        addAll(
+                            managedIssueResolutions.filter { resolution ->
+                                checkNotNull(resolution.messageHash) == calculateResolutionMessageHash(issue.message)
+                            }
+                                .map { it.copy(source = ResolutionSource.SERVER) }
+                        )
                     }
-                        .map { it.copy(source = ResolutionSource.SERVER) }
-                )
-            }
-        }.filterValues { it.isNotEmpty() }.mapKeys { it.key.mapToModel() }
+                }.filterValues { it.isNotEmpty() }.mapKeys {
+                    it.key.mapToModel(identifier.takeIf { ident -> ident != Identifier.EMPTY }?.mapToModel())
+                }
+            )
+        }
 
         val ruleViolationResolutions = ruleViolations.associateWith { violation ->
             buildList {

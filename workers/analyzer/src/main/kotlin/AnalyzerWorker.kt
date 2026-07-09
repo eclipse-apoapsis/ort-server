@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
@@ -132,7 +133,7 @@ internal class AnalyzerWorker(
                 .mapTo(mutableSetOf()) { it.id.mapToModel() }
 
             // IMPORTANT: Use getAnalyzerIssues() to get ONLY analyzer issues, not all issues.
-            val allIssues = ortResult.getAnalyzerIssues().values.flatten()
+            val allIssues = ortResult.getAnalyzerIssues().mapValues { it.value.toList() }
 
             val resolutionProvider = OrtServerResolutionProvider.create(
                 context,
@@ -144,19 +145,20 @@ internal class AnalyzerWorker(
 
             // Apply resolutions using the common function.
             val resolvedItems = resolutionProvider.matchResolutions(
-                issues = allIssues,
+                issuesByIdentifier = allIssues,
                 ruleViolations = emptyList(),
                 vulnerabilities = emptyList()
             )
 
             // Calculate unresolved issues for logging.
-            val unresolvedIssues = allIssues.filter { issue ->
-                issue.mapToModel() !in resolvedItems.issues.keys
+            val unresolvedIssues = allIssues.flatMap { (ortIdentifier, issues) ->
+                val identifier = ortIdentifier.takeIf { it != OrtIdentifier.EMPTY }?.mapToModel()
+                issues.filter { it.mapToModel(identifier) !in resolvedItems.issues.keys }
             }
 
             logger.info(
                 "Analyzer job ${job.id} for repository ${repository.url} with revision ${ortRun.revision} " +
-                        "finished with ${allIssues.size} total issues " +
+                        "finished with ${allIssues.values.flatten().size} total issues " +
                         "and ${unresolvedIssues.size} unresolved issues."
             )
 

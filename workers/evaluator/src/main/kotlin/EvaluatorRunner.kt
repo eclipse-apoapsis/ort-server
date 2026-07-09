@@ -147,7 +147,7 @@ class EvaluatorRunner(
         val evaluatorRun = evaluator.runScript(script)
 
         val resolvedItems = resolutionProvider.matchResolutions(
-            issues = emptyList(),
+            issuesByIdentifier = emptyMap(),
             ruleViolations = evaluatorRun.violations,
             vulnerabilities = emptyList()
         )

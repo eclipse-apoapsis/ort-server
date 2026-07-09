@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
@@ -84,9 +85,11 @@ internal class AdvisorWorker(
                 ).advisor
             ) { "ORT Adviser failed to create a result." }
 
-            val allIssues = buildList {
-                addAll(advisorRun.results.values.flatten().flatMap { it.summary.issues })
-                addAll(advisorRun.providerIssues)
+            val allIssues = buildMap {
+                advisorRun.results.forEach { (identifier, results) ->
+                    put(identifier, results.flatMap { it.summary.issues })
+                }
+                put(Identifier.EMPTY, advisorRun.providerIssues.toList())
             }
 
             val allVulnerabilities = advisorRun.results.values.flatten().flatMap { it.vulnerabilities }
@@ -102,7 +105,7 @@ internal class AdvisorWorker(
 
             // Apply resolutions using the common function for both issues AND vulnerabilities.
             val resolvedItems = resolutionProvider.matchResolutions(
-                issues = allIssues,
+                issuesByIdentifier = allIssues,
                 ruleViolations = emptyList(),
                 vulnerabilities = allVulnerabilities
             )
@@ -114,8 +117,9 @@ internal class AdvisorWorker(
             }
 
             // Calculate unresolved issues for logging.
-            val unresolvedIssues = allIssues.filter { issue ->
-                issue.mapToModel() !in resolvedItems.issues.keys
+            val unresolvedIssues = allIssues.flatMap { (ortIdentifier, issues) ->
+                val identifier = ortIdentifier.takeIf { it != Identifier.EMPTY }?.mapToModel()
+                issues.filter { it.mapToModel(identifier) !in resolvedItems.issues.keys }
             }
 
             // Calculate unresolved vulnerabilities for logging.
@@ -124,7 +128,7 @@ internal class AdvisorWorker(
             }
 
             logger.info(
-                "Advisor job ${job.id} finished with ${allIssues.size} total issues " +
+                "Advisor job ${job.id} finished with ${allIssues.values.flatten().size} total issues " +
                         "and ${unresolvedIssues.size} unresolved issues, " +
                         "${allVulnerabilities.size} total vulnerabilities " +
                         "and ${unresolvedVulnerabilities.size} unresolved vulnerabilities."

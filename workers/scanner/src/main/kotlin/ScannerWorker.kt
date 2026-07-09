@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.ProvenanceResolutionResult
@@ -107,9 +108,14 @@ class ScannerWorker(
             )
 
             // Apply resolutions using the common function.
-            val allOrtIssues = allIssues.map { it.mapToOrt() }
+            val allOrtIssues = allIssues.groupBy({ issue ->
+                issue.identifier?.mapToOrt() ?: org.ossreviewtoolkit.model.Identifier.EMPTY
+            }) { issue ->
+                issue.mapToOrt()
+            }
+
             val resolvedItems = resolutionProvider.matchResolutions(
-                issues = allOrtIssues,
+                issuesByIdentifier = allOrtIssues,
                 ruleViolations = emptyList(),
                 vulnerabilities = emptyList()
             )
@@ -124,8 +130,9 @@ class ScannerWorker(
             }
 
             // Calculate unresolved issues for logging.
-            val unresolvedIssues = allOrtIssues.filter { issue ->
-                issue.mapToModel() !in resolvedItems.issues.keys
+            val unresolvedIssues = allOrtIssues.flatMap { (ortIdentifier, issues) ->
+                val identifier = ortIdentifier.takeIf { it != OrtIdentifier.EMPTY }?.mapToModel()
+                issues.filter { it.mapToModel(identifier) !in resolvedItems.issues.keys }
             }
 
             logger.info(

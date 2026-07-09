@@ -122,7 +122,11 @@ internal class ReporterWorker(
             )
 
             val allIssues = reporterRunnerResult.issues
-            val reporterIssuesAsOrt = allIssues.map { it.mapToOrt() }
+            val reporterIssuesAsOrt = allIssues.groupBy({ issue ->
+                issue.identifier?.mapToOrt() ?: org.ossreviewtoolkit.model.Identifier.EMPTY
+            }) { issue ->
+                issue.mapToOrt()
+            }
 
             val resolutionProvider = OrtServerResolutionProvider.create(
                 context,
@@ -133,7 +137,7 @@ internal class ReporterWorker(
             )
 
             val resolvedReporterItems = resolutionProvider.matchResolutions(
-                issues = reporterIssuesAsOrt,
+                issuesByIdentifier = reporterIssuesAsOrt,
                 ruleViolations = emptyList(),
                 vulnerabilities = emptyList()
             )
@@ -152,8 +156,10 @@ internal class ReporterWorker(
                 ortRunService.storeResolvedItems(ortRun.id, resolvedReporterItems)
             }
 
-            val unresolvedIssues = reporterIssuesAsOrt.filter { issue ->
-                resolutionProvider.getResolutionsFor(issue).isEmpty()
+            val unresolvedIssues = reporterIssuesAsOrt.flatMap { entry ->
+                entry.value.filter { issue ->
+                    resolutionProvider.getResolutionsFor(issue).isEmpty()
+                }
             }
 
             logger.info(

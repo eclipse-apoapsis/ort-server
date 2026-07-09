@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
+import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
@@ -683,7 +684,11 @@ class OrtServerResolutionProviderTest : WordSpec({
                 )
             )
 
-            val matchResult = provider.matchResolutions(listOf(issue1, issue2), emptyList(), emptyList())
+            val matchResult = provider.matchResolutions(
+                mapOf(Identifier.EMPTY to listOf(issue1, issue2)),
+                emptyList(),
+                emptyList()
+            )
 
             matchResult.issues should containExactly(
                 issue1.mapToModel() to expectedResolutionsForIssue1,
@@ -790,7 +795,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             )
 
             val matchResult =
-                provider.matchResolutions(emptyList(), listOf(ruleViolation1, ruleViolation2), emptyList())
+                provider.matchResolutions(emptyMap(), listOf(ruleViolation1, ruleViolation2), emptyList())
 
             matchResult.ruleViolations should containExactly(
                 ruleViolation1.mapToModel() to expectedResolutionsForRuleViolation1,
@@ -875,7 +880,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             )
 
             val matchResult =
-                provider.matchResolutions(emptyList(), emptyList(), listOf(vulnerability1, vulnerability2))
+                provider.matchResolutions(emptyMap(), emptyList(), listOf(vulnerability1, vulnerability2))
 
             matchResult.vulnerabilities should containExactly(
                 vulnerability1.mapToModel() to expectedResolutionsForVulnerability1,
@@ -905,7 +910,11 @@ class OrtServerResolutionProviderTest : WordSpec({
             val vulnerability = Vulnerability(id = "no match", references = emptyList())
 
             val matchResult =
-                provider.matchResolutions(listOf(issue), listOf(ruleViolation), listOf(vulnerability))
+                provider.matchResolutions(
+                    mapOf(Identifier.EMPTY to listOf(issue)),
+                    listOf(ruleViolation),
+                    listOf(vulnerability)
+                )
 
             matchResult.issues should beEmpty()
             matchResult.ruleViolations should beEmpty()
