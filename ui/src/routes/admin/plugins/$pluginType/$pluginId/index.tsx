@@ -425,10 +425,10 @@ const PluginTemplatesComponent = () => {
     <Card className='mb-4 h-fit'>
       <CardHeader>
         <CardTitle>
-          {pluginId} Templates ({pluginTemplates.length})
+          {plugin.displayName} Templates ({pluginTemplates.length})
         </CardTitle>
         <CardDescription>
-          Manage plugin templates for the {pluginId}{' '}
+          Manage plugin templates for the {plugin.displayName}{' '}
           {getPluginTypeLabel(pluginType)} plugin.
         </CardDescription>
         <div className='py-2'>

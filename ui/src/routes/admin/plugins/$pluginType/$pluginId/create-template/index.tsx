@@ -175,7 +175,7 @@ const CreateTemplate = () => {
       <CardHeader>
         <CardTitle>Create Template</CardTitle>
         <CardDescription>
-          Create a new plugin template for the {params.pluginId}{' '}
+          Create a new plugin template for the {plugin.displayName}{' '}
           {getPluginTypeLabel(params.pluginType)} plugin.
           <br />
           Options that are set to final can not be overwritten by the user.

@@ -184,7 +184,7 @@ const EditTemplate = () => {
       <CardHeader>
         <CardTitle>Edit Template</CardTitle>
         <CardDescription>
-          Edit the plugin template for the {params.pluginId}{' '}
+          Edit the plugin template for the {plugin.displayName}{' '}
           {getPluginTypeLabel(params.pluginType)} plugin.
           <br />
           Options that are set to final can not be overwritten by the user.
