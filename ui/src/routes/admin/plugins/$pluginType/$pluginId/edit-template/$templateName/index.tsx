@@ -35,6 +35,7 @@ import {
   getPluginTemplatesQueryKey,
   updatePluginTemplateOptionsMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -164,6 +165,18 @@ const EditTemplate = () => {
       },
       body: requestBody,
     });
+  }
+
+  if (plugin === undefined) {
+    toast.error('Unable to find plugin', {
+      description: <ToastError error='Plugin not found.' />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
   }
 
   return (
