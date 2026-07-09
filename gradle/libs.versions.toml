@@ -24,7 +24,7 @@ tinyJibPlugin = "0.3.4"
 kotlinPlugin = "2.3.21"
 kotlinxCoroutines = "1.11.0"
 kotlinxSerialization = "1.11.0"
-kspPlugin = "2.3.9"
+kspPlugin = "2.3.10"
 mavenPublishPlugin = "0.37.0"
 
 # Gradle dependencies
