@@ -151,7 +151,8 @@ jobs:
         retention-days: 7
 
   create-release:
-    needs: [build-cli, publish-server, release-notes]
+    # While this job does not really need "publish-server", it is mentioned here to block on failure.
+    needs: [build-cli, release-notes, publish-server]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
