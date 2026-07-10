@@ -42,13 +42,13 @@ internal class NotifierWorker(
     private val db: Database,
     private val runner: NotifierRunner,
     private val ortRunService: OrtRunService,
-    private val workerContextFactory: WorkerContextFactory,
+    private val contextFactory: WorkerContextFactory,
     private val ortResultGenerator: NotifierOrtResultGenerator
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidNotifierJob(jobId)
-        workerContextFactory.withContext(job.ortRunId) { workerContext ->
-            val ortRun = workerContext.ortRun
+        contextFactory.withContext(job.ortRunId) { context ->
+            val ortRun = context.ortRun
 
             job = ortRunService.startNotifierJob(job.id)
                 ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
@@ -64,7 +64,7 @@ internal class NotifierWorker(
             val startTime = Clock.System.now()
 
             runCatching {
-                runner.run(ortResult, ortRun.resolvedJobConfigs, workerContext)
+                runner.run(ortResult, ortRun.resolvedJobConfigs, context)
             }.onFailure {
                 logger.warn("Running ORT notifier failed for job with id '$jobId'.", it)
             }

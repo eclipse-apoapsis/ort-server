@@ -41,12 +41,12 @@ internal class EvaluatorWorker(
     private val db: Database,
     private val runner: EvaluatorRunner,
     private val ortRunService: OrtRunService,
-    private val workerContextFactory: WorkerContextFactory
+    private val contextFactory: WorkerContextFactory
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidEvaluatorJob(jobId)
-        workerContextFactory.withContext(job.ortRunId) { workerContext ->
-            val ortRun = workerContext.ortRun
+        contextFactory.withContext(job.ortRunId) { context ->
+            val ortRun = context.ortRun
 
             job = ortRunService.startEvaluatorJob(job.id)
                 ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
@@ -59,7 +59,7 @@ internal class EvaluatorWorker(
 
             val ortResult = ortRunService.generateOrtResult(ortRun)
 
-            val evaluatorRunnerResult = runner.run(ortResult, job.configuration, workerContext)
+            val evaluatorRunnerResult = runner.run(ortResult, job.configuration, context)
 
             db.dbQuery {
                 getValidEvaluatorJob(job.id)
