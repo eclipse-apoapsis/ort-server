@@ -81,6 +81,7 @@ export function FilterMultiSelect<TValue>({
     return (
       <CommandItem
         key={String(option.value)}
+        value={option.label}
         onSelect={() => {
           if (isSelected) {
             setSelected(selected.filter((value) => value !== option.value));
@@ -121,7 +122,26 @@ export function FilterMultiSelect<TValue>({
         </Button>
       </PopoverTrigger>
       <PopoverContent className='w-[200px] p-0' align={align}>
-        <Command>
+        <Command
+          filter={(value, search) => {
+            const normalizedValue = value.toLowerCase();
+            const normalizedSearch = search.trim().toLowerCase();
+
+            if (!normalizedValue.includes(normalizedSearch)) {
+              return 0;
+            }
+
+            if (normalizedValue === normalizedSearch) {
+              return 1;
+            }
+
+            if (normalizedValue.startsWith(normalizedSearch)) {
+              return 0.9;
+            }
+
+            return 0.8;
+          }}
+        >
           {options.length > 5 && <CommandInput placeholder={title} />}
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
