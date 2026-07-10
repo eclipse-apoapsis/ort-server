@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
@@ -126,6 +127,10 @@ class EvaluatorWorkerTest : StringSpec({
         }
         val contextFactory = mockContextFactory(context)
 
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
         val evaluatorRun = EvaluatorRun(
             id = -1,
             evaluatorJobId = EVALUATOR_JOB_ID,
@@ -153,7 +158,8 @@ class EvaluatorWorkerTest : StringSpec({
             mockk(),
             runner,
             ortRunService,
-            contextFactory
+            contextFactory,
+            environmentService
         )
 
         mockkTransaction {
@@ -179,6 +185,7 @@ class EvaluatorWorkerTest : StringSpec({
                 mockk(),
                 EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()),
                 ortRunService,
+                mockk(),
                 mockk()
             )
 
@@ -224,6 +231,10 @@ class EvaluatorWorkerTest : StringSpec({
         }
         val contextFactory = mockContextFactory(context)
 
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
         val runner = spyk(EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
             OrtTestData.evaluatorRun, emptyList(), ResolvedItemsResult.EMPTY
@@ -232,7 +243,8 @@ class EvaluatorWorkerTest : StringSpec({
             mockk(),
             runner,
             ortRunService,
-            contextFactory
+            contextFactory,
+            environmentService
         )
 
         mockkTransaction {
@@ -280,6 +292,10 @@ class EvaluatorWorkerTest : StringSpec({
         }
         val contextFactory = mockContextFactory(context)
 
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
         val resolvedViolations = OrtTestData.evaluatorRun.violations.associateWith {
             listOf(
                 RuleViolationResolution(
@@ -300,7 +316,8 @@ class EvaluatorWorkerTest : StringSpec({
             mockk(),
             runner,
             ortRunService,
-            contextFactory
+            contextFactory,
+            environmentService
         )
 
         mockkTransaction {
@@ -325,6 +342,7 @@ class EvaluatorWorkerTest : StringSpec({
                 mockk(),
                 EvaluatorRunner(mockk(), mockk(), mockk<RuleViolationResolutionService>()),
                 ortRunService,
+                mockk(),
                 mockk()
             )
 

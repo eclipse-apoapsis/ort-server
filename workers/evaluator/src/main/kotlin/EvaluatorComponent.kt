@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
+import org.eclipse.apoapsis.ortserver.workers.common.env.buildEnvironmentModule
 import org.eclipse.apoapsis.ortserver.workers.common.jobMdcKey
 import org.eclipse.apoapsis.ortserver.workers.common.ortRunServiceModule
 
@@ -88,7 +89,13 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
     }
 
     override fun customModules(): List<Module> =
-        listOf(evaluatorModule(), databaseModule(), ortRunServiceModule(), workerContextModule())
+        listOf(
+            evaluatorModule(),
+            databaseModule(),
+            ortRunServiceModule(),
+            workerContextModule(),
+            buildEnvironmentModule()
+        )
 
     private fun evaluatorModule(): Module = module {
         single {

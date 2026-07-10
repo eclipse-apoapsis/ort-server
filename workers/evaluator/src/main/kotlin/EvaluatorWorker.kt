@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -41,11 +42,14 @@ internal class EvaluatorWorker(
     private val db: Database,
     private val runner: EvaluatorRunner,
     private val ortRunService: OrtRunService,
-    private val contextFactory: WorkerContextFactory
+    private val contextFactory: WorkerContextFactory,
+    private val environmentService: EnvironmentService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidEvaluatorJob(jobId)
         contextFactory.withContext(job.ortRunId) { context ->
+            environmentService.setupAuthenticationForCurrentRun(context)
+
             val ortRun = context.ortRun
 
             job = ortRunService.startEvaluatorJob(job.id)
