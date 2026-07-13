@@ -59,7 +59,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # renovate: datasource=github-releases depName=jpeddicord/askalono
 ARG ASKALONO_VERSION=0.5.0
 # renovate: datasource=rubygems depName=licensee
-ARG LICENSEE_VERSION=9.18.0
+ARG LICENSEE_VERSION=9.20.0
 # renovate: datasource=github-releases depName=getprovenant/provenant extractVersion=^v(?<version>.*)$
 ARG PROVENANT_VERSION=0.2.5
 # renovate: datasource=ruby-version depName=ruby
