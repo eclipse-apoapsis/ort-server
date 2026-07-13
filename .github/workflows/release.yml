@@ -28,8 +28,6 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
-      with:
-        dependency-graph: generate-and-submit
 
     - name: Generate Release Notes
       run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
@@ -119,8 +117,6 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
-      with:
-        dependency-graph: generate-and-submit
 
     - name: Build CLI
       run: ./gradlew --stacktrace ${{ matrix.target.task }}
