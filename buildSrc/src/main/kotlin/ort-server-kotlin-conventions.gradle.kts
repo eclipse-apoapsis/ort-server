@@ -41,7 +41,7 @@ dependencies {
 detekt {
     // Only configure differences to the default.
     buildUponDefaultConfig = true
-    config.from(files("$rootDir/.detekt.yml"))
+    config = files("$rootDir/.detekt.yml")
 
     source.from(
         fileTree(".") { include("*.gradle.kts") },
