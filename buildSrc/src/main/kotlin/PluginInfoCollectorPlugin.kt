@@ -233,7 +233,7 @@ abstract class PluginSummaryTask : DefaultTask() {
     @TaskAction
     fun generateSummary() {
         val pluginInfos = infoDirectories.flatMap { infoDirectory ->
-            infoDirectory.listFiles { it.isFile && it.extension == "json" }.orEmpty().toList()
+            infoDirectory.listFiles { it.isFile && it.extension == "json" }.orEmpty().asList()
         }.map { file ->
             file.name to file.inputStream().use {
                 inputStream -> json.decodeFromStream<PluginInfo>(inputStream)
