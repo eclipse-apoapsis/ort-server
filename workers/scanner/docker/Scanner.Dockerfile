@@ -56,10 +56,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     zlib1g \
     zlib1g-dev
 
+# renovate: datasource=github-releases depName=jpeddicord/askalono
 ARG ASKALONO_VERSION=0.5.0
+# renovate: datasource=rubygems depName=licensee
 ARG LICENSEE_VERSION=9.18.0
+# renovate: datasource=github-releases depName=getprovenant/provenant extractVersion=^v(?<version>.*)$
 ARG PROVENANT_VERSION=0.2.5
+# renovate: datasource=ruby-version depName=ruby
 ARG RUBY_VERSION=3.4.4
+# renovate: datasource=pypi depName=scancode-toolkit
 ARG SCANCODE_VERSION=32.5.0
 
 # Install Askalono.
