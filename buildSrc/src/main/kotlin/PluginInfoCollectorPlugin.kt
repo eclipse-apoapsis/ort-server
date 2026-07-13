@@ -235,8 +235,8 @@ abstract class PluginSummaryTask : DefaultTask() {
         val pluginInfos = infoDirectories.flatMap { infoDirectory ->
             infoDirectory.listFiles { it.isFile && it.extension == "json" }.orEmpty().asList()
         }.map { file ->
-            file.name to file.inputStream().use {
-                inputStream -> json.decodeFromStream<PluginInfo>(inputStream)
+            file.name to file.inputStream().use { inputStream ->
+                json.decodeFromStream<PluginInfo>(inputStream)
             }
         }
 
