@@ -224,8 +224,9 @@ export function PluginOptionFormFields({ options, form }: Props) {
             <>
               <br />
               <span className='text-red-500'>
-                Enter the name of the secret, not the value! A secret with this
-                name must be configured in the context of the ORT run.
+                This must be the name of a secret available in the config secret
+                provider, not a secret configured on the organization, product,
+                or repository levels.
               </span>
             </>
           )}
