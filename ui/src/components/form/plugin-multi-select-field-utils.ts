@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+/** A placeholder used to select a secret value provided by an administrator via a plugin template. */
+export const ADMIN_SECRET_VALUE = '__admin_secret__';
 export const UNDEFINED_ENUM_VALUE = '__undefined_enum__';
 export const UNDEFINED_SECRET_VALUE = '__undefined_secret__';
 

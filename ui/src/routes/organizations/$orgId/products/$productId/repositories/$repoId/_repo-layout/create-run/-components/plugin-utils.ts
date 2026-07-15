@@ -25,6 +25,7 @@ import {
   PreconfiguredPluginDescriptor,
   ProviderPluginConfiguration,
 } from '@/api';
+import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field-utils';
 
 function isNonBlankString(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '';
@@ -245,6 +246,12 @@ export function getPluginDefaultValues(
       plugin.options?.forEach((option) => {
         if (option.defaultValue !== undefined) {
           if (option.type === 'SECRET') {
+            // A secret option never carries a real default value. A non-null default indicates
+            // that an administrator provided a value via a plugin template. Initialize the
+            // dropdown with a placeholder in this case.
+            if (option.defaultValue !== null) {
+              secrets[option.name] = ADMIN_SECRET_VALUE;
+            }
             return;
           } else if (option.type === 'BOOLEAN') {
             options[option.name] = option.defaultValue === 'true';
@@ -348,7 +355,9 @@ export function createPluginPayload(
               Object.entries(
                 pluginConfig.secrets as Record<string, unknown>
               ).flatMap(([secKey, secValue]) =>
-                isNonBlankString(secValue) ? [[secKey, secValue]] : []
+                isNonBlankString(secValue) && secValue !== ADMIN_SECRET_VALUE
+                  ? [[secKey, secValue]]
+                  : []
               )
             ) as { [key: string]: string };
           }

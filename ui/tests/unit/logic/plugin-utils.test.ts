@@ -19,6 +19,7 @@
 
 import { expect, it } from 'vitest';
 
+import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field-utils';
 import {
   createPluginPayload,
   createProviderPluginPayload,
@@ -86,7 +87,7 @@ it('createProviderPluginPayload creates provider configurations for selected plu
   ]);
 });
 
-it('getPluginDefaultValues ignores default values for secret options', () => {
+it('getPluginDefaultValues initializes admin-provided secret options with the admin placeholder', () => {
   const defaults = getPluginDefaultValues([
     createPluginDescriptor({
       id: 'SCANOSS',
@@ -95,7 +96,30 @@ it('getPluginDefaultValues ignores default values for secret options', () => {
           name: 'apiKey',
           description: 'The API key.',
           type: 'SECRET',
-          defaultValue: 'server-side-default-secret',
+          // A non-null default value for a secret option indicates that an administrator provided
+          // a value via a plugin template.
+          defaultValue: '[set by admin]',
+          isFixed: false,
+          isNullable: false,
+          isRequired: false,
+        },
+      ],
+    }),
+  ]);
+
+  expect(defaults.SCANOSS?.secrets).toEqual({ apiKey: ADMIN_SECRET_VALUE });
+});
+
+it('getPluginDefaultValues does not initialize secret options without a default value', () => {
+  const defaults = getPluginDefaultValues([
+    createPluginDescriptor({
+      id: 'SCANOSS',
+      options: [
+        {
+          name: 'apiKey',
+          description: 'The API key.',
+          type: 'SECRET',
+          defaultValue: null,
           isFixed: false,
           isNullable: false,
           isRequired: false,
@@ -105,6 +129,27 @@ it('getPluginDefaultValues ignores default values for secret options', () => {
   ]);
 
   expect(defaults.SCANOSS?.secrets).toEqual({});
+});
+
+it('createPluginPayload omits admin-provided secret placeholders from the payload', () => {
+  const payload = createPluginPayload(
+    {
+      SCANOSS: {
+        options: {},
+        secrets: {
+          apiKey: ADMIN_SECRET_VALUE,
+        },
+      },
+    },
+    ['SCANOSS']
+  );
+
+  expect(payload).toEqual({
+    SCANOSS: {
+      options: {},
+      secrets: {},
+    },
+  });
 });
 
 it('providerPluginConfigsToFormValues reconstructs selected providers and config', () => {

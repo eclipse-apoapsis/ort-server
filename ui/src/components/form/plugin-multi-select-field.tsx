@@ -33,6 +33,7 @@ import {
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import {
+  ADMIN_SECRET_VALUE,
   getEnumSelectDisplayValue,
   getPluginsInDisplayOrder,
   getSecretSelectDisplayValue,
@@ -322,7 +323,8 @@ export const PluginMultiSelectField = <
                                 disabled={option.isFixed}
                               />
                             ) : option.type == 'SECRET' ? (
-                              secrets.length === 0 ? (
+                              secrets.length === 0 &&
+                              option.defaultValue == null ? (
                                 <FormMessage className='font-semibold text-red-600'>
                                   No secrets available. Create a new secret to
                                   be able to use this option.
@@ -343,13 +345,19 @@ export const PluginMultiSelectField = <
                                     <SelectValue placeholder='Select a secret' />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {!option.isRequired && (
-                                      <SelectItem
-                                        value={UNDEFINED_SECRET_VALUE}
-                                      >
-                                        Not defined
+                                    {option.defaultValue != null && (
+                                      <SelectItem value={ADMIN_SECRET_VALUE}>
+                                        Use admin-provided secret
                                       </SelectItem>
                                     )}
+                                    {!option.isRequired &&
+                                      option.defaultValue == null && (
+                                        <SelectItem
+                                          value={UNDEFINED_SECRET_VALUE}
+                                        >
+                                          Not defined
+                                        </SelectItem>
+                                      )}
                                     {secrets.map((secret) => (
                                       <SelectItem
                                         key={secret.name}
@@ -360,6 +368,7 @@ export const PluginMultiSelectField = <
                                     ))}
                                   </SelectContent>
                                   {field.value &&
+                                    field.value !== ADMIN_SECRET_VALUE &&
                                     !secrets.some(
                                       (secret) => secret.name === field.value
                                     ) && (
