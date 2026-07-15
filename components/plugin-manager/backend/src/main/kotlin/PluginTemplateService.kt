@@ -44,6 +44,8 @@ import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.ossreviewtoolkit.utils.ort.runBlocking
 
+internal const val ADMIN_SECRET_PLACEHOLDER = "[set by admin]"
+
 /** A service for managing plugin templates. */
 @Suppress("TooManyFunctions")
 class PluginTemplateService(
@@ -228,12 +230,25 @@ class PluginTemplateService(
                             options = plugin.options.map { option ->
                                 val templateOption = template?.options?.find { it.option == option.name }
 
+                                val defaultValue = when (option.type) {
+                                    PluginOptionType.SECRET -> {
+                                        // Do not expose the name of config secrets used by admins. Return a placeholder
+                                        // instead, so that users can see that there is a default value. Also ignore the
+                                        // default value of the option, because secret options should never have default
+                                        // values, and if they had, they would not work with the way the server handles
+                                        // secret options.
+                                        if (templateOption?.value != null) ADMIN_SECRET_PLACEHOLDER else null
+                                    }
+
+                                    else -> templateOption?.value ?: option.defaultValue
+                                }
+
                                 PreconfiguredPluginOption(
                                     name = option.name,
                                     description = option.description,
                                     type = option.type,
                                     enumEntries = option.enumEntries,
-                                    defaultValue = templateOption?.value ?: option.defaultValue,
+                                    defaultValue = defaultValue,
                                     isFixed = templateOption?.isFinal == true,
                                     isNullable = option.isNullable,
                                     isRequired = option.isRequired

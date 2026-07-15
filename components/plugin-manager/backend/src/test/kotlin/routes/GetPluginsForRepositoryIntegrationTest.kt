@@ -31,9 +31,19 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.every
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.ADMIN_SECRET_PLACEHOLDER
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginOption
@@ -320,6 +330,99 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
                         options.find { it.name == option }.shouldNotBeNull {
                             defaultValue shouldBe organizationServerUrl
                             isFixed shouldBe true
+                        }
+                    }
+            }
+        }
+
+        "return a placeholder value for secret options set by a template" {
+            pluginManagerTestApplication { client ->
+                val templateName = "template"
+                val option = "apiKey"
+
+                pluginTemplateService.create(
+                    templateName = templateName,
+                    pluginType = pluginType,
+                    pluginId = pluginId,
+                    userId = "user",
+                    options = listOf(
+                        PluginOptionTemplate(
+                            option = option,
+                            type = PluginOptionType.SECRET,
+                            value = "secret",
+                            isFinal = true
+                        )
+                    )
+                ).isOk shouldBe true
+
+                pluginTemplateService.addOrganization(
+                    templateName = templateName,
+                    pluginType = pluginType,
+                    pluginId = pluginId,
+                    organizationId = organizationId,
+                    userId = "user"
+                ).isOk shouldBe true
+
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<PreconfiguredPluginDescriptor>>()
+                    .find { it.id == pluginId && it.type == pluginType }
+                    .shouldNotBeNull {
+                        options.find { it.name == option }.shouldNotBeNull {
+                            defaultValue shouldBe ADMIN_SECRET_PLACEHOLDER
+                            isFixed shouldBe true
+                        }
+                    }
+            }
+        }
+
+        "ignore default values of secret options" {
+            val option = "apiKey"
+
+            // No installed plugin defines a default value for a secret option, so use a mocked plugin service that
+            // returns such a plugin to verify that the default value is ignored.
+            val descriptor = PluginDescriptor(
+                id = pluginId,
+                type = pluginType,
+                displayName = pluginDescriptor.displayName,
+                summary = pluginDescriptor.summary,
+                description = pluginDescriptor.description,
+                options = listOf(
+                    PluginOption(
+                        name = option,
+                        description = "The optional API key to use.",
+                        type = PluginOptionType.SECRET,
+                        enumEntries = null,
+                        defaultValue = "default-secret",
+                        isNullable = true,
+                        isRequired = false
+                    )
+                ),
+                availability = PluginAvailability.ENABLED
+            )
+
+            val mockedPluginService = mockk<PluginService> {
+                every { getPlugins() } returns listOf(descriptor)
+            }
+
+            pluginTemplateService = PluginTemplateService(
+                dbExtension.db,
+                PluginTemplateEventStore(dbExtension.db),
+                mockedPluginService,
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.repositoryRepository
+            )
+
+            pluginManagerTestApplication { client ->
+                val response = client.get("/repositories/${repositoryId.value}/plugins")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<PreconfiguredPluginDescriptor>>()
+                    .find { it.id == pluginId && it.type == pluginType }
+                    .shouldNotBeNull {
+                        options.find { it.name == option }.shouldNotBeNull {
+                            defaultValue shouldBe null
                         }
                     }
             }
