@@ -17,33 +17,21 @@
  * License-Filename: LICENSE
  */
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import tsEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
 
 export default defineConfig([
   {
     ignores: ['dist/', '.eslintrc.cjs', 'src/api/'],
   },
-  ...compat.extends(
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended'
-  ),
+  js.configs.recommended,
+  ...tsEslint.configs['flat/recommended'],
+  reactHooks.configs.flat.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
