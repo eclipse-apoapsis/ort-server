@@ -120,7 +120,13 @@ data class AnalyzerJobConfiguration(
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
      * within the pod's execution environment.
      */
-    val keepAliveWorker: Boolean = false
+    val keepAliveWorker: Boolean = false,
+
+    /**
+     * If [keepAliveWorker] is *true*, this property lists the phases in which the worker should be kept alive. If no
+     * phase is provided, the worker will wait after all steps are finished.
+     */
+    val keepAlivePhases: Set<AnalyzerPhase> = emptySet()
 )
 
 /**
@@ -286,4 +292,29 @@ enum class SubmoduleFetchStrategy {
      * Fetch all nested submodules recursively.
      */
     FULLY_RECURSIVE
+}
+
+/**
+ * An enumeration defining the different phases supported by the Analyzer worker.
+ */
+enum class AnalyzerPhase {
+    /**
+     * The preparation phase which clones the repository and sets up the environment for the analysis.
+     */
+    PREPARATION,
+
+    /**
+     * The analysis phase which invokes ORT's Analyzer to analyze the current repository.
+     */
+    ANALYSIS,
+
+    /**
+     * The result phase which gathers the results from the [ANALYSIS] phase and stores them in the database.
+     */
+    RESULT,
+
+    /**
+     * The full phase which is used to run the whole Analyzer process in a single shot.
+     */
+    FULL
 }

@@ -28,6 +28,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -42,10 +43,12 @@ import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.spyk
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.time.Clock
@@ -57,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerPhase as AnalyzerPhaseEnum
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -77,6 +81,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_SECONDS
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -157,9 +162,26 @@ private suspend fun AnalyzerWorker.testRun(phase: AnalyzerPhase, args: Array<Str
 
 @Suppress("LargeClass")
 class AnalyzerWorkerTest : StringSpec({
+    beforeEach {
+        mockkObject(EndpointComponent)
+        coEvery { EndpointComponent.generateKeepAliveFile() } just runs
+    }
+
+    afterEach {
+        unmockkAll()
+    }
+
     "A private repository should be analyzed successfully" {
+        val jobConfig = AnalyzerJobConfiguration(
+            enabledPackageManagers = listOf("Maven"),
+            packageCurationProviders = listOf(mockk()),
+            keepAliveWorker = true,
+            keepAlivePhases = EnumSet.of(AnalyzerPhaseEnum.ANALYSIS)
+        )
+        val job = analyzerJob.copy(configuration = jobConfig)
+
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getAnalyzerJob(any()) } returns job
             every { getHierarchyForOrtRun(any()) } returns hierarchy
             every { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
@@ -191,13 +213,15 @@ class AnalyzerWorkerTest : StringSpec({
             } returns ResolvedEnvironmentConfig()
         }
 
-        val phase = FullPhase(
-            mockk(),
-            ortRunService,
-            contextFactory,
-            envService,
-            mockk(relaxed = true),
-            mockIssueResolutionService()
+        val phase = spyk(
+            FullPhase(
+                mockk(),
+                ortRunService,
+                contextFactory,
+                envService,
+                mockk(relaxed = true),
+                mockIssueResolutionService()
+            )
         )
         val worker = AnalyzerWorker(downloader, AnalyzerRunner(ConfigFactory.empty()))
 
@@ -216,6 +240,10 @@ class AnalyzerWorkerTest : StringSpec({
                 envService.setupAuthentication(context, infrastructureServices)
                 downloader.downloadRepository(repository.url, ortRun.revision)
                 envService.setUpEnvironment(context, projectDir, null, infrastructureServices)
+            }
+
+            coVerify {
+                phase.handleKeepAlive(jobConfig)
             }
         }
     }
@@ -1162,7 +1190,9 @@ class AnalyzerWorkerTest : StringSpec({
 
         val jobConfig = AnalyzerJobConfiguration(
             enabledPackageManagers = listOf("Maven"),
-            packageCurationProviders = listOf(mockk())
+            packageCurationProviders = listOf(mockk()),
+            keepAliveWorker = true,
+            keepAlivePhases = EnumSet.of(AnalyzerPhaseEnum.ANALYSIS)
         )
         val job = analyzerJob.copy(configuration = jobConfig)
 
@@ -1214,10 +1244,12 @@ class AnalyzerWorkerTest : StringSpec({
                 refContextOpen.get() shouldBe true
             }
 
-            val phase = PreparationPhase(
-                ortRunService,
-                contextFactory,
-                envService
+            val phase = spyk(
+                PreparationPhase(
+                    ortRunService,
+                    contextFactory,
+                    envService
+                )
             )
             val runner = mockk<AnalyzerRunner>()
             val worker = AnalyzerWorker(downloader, runner)
@@ -1250,6 +1282,8 @@ class AnalyzerWorkerTest : StringSpec({
                     )
                 }
 
+                coVerify { phase.handleKeepAlive(jobConfig) }
+
                 coVerify(exactly = 0) {
                     runner.run(any(), any(), any())
                 }
@@ -1264,6 +1298,8 @@ class AnalyzerWorkerTest : StringSpec({
 
             runnerConfig.packageCurationProviders shouldContainExactlyInAnyOrder pluginConfigs
             runnerConfig.enabledPackageManagers shouldContainExactlyInAnyOrder listOf("Maven")
+            runnerConfig.keepAliveWorker shouldBe true
+            runnerConfig.keepAlivePhases shouldContainOnly EnumSet.of(AnalyzerPhaseEnum.ANALYSIS)
 
             runId shouldBe ortRun.id
         }
@@ -1293,7 +1329,9 @@ class AnalyzerWorkerTest : StringSpec({
                         secrets = mapOf("password" to "secret-password")
                     )
             ),
-                repositoryConfigPath = "test/path"
+                repositoryConfigPath = "test/path",
+                keepAliveWorker = true,
+                keepAlivePhases = EnumSet.of(AnalyzerPhaseEnum.RESULT)
             )
         )
         val prepareExchange = PreparationExchange(
@@ -1330,7 +1368,8 @@ class AnalyzerWorkerTest : StringSpec({
             every { Os.userHomeDirectory } returns userHomeDir
 
             val worker = AnalyzerWorker(mockk(), runner)
-            worker.testRun(AnalysisPhase(), arrayOf(exchangeDir.absolutePath)) shouldBe RunResult.Ignored
+            val phase = spyk(AnalysisPhase())
+            worker.testRun(phase, arrayOf(exchangeDir.absolutePath)) shouldBe RunResult.Ignored
 
             val analysisResult: OrtResult = jobDir.resolve(ORT_RESULT_FILE).readValue()
             analysisResult shouldBe ortResult
@@ -1338,6 +1377,10 @@ class AnalyzerWorkerTest : StringSpec({
             verify {
                 EnvironmentForkHelper.setupAuthentication(jobDir.resolve(AUTH_INFO_FILE), any())
                 workerOrtConfig.setUpOrtEnvironment()
+            }
+
+            coVerify {
+                phase.handleKeepAlive(true, EnumSet.of(AnalyzerPhaseEnum.RESULT))
             }
         }
     }
@@ -1358,7 +1401,9 @@ class AnalyzerWorkerTest : StringSpec({
                 disabledPackageManagers = null,
                 packageManagerOptions = null,
                 packageCurationProviders = emptyList(),
-                repositoryConfigPath = null
+                repositoryConfigPath = null,
+                keepAliveWorker = false,
+                keepAlivePhases = emptySet()
             )
         )
         val prepareExchange = PreparationExchange(
@@ -1424,12 +1469,14 @@ class AnalyzerWorkerTest : StringSpec({
 
         jobDir.resolve(ORT_RESULT_FILE).writeValue(ortResult)
 
-        val phase = ResultPhase(
-            mockk(),
-            ortRunService,
-            contextFactory,
-            mockk(relaxed = true),
-            mockIssueResolutionService()
+        val phase = spyk(
+            ResultPhase(
+                mockk(),
+                ortRunService,
+                contextFactory,
+                mockk(relaxed = true),
+                mockIssueResolutionService()
+            )
         )
         val worker = AnalyzerWorker(mockk(), mockk())
 
@@ -1452,6 +1499,10 @@ class AnalyzerWorkerTest : StringSpec({
                     any()
                 )
                 ortRunService.storeRepositoryInformation(ortRun.id, OrtTestData.result.repository)
+            }
+
+            coVerify {
+                phase.handleKeepAlive(analyzerJob.configuration)
             }
         }
     }
@@ -1499,7 +1550,9 @@ private fun runnerConfig(
         disabledPackageManagers = jobConfig.disabledPackageManagers,
         packageManagerOptions = jobConfig.packageManagerOptions,
         repositoryConfigPath = jobConfig.repositoryConfigPath,
-        packageCurationProviders = packageCurationProviderConfigs.orEmpty()
+        packageCurationProviders = packageCurationProviderConfigs.orEmpty(),
+        keepAliveWorker = jobConfig.keepAliveWorker,
+        keepAlivePhases = jobConfig.keepAlivePhases
     )
 
 /**

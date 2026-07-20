@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerPhase
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
@@ -50,5 +51,11 @@ data class AnalyzerRunnerConfig(
     val repositoryConfigPath: String?,
 
     /** See [AnalyzerJobConfiguration.skipExcluded]. */
-    val skipExcluded: Boolean?
+    val skipExcluded: Boolean?,
+
+    /** See [AnalyzerJobConfiguration.keepAliveWorker]. */
+    val keepAliveWorker: Boolean,
+
+    /** See [AnalyzerJobConfiguration.keepAlivePhases]. */
+    val keepAlivePhases: Set<AnalyzerPhase>
 )

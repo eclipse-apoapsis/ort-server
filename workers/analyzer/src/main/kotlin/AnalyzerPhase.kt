@@ -22,14 +22,17 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 import com.typesafe.config.ConfigFactory
 
 import java.io.File
+import java.util.EnumSet
 
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerPhase as AnalyzerPhaseEnum
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -86,6 +89,34 @@ internal sealed interface AnalyzerPhase {
      * the Analyzer endpoint how to handle the result.
      */
     suspend fun run(worker: AnalyzerWorker, jobId: Long, args: Array<String>): RunResult
+
+    /**
+     * Evaluate the keep-alive settings for this [AnalysisPhase] and [config]. If necessary, write a file that keeps
+     * the worker alive.
+     */
+    suspend fun handleKeepAlive(config: AnalyzerJobConfiguration) {
+        handleKeepAlive(config.keepAliveWorker, config.keepAlivePhases)
+    }
+
+    /**
+     * Evaluate the given [keepAliveWorker] flag and the [keepAlivePhases]. If necessary, write a file that keeps the
+     * worker alive.
+     */
+    suspend fun handleKeepAlive(keepAliveWorker: Boolean, keepAlivePhases: Set<AnalyzerPhaseEnum>) {
+        if (!keepAliveWorker) return
+
+        val phases = keepAlivePhases.takeUnless { it.isEmpty() } ?: DEFAULT_KEEP_ALIVE_PHASES
+        val phaseName = AnalyzerPhaseEnum.valueOf(javaClass.simpleName.removeSuffix("Phase").uppercase())
+        if (phaseName in phases) {
+            EndpointComponent.generateKeepAliveFile()
+        } else {
+            logger.info(
+                "Not generating a keep-alive file. Current phase is '{}', requested phases are {}.",
+                phaseName,
+                phases
+            )
+        }
+    }
 }
 
 /**
@@ -119,6 +150,7 @@ internal class FullPhase(
         checkArgs(this, args, 0, 0)
 
         val job = ortRunService.getValidAnalyzerJob(jobId)
+        handleKeepAlive(job.configuration)
 
         return contextFactory.withContext(job.ortRunId) { context ->
             val prepareResult = worker.prepare(context, job, ortRunService, environmentService)
@@ -154,6 +186,7 @@ internal class PreparationPhase(
     ): RunResult {
         val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 1))
         val job = ortRunService.getValidAnalyzerJob(jobId)
+        handleKeepAlive(job.configuration)
 
         val prepareExchange = contextFactory.withContext(job.ortRunId) { context ->
             val configDir = exchangeDir.resolve(CONFIG_DIR).apply { mkdirs() }
@@ -195,6 +228,7 @@ internal class AnalysisPhase : AnalyzerPhase {
         val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 2))
 
         val prepareResult = createPrepareResult(exchangeDir, jobId)
+        handleKeepAlive(prepareResult.runnerConfig.keepAliveWorker, prepareResult.runnerConfig.keepAlivePhases)
         copyConfigFiles(exchangeDir)
         setUpEnvironment()
 
@@ -295,6 +329,7 @@ internal class ResultPhase(
     ): RunResult {
         val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 1))
         val job = ortRunService.getValidAnalyzerJob(jobId)
+        handleKeepAlive(job.configuration)
 
         val result: OrtResult = readExchangeFile(exchangeDir, ORT_RESULT_FILE)
 
@@ -328,6 +363,9 @@ internal data class PreparationExchange(
     /** The ID of the run that is analyzed. */
     val runId: Long
 )
+
+/** The phases for which the worker should be kept alive if no specific phases are provided. */
+private val DEFAULT_KEEP_ALIVE_PHASES = EnumSet.of(AnalyzerPhaseEnum.ANALYSIS, AnalyzerPhaseEnum.FULL)
 
 /**
  * Return a directory to be used for exchanging information between the different phases for the Analyzer job with the
@@ -396,5 +434,7 @@ private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerConte
         disabledPackageManagers = disabledPackageManagers,
         packageManagerOptions = packageManagerOptions,
         repositoryConfigPath = repositoryConfigPath,
-        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders)
+        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders),
+        keepAliveWorker = keepAliveWorker,
+        keepAlivePhases = keepAlivePhases
     )

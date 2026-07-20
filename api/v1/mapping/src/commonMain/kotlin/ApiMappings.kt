@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerPhase as ApiAnalyzerPhase
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator as ApiComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats as ApiEcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
@@ -87,6 +88,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerPhase
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
@@ -222,7 +224,8 @@ fun AnalyzerJobConfiguration.mapToApi() =
         packageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToApi() },
         repositoryConfigPath = repositoryConfigPath,
         skipExcluded = skipExcluded,
-        keepAliveWorker = keepAliveWorker
+        keepAliveWorker = keepAliveWorker,
+        keepAlivePhases = keepAlivePhases.mapTo(mutableSetOf()) { it.mapToApi() }
     )
 
 fun ApiAnalyzerJobConfiguration.mapToModel() =
@@ -236,7 +239,8 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         packageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToModel() },
         repositoryConfigPath = repositoryConfigPath,
         skipExcluded = skipExcluded,
-        keepAliveWorker = keepAliveWorker
+        keepAliveWorker = keepAliveWorker,
+        keepAlivePhases = keepAlivePhases.mapTo(mutableSetOf()) { it.mapToModel() }
     )
 
 fun EvaluatorJob.mapToApi() =
@@ -776,6 +780,20 @@ fun ApiSubmoduleFetchStrategy.mapToModel() = when (this) {
     ApiSubmoduleFetchStrategy.DISABLED -> SubmoduleFetchStrategy.DISABLED
     ApiSubmoduleFetchStrategy.TOP_LEVEL_ONLY -> SubmoduleFetchStrategy.TOP_LEVEL_ONLY
     ApiSubmoduleFetchStrategy.FULLY_RECURSIVE -> SubmoduleFetchStrategy.FULLY_RECURSIVE
+}
+
+fun AnalyzerPhase.mapToApi() = when (this) {
+    AnalyzerPhase.PREPARATION -> ApiAnalyzerPhase.PREPARATION
+    AnalyzerPhase.ANALYSIS -> ApiAnalyzerPhase.ANALYSIS
+    AnalyzerPhase.RESULT -> ApiAnalyzerPhase.RESULT
+    AnalyzerPhase.FULL -> ApiAnalyzerPhase.FULL
+}
+
+fun ApiAnalyzerPhase.mapToModel() = when (this) {
+    ApiAnalyzerPhase.PREPARATION -> AnalyzerPhase.PREPARATION
+    ApiAnalyzerPhase.ANALYSIS -> AnalyzerPhase.ANALYSIS
+    ApiAnalyzerPhase.RESULT -> AnalyzerPhase.RESULT
+    ApiAnalyzerPhase.FULL -> AnalyzerPhase.FULL
 }
 
 fun ShortestDependencyPath.mapToApi() = ApiShortestDependencyPath(

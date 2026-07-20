@@ -47,7 +47,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.parameters
 
 import io.mockk.mockk
 
@@ -64,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerPhase
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
@@ -1116,7 +1116,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         val keepAliveJobConfigs = ApiJobConfigurations().let {
             listOf(
-                it.copy(analyzer = AnalyzerJobConfiguration(keepAliveWorker = true)),
+                it.copy(
+                    analyzer = AnalyzerJobConfiguration(
+                        keepAliveWorker = true,
+                        keepAlivePhases = EnumSet.of(AnalyzerPhase.ANALYSIS, AnalyzerPhase.RESULT)
+                    )
+                ),
                 it.copy(advisor = AdvisorJobConfiguration(keepAliveWorker = true)),
                 it.copy(evaluator = EvaluatorJobConfiguration(keepAliveWorker = true)),
                 it.copy(notifier = NotifierJobConfiguration(keepAliveWorker = true)),
@@ -1156,6 +1161,16 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     }
 
                     response shouldHaveStatus HttpStatusCode.Created
+
+                    val run = response.body<OrtRun>()
+                    with(run.jobConfigs) {
+                        analyzer.keepAliveWorker shouldBe it.analyzer.keepAliveWorker
+                        analyzer.keepAlivePhases shouldBe it.analyzer.keepAlivePhases
+                        advisor?.keepAliveWorker shouldBe it.advisor?.keepAliveWorker
+                        scanner?.keepAliveWorker shouldBe it.scanner?.keepAliveWorker
+                        evaluator?.keepAliveWorker shouldBe it.evaluator?.keepAliveWorker
+                        reporter?.keepAliveWorker shouldBe it.reporter?.keepAliveWorker
+                    }
                 }
             }
         }

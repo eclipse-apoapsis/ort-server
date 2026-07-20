@@ -112,7 +112,9 @@ private val testRunnerConfig = AnalyzerRunnerConfig(
             options = mapOf("foo" to "bar")
         )
     ),
-    repositoryConfigPath = null
+    repositoryConfigPath = null,
+    keepAliveWorker = false,
+    keepAlivePhases = emptySet()
 )
 
 class AnalyzerRunnerTest : WordSpec({
@@ -458,7 +460,9 @@ class AnalyzerRunnerTest : WordSpec({
                 packageCurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
                 packageManagerOptions = packageManagerOptions,
                 repositoryConfigPath = null,
-                skipExcluded = true
+                skipExcluded = true,
+                keepAliveWorker = false,
+                keepAlivePhases = emptySet()
             )
 
             val configFile = exchangeDir.resolve("analyzer-config.json")
@@ -488,7 +492,9 @@ class AnalyzerRunnerTest : WordSpec({
                     packageCurationProviders = emptyList(),
                     packageManagerOptions = null,
                     repositoryConfigPath = null,
-                    skipExcluded = null
+                    skipExcluded = null,
+                    keepAliveWorker = false,
+                    keepAlivePhases = emptySet()
                 )
             )
 

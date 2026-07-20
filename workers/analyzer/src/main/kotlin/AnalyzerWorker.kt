@@ -34,7 +34,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
-import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -115,10 +114,6 @@ internal class AnalyzerWorker(
             ?: throw IllegalArgumentException("The analyzer job with id '${analyzerJob.id}' could not be started.")
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
         logger.info("Using ORT version {}.", ORT_VERSION)
-
-        if (job.configuration.keepAliveWorker) {
-            EndpointComponent.generateKeepAliveFile()
-        }
 
         val envConfigFromJob = job.configuration.environmentConfig
         val repositoryServices =
@@ -330,7 +325,9 @@ private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerConte
         disabledPackageManagers = disabledPackageManagers,
         packageManagerOptions = packageManagerOptions,
         repositoryConfigPath = repositoryConfigPath,
-        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders)
+        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders),
+        keepAliveWorker = keepAliveWorker,
+        keepAlivePhases = keepAlivePhases
     )
 
 /**

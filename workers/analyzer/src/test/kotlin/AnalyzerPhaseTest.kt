@@ -24,7 +24,18 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.string.shouldContain
 
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.runs
+
+import java.util.EnumSet
+
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AnalyzerPhase
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 
 class AnalyzerPhaseTest : WordSpec({
     "FullPhase" should {
@@ -108,6 +119,90 @@ class AnalyzerPhaseTest : WordSpec({
 
             shouldThrow<IllegalArgumentException> {
                 phase.run(mockk(), 42L, arrayOf(exchangeDir.absolutePath, "sync", "extra-arg"))
+            }
+        }
+    }
+
+    "handleKeepAlive()" should {
+        "write a keep-alive file if the phase matches" {
+            val config = AnalyzerJobConfiguration(
+                keepAliveWorker = true,
+                keepAlivePhases = EnumSet.of(AnalyzerPhase.PREPARATION, AnalyzerPhase.ANALYSIS)
+            )
+            val phase = AnalysisPhase()
+
+            mockkObject(EndpointComponent) {
+                coEvery { EndpointComponent.generateKeepAliveFile() } just runs
+
+                phase.handleKeepAlive(config)
+
+                coVerify { EndpointComponent.generateKeepAliveFile() }
+            }
+        }
+
+        "not write a keep-alive file if the phase does not match" {
+            val config = AnalyzerJobConfiguration(
+                keepAliveWorker = true,
+                keepAlivePhases = EnumSet.of(AnalyzerPhase.PREPARATION, AnalyzerPhase.RESULT)
+            )
+            val phase = AnalysisPhase()
+
+            mockkObject(EndpointComponent) {
+                phase.handleKeepAlive(config)
+
+                coVerify(exactly = 0) { EndpointComponent.generateKeepAliveFile() }
+            }
+        }
+
+        "not write a keep-alive file if the keep-alive flag is not set" {
+            val config = AnalyzerJobConfiguration(
+                keepAliveWorker = false,
+                keepAlivePhases = EnumSet.of(AnalyzerPhase.ANALYSIS)
+            )
+            val phase = AnalysisPhase()
+
+            mockkObject(EndpointComponent) {
+                phase.handleKeepAlive(config)
+
+                coVerify(exactly = 0) { EndpointComponent.generateKeepAliveFile() }
+            }
+        }
+
+        "write a keep-alive file per default for the full phase" {
+            val config = AnalyzerJobConfiguration(
+                keepAliveWorker = true
+            )
+            val phase = FullPhase(
+                db = mockk(),
+                ortRunService = mockk(),
+                contextFactory = mockk(),
+                environmentService = mockk(),
+                adminConfigService = mockk(),
+                issueResolutionService = mockk()
+            )
+
+            mockkObject(EndpointComponent) {
+                coEvery { EndpointComponent.generateKeepAliveFile() } just runs
+
+                phase.handleKeepAlive(config)
+
+                coVerify { EndpointComponent.generateKeepAliveFile() }
+            }
+        }
+
+        "write a keep-alive file per default for the analysis phase" {
+            val config = AnalyzerJobConfiguration(
+                keepAliveWorker = true,
+                keepAlivePhases = emptySet()
+            )
+            val phase = AnalysisPhase()
+
+            mockkObject(EndpointComponent) {
+                coEvery { EndpointComponent.generateKeepAliveFile() } just runs
+
+                phase.handleKeepAlive(config)
+
+                coVerify { EndpointComponent.generateKeepAliveFile() }
             }
         }
     }
