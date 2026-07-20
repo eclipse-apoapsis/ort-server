@@ -27,6 +27,8 @@ import {
   PreconfiguredPluginDescriptor,
   Secret,
 } from '@/api';
+import { zAnalyzerPhase } from '@/api/zod.gen';
+import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import { InlineCode } from '@/components/typography.tsx';
 import {
@@ -393,28 +395,49 @@ export const AnalyzerFields = ({
             showSelectedPluginsFirst={isRerun}
           />
           {isSuperuser && (
-            <FormField
-              control={form.control}
-              name='jobConfigs.analyzer.keepAliveWorker'
-              render={({ field }) => (
-                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel>Keep worker alive</FormLabel>
-                    <FormDescription>
-                      A flag to control whether the worker is kept alive for
-                      debugging purposes. This flag only has an effect if the
-                      ORT Server is deployed on Kubernetes.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
+            <div className='flex flex-col gap-4'>
+              <FormField
+                control={form.control}
+                name='jobConfigs.analyzer.keepAliveWorker'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                    <div className='space-y-0.5'>
+                      <FormLabel>Keep worker alive</FormLabel>
+                      <FormDescription>
+                        A flag to control whether the worker is kept alive for
+                        debugging purposes. This flag only has an effect if the
+                        ORT Server is deployed on Kubernetes.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              {form.watch('jobConfigs.analyzer.keepAliveWorker') && (
+                <MultiSelectField
+                  form={form}
+                  name='jobConfigs.analyzer.keepAlivePhases'
+                  label='Keep-alive phases'
+                  description={
+                    <>
+                      The phases in which the worker should be kept alive. If
+                      none are selected, the worker is kept alive in the{' '}
+                      <InlineCode>full</InlineCode> and{' '}
+                      <InlineCode>analysis</InlineCode> phases.
+                    </>
+                  }
+                  options={zAnalyzerPhase.options.map((phase) => ({
+                    id: phase,
+                    label: capitalize(phase),
+                  }))}
+                />
               )}
-            />
+            </div>
           )}
         </AccordionContent>
       </AccordionItem>

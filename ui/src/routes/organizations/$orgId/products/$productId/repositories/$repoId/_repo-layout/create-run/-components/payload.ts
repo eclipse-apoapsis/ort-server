@@ -155,6 +155,11 @@ export function formValuesToPayload(
       values.jobConfigs.analyzer.packageCurationProviders
     ),
     keepAliveWorker: values.jobConfigs.analyzer.keepAliveWorker || undefined,
+    keepAlivePhases:
+      values.jobConfigs.analyzer.keepAliveWorker &&
+      values.jobConfigs.analyzer.keepAlivePhases?.length
+        ? values.jobConfigs.analyzer.keepAlivePhases
+        : undefined,
   };
 
   //

@@ -21,7 +21,7 @@ import { FieldErrors } from 'react-hook-form';
 import { z } from 'zod';
 
 import { PreconfiguredPluginDescriptor } from '@/api';
-import { zInfrastructureService } from '@/api/zod.gen';
+import { zAnalyzerPhase, zInfrastructureService } from '@/api/zod.gen';
 import { environmentDefinitionsSchema } from '@/lib/types';
 import {
   environmentVariableSchema,
@@ -78,6 +78,7 @@ export const createRunFormSchema = (
             environmentVariables: z.array(environmentVariableSchema).optional(),
             infrastructureServices: z.array(zInfrastructureService).optional(),
             keepAliveWorker: z.boolean(),
+            keepAlivePhases: z.array(zAnalyzerPhase).optional(),
             packageCurationProviders: z.array(z.string()),
             packageCurationProviderConfig: z
               .object(packageCurationProviderConfigSchema)

@@ -122,7 +122,7 @@ export function defaultValues(
         allowDynamicVersions: true,
         skipExcluded: true,
         keepAliveWorker: false,
-        environmentDefinitions: undefined,
+        keepAlivePhases: [],
         infrastructureServices: [],
         packageCurationProviders: [],
         packageCurationProviderConfig:
@@ -261,6 +261,12 @@ export function defaultValues(
             keepAliveWorker:
               (ortRun.jobConfigs.analyzer?.keepAliveWorker && isSuperuser) ||
               baseDefaults.jobConfigs.analyzer.keepAliveWorker,
+            keepAlivePhases:
+              ortRun.jobConfigs.analyzer?.keepAliveWorker &&
+              isSuperuser &&
+              ortRun.jobConfigs.analyzer?.keepAlivePhases?.length
+                ? ortRun.jobConfigs.analyzer.keepAlivePhases
+                : baseDefaults.jobConfigs.analyzer.keepAlivePhases,
           },
           advisor: {
             enabled:
