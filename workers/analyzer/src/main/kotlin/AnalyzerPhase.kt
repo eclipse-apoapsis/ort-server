@@ -198,7 +198,7 @@ internal class PreparationPhase(
 
             PreparationExchange(
                 environment = prepareResult.resolvedEnvironment,
-                runnerConfig = job.configuration.toRunnerConfig(context),
+                runnerConfig = prepareResult.runnerConfig,
                 runId = job.ortRunId
             )
         }
@@ -421,20 +421,3 @@ private inline fun <reified T : Any> AnalyzerPhase.readExchangeFile(exchangeDir:
 
     return exchangeFile.readValue()
 }
-
-/**
- * Create an [AnalyzerRunnerConfig] from this [AnalyzerJobConfiguration] to be used to analyze the current project.
- * Use the given [context] to resolve the secrets in the plugin configuration.
- */
-private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerContext): AnalyzerRunnerConfig =
-    AnalyzerRunnerConfig(
-        skipExcluded = skipExcluded,
-        allowDynamicVersions = allowDynamicVersions,
-        enabledPackageManagers = enabledPackageManagers,
-        disabledPackageManagers = disabledPackageManagers,
-        packageManagerOptions = packageManagerOptions,
-        repositoryConfigPath = repositoryConfigPath,
-        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders),
-        keepAliveWorker = keepAliveWorker,
-        keepAlivePhases = keepAlivePhases
-    )
