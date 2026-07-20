@@ -116,7 +116,7 @@ class AnalyzerComponent(
 
     override fun customModules(): List<Module> = listOf(
         analyzerModule(),
-        databaseModule(),
+        databaseModule(startEager = false), // Start services lazily, they are not required for all phases.
         ortRunServiceModule(),
         workerContextModule(),
         buildEnvironmentModule(includePackageManagerGenerators = true)

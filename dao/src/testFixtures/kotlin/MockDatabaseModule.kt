@@ -58,7 +58,7 @@ private fun databaseModuleWithMockConnection() = module {
  */
 fun mockDatabaseModule() {
     mockkStatic(::databaseModule)
-    every { databaseModule() } returns databaseModuleWithMockConnection()
+    every { databaseModule(any()) } returns databaseModuleWithMockConnection()
 }
 
 /**
