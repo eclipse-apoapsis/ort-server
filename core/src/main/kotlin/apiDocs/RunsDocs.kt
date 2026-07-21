@@ -366,7 +366,8 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                                     )
                                 ),
                                 advisor = AdvisorDetails(name = "VulnerableCode"),
-                                purl = "pkg:maven/org.namespace/name@1.0"
+                                purl = "pkg:maven/org.namespace/name@1.0",
+                                firstFixedVersions = setOf("1.7", "2.4", "3.3")
                             )
                         ),
                         PagingData(

@@ -687,6 +687,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         name shouldBe "log4j-core"
                         version shouldBe "2.14.0"
                     }
+
+                    firstFixedVersions should containExactlyInAnyOrder("2.22.0", "3.7.0")
                 }
 
                 with(vulnerabilities.data[1]) {
@@ -699,6 +701,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         name shouldBe "jackson-databind"
                         version shouldBe "2.9.6"
                     }
+
+                    firstFixedVersions should containExactlyInAnyOrder("2.14.5", "3.4.0")
                 }
             }
         }
@@ -3115,7 +3119,8 @@ private fun generateAdvisorResult() = mapOf(
                                 score = 4.2f,
                                 vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
                             )
-                        )
+                        ),
+                        firstFixedVersions = setOf("2.22.0", "3.7.0")
                     )
                 )
             )
@@ -3139,7 +3144,8 @@ private fun generateAdvisorResult() = mapOf(
                                 score = 4.2f,
                                 vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
                             )
-                        )
+                        ),
+                        firstFixedVersions = setOf("2.14.5", "3.4.0")
                     )
                 )
             )
