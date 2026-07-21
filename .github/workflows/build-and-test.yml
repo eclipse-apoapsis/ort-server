@@ -130,6 +130,10 @@ jobs:
       working-directory: ui
       run: pnpm build
 
+    - name: Check for unused dependencies
+      working-directory: ui
+      run: pnpm dlx knip --dependencies
+
     - name: Test UI
       working-directory: ui
       run: pnpm test
