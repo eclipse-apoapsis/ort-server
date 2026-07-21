@@ -654,7 +654,8 @@ fun OrtVulnerability.mapToModel() =
         externalId = id,
         summary = summary,
         description = description,
-        references = references.map { it.mapToModel() }
+        references = references.map { it.mapToModel() },
+        firstFixedVersions = firstFixedVersions
     )
 
 fun OrtVulnerabilityReference.mapToModel() =

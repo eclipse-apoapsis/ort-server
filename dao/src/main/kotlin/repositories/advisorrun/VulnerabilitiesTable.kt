@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 
@@ -37,6 +38,7 @@ object VulnerabilitiesTable : SortableTable("vulnerabilities") {
     val externalId = text("external_id").sortable("externalId")
     val summary = text("summary").nullable()
     val description = text("description").nullable()
+    val firstFixedVersions = jsonb<Set<String>>("first_fixed_versions").default(emptySet())
 }
 
 class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
@@ -49,7 +51,8 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByVulnerability(vulnerability: Vulnerability): VulnerabilityDao? =
             VulnerabilitiesTable
                 .select(
-                    VulnerabilitiesTable.id
+                    VulnerabilitiesTable.id,
+                    VulnerabilitiesTable.firstFixedVersions
                 )
                 .where {
                     (VulnerabilitiesTable.externalId eq vulnerability.externalId) and
@@ -59,6 +62,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
                 .asSequence()
                 .map { resultRow ->
                     val vulnerabilityId = resultRow[VulnerabilitiesTable.id]
+                    val firstFixedVersions = resultRow[VulnerabilitiesTable.firstFixedVersions]
                     val references = VulnerabilityReferencesTable
                         .select(
                             VulnerabilityReferencesTable.url,
@@ -79,12 +83,13 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
                         }
                         .toSet()
 
-                    Pair(vulnerabilityId, references)
+                    Triple(vulnerabilityId, firstFixedVersions, references)
                 }
-                .firstOrNull { (_, references) ->
-                    references == vulnerability.references.toSet()
+                .firstOrNull { (_, firstFixedVersions, references) ->
+                    firstFixedVersions == vulnerability.firstFixedVersions &&
+                            references == vulnerability.references.toSet()
                 }
-                ?.let { (vulnerabilityId, _) ->
+                ?.let { (vulnerabilityId, _, _) ->
                     VulnerabilityDao[vulnerabilityId] // Return as DAO
                 }
 
@@ -93,6 +98,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
                 externalId = vulnerability.externalId
                 summary = vulnerability.summary
                 description = vulnerability.description
+                firstFixedVersions = vulnerability.firstFixedVersions
             }.also {
                 vulnerability.references.forEach { reference ->
                     VulnerabilityReferenceDao.new {
@@ -110,6 +116,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
     var externalId by VulnerabilitiesTable.externalId
     var summary by VulnerabilitiesTable.summary
     var description by VulnerabilitiesTable.description
+    var firstFixedVersions by VulnerabilitiesTable.firstFixedVersions
 
     val references by VulnerabilityReferenceDao referrersOn VulnerabilityReferencesTable.vulnerabilityId
 
@@ -117,6 +124,7 @@ class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
         externalId = externalId,
         summary = summary,
         description = description,
-        references = references.map(VulnerabilityReferenceDao::mapToModel)
+        references = references.map(VulnerabilityReferenceDao::mapToModel),
+        firstFixedVersions = firstFixedVersions
     )
 }

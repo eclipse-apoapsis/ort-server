@@ -200,7 +200,8 @@ private val vulnerability = Vulnerability(
             score = 8.3f,
             vector = "vector"
         )
-    )
+    ),
+    firstFixedVersions = setOf("fixedVersion")
 )
 
 private val advisorResult = AdvisorResult(
