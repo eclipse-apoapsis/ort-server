@@ -35,6 +35,7 @@ jobs:
     - name: Upload Release Notes
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
+        archive: false
         path: RELEASE_NOTES.md
         retention-days: 7
 
@@ -173,7 +174,7 @@ jobs:
           PRERELEASE_ARG="--prerelease"
         fi
 
-        gh release create $ORT_SERVER_VERSION --notes-file ./artifacts/release-notes/RELEASE_NOTES.md $PRERELEASE_ARG \
+        gh release create $ORT_SERVER_VERSION --notes-file ./artifacts/RELEASE_NOTES.md $PRERELEASE_ARG \
           './artifacts/osc-cli-linux-x64.tar.gz#osc-cli-linux-x64' \
           './artifacts/osc-cli-macos-arm64.tar.gz#osc-cli-macos-arm64' \
           './artifacts/osc-cli-macos-x64.tar.gz#osc-cli-macos-x64' \
