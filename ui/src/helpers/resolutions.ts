@@ -116,7 +116,12 @@ function hasResolutionActivity(item: ItemWithResolutions) {
 }
 
 export function getResolutionAccordionDefaultValue(item: ItemWithResolutions) {
-  return hasResolutionActivity(item) ? ['resolutions'] : ['details'];
+  if (hasResolutionActivity(item)) return ['resolutions'];
+
+  if (isVulnerabilityItem(item) && (item.firstFixedVersions?.length ?? 0) > 0)
+    return ['fixed-versions', 'details'];
+
+  return ['details'];
 }
 
 export function getResolutionAccordionLabel(item: ItemWithResolutions) {

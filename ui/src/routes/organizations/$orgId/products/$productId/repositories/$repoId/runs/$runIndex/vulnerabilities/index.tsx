@@ -28,6 +28,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { PackageURL } from 'packageurl-js';
 import { useCallback, useState } from 'react';
 import z from 'zod';
 
@@ -88,6 +89,7 @@ import {
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
+import { getVersionsRelativeToReference } from '@/helpers/versions';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
@@ -168,6 +170,13 @@ const VulnerabilityCard = ({
           {vulnerability.advisor.name}
         </div>
       </div>
+      {(vulnerability.firstFixedVersions?.length ?? 0) > 0 && (
+        <div className='flex items-center justify-end'>
+          <Badge className='bg-green-300 whitespace-nowrap text-black'>
+            Fix available
+          </Badge>
+        </div>
+      )}
 
       <div className='flex gap-2'>
         <Badge
@@ -437,6 +446,17 @@ const VulnerabilitiesComponent = () => {
   const renderSubComponent = useCallback(
     ({ row }: { row: Row<VulnerabilityWithDetails> }) => {
       const vulnerability = row.original.vulnerability;
+      let pkgVersion;
+      try {
+        pkgVersion = PackageURL.fromString(row.original.purl).version;
+      } catch {
+        pkgVersion = undefined;
+      }
+
+      const relativeVersions = getVersionsRelativeToReference(
+        row.original.firstFixedVersions || [],
+        pkgVersion || ''
+      );
 
       return (
         <Accordion
@@ -444,6 +464,38 @@ const VulnerabilitiesComponent = () => {
           className='w-full'
           defaultValue={getResolutionAccordionDefaultValue(row.original)}
         >
+          <AccordionItem value='fixed-versions'>
+            <AccordionTrigger className='font-semibold'>
+              Fixed versions
+            </AccordionTrigger>
+            <AccordionContent>
+              {(row.original.firstFixedVersions?.length ?? 0) > 0 ? (
+                <>
+                  {relativeVersions.earlierVersions.length > 0 && (
+                    <span className='text-muted-foreground'>
+                      {relativeVersions.earlierVersions.join(', ')}
+                      {relativeVersions.nextVersion && ', '}
+                    </span>
+                  )}
+                  {relativeVersions.nextVersion && (
+                    <span className='font-semibold'>
+                      {relativeVersions.nextVersion}
+                    </span>
+                  )}
+                  {relativeVersions.laterVersions.length > 0 && (
+                    <span>
+                      {', '}
+                      {relativeVersions.laterVersions.join(', ')}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <div className='text-muted-foreground text-sm'>
+                  No fixed versions available.
+                </div>
+              )}
+            </AccordionContent>
+          </AccordionItem>
           <AccordionItem value='resolutions'>
             <AccordionTrigger className='font-semibold'>
               {getResolutionAccordionLabel(row.original)}
