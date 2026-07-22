@@ -18,7 +18,8 @@
  */
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ExternalLink } from 'lucide-react';
 import { Fragment } from 'react';
 
 import { getVersionsOptions } from '@/api/@tanstack/react-query.gen';
@@ -41,6 +42,21 @@ export const About = () => {
     ? `${ORT_SERVER_GITHUB_RELEASES_BASE_URL}/latest/download`
     : `${ORT_SERVER_GITHUB_RELEASES_BASE_URL}/download/${ortServerVersion}`;
 
+  const ortServerVersionInfo = {
+    label: 'ORT Server',
+    version: ortServerVersion,
+    releaseUrl: `${ORT_SERVER_GITHUB_RELEASES_BASE_URL}/tag/${ortServerVersion}`,
+    homepageUrl: 'https://eclipse-apoapsis.github.io/ort-server/',
+  };
+
+  const ortCoreVersion = versionData['ORT Core'];
+  const ortCoreVersionInfo = {
+    label: 'ORT Core',
+    version: ortCoreVersion,
+    releaseUrl: `https://github.com/oss-review-toolkit/ort/releases/tag/${ortCoreVersion}`,
+    homepageUrl: 'https://oss-review-toolkit.org/',
+  };
+
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
@@ -51,10 +67,29 @@ export const About = () => {
         <div>
           <h3 className='mb-4 font-semibold'>Version Information</h3>
           <div className='grid grid-cols-[auto_1fr] gap-x-8 gap-y-1'>
-            {Object.entries(versionData).map(([key, value]) => (
-              <Fragment key={key}>
-                <div className='text-muted-foreground font-semibold'>{key}</div>
-                <div className='text-muted-foreground'>{value}</div>
+            {[ortServerVersionInfo, ortCoreVersionInfo].map((info) => (
+              <Fragment key={info.label}>
+                <div className='text-muted-foreground font-semibold'>
+                  <div className='flex items-center'>
+                    {info.label}
+                    <Link
+                      to={info.homepageUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='ml-1 inline-block'
+                    >
+                      <ExternalLink className='h-4 w-4 text-blue-400' />
+                    </Link>
+                  </div>
+                </div>
+                <Link
+                  to={info.releaseUrl}
+                  className='font-semibold text-blue-400 hover:underline'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                >
+                  {info.version}
+                </Link>
               </Fragment>
             ))}
           </div>
