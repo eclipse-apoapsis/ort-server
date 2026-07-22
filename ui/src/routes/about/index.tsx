@@ -24,7 +24,7 @@ import { Fragment } from 'react';
 import { getVersionsOptions } from '@/api/@tanstack/react-query.gen';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { GITHUB_LATEST_RELEASE_DOWNLOAD_URL } from '@/lib/constants';
+import { ORT_SERVER_GITHUB_RELEASES_BASE_URL } from '@/lib/constants';
 
 export const About = () => {
   const { data: versionData } = useSuspenseQuery({
@@ -38,11 +38,8 @@ export const About = () => {
   const ortServerVersion = versionData['ORT Server'];
   const isVersionCandidate = ortServerVersion?.includes('-RC.');
   const baseUrl = isVersionCandidate
-    ? GITHUB_LATEST_RELEASE_DOWNLOAD_URL
-    : GITHUB_LATEST_RELEASE_DOWNLOAD_URL.replace(
-        'latest/download',
-        `download/${ortServerVersion}`
-      );
+    ? `${ORT_SERVER_GITHUB_RELEASES_BASE_URL}/latest/download`
+    : `${ORT_SERVER_GITHUB_RELEASES_BASE_URL}/download/${ortServerVersion}`;
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
