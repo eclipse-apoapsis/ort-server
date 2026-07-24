@@ -66,7 +66,7 @@ export const About = () => {
       <CardContent className='pt-6'>
         <div>
           <h3 className='mb-4 font-semibold'>Version Information</h3>
-          <div className='grid grid-cols-[auto_1fr] gap-x-8 gap-y-1'>
+          <div className='grid grid-cols-[7.5rem_1fr] gap-x-8 gap-y-1'>
             {[ortServerVersionInfo, ortCoreVersionInfo].map((info) => (
               <Fragment key={info.label}>
                 <div className='text-muted-foreground font-semibold'>
@@ -96,7 +96,7 @@ export const About = () => {
           <h3 className='mt-8 mb-4 font-semibold'>
             ORT Server Client (osc) Download
           </h3>
-          <div className='grid grid-cols-[auto_1fr] gap-x-8 gap-y-1'>
+          <div className='grid grid-cols-[7.5rem_1fr] gap-x-8 gap-y-1'>
             <div className='text-muted-foreground font-semibold'>Linux</div>
             <a
               href={`${baseUrl}/osc-cli-linux-x64.tar.gz`}
