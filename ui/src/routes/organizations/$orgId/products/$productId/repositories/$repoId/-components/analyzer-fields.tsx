@@ -62,6 +62,7 @@ import {
   ProductPermissions,
   RepositoryPermissions,
 } from '@/lib/permissions.ts';
+import { cn } from '@/lib/utils';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import { EnvironmentDefinitionsFields } from './environment-definitions';
 import { PackageManagerField } from './package-manager-field';
@@ -127,6 +128,8 @@ export const AnalyzerFields = ({
       shouldDirty: false,
     });
   }, [form, infrastructureServices]);
+
+  const keepAliveWorker = form.watch('jobConfigs.analyzer.keepAliveWorker');
 
   return (
     <div className='flex flex-row align-middle'>
@@ -395,12 +398,12 @@ export const AnalyzerFields = ({
             showSelectedPluginsFirst={isRerun}
           />
           {isSuperuser && (
-            <div className='flex flex-col gap-4'>
-              <FormField
-                control={form.control}
-                name='jobConfigs.analyzer.keepAliveWorker'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+            <FormField
+              control={form.control}
+              name='jobConfigs.analyzer.keepAliveWorker'
+              render={({ field }) => (
+                <FormItem className='mb-4 rounded-lg border p-4'>
+                  <div className='flex flex-row items-center justify-between'>
                     <div className='space-y-0.5'>
                       <FormLabel>Keep worker alive</FormLabel>
                       <FormDescription>
@@ -415,29 +418,39 @@ export const AnalyzerFields = ({
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                  </FormItem>
-                )}
-              />
-              {form.watch('jobConfigs.analyzer.keepAliveWorker') && (
-                <MultiSelectField
-                  form={form}
-                  name='jobConfigs.analyzer.keepAlivePhases'
-                  label='Keep-alive phases'
-                  description={
-                    <>
-                      The phases in which the worker should be kept alive. If
-                      none are selected, the worker is kept alive in the{' '}
-                      <InlineCode>full</InlineCode> and{' '}
-                      <InlineCode>analysis</InlineCode> phases.
-                    </>
-                  }
-                  options={zAnalyzerPhase.options.map((phase) => ({
-                    id: phase,
-                    label: capitalize(phase),
-                  }))}
-                />
+                  </div>
+                  <div
+                    className={cn(
+                      'grid transition-[grid-template-rows,opacity] duration-400 ease-out',
+                      keepAliveWorker
+                        ? 'grid-rows-[1fr] opacity-100'
+                        : 'invisible grid-rows-[0fr] opacity-0'
+                    )}
+                  >
+                    <div className='mx-4 mt-4 overflow-hidden'>
+                      <MultiSelectField
+                        form={form}
+                        name='jobConfigs.analyzer.keepAlivePhases'
+                        label='Phases'
+                        description={
+                          <>
+                            The phases in which the worker should be kept alive.
+                            If none are selected, the worker is kept alive in
+                            the <InlineCode>full</InlineCode> and{' '}
+                            <InlineCode>analysis</InlineCode> phases.
+                          </>
+                        }
+                        options={zAnalyzerPhase.options.map((phase) => ({
+                          id: phase,
+                          label: capitalize(phase),
+                        }))}
+                        className='mb-0 border-0 p-0'
+                      />
+                    </div>
+                  </div>
+                </FormItem>
               )}
-            </div>
+            />
           )}
         </AccordionContent>
       </AccordionItem>
