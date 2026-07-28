@@ -125,13 +125,13 @@ const RecentRunListItem = ({ recentRun }: { recentRun: RecentRunItem }) => {
           <span className='text-muted-foreground'>Created at</span>
           {createdAt && <TimestampWithUTC timestamp={createdAt} />}
           {createdAt && (
-            <div className='flex items-center gap-1'>
-              (
+            <div className='flex items-center'>
+              {'('}
               <RunDuration
                 createdAt={createdAt}
                 finishedAt={run?.finishedAt ?? undefined}
               />
-              )
+              {')'}
             </div>
           )}
         </div>
