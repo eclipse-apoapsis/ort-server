@@ -174,7 +174,9 @@ jobs:
           PRERELEASE_ARG="--prerelease"
         fi
 
-        gh release create $ORT_SERVER_VERSION --notes-file ./artifacts/RELEASE_NOTES.md $PRERELEASE_ARG \
+        gh release create $ORT_SERVER_VERSION \
+          --repo $GITHUB_REPOSITORY \
+          --notes-file ./artifacts/RELEASE_NOTES.md $PRERELEASE_ARG \
           './artifacts/osc-cli-linux-x64.tar.gz#osc-cli-linux-x64' \
           './artifacts/osc-cli-macos-arm64.tar.gz#osc-cli-macos-arm64' \
           './artifacts/osc-cli-macos-x64.tar.gz#osc-cli-macos-x64' \
