@@ -44,6 +44,8 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -103,7 +105,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
-                    "apache"
+                    FilterOperatorAndValue(ComparisonOperator.ILIKE, "apache")
                 )
 
                 result.totalCount shouldBe 1
@@ -120,6 +122,23 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
 
                 result.data.map { it.license } should containExactly("MIT")
+            }
+
+            "apply an EQUALS licenseFilter" {
+                addLicenseFindings(
+                    db,
+                    seed.scannerRunId,
+                    Identifier("Maven", "com.example", "mit-or-apache", "1.0"),
+                    listOf("MIT OR Apache-2.0")
+                )
+
+                val result = service.getDetectedLicensesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    FilterOperatorAndValue(ComparisonOperator.EQUALS, "MIT")
+                )
+
+                result.data should containExactly(DetectedLicense("MIT", 1))
             }
 
             "sort by packageCount descending without throwing" {
@@ -221,7 +240,7 @@ class LicenseFindingServiceTest : WordSpec() {
                     seed.ortRunId,
                     "Apache-2.0",
                     ListQueryParameters(sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING))),
-                    "ARTIFACT-package",
+                    FilterOperatorAndValue(ComparisonOperator.ILIKE, "ARTIFACT-package"),
                     null
                 )
 
@@ -236,12 +255,32 @@ class LicenseFindingServiceTest : WordSpec() {
                     seed.ortRunId,
                     "Apache-2.0",
                     ListQueryParameters(sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING))),
-                    "does-not-exist",
+                    FilterOperatorAndValue(ComparisonOperator.ILIKE, "does-not-exist"),
                     null
                 )
 
                 result.totalCount shouldBe 0
                 result.data.shouldBeEmpty()
+            }
+
+            "apply an EQUALS identifierFilter" {
+                val similarIdentifier = seed.artifactIdentifier.copy(name = "artifact-package-extra")
+                addLicenseFindings(db, seed.scannerRunId, similarIdentifier, listOf("Apache-2.0"))
+
+                val result = service.getPackagesWithDetectedLicenseForRun(
+                    seed.ortRunId,
+                    "Apache-2.0",
+                    ListQueryParameters(sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING))),
+                    FilterOperatorAndValue(
+                        ComparisonOperator.EQUALS,
+                        seed.artifactIdentifier.toCoordinates()
+                    ),
+                    null
+                )
+
+                result.data should containExactly(
+                    PackageIdentifier(seed.artifactIdentifier.mapToApi(), seed.artifactPurl)
+                )
             }
 
             "respect limit and offset" {
@@ -307,6 +346,65 @@ class LicenseFindingServiceTest : WordSpec() {
                     PackageIdentifier(seed.vcsIdentifier.mapToApi(), seed.vcsPurl),
                     PackageIdentifier(seed.artifactIdentifier.mapToApi(), seed.artifactPurl)
                 )
+            }
+        }
+
+        "getDetectedLicensesForIdentifier" should {
+            "return one compound expression unchanged" {
+                val identifier = Identifier("Maven", "com.example", "single-license", "1.0")
+                addLicenseFindings(db, seed.scannerRunId, identifier, listOf("MIT OR Apache-2.0"))
+
+                service.getDetectedLicensesForIdentifier(
+                    seed.ortRunId,
+                    identifier.toCoordinates()
+                ) should containExactly("MIT OR Apache-2.0")
+            }
+
+            "return distinct raw expressions sorted alphabetically" {
+                val identifier = Identifier("Maven", "com.example", "multiple-licenses", "1.0")
+                addLicenseFindings(
+                    db,
+                    seed.scannerRunId,
+                    identifier,
+                    listOf(
+                        "MIT OR Apache-2.0",
+                        "MIT AND Apache-2.0",
+                        "Apache-2.0 AND MIT",
+                        "Apache-2.0 AND MIT"
+                    )
+                )
+
+                service.getDetectedLicensesForIdentifier(
+                    seed.ortRunId,
+                    identifier.toCoordinates()
+                ) should containExactly(
+                    "Apache-2.0 AND MIT",
+                    "MIT AND Apache-2.0",
+                    "MIT OR Apache-2.0"
+                )
+            }
+
+            "return an empty list for an unknown identifier" {
+                service.getDetectedLicensesForIdentifier(
+                    seed.ortRunId,
+                    "Maven:com.example:unknown:1.0"
+                ).shouldBeEmpty()
+            }
+
+            "not return findings from another ORT run" {
+                service.getDetectedLicensesForIdentifier(
+                    seed.ortRunId,
+                    seed.otherIdentifier.toCoordinates()
+                ).shouldBeEmpty()
+            }
+
+            "return findings for a scanned project" {
+                addLicenseFindings(db, seed.scannerRunId, seed.projectIdentifier, listOf("Apache-2.0"))
+
+                service.getDetectedLicensesForIdentifier(
+                    seed.ortRunId,
+                    seed.projectIdentifier.toCoordinates()
+                ) should containExactly("Apache-2.0")
             }
         }
 
@@ -417,9 +515,11 @@ class LicenseFindingServiceTest : WordSpec() {
 internal data class SeedResult(
     val ortRunId: Long,
     val otherOrtRunId: Long,
+    val scannerRunId: Long,
     val artifactIdentifier: Identifier,
     val vcsIdentifier: Identifier,
     val otherIdentifier: Identifier,
+    val projectIdentifier: Identifier,
     val artifactPurl: String,
     val vcsPurl: String,
     val otherPurl: String
@@ -432,6 +532,7 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
     val artifactIdentifier = Identifier("Maven", "com.example", "artifact-package", "1.0")
     val vcsIdentifier = Identifier("Maven", "com.example", "vcs-package", "2.0")
     val otherIdentifier = Identifier("NPM", "", "other-package", "3.0")
+    val projectIdentifier = Identifier("Gradle", "com.example", "project", "1.0")
 
     val artifactPurl = "pkg:maven/com.example/artifact-package@1.0"
     val artifactDuplicatePurl = "pkg:maven/com.example/artifact-package@1.0?classifier=duplicate"
@@ -447,6 +548,7 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
     val analyzerJob = fixtures.createAnalyzerJob(ortRun.id)
     fixtures.createAnalyzerRun(
         analyzerJobId = analyzerJob.id,
+        projects = setOf(fixtures.getProject(projectIdentifier)),
         packages = buildSet {
             add(artifactPackage)
             add(vcsPackage)
@@ -478,9 +580,12 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
         path = ""
     )
 
+    var scannerRunId = 0L
+
     db.blockingQuery {
         val scannerJob = fixtures.createScannerJob(ortRun.id)
         val scannerRun = fixtures.scannerRunRepository.create(scannerJob.id)
+        scannerRunId = scannerRun.id
 
         val otherScannerJob = fixtures.createScannerJob(otherOrtRun.id)
         val otherScannerRun = fixtures.scannerRunRepository.create(otherScannerJob.id)
@@ -522,9 +627,11 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
     return SeedResult(
         ortRunId = ortRun.id,
         otherOrtRunId = otherOrtRun.id,
+        scannerRunId = scannerRunId,
         artifactIdentifier = artifactIdentifier,
         vcsIdentifier = vcsIdentifier,
         otherIdentifier = otherIdentifier,
+        projectIdentifier = projectIdentifier,
         artifactPurl = artifactPurl,
         vcsPurl = vcsPurl,
         otherPurl = otherPurl
@@ -608,6 +715,29 @@ internal fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedRes
     }
 
     return CrossRunSeedResult(ortRun1.id, ortRun2.id, identifier)
+}
+
+private fun addLicenseFindings(
+    db: Database,
+    scannerRunId: Long,
+    identifier: Identifier,
+    licenses: List<String>
+) {
+    val vcs = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/scm/${identifier.name}.git",
+        revision = "revision-${identifier.name}",
+        path = ""
+    )
+
+    db.blockingQuery {
+        val packageProvenance = createPackageProvenance(scannerRunId, identifier, vcs = vcs)
+        val findings = licenses.mapIndexed { index, license ->
+            FindingSeed(license, "file-$index", index + 1, index + 1, 100f)
+        }
+
+        createVcsScanResult(scannerRunId, vcs, packageProvenance.id.value, findings)
+    }
 }
 
 private data class FindingSeed(

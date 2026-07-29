@@ -27,6 +27,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingService
 import org.eclipse.apoapsis.ortserver.components.licensefindings.PackageIdentifier
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
@@ -88,11 +90,15 @@ internal fun Route.getRunPackagesWithDetectedLicense(
             }
         }
     }, requireRunReadPermission(ortRunRepository)) {
+        val identifierFilter = call.parameters["identifier"]?.let {
+            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        }
+
         val result = service.getPackagesWithDetectedLicenseForRun(
             ortRunId = call.requireIdParameter("runId"),
             license = call.parameters["license"].orEmpty(),
             parameters = call.pagingOptions(SortProperty("identifier", SortDirection.ASCENDING)).mapToModel(),
-            identifierFilter = call.parameters["identifier"],
+            identifierFilter = identifierFilter,
             purlFilter = call.parameters["purl"]
         )
 
