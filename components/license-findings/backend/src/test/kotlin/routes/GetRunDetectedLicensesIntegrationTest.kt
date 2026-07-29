@@ -25,11 +25,15 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.licensefindings.DetectedLicense
 import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingIntegrationTest
+import org.eclipse.apoapsis.ortserver.components.licensefindings.SeedResult
+import org.eclipse.apoapsis.ortserver.components.licensefindings.addLicenseFindings
 import org.eclipse.apoapsis.ortserver.components.licensefindings.seedData
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -37,16 +41,16 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 
 class GetRunDetectedLicensesIntegrationTest : LicenseFindingIntegrationTest({
-    var ortRunId = -1L
+    lateinit var seeded: SeedResult
 
     beforeEach {
-        ortRunId = seedData(dbExtension.fixtures, dbExtension.db).ortRunId
+        seeded = seedData(dbExtension.fixtures, dbExtension.db)
     }
 
     "GetRunDetectedLicenses" should {
         "return 200 with all licenses and package counts sorted by license" {
             licenseFindingTestApplication { client ->
-                val response = client.get("/runs/$ortRunId/detected-licenses")
+                val response = client.get("/runs/${seeded.ortRunId}/detected-licenses")
 
                 response.status shouldBe HttpStatusCode.OK
                 response.body<PagedResponse<DetectedLicense>>() shouldBe PagedResponse(
@@ -65,14 +69,84 @@ class GetRunDetectedLicensesIntegrationTest : LicenseFindingIntegrationTest({
             }
         }
 
-        "filter by the license query parameter case-insensitively" {
+        "use substring matching by default for the license query parameter" {
+            addLicenseFindings(
+                dbExtension.db,
+                seeded.scannerRunId,
+                Identifier("Maven", "com.example", "mit-or-apache", "1.0"),
+                listOf("MIT OR Apache-2.0")
+            )
+
             licenseFindingTestApplication { client ->
-                val response = client.get("/runs/$ortRunId/detected-licenses?license=apache")
+                val response = client.get("/runs/${seeded.ortRunId}/detected-licenses") {
+                    parameter("license", "mit")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<PagedResponse<DetectedLicense>>()
+                body.pagination.totalCount shouldBe 2
+                body.data should containExactly(
+                    DetectedLicense("MIT", 1),
+                    DetectedLicense("MIT OR Apache-2.0", 1)
+                )
+            }
+        }
+
+        "support explicit substring matching for the license query parameter" {
+            addLicenseFindings(
+                dbExtension.db,
+                seeded.scannerRunId,
+                Identifier("Maven", "com.example", "mit-or-apache", "1.0"),
+                listOf("MIT OR Apache-2.0")
+            )
+
+            licenseFindingTestApplication { client ->
+                val response = client.get("/runs/${seeded.ortRunId}/detected-licenses") {
+                    parameter("license", "mit")
+                    parameter("licenseMatchType", "substring")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<PagedResponse<DetectedLicense>>()
+                body.pagination.totalCount shouldBe 2
+                body.data should containExactly(
+                    DetectedLicense("MIT", 1),
+                    DetectedLicense("MIT OR Apache-2.0", 1)
+                )
+            }
+        }
+
+        "support exact matching for the license query parameter" {
+            addLicenseFindings(
+                dbExtension.db,
+                seeded.scannerRunId,
+                Identifier("Maven", "com.example", "mit-or-apache", "1.0"),
+                listOf("MIT OR Apache-2.0")
+            )
+
+            licenseFindingTestApplication { client ->
+                val response = client.get("/runs/${seeded.ortRunId}/detected-licenses") {
+                    parameter("license", "MIT")
+                    parameter("licenseMatchType", "exact")
+                }
 
                 response.status shouldBe HttpStatusCode.OK
                 val body = response.body<PagedResponse<DetectedLicense>>()
                 body.pagination.totalCount shouldBe 1
-                body.data should containExactly(DetectedLicense("Apache-2.0", 2))
+                body.data should containExactly(DetectedLicense("MIT", 1))
+            }
+        }
+
+        "return 400 for an unsupported license match type" {
+            licenseFindingTestApplication { client ->
+                val response = client.get("/runs/${seeded.ortRunId}/detected-licenses") {
+                    parameter("license", "MIT")
+                    parameter("licenseMatchType", "unsupported")
+                }
+
+                response.status shouldBe HttpStatusCode.BadRequest
+                response.body<String>() shouldBe
+                    "Unsupported 'licenseMatchType' value 'unsupported'. Supported values are 'substring' and 'exact'."
             }
         }
 

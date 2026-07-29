@@ -54,7 +54,11 @@ internal fun Route.getRunDetectedLicenses(
                 description = "The ID of the ORT run."
             }
             queryParameter<String>("license") {
-                description = "Filter by license using a case-insensitive substring match."
+                description = "Filter by license. Uses a case-insensitive substring match by default."
+            }
+            queryParameter<String>("licenseMatchType") {
+                description = "How to match the license filter: 'substring' performs a case-insensitive substring " +
+                    "match (the default), while 'exact' performs case-sensitive equality."
             }
             standardListQueryParameters()
         }
@@ -79,14 +83,29 @@ internal fun Route.getRunDetectedLicenses(
                     }
                 }
             }
+            HttpStatusCode.BadRequest to {
+                description = "If 'licenseMatchType' has an unsupported value."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")
 
         ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
-        val licenseFilter = call.parameters["license"]?.let {
-            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        val licenseFilter = call.parameters["license"]?.let { value ->
+            val matchType = call.parameters["licenseMatchType"] ?: "substring"
+            val operator = when (matchType) {
+                "substring" -> ComparisonOperator.ILIKE
+
+                "exact" -> ComparisonOperator.EQUALS
+
+                else -> return@get call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Unsupported 'licenseMatchType' value '$matchType'. Supported values are 'substring' and 'exact'."
+                )
+            }
+
+            FilterOperatorAndValue(operator, value)
         }
 
         val result = service.getDetectedLicensesForRun(

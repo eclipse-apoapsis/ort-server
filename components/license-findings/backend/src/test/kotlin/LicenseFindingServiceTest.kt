@@ -717,7 +717,7 @@ internal fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedRes
     return CrossRunSeedResult(ortRun1.id, ortRun2.id, identifier)
 }
 
-private fun addLicenseFindings(
+internal fun addLicenseFindings(
     db: Database,
     scannerRunId: Long,
     identifier: Identifier,

@@ -58,7 +58,11 @@ internal fun Route.getRunPackagesWithDetectedLicense(
                 description = "The URL-encoded SPDX license identifier (e.g. Apache-2.0, GPL-2.0-or-later)."
             }
             queryParameter<String>("identifier") {
-                description = "Filter by ORT identifier using a case-insensitive substring match."
+                description = "Filter by ORT identifier. Uses a case-insensitive substring match by default."
+            }
+            queryParameter<String>("identifierMatchType") {
+                description = "How to match the identifier filter: 'substring' performs a case-insensitive substring " +
+                    "match (the default), while 'exact' performs case-sensitive equality."
             }
             queryParameter<String>("purl") {
                 description = "Filter by PURL using a case-insensitive substring match."
@@ -88,10 +92,26 @@ internal fun Route.getRunPackagesWithDetectedLicense(
                     }
                 }
             }
+            HttpStatusCode.BadRequest to {
+                description = "If 'identifierMatchType' has an unsupported value."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
-        val identifierFilter = call.parameters["identifier"]?.let {
-            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        val identifierFilter = call.parameters["identifier"]?.let { value ->
+            val matchType = call.parameters["identifierMatchType"] ?: "substring"
+            val operator = when (matchType) {
+                "substring" -> ComparisonOperator.ILIKE
+
+                "exact" -> ComparisonOperator.EQUALS
+
+                else -> return@get call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Unsupported 'identifierMatchType' value '$matchType'. Supported values are 'substring' and " +
+                        "'exact'."
+                )
+            }
+
+            FilterOperatorAndValue(operator, value)
         }
 
         val result = service.getPackagesWithDetectedLicenseForRun(
