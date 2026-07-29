@@ -17,4 +17,5 @@
  * License-Filename: LICENSE
  */
 
+export { LicensesAccordion } from '@/components/licenses/licenses-accordion';
 export { SpdxExpressionBadgeGroup } from '@/components/licenses/spdx-expression-badge-group';
