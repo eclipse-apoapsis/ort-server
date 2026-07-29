@@ -53,6 +53,12 @@ import {
 import { toastError } from '@/lib/toast';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { DetectedLicensePackagesTable } from './detected-license-packages-table';
+import {
+  clearDetectedLicenseMarkers,
+  clearPackageMarker,
+  getDetectedLicenseQueryFilter,
+  getMarkerExpandedState,
+} from './license-findings-state';
 
 const licenseColumnHelper = createColumnHelper<DetectedLicense>();
 const defaultPageSize = 10;
@@ -80,6 +86,10 @@ export const LicenseFindingsView = () => {
       : undefined;
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const previousPackageIdType = useRef(packageIdType);
+  const preserveManualExpansion = useRef(false);
+  const [expanded, setExpanded] = useState<ExpandedState>(
+    getMarkerExpandedState(search.marked)
+  );
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -118,7 +128,7 @@ export const LicenseFindingsView = () => {
         limit: pageSize,
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
-        license: detectedLicenseFilter,
+        ...getDetectedLicenseQueryFilter(search.marked, detectedLicenseFilter),
       },
     }),
   });
@@ -139,14 +149,15 @@ export const LicenseFindingsView = () => {
               const isOpening = !row.getIsExpanded();
 
               setExpanded(isOpening ? { [row.id]: true } : {});
+              preserveManualExpansion.current = search.marked !== undefined;
               navigate({
-                search: {
+                search: clearDetectedLicenseMarkers({
                   ...search,
                   packagePage: 1,
                   packageId: undefined,
                   packageSortBy: undefined,
                   findingsPage: 1,
-                },
+                }),
                 replace: true,
               });
             }}
@@ -178,11 +189,11 @@ export const LicenseFindingsView = () => {
           })),
           setSelected: (licenses: string[]) => {
             navigate({
-              search: {
+              search: clearDetectedLicenseMarkers({
                 ...search,
                 page: 1,
                 detectedLicense: licenses.length === 0 ? undefined : licenses,
-              },
+              }),
             });
           },
         },
@@ -196,8 +207,6 @@ export const LicenseFindingsView = () => {
       },
     }),
   ];
-
-  const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const table = useReactTable({
     data: detectedLicenseFindings?.data || [],
@@ -217,8 +226,18 @@ export const LicenseFindingsView = () => {
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,
+    getRowId: (row) => row.license,
     manualPagination: true,
   });
+
+  useEffect(() => {
+    if (preserveManualExpansion.current) {
+      preserveManualExpansion.current = false;
+      return;
+    }
+
+    setExpanded(getMarkerExpandedState(search.marked));
+  }, [search.marked]);
 
   useEffect(() => {
     if (previousPackageIdType.current === packageIdType) {
@@ -227,12 +246,12 @@ export const LicenseFindingsView = () => {
 
     previousPackageIdType.current = packageIdType;
     navigate({
-      search: {
+      search: clearPackageMarker({
         ...search,
         packagePage: 1,
         packageId: undefined,
         packageSortBy: undefined,
-      },
+      }),
       replace: true,
     });
     // Identifier mode changes invalidate the nested package query inputs.
@@ -282,13 +301,20 @@ export const LicenseFindingsView = () => {
           setCurrentPageOptions={(currentPage) => {
             return {
               to: '.',
-              search: { ...search, page: currentPage },
+              search: clearDetectedLicenseMarkers({
+                ...search,
+                page: currentPage,
+              }),
             };
           }}
           setPageSizeOptions={(size) => {
             return {
               to: '.',
-              search: { ...search, page: 1, pageSize: size },
+              search: clearDetectedLicenseMarkers({
+                ...search,
+                page: 1,
+                pageSize: size,
+              }),
             };
           }}
           setSortingOptions={(sortBy) => {

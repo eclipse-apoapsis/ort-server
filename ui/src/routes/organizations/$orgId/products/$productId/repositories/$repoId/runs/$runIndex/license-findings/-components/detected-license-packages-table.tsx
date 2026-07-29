@@ -28,7 +28,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { DetectedLicense, PackageIdentifier } from '@/api';
 import { getRunPackagesWithDetectedLicenseOptions } from '@/api/@tanstack/react-query.gen';
@@ -47,6 +47,11 @@ import { toastError } from '@/lib/toast';
 import { PackageIdType } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { DetectedLicenseFindingsTable } from './detected-license-findings-table';
+import {
+  clearPackageMarker,
+  getMarkerExpandedState,
+  getPackageIdentifierQueryFilter,
+} from './license-findings-state';
 
 const packageColumnHelper = createColumnHelper<PackageIdentifier>();
 const defaultPageSize = 10;
@@ -90,7 +95,10 @@ export const DetectedLicensePackagesTable = ({
   const packageIdFilter = search.packageId;
   const packageSortBy = search.packageSortBy;
   const packageColumnId = packageIdType === 'PURL' ? 'purl' : 'identifier';
-  const [packageExpanded, setPackageExpanded] = useState<ExpandedState>({});
+  const preserveManualExpansion = useRef(false);
+  const [packageExpanded, setPackageExpanded] = useState<ExpandedState>(
+    getMarkerExpandedState(search.packageMarked)
+  );
 
   const {
     data: packages,
@@ -107,9 +115,11 @@ export const DetectedLicensePackagesTable = ({
         limit: packagePageSize,
         offset: packagePageIndex * packagePageSize,
         sort: convertToBackendSorting(packageSortBy),
-        ...(packageIdType === 'PURL'
-          ? { purl: packageIdFilter }
-          : { identifier: packageIdFilter }),
+        ...getPackageIdentifierQueryFilter(
+          search.packageMarked,
+          packageIdType,
+          packageIdFilter
+        ),
       },
     }),
   });
@@ -127,17 +137,16 @@ export const DetectedLicensePackagesTable = ({
             onClick={() => {
               const isOpening = !packageRow.getIsExpanded();
 
-              packageRow.toggleExpanded();
-
-              if (isOpening) {
-                navigate({
-                  search: {
-                    ...search,
-                    findingsPage: 1,
-                  },
-                  replace: true,
-                });
-              }
+              setPackageExpanded(isOpening ? { [packageRow.id]: true } : {});
+              preserveManualExpansion.current =
+                search.packageMarked !== undefined;
+              navigate({
+                search: clearPackageMarker({
+                  ...search,
+                  findingsPage: 1,
+                }),
+                replace: true,
+              });
             }}
             style={{ cursor: 'pointer' }}
           >
@@ -166,11 +175,11 @@ export const DetectedLicensePackagesTable = ({
             filterVariant: 'text',
             setFilterValue: (value: string | undefined) => {
               navigate({
-                search: {
+                search: clearPackageMarker({
                   ...search,
                   packagePage: 1,
                   packageId: value,
-                },
+                }),
               });
             },
           },
@@ -198,8 +207,18 @@ export const DetectedLicensePackagesTable = ({
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,
+    getRowId: (row) => identifierToString(row.identifier),
     manualPagination: true,
   });
+
+  useEffect(() => {
+    if (preserveManualExpansion.current) {
+      preserveManualExpansion.current = false;
+      return;
+    }
+
+    setPackageExpanded(getMarkerExpandedState(search.packageMarked));
+  }, [search.packageMarked]);
 
   if (isPending) {
     return <LoadingIndicator />;
@@ -235,20 +254,20 @@ export const DetectedLicensePackagesTable = ({
         setCurrentPageOptions={(currentPage) => {
           return {
             to: '.',
-            search: {
+            search: clearPackageMarker({
               ...search,
               packagePage: currentPage,
-            },
+            }),
           };
         }}
         setPageSizeOptions={(size) => {
           return {
             to: '.',
-            search: {
+            search: clearPackageMarker({
               ...search,
               packagePage: 1,
               packagePageSize: size,
-            },
+            }),
           };
         }}
         setSortingOptions={(sortBy) => {

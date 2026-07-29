@@ -24,7 +24,9 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   detectedLicenseSearchParameterSchema,
   findingsPaginationSearchParameterSchema,
+  markedSearchParameterSchema,
   packageIdSearchParameterSchema,
+  packageMarkedSearchParameterSchema,
   packagePaginationSearchParameterSchema,
   packageSortingSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -40,6 +42,8 @@ const licenseFindingsSearchSchema = z.object({
   ...findingsPaginationSearchParameterSchema.shape,
   ...packageSortingSearchParameterSchema.shape,
   ...packageIdSearchParameterSchema.shape,
+  ...markedSearchParameterSchema.shape,
+  ...packageMarkedSearchParameterSchema.shape,
 });
 
 export const Route = createFileRoute(
