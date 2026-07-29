@@ -27,6 +27,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.licensefindings.DetectedLicense
 import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingService
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
@@ -83,10 +85,14 @@ internal fun Route.getRunDetectedLicenses(
 
         ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
+        val licenseFilter = call.parameters["license"]?.let {
+            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        }
+
         val result = service.getDetectedLicensesForRun(
             ortRunId = runId,
             parameters = call.pagingOptions(SortProperty("license", SortDirection.ASCENDING)).mapToModel(),
-            licenseFilter = call.parameters["license"]
+            licenseFilter = licenseFilter
         )
 
         call.respond(HttpStatusCode.OK, result.mapToApi { it })
