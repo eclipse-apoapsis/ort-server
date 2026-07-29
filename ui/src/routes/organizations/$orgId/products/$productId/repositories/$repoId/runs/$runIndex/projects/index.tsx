@@ -42,7 +42,10 @@ import {
 import { BreakableString } from '@/components/breakable-string';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
-import { SpdxExpressionBadgeGroup } from '@/components/licenses';
+import {
+  LicensesAccordion,
+  SpdxExpressionBadgeGroup,
+} from '@/components/licenses';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { RenderProperty } from '@/components/render-property';
 import { Button } from '@/components/ui/button';
@@ -128,7 +131,13 @@ const ProjectCard = ({ project }: { project: Project }) => {
   );
 };
 
-const renderSubComponent = ({ row }: { row: Row<Project> }) => {
+const renderSubComponent = ({
+  row,
+  runId,
+}: {
+  row: Row<Project>;
+  runId: number;
+}) => {
   const project = row.original;
 
   return (
@@ -138,6 +147,16 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
         label='Description'
         value={project.description}
         type='textblock'
+      />
+      <LicensesAccordion
+        runId={runId}
+        identifier={project.identifier}
+        declaredLicenses={[
+          ...(project.processedDeclaredLicense.spdxExpression
+            ? [project.processedDeclaredLicense.spdxExpression]
+            : []),
+          ...(project.processedDeclaredLicense.unmappedLicenses ?? []),
+        ]}
       />
       <RenderProperty label='Homepage' value={project.homepageUrl} type='url' />
       <RenderProperty label='CPE' value={project.cpe} />
@@ -461,7 +480,9 @@ const ProjectsComponent = () => {
       <CardContent>
         <DataTableCards
           table={table}
-          renderSubComponent={renderSubComponent}
+          renderSubComponent={({ row }) =>
+            renderSubComponent({ row, runId: ortRun.id })
+          }
           setCurrentPageOptions={(currentPage) => {
             return {
               to: Route.to,
