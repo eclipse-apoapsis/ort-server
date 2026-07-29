@@ -25,11 +25,13 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.licensefindings.PackageIdentifier
 import org.eclipse.apoapsis.ortserver.components.licensefindings.SeedResult
+import org.eclipse.apoapsis.ortserver.components.licensefindings.addLicenseFindings
 import org.eclipse.apoapsis.ortserver.components.licensefindings.seedData
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
@@ -70,10 +72,10 @@ class GetRunPackagesWithDetectedLicenseIntegrationTest : LicenseFindingIntegrati
             }
         }
 
-        "filter by the identifier query parameter" {
+        "use substring matching by default for the identifier query parameter" {
             licenseFindingTestApplication { client ->
                 val response = client.get(
-                    "/runs/${seeded.ortRunId}/detected-licenses/Apache-2.0/packages?identifier=vcs"
+                    "/runs/${seeded.ortRunId}/detected-licenses/Apache-2.0/packages?identifier=VCS"
                 )
 
                 response.status shouldBe HttpStatusCode.OK
@@ -85,6 +87,75 @@ class GetRunPackagesWithDetectedLicenseIntegrationTest : LicenseFindingIntegrati
                         seeded.vcsPurl
                     )
                 )
+            }
+        }
+
+        "support explicit substring matching for the identifier query parameter" {
+            addLicenseFindings(
+                dbExtension.db,
+                seeded.scannerRunId,
+                seeded.artifactIdentifier.copy(name = "artifact-package-extra"),
+                listOf("Apache-2.0")
+            )
+
+            licenseFindingTestApplication { client ->
+                val response = client.get(
+                    "/runs/${seeded.ortRunId}/detected-licenses/Apache-2.0/packages"
+                ) {
+                    parameter("identifier", "artifact-package")
+                    parameter("identifierMatchType", "substring")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<PagedResponse<PackageIdentifier>>()
+                body.pagination.totalCount shouldBe 2
+                body.data.map { it.identifier.name } should containExactly(
+                    "artifact-package",
+                    "artifact-package-extra"
+                )
+            }
+        }
+
+        "support exact matching for the identifier query parameter" {
+            addLicenseFindings(
+                dbExtension.db,
+                seeded.scannerRunId,
+                seeded.artifactIdentifier.copy(name = "artifact-package-extra"),
+                listOf("Apache-2.0")
+            )
+
+            licenseFindingTestApplication { client ->
+                val response = client.get(
+                    "/runs/${seeded.ortRunId}/detected-licenses/Apache-2.0/packages"
+                ) {
+                    parameter("identifier", seeded.artifactIdentifier.toCoordinates())
+                    parameter("identifierMatchType", "exact")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<PagedResponse<PackageIdentifier>>()
+                body.pagination.totalCount shouldBe 1
+                body.data should containExactly(
+                    PackageIdentifier(
+                        seeded.artifactIdentifier.mapToApi(),
+                        seeded.artifactPurl
+                    )
+                )
+            }
+        }
+
+        "return 400 for an unsupported identifier match type" {
+            licenseFindingTestApplication { client ->
+                val response = client.get(
+                    "/runs/${seeded.ortRunId}/detected-licenses/Apache-2.0/packages"
+                ) {
+                    parameter("identifier", "artifact-package")
+                    parameter("identifierMatchType", "unsupported")
+                }
+
+                response.status shouldBe HttpStatusCode.BadRequest
+                response.body<String>() shouldBe "Unsupported 'identifierMatchType' value 'unsupported'. " +
+                    "Supported values are 'substring' and 'exact'."
             }
         }
 

@@ -23,11 +23,13 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.licensefindings.routes.getRunDetectedLicenseFindings
 import org.eclipse.apoapsis.ortserver.components.licensefindings.routes.getRunDetectedLicenses
+import org.eclipse.apoapsis.ortserver.components.licensefindings.routes.getRunDetectedLicensesForIdentifier
 import org.eclipse.apoapsis.ortserver.components.licensefindings.routes.getRunPackagesWithDetectedLicense
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 
 fun Route.licenseFindingRoutes(service: LicenseFindingService, ortRunRepository: OrtRunRepository) {
     getRunDetectedLicenses(service, ortRunRepository)
+    getRunDetectedLicensesForIdentifier(service, ortRunRepository)
     getRunDetectedLicenseFindings(service, ortRunRepository)
     getRunPackagesWithDetectedLicense(service, ortRunRepository)
 }

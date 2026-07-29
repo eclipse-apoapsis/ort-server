@@ -72,6 +72,22 @@ class LicenseFindingAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetRunDetectedLicensesForIdentifier" should {
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val encodedIdentifier = URLEncoder.encode(artifactIdentifier, StandardCharsets.UTF_8)
+
+            requestShouldRequireRole(
+                routes = {
+                    licenseFindingRoutes(service, ortRunRepository)
+                },
+                role = RepositoryRole.READER,
+                hierarchyId = hierarchyId
+            ) {
+                get("/runs/$ortRunId/detected-licenses/identifiers/$encodedIdentifier")
+            }
+        }
+    }
+
     "GetRunPackagesWithDetectedLicense" should {
         "require RepositoryPermission.READ_ORT_RUNS" {
             requestShouldRequireRole(
