@@ -42,7 +42,10 @@ import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
-import { SpdxExpressionBadgeGroup } from '@/components/licenses';
+import {
+  LicensesAccordion,
+  SpdxExpressionBadgeGroup,
+} from '@/components/licenses';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { PackageCuration } from '@/components/package-curation';
 import { RenderProperty } from '@/components/render-property';
@@ -199,9 +202,11 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
 const renderSubComponent = ({
   row,
   packageIdType,
+  runId,
 }: {
   row: Row<Package>;
   packageIdType?: PackageIdType;
+  runId: number;
 }) => {
   const pkg = row.original;
   const hasCurations = pkg.curations.length > 0;
@@ -213,6 +218,16 @@ const renderSubComponent = ({
         label='Description'
         value={pkg.description}
         type='textblock'
+      />
+      <LicensesAccordion
+        runId={runId}
+        identifier={pkg.identifier}
+        declaredLicenses={[
+          ...(pkg.processedDeclaredLicense.spdxExpression
+            ? [pkg.processedDeclaredLicense.spdxExpression]
+            : []),
+          ...(pkg.processedDeclaredLicense.unmappedLicenses ?? []),
+        ]}
       />
       <RenderProperty label='CPE' value={pkg.cpe} />
       <RenderProperty
@@ -583,7 +598,7 @@ const PackagesComponent = () => {
         <DataTableCards
           table={table}
           renderSubComponent={({ row }) =>
-            renderSubComponent({ row, packageIdType })
+            renderSubComponent({ row, packageIdType, runId: ortRun.id })
           }
           setCurrentPageOptions={(currentPage) => {
             return {
