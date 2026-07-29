@@ -202,6 +202,10 @@ export const markedSearchParameterSchema = z.object({
   marked: z.string().optional(),
 });
 
+export const packageMarkedSearchParameterSchema = z.object({
+  packageMarked: z.string().optional(),
+});
+
 // This schema is used to validate the filter parameter when filtering
 // organizations, products, or repositories with regexp.
 export const filterByNameSearchParameterSchema = z.object({
