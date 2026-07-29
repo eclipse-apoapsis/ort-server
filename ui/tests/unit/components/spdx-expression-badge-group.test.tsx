@@ -54,6 +54,14 @@ describe('SpdxExpressionBadgeGroup', () => {
     expect(markup.match(/data-slot="badge"/g)?.length).toBe(2);
   });
 
+  it('renders a suffix as part of the wrapping expression', () => {
+    const markup = renderToStaticMarkup(
+      <SpdxExpressionBadgeGroup expression='MIT AND Apache-2.0' suffix=',' />
+    );
+
+    expect(markup).toMatch(/MIT<\/span>,<\/span>/);
+  });
+
   it('renders deprecated GPL plus syntax as its normalized atomic badge', () => {
     const markup = renderToStaticMarkup(
       <SpdxExpressionBadgeGroup expression='GPL-2.0+' />
@@ -74,6 +82,20 @@ describe('SpdxExpressionBadgeGroup', () => {
     expect(markup).toContain('Apache-2.0');
     expect(markup).toContain('BSD-3-Clause');
     expect(markup.match(/data-slot="badge"/g)?.length).toBe(3);
+  });
+
+  it('renders the same normalized order and grouping as the tooltip', () => {
+    const markup = renderToStaticMarkup(
+      <SpdxExpressionBadgeGroup expression='EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR BSD-3-Clause' />
+    );
+
+    const expressionTitle =
+      'title="EPL-2.0 OR (BSD-3-Clause OR GPL-2.0-only WITH Classpath-exception-2.0)"';
+
+    expect(markup.split(expressionTitle)).toHaveLength(5);
+    expect(markup.replace(/<[^>]*>/g, '')).toBe(
+      'EPL-2.0or(BSD-3-ClauseorGPL-2.0-only WITH Classpath-exception-2.0)'
+    );
   });
 
   it('renders WITH expressions as a single badge', () => {
