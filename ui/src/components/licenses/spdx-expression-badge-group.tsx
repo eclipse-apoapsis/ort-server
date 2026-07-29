@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 
 type SpdxExpressionBadgeGroupProps = React.ComponentProps<'span'> & {
   expression: string | null | undefined;
+  suffix?: React.ReactNode;
 };
 
 const expressionWrapperClassName =
@@ -47,41 +48,59 @@ function licenseNodeToString(node: SpdxLicenseNode): string {
     : node.license;
 }
 
-function needsParentheses(
-  parent: SpdxConjunctionNode,
-  child: SpdxExpressionNode
-): boolean {
-  return (
-    child.kind === 'conjunction' &&
-    parent.conjunction === 'and' &&
-    child.conjunction === 'or'
-  );
+function needsParentheses(child: SpdxExpressionNode): boolean {
+  return child.kind === 'conjunction';
 }
 
 function renderExpressionNode(
   node: SpdxExpressionNode,
-  parent?: SpdxConjunctionNode
+  expressionTitle: string,
+  parent?: SpdxConjunctionNode,
+  suffix?: React.ReactNode
 ): React.ReactNode {
   if (node.kind !== 'conjunction') {
-    return <LicenseBadge license={licenseNodeToString(node)} />;
+    const badge = (
+      <LicenseBadge
+        license={licenseNodeToString(node)}
+        title={expressionTitle}
+      />
+    );
+
+    return suffix ? (
+      <span className='inline-flex items-center'>
+        {badge}
+        {suffix}
+      </span>
+    ) : (
+      badge
+    );
   }
 
+  const parenthesized = Boolean(parent) && needsParentheses(node);
   const renderedGroup = (
     <>
-      {renderExpressionNode(node.left, node)}
+      {renderExpressionNode(node.left, expressionTitle, node)}
       <span className='text-muted-foreground text-xs font-medium uppercase'>
         {node.conjunction}
       </span>
-      {renderExpressionNode(node.right, node)}
+      {renderExpressionNode(
+        node.right,
+        expressionTitle,
+        node,
+        parenthesized ? undefined : suffix
+      )}
     </>
   );
 
-  if (parent && needsParentheses(parent, node)) {
+  if (parenthesized) {
     return (
       <>
         <span className='text-muted-foreground text-xs font-medium'>(</span>
         {renderedGroup}
-        <span className='text-muted-foreground text-xs font-medium'>)</span>
+        <span className='inline-flex items-center'>
+          <span className='text-muted-foreground text-xs font-medium'>)</span>
+          {suffix}
+        </span>
       </>
     );
   }
@@ -93,6 +112,7 @@ export function SpdxExpressionBadgeGroup({
   expression,
   className,
   title,
+  suffix,
   ...props
 }: SpdxExpressionBadgeGroupProps) {
   if (!expression?.trim()) {
@@ -104,7 +124,10 @@ export function SpdxExpressionBadgeGroup({
   if (parsedExpression.kind === 'invalid') {
     return (
       <span className={cn(expressionWrapperClassName, className)}>
-        <LicenseBadge license={parsedExpression.rawExpression.trim()} />
+        <span className='inline-flex items-center'>
+          <LicenseBadge license={parsedExpression.rawExpression.trim()} />
+          {suffix}
+        </span>
       </span>
     );
   }
@@ -112,22 +135,34 @@ export function SpdxExpressionBadgeGroup({
   if (parsedExpression.kind === 'atomic') {
     return (
       <span className={cn(expressionWrapperClassName, className)}>
-        <LicenseBadge
-          license={licenseNodeToString(parsedExpression.node)}
-          title={title ?? parsedExpression.normalizedExpression}
-          {...props}
-        />
+        <span className='inline-flex items-center'>
+          <LicenseBadge
+            license={licenseNodeToString(parsedExpression.node)}
+            title={title ?? parsedExpression.normalizedExpression}
+            {...props}
+          />
+          {suffix}
+        </span>
       </span>
     );
   }
 
+  const normalizedParsedExpression = parseLicenseExpression(
+    parsedExpression.normalizedExpression
+  );
+  const expressionNode =
+    normalizedParsedExpression.kind === 'compound'
+      ? normalizedParsedExpression.node
+      : parsedExpression.node;
+  const expressionTitle = title ?? parsedExpression.normalizedExpression;
+
   return (
     <span
       className={cn(expressionWrapperClassName, className)}
-      title={title ?? parsedExpression.normalizedExpression}
+      title={expressionTitle}
       {...props}
     >
-      {renderExpressionNode(parsedExpression.node)}
+      {renderExpressionNode(expressionNode, expressionTitle, undefined, suffix)}
     </span>
   );
 }
