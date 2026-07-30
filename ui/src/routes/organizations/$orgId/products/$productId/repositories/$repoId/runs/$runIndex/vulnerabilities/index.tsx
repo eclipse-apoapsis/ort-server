@@ -170,29 +170,29 @@ const VulnerabilityCard = ({
           {vulnerability.advisor.name}
         </div>
       </div>
-      {(vulnerability.firstFixedVersions?.length ?? 0) > 0 && (
-        <div className='flex items-center justify-end'>
+
+      <div className='flex items-center justify-between'>
+        <div className='flex gap-2'>
+          <Badge
+            className={`${getResolvedBackgroundColor(getResolvedStatus(vulnerability))}`}
+            variant='small'
+          >
+            {getResolvedStatus(vulnerability)}
+          </Badge>
+          <Badge
+            className={`${getVulnerabilityRatingBackgroundColor(
+              vulnerability.rating
+            )}`}
+            variant='small'
+          >
+            {vulnerability.rating}
+          </Badge>
+        </div>
+        {(vulnerability.firstFixedVersions?.length ?? 0) > 0 && (
           <Badge className='bg-green-300 whitespace-nowrap text-black'>
             Fix available
           </Badge>
-        </div>
-      )}
-
-      <div className='flex gap-2'>
-        <Badge
-          className={`${getResolvedBackgroundColor(getResolvedStatus(vulnerability))}`}
-          variant='small'
-        >
-          {getResolvedStatus(vulnerability)}
-        </Badge>
-        <Badge
-          className={`${getVulnerabilityRatingBackgroundColor(
-            vulnerability.rating
-          )}`}
-          variant='small'
-        >
-          {vulnerability.rating}
-        </Badge>
+        )}
       </div>
     </div>
   );
