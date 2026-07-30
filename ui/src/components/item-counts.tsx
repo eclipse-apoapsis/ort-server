@@ -21,6 +21,7 @@ import { Link, LinkProps } from '@tanstack/react-router';
 import { Bug, Scale, ShieldQuestion } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
@@ -72,7 +73,7 @@ export const ItemCounts = ({
   tooltip,
 }: ItemCountsProps) => {
   return (
-    <div className='grid grid-cols-3 gap-1'>
+    <div className='grid min-h-6 grid-cols-3 gap-1'>
       {showIssues && (
         <CountBadge
           count={statistics?.issuesCount}
@@ -130,6 +131,17 @@ export const ItemCounts = ({
     </div>
   );
 };
+
+export const ItemCountsSkeleton = ({ wide = false }: { wide?: boolean }) => (
+  <div className='grid min-h-6 grid-cols-3 gap-1'>
+    {[0, 1, 2].map((index) => (
+      <Skeleton
+        key={index}
+        className={cn('h-6 rounded-md', wide ? 'w-14' : 'w-12')}
+      />
+    ))}
+  </div>
+);
 
 type CountBadgeLinkProps = {
   params: LinkProps['params'];
