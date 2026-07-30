@@ -17,67 +17,40 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
-import { JobSummary, OrtRunSummary } from '@/api';
-import {
-  getRepositoryRunsOptions,
-  getRunStatisticsOptions,
-} from '@/api/@tanstack/react-query.gen';
-import { ItemCounts } from '@/components/item-counts';
+import type { JobSummary, OrtRunSummary } from '@/api';
+import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
+import { ItemCounts, ItemCountsSkeleton } from '@/components/item-counts';
+import { QueryBoundary } from '@/components/query-boundary';
 import { config } from '@/config';
 import { isJobFinished } from '@/helpers/job-helpers';
+import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
 
 type LastRunItemCountsProps = {
   repoId: number;
 };
 
-export const LastRunItemCounts = ({ repoId }: LastRunItemCountsProps) => {
-  const {
-    data: runs,
-    isPending: runsIsPending,
-    isError: runsIsError,
-  } = useQuery({
-    ...getRepositoryRunsOptions({
-      path: { repositoryId: repoId },
-      query: { limit: 1, sort: '-index' },
-    }),
-    refetchInterval: (query) => {
-      const curData = query.state.data?.data;
-      if (curData && curData[0] && curData[0].finishedAt) {
-        return undefined;
-      }
-      return config.pollInterval;
-    },
-  });
+export const LastRunItemCounts = ({ repoId }: LastRunItemCountsProps) => (
+  <QueryBoundary fallback={<ItemCountsSkeleton />} resetKey={repoId}>
+    <LastRunItemCountsStage1 repoId={repoId} />
+  </QueryBoundary>
+);
 
-  if (runsIsPending) {
-    return (
-      <>
-        <span className='sr-only'>Loading...</span>
-        <Loader2 size={16} className='mx-3 animate-spin' />
-      </>
-    );
-  }
+const LastRunItemCountsStage1 = ({ repoId }: { repoId: number }) => {
+  const run = useLatestRepositoryRun(repoId);
 
-  if (runsIsError) {
-    return <span>Error loading run.</span>;
-  }
+  if (!run) return <div className='min-h-6' />;
 
-  if (!runs.data[0]) return null;
-
-  const run = runs.data[0];
-
-  return <LastRunItemCountsInner summary={run} />;
+  return <LastRunItemCountsStage2 summary={run} />;
 };
 
 const showBadge = (jobSummary: JobSummary | null | undefined) => {
   return jobSummary != null && isJobFinished(jobSummary.status);
 };
 
-const LastRunItemCountsInner = ({ summary }: { summary: OrtRunSummary }) => {
-  const statistics = useQuery({
+const LastRunItemCountsStage2 = ({ summary }: { summary: OrtRunSummary }) => {
+  const statistics = useSuspenseQuery({
     ...getRunStatisticsOptions({
       path: { runId: summary.id },
     }),
