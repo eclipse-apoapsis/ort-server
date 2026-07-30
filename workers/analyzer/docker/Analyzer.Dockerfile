@@ -35,6 +35,7 @@ ARG DOTNET_VERSION=6.0
 ARG GLEAM_VERSION=1.13.0
 ARG GO_VERSION=1.25.0
 ARG HASKELL_STACK_VERSION=2.13.1
+ARG FNM_VERSION=1.38.1
 ARG NODEJS_VERSION=24.15.0
 ARG NUGET_INSPECTOR_VERSION=0.10.0
 ARG PIP_VERSION=25.2.0
@@ -161,26 +162,35 @@ FROM scratch AS python
 COPY --from=pythonbuild /opt/python /opt/python
 
 #------------------------------------------------------------------------
-# NODEJS - Build NodeJS as a separate component with nvm
+# NODEJS - Build NodeJS as a separate component with fnm
 FROM ort-base-image AS nodebuild
 
 ARG BOWER_VERSION
 ARG COREPACK_VERSION
+ARG FNM_VERSION
 ARG NODEJS_VERSION
 
-ENV NVM_DIR=/opt/nvm
-ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
+ENV FNM_DIR=/opt/fnm
+ENV PATH=$PATH:$FNM_DIR:$FNM_DIR/node-versions/v$NODEJS_VERSION/installation/bin
 
-RUN git clone --depth 1 https://github.com/nvm-sh/nvm.git $NVM_DIR
-RUN . $NVM_DIR/nvm.sh \
-    && nvm install "$NODEJS_VERSION" \
-    && nvm alias default "$NODEJS_VERSION" \
-    && nvm use default \
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN if [ "$(arch)" = "aarch64" ]; then \
+        FNM_ARCHIVE="fnm-arm64.zip"; \
+    else \
+        FNM_ARCHIVE="fnm-linux.zip"; \
+    fi \
+    && curl -fsSL "https://github.com/Schniz/fnm/releases/download/v$FNM_VERSION/$FNM_ARCHIVE" \
+       -o /tmp/fnm.zip \
+    && unzip /tmp/fnm.zip -d $FNM_DIR \
+    && chmod a+x $FNM_DIR/fnm \
+    && rm /tmp/fnm.zip
+RUN fnm install "$NODEJS_VERSION" \
+    && fnm default "$NODEJS_VERSION" \
     && npm install --global bower@$BOWER_VERSION corepack@$COREPACK_VERSION \
     && corepack enable
 
 FROM scratch AS node
-COPY --from=nodebuild /opt/nvm /opt/nvm
+COPY --from=nodebuild /opt/fnm /opt/fnm
 
 #------------------------------------------------------------------------
 # RUBY - Build Ruby as a separate component with rbenv
@@ -490,11 +500,11 @@ COPY --from=python --chown=$USER:$USER $PYENV_ROOT $PYENV_ROOT
 
 # NodeJS
 ARG NODEJS_VERSION
-ENV NVM_DIR=/opt/nvm
-ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
-COPY --from=node --chown=$USER:$USER $NVM_DIR $NVM_DIR
+ENV FNM_DIR=/opt/fnm
+ENV PATH=$PATH:$FNM_DIR:$FNM_DIR/node-versions/v$NODEJS_VERSION/installation/bin
+COPY --from=node --chown=$USER:$USER $FNM_DIR $FNM_DIR
 # Required for Corepack to dynamically modify binaries of supported package managers.
-RUN chmod -R g+rwX $NVM_DIR
+RUN chmod -R a+rwX $FNM_DIR
 
 # Rust
 ENV RUST_HOME=/opt/rust
