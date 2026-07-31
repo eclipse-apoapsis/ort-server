@@ -17,18 +17,25 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { getProductRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
-import { ItemCounts } from '@/components/item-counts';
+import { ItemCounts, ItemCountsSkeleton } from '@/components/item-counts';
+import { QueryBoundary } from '@/components/query-boundary';
 import { config } from '@/config';
 
 type ProductItemCountsProps = {
   productId: number;
 };
 
-export const ProductItemCounts = ({ productId }: ProductItemCountsProps) => {
-  const statistics = useQuery({
+export const ProductItemCounts = ({ productId }: ProductItemCountsProps) => (
+  <QueryBoundary fallback={<ItemCountsSkeleton />} resetKey={productId}>
+    <ProductItemCountsInner productId={productId} />
+  </QueryBoundary>
+);
+
+const ProductItemCountsInner = ({ productId }: ProductItemCountsProps) => {
+  const statistics = useSuspenseQuery({
     ...getProductRunStatisticsOptions({
       path: { productId },
     }),
