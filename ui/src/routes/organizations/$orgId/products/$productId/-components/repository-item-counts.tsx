@@ -27,29 +27,33 @@ import { config } from '@/config';
 import { isJobFinished } from '@/helpers/job-helpers';
 import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
 
-type LastRunItemCountsProps = {
+type RepositoryItemCountsProps = {
   repoId: number;
 };
 
-export const LastRunItemCounts = ({ repoId }: LastRunItemCountsProps) => (
+export const RepositoryItemCounts = ({ repoId }: RepositoryItemCountsProps) => (
   <QueryBoundary fallback={<ItemCountsSkeleton />} resetKey={repoId}>
-    <LastRunItemCountsStage1 repoId={repoId} />
+    <RepositoryItemCountsStage1 repoId={repoId} />
   </QueryBoundary>
 );
 
-const LastRunItemCountsStage1 = ({ repoId }: { repoId: number }) => {
+const RepositoryItemCountsStage1 = ({ repoId }: { repoId: number }) => {
   const run = useLatestRepositoryRun(repoId);
 
   if (!run) return <div className='min-h-6' />;
 
-  return <LastRunItemCountsStage2 summary={run} />;
+  return <RepositoryItemCountsStage2 summary={run} />;
 };
 
 const showBadge = (jobSummary: JobSummary | null | undefined) => {
   return jobSummary != null && isJobFinished(jobSummary.status);
 };
 
-const LastRunItemCountsStage2 = ({ summary }: { summary: OrtRunSummary }) => {
+const RepositoryItemCountsStage2 = ({
+  summary,
+}: {
+  summary: OrtRunSummary;
+}) => {
   const statistics = useSuspenseQuery({
     ...getRunStatisticsOptions({
       path: { runId: summary.id },
