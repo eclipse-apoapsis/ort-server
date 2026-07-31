@@ -17,54 +17,37 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-
-import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
+import { QueryBoundary } from '@/components/query-boundary';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { config } from '@/config';
+import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
 
-export const LastRunDate = ({ repoId }: { repoId: number }) => {
-  const {
-    data: runs,
-    isPending: runsIsPending,
-    isError: runsIsError,
-  } = useQuery({
-    ...getRepositoryRunsOptions({
-      path: { repositoryId: repoId },
-      query: { limit: 1, sort: '-index' },
-    }),
-    refetchInterval: (query) => {
-      const curData = query.state.data?.data;
-      if (curData && curData[0] && curData[0].finishedAt) {
-        return undefined;
-      }
-      return config.pollInterval;
-    },
-  });
+export const LastRunDate = ({ repoId }: { repoId: number }) => (
+  <QueryBoundary
+    fallback={
+      <div className='flex min-h-10 flex-col gap-1'>
+        <Skeleton className='h-4 w-32' />
+        <Skeleton className='h-4 w-20' />
+      </div>
+    }
+    resetKey={repoId}
+  >
+    <LastRunDateInner repoId={repoId} />
+  </QueryBoundary>
+);
 
-  if (runsIsPending) {
-    return (
-      <>
-        <span className='sr-only'>Loading...</span>
-        <Loader2 size={16} className='mx-3 animate-spin' />
-      </>
-    );
-  }
+const LastRunDateInner = ({ repoId }: { repoId: number }) => {
+  const run = useLatestRepositoryRun(repoId);
 
-  if (runsIsError) return <span>Error loading run.</span>;
-
-  if (!runs.data[0]) return null;
-
-  const run = runs.data[0];
+  if (!run) return <div className='min-h-10' />;
 
   return (
-    <div className='flex flex-col items-start'>
+    <div className='flex min-h-10 flex-col items-start'>
       {run.finishedAt ? (
         <TimestampWithUTC timestamp={run.finishedAt} />
       ) : (
