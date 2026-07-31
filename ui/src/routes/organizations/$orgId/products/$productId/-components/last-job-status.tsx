@@ -17,56 +17,40 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-
-import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
-import { config } from '@/config';
+import { QueryBoundary } from '@/components/query-boundary';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
 
-export const LastJobStatus = ({ repoId }: { repoId: number }) => {
-  const {
-    data: runs,
-    isPending: runsIsPending,
-    isError: runsIsError,
-  } = useQuery({
-    ...getRepositoryRunsOptions({
-      path: { repositoryId: repoId },
-      query: { limit: 1, sort: '-index' },
-    }),
-    refetchInterval: (query) => {
-      const curData = query.state.data?.data;
-      if (curData && curData[0] && curData[0].finishedAt) {
-        return undefined;
-      }
-      return config.pollInterval;
-    },
-  });
+export const LastJobStatus = ({ repoId }: { repoId: number }) => (
+  <QueryBoundary
+    fallback={
+      <div className='flex min-h-3 items-center space-x-1'>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Skeleton key={index} className='h-3 w-3 rounded-full' />
+        ))}
+      </div>
+    }
+    resetKey={repoId}
+  >
+    <LastJobStatusInner repoId={repoId} />
+  </QueryBoundary>
+);
 
-  if (runsIsPending) {
-    return (
-      <>
-        <span className='sr-only'>Loading...</span>
-        <Loader2 size={16} className='mx-3 animate-spin' />
-      </>
-    );
-  }
+const LastJobStatusInner = ({ repoId }: { repoId: number }) => {
+  const run = useLatestRepositoryRun(repoId);
 
-  if (runsIsError) {
-    return <span>Error loading run.</span>;
-  }
-
-  if (!runs.data[0]) return null;
-
-  const run = runs.data[0];
+  if (!run) return <div className='min-h-3' />;
 
   return (
-    <OrtRunJobStatus
-      jobs={run.jobs}
-      orgId={run.organizationId.toString()}
-      productId={run.productId.toString()}
-      repoId={run.repositoryId.toString()}
-      runIndex={run.index.toString()}
-    />
+    <div className='min-h-3'>
+      <OrtRunJobStatus
+        jobs={run.jobs}
+        orgId={run.organizationId.toString()}
+        productId={run.productId.toString()}
+        repoId={run.repositoryId.toString()}
+        runIndex={run.index.toString()}
+      />
+    </div>
   );
 };
