@@ -32,13 +32,7 @@ import {
 import { GitCompare, Repeat, View } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
-import {
-  JobSummary,
-  Organization,
-  OrtRunSummary,
-  Product,
-  Repository,
-} from '@/api';
+import { Organization, OrtRunSummary, Product, Repository } from '@/api';
 import {
   deleteRepositoryRunMutation,
   getOrganizationOptions,
@@ -47,13 +41,11 @@ import {
   getRepositoryRunOptions,
   getRepositoryRunsOptions,
   getRepositoryRunsQueryKey,
-  getRunStatisticsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
 import { FavoriteButton } from '@/components/favorite-button';
-import { ItemCounts } from '@/components/item-counts';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
@@ -76,7 +68,6 @@ import {
 import { config } from '@/config';
 import { diffResolvedJobConfigs } from '@/helpers/config-diff';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { isJobFinished } from '@/helpers/job-helpers';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
@@ -89,6 +80,7 @@ import {
   type RunComparisonSelection,
 } from './repository-runs-table-utils';
 import { RunConfigurationDiffDialog } from './run-configuration-diff-dialog';
+import { RunItemCounts } from './run-item-counts';
 
 type RepositoryTableProps = {
   orgId: string;
@@ -110,14 +102,6 @@ type RunComparisonContext = {
 const pollInterval = config.pollInterval;
 
 const columnHelper = createColumnHelper<OrtRunSummary>();
-
-const showBadge = (jobSummary: JobSummary | null | undefined) => {
-  return (
-    jobSummary !== undefined &&
-    jobSummary !== null &&
-    isJobFinished(jobSummary.status)
-  );
-};
 
 const SummaryCard = ({
   summary,
@@ -142,13 +126,6 @@ const SummaryCard = ({
 
   const hasLabels = summary.labels && Object.keys(summary.labels).length > 0;
 
-  const statistics = useQuery({
-    ...getRunStatisticsOptions({
-      path: { runId: summary.id },
-    }),
-    refetchInterval: pollInterval,
-  });
-
   return (
     <div className='grid grid-cols-12 gap-2'>
       {/* Left column - status, job status, duration */}
@@ -159,33 +136,7 @@ const SummaryCard = ({
           {summary.status}
         </Badge>
         <div className='col-span-2 flex flex-col items-start justify-center gap-2'>
-          <ItemCounts
-            statistics={statistics.data}
-            wide
-            showIssues={showBadge(summary.jobs.analyzer)}
-            showVulnerabilities={showBadge(summary.jobs.advisor)}
-            showRuleViolations={showBadge(summary.jobs.evaluator)}
-            link={{
-              params: {
-                orgId: summary.organizationId.toString(),
-                productId: summary.productId.toString(),
-                repoId: summary.repositoryId.toString(),
-                runIndex: summary.index.toString(),
-              },
-              issuesSearch: {
-                sortBy: [{ id: 'severity', desc: true }],
-                itemResolved: ['Unresolved'],
-              },
-              vulnerabilitiesSearch: {
-                sortBy: [{ id: 'rating', desc: true }],
-                itemResolved: ['Unresolved'],
-              },
-              ruleViolationsSearch: {
-                sortBy: [{ id: 'severity', desc: true }],
-                itemResolved: ['Unresolved'],
-              },
-            }}
-          />
+          <RunItemCounts summary={summary} />
         </div>
         <OrtRunJobStatus
           jobs={summary.jobs}
