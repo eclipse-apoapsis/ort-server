@@ -17,13 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
 import { getProductRepositoriesOptions } from '@/api/@tanstack/react-query.gen';
-import { LoadingIndicator } from '@/components/loading-indicator';
-import { StatisticsCard } from '@/components/statistics-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -32,7 +30,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useProductPermission } from '@/hooks/use-authorization';
-import { toastError } from '@/lib/toast';
 
 type ProductRepositoriesStatisticsCardProps = {
   orgId: string;
@@ -50,28 +47,12 @@ export const ProductRepositoriesStatisticsCard = ({
     'CREATE_REPOSITORY'
   );
 
-  const { data, isPending, isError, error } = useQuery({
+  const { data } = useSuspenseQuery({
     ...getProductRepositoriesOptions({
       path: { productId: Number.parseInt(productId) },
       query: { limit: 1 },
     }),
   });
-
-  if (isPending) {
-    return (
-      <StatisticsCard
-        title='Repositories'
-        icon={() => <Files className='h-4 w-4 text-orange-500' />}
-        value={<LoadingIndicator />}
-        className='hover:bg-muted/50 h-full'
-      />
-    );
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
 
   const repositoriesTotal = data.pagination.totalCount;
 
