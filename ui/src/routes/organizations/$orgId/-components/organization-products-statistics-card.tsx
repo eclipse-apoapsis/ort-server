@@ -22,8 +22,6 @@ import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
 import { getOrganizationProductsOptions } from '@/api/@tanstack/react-query.gen';
-import { LoadingIndicator } from '@/components/loading-indicator';
-import { StatisticsCard } from '@/components/statistics-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -32,7 +30,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useOrganizationPermission } from '@/hooks/use-authorization';
-import { toastError } from '@/lib/toast';
 
 type OrganizationProductsStatisticsCardProps = {
   orgId: string;
@@ -48,28 +45,12 @@ export const OrganizationProductsStatisticsCard = ({
     'CREATE_PRODUCT'
   );
 
-  const { data, isPending, isError, error } = useSuspenseQuery({
+  const { data } = useSuspenseQuery({
     ...getOrganizationProductsOptions({
       path: { organizationId: Number.parseInt(orgId) },
       query: { limit: 1 },
     }),
   });
-
-  if (isPending) {
-    return (
-      <StatisticsCard
-        title='Products'
-        icon={() => <Files className='h-4 w-4 text-orange-500' />}
-        value={<LoadingIndicator />}
-        className='hover:bg-muted/50 h-full'
-      />
-    );
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
 
   const total = data.pagination.totalCount;
 
