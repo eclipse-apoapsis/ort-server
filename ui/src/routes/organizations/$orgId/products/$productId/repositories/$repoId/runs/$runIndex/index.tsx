@@ -19,14 +19,86 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { Bug, ListTree, Scale, ShieldQuestion } from 'lucide-react';
+import type { ReactNode } from 'react';
 
+import type { JobStatus } from '@/api';
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { QueryBoundary, QueryErrorFallback } from '@/components/query-boundary';
+import { StatisticsCard } from '@/components/statistics-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { config } from '@/config';
+import { getStatusFontColor } from '@/helpers/get-status-class';
 import { IssuesStatisticsCard } from './-components/issues-statistics-card';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
 import { VulnerabilitiesStatisticsCard } from './-components/vulnerabilities-statistics-card';
+
+type RunStatisticsFallbackProps = {
+  analyzerStatus: JobStatus | undefined;
+  advisorStatus: JobStatus | undefined;
+  evaluatorStatus: JobStatus | undefined;
+  value: ReactNode;
+};
+
+export const RunStatisticsFallback = ({
+  analyzerStatus,
+  advisorStatus,
+  evaluatorStatus,
+  value,
+}: RunStatisticsFallbackProps) => (
+  <div className='flex flex-col gap-4'>
+    <div className='flex flex-col gap-2'>
+      <h2 className='text-lg font-semibold'>Status</h2>
+      <div className='grid grid-cols-3 gap-2'>
+        <StatisticsCard
+          title='Rule Violations'
+          icon={() => (
+            <Scale
+              className={`h-4 w-4 ${getStatusFontColor(evaluatorStatus)}`}
+            />
+          )}
+          value={value}
+          className='hover:bg-muted/50 h-full'
+        />
+        <StatisticsCard
+          title='Vulnerabilities'
+          icon={() => (
+            <ShieldQuestion
+              className={`h-4 w-4 ${getStatusFontColor(advisorStatus)}`}
+            />
+          )}
+          value={value}
+          className='hover:bg-muted/50 h-full'
+        />
+        <StatisticsCard
+          title='Issues'
+          icon={() => (
+            <Bug className={`h-4 w-4 ${getStatusFontColor(analyzerStatus)}`} />
+          )}
+          value={value}
+          className='hover:bg-muted/50 h-full'
+        />
+      </div>
+    </div>
+    <div className='flex flex-col gap-2'>
+      <h2 className='text-lg font-semibold'>Statistics</h2>
+      <div className='grid grid-cols-3 gap-2'>
+        <StatisticsCard
+          title='Packages'
+          icon={() => (
+            <ListTree
+              className={`h-4 w-4 ${getStatusFontColor(analyzerStatus)}`}
+            />
+          )}
+          value={value}
+          className='hover:bg-muted/50 h-full'
+        />
+      </div>
+    </div>
+  </div>
+);
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -51,7 +123,25 @@ const RunComponent = () => {
   });
 
   return (
-    <>
+    <QueryBoundary
+      fallback={
+        <RunStatisticsFallback
+          analyzerStatus={ortRun.jobs.analyzer?.status}
+          advisorStatus={ortRun.jobs.advisor?.status}
+          evaluatorStatus={ortRun.jobs.evaluator?.status}
+          value={<Skeleton className='h-8 w-12' />}
+        />
+      }
+      errorFallback={(props) => (
+        <RunStatisticsFallback
+          analyzerStatus={ortRun.jobs.analyzer?.status}
+          advisorStatus={ortRun.jobs.advisor?.status}
+          evaluatorStatus={ortRun.jobs.evaluator?.status}
+          value={<QueryErrorFallback {...props} />}
+        />
+      )}
+      resetKey={ortRun.id}
+    >
       <div className='flex flex-col gap-4'>
         {/* Status section */}
         <div className='flex flex-col gap-2'>
@@ -139,7 +229,7 @@ const RunComponent = () => {
           </div>
         </div>
       </div>
-    </>
+    </QueryBoundary>
   );
 };
 

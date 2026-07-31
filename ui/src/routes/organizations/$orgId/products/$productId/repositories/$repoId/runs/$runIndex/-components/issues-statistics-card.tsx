@@ -17,19 +17,17 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Bug } from 'lucide-react';
 
-import { JobStatus, Severity } from '@/api';
+import { JobStatus, Severity, type OrtRunStatistics } from '@/api';
 import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
   getIssueSeverityBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
-import { toastError } from '@/lib/toast';
 
 type IssuesStatisticsCardProps = {
   jobIncluded?: boolean;
@@ -37,41 +35,22 @@ type IssuesStatisticsCardProps = {
   runId: number;
 };
 
-export const IssuesStatisticsCard = ({
+type IssuesStatisticsCardContentProps = Omit<
+  IssuesStatisticsCardProps,
+  'runId'
+> & {
+  statistics?: OrtRunStatistics;
+};
+
+const IssuesStatisticsCardContent = ({
   jobIncluded,
   status,
-  runId,
-}: IssuesStatisticsCardProps) => {
-  const { data, isPending, isError, error } = useQuery({
-    ...getRunStatisticsOptions({
-      path: { runId: runId },
-    }),
-    enabled: isJobFinished(status),
-  });
-
-  if (isPending) {
-    return (
-      <StatisticsCard
-        title='Issues'
-        icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-        value={<LoadingIndicator />}
-        className='hover:bg-muted/50 h-full'
-      />
-    );
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
-
-  const unresolved = data.issuesCount;
-  const total = data.issuesCountTotal;
-  const counts = data.issuesCountBySeverity;
+  statistics,
+}: IssuesStatisticsCardContentProps) => {
   const { value, description } = jobStatusTexts(
     status,
     jobIncluded,
-    unresolved
+    statistics?.issuesCount
   );
 
   return (
@@ -79,18 +58,48 @@ export const IssuesStatisticsCard = ({
       title='Issues'
       icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
       value={value}
-      total={total ?? undefined}
+      total={statistics?.issuesCountTotal ?? undefined}
       description={description}
       counts={
-        counts
-          ? Object.entries(counts).map(([severity, count]) => ({
-              key: severity,
-              count: count,
-              color: getIssueSeverityBackgroundColor(severity as Severity),
-            }))
+        statistics?.issuesCountBySeverity
+          ? Object.entries(statistics.issuesCountBySeverity).map(
+              ([severity, count]) => ({
+                key: severity,
+                count,
+                color: getIssueSeverityBackgroundColor(severity as Severity),
+              })
+            )
           : []
       }
       className='hover:bg-muted/50 h-full'
     />
   );
+};
+
+const IssuesStatisticsCardInner = ({
+  jobIncluded,
+  status,
+  runId,
+}: IssuesStatisticsCardProps) => {
+  const { data: statistics } = useSuspenseQuery({
+    ...getRunStatisticsOptions({
+      path: { runId },
+    }),
+  });
+
+  return (
+    <IssuesStatisticsCardContent
+      jobIncluded={jobIncluded}
+      status={status}
+      statistics={statistics}
+    />
+  );
+};
+
+export const IssuesStatisticsCard = (props: IssuesStatisticsCardProps) => {
+  if (!isJobFinished(props.status)) {
+    return <IssuesStatisticsCardContent {...props} />;
+  }
+
+  return <IssuesStatisticsCardInner {...props} />;
 };
