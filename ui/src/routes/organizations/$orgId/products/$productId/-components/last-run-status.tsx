@@ -17,49 +17,25 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-
-import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
+import { QueryBoundary } from '@/components/query-boundary';
 import { Badge } from '@/components/ui/badge';
-import { config } from '@/config';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
 
-export const LastRunStatus = ({ repoId }: { repoId: number }) => {
-  const {
-    data: runs,
-    isPending: runsIsPending,
-    isError: runsIsError,
-  } = useQuery({
-    ...getRepositoryRunsOptions({
-      path: { repositoryId: repoId },
-      query: { limit: 1, sort: '-index' },
-    }),
-    refetchInterval: (query) => {
-      const curData = query.state.data?.data;
-      if (curData && curData[0] && curData[0].finishedAt) {
-        return undefined;
-      }
-      return config.pollInterval;
-    },
-  });
+export const LastRunStatus = ({ repoId }: { repoId: number }) => (
+  <QueryBoundary
+    fallback={<Skeleton className='h-5 w-16 rounded-md' />}
+    resetKey={repoId}
+  >
+    <LastRunStatusInner repoId={repoId} />
+  </QueryBoundary>
+);
 
-  if (runsIsPending) {
-    return (
-      <>
-        <span className='sr-only'>Loading...</span>
-        <Loader2 size={16} className='mx-3 animate-spin' />
-      </>
-    );
-  }
+const LastRunStatusInner = ({ repoId }: { repoId: number }) => {
+  const run = useLatestRepositoryRun(repoId);
 
-  if (runsIsError) {
-    return <span>Error loading run.</span>;
-  }
-
-  if (!runs.data[0]) return null;
-
-  const run = runs.data[0];
+  if (!run) return <div className='min-h-5' />;
 
   return (
     <Badge className={`border ${getStatusBackgroundColor(run.status)}`}>
