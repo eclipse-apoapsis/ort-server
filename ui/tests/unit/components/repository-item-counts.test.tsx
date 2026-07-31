@@ -21,7 +21,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { OrtRunSummary } from '@/api';
-import { LastRunItemCounts } from '@/routes/organizations/$orgId/products/$productId/-components/last-run-item-counts';
+import { RepositoryItemCounts } from '@/routes/organizations/$orgId/products/$productId/-components/repository-item-counts';
 
 type Statistics = {
   issuesCount: number;
@@ -97,9 +97,9 @@ const runSummary = {
 } as OrtRunSummary;
 
 const renderItemCounts = () =>
-  renderToStaticMarkup(<LastRunItemCounts repoId={3} />);
+  renderToStaticMarkup(<RepositoryItemCounts repoId={3} />);
 
-describe('LastRunItemCounts', () => {
+describe('RepositoryItemCounts', () => {
   beforeEach(() => {
     mocks.latestRun = runSummary;
     mocks.latestRunSuspends = false;

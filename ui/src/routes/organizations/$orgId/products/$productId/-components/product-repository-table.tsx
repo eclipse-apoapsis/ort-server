@@ -39,8 +39,8 @@ import { toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from './last-job-status';
 import { LastRunDate } from './last-run-date';
-import { LastRunItemCounts } from './last-run-item-counts';
 import { LastRunStatus } from './last-run-status';
+import { RepositoryItemCounts } from './repository-item-counts';
 import { TotalRuns } from './total-runs';
 
 const columnHelper = createColumnHelper<Repository>();
@@ -193,7 +193,7 @@ export const ProductRepositoryTable = () => {
           <div className='flex flex-col gap-1'>
             <LastRunStatus repoId={row.original.id} />
             <div className='flex'>
-              <LastRunItemCounts repoId={row.original.id} />
+              <RepositoryItemCounts repoId={row.original.id} />
             </div>
           </div>
         ),
