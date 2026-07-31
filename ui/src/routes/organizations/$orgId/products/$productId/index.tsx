@@ -19,13 +19,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
-import { Suspense } from 'react';
+import { Boxes, Bug, Files, Scale, ShieldQuestion } from 'lucide-react';
+import type { ReactNode } from 'react';
 import z from 'zod';
 
 import { getProductOptions } from '@/api/@tanstack/react-query.gen';
 import { ProductFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { QueryBoundary, QueryErrorFallback } from '@/components/query-boundary';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
   Card,
@@ -34,6 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toastError } from '@/lib/toast';
 import {
   filterByNameSearchParameterSchema,
@@ -45,6 +47,57 @@ import { ProductRepositoriesStatisticsCard } from './-components/product-reposit
 import { ProductRepositoryTable } from './-components/product-repository-table';
 import { ProductViolationsStatisticsCard } from './-components/product-violations-statistics-card';
 import { ProductVulnerabilitiesStatisticsCard } from './-components/product-vulnerabilities-statistics-card';
+
+type StatisticsFallbackProps = {
+  value: ReactNode;
+};
+
+const ProductRepositoriesStatisticsFallback = ({
+  value,
+}: StatisticsFallbackProps) => (
+  <Card className='col-span-2'>
+    <CardHeader>
+      <CardTitle>
+        <div className='flex items-center justify-between'>
+          <span className='text-sm font-semibold'>Repositories</span>
+          <Files className='h-4 w-4' />
+        </div>
+      </CardTitle>
+    </CardHeader>
+    <CardContent className='text-sm'>
+      <div className='flex min-h-8 items-center'>{value}</div>
+    </CardContent>
+  </Card>
+);
+
+const ProductStatisticsFallback = ({ value }: StatisticsFallbackProps) => (
+  <div className='grid grid-cols-4 gap-2'>
+    <StatisticsCard
+      title='Vulnerabilities'
+      icon={() => <ShieldQuestion className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+    <StatisticsCard
+      title='Issues'
+      icon={() => <Bug className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+    <StatisticsCard
+      title='Rule Violations'
+      icon={() => <Scale className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+    <StatisticsCard
+      title='Packages'
+      icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+  </div>
+);
 
 const ProductComponent = () => {
   const params = Route.useParams();
@@ -89,81 +142,63 @@ const ProductComponent = () => {
             </div>
           </CardHeader>
         </Card>
-        <ProductRepositoriesStatisticsCard
-          className='col-span-2'
-          orgId={params.orgId}
-          productId={product.id.toString()}
-        />
-      </div>
-      <div className='grid grid-cols-4 gap-2'>
-        <Link
-          to='/organizations/$orgId/products/$productId/vulnerabilities'
-          params={{
-            orgId: params.orgId,
-            productId: params.productId,
-          }}
-          search={{
-            sortBy: [
-              { id: 'rating', desc: true },
-              { id: 'repositoriesCount', desc: true },
-            ],
-          }}
+        <QueryBoundary
+          fallback={
+            <ProductRepositoriesStatisticsFallback
+              value={<Skeleton className='h-8 w-12' />}
+            />
+          }
+          errorFallback={(props) => (
+            <ProductRepositoriesStatisticsFallback
+              value={<QueryErrorFallback {...props} />}
+            />
+          )}
+          resetKey={`${product.id}-repositories`}
         >
-          <Suspense
-            fallback={
-              <StatisticsCard
-                title='Vulnerabilities'
-                icon={() => (
-                  <ShieldQuestion className='h-4 w-4 text-orange-500' />
-                )}
-                value={<LoadingIndicator />}
-                className='hover:bg-muted/50 h-full'
-              />
-            }
+          <ProductRepositoriesStatisticsCard
+            className='col-span-2'
+            orgId={params.orgId}
+            productId={product.id.toString()}
+          />
+        </QueryBoundary>
+      </div>
+      <QueryBoundary
+        fallback={
+          <ProductStatisticsFallback
+            value={<Skeleton className='h-8 w-12' />}
+          />
+        }
+        errorFallback={(props) => (
+          <ProductStatisticsFallback
+            value={<QueryErrorFallback {...props} />}
+          />
+        )}
+        resetKey={`${product.id}-statistics`}
+      >
+        <div className='grid grid-cols-4 gap-2'>
+          <Link
+            to='/organizations/$orgId/products/$productId/vulnerabilities'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+            }}
+            search={{
+              sortBy: [
+                { id: 'rating', desc: true },
+                { id: 'repositoriesCount', desc: true },
+              ],
+            }}
           >
             <ProductVulnerabilitiesStatisticsCard
               productId={product.id}
-              className='hover:bg-muted/50'
-            />
-          </Suspense>
-        </Link>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Issues'
-              icon={() => <Bug className='h-4 w-4 text-orange-500' />}
-              value={<LoadingIndicator />}
               className='hover:bg-muted/50 h-full'
             />
-          }
-        >
+          </Link>
           <ProductIssuesStatisticsCard productId={product.id} />
-        </Suspense>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Rule Violations'
-              icon={() => <Scale className='h-4 w-4 text-orange-500' />}
-              value={<LoadingIndicator />}
-              className='hover:bg-muted/50 h-full'
-            />
-          }
-        >
           <ProductViolationsStatisticsCard productId={product.id} />
-        </Suspense>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Packages'
-              icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
-              value={<LoadingIndicator />}
-              className='hover:bg-muted/50 h-full'
-            />
-          }
-        >
           <ProductPackagesStatisticsCard productId={product.id} />
-        </Suspense>
-      </div>
+        </div>
+      </QueryBoundary>
       <Card>
         <CardContent className='my-4'>
           <ProductRepositoryTable />
