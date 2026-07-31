@@ -17,19 +17,17 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { ShieldQuestion } from 'lucide-react';
 
-import { JobStatus, VulnerabilityRating } from '@/api';
+import { JobStatus, VulnerabilityRating, type OrtRunStatistics } from '@/api';
 import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
   getStatusFontColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
-import { toastError } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
   jobIncluded?: boolean;
@@ -37,43 +35,22 @@ type VulnerabilitiesStatisticsCardProps = {
   runId: number;
 };
 
-export const VulnerabilitiesStatisticsCard = ({
+type VulnerabilitiesStatisticsCardContentProps = Omit<
+  VulnerabilitiesStatisticsCardProps,
+  'runId'
+> & {
+  statistics?: OrtRunStatistics;
+};
+
+const VulnerabilitiesStatisticsCardContent = ({
   jobIncluded,
   status,
-  runId,
-}: VulnerabilitiesStatisticsCardProps) => {
-  const { data, isPending, isError, error } = useQuery({
-    ...getRunStatisticsOptions({
-      path: { runId: runId },
-    }),
-    enabled: isJobFinished(status),
-  });
-
-  if (isPending) {
-    return (
-      <StatisticsCard
-        title='Vulnerabilities'
-        icon={() => (
-          <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
-        )}
-        value={<LoadingIndicator />}
-        className='hover:bg-muted/50 h-full'
-      />
-    );
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
-
-  const unresolved = data.vulnerabilitiesCount;
-  const total = data.vulnerabilitiesCountTotal;
-  const counts = data.vulnerabilitiesCountByRating;
+  statistics,
+}: VulnerabilitiesStatisticsCardContentProps) => {
   const { value, description } = jobStatusTexts(
     status,
     jobIncluded,
-    unresolved
+    statistics?.vulnerabilitiesCount
   );
 
   return (
@@ -83,20 +60,52 @@ export const VulnerabilitiesStatisticsCard = ({
         <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
       value={value}
-      total={total ?? undefined}
+      total={statistics?.vulnerabilitiesCountTotal ?? undefined}
       description={description}
       counts={
-        counts
-          ? Object.entries(counts).map(([rating, count]) => ({
-              key: rating,
-              count: count,
-              color: getVulnerabilityRatingBackgroundColor(
-                rating as VulnerabilityRating
-              ),
-            }))
+        statistics?.vulnerabilitiesCountByRating
+          ? Object.entries(statistics.vulnerabilitiesCountByRating).map(
+              ([rating, count]) => ({
+                key: rating,
+                count,
+                color: getVulnerabilityRatingBackgroundColor(
+                  rating as VulnerabilityRating
+                ),
+              })
+            )
           : []
       }
       className='hover:bg-muted/50 h-full'
     />
   );
+};
+
+const VulnerabilitiesStatisticsCardInner = ({
+  jobIncluded,
+  status,
+  runId,
+}: VulnerabilitiesStatisticsCardProps) => {
+  const { data: statistics } = useSuspenseQuery({
+    ...getRunStatisticsOptions({
+      path: { runId },
+    }),
+  });
+
+  return (
+    <VulnerabilitiesStatisticsCardContent
+      jobIncluded={jobIncluded}
+      status={status}
+      statistics={statistics}
+    />
+  );
+};
+
+export const VulnerabilitiesStatisticsCard = (
+  props: VulnerabilitiesStatisticsCardProps
+) => {
+  if (!isJobFinished(props.status)) {
+    return <VulnerabilitiesStatisticsCardContent {...props} />;
+  }
+
+  return <VulnerabilitiesStatisticsCardInner {...props} />;
 };

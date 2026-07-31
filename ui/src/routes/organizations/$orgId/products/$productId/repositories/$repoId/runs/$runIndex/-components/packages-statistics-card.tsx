@@ -17,19 +17,17 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { ListTree } from 'lucide-react';
 
-import { JobStatus } from '@/api';
+import { JobStatus, type OrtRunStatistics } from '@/api';
 import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
   getEcosystemBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
-import { toastError } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
   jobIncluded?: boolean;
@@ -37,39 +35,23 @@ type PackagesStatisticsCardProps = {
   runId: number;
 };
 
-export const PackagesStatisticsCard = ({
+type PackagesStatisticsCardContentProps = Omit<
+  PackagesStatisticsCardProps,
+  'runId'
+> & {
+  statistics?: OrtRunStatistics;
+};
+
+const PackagesStatisticsCardContent = ({
   jobIncluded,
   status,
-  runId,
-}: PackagesStatisticsCardProps) => {
-  const { data, isPending, isError, error } = useQuery({
-    ...getRunStatisticsOptions({
-      path: { runId: runId },
-    }),
-    enabled: isJobFinished(status),
-  });
-
-  if (isPending) {
-    return (
-      <StatisticsCard
-        title='Packages'
-        icon={() => (
-          <ListTree className={`h-4 w-4 ${getStatusFontColor(status)}`} />
-        )}
-        value={<LoadingIndicator />}
-        className='hover:bg-muted/50 h-full'
-      />
-    );
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
-
-  const total = data.packagesCount;
-  const counts = data.ecosystems;
-  const { value, description } = jobStatusTexts(status, jobIncluded, total);
+  statistics,
+}: PackagesStatisticsCardContentProps) => {
+  const { value, description } = jobStatusTexts(
+    status,
+    jobIncluded,
+    statistics?.packagesCount
+  );
 
   return (
     <StatisticsCard
@@ -79,12 +61,40 @@ export const PackagesStatisticsCard = ({
       )}
       value={value}
       description={description}
-      counts={counts?.map(({ name, count }) => ({
+      counts={statistics?.ecosystems?.map(({ name, count }) => ({
         key: name,
-        count: count,
+        count,
         color: getEcosystemBackgroundColor(name),
       }))}
       className='hover:bg-muted/50 h-full'
     />
   );
+};
+
+const PackagesStatisticsCardInner = ({
+  jobIncluded,
+  status,
+  runId,
+}: PackagesStatisticsCardProps) => {
+  const { data: statistics } = useSuspenseQuery({
+    ...getRunStatisticsOptions({
+      path: { runId },
+    }),
+  });
+
+  return (
+    <PackagesStatisticsCardContent
+      jobIncluded={jobIncluded}
+      status={status}
+      statistics={statistics}
+    />
+  );
+};
+
+export const PackagesStatisticsCard = (props: PackagesStatisticsCardProps) => {
+  if (!isJobFinished(props.status)) {
+    return <PackagesStatisticsCardContent {...props} />;
+  }
+
+  return <PackagesStatisticsCardInner {...props} />;
 };

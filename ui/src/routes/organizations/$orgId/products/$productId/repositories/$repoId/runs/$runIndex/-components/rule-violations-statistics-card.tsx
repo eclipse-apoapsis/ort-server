@@ -17,19 +17,17 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Scale } from 'lucide-react';
 
-import { JobStatus, Severity } from '@/api';
+import { JobStatus, Severity, type OrtRunStatistics } from '@/api';
 import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
   getRuleViolationSeverityBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
-import { toastError } from '@/lib/toast';
 
 type RuleViolationsStatisticsCardProps = {
   jobIncluded?: boolean;
@@ -37,44 +35,22 @@ type RuleViolationsStatisticsCardProps = {
   runId: number;
 };
 
-export const RuleViolationsStatisticsCard = ({
+type RuleViolationsStatisticsCardContentProps = Omit<
+  RuleViolationsStatisticsCardProps,
+  'runId'
+> & {
+  statistics?: OrtRunStatistics;
+};
+
+const RuleViolationsStatisticsCardContent = ({
   jobIncluded,
   status,
-  runId,
-}: RuleViolationsStatisticsCardProps) => {
-  const { data, isPending, isError, error } = useQuery({
-    ...getRunStatisticsOptions({
-      path: { runId: runId },
-    }),
-    enabled: isJobFinished(status),
-  });
-
-  if (isPending) {
-    return (
-      <StatisticsCard
-        title='Rule Violations'
-        icon={() => (
-          <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />
-        )}
-        value={<LoadingIndicator />}
-        className='hover:bg-muted/50 h-full'
-      />
-    );
-  }
-
-  if (isError) {
-    toastError('Unable to load data', error);
-    return;
-  }
-
-  const unresolved = data.ruleViolationsCount;
-  const total = data.ruleViolationsCountTotal;
-  const counts = data.ruleViolationsCountBySeverity;
-
+  statistics,
+}: RuleViolationsStatisticsCardContentProps) => {
   const { value, description } = jobStatusTexts(
     status,
     jobIncluded,
-    unresolved
+    statistics?.ruleViolationsCount
   );
 
   return (
@@ -82,20 +58,52 @@ export const RuleViolationsStatisticsCard = ({
       title='Rule Violations'
       icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
       value={value}
-      total={total ?? undefined}
+      total={statistics?.ruleViolationsCountTotal ?? undefined}
       description={description}
       counts={
-        counts
-          ? Object.entries(counts).map(([severity, count]) => ({
-              key: severity,
-              count: count,
-              color: getRuleViolationSeverityBackgroundColor(
-                severity as Severity
-              ),
-            }))
+        statistics?.ruleViolationsCountBySeverity
+          ? Object.entries(statistics.ruleViolationsCountBySeverity).map(
+              ([severity, count]) => ({
+                key: severity,
+                count,
+                color: getRuleViolationSeverityBackgroundColor(
+                  severity as Severity
+                ),
+              })
+            )
           : []
       }
       className='hover:bg-muted/50 h-full'
     />
   );
+};
+
+const RuleViolationsStatisticsCardInner = ({
+  jobIncluded,
+  status,
+  runId,
+}: RuleViolationsStatisticsCardProps) => {
+  const { data: statistics } = useSuspenseQuery({
+    ...getRunStatisticsOptions({
+      path: { runId },
+    }),
+  });
+
+  return (
+    <RuleViolationsStatisticsCardContent
+      jobIncluded={jobIncluded}
+      status={status}
+      statistics={statistics}
+    />
+  );
+};
+
+export const RuleViolationsStatisticsCard = (
+  props: RuleViolationsStatisticsCardProps
+) => {
+  if (!isJobFinished(props.status)) {
+    return <RuleViolationsStatisticsCardContent {...props} />;
+  }
+
+  return <RuleViolationsStatisticsCardInner {...props} />;
 };
