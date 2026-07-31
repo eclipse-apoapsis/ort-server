@@ -18,15 +18,15 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { CatchBoundary, createFileRoute, Link } from '@tanstack/react-router';
-import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
-import { Suspense } from 'react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Boxes, Bug, Files, Scale, ShieldQuestion } from 'lucide-react';
+import type { ReactNode } from 'react';
 import z from 'zod';
 
 import { getOrganizationOptions } from '@/api/@tanstack/react-query.gen';
-import { ErrorComponent } from '@/components/error-component';
 import { OrganizationFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { QueryBoundary, QueryErrorFallback } from '@/components/query-boundary';
 import { StatisticsCard } from '@/components/statistics-card';
 import {
   Card,
@@ -35,6 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toastError } from '@/lib/toast';
 import {
   filterByNameSearchParameterSchema,
@@ -46,6 +47,57 @@ import { OrganizationProductTable } from './-components/organization-product-tab
 import { OrganizationProductsStatisticsCard } from './-components/organization-products-statistics-card';
 import { OrganizationViolationsStatisticsCard } from './-components/organization-violations-statistics-card';
 import { OrganizationVulnerabilitiesStatisticsCard } from './-components/organization-vulnerabilities-statistics-card';
+
+type StatisticsFallbackProps = {
+  value: ReactNode;
+};
+
+const OrganizationProductsStatisticsFallback = ({
+  value,
+}: StatisticsFallbackProps) => (
+  <Card className='col-span-2'>
+    <CardHeader>
+      <CardTitle>
+        <div className='flex items-center justify-between'>
+          <span className='text-sm font-semibold'>Products</span>
+          <Files className='h-4 w-4' />
+        </div>
+      </CardTitle>
+    </CardHeader>
+    <CardContent className='text-sm'>
+      <div className='flex min-h-8 items-center'>{value}</div>
+    </CardContent>
+  </Card>
+);
+
+const OrganizationStatisticsFallback = ({ value }: StatisticsFallbackProps) => (
+  <div className='grid grid-cols-4 gap-2'>
+    <StatisticsCard
+      title='Vulnerabilities'
+      icon={() => <ShieldQuestion className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+    <StatisticsCard
+      title='Issues'
+      icon={() => <Bug className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+    <StatisticsCard
+      title='Rule Violations'
+      icon={() => <Scale className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+    <StatisticsCard
+      title='Packages'
+      icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
+      value={value}
+      className='hover:bg-muted/50 h-full'
+    />
+  </div>
+);
 
 const OrganizationComponent = () => {
   const params = Route.useParams();
@@ -89,16 +141,37 @@ const OrganizationComponent = () => {
             </div>
           </CardHeader>
         </Card>
-        <OrganizationProductsStatisticsCard
-          className='col-span-2'
-          orgId={params.orgId}
-        />
+        <QueryBoundary
+          fallback={
+            <OrganizationProductsStatisticsFallback
+              value={<Skeleton className='h-8 w-12' />}
+            />
+          }
+          errorFallback={(props) => (
+            <OrganizationProductsStatisticsFallback
+              value={<QueryErrorFallback {...props} />}
+            />
+          )}
+          resetKey={`${organization.id}-products`}
+        >
+          <OrganizationProductsStatisticsCard
+            className='col-span-2'
+            orgId={params.orgId}
+          />
+        </QueryBoundary>
       </div>
-      <CatchBoundary
-        getResetKey={() => 'reset'}
-        errorComponent={(props) => (
-          <ErrorComponent {...props} title='Could not load statistics' />
+      <QueryBoundary
+        fallback={
+          <OrganizationStatisticsFallback
+            value={<Skeleton className='h-8 w-12' />}
+          />
+        }
+        errorFallback={(props) => (
+          <OrganizationStatisticsFallback
+            value={<QueryErrorFallback {...props} />}
+          />
         )}
+        resetKey={`${organization.id}-statistics`}
       >
         <div className='grid grid-cols-4 gap-2'>
           <Link
@@ -113,68 +186,20 @@ const OrganizationComponent = () => {
               ],
             }}
           >
-            <Suspense
-              fallback={
-                <StatisticsCard
-                  title='Vulnerabilities'
-                  icon={() => (
-                    <ShieldQuestion className='h-4 w-4 text-orange-500' />
-                  )}
-                  value={<LoadingIndicator />}
-                  className='hover:bg-muted/50 h-full'
-                />
-              }
-            >
-              <OrganizationVulnerabilitiesStatisticsCard
-                organizationId={organization.id}
-                className='hover:bg-muted/50'
-              />
-            </Suspense>
+            <OrganizationVulnerabilitiesStatisticsCard
+              organizationId={organization.id}
+              className='hover:bg-muted/50 h-full'
+            />
           </Link>
-          <Suspense
-            fallback={
-              <StatisticsCard
-                title='Issues'
-                icon={() => <Bug className='h-4 w-4 text-orange-500' />}
-                value={<LoadingIndicator />}
-                className='hover:bg-muted/50 h-full'
-              />
-            }
-          >
-            <OrganizationIssuesStatisticsCard
-              organizationId={organization.id}
-            />
-          </Suspense>
-          <Suspense
-            fallback={
-              <StatisticsCard
-                title='Rule Violations'
-                icon={() => <Scale className='h-4 w-4 text-orange-500' />}
-                value={<LoadingIndicator />}
-                className='hover:bg-muted/50 h-full'
-              />
-            }
-          >
-            <OrganizationViolationsStatisticsCard
-              organizationId={organization.id}
-            />
-          </Suspense>
-          <Suspense
-            fallback={
-              <StatisticsCard
-                title='Packages'
-                icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
-                value={<LoadingIndicator />}
-                className='hover:bg-muted/50 h-full'
-              />
-            }
-          >
-            <OrganizationPackagesStatisticsCard
-              organizationId={organization.id}
-            />
-          </Suspense>
+          <OrganizationIssuesStatisticsCard organizationId={organization.id} />
+          <OrganizationViolationsStatisticsCard
+            organizationId={organization.id}
+          />
+          <OrganizationPackagesStatisticsCard
+            organizationId={organization.id}
+          />
         </div>
-      </CatchBoundary>
+      </QueryBoundary>
       <Card>
         <CardContent className='my-4'>
           <OrganizationProductTable />
