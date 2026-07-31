@@ -17,43 +17,32 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
+import { QueryBoundary } from '@/components/query-boundary';
+import { Skeleton } from '@/components/ui/skeleton';
 import { config } from '@/config';
 
-export const TotalRuns = ({ repoId }: { repoId: number }) => {
-  const {
-    data: runs,
-    isPending: runsIsPending,
-    isError: runsIsError,
-  } = useQuery({
+export const TotalRuns = ({ repoId }: { repoId: number }) => (
+  <QueryBoundary fallback={<Skeleton className='h-5 w-6' />} resetKey={repoId}>
+    <TotalRunsInner repoId={repoId} />
+  </QueryBoundary>
+);
+
+const TotalRunsInner = ({ repoId }: { repoId: number }) => {
+  const { data: runs } = useSuspenseQuery({
     ...getRepositoryRunsOptions({
       path: { repositoryId: repoId },
       query: { limit: 1, sort: '-index' },
     }),
     refetchInterval: (query) => {
-      const curData = query.state.data?.data;
-      if (curData && curData[0] && curData[0].finishedAt) {
-        return undefined;
-      }
+      const latestRun = query.state.data?.data[0];
+      if (latestRun?.finishedAt) return undefined;
+
       return config.pollInterval;
     },
   });
 
-  if (runsIsPending) {
-    return (
-      <>
-        <span className='sr-only'>Loading...</span>
-        <Loader2 size={16} className='mx-3 animate-spin' />
-      </>
-    );
-  }
-
-  if (runsIsError) {
-    return <span>Error loading run.</span>;
-  }
-
-  return <div>{runs.pagination.totalCount}</div>;
+  return <div className='min-h-5'>{runs.pagination.totalCount}</div>;
 };
