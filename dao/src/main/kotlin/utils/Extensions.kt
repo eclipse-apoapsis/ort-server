@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.jetbrains.exposed.v1.core.AbstractQuery
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ComparisonOp
+import org.jetbrains.exposed.v1.core.EqOp
 import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.QueryParameter
@@ -207,6 +208,16 @@ class InsensitiveRegexOp(expr1: Expression<*>, expr2: Expression<*>) : Compariso
  */
 fun Expression<String>.applyILike(value: String): Op<Boolean> =
     InsensitiveLikeOp(this, QueryParameter("%$value%", TextColumnType()))
+
+/**
+ * Apply the given [operator] and filter [value] to filter this expression by.
+ */
+fun Expression<String>.applyFilter(operator: ComparisonOperator, value: String): Op<Boolean> =
+    when (operator) {
+        ComparisonOperator.EQUALS -> EqOp(this, QueryParameter(value, TextColumnType()))
+        ComparisonOperator.ILIKE -> this.applyILike(value)
+        else -> throw IllegalArgumentException("Unsupported operator.")
+    }
 
 /**
  * Apply the given [value] to filter this column by using the ~* operator.
