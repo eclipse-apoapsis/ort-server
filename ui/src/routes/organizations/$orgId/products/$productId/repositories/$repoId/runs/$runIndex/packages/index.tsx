@@ -211,8 +211,28 @@ const renderSubComponent = ({
   const pkg = row.original;
   const hasCurations = pkg.curations.length > 0;
 
+  // The card title shows one of the package identifiers, depending on the user
+  // preference, so show the other one here.
+  const showsPurlInTitle = packageIdType === 'PURL' && !!pkg.purl;
+  const alternativeIdLabel = showsPurlInTitle ? 'ORT ID' : 'PURL';
+  const alternativeId = showsPurlInTitle
+    ? identifierToString(pkg.identifier)
+    : pkg.purl;
+
   return (
     <div className='flex flex-col gap-4'>
+      {alternativeId && (
+        <div className='flex gap-2'>
+          <div className='font-semibold'>{alternativeIdLabel}:</div>
+          <div className='min-w-0'>
+            <BreakableString text={alternativeId} />
+            <CopyToClipboard
+              copyText={alternativeId}
+              className='h-5 px-2 align-middle'
+            />
+          </div>
+        </div>
+      )}
       <RenderProperty label='Authors' value={pkg.authors} />
       <RenderProperty
         label='Description'
