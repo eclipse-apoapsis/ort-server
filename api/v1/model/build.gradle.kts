@@ -40,8 +40,6 @@ kotlin {
                 api(projects.shared.apiModel)
 
                 api(libs.konform)
-
-                implementation(ktorLibs.http)
             }
         }
 

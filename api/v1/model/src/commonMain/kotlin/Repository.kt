@@ -22,10 +22,9 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 import io.konform.validation.Validation
 import io.konform.validation.constraints.pattern
 
-import io.ktor.http.parseUrl
-
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.UrlValidator
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.valueOrThrow
@@ -56,21 +55,11 @@ data class Repository(
     val description: String? = null
 ) {
     companion object {
-        const val INVALID_URL_MESSAGE = "The repository URL is malformed."
-        const val USER_INFO_MESSAGE = "The repository URL must not contain userinfo."
+        const val REPOSITORY_URL_TYPE = "repository"
         val NAME_PATTERN_REGEX = Product.NAME_PATTERN_REGEX
         const val NAME_PATTERN_MESSAGE = Product.NAME_PATTERN_MESSAGE
-
-        fun isValidUrl(url: String): Boolean = parseUrl(url)?.host?.isValidHost() ?: false
-
-        fun hasUserInfo(url: String): Boolean = parseUrl(url)?.user != null
     }
 }
-
-/**
- * Check if there are only valid characters in the host.
- */
-private fun String.isValidHost() = all { it.isLetterOrDigit() || it == '.' || it == '-' }
 
 /**
  * Request object for the create repository endpoint.
@@ -83,16 +72,16 @@ data class PostRepository(
     val description: String? = null
 ) {
     companion object {
-        val validate: ValidatorFunc<PostRepository> = { obj ->
+        fun validate(urlValidator: UrlValidator): ValidatorFunc<PostRepository> = { obj ->
             Validation {
                 PostRepository::url {
                     constrain("malformed URL") {
-                        Repository.isValidUrl(it)
-                    } hint Repository.INVALID_URL_MESSAGE
+                        urlValidator.isValidUrl(it)
+                    } hint UrlValidator.invalidUrlMessage(Repository.REPOSITORY_URL_TYPE)
 
                     constrain("URL cannot contain userinfo") {
-                        !Repository.hasUserInfo(it)
-                    } hint Repository.USER_INFO_MESSAGE
+                        !urlValidator.hasUserInfo(it)
+                    } hint UrlValidator.userInfoMessage(Repository.REPOSITORY_URL_TYPE)
                 }
 
                 PostRepository::name ifPresent {
@@ -120,22 +109,22 @@ data class PatchRepository(
     val productId: OptionalValue<Long> = OptionalValue.Absent
 ) {
     companion object {
-        val validate: ValidatorFunc<PatchRepository> = { obj ->
+        fun validate(urlValidator: UrlValidator): ValidatorFunc<PatchRepository> = { obj ->
             Validation {
                 PatchRepository::url {
                     constrain("malformed URL") {
                         when (it) {
-                            is OptionalValue.Present -> Repository.isValidUrl(it.value)
+                            is OptionalValue.Present -> urlValidator.isValidUrl(it.value)
                             is OptionalValue.Absent -> true
                         }
-                    } hint Repository.INVALID_URL_MESSAGE
+                    } hint UrlValidator.invalidUrlMessage(Repository.REPOSITORY_URL_TYPE)
 
                     constrain("URL cannot contain userinfo") {
                         when (it) {
-                            is OptionalValue.Present -> !Repository.hasUserInfo(it.valueOrThrow)
+                            is OptionalValue.Present -> !urlValidator.hasUserInfo(it.valueOrThrow)
                             is OptionalValue.Absent -> true
                         }
-                    } hint Repository.USER_INFO_MESSAGE
+                    } hint UrlValidator.userInfoMessage(Repository.REPOSITORY_URL_TYPE)
                 }
 
                 PatchRepository::name {

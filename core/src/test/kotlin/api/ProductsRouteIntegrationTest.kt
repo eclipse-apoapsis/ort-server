@@ -566,7 +566,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = PostRepository(type = ApiRepositoryType.GIT, url = "https://git hub.com/org/repo.git")
+                val repository = PostRepository(
+                    type = ApiRepositoryType.GIT,
+                    url = "https://github.com/org/repo.git?\b"
+                )
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
