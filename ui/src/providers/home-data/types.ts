@@ -56,6 +56,8 @@ export type RecentRunItem = {
   params: RecentRunRouteParams;
   createdAt?: string;
   recordedAt: string;
+  /** Whether the run details can no longer be loaded, for example after a deletion. */
+  unavailable?: boolean;
 };
 
 export type RecentRunItemInput = Omit<RecentRunItem, 'recordedAt'> & {
@@ -72,6 +74,7 @@ export type HomeFavoriteActions = {
 
 export type HomeRecentRunActions = {
   recordRecentRun: (recentRun: RecentRunItemInput) => void;
+  setRecentRunUnavailable: (recentRunId: string, unavailable: boolean) => void;
   removeRecentRun: (recentRunId: string) => void;
   clearRecentRuns: () => void;
 };

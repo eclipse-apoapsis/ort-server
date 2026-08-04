@@ -26,6 +26,7 @@ import {
   clearRecentRunItems,
   DEFAULT_MAX_RECENT_RUNS,
   removeRecentRunItem,
+  setRecentRunItemUnavailable,
 } from '@/providers/home-data/recent-runs';
 import type {
   RecentRunItem,
@@ -39,6 +40,11 @@ type State = {
 
 type Actions = {
   recordRecentRun: (userId: string, recentRun: RecentRunItemInput) => void;
+  setRecentRunUnavailable: (
+    userId: string,
+    recentRunId: string,
+    unavailable: boolean
+  ) => void;
   removeRecentRun: (userId: string, recentRunId: string) => void;
   clearRecentRuns: (userId: string) => void;
 };
@@ -64,6 +70,17 @@ export const useRecentRunsStore = create<State & Actions>()(
               getUserRecentRuns(state, userId),
               recentRun,
               DEFAULT_MAX_RECENT_RUNS
+            ),
+          },
+        })),
+      setRecentRunUnavailable: (userId, recentRunId, unavailable) =>
+        set((state) => ({
+          recentRunsByUser: {
+            ...state.recentRunsByUser,
+            [userId]: setRecentRunItemUnavailable(
+              getUserRecentRuns(state, userId),
+              recentRunId,
+              unavailable
             ),
           },
         })),

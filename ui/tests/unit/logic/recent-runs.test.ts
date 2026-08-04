@@ -24,6 +24,7 @@ import {
   buildRecentRunId,
   clearRecentRunItems,
   removeRecentRunItem,
+  setRecentRunItemUnavailable,
 } from '@/providers/home-data/recent-runs';
 import type {
   RecentRunItem,
@@ -121,4 +122,84 @@ it('removes a recent run by ID', () => {
     runs[0],
     runs[2],
   ]);
+});
+
+const markUnavailable = (recentRuns: RecentRunItem[], runIds: number[]) =>
+  runIds.reduce(
+    (runs, runId) =>
+      setRecentRunItemUnavailable(runs, buildRecentRunId(runId), true),
+    recentRuns
+  );
+
+it('marks a recent run as unavailable and leaves the others alone', () => {
+  const runs = seedRecentRuns([1, 2, 3], 10);
+  const marked = markUnavailable(runs, [2]);
+
+  expect(marked.map((run) => run.unavailable)).toStrictEqual([
+    undefined,
+    true,
+    undefined,
+  ]);
+});
+
+it('clears the mark once a run can be loaded again', () => {
+  const marked = markUnavailable(seedRecentRuns([1], 10), [1]);
+  const cleared = setRecentRunItemUnavailable(
+    marked,
+    buildRecentRunId(1),
+    false
+  );
+
+  expect(cleared[0]?.unavailable).toBe(false);
+});
+
+it('keeps the list as it is when the mark does not change', () => {
+  const runs = markUnavailable(seedRecentRuns([1, 2], 10), [1]);
+
+  expect(setRecentRunItemUnavailable(runs, buildRecentRunId(1), true)).toBe(
+    runs
+  );
+  expect(setRecentRunItemUnavailable(runs, buildRecentRunId(2), false)).toBe(
+    runs
+  );
+});
+
+it('keeps the list as it is for an unknown run', () => {
+  const runs = seedRecentRuns([1, 2], 10);
+
+  expect(setRecentRunItemUnavailable(runs, buildRecentRunId(3), true)).toBe(
+    runs
+  );
+});
+
+it('records a run again without its earlier mark', () => {
+  const marked = markUnavailable(seedRecentRuns([1, 2], 10), [1]);
+  const runs = addRecentRunItem(marked, createInput(1), 10);
+
+  expect(runs[0]?.runId).toBe(1);
+  expect(runs[0]?.unavailable).toBeUndefined();
+});
+
+it('evicts unavailable runs before runs that are still there', () => {
+  const runs = markUnavailable(seedRecentRuns([1, 2, 3], 3), [2]);
+  const withNewRun = addRecentRunItem(runs, createInput(4), 3);
+
+  expect(withNewRun.map((run) => run.runId)).toStrictEqual([4, 3, 1]);
+});
+
+it('evicts the oldest unavailable runs first', () => {
+  const runs = markUnavailable(seedRecentRuns([1, 2, 3, 4], 4), [1, 3]);
+  const withNewRun = addRecentRunItem(runs, createInput(5), 4);
+
+  expect(withNewRun.map((run) => run.runId)).toStrictEqual([5, 4, 3, 2]);
+});
+
+it('falls back to evicting the oldest run when no unavailable ones are left', () => {
+  const runs = markUnavailable(seedRecentRuns([1, 2, 3], 3), [3]);
+  const withNewRuns = [4, 5].reduce(
+    (recentRuns, runId) => addRecentRunItem(recentRuns, createInput(runId), 3),
+    runs
+  );
+
+  expect(withNewRuns.map((run) => run.runId)).toStrictEqual([5, 4, 2]);
 });

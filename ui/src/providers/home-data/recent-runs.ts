@@ -34,6 +34,32 @@ export const createRecentRunItem = (
 });
 
 /**
+ * Trim the list to the configured number of entries.
+ *
+ * Runs that can no longer be loaded go first, oldest ones before newer ones, so that they
+ * do not take the place of runs that are still there. This is the only case in which such
+ * a run disappears without the user removing it.
+ */
+const pruneRecentRunItems = (
+  recentRuns: RecentRunItem[],
+  maxItems: number
+): RecentRunItem[] => {
+  if (recentRuns.length <= maxItems) return recentRuns;
+
+  const excessItems = recentRuns.length - maxItems;
+  const evictedItems = new Set(
+    recentRuns
+      .filter((recentRun) => recentRun.unavailable)
+      .slice(-excessItems)
+      .map((recentRun) => recentRun.id)
+  );
+
+  return recentRuns
+    .filter((recentRun) => !evictedItems.has(recentRun.id))
+    .slice(0, maxItems);
+};
+
+/**
  * Add a run to the front of the recent-runs list.
  *
  * If the run is already in the list, replace the old entry and keep only the
@@ -47,10 +73,33 @@ export const addRecentRunItem = (
 ): RecentRunItem[] => {
   const item = createRecentRunItem(recentRun, now);
 
-  return [
-    item,
-    ...recentRuns.filter((existing) => existing.id !== item.id),
-  ].slice(0, maxItems);
+  return pruneRecentRunItems(
+    [item, ...recentRuns.filter((existing) => existing.id !== item.id)],
+    maxItems
+  );
+};
+
+/**
+ * Mark a run whose details can no longer be loaded, or clear that mark once they can be
+ * loaded again.
+ *
+ * The list is returned unchanged when the run is already in the wanted state, so that
+ * consumers do not re-render for nothing.
+ */
+export const setRecentRunItemUnavailable = (
+  recentRuns: RecentRunItem[],
+  recentRunId: string,
+  unavailable: boolean
+): RecentRunItem[] => {
+  const recentRun = recentRuns.find((item) => item.id === recentRunId);
+
+  if (!recentRun || Boolean(recentRun.unavailable) === unavailable) {
+    return recentRuns;
+  }
+
+  return recentRuns.map((item) =>
+    item.id === recentRunId ? { ...item, unavailable } : item
+  );
 };
 
 export const removeRecentRunItem = (

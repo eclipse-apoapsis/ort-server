@@ -20,7 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, type LinkProps } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
-import { PlayCircle } from 'lucide-react';
+import { PlayCircle, X } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { OrtRunStatus } from '@/api';
@@ -33,6 +33,7 @@ import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -57,9 +58,10 @@ const isRunFinished = (status: OrtRunStatus | undefined) =>
   status === 'FINISHED_WITH_ISSUES' ||
   status === 'FAILED';
 
-/** Render a recent run and remove it from the list if the run is deleted. */
+/** Render a recent run and mark it if the run can no longer be loaded. */
 const RecentRunListItem = ({ recentRun }: { recentRun: RecentRunItem }) => {
-  const { removeRecentRun } = useHomeRecentRunActions();
+  const { removeRecentRun, setRecentRunUnavailable } =
+    useHomeRecentRunActions();
   const runQuery = useQuery({
     ...getRepositoryRunOptions({
       path: {
@@ -67,23 +69,41 @@ const RecentRunListItem = ({ recentRun }: { recentRun: RecentRunItem }) => {
         ortRunIndex: recentRun.runIndex,
       },
     }),
+    // Stop asking for a run that is gone, but keep retrying a single failed request, which
+    // can also happen for a run that is still there.
     refetchInterval: (query) =>
-      isRunFinished(query.state.data?.status) ? false : config.pollInterval,
-    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
+      isRunFinished(query.state.data?.status) ||
+      isNotFoundError(query.state.error)
+        ? false
+        : config.pollInterval,
+    retry: (failureCount) => failureCount < 3,
   });
 
+  const isMissing = isNotFoundError(runQuery.error);
+  const isUnavailable = isMissing || Boolean(recentRun.unavailable);
+
   useEffect(() => {
-    if (isNotFoundError(runQuery.error)) {
-      removeRecentRun(recentRun.id);
+    // Only a confirmed answer changes the mark, so that a run keeps its state while it is
+    // loading or while the server cannot be reached at all.
+    if (isMissing && !recentRun.unavailable) {
+      setRecentRunUnavailable(recentRun.id, true);
+    } else if (runQuery.isSuccess && recentRun.unavailable) {
+      setRecentRunUnavailable(recentRun.id, false);
     }
-  }, [recentRun.id, removeRecentRun, runQuery.error]);
+  }, [
+    isMissing,
+    recentRun.id,
+    recentRun.unavailable,
+    runQuery.isSuccess,
+    setRecentRunUnavailable,
+  ]);
 
   const run = runQuery.data;
   const statistics = useQuery({
     ...getRunStatisticsOptions({
       path: { runId: run?.id ?? recentRun.runId },
     }),
-    enabled: Boolean(run?.jobs) && !isNotFoundError(runQuery.error),
+    enabled: Boolean(run?.jobs) && !isMissing,
     refetchInterval: isRunFinished(run?.status) ? false : config.pollInterval,
   });
 
@@ -97,7 +117,11 @@ const RecentRunListItem = ({ recentRun }: { recentRun: RecentRunItem }) => {
   };
 
   return (
-    <li className='space-y-1 rounded-lg border px-3 py-2 text-sm'>
+    <li
+      className={`space-y-1 rounded-lg border px-3 py-2 text-sm ${
+        isUnavailable ? 'opacity-60' : ''
+      }`}
+    >
       <div className='flex items-start justify-between gap-3'>
         <Link
           to={recentRun.to as LinkProps['to']}
@@ -111,20 +135,45 @@ const RecentRunListItem = ({ recentRun }: { recentRun: RecentRunItem }) => {
             {recentRun.repositoryName}
           </span>
         </Link>
-        {status && (
-          <Badge
-            className={`shrink-0 border ${getStatusBackgroundColor(status)}`}
-          >
-            {status}
-          </Badge>
-        )}
+        <div className='flex shrink-0 items-center gap-1'>
+          {isUnavailable ? (
+            <Badge variant='outline'>Unavailable</Badge>
+          ) : (
+            status && (
+              <Badge className={`border ${getStatusBackgroundColor(status)}`}>
+                {status}
+              </Badge>
+            )
+          )}
+          {isUnavailable && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              className='h-5 w-5'
+              aria-label='Remove run from the list'
+              onClick={() => removeRecentRun(recentRun.id)}
+            >
+              <X className='h-3 w-3' />
+            </Button>
+          )}
+        </div>
       </div>
+
+      {isUnavailable && (
+        <div className='text-muted-foreground'>
+          This run can no longer be loaded. It may have been deleted, or you may
+          no longer have access to it.
+        </div>
+      )}
 
       <div className='flex items-center justify-between gap-3'>
         <div className='flex min-w-0 flex-wrap items-center gap-1'>
           <span className='text-muted-foreground'>Created at</span>
           {createdAt && <TimestampWithUTC timestamp={createdAt} />}
-          {createdAt && (
+          {createdAt && !isUnavailable && (
+            // A run without a finishing time keeps counting, which must not happen for a
+            // run that is not there anymore.
             <div className='flex items-center'>
               {'('}
               <RunDuration
