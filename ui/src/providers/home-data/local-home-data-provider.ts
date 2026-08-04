@@ -127,6 +127,9 @@ export const createLocalHomeDataProvider = (
     const recordRecentRun = useRecentRunsStore(
       (state) => state.recordRecentRun
     );
+    const setRecentRunUnavailable = useRecentRunsStore(
+      (state) => state.setRecentRunUnavailable
+    );
     const removeRecentRun = useRecentRunsStore(
       (state) => state.removeRecentRun
     );
@@ -141,6 +144,14 @@ export const createLocalHomeDataProvider = (
             recordRecentRun(currentUserId, recentRun);
           }
         },
+        setRecentRunUnavailable: (
+          recentRunId: string,
+          unavailable: boolean
+        ) => {
+          if (isHomeDataUserAvailable(currentUserId)) {
+            setRecentRunUnavailable(currentUserId, recentRunId, unavailable);
+          }
+        },
         removeRecentRun: (recentRunId: string) => {
           if (isHomeDataUserAvailable(currentUserId)) {
             removeRecentRun(currentUserId, recentRunId);
@@ -152,7 +163,13 @@ export const createLocalHomeDataProvider = (
           }
         },
       }),
-      [clearRecentRuns, currentUserId, recordRecentRun, removeRecentRun]
+      [
+        clearRecentRuns,
+        currentUserId,
+        recordRecentRun,
+        removeRecentRun,
+        setRecentRunUnavailable,
+      ]
     );
   };
 
