@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.resolveSecurely
 
 /**
  * An implementation of [ConfigFileProvider] that reads config files from a [local directory][configDir].
@@ -61,20 +62,20 @@ class LocalConfigFileProvider(
 
     override fun getFile(context: Context, path: Path): InputStream =
         runCatching {
-            configDir.resolve(path.path).inputStream()
+            configDir.resolveSecurely(path).inputStream()
         }.getOrElse {
             throw ConfigException("Cannot read path '${path.path}'.", it)
         }
 
     override fun contains(context: Context, path: Path): Boolean {
         val isDirectoryPath = path.path.endsWith("/")
-        val p = configDir.resolve(path.path)
+        val p = configDir.resolveSecurely(path)
 
         return (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
     }
 
     override fun listFiles(context: Context, path: Path): Set<Path> {
-        val dir = configDir.resolve(path.path)
+        val dir = configDir.resolveSecurely(path)
 
         if (!dir.isDirectory) {
             throw ConfigException("The provided path '${path.path}' does not refer a directory.")

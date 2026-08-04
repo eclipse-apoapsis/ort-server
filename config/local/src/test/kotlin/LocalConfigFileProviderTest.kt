@@ -94,6 +94,28 @@ class LocalConfigFileProviderTest : WordSpec({
                 provider.getFile(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
             }
         }
+
+        "throw an exception for a relative path escaping the config directory" {
+            val root = tempdir()
+            val directory = root.resolve("config").apply { mkdir() }
+            root.resolve("secret.txt").writeText(CONTENT)
+            val provider = LocalConfigFileProvider(directory)
+
+            shouldThrow<ConfigException> {
+                provider.getFile(ConfigManager.EMPTY_CONTEXT, Path("../secret.txt"))
+            }
+        }
+
+        "throw an exception for an absolute path outside the config directory" {
+            val directory = tempdir()
+            val outside = tempdir().resolve("secret.txt")
+            outside.writeText(CONTENT)
+            val provider = LocalConfigFileProvider(directory)
+
+            shouldThrow<ConfigException> {
+                provider.getFile(ConfigManager.EMPTY_CONTEXT, Path(outside.absolutePath))
+            }
+        }
     }
 
     "contains" should {
@@ -127,6 +149,17 @@ class LocalConfigFileProviderTest : WordSpec({
             val provider = LocalConfigFileProvider(directory)
 
             provider.contains(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH) shouldBe false
+        }
+
+        "throw an exception for a path escaping the config directory" {
+            val root = tempdir()
+            val directory = root.resolve("config").apply { mkdir() }
+            root.resolve("secret.txt").createNewFile()
+            val provider = LocalConfigFileProvider(directory)
+
+            shouldThrow<ConfigException> {
+                provider.contains(ConfigManager.EMPTY_CONTEXT, Path("../secret.txt"))
+            }
         }
     }
 
@@ -173,6 +206,16 @@ class LocalConfigFileProviderTest : WordSpec({
 
             shouldThrow<ConfigException> {
                 provider.listFiles(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
+            }
+        }
+
+        "throw an exception for a path escaping the config directory" {
+            val root = tempdir()
+            val directory = root.resolve("config").apply { mkdir() }
+            val provider = LocalConfigFileProvider(directory)
+
+            shouldThrow<ConfigException> {
+                provider.listFiles(ConfigManager.EMPTY_CONTEXT, Path("../"))
             }
         }
     }
