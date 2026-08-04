@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.config.github
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -43,6 +44,8 @@ import kotlin.time.toJavaInstant
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+import org.eclipse.apoapsis.ortserver.config.ConfigException
 
 class GitHubConfigFileCacheTest : WordSpec({
     "getOrPutFile" should {
@@ -90,6 +93,14 @@ class GitHubConfigFileCacheTest : WordSpec({
                         stream.verifyContent(prefix)
                     }
                 }
+            }
+        }
+
+        "reject a path escaping the cache directory" {
+            val cache = createCache()
+
+            shouldThrow<ConfigException> {
+                cache.getOrPutFile(revision(1), "../../../../etc/passwd", loadFileFunc())
             }
         }
     }

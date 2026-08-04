@@ -40,6 +40,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.resolveSecurely
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(GitHubConfigFileCache::class.java)
@@ -250,10 +254,11 @@ internal class GitHubConfigFileCache(
         }
 
     /**
-     * Resolve a file in the cache based on the given [subFolder], [revision], and [path].
+     * Resolve a file in the cache based on the given [subFolder], [revision], and [path]. A [ConfigException] is thrown
+     * if the path escapes the cache directory.
      */
     private fun resolveFileInCache(subFolder: String, revision: String, path: String): File {
-        val revisionDir = cacheDir.resolve(revision)
-        return revisionDir.resolve(subFolder).resolve(path)
+        val base = cacheDir.resolve(revision).resolve(subFolder)
+        return base.resolveSecurely(Path(path))
     }
 }
