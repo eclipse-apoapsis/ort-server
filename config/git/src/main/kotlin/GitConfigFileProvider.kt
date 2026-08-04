@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.resolveSecurely
 import org.eclipse.apoapsis.ortserver.utils.config.getServiceUrl
 
 import org.ossreviewtoolkit.model.VcsInfo
@@ -78,14 +79,14 @@ class GitConfigFileProvider internal constructor(
     override fun getFile(context: Context, path: Path): InputStream =
         runCatching {
             updateWorkingTree(context.name)
-            configDir.resolve(path.path).inputStream()
+            configDir.resolveSecurely(path).inputStream()
         }.getOrElse {
             throw ConfigException("Cannot read path '${path.path}'.", it)
         }
 
     override fun contains(context: Context, path: Path): Boolean {
         updateWorkingTree(context.name)
-        val p = configDir.resolve(path.path)
+        val p = configDir.resolveSecurely(path)
         val isDirectoryPath = path.path.endsWith("/")
 
         return (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
@@ -94,7 +95,7 @@ class GitConfigFileProvider internal constructor(
     override fun listFiles(context: Context, path: Path): Set<Path> {
         updateWorkingTree(context.name)
 
-        val dir = configDir.resolve(path.path)
+        val dir = configDir.resolveSecurely(path)
 
         if (!dir.isDirectory) {
             throw ConfigException("The provided path '${path.path}' does not refer a directory.")

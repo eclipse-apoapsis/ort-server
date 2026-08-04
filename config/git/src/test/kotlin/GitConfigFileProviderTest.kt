@@ -135,6 +135,14 @@ class GitConfigFileProviderTest : WordSpec({
 
             provider.contains(RESOLVED_CONTEXT_MAIN, Path("non/existent/file")) shouldBe false
         }
+
+        "throw an exception for a path escaping the config directory" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            shouldThrow<ConfigException> {
+                provider.contains(RESOLVED_CONTEXT_MAIN, Path("../../../../etc/passwd"))
+            }
+        }
     }
 
     "listFiles" should {
@@ -217,6 +225,22 @@ class GitConfigFileProviderTest : WordSpec({
 
             shouldThrow<ConfigException> {
                 provider.getFile(RESOLVED_CONTEXT_MAIN, Path("customer1/product1"))
+            }
+        }
+
+        "throw an exception for a relative path escaping the config directory" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            shouldThrow<ConfigException> {
+                provider.getFile(RESOLVED_CONTEXT_MAIN, Path("../../../../etc/passwd"))
+            }
+        }
+
+        "throw an exception for an absolute path outside the config directory" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            shouldThrow<ConfigException> {
+                provider.getFile(RESOLVED_CONTEXT_MAIN, Path("/etc/passwd"))
             }
         }
     }
