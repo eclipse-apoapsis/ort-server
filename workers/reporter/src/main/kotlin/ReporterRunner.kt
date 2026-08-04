@@ -416,9 +416,18 @@ private fun createAssetDirectory(asset: ReporterAsset, directory: File): File =
 
 /**
  * Transform this string to a [Path] for downloading a reporter template file. This requires removing the prefix
- * which marks this string as a template file.
+ * which marks this string as a template file. As the remaining value is user-controlled, reject absolute paths and
+ * paths containing ".." segments to prevent path traversal outside the config directory.
  */
-private fun String.toTemplatePath(): Path = Path(removePrefix(ReporterComponent.TEMPLATE_REFERENCE))
+internal fun String.toTemplatePath(): Path {
+    val raw = removePrefix(ReporterComponent.TEMPLATE_REFERENCE)
+
+    require(!File(raw).isAbsolute && raw.split('/', '\\').none { it == ".." }) {
+        "The template path '$raw' must be relative and must not contain '..' segments."
+    }
+
+    return Path(raw)
+}
 
 /**
  * Return the provider for license facts based on the given [config]. If a path to custom license texts is configured,

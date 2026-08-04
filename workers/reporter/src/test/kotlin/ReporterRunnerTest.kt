@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
@@ -1122,6 +1123,32 @@ class ReporterRunnerTest : WordSpec({
 
             provider.getProviders().find { it is SpdxLicenseFactProvider } shouldNot beNull()
             provider.getProviders().find { it is ScanCodeLicenseFactProvider } shouldNot beNull()
+        }
+    }
+
+    "toTemplatePath" should {
+        "resolve a relative template reference" {
+            val path = "${ReporterComponent.TEMPLATE_REFERENCE}reporter/my-template.ftl".toTemplatePath()
+
+            path shouldBe Path("reporter/my-template.ftl")
+        }
+
+        "reject a relative path traversing above the config directory" {
+            shouldThrow<IllegalArgumentException> {
+                "${ReporterComponent.TEMPLATE_REFERENCE}../../../../etc/passwd".toTemplatePath()
+            }
+        }
+
+        "reject a single '..' segment" {
+            shouldThrow<IllegalArgumentException> {
+                "${ReporterComponent.TEMPLATE_REFERENCE}reporter/../../secret".toTemplatePath()
+            }
+        }
+
+        "reject an absolute path" {
+            shouldThrow<IllegalArgumentException> {
+                "${ReporterComponent.TEMPLATE_REFERENCE}/proc/self/environ".toTemplatePath()
+            }
         }
     }
 })
