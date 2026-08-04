@@ -252,7 +252,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val repository = PatchRepository(
                     type = ApiRepositoryType.SUBVERSION.asPresent(),
-                    url = "ht tps://github.com/org/repo.git".asPresent()
+                    url = "https://github.com/org/repo.git?\b".asPresent()
                 )
 
                 val response = superuserClient.patch("/api/v1/repositories/${createRepository.id}") {

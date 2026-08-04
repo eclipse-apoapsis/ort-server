@@ -23,12 +23,16 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 
+import java.net.URI
+import java.net.URL
+
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.validation.UrlValidator
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesValidations
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsValidations
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.mapValidationResult
@@ -52,14 +56,29 @@ fun Application.configureValidation() {
         }
 
         validate<PostRepository> { create ->
-            mapValidationResult(PostRepository.validate(create))
+            mapValidationResult(PostRepository.validate(StrictUrlValidator)(create))
         }
 
         validate<PatchRepository> { update ->
-            mapValidationResult(PatchRepository.validate(update))
+            mapValidationResult(PatchRepository.validate(StrictUrlValidator)(update))
         }
 
         infrastructureServicesValidations()
         secretsValidations()
     }
+}
+
+/**
+ * An implementation of the [UrlValidator] interface that uses Java standard classes to perform a strict validation of
+ * URLs.
+ */
+private object StrictUrlValidator : UrlValidator {
+    override fun isValidUrl(url: String): Boolean = parseUrl(url) != null
+
+    override fun hasUserInfo(url: String): Boolean = parseUrl(url)?.userInfo != null
+
+    /**
+     * Parse the given [url] to a [URL] if it is valid. Return *null* otherwise.
+     */
+    private fun parseUrl(url: String): URL? = runCatching { URI.create(url).toURL() }.getOrNull()
 }
