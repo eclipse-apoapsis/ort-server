@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.core.api
 import io.github.smiley4.ktoropenapi.get
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -37,7 +36,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
@@ -67,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
+import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -81,7 +80,6 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.filterParameter
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.paginate
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
@@ -104,22 +102,16 @@ fun Route.organizations() = route("organizations") {
     get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
         val filter = call.filterParameter("filter")
-        val principal = requireNotNull(call.principal<OrtServerPrincipal>())
+        val principal = requirePrincipal()
 
-        val filteredOrganizations = organizationService
-            .listOrganizationsForUser(
+        val organizationsForUser =
+            organizationService.listOrganizationsForUser(
                 principal.username,
-                parameters = pagingOptions.copy(limit = null, offset = null).mapToModel(),
-                filter = filter?.mapToModel()
-            ).data
+                pagingOptions.mapToModel(),
+                filter?.mapToModel()
+            )
 
-        val pagedOrganizations = filteredOrganizations.paginate(pagingOptions)
-            .map { it.mapToApi() }
-
-        val pagedResponse = PagedResponse(
-            pagedOrganizations,
-            pagingOptions.toPagingData(filteredOrganizations.size.toLong())
-        )
+        val pagedResponse = organizationsForUser.mapToApi(Organization::mapToApi)
 
         call.respond(HttpStatusCode.OK, pagedResponse)
     }
