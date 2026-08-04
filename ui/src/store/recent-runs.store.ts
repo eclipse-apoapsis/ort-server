@@ -31,6 +31,7 @@ import type {
   RecentRunItem,
   RecentRunItemInput,
 } from '@/providers/home-data/types';
+import { syncPersistedStoreAcrossTabs } from './cross-tab-sync';
 
 type State = {
   recentRunsByUser: Record<string, RecentRunItem[]>;
@@ -49,7 +50,8 @@ const getUserRecentRuns = (state: State, userId: string) =>
 
 // The local store intentionally only tracks runs started from this browser UI.
 // Runs started via CLI, API, or another browser are outside this temporary
-// local-storage implementation until a backend-backed provider exists.
+// local-storage implementation until a backend-backed provider exists. Tabs of
+// this browser share the store, see the cross-tab synchronization below.
 export const useRecentRunsStore = create<State & Actions>()(
   persist(
     (set) => ({
@@ -93,3 +95,7 @@ export const useRecentRunsStore = create<State & Actions>()(
     }
   )
 );
+
+syncPersistedStoreAcrossTabs(RECENT_RUNS_STORAGE_NAME, () => {
+  void useRecentRunsStore.persist.rehydrate();
+});

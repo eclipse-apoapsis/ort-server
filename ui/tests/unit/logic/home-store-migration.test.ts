@@ -34,6 +34,8 @@ vi.stubGlobal('window', {
       void localStorageContent.set(key, value),
     removeItem: (key: string) => void localStorageContent.delete(key),
   },
+  // The stores listen for the storage events of the other tabs while loading.
+  addEventListener: () => {},
 });
 
 const CURRENT_VERSION = 2;
