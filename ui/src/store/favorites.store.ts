@@ -33,6 +33,7 @@ import type {
   FavoriteItemInput,
   FavoriteType,
 } from '@/providers/home-data/types';
+import { syncPersistedStoreAcrossTabs } from './cross-tab-sync';
 
 type State = {
   favoritesByUser: Record<string, FavoriteItem[]>;
@@ -129,3 +130,7 @@ export const useFavoritesStore = create<State & Actions>()(
     }
   )
 );
+
+syncPersistedStoreAcrossTabs(FAVORITES_STORAGE_NAME, () => {
+  void useFavoritesStore.persist.rehydrate();
+});
