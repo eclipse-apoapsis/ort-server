@@ -20,6 +20,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { migrateRecentRunsState } from '@/providers/home-data/persisted-state';
 import {
   addRecentRunItem,
   clearRecentRunItems,
@@ -86,6 +87,9 @@ export const useRecentRunsStore = create<State & Actions>()(
       name: RECENT_RUNS_STORAGE_NAME,
       partialize: (state) => ({ recentRunsByUser: state.recentRunsByUser }),
       version: 2,
+      // Keep what is still usable instead of letting zustand drop the whole payload on a
+      // version mismatch, which would wipe the recent runs of every user.
+      migrate: (persistedState) => migrateRecentRunsState(persistedState),
     }
   )
 );

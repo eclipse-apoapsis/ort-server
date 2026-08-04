@@ -27,6 +27,7 @@ import {
   toggleFavoriteItem,
   updateFavoriteItem,
 } from '@/providers/home-data/favorites';
+import { migrateFavoritesState } from '@/providers/home-data/persisted-state';
 import type {
   FavoriteItem,
   FavoriteItemInput,
@@ -122,6 +123,9 @@ export const useFavoritesStore = create<State & Actions>()(
         favoriteGroupOrderByUser: state.favoriteGroupOrderByUser,
       }),
       version: 2,
+      // Keep what is still usable instead of letting zustand drop the whole payload on a
+      // version mismatch, which would wipe the favorites of every user.
+      migrate: (persistedState) => migrateFavoritesState(persistedState),
     }
   )
 );
