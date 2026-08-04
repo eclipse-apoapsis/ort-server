@@ -248,6 +248,71 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "support paging with an offset" {
+            integrationTestApplication {
+                createOrganization(name = "name1", description = "description1")
+                val org2 = createOrganization(name = "name2", description = "description2")
+                createOrganization(name = "name3", description = "description3")
+
+                val response = superuserClient.get("/api/v1/organizations?limit=1&offset=1")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(org2.mapToApi()),
+                    PagingData(
+                        limit = 1,
+                        offset = 1,
+                        totalCount = 3,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "apply paging to the organizations for which the user has OrganizationPermission.READ" {
+            integrationTestApplication {
+                createOrganization(name = "org1")
+                val org2 = createOrganization(name = "org2")
+                createOrganization(name = "org3")
+                val org4 = createOrganization(name = "org4")
+                createOrganization(name = "org5")
+
+                listOf(org2, org4).forEach { org ->
+                    authorizationService.assignRole(
+                        TEST_USER.username.value,
+                        OrganizationRole.READER,
+                        CompoundHierarchyId.forOrganization(OrganizationId(org.id))
+                    )
+                }
+
+                val firstPage = testUserClient.get("/api/v1/organizations?limit=1")
+
+                firstPage shouldHaveStatus HttpStatusCode.OK
+                firstPage shouldHaveBody PagedResponse(
+                    listOf(org2.mapToApi()),
+                    PagingData(
+                        limit = 1,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+
+                val secondPage = testUserClient.get("/api/v1/organizations?limit=1&offset=1")
+
+                secondPage shouldHaveStatus HttpStatusCode.OK
+                secondPage shouldHaveBody PagedResponse(
+                    listOf(org4.mapToApi()),
+                    PagingData(
+                        limit = 1,
+                        offset = 1,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
         "support filter query parameters" {
             integrationTestApplication {
                 createOrganization(name = "name1", description = "description1")
