@@ -25,3 +25,11 @@
 export function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+/**
+ * Turn what a user typed into a search box into a `filter` query parameter, leaving it out entirely
+ * while nothing has been typed.
+ */
+export function toSearchFilter(searchTerm: string): string | undefined {
+  return searchTerm ? escapeRegex(searchTerm) : undefined;
+}

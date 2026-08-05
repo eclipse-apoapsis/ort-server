@@ -36,7 +36,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { ApiError } from '@/lib/api-error';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
-import { escapeRegex } from '@/lib/regex';
+import { toSearchFilter } from '@/lib/regex';
 import { toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
@@ -49,10 +49,6 @@ interface MoveRepositoryProps {
  * is not necessarily part of the page that is shown once the search term changes.
  */
 type Selection = { id: number; name: string };
-
-/** Turn what the user typed into a filter, as the API reads it as a regular expression. */
-const toFilter = (searchTerm: string) =>
-  searchTerm ? escapeRegex(searchTerm) : undefined;
 
 export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
   const params = useParams({ strict: false });
@@ -76,7 +72,7 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
     getOrganizationsInfiniteOptions({
       query: {
         limit: DROPDOWN_PAGE_SIZE,
-        filter: toFilter(debouncedOrgSearch),
+        filter: toSearchFilter(debouncedOrgSearch),
       },
     }),
     { enabled: orgOpen }
@@ -88,7 +84,7 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
       path: { organizationId: selectedOrg?.id ?? -1 },
       query: {
         limit: DROPDOWN_PAGE_SIZE,
-        filter: toFilter(debouncedProductSearch),
+        filter: toSearchFilter(debouncedProductSearch),
       },
     }),
     { enabled: productOpen && selectedOrg !== null }
