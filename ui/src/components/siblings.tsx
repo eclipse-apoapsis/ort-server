@@ -25,6 +25,7 @@ import {
   getOrganizationProductsOptions,
   getOrganizationsOptions,
   getProductRepositoriesOptions,
+  getRepositoryOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
@@ -111,6 +112,15 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     enabled: entity === 'run' || !!params.repoId,
   });
 
+  // The repository of the page itself, which the route loader has already put into the cache.
+  const { data: currentRepo } = useQuery({
+    ...getRepositoryOptions({
+      path: { repositoryId: Number(params.repoId) },
+    }),
+    staleTime: staleTime,
+    enabled: entity === 'repository' && !!params.repoId,
+  });
+
   const orgs = organizations?.data;
   const prods = products?.data;
   const repos = repositories?.data;
@@ -125,10 +135,9 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           ? breadcrumbs.repo
           : breadcrumbs.run;
 
-  const currentRepoUrl =
-    entity === 'repository'
-      ? repos?.find((r) => r.id === Number(params.repoId))?.url
-      : undefined;
+  // The query above is cached under the same key for the run breadcrumb, which also knows the
+  // repository, so the link is shown for the repository breadcrumb only.
+  const currentRepoUrl = entity === 'repository' ? currentRepo?.url : undefined;
 
   return (
     <BreadcrumbItem>
