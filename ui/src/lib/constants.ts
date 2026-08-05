@@ -25,6 +25,10 @@
 // to get the distribution of items without fetching all items from back-end, which is costly.
 export const ALL_ITEMS = 100000;
 
+// The number of items a dropdown asks for at a time. Dropdowns load their content page by page as
+// the user scrolls, so this is only the size of one page, not the number of items reachable in it.
+export const DROPDOWN_PAGE_SIZE = 50;
+
 // The base download URL for the downloadable assets of the latest ORT Server release.
 export const ORT_SERVER_GITHUB_RELEASES_BASE_URL =
   'https://github.com/eclipse-apoapsis/ort-server/releases';
