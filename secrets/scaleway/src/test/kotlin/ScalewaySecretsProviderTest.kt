@@ -28,19 +28,10 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 
 class ScalewaySecretsProviderTest : WordSpec({
-    // Some test cases in this test spec actually connect to the real production Scaleway API. These tests are only
-    // enabled if credentials are provided via environment variables.
-    val config = ScalewayConfiguration(
-        secretKey = System.getenv("SCW_SECRET_KEY").orEmpty(),
-        projectId = System.getenv("SCW_PROJECT_ID").orEmpty()
-    )
-
-    val provider = ScalewaySecretsProvider(config)
-    val path = provider.createPath(OrganizationId(1), "This_is_a_29-chr._secret_name")
-    val secret = SecretValue("Ernie & Bert live at Sesame Street!")
-
     "createPath()" should {
         "create an absolute path from the path prefix and path name" {
+            val provider = createProvider()
+            val path = provider.createPath(OrganizationId(1), "This_is_a_29-chr._secret_name")
             path.path shouldBe "/organization_1/This_is_a_29-chr._secret_name"
             path.toScaleway() shouldBe Pair("/organization_1", "This_is_a_29-chr._secret_name")
         }
@@ -49,6 +40,16 @@ class ScalewaySecretsProviderTest : WordSpec({
     // TODO: Add tests that work without accessing a real production environment.
 
     "A CRUD workflow" should {
+        // These tests connect to the real production Scaleway API and are only enabled if credentials are provided via
+        // environment variables.
+        val config = createConfig(
+            secretKey = System.getenv("SCW_SECRET_KEY").orEmpty(),
+            projectId = System.getenv("SCW_PROJECT_ID").orEmpty()
+        )
+        val provider = createProvider(config)
+        val path = provider.createPath(OrganizationId(1), "This_is_a_29-chr._secret_name")
+        val secret = SecretValue("Ernie & Bert live at Sesame Street!")
+
         "not throw for 'removeSecret()' even if the secret does not exist".config(enabled = config.hasCredentials) {
             provider.removeSecret(path)
         }
@@ -70,3 +71,11 @@ class ScalewaySecretsProviderTest : WordSpec({
         }
     }
 })
+
+private fun createConfig(secretKey: String = "", projectId: String = "") = ScalewayConfiguration(
+    secretKey = secretKey,
+    projectId = projectId
+)
+
+private fun createProvider(config: ScalewayConfiguration = createConfig()) =
+    ScalewaySecretsProvider(config)
