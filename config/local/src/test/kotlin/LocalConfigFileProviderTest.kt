@@ -27,6 +27,8 @@ import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+import java.nio.file.Files
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
@@ -188,6 +190,17 @@ class LocalConfigFileProviderTest : WordSpec({
 
             val expectedFiles = files.map { Path(subDirectory.resolve(it).absolutePath) }
             listFiles shouldContainExactlyInAnyOrder expectedFiles
+        }
+
+        "preserve the configured path when the config directory is a symbolic link" {
+            val directory = tempdir()
+            val configFile = directory.resolve("config-file").apply { createNewFile() }
+            val link = tempdir().resolve("config")
+            Files.createSymbolicLink(link.toPath(), directory.toPath())
+            val provider = LocalConfigFileProvider(link)
+            val expectedFile = Path(link.resolve(configFile.name).path)
+
+            provider.listFiles(ConfigManager.EMPTY_CONTEXT, Path("")) shouldBe setOf(expectedFile)
         }
 
         "throw an exception if the path does not exist" {
