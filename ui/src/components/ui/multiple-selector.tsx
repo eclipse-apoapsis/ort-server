@@ -21,6 +21,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useInView } from '@/hooks/use-in-view';
 import { cn } from '@/lib/utils';
 
 export interface Option {
@@ -91,6 +92,20 @@ interface MultipleSelectorProps {
   >;
   /** hide the clear all button. */
   hideClearAllButton?: boolean;
+  /**
+   * Show the loading indicator although the options are not searched through `onSearch`. This is
+   * for options that are loaded by the caller, for example page by page.
+   */
+  loading?: boolean;
+  /** Whether there are options left to load. Only has an effect together with `onLoadMore`. */
+  hasMore?: boolean;
+  /** Whether the options that come next are being loaded. */
+  isLoadingMore?: boolean;
+  /**
+   * Called when the end of the list of options is scrolled into view, so that the caller can add
+   * the options that come next.
+   */
+  onLoadMore?: () => void;
 }
 
 export interface MultipleSelectorRef {
@@ -199,6 +214,10 @@ const MultipleSelector = React.forwardRef<
       commandProps,
       inputProps,
       hideClearAllButton = false,
+      loading = false,
+      hasMore = false,
+      isLoadingMore = false,
+      onLoadMore,
     }: MultipleSelectorProps,
     ref: React.Ref<MultipleSelectorRef>
   ) => {
@@ -214,6 +233,16 @@ const MultipleSelector = React.forwardRef<
     );
     const [inputValue, setInputValue] = React.useState('');
     const debouncedSearchTerm = useDebounce(inputValue, delay || 500);
+
+    // The end of the list of options. Scrolling it into view asks the caller for the options that
+    // come next.
+    const { ref: loadMoreRef, inView: isEndOfListInView } = useInView();
+
+    useEffect(() => {
+      if (isEndOfListInView && hasMore && !isLoadingMore) {
+        onLoadMore?.();
+      }
+    }, [isEndOfListInView, hasMore, isLoadingMore, onLoadMore]);
 
     React.useImperativeHandle(
       ref,
@@ -571,7 +600,7 @@ const MultipleSelector = React.forwardRef<
                 inputRef?.current?.focus();
               }}
             >
-              {isLoading ? (
+              {isLoading || loading ? (
                 <>{loadingIndicator}</>
               ) : (
                 <>
@@ -620,6 +649,16 @@ const MultipleSelector = React.forwardRef<
                       </>
                     </CommandGroup>
                   ))}
+                  {onLoadMore && (
+                    <>
+                      <div ref={loadMoreRef} />
+                      {isLoadingMore && (
+                        <div className='text-muted-foreground py-2 text-center text-sm'>
+                          Loading more...
+                        </div>
+                      )}
+                    </>
+                  )}
                 </>
               )}
             </CommandList>
