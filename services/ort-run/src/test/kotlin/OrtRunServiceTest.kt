@@ -1627,11 +1627,44 @@ class OrtRunServiceTest : WordSpec({
                 fixtures
             )
 
+            val packageId = Identifier("Maven", "org.ossreviewtoolkit", "model", "1.0.0")
+            val packageConfiguration = PackageConfiguration(id = packageId)
+            service.storeResolvedPackageConfigurations(ortRun.id, listOf(packageConfiguration.mapToOrt()))
+
+            val resolvedPackageCurations = listOf(
+                ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig(name = "test"),
+                    curations = listOf(PackageCuration(packageId, PackageCurationData()))
+                )
+            )
+            service.storeResolvedPackageCurations(
+                ortRun.id,
+                resolvedPackageCurations.map(ResolvedPackageCurations::mapToOrt)
+            )
+
+            val issue = Issue(Clock.System.now(), "test", "message", Severity.WARNING)
+            val issueResolution = IssueResolution(
+                message = "message",
+                reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                comment = "comment",
+                source = ResolutionSource.REPOSITORY_FILE
+            )
+            service.storeResolvedItems(ortRun.id, ResolvedItemsResult(issues = mapOf(issue to listOf(issueResolution))))
+
             service.generateOrtResult(ortRun).let { ortResult ->
                 ortResult.repository.vcs shouldBe vcsInfo.mapToOrt()
                 ortResult.repository.vcsProcessed shouldBe processedVcsInfo.mapToOrt()
                 ortResult.repository.nestedRepositories["nested-1"] shouldBe nestedVcsInfo1.mapToOrt()
                 ortResult.repository.nestedRepositories["nested-2"] shouldBe nestedVcsInfo2.mapToOrt()
+
+                with(ortResult.resolvedConfiguration) {
+                    licenseChoices shouldBe ortResult.repository.config.licenseChoices
+                    packageConfigurations should containExactly(packageConfiguration.mapToOrt())
+                    packageCurations should containExactly(
+                        *resolvedPackageCurations.map(ResolvedPackageCurations::mapToOrt).toTypedArray()
+                    )
+                    resolutions.shouldNotBeNull().issues should containExactly(issueResolution.mapToOrt())
+                }
             }
         }
 
