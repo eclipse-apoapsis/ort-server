@@ -75,12 +75,15 @@ class LocalConfigFileProvider(
     }
 
     override fun listFiles(context: Context, path: Path): Set<Path> {
+        val requestedDir = configDir.resolve(path.path)
         val dir = configDir.resolveSecurely(path)
 
         if (!dir.isDirectory) {
             throw ConfigException("The provided path '${path.path}' does not refer a directory.")
         }
 
-        return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) { Path(it.path) }
+        return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) {
+            Path(requestedDir.resolve(it.relativeTo(dir)).path)
+        }
     }
 }
