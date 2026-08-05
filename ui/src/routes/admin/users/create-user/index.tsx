@@ -18,21 +18,21 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getOrganizationsOptions,
+  getOrganizationsInfiniteOptions,
   postUserMutation,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -54,8 +54,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { ApiError } from '@/lib/api-error';
-import { ALL_ITEMS } from '@/lib/constants';
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { toSearchFilter } from '@/lib/regex';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -73,14 +76,30 @@ const formSchema = z.object({
 const CreateUser = () => {
   const navigate = useNavigate();
 
-  const {
-    data: organizations,
-    isPending: orgIsPending,
-    isError: orgIsError,
-    error: orgError,
-  } = useQuery({
-    ...getOrganizationsOptions({ query: { limit: ALL_ITEMS } }),
-  });
+  // The name of every organization that has been picked so far. A picked organization is not
+  // necessarily part of the page that is shown after the search term changes, and its badge still
+  // has to show its name.
+  const organizationNames = useRef(new Map<string, string>());
+
+  // Nothing is loaded before the user has touched the field, so opening the form costs no request.
+  const [isSelectorUsed, setIsSelectorUsed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filter = toSearchFilter(useDebounce(searchTerm, 300));
+
+  const organizations = useInfiniteList(
+    getOrganizationsInfiniteOptions({
+      query: { limit: DROPDOWN_PAGE_SIZE, filter: filter },
+    }),
+    { enabled: isSelectorUsed }
+  );
+
+  const organizationOptions: Option[] = organizations.items.map(
+    (organization) => ({
+      label: organization.name,
+      value: organization.id.toString(),
+    })
+  );
 
   const { mutateAsync: createUser, isPending: isCreateUserPending } =
     useMutation({
@@ -96,9 +115,9 @@ const CreateUser = () => {
   } = useMutation({
     ...putOrganizationRoleToUserMutation(),
     onSuccess(_, variables) {
-      const organizationName = organizations?.data.find(
-        (org) => org.id === variables.path.organizationId
-      )?.name;
+      const organizationName = organizationNames.current.get(
+        variables.path.organizationId.toString()
+      );
 
       toast.info('Add Access Rights', {
         description: `The "${variables.body?.username}" user was created and assigned the READER role for the "${organizationName}" organization.`,
@@ -148,20 +167,6 @@ const CreateUser = () => {
       )
     );
   }
-
-  if (orgIsPending) {
-    return <LoadingIndicator />;
-  }
-
-  if (orgIsError) {
-    toastError('Unable to load data', orgError);
-    return;
-  }
-
-  const options: Option[] = organizations.data.map((o) => ({
-    label: o.name,
-    value: o.id.toString(),
-  }));
 
   return (
     <Card className='col-span-2 w-full'>
@@ -276,17 +281,38 @@ const CreateUser = () => {
                           No results found.
                         </p>
                       }
-                      value={(field.value || []).map(
-                        (v) =>
-                          options.find((o) => o.value === v) || {
-                            label: v,
-                            value: v,
-                          }
-                      )}
-                      defaultOptions={options}
-                      onChange={(selected) =>
-                        field.onChange(selected.map((s) => s.value))
+                      loadingIndicator={
+                        <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400'>
+                          Loading...
+                        </p>
                       }
+                      value={(field.value || []).map((organizationId) => ({
+                        label:
+                          organizationNames.current.get(organizationId) ??
+                          organizationId,
+                        value: organizationId,
+                      }))}
+                      options={organizationOptions}
+                      loading={organizations.isPending}
+                      hasMore={organizations.hasNextPage}
+                      isLoadingMore={organizations.isFetchingNextPage}
+                      onLoadMore={organizations.fetchNextPage}
+                      // The organizations are searched on the server, so the list must not be
+                      // filtered again by what has been typed.
+                      commandProps={{ shouldFilter: false }}
+                      inputProps={{
+                        onValueChange: setSearchTerm,
+                        onFocus: () => setIsSelectorUsed(true),
+                      }}
+                      onChange={(selected) => {
+                        selected.forEach((option) =>
+                          organizationNames.current.set(
+                            option.value,
+                            option.label
+                          )
+                        );
+                        field.onChange(selected.map((s) => s.value));
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
