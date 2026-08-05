@@ -17,9 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
 import { Pencil } from 'lucide-react';
+import { useState } from 'react';
 
 import { PluginDescriptor, PluginTemplate } from '@/api';
 import {
@@ -27,7 +28,8 @@ import {
   deletePluginTemplateMutation,
   disableGlobalPluginTemplateMutation,
   enableGlobalPluginTemplateMutation,
-  getOrganizationsOptions,
+  getOrganizationOptions,
+  getOrganizationsInfiniteOptions,
   getPluginTemplatesOptions,
   getPluginTemplatesQueryKey,
   removeTemplateFromOrganizationMutation,
@@ -53,9 +55,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { ApiError } from '@/lib/api-error';
-import { ALL_ITEMS } from '@/lib/constants.ts';
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants.ts';
 import { queryClient, routePrefetchStaleTime } from '@/lib/query-client.ts';
+import { toSearchFilter } from '@/lib/regex';
 import { toast, toastError } from '@/lib/toast';
 import { getPluginTypeLabel } from '@/lib/types';
 import { Route as LayoutRoute } from '@/routes/admin/plugins/route.tsx';
@@ -63,14 +68,48 @@ import { Route as LayoutRoute } from '@/routes/admin/plugins/route.tsx';
 type PluginTemplateCardProps = {
   plugin: PluginDescriptor;
   template: PluginTemplate;
-  organizationOptions: Option[];
 };
 
-const PluginTemplateCard = ({
-  plugin,
-  template,
-  organizationOptions,
-}: PluginTemplateCardProps) => {
+const PluginTemplateCard = ({ plugin, template }: PluginTemplateCardProps) => {
+  // Nothing is loaded before the user has touched the field, so a page with many templates on it
+  // costs no request for the organizations of any of them.
+  const [isSelectorUsed, setIsSelectorUsed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filter = toSearchFilter(useDebounce(searchTerm, 300));
+
+  const organizations = useInfiniteList(
+    getOrganizationsInfiniteOptions({
+      query: { limit: DROPDOWN_PAGE_SIZE, filter: filter },
+    }),
+    { enabled: isSelectorUsed }
+  );
+
+  const organizationOptions: Option[] = organizations.items.map(
+    (organization) => ({
+      label: organization.name,
+      value: organization.id.toString(),
+    })
+  );
+
+  // The organizations this template is assigned to are not necessarily part of the page that is
+  // shown, so their names are read one by one. The queries are shared by all the cards.
+  const assignedIds = template.organizationIds ?? [];
+
+  const assignedOrganizations = useQueries({
+    queries: assignedIds.map((organizationId) =>
+      getOrganizationOptions({ path: { organizationId: organizationId } })
+    ),
+  });
+
+  const assignedOptions: Option[] = assignedIds.map(
+    (organizationId, index) => ({
+      label:
+        assignedOrganizations[index]?.data?.name ?? organizationId.toString(),
+      value: organizationId.toString(),
+    })
+  );
+
   const { mutateAsync: enableGlobal } = useMutation({
     ...enableGlobalPluginTemplateMutation(),
   });
@@ -271,10 +310,29 @@ const PluginTemplateCard = ({
             : 'This template is not assigned to any organizations.'}
         </p>
         <MultipleSelector
-          value={organizationOptions.filter((o) =>
-            template.organizationIds?.includes(Number(o.value))
-          )}
+          value={assignedOptions}
           options={organizationOptions}
+          loading={organizations.isPending}
+          hasMore={organizations.hasNextPage}
+          isLoadingMore={organizations.isFetchingNextPage}
+          onLoadMore={organizations.fetchNextPage}
+          // The organizations are searched on the server, so the list must not be filtered again
+          // by what has been typed.
+          commandProps={{ shouldFilter: false }}
+          inputProps={{
+            onValueChange: setSearchTerm,
+            onFocus: () => setIsSelectorUsed(true),
+          }}
+          emptyIndicator={
+            <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400'>
+              No results found.
+            </p>
+          }
+          loadingIndicator={
+            <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400'>
+              Loading...
+            </p>
+          }
           placeholder='Assign organizations...'
           badgeClassName='bg-amber-200 text-black'
           onChange={(newSelected) => {
@@ -359,19 +417,6 @@ const PluginTemplatesComponent = () => {
   );
 
   const {
-    data: organizations,
-    isPending: orgIsPending,
-    isError: orgIsError,
-    error: orgError,
-  } = useQuery({
-    ...getOrganizationsOptions({
-      query: {
-        limit: ALL_ITEMS,
-      },
-    }),
-  });
-
-  const {
     data: pluginTemplates,
     error: pluginTemplatesError,
     isPending: pluginTemplatesIsPending,
@@ -406,20 +451,6 @@ const PluginTemplatesComponent = () => {
     toastError('Failed to load plugin templates', pluginTemplatesError);
     return;
   }
-
-  if (orgIsPending) {
-    return <LoadingIndicator />;
-  }
-
-  if (orgIsError) {
-    toastError('Unable to load data', orgError);
-    return;
-  }
-
-  const organizationOptions: Option[] = organizations.data.map((o) => ({
-    label: o.name,
-    value: o.id.toString(),
-  }));
 
   return (
     <Card className='mb-4 h-fit'>
@@ -459,7 +490,6 @@ const PluginTemplatesComponent = () => {
               key={template.name}
               plugin={plugin}
               template={template}
-              organizationOptions={organizationOptions}
             />
           ))
         ) : (

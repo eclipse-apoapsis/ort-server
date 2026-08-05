@@ -19,10 +19,16 @@
 
 // Paginated list queries have a "limit" query parameter, which is the maximum number of items to return.
 // When the limit is not set, the queries return a default number of items.
-// As some components, like the item distribution color bar, require all items to calculate the distribution,
-// the limit is set to (an arbitrary) high number to ensure that all items are returned.
-// This probably needs to be changed in the future to a more sophisticated solution, e.g., by using a separate query
-// to get the distribution of items without fetching all items from back-end, which is costly.
+// Some views need every item at once, rather than a page of them, and set the limit to (an
+// arbitrary) high number to get them:
+// - The issue, rule violation and project tables of a run filter, sort and paginate in the browser,
+//   which they cannot stop doing until those endpoints support filtering, see
+//   https://github.com/eclipse-apoapsis/ort-server/issues/5349.
+// - The secrets and the infrastructure services of a hierarchy are read as one complete list, see
+//   https://github.com/eclipse-apoapsis/ort-server/issues/5646.
+// Both are costly and meant to go away.
+// Dropdowns and other lists the user picks from must not use this. They ask for one page at a time,
+// see DROPDOWN_PAGE_SIZE below and the useInfiniteList hook.
 export const ALL_ITEMS = 100000;
 
 // The number of items a dropdown asks for at a time. Dropdowns load their content page by page as
