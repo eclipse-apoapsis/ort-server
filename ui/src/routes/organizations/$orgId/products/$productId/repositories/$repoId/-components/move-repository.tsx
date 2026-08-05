@@ -17,34 +17,26 @@
  * License-Filename: LICENSE
  */
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  getOrganizationProductsOptions,
-  getOrganizationsOptions,
+  getOrganizationProductsInfiniteOptions,
+  getOrganizationsInfiniteOptions,
   patchRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { OptionalValueLong } from '@/api/types.gen';
 import { MoveDialog } from '@/components/move-dialog';
+import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { CommandItem } from '@/components/ui/command';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { ApiError } from '@/lib/api-error';
-import { ALL_ITEMS } from '@/lib/constants';
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { escapeRegex } from '@/lib/regex';
 import { toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
@@ -52,40 +44,57 @@ interface MoveRepositoryProps {
   repoUrl: string;
 }
 
+/**
+ * A selection is kept as the whole entry instead of only its ID, because the entry the user picked
+ * is not necessarily part of the page that is shown once the search term changes.
+ */
+type Selection = { id: number; name: string };
+
+/** Turn what the user typed into a filter, as the API reads it as a regular expression. */
+const toFilter = (searchTerm: string) =>
+  searchTerm ? escapeRegex(searchTerm) : undefined;
+
 export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
   const params = useParams({ strict: false });
   const navigate = useNavigate();
 
   const repositoryId = Number.parseInt(params.repoId!);
 
-  const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+  const [selectedOrg, setSelectedOrg] = useState<Selection | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Selection | null>(
     null
   );
   const [orgOpen, setOrgOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
+  const [orgSearch, setOrgSearch] = useState('');
+  const [productSearch, setProductSearch] = useState('');
 
-  const { data: orgsData } = useQuery({
-    ...getOrganizationsOptions({
-      query: { limit: ALL_ITEMS },
+  const debouncedOrgSearch = useDebounce(orgSearch, 300);
+  const debouncedProductSearch = useDebounce(productSearch, 300);
+
+  const organizations = useInfiniteList(
+    getOrganizationsInfiniteOptions({
+      query: {
+        limit: DROPDOWN_PAGE_SIZE,
+        filter: toFilter(debouncedOrgSearch),
+      },
     }),
-  });
+    { enabled: orgOpen }
+  );
 
-  const { data: productsData } = useQuery({
-    ...getOrganizationProductsOptions({
-      path: { organizationId: selectedOrgId! },
-      query: { limit: ALL_ITEMS },
+  const products = useInfiniteList(
+    getOrganizationProductsInfiniteOptions({
+      // The query is disabled until an organization has been selected.
+      path: { organizationId: selectedOrg?.id ?? -1 },
+      query: {
+        limit: DROPDOWN_PAGE_SIZE,
+        filter: toFilter(debouncedProductSearch),
+      },
     }),
-    enabled: selectedOrgId !== null,
-  });
+    { enabled: productOpen && selectedOrg !== null }
+  );
 
-  const organizations = orgsData?.data ?? [];
-  const products = productsData?.data ?? [];
-
-  const selectedOrg = organizations.find((o) => o.id === selectedOrgId);
-  const selectedProduct = products.find((p) => p.id === selectedProductId);
-
-  const isMoveEnabled = selectedOrgId !== null && selectedProductId !== null;
+  const isMoveEnabled = selectedOrg !== null && selectedProduct !== null;
 
   const { mutateAsync: moveRepository } = useMutation({
     ...patchRepositoryMutation(),
@@ -93,8 +102,8 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
         params: {
-          orgId: String(selectedOrgId),
-          productId: String(selectedProductId),
+          orgId: String(selectedOrg?.id),
+          productId: String(selectedProduct?.id),
           repoId: params.repoId!,
         },
         reloadDocument: true,
@@ -109,15 +118,15 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
     await moveRepository({
       path: { repositoryId },
       body: {
-        productId: selectedProductId as unknown as OptionalValueLong,
+        productId: selectedProduct?.id as unknown as OptionalValueLong,
       },
     });
   }
 
   return (
     <div className='flex items-center gap-2'>
-      <Popover open={orgOpen} onOpenChange={setOrgOpen}>
-        <PopoverTrigger asChild>
+      <SearchableInfiniteList
+        trigger={
           <Button
             variant='outline'
             role='combobox'
@@ -129,86 +138,81 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
             </span>
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-auto max-w-[min(32rem,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0'>
-          <Command>
-            <CommandInput placeholder='Search organization...' />
-            <CommandList>
-              <CommandEmpty>No organization found.</CommandEmpty>
-              <CommandGroup>
-                {organizations.map((org) => (
-                  <CommandItem
-                    key={org.id}
-                    value={org.name}
-                    onSelect={() => {
-                      const newOrgId = org.id === selectedOrgId ? null : org.id;
-                      setSelectedOrgId(newOrgId);
-                      setSelectedProductId(null);
-                      setOrgOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedOrgId === org.id ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    <span className='truncate'>{org.name}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      <Popover open={productOpen} onOpenChange={setProductOpen}>
-        <PopoverTrigger asChild>
+        }
+        open={orgOpen}
+        onOpenChange={setOrgOpen}
+        list={organizations}
+        getItemKey={(org) => org.id}
+        renderItem={(org) => (
+          <CommandItem
+            value={org.name}
+            onSelect={() => {
+              setSelectedOrg(org.id === selectedOrg?.id ? null : org);
+              // The products of another organization are different ones.
+              setSelectedProduct(null);
+              setProductSearch('');
+              setOrgOpen(false);
+            }}
+          >
+            <Check
+              className={cn(
+                'mr-2 h-4 w-4',
+                selectedOrg?.id === org.id ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+            <span className='truncate'>{org.name}</span>
+          </CommandItem>
+        )}
+        searchPlaceholder='Search organization...'
+        searchTerm={orgSearch}
+        onSearchTermChange={setOrgSearch}
+        emptyMessage='No organization found.'
+        errorMessage='Failed to load organizations'
+      />
+      <SearchableInfiniteList
+        trigger={
           <Button
             variant='outline'
             role='combobox'
             aria-expanded={productOpen}
             className='w-[240px] justify-between gap-2'
-            disabled={selectedOrgId === null}
+            disabled={selectedOrg === null}
           >
             <span className='min-w-0 truncate text-left'>
               {selectedProduct ? selectedProduct.name : 'Select product'}
             </span>
             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-auto max-w-[min(32rem,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0'>
-          <Command>
-            <CommandInput placeholder='Search product...' />
-            <CommandList>
-              <CommandEmpty>No product found.</CommandEmpty>
-              <CommandGroup>
-                {products.map((product) => (
-                  <CommandItem
-                    key={product.id}
-                    value={product.name}
-                    onSelect={() => {
-                      setSelectedProductId(
-                        product.id === selectedProductId ? null : product.id
-                      );
-                      setProductOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedProductId === product.id
-                          ? 'opacity-100'
-                          : 'opacity-0'
-                      )}
-                    />
-                    <span className='truncate'>{product.name}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+        }
+        open={productOpen}
+        onOpenChange={setProductOpen}
+        list={products}
+        getItemKey={(product) => product.id}
+        renderItem={(product) => (
+          <CommandItem
+            value={product.name}
+            onSelect={() => {
+              setSelectedProduct(
+                product.id === selectedProduct?.id ? null : product
+              );
+              setProductOpen(false);
+            }}
+          >
+            <Check
+              className={cn(
+                'mr-2 h-4 w-4',
+                selectedProduct?.id === product.id ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+            <span className='truncate'>{product.name}</span>
+          </CommandItem>
+        )}
+        searchPlaceholder='Search product...'
+        searchTerm={productSearch}
+        onSearchTermChange={setProductSearch}
+        emptyMessage='No product found.'
+        errorMessage='Failed to load products'
+      />
       <div className='flex-1' />
       <MoveDialog
         thingName='repository'
