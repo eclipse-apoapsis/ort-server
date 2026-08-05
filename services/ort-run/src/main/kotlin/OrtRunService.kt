@@ -437,6 +437,9 @@ class OrtRunService(
         )
 
         return baseResult.copy(
+            resolvedConfiguration = baseResult.resolvedConfiguration.copy(
+                licenseChoices = baseResult.repository.config.licenseChoices
+            ),
             // Add common labels for all types of workers
             labels = baseResult.labels + mapOf(
                 RUN_ID_LABEL to ortRun.id.toString()
