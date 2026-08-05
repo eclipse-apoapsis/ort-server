@@ -35,6 +35,7 @@ import {
   getProductRepositoriesInfiniteOptions,
   getProductRepositoriesOptions,
   getRepositoryOptions,
+  getRepositoryRunsInfiniteOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { PagingData } from '@/api/types.gen';
@@ -42,15 +43,8 @@ import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { CommandItem } from '@/components/ui/command';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
-import { ApiError } from '@/lib/api-error';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
 import { toSearchFilter } from '@/lib/regex';
 
@@ -144,6 +138,14 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     entity === 'repository' && !!params.productId
   );
 
+  const runCount = useTotalCount(
+    getRepositoryRunsOptions({
+      path: { repositoryId: Number(params.repoId) },
+      query: { limit: 1 },
+    }),
+    entity === 'run' && !!params.repoId
+  );
+
   // The lists themselves are fetched only while their dropdown is open, so a breadcrumb that is
   // never clicked costs no more than the count above.
   const organizations = useInfiniteList(
@@ -175,19 +177,16 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     }
   );
 
-  const {
-    data: runs,
-    isPending: isRunsPending,
-    isError: isRunsError,
-    error: runsError,
-  } = useQuery({
-    ...getRepositoryRunsOptions({
+  const runs = useInfiniteList(
+    getRepositoryRunsInfiniteOptions({
       path: { repositoryId: Number(params.repoId) },
-      query: { limit: 100, sort: '-index' },
+      query: { limit: DROPDOWN_PAGE_SIZE, sort: '-index' },
     }),
-    staleTime: staleTime,
-    enabled: entity === 'run' || !!params.repoId,
-  });
+    {
+      staleTime: staleTime,
+      enabled: entity === 'run' && isOpen && !!params.repoId,
+    }
+  );
 
   // The repository of the page itself, which the route loader has already put into the cache.
   const { data: currentRepo } = useQuery({
@@ -197,8 +196,6 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     staleTime: staleTime,
     enabled: entity === 'repository' && !!params.repoId,
   });
-
-  const runIndexes = runs?.data;
 
   const name =
     entity === 'organization'
@@ -316,44 +313,43 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           errorMessage='Failed to load repositories'
         />
       )}
-      {entity === 'run' && runIndexes && runIndexes.length > 1 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <ChevronDown className='ml-1 size-4 cursor-pointer' />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className='max-h-96' align='start'>
-            <>
-              {isRunsPending && <DropdownMenuItem>Loading...</DropdownMenuItem>}
-              {isRunsError && (
-                <DropdownMenuItem className='text-red-500'>
-                  Error:{' '}
-                  {`Failed to load runs: ${(runsError as ApiError).message}`}
-                </DropdownMenuItem>
-              )}
-              {runIndexes.map((run) => (
-                <DropdownMenuItem key={run.index} className='ml-2' asChild>
-                  <Link
-                    to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-                    params={{
-                      orgId: params.orgId ?? '',
-                      productId: params.productId ?? '',
-                      repoId: params.repoId ?? '',
-                      runIndex: run.index.toString() ?? '',
-                    }}
-                    preload={false}
-                  >
-                    <div className='grid w-full grid-cols-6 items-center gap-2'>
-                      <div className='col-span-5'>{run.index}</div>
-                      {run.index === Number(params.runIndex) && (
-                        <Check className='ml-auto h-4 w-4' />
-                      )}
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* The runs of a repository cannot be filtered on the server, so this list has no search. */}
+      {entity === 'run' && runCount > 1 && (
+        <SearchableInfiniteList
+          trigger={<ChevronDown className='ml-1 size-4 cursor-pointer' />}
+          open={isOpen}
+          onOpenChange={handleOpenChange}
+          list={runs}
+          getItemKey={(run) => run.index}
+          renderItem={(run) => (
+            <CommandItem
+              asChild
+              value={run.index.toString()}
+              onSelect={closeDropdown}
+            >
+              <Link
+                to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+                params={{
+                  orgId: params.orgId ?? '',
+                  productId: params.productId ?? '',
+                  repoId: params.repoId ?? '',
+                  runIndex: run.index.toString() ?? '',
+                }}
+                preload={false}
+              >
+                <div className='grid w-full grid-cols-6 items-center gap-2'>
+                  <div className='col-span-5'>{run.index}</div>
+                  {run.index === Number(params.runIndex) && (
+                    <Check className='ml-auto h-4 w-4' />
+                  )}
+                </div>
+              </Link>
+            </CommandItem>
+          )}
+          searchable={false}
+          emptyMessage='No runs found.'
+          errorMessage='Failed to load runs'
+        />
       )}
       <BreadcrumbLink asChild>
         <Link to={pathName}>{name}</Link>
