@@ -17,9 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 
-import { getNextPageParam } from '@/lib/infinite-list';
+import {
+  combineInfiniteLists,
+  getNextPageParam,
+  type InfiniteList,
+} from '@/lib/infinite-list';
 
 /**
  * Build a page of the given size, as the API would return it. The items themselves do not matter
@@ -75,4 +79,104 @@ it.each([
   },
 ])('getNextPageParam - $name', ({ page, expected }) => {
   expect(getNextPageParam(page)).toBe(expected);
+});
+
+/**
+ * Build a list of the given entries, as `useInfiniteList` would hand it over once it has loaded
+ * them all. A case that is about something else than the entries says so through the overrides.
+ */
+const list = (
+  items: string[],
+  overrides: Partial<InfiniteList<string>> = {}
+): InfiniteList<string> => ({
+  items,
+  totalCount: items.length,
+  isPending: false,
+  isError: false,
+  error: null,
+  hasNextPage: false,
+  isFetchingNextPage: false,
+  fetchNextPage: () => {},
+  ...overrides,
+});
+
+it('combineInfiniteLists - shows the lists one after another', () => {
+  const combined = combineInfiniteLists([
+    list(['org-a', 'org-b']),
+    list(['product-a']),
+    list(['repository-a']),
+  ]);
+
+  expect(combined.items).toEqual([
+    'org-a',
+    'org-b',
+    'product-a',
+    'repository-a',
+  ]);
+});
+
+it('combineInfiniteLists - counts the entries of every list', () => {
+  const combined = combineInfiniteLists([
+    list(['org-a'], { totalCount: 120 }),
+    list(['product-a'], { totalCount: 7 }),
+    list([], { totalCount: 0 }),
+  ]);
+
+  expect(combined.totalCount).toBe(127);
+});
+
+it('combineInfiniteLists - asks the first list that still has a page', () => {
+  const exhausted = vi.fn();
+  const next = vi.fn();
+  const later = vi.fn();
+
+  const combined = combineInfiniteLists([
+    list(['org-a'], { fetchNextPage: exhausted }),
+    list(['product-a'], { hasNextPage: true, fetchNextPage: next }),
+    list(['repository-a'], { hasNextPage: true, fetchNextPage: later }),
+  ]);
+  combined.fetchNextPage();
+
+  expect(combined.hasNextPage).toBe(true);
+  expect(next).toHaveBeenCalledOnce();
+  expect(exhausted).not.toHaveBeenCalled();
+  expect(later).not.toHaveBeenCalled();
+});
+
+it('combineInfiniteLists - is out of pages once every list is', () => {
+  const fetchNextPage = vi.fn();
+
+  const combined = combineInfiniteLists([
+    list(['org-a'], { fetchNextPage }),
+    list(['product-a'], { fetchNextPage }),
+  ]);
+  combined.fetchNextPage();
+
+  expect(combined.hasNextPage).toBe(false);
+  expect(fetchNextPage).not.toHaveBeenCalled();
+});
+
+it('combineInfiniteLists - stays pending while any list is', () => {
+  const loading = combineInfiniteLists([
+    list([], { isPending: true }),
+    list(['product-a']),
+  ]);
+
+  expect(loading.isPending).toBe(true);
+  expect(combineInfiniteLists([list([]), list(['product-a'])]).isPending).toBe(
+    false
+  );
+});
+
+it('combineInfiniteLists - reports the first error', () => {
+  const error = new Error('Failed to load the products');
+
+  const combined = combineInfiniteLists([
+    list(['org-a']),
+    list([], { isError: true, error }),
+    list([], { isError: true, error: new Error('And the repositories') }),
+  ]);
+
+  expect(combined.isError).toBe(true);
+  expect(combined.error).toBe(error);
 });
