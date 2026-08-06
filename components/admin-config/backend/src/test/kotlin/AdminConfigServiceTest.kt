@@ -750,7 +750,7 @@ class AdminConfigServiceTest : WordSpec({
             reporterConfig.reportDefinitionNames shouldContain "disclosurePdf"
         }
 
-        "Handle optional properties in report definitions" {
+        "handle optional properties in report definitions" {
             val config = """
                     reporter {
                       reports {
@@ -772,7 +772,7 @@ class AdminConfigServiceTest : WordSpec({
             }
         }
 
-        "Handle optional properties in a reporter asset" {
+        "handle optional properties in a reporter asset" {
             val config = """
                     reporter {
                       reports {
@@ -804,7 +804,7 @@ class AdminConfigServiceTest : WordSpec({
             }
         }
 
-        "Handle optional properties in a name mapping" {
+        "handle optional properties in a name mapping" {
             val config = """
                     reporter {
                       reports {
