@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { useQueries } from '@tanstack/react-query';
-
 import { InfrastructureService } from '@/api';
 import {
-  getOrganizationInfrastructureServicesOptions,
-  getProductInfrastructureServicesOptions,
-  getRepositoryInfrastructureServicesOptions,
+  getOrganizationInfrastructureServicesInfiniteOptions,
+  getProductInfrastructureServicesInfiniteOptions,
+  getRepositoryInfrastructureServicesInfiniteOptions,
 } from '@/api/@tanstack/react-query.gen';
-import { ALL_ITEMS } from '@/lib/constants';
+import { useInfiniteList } from '@/hooks/use-infinite-list';
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { combineInfiniteLists, InfiniteList } from '@/lib/infinite-list';
 import {
   OrganizationPermissions,
   ProductPermissions,
@@ -45,72 +45,80 @@ type UseInfrastructureServicesParams = {
     product: ProductPermissions | undefined;
     repository: RepositoryPermissions | undefined;
   };
+  /** Whether to read anything at all, so that a closed dropdown costs no request. */
+  enabled?: boolean;
 };
 
+// Infrastructure services are not expected to change while a form is open, and closing a dropdown
+// only turns its queries off. Without a stale time, opening it again would read every page that was
+// loaded before.
+const staleTime = 2 * 60 * 60 * 1000;
+
+/**
+ * Read the infrastructure services a user can pick from, a page at a time, as one list of the
+ * organization, product and repository services, in that order. Which levels it reads depends on
+ * the ids that are given and on what the user is allowed to read.
+ */
 export const useInfrastructureServices = ({
   orgId,
   productId,
   repoId,
   permissions,
-}: UseInfrastructureServicesParams) => {
-  // Only fetch infrastructure services the user has access to.
-  const infrastructureServices = useQueries({
-    queries: [
-      {
-        ...getOrganizationInfrastructureServicesOptions({
-          path: {
-            organizationId: Number.parseInt(orgId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: permissions.organization?.includes('READ'),
-      },
-      {
-        ...getProductInfrastructureServicesOptions({
-          path: {
-            productId: Number.parseInt(productId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: permissions.product?.includes('READ'),
-      },
-      {
-        ...getRepositoryInfrastructureServicesOptions({
-          path: {
-            repositoryId: Number.parseInt(repoId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: permissions.repository?.includes('READ'),
-      },
-    ],
-    combine: (results) => {
-      const [orgServices, productServices, repoServices] = results;
-      // Combine all infrastructure services into an array of objects.
-      // Each object contains the name of the service and to which hierarchy
-      // level it belongs (organization, product, repository).
-      return [
-        ...(orgServices.data?.data?.map((service) => ({
-          ...service,
-          hierarchy: 'organization',
-        })) ?? []),
-        ...(productServices.data?.data?.map((service) => ({
-          ...service,
-          hierarchy: 'product',
-        })) ?? []),
-        ...(repoServices.data?.data?.map((service) => ({
-          ...service,
-          hierarchy: 'repository',
-        })) ?? []),
-      ];
-    },
-  }) as InfrastructureServiceWithHierarchy[];
+  enabled = true,
+}: UseInfrastructureServicesParams): InfiniteList<InfrastructureServiceWithHierarchy> => {
+  const readsOrganization =
+    enabled && !!orgId && !!permissions.organization?.includes('READ');
+  const readsProduct =
+    enabled && !!productId && !!permissions.product?.includes('READ');
+  const readsRepository =
+    enabled && !!repoId && !!permissions.repository?.includes('READ');
 
-  return infrastructureServices;
+  const organizationServices = useInfiniteList(
+    getOrganizationInfrastructureServicesInfiniteOptions({
+      path: { organizationId: Number.parseInt(orgId || '') },
+      query: { limit: DROPDOWN_PAGE_SIZE },
+    }),
+    { enabled: readsOrganization, staleTime: staleTime }
+  );
+
+  const productServices = useInfiniteList(
+    getProductInfrastructureServicesInfiniteOptions({
+      path: { productId: Number.parseInt(productId || '') },
+      query: { limit: DROPDOWN_PAGE_SIZE },
+    }),
+    { enabled: readsProduct, staleTime: staleTime }
+  );
+
+  const repositoryServices = useInfiniteList(
+    getRepositoryInfrastructureServicesInfiniteOptions({
+      path: { repositoryId: Number.parseInt(repoId || '') },
+      query: { limit: DROPDOWN_PAGE_SIZE },
+    }),
+    { enabled: readsRepository, staleTime: staleTime }
+  );
+
+  // Only the levels that are read are combined, as a query that is turned off never leaves
+  // `pending` and would keep the whole list loading.
+  return combineInfiniteLists([
+    ...(readsOrganization
+      ? [withHierarchy(organizationServices, 'organization')]
+      : []),
+    ...(readsProduct ? [withHierarchy(productServices, 'product')] : []),
+    ...(readsRepository
+      ? [withHierarchy(repositoryServices, 'repository')]
+      : []),
+  ]);
 };
+
+/**
+ * Tag the services of a list with the hierarchy level they belong to.
+ */
+function withHierarchy(
+  list: InfiniteList<InfrastructureService>,
+  hierarchy: InfrastructureServiceWithHierarchy['hierarchy']
+): InfiniteList<InfrastructureServiceWithHierarchy> {
+  return {
+    ...list,
+    items: list.items.map((service) => ({ ...service, hierarchy })),
+  };
+}
