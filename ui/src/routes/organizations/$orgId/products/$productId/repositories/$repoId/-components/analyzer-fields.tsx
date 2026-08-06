@@ -19,14 +19,9 @@
 
 import { useParams } from '@tanstack/react-router';
 import { PlusIcon, TrashIcon } from 'lucide-react';
-import { useEffect } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
-import {
-  InfrastructureService,
-  PreconfiguredPluginDescriptor,
-  Secret,
-} from '@/api';
+import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { zAnalyzerPhase } from '@/api/zod.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
@@ -49,7 +44,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { capitalize } from '@/helpers/capitalize';
-import { useInfrastructureServices } from '@/hooks/use-infrastructure-services.ts';
 import {
   OrganizationPermissions,
   ProductPermissions,
@@ -94,26 +88,6 @@ export const AnalyzerFields = ({
     name: 'jobConfigs.analyzer.environmentVariables',
     control: form.control,
   });
-
-  const infrastructureServices = useInfrastructureServices({
-    orgId,
-    productId,
-    repoId,
-    permissions,
-  });
-
-  // Keep the form in sync with the latest infrastructure services fetched for all hierarchy levels.
-  useEffect(() => {
-    const sanitized = infrastructureServices.map((serviceWithHierarchy) => {
-      const { hierarchy, ...service } = serviceWithHierarchy;
-      void hierarchy; // Explicitly ignore the hierarchy helper field.
-      return service;
-    }) as InfrastructureService[];
-
-    form.setValue('jobConfigs.analyzer.infrastructureServices', sanitized, {
-      shouldDirty: false,
-    });
-  }, [form, infrastructureServices]);
 
   const keepAliveWorker = form.watch('jobConfigs.analyzer.keepAliveWorker');
 

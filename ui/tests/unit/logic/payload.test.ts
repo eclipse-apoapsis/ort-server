@@ -141,35 +141,6 @@ describe('formValuesToPayload', () => {
     ]);
   });
 
-  it('omits infrastructure services from environment configs', () => {
-    const values = createFormValues();
-    values.jobConfigs.analyzer.environmentDefinitions = {
-      conan: [
-        {
-          service: 'service-a',
-          name: 'private-conan',
-          url: '',
-          verifySsl: 'true',
-        },
-      ],
-    };
-    values.jobConfigs.analyzer.infrastructureServices = [
-      {
-        credentialsTypes: ['NETRC_FILE'],
-        name: 'inherited-service',
-        passwordSecretRef: 'password',
-        url: 'https://example.org/repository',
-        usernameSecretRef: 'username',
-      },
-    ];
-
-    const payload = formValuesToPayload(values);
-
-    expect(payload.jobConfigs.analyzer?.environmentConfig).not.toHaveProperty(
-      'infrastructureServices'
-    );
-  });
-
   it('omits package configuration providers if none are selected', () => {
     const values = createFormValues();
     values.jobConfigs.evaluator.packageConfigurationProviders = [];
@@ -262,15 +233,6 @@ describe('formValuesToPayload', () => {
 
   it('omits the environment config when no environment settings are configured', () => {
     const values = createFormValues();
-    values.jobConfigs.analyzer.infrastructureServices = [
-      {
-        credentialsTypes: ['NETRC_FILE'],
-        name: 'inherited-service',
-        passwordSecretRef: 'password',
-        url: 'https://example.org/repository',
-        usernameSecretRef: 'username',
-      },
-    ];
 
     const payload = formValuesToPayload(values);
 
