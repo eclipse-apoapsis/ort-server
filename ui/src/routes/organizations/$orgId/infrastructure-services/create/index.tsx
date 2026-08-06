@@ -26,6 +26,7 @@ import { z } from 'zod';
 
 import { postOrganizationInfrastructureServiceMutation } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
+import { SecretSelect } from '@/components/secret-select';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -45,15 +46,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { capitalize } from '@/helpers/capitalize';
-import { useSecrets } from '@/hooks/use-secrets';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 
@@ -72,11 +64,6 @@ const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const permissions = Route.useRouteContext().permissions;
-
-  const secrets = useSecrets({
-    orgId: params.orgId,
-    permissions,
-  });
 
   const { mutateAsync, isPending } = useMutation({
     ...postOrganizationInfrastructureServiceMutation(),
@@ -197,30 +184,13 @@ const CreateInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Username Secret</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select an existing username secret from the list' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {secrets.map((secret) => {
-                        const hierarchyLabel = capitalize(secret.hierarchy);
-                        const label = `${secret.name} (${hierarchyLabel})`;
-                        return (
-                          <SelectItem
-                            key={`${secret.hierarchy}:${secret.name}`}
-                            value={secret.name}
-                          >
-                            {label}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                  <SecretSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder='Select an existing username secret from the list'
+                    orgId={params.orgId}
+                    permissions={permissions}
+                  />
                   <FormDescription>
                     The name of the secret that contains the username of the
                     credentials for the infrastructure service. Please note that
@@ -237,30 +207,13 @@ const CreateInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password Secret</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select an existing password secret from the list' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {secrets.map((secret) => {
-                        const hierarchyLabel = capitalize(secret.hierarchy);
-                        const label = `${secret.name} (${hierarchyLabel})`;
-                        return (
-                          <SelectItem
-                            key={`${secret.hierarchy}:${secret.name}`}
-                            value={secret.name}
-                          >
-                            {label}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                  <SecretSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder='Select an existing password secret from the list'
+                    orgId={params.orgId}
+                    permissions={permissions}
+                  />
                   <FormDescription>
                     The name of the secret that contains the password of the
                     credentials for the infrastructure service. Please note that

@@ -36,7 +36,7 @@ export type SecretWithHierarchy = Secret & {
   hierarchy: 'organization' | 'product' | 'repository';
 };
 
-type UseSecretsParams = {
+export type UseSecretsParams = {
   orgId?: string;
   productId?: string;
   repositoryId?: string;

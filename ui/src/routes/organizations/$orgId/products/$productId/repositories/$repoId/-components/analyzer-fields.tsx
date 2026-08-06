@@ -30,6 +30,7 @@ import {
 import { zAnalyzerPhase } from '@/api/zod.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
+import { SecretSelect } from '@/components/secret-select';
 import { InlineCode } from '@/components/typography.tsx';
 import {
   AccordionContent,
@@ -46,17 +47,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { capitalize } from '@/helpers/capitalize';
 import { useInfrastructureServices } from '@/hooks/use-infrastructure-services.ts';
-import { useSecrets } from '@/hooks/use-secrets';
 import {
   OrganizationPermissions,
   ProductPermissions,
@@ -106,13 +99,6 @@ export const AnalyzerFields = ({
     orgId,
     productId,
     repoId,
-    permissions,
-  });
-
-  const secrets = useSecrets({
-    orgId,
-    productId,
-    repositoryId: repoId,
     permissions,
   });
 
@@ -267,49 +253,28 @@ export const AnalyzerFields = ({
                         <FormField
                           control={form.control}
                           name={`jobConfigs.analyzer.environmentVariables.${index}.secretName`}
-                          render={({ field }) => {
-                            const selectedValue =
-                              typeof field.value === 'string' &&
-                              field.value.length > 0
-                                ? field.value
-                                : undefined;
-                            return (
-                              <FormItem>
-                                {index === 0 && (
-                                  <FormLabel>{secondColumnLabel}</FormLabel>
-                                )}
-                                <Select
-                                  value={selectedValue}
-                                  onValueChange={(value) => {
-                                    field.onChange(value);
-                                  }}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className='w-full'>
-                                      <SelectValue placeholder='Select a secret' />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {secrets.map((secret) => {
-                                      const hierarchyLabel = capitalize(
-                                        secret.hierarchy
-                                      );
-                                      const label = `${secret.name} (${hierarchyLabel})`;
-                                      return (
-                                        <SelectItem
-                                          key={`${secret.hierarchy}:${secret.name}`}
-                                          value={secret.name}
-                                        >
-                                          {label}
-                                        </SelectItem>
-                                      );
-                                    })}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            );
-                          }}
+                          render={({ field }) => (
+                            <FormItem>
+                              {index === 0 && (
+                                <FormLabel>{secondColumnLabel}</FormLabel>
+                              )}
+                              <SecretSelect
+                                value={
+                                  typeof field.value === 'string'
+                                    ? field.value
+                                    : undefined
+                                }
+                                onChange={field.onChange}
+                                placeholder='Select a secret'
+                                orgId={orgId}
+                                productId={productId}
+                                repositoryId={repoId}
+                                permissions={permissions}
+                                className='w-full'
+                              />
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       ) : (
                         <FormField
