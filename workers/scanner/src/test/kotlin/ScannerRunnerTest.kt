@@ -36,6 +36,9 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ScannerConfig
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
@@ -44,9 +47,6 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.config.ScannerConfig
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services.config
+package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import org.eclipse.apoapsis.ortserver.model.Options
 import org.eclipse.apoapsis.ortserver.model.PluginConfig

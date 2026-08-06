@@ -19,12 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt

@@ -43,6 +43,8 @@ import io.mockk.unmockkAll
 import java.io.File
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.Context
@@ -60,8 +62,6 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedSecretResolver

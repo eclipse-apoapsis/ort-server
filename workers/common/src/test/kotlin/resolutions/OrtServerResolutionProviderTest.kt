@@ -32,6 +32,8 @@ import io.mockk.mockk
 
 import java.io.ByteArrayInputStream
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
@@ -45,8 +47,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolut
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason as ServerRuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ServerVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason as ServerVulnerabilityResolutionReason
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 

@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.resolutions
 
 import com.github.michaelbull.result.get
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
@@ -32,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution as S
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution as ServerRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution as ServerVulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext

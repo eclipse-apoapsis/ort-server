@@ -29,9 +29,9 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun

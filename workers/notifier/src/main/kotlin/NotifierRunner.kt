@@ -19,11 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.workers.notifier
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.adminconfig.JiraRestClientConfiguration
+import org.eclipse.apoapsis.ortserver.components.adminconfig.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.config.JiraRestClientConfiguration
-import org.eclipse.apoapsis.ortserver.services.config.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext

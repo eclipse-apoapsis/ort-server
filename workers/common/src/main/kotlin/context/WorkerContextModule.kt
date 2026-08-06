@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.context
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
@@ -27,7 +28,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf

@@ -59,6 +59,13 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
@@ -75,13 +82,6 @@ import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
-import org.eclipse.apoapsis.ortserver.services.config.ReportNameMapping
-import org.eclipse.apoapsis.ortserver.services.config.ReporterAsset
-import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
-import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext

@@ -48,11 +48,11 @@ repositories {
 }
 
 dependencies {
+    implementation(projects.components.adminConfig.adminConfigBackend)
     implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.dao)
     implementation(projects.model)
-    implementation(projects.services.adminConfigService)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.ortRunService)
     implementation(projects.shared.packageCurationProviders)

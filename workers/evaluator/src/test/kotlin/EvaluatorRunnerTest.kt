@@ -38,6 +38,9 @@ import io.mockk.verify
 
 import java.io.File
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -52,9 +55,6 @@ import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution as ServerRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason as ServerRuleViolationResolutionReason
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
