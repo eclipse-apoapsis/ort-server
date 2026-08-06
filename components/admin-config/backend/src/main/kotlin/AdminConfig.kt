@@ -51,7 +51,6 @@ class AdminConfig(
 
     /** The global mirror for Maven Central. */
     val mavenCentralMirror: MavenCentralMirror? = null
-
 ) {
     companion object {
         /**
