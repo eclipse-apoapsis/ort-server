@@ -123,7 +123,6 @@ export function defaultValues(
         skipExcluded: true,
         keepAliveWorker: false,
         keepAlivePhases: [],
-        infrastructureServices: [],
         packageCurationProviders: [],
         packageCurationProviderConfig:
           packageCurationProviderPluginDefaultValues,
@@ -247,10 +246,6 @@ export function defaultValues(
             environmentVariables:
               ortRun.jobConfigs.analyzer?.environmentConfig
                 ?.environmentVariables || undefined,
-            infrastructureServices:
-              ortRun.jobConfigs.analyzer?.environmentConfig
-                ?.infrastructureServices ||
-              baseDefaults.jobConfigs.analyzer.infrastructureServices,
             packageCurationProviders:
               packageCurationProviderFormValues.selectedPluginIds,
             packageCurationProviderConfig: mergePluginConfigs(
