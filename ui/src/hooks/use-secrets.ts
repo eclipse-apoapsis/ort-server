@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { useQueries } from '@tanstack/react-query';
-
 import { Secret } from '@/api';
 import {
-  getOrganizationSecretsOptions,
-  getProductSecretsOptions,
-  getRepositorySecretsOptions,
+  getOrganizationSecretsInfiniteOptions,
+  getProductSecretsInfiniteOptions,
+  getRepositorySecretsInfiniteOptions,
 } from '@/api/@tanstack/react-query.gen';
-import { ALL_ITEMS } from '@/lib/constants';
+import { useInfiniteList } from '@/hooks/use-infinite-list';
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { combineInfiniteLists, InfiniteList } from '@/lib/infinite-list';
 import {
   OrganizationPermissions,
   ProductPermissions,
@@ -45,71 +45,79 @@ export type UseSecretsParams = {
     product: ProductPermissions | undefined;
     repository: RepositoryPermissions | undefined;
   };
+  /** Whether to read anything at all, so that a closed dropdown costs no request. */
+  enabled?: boolean;
 };
 
+// Secrets are not expected to change while a form is open, and closing a dropdown only turns its
+// queries off. Without a stale time, opening it again would read every page that was loaded before.
+const staleTime = 2 * 60 * 60 * 1000;
+
+/**
+ * Read the secrets a user can pick from, a page at a time, as one list of the organization, product
+ * and repository secrets, in that order. Which levels it reads depends on the ids that are given
+ * and on what the user is allowed to read.
+ */
 export function useSecrets({
   orgId,
   productId,
   repositoryId,
   permissions,
-}: UseSecretsParams) {
-  const secrets = useQueries({
-    queries: [
-      {
-        ...getOrganizationSecretsOptions({
-          path: {
-            organizationId: Number.parseInt(orgId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: permissions.organization?.includes('READ'),
-      },
-      {
-        ...getProductSecretsOptions({
-          path: {
-            productId: Number.parseInt(productId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: permissions.product?.includes('READ'),
-      },
-      {
-        ...getRepositorySecretsOptions({
-          path: {
-            repositoryId: Number.parseInt(repositoryId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: permissions.repository?.includes('READ'),
-      },
-    ],
-    combine: (results) => {
-      const [orgSecrets, productSecrets, repoSecrets] = results;
-      // Combine all secrets into an array of objects.
-      // Each object contains the name of the secret and to which hierarchy
-      // level it belongs (organization, product, repository).
-      return [
-        ...(orgSecrets.data?.data?.map((secret) => ({
-          ...secret,
-          hierarchy: 'organization',
-        })) ?? []),
-        ...(productSecrets.data?.data?.map((secret) => ({
-          ...secret,
-          hierarchy: 'product',
-        })) ?? []),
-        ...(repoSecrets.data?.data?.map((secret) => ({
-          ...secret,
-          hierarchy: 'repository',
-        })) ?? []),
-      ];
-    },
-  }) as SecretWithHierarchy[];
+  enabled = true,
+}: UseSecretsParams): InfiniteList<SecretWithHierarchy> {
+  const readsOrganization =
+    enabled && !!orgId && !!permissions.organization?.includes('READ');
+  const readsProduct =
+    enabled && !!productId && !!permissions.product?.includes('READ');
+  const readsRepository =
+    enabled && !!repositoryId && !!permissions.repository?.includes('READ');
 
-  return secrets;
+  const organizationSecrets = useInfiniteList(
+    getOrganizationSecretsInfiniteOptions({
+      path: { organizationId: Number.parseInt(orgId || '') },
+      query: { limit: DROPDOWN_PAGE_SIZE },
+    }),
+    { enabled: readsOrganization, staleTime: staleTime }
+  );
+
+  const productSecrets = useInfiniteList(
+    getProductSecretsInfiniteOptions({
+      path: { productId: Number.parseInt(productId || '') },
+      query: { limit: DROPDOWN_PAGE_SIZE },
+    }),
+    { enabled: readsProduct, staleTime: staleTime }
+  );
+
+  const repositorySecrets = useInfiniteList(
+    getRepositorySecretsInfiniteOptions({
+      path: { repositoryId: Number.parseInt(repositoryId || '') },
+      query: { limit: DROPDOWN_PAGE_SIZE },
+    }),
+    { enabled: readsRepository, staleTime: staleTime }
+  );
+
+  // Only the levels that are read are combined, as a query that is turned off never leaves
+  // `pending` and would keep the whole list loading.
+  return combineInfiniteLists([
+    ...(readsOrganization
+      ? [withHierarchy(organizationSecrets, 'organization')]
+      : []),
+    ...(readsProduct ? [withHierarchy(productSecrets, 'product')] : []),
+    ...(readsRepository
+      ? [withHierarchy(repositorySecrets, 'repository')]
+      : []),
+  ]);
+}
+
+/**
+ * Tag the secrets of a list with the hierarchy level they belong to.
+ */
+function withHierarchy(
+  list: InfiniteList<Secret>,
+  hierarchy: SecretWithHierarchy['hierarchy']
+): InfiniteList<SecretWithHierarchy> {
+  return {
+    ...list,
+    items: list.items.map((secret) => ({ ...secret, hierarchy })),
+  };
 }

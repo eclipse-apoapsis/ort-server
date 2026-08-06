@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Fragment, ReactNode, useEffect, type Key } from 'react';
+import { Fragment, ReactNode, useEffect, useRef, type Key } from 'react';
 
 import {
   Command,
@@ -85,13 +85,21 @@ export function SearchableInfiniteList<TItem>({
 }: SearchableInfiniteListProps<TItem>) {
   const { ref, inView } = useInView();
   const { items, isPending, isError, error } = list;
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
+  const { hasNextPage, isFetchingNextPage } = list;
+
+  // A list that combines several others hands over a new `fetchNextPage` on every render, which as
+  // a dependency of the effect below would ask for a page again before the one in flight is there.
+  const fetchNextPage = useRef(list.fetchNextPage);
+
+  useEffect(() => {
+    fetchNextPage.current = list.fetchNextPage;
+  });
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      fetchNextPage.current();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage]);
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -112,7 +120,9 @@ export function SearchableInfiniteList<TItem>({
             />
           )}
           <CommandList>
-            {isPending && (
+            {/* A list that combines several others is pending until the slowest of them is read,
+                so wait for the entries to run out before saying that it is loading. */}
+            {isPending && items.length === 0 && (
               <div className='text-muted-foreground py-6 text-center text-sm'>
                 Loading...
               </div>
