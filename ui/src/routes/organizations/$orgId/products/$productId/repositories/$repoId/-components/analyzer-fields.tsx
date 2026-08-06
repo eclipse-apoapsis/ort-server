@@ -340,10 +340,7 @@ export const AnalyzerFields = ({
               </Button>
             </div>
           </div>
-          <EnvironmentDefinitionsFields
-            form={form}
-            infrastructureServices={infrastructureServices}
-          />
+          <EnvironmentDefinitionsFields form={form} />
           <PackageManagerField form={form} />
           <PluginMultiSelectField
             form={form}

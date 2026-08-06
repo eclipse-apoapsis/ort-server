@@ -21,6 +21,7 @@ import { PlusIcon, TrashIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import { FieldPath, UseFormReturn } from 'react-hook-form';
 
+import { InfrastructureServiceSelect } from '@/components/infrastructure-service-select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -40,8 +41,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { capitalize } from '@/helpers/capitalize';
-import { InfrastructureServiceWithHierarchy } from '@/hooks/use-infrastructure-services';
 import {
   ENVIRONMENT_DEFINITION_SCHEMAS,
   EnvironmentDefinitionSchema,
@@ -58,7 +57,6 @@ type PackageManagerFieldProps = {
   index: number;
   entry: FieldEntry;
   form: UseFormReturn<CreateRunFormValues>;
-  infrastructureServices: InfrastructureServiceWithHierarchy[];
 };
 
 function PackageManagerField({
@@ -66,7 +64,6 @@ function PackageManagerField({
   index,
   entry,
   form,
-  infrastructureServices,
 }: PackageManagerFieldProps): ReactNode {
   const name =
     `jobConfigs.analyzer.environmentDefinitions.${pmKey}.${index}.${entry.key}` as FieldPath<CreateRunFormValues>;
@@ -77,47 +74,27 @@ function PackageManagerField({
       <FormField
         control={form.control}
         name={name}
-        render={({ field }) => {
-          const value =
-            typeof field.value === 'string' && field.value.length > 0
-              ? field.value
-              : undefined;
-          return (
-            <FormItem>
-              <FormLabel>Service</FormLabel>
-              <Select
-                value={value}
-                onValueChange={(v) => {
-                  form.setValue(name, v, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  });
-                }}
-              >
-                <FormControl>
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='Select an infrastructure service' />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {infrastructureServices.map((service) => (
-                    <SelectItem
-                      key={`${service.hierarchy}:${service.name}`}
-                      value={service.name}
-                    >
-                      {`${service.name} (${capitalize(service.hierarchy)})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Select the infrastructure service from a chosen hierarchy level.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          );
-        }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Service</FormLabel>
+            <InfrastructureServiceSelect
+              value={typeof field.value === 'string' ? field.value : undefined}
+              onChange={(service) => {
+                form.setValue(name, service, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                });
+              }}
+              placeholder='Select an infrastructure service'
+              className='w-full'
+            />
+            <FormDescription>
+              Select the infrastructure service from a chosen hierarchy level.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
       />
     );
   }
@@ -220,7 +197,6 @@ function PackageManagerField({
 
 type EnvironmentDefinitionsFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
-  infrastructureServices: InfrastructureServiceWithHierarchy[];
 };
 
 type EnvironmentDefinitionCard = {
@@ -243,7 +219,6 @@ function definitionsAsRecord(
 
 export const EnvironmentDefinitionsFields = ({
   form,
-  infrastructureServices,
 }: EnvironmentDefinitionsFieldsProps) => {
   const environmentDefinitions = definitionsAsRecord(
     form.watch('jobConfigs.analyzer.environmentDefinitions')
@@ -385,7 +360,6 @@ export const EnvironmentDefinitionsFields = ({
                   index={card.index}
                   entry={entry}
                   form={form}
-                  infrastructureServices={infrastructureServices}
                 />
               ))}
             </CardContent>
