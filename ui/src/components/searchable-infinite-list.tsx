@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useInView } from '@/hooks/use-in-view';
-import { InfiniteList } from '@/hooks/use-infinite-list';
+import { InfiniteList } from '@/lib/infinite-list';
 import { cn } from '@/lib/utils';
 
 type SearchableInfiniteListProps<TItem> = {

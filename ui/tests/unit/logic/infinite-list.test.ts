@@ -19,7 +19,7 @@
 
 import { expect, it } from 'vitest';
 
-import { getNextPageParam } from '@/hooks/use-infinite-list';
+import { getNextPageParam } from '@/lib/infinite-list';
 
 /**
  * Build a page of the given size, as the API would return it. The items themselves do not matter

@@ -38,7 +38,6 @@ import {
   getRepositoryRunsInfiniteOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
-import { PagingData } from '@/api/types.gen';
 import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
@@ -46,6 +45,7 @@ import { CommandItem } from '@/components/ui/command';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { PagedResponse } from '@/lib/infinite-list';
 import { toSearchFilter } from '@/lib/regex';
 
 type SiblingsProps = {
@@ -68,7 +68,7 @@ const staleTime = 2 * 60 * 60 * 1000;
  * dropdown shows leaves it alone.
  */
 function useTotalCount<
-  TData extends { pagination: PagingData },
+  TData extends PagedResponse<unknown>,
   TQueryKey extends QueryKey,
 >(
   {
