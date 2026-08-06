@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services.config
+package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 /**
  *  Configuration for a Jira REST client interacting with a Jira server after an ORT run.

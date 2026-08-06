@@ -33,10 +33,10 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.workers"
 
 dependencies {
+    implementation(projects.components.adminConfig.adminConfigBackend)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
-    implementation(projects.services.adminConfigService)
     implementation(projects.services.ortRunService)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)

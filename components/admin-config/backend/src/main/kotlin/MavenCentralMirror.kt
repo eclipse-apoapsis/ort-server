@@ -17,26 +17,27 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-jvm-conventions")
-    id("ort-server-publication-conventions")
-}
+package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-group = "org.eclipse.apoapsis.ortserver.services"
+/**
+ * A data class representing a Maven Central mirror configuration.
+ */
+data class MavenCentralMirror(
+    /** The unique identifier of the Maven Central mirror. */
+    val id: String,
 
-dependencies {
-    api(projects.config.configSpi)
-    api(projects.model)
+    /** The name of the Maven Central mirror. */
+    val name: String,
 
-    implementation(projects.shared.pluginInfo)
-    implementation(projects.utils.config)
-    implementation(projects.utils.logging)
+    /** The URL of the Maven Central mirror. */
+    val url: String,
 
-    implementation(libs.slf4j)
-    implementation(ortLibs.model)
-    implementation(ortLibs.utils.ort)
+    /** The identifier of the repositories that this mirror should apply to. */
+    val mirrorOf: String,
 
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.mockk)
-}
+    /** The name of the secret that contains the username as value. */
+    val usernameSecret: String? = null,
+
+    /** The name of the secrets that contains the password as value. */
+    val passwordSecret: String? = null
+)

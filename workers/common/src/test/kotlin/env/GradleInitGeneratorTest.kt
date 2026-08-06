@@ -27,7 +27,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
-import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
+import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
 
 class GradleInitGeneratorTest : WordSpec({

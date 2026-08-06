@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services.config
+package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 /**
  * A data class that represents the configuration of a rule set.

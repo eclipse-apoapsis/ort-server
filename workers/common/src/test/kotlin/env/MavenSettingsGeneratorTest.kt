@@ -29,9 +29,9 @@ import io.kotest.matchers.string.shouldStartWith
 
 import io.mockk.every
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 class MavenSettingsGeneratorTest : WordSpec({

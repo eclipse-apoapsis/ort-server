@@ -44,6 +44,8 @@ import java.io.File
 
 import kotlin.time.Instant
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -64,8 +66,6 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader

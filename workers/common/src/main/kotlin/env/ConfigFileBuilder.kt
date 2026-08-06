@@ -27,8 +27,8 @@ import java.nio.charset.StandardCharsets
 
 import kotlin.random.Random
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveSecrets

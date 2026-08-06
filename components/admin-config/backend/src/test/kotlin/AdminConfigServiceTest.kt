@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services.config
+package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import com.typesafe.config.ConfigFactory
 

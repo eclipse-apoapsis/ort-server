@@ -38,6 +38,7 @@ repositories {
 dependencies {
     api(libs.koinCore)
 
+    implementation(projects.components.adminConfig.adminConfigBackend)
     implementation(projects.components.infrastructureServices.infrastructureServicesBackend)
     implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.components.secrets.secretsBackend)
@@ -45,7 +46,6 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
-    implementation(projects.services.adminConfigService)
     implementation(projects.services.ortRunService)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)

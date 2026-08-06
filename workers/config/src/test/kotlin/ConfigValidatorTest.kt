@@ -39,6 +39,12 @@ import io.mockk.mockk
 import kotlin.math.abs
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
@@ -49,12 +55,6 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
-import org.eclipse.apoapsis.ortserver.services.config.ReporterAsset
-import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
-import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ConfigValidatorTest : StringSpec({
