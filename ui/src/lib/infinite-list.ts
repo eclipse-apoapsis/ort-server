@@ -54,3 +54,26 @@ export function getNextPageParam(lastPage: PagedResponse<unknown>) {
 
   return next < totalCount ? next : undefined;
 }
+
+/**
+ * Present several infinite lists as a single one, in the order they are given: `fetchNextPage` asks
+ * the first list that still has a page, so a later list grows only once the ones before it have
+ * been read to the end. Pending, error and fetching are true if any list is, which means only
+ * enabled lists may be passed in, as a disabled query never leaves `pending`.
+ */
+export function combineInfiniteLists<TItem>(
+  lists: Array<InfiniteList<TItem>>
+): InfiniteList<TItem> {
+  return {
+    items: lists.flatMap((list) => list.items),
+    totalCount: lists.reduce((total, list) => total + list.totalCount, 0),
+    isPending: lists.some((list) => list.isPending),
+    isError: lists.some((list) => list.isError),
+    error: lists.find((list) => list.error)?.error ?? null,
+    hasNextPage: lists.some((list) => list.hasNextPage),
+    isFetchingNextPage: lists.some((list) => list.isFetchingNextPage),
+    fetchNextPage: () => {
+      lists.find((list) => list.hasNextPage)?.fetchNextPage();
+    },
+  };
+}
