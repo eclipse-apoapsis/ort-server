@@ -65,9 +65,7 @@ class AdminConfig(
          */
         private val ortDefaultDownloaderConfig = DownloaderConfiguration()
 
-        /**
-         * A default [RuleSet] instance that uses the standard names from ORT for the referenced files.
-         */
+        /** A default [RuleSet] instance that uses the standard names from ORT for the referenced files. */
         val DEFAULT_RULE_SET = RuleSet(
             copyrightGarbageFile = ORT_COPYRIGHT_GARBAGE_FILENAME,
             licenseClassificationsFile = ORT_LICENSE_CLASSIFICATIONS_FILENAME,

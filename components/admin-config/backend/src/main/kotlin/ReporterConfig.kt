@@ -157,9 +157,7 @@ data class ReporterConfig(
      */
     val customLicenseTextDir: String? = null,
 
-    /**
-     * A [Map] with global [ReporterAsset]s that can be referenced from report definitions.
-     */
+    /** A [Map] with global [ReporterAsset]s that can be referenced from report definitions. */
     val globalAssets: GlobalReporterAssets = emptyMap()
 ) {
     companion object {
