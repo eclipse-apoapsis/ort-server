@@ -1103,7 +1103,7 @@ private fun mockConfigLoader(
  * Create a mock [AdminConfigService] that is prepared to return the [adminConfig] when loading the admin config.
  */
 private fun createMockAdminConfigService(): AdminConfigService = mockk<AdminConfigService> {
-    every { loadAdminConfig(Context(RESOLVED_JOB_CONFIG_CONTEXT), ORGANIZATION_ID) } returns adminConfig
+    every { loadAdminConfig(Context(RESOLVED_JOB_CONFIG_CONTEXT)) } returns adminConfig
 }
 
 /**

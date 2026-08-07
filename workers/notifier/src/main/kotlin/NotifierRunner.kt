@@ -51,10 +51,7 @@ class NotifierRunner(
         jobConfigurations: JobConfigurations?,
         workerContext: WorkerContext
     ) {
-        val adminConfig = configAdminService.loadAdminConfig(
-            workerContext.resolvedConfigurationContext,
-            workerContext.ortRun.organizationId
-        )
+        val adminConfig = configAdminService.loadAdminConfig(workerContext.resolvedConfigurationContext)
         val notifierConfig = adminConfig.notifierConfig
 
         val sendMailConfiguration = notifierConfig.mail?.takeUnless { notifierConfig.disableMailNotifications }?.let {

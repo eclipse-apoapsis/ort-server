@@ -394,5 +394,5 @@ private fun AdminConfigService.initRuleSet(ruleSet: RuleSet) {
         every { getRuleSet(RULE_SET) } returns ruleSet
     }
 
-    every { loadAdminConfig(resolvedConfigContext, ORGANIZATION_ID) } returns adminConfig
+    every { loadAdminConfig(resolvedConfigContext) } returns adminConfig
 }

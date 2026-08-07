@@ -128,12 +128,10 @@ class AdminConfigService(
     }
 
     /**
-     * Load the [AdminConfig] from the configured path in the given [context] for the given [organizationId].
+     * Load the [AdminConfig] from the configured path in the given [context].
      * [Optionally][validate], perform a validation after loading.
-     * TODO: The organization ID is currently not evaluated. In the future, it should be supported to have different
-     *       configurations for different organizations.
      */
-    fun loadAdminConfig(context: Context?, organizationId: Long, validate: Boolean = false): AdminConfig {
+    fun loadAdminConfig(context: Context?, validate: Boolean = false): AdminConfig {
         val configPath = Path(configManager.getStringOrDefault(PATH_PROPERTY, DEFAULT_PATH))
         if (configPath.path == DEFAULT_PATH && !configManager.containsFile(context, configPath)) {
             logger.warn(
@@ -144,7 +142,7 @@ class AdminConfigService(
             return AdminConfig.DEFAULT
         }
 
-        logger.info("Loading admin configuration from path '{}' for organization {}.", configPath.path, organizationId)
+        logger.info("Loading admin configuration from path '{}'.", configPath.path)
         val adminConfigFile = configManager.getFile(context, configPath).use {
             ConfigLoaderBuilder.default()
                 .addStreamSource(it, "conf")

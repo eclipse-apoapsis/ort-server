@@ -148,11 +148,7 @@ class ConfigValidator private constructor(
      * job configurations.
      */
     private fun ConfigValidationResultSuccess.validateAdminConfig(): ConfigValidationResult = runCatching {
-        val adminConfig = adminConfigService.loadAdminConfig(
-            context.resolvedConfigurationContext,
-            context.ortRun.organizationId,
-            validate = true
-        )
+        val adminConfig = adminConfigService.loadAdminConfig(context.resolvedConfigurationContext, validate = true)
 
         val validationIssues = mutableListOf<Issue>()
 

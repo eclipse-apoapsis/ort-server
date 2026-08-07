@@ -303,6 +303,6 @@ private fun mockContext(
 private fun mockAdminConfigService(): AdminConfigService {
     val adminConfig = AdminConfig(scannerConfig = testScannerConfig)
     return mockk {
-        every { loadAdminConfig(testResolvedContext, ORGANIZATION_ID) } returns adminConfig
+        every { loadAdminConfig(testResolvedContext) } returns adminConfig
     }
 }
