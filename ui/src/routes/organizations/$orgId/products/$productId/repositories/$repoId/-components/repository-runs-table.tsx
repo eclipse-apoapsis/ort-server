@@ -40,7 +40,6 @@ import {
   getRepositoryOptions,
   getRepositoryRunOptions,
   getRepositoryRunsOptions,
-  getRepositoryRunsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -70,6 +69,7 @@ import { diffResolvedJobConfigs } from '@/helpers/config-diff';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
+import { runDeleted } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { buildRunFavorite } from '@/providers/home-data';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -345,13 +345,11 @@ const createColumns = (
           toast.info('Delete Run', {
             description: `Run "${row.original.index}" deleted successfully.`,
           });
-          queryClient.invalidateQueries({
-            queryKey: getRepositoryRunsQueryKey({
-              path: {
-                repositoryId: row.original.repositoryId,
-              },
-            }),
-          });
+          runDeleted(
+            queryClient,
+            row.original.repositoryId,
+            row.original.index
+          );
         },
         onError(error: ApiError) {
           toastError(error.message, error);

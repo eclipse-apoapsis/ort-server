@@ -18,7 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
@@ -52,6 +56,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
+import { productDeleted } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -63,6 +68,7 @@ const ProductSettingsPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const productId = Number.parseInt(params.productId);
 
@@ -118,6 +124,7 @@ const ProductSettingsPage = () => {
       toast.info('Delete Product', {
         description: `Product "${product.name}" deleted successfully.`,
       });
+      productDeleted(queryClient, product);
       navigate({
         to: '/organizations/$orgId',
         params: { orgId: params.orgId },
