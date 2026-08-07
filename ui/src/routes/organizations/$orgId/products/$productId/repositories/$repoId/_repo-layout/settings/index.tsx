@@ -18,7 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
@@ -61,6 +65,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ApiError } from '@/lib/api-error';
+import { repositoryDeleted } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { MoveRepository } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
@@ -76,6 +81,7 @@ const RepositorySettingsPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const repositoryId = Number.parseInt(params.repoId);
 
@@ -139,6 +145,7 @@ const RepositorySettingsPage = () => {
       toast.info('Delete Repository', {
         description: `Repository "${repository?.url}" deleted successfully.`,
       });
+      repositoryDeleted(queryClient, repository);
       navigate({
         to: '/organizations/$orgId/products/$productId',
         params: { orgId: params.orgId, productId: params.productId },
