@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -46,6 +46,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
+import { productCreated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -56,6 +57,7 @@ const formSchema = z.object({
 const CreateProductPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const queryClient = useQueryClient();
   const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } = useMutation({
@@ -67,6 +69,7 @@ const CreateProductPage = () => {
       toast.info('Add Product', {
         description: `Product "${data.name}" added successfully.`,
       });
+      productCreated(queryClient, data.organizationId);
       navigate({
         to: '/organizations/$orgId/products/$productId',
         params: { orgId: params.orgId, productId: data.id.toString() },

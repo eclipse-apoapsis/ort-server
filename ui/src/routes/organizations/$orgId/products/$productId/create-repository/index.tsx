@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -53,6 +53,7 @@ import {
 } from '@/components/ui/select';
 import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
+import { repositoryCreated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 
@@ -66,6 +67,7 @@ const formSchema = zRepository.pick({
 const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const queryClient = useQueryClient();
   const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } = useMutation({
@@ -77,6 +79,7 @@ const CreateRepositoryPage = () => {
       toast.info('Add Repository', {
         description: `Repository ${data.url} added successfully.`,
       });
+      repositoryCreated(queryClient, data.productId);
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
         params: {

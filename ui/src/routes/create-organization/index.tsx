@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
+import { organizationCreated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -53,6 +54,7 @@ const formSchema = z.object({
 
 const CreateOrganizationPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { mutateAsync, isPending } = useMutation({
     ...postOrganizationMutation(),
@@ -60,6 +62,7 @@ const CreateOrganizationPage = () => {
       toast.info('Add Organization', {
         description: `Organization "${data.name}" added successfully.`,
       });
+      organizationCreated(queryClient);
       navigate({
         to: '/organizations/$orgId',
         params: { orgId: data.id.toString() },
