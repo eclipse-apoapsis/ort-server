@@ -96,9 +96,7 @@ class AdminConfigService(
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
-        /**
-         * Create an [AdminConfig] instance from the properties defined in the given [config].
-         */
+        /** Create an [AdminConfig] instance from the properties defined in the given [config]. */
         private fun createAdminConfig(config: Config): AdminConfig {
             val defaultRuleSetConfig = config.getConfigOrEmpty("defaultRuleSet")
             val defaultRuleSet = parseRuleSet(defaultRuleSetConfig, AdminConfig.DEFAULT_RULE_SET)
@@ -161,9 +159,7 @@ class AdminConfigService(
                 )
             }
 
-        /**
-         * Validate the given [scannerConfig]. Add found issues to the given [issues] list.
-         */
+        /** Validate the given [scannerConfig]. Add found issues to the given [issues] list. */
         private fun validateScannerConfig(issues: MutableList<String>, scannerConfig: ScannerConfig) {
             if (scannerConfig.sourceCodeOrigins.isEmpty()) {
                 issues += "'sourceCodeOrigins' from scanner configuration must not be empty."
@@ -199,9 +195,7 @@ class AdminConfigService(
                 )
             }
 
-        /**
-         * Parse the mail server configuration for the notifier from the given [config] if it is defined.
-         */
+        /** Parse the mail server configuration for the notifier from the given [config] if it is defined. */
         private fun parseNotifierMailConfig(config: Config): MailServerConfiguration? =
             config.parseObjectOrDefault(NOTIFIER_MAIL_SECTION, null) {
                 MailServerConfiguration(
@@ -214,9 +208,7 @@ class AdminConfigService(
                 )
             }
 
-        /**
-         * Parse the Jira server configuration for the notifier from the given [config] if it is defined.
-         */
+        /** Parse the Jira server configuration for the notifier from the given [config] if it is defined. */
         private fun parseNotifierJiraConfig(config: Config): JiraRestClientConfiguration? =
             config.parseObjectOrDefault(NOTIFIER_JIRA_SECTION, null) {
                 JiraRestClientConfiguration(
@@ -245,9 +237,7 @@ class AdminConfigService(
                 )
             }
 
-        /**
-         * Parse the report definitions defined in the given [config] using the given [globalAssets].
-         */
+        /** Parse the report definitions defined in the given [config] using the given [globalAssets]. */
         private fun parseReportDefinitions(
             config: Config,
             globalAssets: GlobalReporterAssets
@@ -259,9 +249,7 @@ class AdminConfigService(
                     }
             )
 
-        /**
-         * Parse a [ReportDefinition] at the root of the given [config] using the given [globalAssets].
-         */
+        /** Parse a [ReportDefinition] at the root of the given [config] using the given [globalAssets]. */
         private fun parseReportDefinition(
             config: Config,
             globalAssets: GlobalReporterAssets
@@ -281,9 +269,7 @@ class AdminConfigService(
                 }
             )
 
-        /**
-         * Validate the given [reporterConfig]. Add found issues to the given [issues] list.
-         */
+        /** Validate the given [reporterConfig]. Add found issues to the given [issues] list. */
         private fun validateReporterConfig(issues: MutableList<String>, reporterConfig: ReporterConfig) {
             issues += reporterConfig.reportDefinitions.flatMapTo(mutableSetOf()) { definition ->
                 (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
@@ -308,9 +294,7 @@ class AdminConfigService(
             config.reporterConfig.getConfigurationFiles(this)
         }
 
-        /**
-         * Add all configuration files referenced by this [RuleSet] to the given [target] set for validation.
-         */
+        /** Add all configuration files referenced by this [RuleSet] to the given [target] set for validation. */
         private fun RuleSet.getConfigurationFiles(target: MutableSet<String>) {
             target.addNonDefault(copyrightGarbageFile, AdminConfig.DEFAULT_RULE_SET.copyrightGarbageFile)
             target.addNonDefault(licenseClassificationsFile, AdminConfig.DEFAULT_RULE_SET.licenseClassificationsFile)
@@ -318,9 +302,7 @@ class AdminConfigService(
             target.addNonDefault(evaluatorRules, AdminConfig.DEFAULT_RULE_SET.evaluatorRules)
         }
 
-        /**
-         * Add all configuration files referenced by this [ReporterConfig] to the given [target] set for validation.
-         */
+        /** Add all configuration files referenced by this [ReporterConfig] to the given [target] set for validation. */
         private fun ReporterConfig.getConfigurationFiles(target: MutableSet<String>) {
             target.addNonDefault(howToFixTextProviderFile, ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
             customLicenseTextDir?.also(target::add)
@@ -333,9 +315,7 @@ class AdminConfigService(
             }
         }
 
-        /**
-         * Add the given [path] to this [Set] only if it is not *null* and not equal to the given [default].
-         */
+        /** Add the given [path] to this [Set] only if it is not *null* and not equal to the given [default]. */
         private fun MutableSet<String>.addNonDefault(path: String?, default: String) {
             if (path != null && path != default) {
                 add(path)
