@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
@@ -36,6 +36,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { ApiError } from '@/lib/api-error';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { repositoryMoved } from '@/lib/entity-cache';
 import { toSearchFilter } from '@/lib/regex';
 import { toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -53,6 +54,7 @@ type Selection = { id: number; name: string };
 export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
   const params = useParams({ strict: false });
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const repositoryId = Number.parseInt(params.repoId!);
 
@@ -94,7 +96,8 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
 
   const { mutateAsync: moveRepository } = useMutation({
     ...patchRepositoryMutation(),
-    onSuccess() {
+    onSuccess(data) {
+      repositoryMoved(queryClient, data, Number.parseInt(params.productId!));
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
         params: {
@@ -102,7 +105,6 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
           productId: String(selectedProduct?.id),
           repoId: params.repoId!,
         },
-        reloadDocument: true,
       });
     },
     onError(error: ApiError) {

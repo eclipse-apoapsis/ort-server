@@ -55,8 +55,9 @@ type SiblingsProps = {
 
 // To improve the performance of the siblings component, set a stale time of
 // 2 hours for all queries. This is because the entities (organizations, products,
-// repositories, runs) are not expected to change frequently, and when changes do
-// occur, cache invalidation will ensure that the latest data is fetched.
+// repositories, runs) are not expected to change frequently. What keeps a stale
+// time this long honest is `@/lib/entity-cache`, which every mutation of these
+// entities calls to invalidate the lists shown here, the counts below included.
 const staleTime = 2 * 60 * 60 * 1000;
 
 /**
