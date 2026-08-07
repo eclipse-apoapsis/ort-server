@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -63,6 +63,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
+import { runCreated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { buildRecentRun, useHomeRecentRunActions } from '@/providers/home-data';
 import {
@@ -84,6 +85,7 @@ import {
 const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const queryClient = useQueryClient();
   const { ortRun, plugins, secrets } = Route.useLoaderData();
   const { recordRecentRun } = useHomeRecentRunActions();
   const [isTest, setIsTest] = useState(false);
@@ -165,6 +167,7 @@ const CreateRunPage = () => {
       toast.info('Create Run', {
         description: 'New run created successfully for this repository.',
       });
+      runCreated(queryClient, response.repositoryId);
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
         params: {
