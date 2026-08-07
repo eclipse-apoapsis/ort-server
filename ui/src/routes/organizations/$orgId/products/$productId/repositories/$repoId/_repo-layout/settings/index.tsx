@@ -65,7 +65,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ApiError } from '@/lib/api-error';
-import { repositoryDeleted } from '@/lib/entity-cache';
+import { repositoryDeleted, repositoryUpdated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { MoveRepository } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
@@ -95,11 +95,14 @@ const RepositorySettingsPage = () => {
 
   const { mutateAsync, isPending } = useMutation({
     ...patchRepositoryMutation(),
-    onSuccess(data) {
+    async onSuccess(data) {
       toast.info('Edit repository', {
         description: `Repository "${data.url}" updated successfully.`,
       });
-      router.invalidate();
+      repositoryUpdated(queryClient, data);
+      // The breadcrumb, and through it the document title, is written by the loader of the parent
+      // route, which navigating between its children does not re-run.
+      await router.invalidate();
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
         params: {
@@ -107,7 +110,6 @@ const RepositorySettingsPage = () => {
           productId: params.productId,
           repoId: params.repoId,
         },
-        reloadDocument: true,
       });
     },
     onError(error: ApiError) {

@@ -56,7 +56,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
-import { organizationDeleted } from '@/lib/entity-cache';
+import { organizationDeleted, organizationUpdated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -82,15 +82,17 @@ const OrganizationSettingsPage = () => {
 
   const { mutateAsync, isPending } = useMutation({
     ...patchOrganizationMutation(),
-    onSuccess(data) {
+    async onSuccess(data) {
       toast.info('Edit Organization', {
         description: `Organization "${data.name}" updated successfully.`,
       });
-      router.invalidate();
+      organizationUpdated(queryClient, data);
+      // The breadcrumb, and through it the document title, is written by the loader of the parent
+      // route, which navigating between its children does not re-run.
+      await router.invalidate();
       navigate({
         to: '/organizations/$orgId',
         params: { orgId: params.orgId },
-        reloadDocument: true,
       });
     },
     onError(error: ApiError) {

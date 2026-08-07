@@ -56,7 +56,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api-error';
-import { productDeleted } from '@/lib/entity-cache';
+import { productDeleted, productUpdated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -82,15 +82,17 @@ const ProductSettingsPage = () => {
 
   const { mutateAsync, isPending } = useMutation({
     ...patchProductMutation(),
-    onSuccess(data) {
+    async onSuccess(data) {
       toast.info('Edit Product', {
         description: `Product "${data.name}" updated successfully.`,
       });
-      router.invalidate();
+      productUpdated(queryClient, data);
+      // The breadcrumb, and through it the document title, is written by the loader of the parent
+      // route, which navigating between its children does not re-run.
+      await router.invalidate();
       navigate({
         to: '/organizations/$orgId/products/$productId',
         params: { orgId: params.orgId, productId: params.productId },
-        reloadDocument: true,
       });
     },
     onError(error: ApiError) {
