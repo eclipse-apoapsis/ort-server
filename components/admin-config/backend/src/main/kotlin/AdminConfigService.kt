@@ -19,9 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-import com.typesafe.config.ConfigFactory
-
-import java.io.InputStreamReader
+import com.sksamuel.hoplite.ConfigLoaderBuilder
+import com.sksamuel.hoplite.addStreamSource
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -146,11 +145,12 @@ class AdminConfigService(
         }
 
         logger.info("Loading admin configuration from path '{}' for organization {}.", configPath.path, organizationId)
-        val config = InputStreamReader(configManager.getFile(context, configPath)).use { reader ->
-            ConfigFactory.parseReader(reader)
+        val adminConfigFile = configManager.getFile(context, configPath).use {
+            ConfigLoaderBuilder.default()
+                .addStreamSource(it, "conf")
+                .build()
+                .loadConfigOrThrow<AdminConfigFile>()
         }
-
-        val adminConfigFile = AdminConfigFile.parse(config)
 
         return AdminConfigResolver.resolve(adminConfigFile).also {
             if (validate) {
