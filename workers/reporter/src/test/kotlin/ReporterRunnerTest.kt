@@ -1220,7 +1220,7 @@ private fun createReporterConfig(
 private fun createAdminConfigService(reporterConfig: ReporterConfig): AdminConfigService =
     mockk {
         every {
-            loadAdminConfig(configurationContext, ORGANIZATION_ID)
+            loadAdminConfig(configurationContext)
         } returns AdminConfig(
             reporterConfig = reporterConfig,
             ruleSets = mapOf(RULE_SET_NAME to ruleSet)

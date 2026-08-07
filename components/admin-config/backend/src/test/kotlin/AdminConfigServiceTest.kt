@@ -61,7 +61,7 @@ class AdminConfigServiceTest : WordSpec({
                 every { containsFile(context, Path(AdminConfigService.DEFAULT_PATH)) } returns false
             }
 
-            service.loadAdminConfig(context, ORGANIZATION_ID) shouldBe AdminConfig.DEFAULT
+            service.loadAdminConfig(context) shouldBe AdminConfig.DEFAULT
         }
 
         "throw for an unresolvable non-default config file" {
@@ -71,7 +71,7 @@ class AdminConfigServiceTest : WordSpec({
             }
 
             shouldThrow<IllegalArgumentException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID)
+                service.loadAdminConfig(context)
             } shouldBe exception
         }
 
@@ -96,7 +96,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
 
             val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            service.loadAdminConfig(context, validate = true)
 
             verify(exactly = 1) {
                 configManager.containsFile(context, Path("defaultCopyrightGarbageFile"))
@@ -119,7 +119,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
 
             val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            service.loadAdminConfig(context, validate = true)
 
             verify(exactly = 1) {
                 configManager.containsFile(context, Path("testHowToFixTextProviderFile"))
@@ -163,7 +163,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
 
             val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            service.loadAdminConfig(context, validate = true)
 
             verify(exactly = 1) {
                 configManager.containsFile(context, Path("reporter/template/logo.png"))
@@ -188,7 +188,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
 
             val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            service.loadAdminConfig(context, validate = true)
 
             verify(exactly = 1) {
                 configManager.containsFile(context, Path("reporter/template/logo.png"))
@@ -226,7 +226,7 @@ class AdminConfigServiceTest : WordSpec({
 
             val service = createServiceWithConfig(config)
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+                service.loadAdminConfig(context, validate = true)
             }
 
             exception.message shouldContain "'nonExistingFile'"
@@ -256,7 +256,7 @@ class AdminConfigServiceTest : WordSpec({
             }
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+                service.loadAdminConfig(context, validate = true)
             }
 
             exception.message shouldContain "'defaultCopyrightGarbageFile'"
@@ -277,7 +277,7 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+                service.loadAdminConfig(context, validate = true)
             }
 
             exception.message shouldContain "'sourceCodeOrigins'"
@@ -293,7 +293,7 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+                service.loadAdminConfig(context, validate = true)
             }
 
             exception.message shouldContain "'sourceCodeOrigins'"
@@ -321,7 +321,7 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+                service.loadAdminConfig(context, validate = true)
             }
 
             exception.message shouldContain invalidPluginId
@@ -349,7 +349,7 @@ class AdminConfigServiceTest : WordSpec({
                 every { containsFile(any(), any()) } returns false
             }
 
-            service.loadAdminConfig(context, ORGANIZATION_ID)
+            service.loadAdminConfig(context)
         }
     }
 
@@ -357,7 +357,7 @@ class AdminConfigServiceTest : WordSpec({
         "return the a default rule set with the standard names from ORT" {
             val service = createServiceWithConfig("")
 
-            with(service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(null)) {
+            with(service.loadAdminConfig(context).getRuleSet(null)) {
                 copyrightGarbageFile shouldBe ORT_COPYRIGHT_GARBAGE_FILENAME
                 licenseClassificationsFile shouldBe ORT_LICENSE_CLASSIFICATIONS_FILENAME
                 resolutionsFile shouldBe ORT_RESOLUTIONS_FILENAME
@@ -376,7 +376,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            with(service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(null)) {
+            with(service.loadAdminConfig(context).getRuleSet(null)) {
                 copyrightGarbageFile shouldBe "testCopyrightGarbageFile"
                 licenseClassificationsFile shouldBe "testLicenseClassificationsFile"
                 resolutionsFile shouldBe "testResolutionsFile"
@@ -403,7 +403,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            with(service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet("customRuleSet1")) {
+            with(service.loadAdminConfig(context).getRuleSet("customRuleSet1")) {
                 copyrightGarbageFile shouldBe "testCopyrightGarbageFile1"
                 licenseClassificationsFile shouldBe "testLicenseClassificationsFile1"
                 resolutionsFile shouldBe "testResolutionsFile1"
@@ -426,7 +426,7 @@ class AdminConfigServiceTest : WordSpec({
 
             val nonExistentRuleSetName = "nonExistentRuleSet"
             val exception = shouldThrow<NoSuchElementException> {
-                service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(nonExistentRuleSetName)
+                service.loadAdminConfig(context).getRuleSet(nonExistentRuleSetName)
             }
 
             exception.message shouldContain nonExistentRuleSetName
@@ -453,7 +453,7 @@ class AdminConfigServiceTest : WordSpec({
                     }
                 """.trimIndent()
             val service = createServiceWithConfig(config)
-            val adminConfig = service.loadAdminConfig(context, ORGANIZATION_ID)
+            val adminConfig = service.loadAdminConfig(context)
 
             with(adminConfig.getRuleSet("customRuleSet1")) {
                 copyrightGarbageFile shouldBe "testCopyrightGarbageFile1"
@@ -486,7 +486,7 @@ class AdminConfigServiceTest : WordSpec({
                     }
                 """.trimIndent()
             val service = createServiceWithConfig(config)
-            val adminConfig = service.loadAdminConfig(context, ORGANIZATION_ID)
+            val adminConfig = service.loadAdminConfig(context)
 
             adminConfig.ruleSetNames should beEmpty()
         }
@@ -503,7 +503,7 @@ class AdminConfigServiceTest : WordSpec({
                     }
                 """.trimIndent()
             val service = createServiceWithConfig(config)
-            val adminConfig = service.loadAdminConfig(context, ORGANIZATION_ID)
+            val adminConfig = service.loadAdminConfig(context)
 
             adminConfig.ruleSetNames should containExactlyInAnyOrder("customRuleSet1", "customRuleSet2")
         }
@@ -514,7 +514,7 @@ class AdminConfigServiceTest : WordSpec({
             val ortScannerConfig = ScannerConfiguration()
             val service = createServiceWithConfig("")
 
-            with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
+            with(service.loadAdminConfig(context).scannerConfig) {
                 this shouldBeSameInstanceAs AdminConfig.DEFAULT_SCANNER_CONFIG
                 detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
                 ignorePatterns shouldBe ortScannerConfig.ignorePatterns
@@ -530,7 +530,7 @@ class AdminConfigServiceTest : WordSpec({
             val ortScannerConfig = ScannerConfiguration()
             val service = createServiceWithConfig(config)
 
-            with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
+            with(service.loadAdminConfig(context).scannerConfig) {
                 detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
                 ignorePatterns shouldBe ortScannerConfig.ignorePatterns
                 sourceCodeOrigins should containExactly(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
@@ -550,7 +550,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
+            with(service.loadAdminConfig(context).scannerConfig) {
                 detectedLicenseMappings shouldContainExactly mapOf(
                     "detectedLicense1" to "spdxLicense1",
                     "detectedLicense2" to "spdxLicense2"
@@ -565,7 +565,7 @@ class AdminConfigServiceTest : WordSpec({
         "return a default configuration if nothing is configured" {
             val service = createServiceWithConfig("")
 
-            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+            val notifierConfig = service.loadAdminConfig(context).notifierConfig
 
             notifierConfig shouldBeSameInstanceAs AdminConfig.DEFAULT_NOTIFIER_CONFIG
         }
@@ -577,7 +577,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+            val notifierConfig = service.loadAdminConfig(context).notifierConfig
 
             notifierConfig shouldBe AdminConfig.DEFAULT_NOTIFIER_CONFIG
         }
@@ -605,7 +605,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+            val notifierConfig = service.loadAdminConfig(context).notifierConfig
 
             notifierConfig.mail.shouldNotBeNull {
                 hostName shouldBe "smtp.example.com"
@@ -633,7 +633,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+            val notifierConfig = service.loadAdminConfig(context).notifierConfig
 
             notifierConfig.mail.shouldNotBeNull {
                 hostName shouldBe "localhost"
@@ -650,7 +650,7 @@ class AdminConfigServiceTest : WordSpec({
         "return a default configuration if nothing is configured" {
             val service = createServiceWithConfig("")
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
@@ -665,7 +665,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
@@ -681,7 +681,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.howToFixTextProviderFile shouldBe "testHowToFixTextProviderFile"
             reporterConfig.customLicenseTextDir shouldBe "testCustomLicenseTextDir"
@@ -728,7 +728,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 pluginId shouldBe "PdfTemplate"
@@ -762,7 +762,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("DISCLOSUREPDF") shouldNotBeNull {
                 pluginId shouldBe "PdfTemplate"
@@ -794,7 +794,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("disclosurepdf") shouldNotBeNull {
                 assetFiles should containExactly(
@@ -819,7 +819,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 nameMapping shouldNotBeNull {
@@ -885,7 +885,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 pluginId shouldBe "PdfTemplate"
@@ -916,7 +916,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("HtmlTemplate") shouldNotBeNull {
                 pluginId shouldBe "HtmlTemplate"
@@ -941,7 +941,7 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+            val reporterConfig = service.loadAdminConfig(context).reporterConfig
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 nameMapping shouldNotBeNull {
@@ -955,7 +955,7 @@ class AdminConfigServiceTest : WordSpec({
         "return null if no mirror is configured" {
             val service = createServiceWithConfig("")
 
-            service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror should beNull()
+            service.loadAdminConfig(context).mavenCentralMirror should beNull()
         }
 
         "return the configured Maven Central mirror" {
@@ -971,7 +971,7 @@ class AdminConfigServiceTest : WordSpec({
             """.trimIndent()
 
             val service = createServiceWithConfig(config)
-            val mirror = service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror
+            val mirror = service.loadAdminConfig(context).mavenCentralMirror
 
             mirror.shouldNotBeNull {
                 id shouldBe "testId"
@@ -994,7 +994,7 @@ class AdminConfigServiceTest : WordSpec({
             """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val mirror = service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror
+            val mirror = service.loadAdminConfig(context).mavenCentralMirror
 
             mirror.shouldNotBeNull {
                 id shouldBe "testId"
@@ -1013,9 +1013,6 @@ private val context = Context("testContext")
 
 /** A path to the admin config used by tests per default. */
 private const val ADMIN_CONFIG_PATH = "test-ort-server.conf"
-
-/** A test organization ID. */
-private const val ORGANIZATION_ID = 20250617160321L
 
 /**
  * Create an [AdminConfigService] instance for testing that uses a spy [ConfigManager] returning the given

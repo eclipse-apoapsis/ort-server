@@ -83,10 +83,8 @@ class EvaluatorRunner(
         }
 
         logger.info("")
-        val ruleSet = adminConfigService.loadAdminConfig(
-            workerContext.resolvedConfigurationContext,
-            workerContext.ortRun.organizationId
-        ).getRuleSet(ruleSetName)
+        val ruleSet = adminConfigService.loadAdminConfig(workerContext.resolvedConfigurationContext)
+            .getRuleSet(ruleSetName)
 
         val script = workerContext.configManager.getFileAsString(
             workerContext.resolvedConfigurationContext,

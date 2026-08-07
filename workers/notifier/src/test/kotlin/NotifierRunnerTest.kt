@@ -209,5 +209,5 @@ private fun createConfigManager() = mockk<ConfigManager> {
  */
 private fun createAdminConfigService(config: AdminConfig = adminConfig): AdminConfigService =
     mockk {
-        every { loadAdminConfig(resolvedConfigContext, ORGANIZATION_ID) } returns config
+        every { loadAdminConfig(resolvedConfigContext) } returns config
     }

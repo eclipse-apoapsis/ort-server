@@ -102,10 +102,7 @@ class ReporterRunner(
         evaluatorConfig: EvaluatorJobConfiguration?,
         context: WorkerContext
     ): ReporterRunnerResult {
-        val adminConfig = adminConfigService.loadAdminConfig(
-            context.resolvedConfigurationContext,
-            context.ortRun.organizationId
-        )
+        val adminConfig = adminConfigService.loadAdminConfig(context.resolvedConfigurationContext)
         val ruleSet = adminConfig.getRuleSet(context.ortRun.resolvedJobConfigs?.ruleSet)
         val copyrightGarbage = context.configManager.readConfigFileValueWithDefault(
             path = ruleSet.copyrightGarbageFile,

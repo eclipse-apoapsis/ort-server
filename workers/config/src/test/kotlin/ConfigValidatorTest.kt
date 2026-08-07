@@ -201,7 +201,7 @@ class ConfigValidatorTest : StringSpec({
         val configException = RuntimeException("Test exception: Could not load admin configuration.")
         val adminConfigService = mockk<AdminConfigService> {
             every {
-                loadAdminConfig(any(), any(), validate = true)
+                loadAdminConfig(any(), validate = true)
             } throws configException
         }
 
@@ -310,6 +310,6 @@ private fun mockRun(ruleSetName: String = RULE_SET): OrtRun {
 private fun createAdminConfigService(adminConfig: AdminConfig = testAdminConfig): AdminConfigService =
     mockk {
         every {
-            loadAdminConfig(Context(RESOLVED_CONTEXT), ORGANIZATION_ID, validate = true)
+            loadAdminConfig(Context(RESOLVED_CONTEXT), validate = true)
         } returns adminConfig
     }

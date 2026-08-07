@@ -158,10 +158,7 @@ class EnvironmentService(
         definitions: Collection<EnvironmentServiceDefinition>,
         userHome: File?
     ) {
-        val adminConfig = adminConfigService.loadAdminConfig(
-            context.resolvedConfigurationContext,
-            context.ortRun.organizationId
-        )
+        val adminConfig = adminConfigService.loadAdminConfig(context.resolvedConfigurationContext)
         val services = definitions.map(EnvironmentServiceDefinition::service)
         val netRcManager = NetRcManager.create(context.secretResolverFun)
         context.setupAuthentication(services, netRcManager)

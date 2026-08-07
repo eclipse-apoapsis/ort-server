@@ -109,10 +109,7 @@ class ScannerRunner(
             nestedProvenanceStorage = nestedProvenanceStorage
         )
 
-        val scannerAdminConfig = adminConfigService.loadAdminConfig(
-            context.resolvedConfigurationContext,
-            context.ortRun.organizationId
-        ).scannerConfig
+        val scannerAdminConfig = adminConfigService.loadAdminConfig(context.resolvedConfigurationContext).scannerConfig
         val defaultScannerConfig = ScannerConfiguration()
         val scannerConfig = ScannerConfiguration(
             skipConcluded = config.skipConcluded ?: defaultScannerConfig.skipConcluded,
