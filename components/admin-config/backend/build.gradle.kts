@@ -28,11 +28,12 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
+    api(libs.hopliteCore)
+
     implementation(projects.shared.pluginInfo)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.hopliteCore)
     implementation(libs.hopliteHocon)
     implementation(libs.slf4j)
     implementation(ortLibs.model)

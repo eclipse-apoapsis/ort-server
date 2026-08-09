@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import com.sksamuel.hoplite.ConfigAlias
+
 /**
  * A data class representing a Maven Central mirror configuration.
  */
@@ -36,8 +38,10 @@ data class MavenCentralMirror(
     val mirrorOf: String,
 
     /** The name of the secret that contains the username as value. */
+    @param:ConfigAlias("username")
     val usernameSecret: String? = null,
 
     /** The name of the secrets that contains the password as value. */
+    @param:ConfigAlias("password")
     val passwordSecret: String? = null
 )

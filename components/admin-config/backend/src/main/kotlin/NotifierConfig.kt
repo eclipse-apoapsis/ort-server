@@ -19,11 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import com.sksamuel.hoplite.ConfigAlias
+
 /**
  *  Configuration for a Jira REST client interacting with a Jira server after an ORT run.
  */
 data class JiraRestClientConfiguration(
     /** The URL of the Jira server, e.g. "https://jira.example.com". */
+    @param:ConfigAlias("url")
     val serverUrl: String,
 
     /** The username to authenticate with the Jira server. */
@@ -36,6 +39,7 @@ data class JiraRestClientConfiguration(
 /** Configuration for a mail server to send mails after an ORT run. */
 data class MailServerConfiguration(
     /** The address of the outgoing SMTP server that will be used to send the message. */
+    @param:ConfigAlias("host")
     val hostName: String = "localhost",
 
     /** The port used for the SMTP server. */
@@ -48,6 +52,7 @@ data class MailServerConfiguration(
     val password: String = "",
 
     /** Configuration if SSL/TLS encryption should be enabled with the SMTP server. */
+    @param:ConfigAlias("ssl")
     val useSsl: Boolean = true,
 
     /** The 'from' field of the outgoing email. */
