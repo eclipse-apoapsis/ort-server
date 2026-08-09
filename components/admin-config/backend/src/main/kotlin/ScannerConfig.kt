@@ -21,6 +21,21 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 
+import org.ossreviewtoolkit.model.config.DownloaderConfiguration
+import org.ossreviewtoolkit.model.config.ScannerConfiguration
+
+/**
+ * A default scanner configuration instance from ORT. This is used to obtain default values for undefined
+ * properties.
+ */
+private val ortDefaultScannerConfig = ScannerConfiguration()
+
+/**
+ * A default downloader configuration instance from ORT. This is used to obtain default values for undefined
+ * properties related to the downloader.
+ */
+private val ortDefaultDownloaderConfig = DownloaderConfiguration()
+
 /**
  * A data class that represents the configuration of the Scanner worker.
  *
@@ -29,11 +44,12 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
  */
 data class ScannerConfig(
     /** Mappings from licenses returned by a scanner to valid SPDX licenses. */
-    val detectedLicenseMappings: Map<String, String>,
+    val detectedLicenseMappings: Map<String, String> = ortDefaultScannerConfig.detectedLicenseMapping,
 
     /** A list of glob expressions that match file paths which are to be excluded from scan results. */
-    val ignorePatterns: List<String>,
+    val ignorePatterns: List<String> = ortDefaultScannerConfig.ignorePatterns,
 
     /** The source code origins to use, ordered by priority. The list must not be empty or contain any duplicates. */
-    val sourceCodeOrigins: List<SourceCodeOrigin>
+    val sourceCodeOrigins: List<SourceCodeOrigin> =
+        ortDefaultDownloaderConfig.sourceCodeOrigins.map { SourceCodeOrigin.valueOf(it.name) }
 )

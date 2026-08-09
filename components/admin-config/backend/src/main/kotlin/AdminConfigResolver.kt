@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService.Companion.UNRESOLVABLE_ASSET_PREFIX
-import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 
 /** A class to resolve an [AdminConfigFile] to an [AdminConfig]. */
 internal object AdminConfigResolver {
@@ -34,7 +33,7 @@ internal object AdminConfigResolver {
         return AdminConfig(
             notifierConfig = config.notifier,
             reporterConfig = resolve(config.reporter),
-            scannerConfig = resolve(config.scanner),
+            scannerConfig = config.scanner,
             defaultRuleSet = defaultRuleSet,
             ruleSets = config.ruleSets.orEmpty().mapValues { resolve(it.value, defaultRuleSet) },
             mavenCentralMirror = config.mavenCentralMirror
@@ -77,18 +76,6 @@ internal object AdminConfigResolver {
             howToFixTextProviderFile = config.howToFixTextProviderFile,
             customLicenseTextDir = config.customLicenseTextDir,
             globalAssets = config.assets
-        )
-    }
-
-    private fun resolve(config: ScannerConfigTemplate?): ScannerConfig {
-        if (config == null) return AdminConfig.DEFAULT_SCANNER_CONFIG
-
-        return ScannerConfig(
-            detectedLicenseMappings = config.detectedLicenseMappings
-                ?: AdminConfig.DEFAULT_SCANNER_CONFIG.detectedLicenseMappings,
-            ignorePatterns = config.ignorePatterns ?: AdminConfig.DEFAULT_SCANNER_CONFIG.ignorePatterns,
-            sourceCodeOrigins = config.sourceCodeOrigins?.map { SourceCodeOrigin.valueOf(it.uppercase()) }
-                ?: AdminConfig.DEFAULT_SCANNER_CONFIG.sourceCodeOrigins
         )
     }
 
