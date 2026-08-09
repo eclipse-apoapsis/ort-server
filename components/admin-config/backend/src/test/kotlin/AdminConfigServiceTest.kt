@@ -567,7 +567,7 @@ class AdminConfigServiceTest : WordSpec({
 
             val notifierConfig = service.loadAdminConfig(context).notifierConfig
 
-            notifierConfig shouldBeSameInstanceAs AdminConfig.DEFAULT_NOTIFIER_CONFIG
+            notifierConfig shouldBe NotifierConfig()
         }
 
         "return a configuration with default settings for an empty notifier section" {
@@ -579,7 +579,7 @@ class AdminConfigServiceTest : WordSpec({
 
             val notifierConfig = service.loadAdminConfig(context).notifierConfig
 
-            notifierConfig shouldBe AdminConfig.DEFAULT_NOTIFIER_CONFIG
+            notifierConfig shouldBe NotifierConfig()
         }
 
         "parse the notifier section from the config file" {

@@ -32,24 +32,12 @@ internal object AdminConfigResolver {
         val defaultRuleSet = resolve(config.defaultRuleSet, AdminConfig.DEFAULT_RULE_SET)
 
         return AdminConfig(
-            notifierConfig = resolve(config.notifier),
+            notifierConfig = config.notifier,
             reporterConfig = resolve(config.reporter),
             scannerConfig = resolve(config.scanner),
             defaultRuleSet = defaultRuleSet,
             ruleSets = config.ruleSets.orEmpty().mapValues { resolve(it.value, defaultRuleSet) },
             mavenCentralMirror = config.mavenCentralMirror
-        )
-    }
-
-    private fun resolve(config: NotifierConfigTemplate?): NotifierConfig {
-        if (config == null) return AdminConfig.DEFAULT_NOTIFIER_CONFIG
-
-        return NotifierConfig(
-            notifierRules = config.notifierRules,
-            mail = config.mail,
-            jira = config.jira,
-            disableMailNotifications = config.disableMailNotifications,
-            disableJiraNotifications = config.disableJiraNotifications
         )
     }
 
