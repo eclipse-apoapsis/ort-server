@@ -23,21 +23,12 @@ import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 
 /** A representation of the admin config file. */
 internal data class AdminConfigFile(
-    val notifier: NotifierConfigTemplate?,
+    val notifier: NotifierConfig = NotifierConfig(),
     val reporter: ReporterConfigTemplate?,
     val scanner: ScannerConfigTemplate?,
     val defaultRuleSet: RuleSetTemplate?,
     val ruleSets: Map<String, RuleSetTemplate>?,
     val mavenCentralMirror: MavenCentralMirror?
-)
-
-/** A representation of the notifier section of the admin config file. */
-internal data class NotifierConfigTemplate(
-    val notifierRules: String = "run.notifications.kts",
-    val jira: JiraRestClientConfiguration? = null,
-    val mail: MailServerConfiguration? = null,
-    val disableJiraNotifications: Boolean = false,
-    val disableMailNotifications: Boolean = false
 )
 
 /** A representation of the reporter section of the admin config file. */

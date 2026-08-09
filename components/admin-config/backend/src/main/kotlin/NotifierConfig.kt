@@ -67,7 +67,7 @@ data class MailServerConfiguration(
  */
 data class NotifierConfig(
     /** The path to the notifier script to use. */
-    val notifierRules: String,
+    val notifierRules: String = "run.notifications.kts",
 
     /**
      * The configuration for the server for sending email notifications. If this is `null`, no email notifications will
