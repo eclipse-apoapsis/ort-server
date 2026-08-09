@@ -22,8 +22,6 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService.Companion.UNRESOLVABLE_ASSET_PREFIX
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 
-import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
-
 /** A class to resolve an [AdminConfigFile] to an [AdminConfig]. */
 internal object AdminConfigResolver {
     /**
@@ -47,14 +45,12 @@ internal object AdminConfigResolver {
         if (config == null) return AdminConfig.DEFAULT_NOTIFIER_CONFIG
 
         val mailServerConfig = config.mail?.let {
-            val defaultMailServerConfig = MailServerConfiguration(fromAddress = "")
-
             MailServerConfiguration(
-                hostName = it.host ?: defaultMailServerConfig.hostName,
-                port = it.port ?: defaultMailServerConfig.port,
-                username = it.username ?: defaultMailServerConfig.username,
-                password = it.password ?: defaultMailServerConfig.password,
-                useSsl = it.ssl ?: defaultMailServerConfig.useSsl,
+                hostName = it.host,
+                port = it.port,
+                username = it.username,
+                password = it.password,
+                useSsl = it.ssl,
                 fromAddress = it.fromAddress
             )
         }
@@ -68,13 +64,11 @@ internal object AdminConfigResolver {
         }
 
         return NotifierConfig(
-            notifierRules = config.notifierRules ?: AdminConfig.DEFAULT_NOTIFIER_CONFIG.notifierRules,
+            notifierRules = config.notifierRules,
             mail = mailServerConfig,
             jira = jiraRestClientConfig,
-            disableMailNotifications = config.disableMailNotifications
-                ?: AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableMailNotifications,
+            disableMailNotifications = config.disableMailNotifications,
             disableJiraNotifications = config.disableJiraNotifications
-                ?: AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableJiraNotifications
         )
     }
 
@@ -92,7 +86,7 @@ internal object AdminConfigResolver {
         }
 
         val reportDefinitions = config.reports.orEmpty().mapValues { (_, template) ->
-            val assetFiles = template.assetFiles.orEmpty().map {
+            val assetFiles = template.assetFiles.map {
                 ReporterAsset(
                     sourcePath = it.sourcePath,
                     targetFolder = it.targetFolder,
@@ -100,13 +94,13 @@ internal object AdminConfigResolver {
                 )
             }
 
-            val resolvedAssetFilesRefs = template.assetFilesRefs.orEmpty().flatMap { assetRef ->
+            val resolvedAssetFilesRefs = template.assetFilesRefs.flatMap { assetRef ->
                 // Replace the reference with the referenced list of asset files from the global assets. If this does
                 // not exist, add a placeholder asset that marks the reference as not resolvable.
                 globalAssets[assetRef] ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
             }
 
-            val assetDirectories = template.assetDirectories.orEmpty().map {
+            val assetDirectories = template.assetDirectories.map {
                 ReporterAsset(
                     // Ensure that directory asset paths end with a trailing slash.
                     sourcePath = it.sourcePath.ensureTrailingSlash(),
@@ -115,7 +109,7 @@ internal object AdminConfigResolver {
                 )
             }
 
-            val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.orEmpty().flatMap { assetRef ->
+            val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.flatMap { assetRef ->
                 // Replace the reference with the referenced list of asset directories from the global assets. If this
                 // does not exist, add a placeholder asset that marks the reference as not resolvable.
                 globalAssets[assetRef]?.map {
@@ -127,8 +121,8 @@ internal object AdminConfigResolver {
             val nameMapping = template.nameMapping?.let {
                 ReportNameMapping(
                     namePrefix = it.namePrefix,
-                    startIndex = it.startIndex ?: 1,
-                    alwaysAppendIndex = it.alwaysAppendIndex ?: false
+                    startIndex = it.startIndex,
+                    alwaysAppendIndex = it.alwaysAppendIndex
                 )
             }
 
@@ -142,7 +136,7 @@ internal object AdminConfigResolver {
 
         return ReporterConfig(
             reportDefinitionsMap = ReporterConfig.addDefinitionsForUnreferencedPlugins(reportDefinitions),
-            howToFixTextProviderFile = config.howToFixTextProviderFile ?: ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
+            howToFixTextProviderFile = config.howToFixTextProviderFile,
             customLicenseTextDir = config.customLicenseTextDir,
             globalAssets = globalAssets
         )

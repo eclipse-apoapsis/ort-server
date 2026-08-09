@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+
 /** A representation of the admin config file. */
 internal data class AdminConfigFile(
     val notifier: NotifierConfigTemplate?,
@@ -31,11 +33,11 @@ internal data class AdminConfigFile(
 
 /** A representation of the notifier section of the admin config file. */
 internal data class NotifierConfigTemplate(
-    val notifierRules: String?,
-    val jira: JiraConfigTemplate?,
-    val mail: MailConfigTemplate?,
-    val disableJiraNotifications: Boolean?,
-    val disableMailNotifications: Boolean?
+    val notifierRules: String = "run.notifications.kts",
+    val jira: JiraConfigTemplate? = null,
+    val mail: MailConfigTemplate? = null,
+    val disableJiraNotifications: Boolean = false,
+    val disableMailNotifications: Boolean = false
 )
 
 /** A representation of the jira section of the admin config file. */
@@ -47,18 +49,18 @@ internal data class JiraConfigTemplate(
 
 /** A representation of the mail section of the admin config file. */
 internal data class MailConfigTemplate(
-    val host: String?,
-    val port: Int?,
-    val username: String?,
-    val password: String?,
-    val ssl: Boolean?,
+    val host: String = "localhost",
+    val port: Int = 587,
+    val username: String = "",
+    val password: String = "",
+    val ssl: Boolean = true,
     val fromAddress: String
 )
 
 /** A representation of the reporter section of the admin config file. */
 internal data class ReporterConfigTemplate(
     val reports: Map<String, ReportDefinitionTemplate>?,
-    val howToFixTextProviderFile: String?,
+    val howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
     val customLicenseTextDir: String?,
     val assets: Map<String, List<ReporterAssetTemplate>>?
 )
@@ -66,25 +68,25 @@ internal data class ReporterConfigTemplate(
 /** A representation of the report definition section of the admin config file. */
 internal data class ReportDefinitionTemplate(
     val pluginId: String,
-    val assetFiles: List<ReporterAssetTemplate>?,
-    val assetFilesRefs: List<String>?,
-    val assetDirectories: List<ReporterAssetTemplate>?,
-    val assetDirectoriesRefs: List<String>?,
-    val nameMapping: ReportNameMappingTemplate?
+    val assetFiles: List<ReporterAssetTemplate> = emptyList(),
+    val assetFilesRefs: List<String> = emptyList(),
+    val assetDirectories: List<ReporterAssetTemplate> = emptyList(),
+    val assetDirectoriesRefs: List<String> = emptyList(),
+    val nameMapping: ReportNameMappingTemplate? = null
 )
 
 /** A representation of the reporter asset section of the admin config file. */
 internal data class ReporterAssetTemplate(
     val sourcePath: String,
-    val targetFolder: String?,
-    val targetName: String?
+    val targetFolder: String? = null,
+    val targetName: String? = null
 )
 
 /** A representation of the report name mapping section of the admin config file. */
 internal data class ReportNameMappingTemplate(
     val namePrefix: String,
-    val startIndex: Int?,
-    val alwaysAppendIndex: Boolean?
+    val startIndex: Int = 1,
+    val alwaysAppendIndex: Boolean = false
 )
 
 /** A representation of the scanner section of the admin config file. */
@@ -108,6 +110,6 @@ internal data class MavenCentralMirrorTemplate(
     val name: String,
     val url: String,
     val mirrorOf: String,
-    val username: String?,
-    val password: String?
+    val username: String? = null,
+    val password: String? = null
 )
