@@ -146,6 +146,7 @@ class AdminConfigService(
         val adminConfigFile = configManager.getFile(context, configPath).use {
             ConfigLoaderBuilder.default()
                 .addStreamSource(it, "conf")
+                .withResolveTypesCaseInsensitive()
                 .build()
                 .loadConfigOrThrow<AdminConfigFile>()
         }

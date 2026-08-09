@@ -25,7 +25,7 @@ import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 internal data class AdminConfigFile(
     val notifier: NotifierConfig = NotifierConfig(),
     val reporter: ReporterConfigTemplate?,
-    val scanner: ScannerConfigTemplate?,
+    val scanner: ScannerConfig = ScannerConfig(),
     val defaultRuleSet: RuleSetTemplate?,
     val ruleSets: Map<String, RuleSetTemplate>?,
     val mavenCentralMirror: MavenCentralMirror?
@@ -47,13 +47,6 @@ internal data class ReportDefinitionTemplate(
     val assetDirectories: List<ReporterAsset> = emptyList(),
     val assetDirectoriesRefs: List<String> = emptyList(),
     val nameMapping: ReportNameMapping? = null
-)
-
-/** A representation of the scanner section of the admin config file. */
-internal data class ScannerConfigTemplate(
-    val detectedLicenseMappings: Map<String, String>?,
-    val ignorePatterns: List<String>?,
-    val sourceCodeOrigins: List<String>?
 )
 
 /** A representation of the rule set section of the admin config file. */

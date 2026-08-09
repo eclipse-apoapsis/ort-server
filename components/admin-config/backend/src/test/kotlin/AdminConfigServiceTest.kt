@@ -34,7 +34,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 import io.mockk.every
 import io.mockk.spyk
@@ -515,7 +514,6 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig("")
 
             with(service.loadAdminConfig(context).scannerConfig) {
-                this shouldBeSameInstanceAs AdminConfig.DEFAULT_SCANNER_CONFIG
                 detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
                 ignorePatterns shouldBe ortScannerConfig.ignorePatterns
                 sourceCodeOrigins should containExactly(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
