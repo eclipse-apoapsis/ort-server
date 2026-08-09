@@ -28,33 +28,16 @@ internal data class AdminConfigFile(
     val scanner: ScannerConfigTemplate?,
     val defaultRuleSet: RuleSetTemplate?,
     val ruleSets: Map<String, RuleSetTemplate>?,
-    val mavenCentralMirror: MavenCentralMirrorTemplate?
+    val mavenCentralMirror: MavenCentralMirror?
 )
 
 /** A representation of the notifier section of the admin config file. */
 internal data class NotifierConfigTemplate(
     val notifierRules: String = "run.notifications.kts",
-    val jira: JiraConfigTemplate? = null,
-    val mail: MailConfigTemplate? = null,
+    val jira: JiraRestClientConfiguration? = null,
+    val mail: MailServerConfiguration? = null,
     val disableJiraNotifications: Boolean = false,
     val disableMailNotifications: Boolean = false
-)
-
-/** A representation of the jira section of the admin config file. */
-internal data class JiraConfigTemplate(
-    val url: String,
-    val username: String,
-    val password: String
-)
-
-/** A representation of the mail section of the admin config file. */
-internal data class MailConfigTemplate(
-    val host: String = "localhost",
-    val port: Int = 587,
-    val username: String = "",
-    val password: String = "",
-    val ssl: Boolean = true,
-    val fromAddress: String
 )
 
 /** A representation of the reporter section of the admin config file. */
@@ -62,31 +45,17 @@ internal data class ReporterConfigTemplate(
     val reports: Map<String, ReportDefinitionTemplate>?,
     val howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
     val customLicenseTextDir: String?,
-    val assets: Map<String, List<ReporterAssetTemplate>>?
+    val assets: Map<String, List<ReporterAsset>> = emptyMap()
 )
 
 /** A representation of the report definition section of the admin config file. */
 internal data class ReportDefinitionTemplate(
     val pluginId: String,
-    val assetFiles: List<ReporterAssetTemplate> = emptyList(),
+    val assetFiles: List<ReporterAsset> = emptyList(),
     val assetFilesRefs: List<String> = emptyList(),
-    val assetDirectories: List<ReporterAssetTemplate> = emptyList(),
+    val assetDirectories: List<ReporterAsset> = emptyList(),
     val assetDirectoriesRefs: List<String> = emptyList(),
-    val nameMapping: ReportNameMappingTemplate? = null
-)
-
-/** A representation of the reporter asset section of the admin config file. */
-internal data class ReporterAssetTemplate(
-    val sourcePath: String,
-    val targetFolder: String? = null,
-    val targetName: String? = null
-)
-
-/** A representation of the report name mapping section of the admin config file. */
-internal data class ReportNameMappingTemplate(
-    val namePrefix: String,
-    val startIndex: Int = 1,
-    val alwaysAppendIndex: Boolean = false
+    val nameMapping: ReportNameMapping? = null
 )
 
 /** A representation of the scanner section of the admin config file. */
@@ -102,14 +71,4 @@ internal data class RuleSetTemplate(
     val licenseClassificationsFile: String?,
     val resolutionsFile: String?,
     val evaluatorRules: String?
-)
-
-/** A representation of the maven central mirror section of the admin config file. */
-internal data class MavenCentralMirrorTemplate(
-    val id: String,
-    val name: String,
-    val url: String,
-    val mirrorOf: String,
-    val username: String? = null,
-    val password: String? = null
 )

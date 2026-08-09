@@ -37,36 +37,17 @@ internal object AdminConfigResolver {
             scannerConfig = resolve(config.scanner),
             defaultRuleSet = defaultRuleSet,
             ruleSets = config.ruleSets.orEmpty().mapValues { resolve(it.value, defaultRuleSet) },
-            mavenCentralMirror = resolve(config.mavenCentralMirror)
+            mavenCentralMirror = config.mavenCentralMirror
         )
     }
 
     private fun resolve(config: NotifierConfigTemplate?): NotifierConfig {
         if (config == null) return AdminConfig.DEFAULT_NOTIFIER_CONFIG
 
-        val mailServerConfig = config.mail?.let {
-            MailServerConfiguration(
-                hostName = it.host,
-                port = it.port,
-                username = it.username,
-                password = it.password,
-                useSsl = it.ssl,
-                fromAddress = it.fromAddress
-            )
-        }
-
-        val jiraRestClientConfig = config.jira?.let {
-            JiraRestClientConfiguration(
-                serverUrl = it.url,
-                username = it.username,
-                password = it.password
-            )
-        }
-
         return NotifierConfig(
             notifierRules = config.notifierRules,
-            mail = mailServerConfig,
-            jira = jiraRestClientConfig,
+            mail = config.mail,
+            jira = config.jira,
             disableMailNotifications = config.disableMailNotifications,
             disableJiraNotifications = config.disableJiraNotifications
         )
@@ -75,62 +56,31 @@ internal object AdminConfigResolver {
     private fun resolve(config: ReporterConfigTemplate?): ReporterConfig {
         if (config == null) return AdminConfig.DEFAULT_REPORTER_CONFIG
 
-        val globalAssets = config.assets.orEmpty().mapValues { (_, templates) ->
-            templates.map {
-                ReporterAsset(
-                    sourcePath = it.sourcePath,
-                    targetFolder = it.targetFolder,
-                    targetName = it.targetName
-                )
-            }
-        }
-
         val reportDefinitions = config.reports.orEmpty().mapValues { (_, template) ->
-            val assetFiles = template.assetFiles.map {
-                ReporterAsset(
-                    sourcePath = it.sourcePath,
-                    targetFolder = it.targetFolder,
-                    targetName = it.targetName
-                )
-            }
-
             val resolvedAssetFilesRefs = template.assetFilesRefs.flatMap { assetRef ->
                 // Replace the reference with the referenced list of asset files from the global assets. If this does
                 // not exist, add a placeholder asset that marks the reference as not resolvable.
-                globalAssets[assetRef] ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
+                config.assets[assetRef] ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
             }
 
             val assetDirectories = template.assetDirectories.map {
-                ReporterAsset(
-                    // Ensure that directory asset paths end with a trailing slash.
-                    sourcePath = it.sourcePath.ensureTrailingSlash(),
-                    targetFolder = it.targetFolder,
-                    targetName = it.targetName
-                )
+                it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
             }
 
             val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.flatMap { assetRef ->
                 // Replace the reference with the referenced list of asset directories from the global assets. If this
                 // does not exist, add a placeholder asset that marks the reference as not resolvable.
-                globalAssets[assetRef]?.map {
+                config.assets[assetRef]?.map {
                     // Ensure that directory asset paths end with a trailing slash.
                     it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
                 } ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
             }
 
-            val nameMapping = template.nameMapping?.let {
-                ReportNameMapping(
-                    namePrefix = it.namePrefix,
-                    startIndex = it.startIndex,
-                    alwaysAppendIndex = it.alwaysAppendIndex
-                )
-            }
-
             ReportDefinition(
                 pluginId = template.pluginId,
-                assetFiles = assetFiles + resolvedAssetFilesRefs,
+                assetFiles = template.assetFiles + resolvedAssetFilesRefs,
                 assetDirectories = assetDirectories + resolvedAssetDirectoriesRefs,
-                nameMapping = nameMapping
+                nameMapping = template.nameMapping
             )
         }
 
@@ -138,7 +88,7 @@ internal object AdminConfigResolver {
             reportDefinitionsMap = ReporterConfig.addDefinitionsForUnreferencedPlugins(reportDefinitions),
             howToFixTextProviderFile = config.howToFixTextProviderFile,
             customLicenseTextDir = config.customLicenseTextDir,
-            globalAssets = globalAssets
+            globalAssets = config.assets
         )
     }
 
@@ -164,18 +114,6 @@ internal object AdminConfigResolver {
             evaluatorRules = config.evaluatorRules ?: default.evaluatorRules
         )
     }
-
-    private fun resolve(config: MavenCentralMirrorTemplate?): MavenCentralMirror? =
-        config?.let {
-            MavenCentralMirror(
-                id = it.id,
-                name = it.name,
-                url = it.url,
-                mirrorOf = it.mirrorOf,
-                usernameSecret = it.username,
-                passwordSecret = it.password
-            )
-        }
 }
 
 private fun String.ensureTrailingSlash() = takeIf { it.endsWith("/") } ?: plus("/")
