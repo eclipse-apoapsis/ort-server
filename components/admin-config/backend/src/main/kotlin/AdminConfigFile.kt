@@ -26,7 +26,7 @@ internal data class AdminConfigFile(
     val notifier: NotifierConfig = NotifierConfig(),
     val reporter: ReporterConfigTemplate?,
     val scanner: ScannerConfig = ScannerConfig(),
-    val defaultRuleSet: RuleSetTemplate?,
+    val defaultRuleSet: RuleSet = RuleSet(),
     val ruleSets: Map<String, RuleSetTemplate>?,
     val mavenCentralMirror: MavenCentralMirror?
 )

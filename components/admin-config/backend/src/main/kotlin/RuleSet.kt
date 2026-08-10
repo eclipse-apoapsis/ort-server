@@ -19,6 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
+
 /**
  * A data class that represents the configuration of a rule set.
  *
@@ -26,17 +31,26 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
  * paths are passed to the [config file provider][org.eclipse.apoapsis.ortserver.config.ConfigFileProvider] to obtain
  * the actual configuration files. Interpretation of the paths is up to the provider, but for file-based providers paths
  * can be relative to the provider's root directory.
+ *
+ * By default, all properties are initialized with the standard paths from ORT.
  */
 data class RuleSet(
     /** The path to the copyright garbage file. */
-    val copyrightGarbageFile: String,
+    val copyrightGarbageFile: String = DEFAULT_COPYRIGHT_GARBAGE_FILE,
 
     /** The path to the license classifications file. */
-    val licenseClassificationsFile: String,
+    val licenseClassificationsFile: String = DEFAULT_LICENSE_CLASSIFICATIONS_FILE,
 
     /** The path to the resolutions file. */
-    val resolutionsFile: String,
+    val resolutionsFile: String = DEFAULT_RESOLUTIONS_FILE,
 
     /** The path to the files with rules to use for the evaluation. */
-    val evaluatorRules: String
-)
+    val evaluatorRules: String = DEFAULT_EVALUATOR_RULES_FILE
+) {
+    companion object {
+        internal const val DEFAULT_COPYRIGHT_GARBAGE_FILE = ORT_COPYRIGHT_GARBAGE_FILENAME
+        internal const val DEFAULT_LICENSE_CLASSIFICATIONS_FILE = ORT_LICENSE_CLASSIFICATIONS_FILENAME
+        internal const val DEFAULT_RESOLUTIONS_FILE = ORT_RESOLUTIONS_FILENAME
+        internal const val DEFAULT_EVALUATOR_RULES_FILE = ORT_EVALUATOR_RULES_FILENAME
+    }
+}

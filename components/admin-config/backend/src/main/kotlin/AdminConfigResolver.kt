@@ -27,18 +27,15 @@ internal object AdminConfigResolver {
      *  Resolve the raw config data from an [AdminConfigFile] to an [AdminConfig] by applying default values and
      *  post-processing of values.
      */
-    fun resolve(config: AdminConfigFile): AdminConfig {
-        val defaultRuleSet = resolve(config.defaultRuleSet, AdminConfig.DEFAULT_RULE_SET)
-
-        return AdminConfig(
+    fun resolve(config: AdminConfigFile): AdminConfig =
+        AdminConfig(
             notifierConfig = config.notifier,
             reporterConfig = resolve(config.reporter),
             scannerConfig = config.scanner,
-            defaultRuleSet = defaultRuleSet,
-            ruleSets = config.ruleSets.orEmpty().mapValues { resolve(it.value, defaultRuleSet) },
+            defaultRuleSet = config.defaultRuleSet,
+            ruleSets = config.ruleSets.orEmpty().mapValues { resolve(it.value, config.defaultRuleSet) },
             mavenCentralMirror = config.mavenCentralMirror
         )
-    }
 
     private fun resolve(config: ReporterConfigTemplate?): ReporterConfig {
         if (config == null) return AdminConfig.DEFAULT_REPORTER_CONFIG

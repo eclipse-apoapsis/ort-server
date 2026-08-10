@@ -19,11 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 /**
  * A class representing the admin configuration for the ORT server. It defines an object model for the configuration
@@ -40,7 +36,7 @@ class AdminConfig(
     val notifierConfig: NotifierConfig = NotifierConfig(),
 
     /** The default rule set. */
-    private val defaultRuleSet: RuleSet = DEFAULT_RULE_SET,
+    private val defaultRuleSet: RuleSet = RuleSet(),
 
     /** A map containing named rule sets. */
     private val ruleSets: Map<String, RuleSet> = emptyMap(),
@@ -49,14 +45,6 @@ class AdminConfig(
     val mavenCentralMirror: MavenCentralMirror? = null
 ) {
     companion object {
-        /** A default [RuleSet] instance that uses the standard names from ORT for the referenced files. */
-        val DEFAULT_RULE_SET = RuleSet(
-            copyrightGarbageFile = ORT_COPYRIGHT_GARBAGE_FILENAME,
-            licenseClassificationsFile = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
-            resolutionsFile = ORT_RESOLUTIONS_FILENAME,
-            evaluatorRules = ORT_EVALUATOR_RULES_FILENAME
-        )
-
         /**
          * A default [ReporterConfig] instance that is used if the admin configuration does not contain any
          * reporter-specific settings. This instance is not really useful, however, since it does not support any
