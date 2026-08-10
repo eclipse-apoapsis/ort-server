@@ -27,7 +27,7 @@ import globals from 'globals';
 
 export default defineConfig([
   {
-    ignores: ['dist/', '.eslintrc.cjs', 'src/api/'],
+    ignores: ['dist/', '.eslintrc.cjs', 'src/api/', 'src/routeTree.gen.ts'],
   },
   js.configs.recommended,
   ...tsEslint.configs['flat/recommended'],
@@ -39,6 +39,15 @@ export default defineConfig([
         ...globals.browser,
       },
       parser: tsParser,
+      parserOptions: {
+        // Type information is needed by no-unnecessary-condition below.
+        // openapi-ts.config.ts is not part of tsconfig.json, so it has to be
+        // allowed separately for the project service to accept it.
+        projectService: {
+          allowDefaultProject: ['openapi-ts.config.ts'],
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       'react-refresh': reactRefresh,
@@ -52,6 +61,10 @@ export default defineConfig([
         },
       ],
       'no-console': ['warn'],
+      // Report conditions that can never change the outcome, such as `?.` on a
+      // value that is never nullish, so that the checks that do matter stand
+      // out.
+      '@typescript-eslint/no-unnecessary-condition': 'error',
       // Silence the warnings about useReactTable() hook, because React Compiler
       // is not used in this project.
       'react-hooks/incompatible-library': 'off',
