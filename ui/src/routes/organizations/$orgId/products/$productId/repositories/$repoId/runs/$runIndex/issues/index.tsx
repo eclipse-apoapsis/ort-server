@@ -24,14 +24,11 @@ import {
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import z from 'zod';
 
 import { Issue, Severity } from '@/api';
@@ -73,20 +70,19 @@ import {
   getIssueSeverityBackgroundColor,
   getResolvedBackgroundColor,
 } from '@/helpers/get-status-class';
-import { updateColumnSorting } from '@/helpers/handle-multisort';
+import {
+  convertToBackendSorting,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
   getResolutionAccordionDefaultValue,
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
-import { compareSeverity } from '@/helpers/sorting-functions';
-import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
+import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
-  IssueCategory,
-  issueCategorySchema,
-  issueCategorySearchParameterSchema,
   ItemResolved,
   itemResolvedSchema,
   itemStatusSearchParameterSchema,
@@ -99,6 +95,13 @@ import {
 import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
+const supportedSortColumns = new Set([
+  'identifier',
+  'purl',
+  'status',
+  'severity',
+  'source',
+]);
 
 const columnHelper = createColumnHelper<Issue>();
 
@@ -274,11 +277,8 @@ const IssuesComponent = () => {
         return getResolvedStatus(issue);
       },
       {
-        id: 'itemStatus',
+        id: 'status',
         header: 'Status',
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getResolvedStatus(row.original));
-        },
         meta: {
           filter: {
             filterVariant: 'select',
@@ -301,12 +301,6 @@ const IssuesComponent = () => {
     ),
     columnHelper.accessor('severity', {
       header: 'Severity',
-      filterFn: (row, _columnId, filterValue): boolean => {
-        return filterValue.includes(row.original.severity);
-      },
-      sortingFn: (rowA, rowB) => {
-        return compareSeverity(rowA.original.severity, rowB.original.severity);
-      },
       meta: {
         filter: {
           filterVariant: 'select',
@@ -326,36 +320,6 @@ const IssuesComponent = () => {
         },
       },
     }),
-    columnHelper.accessor(
-      (issue) => {
-        return getIssueCategory(issue.message);
-      },
-      {
-        id: 'category',
-        header: 'Category',
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getIssueCategory(row.original.message));
-        },
-        meta: {
-          filter: {
-            filterVariant: 'select',
-            selectOptions: issueCategorySchema.options.map((category) => ({
-              label: category,
-              value: category,
-            })),
-            setSelected: (categories: IssueCategory[]) => {
-              navigate({
-                search: {
-                  ...search,
-                  page: 1,
-                  category: categories.length === 0 ? undefined : categories,
-                },
-              });
-            },
-          },
-        },
-      }
-    ),
     columnHelper.accessor('affectedPath', {
       header: 'Affected Path',
       enableSorting: false,
@@ -367,62 +331,22 @@ const IssuesComponent = () => {
     }),
   ];
 
-  // All of these need to be memoized to prevent unnecessary re-renders
-  // and (at least for Firefox) the browser freezing up.
-
-  const pageIndex = useMemo(
-    () => (search.page ? search.page - 1 : 0),
-    [search.page]
-  );
-
-  const pageSize = useMemo(
-    () => (search.pageSize ? search.pageSize : defaultPageSize),
-    [search.pageSize]
-  );
-
-  const severity = useMemo(
-    () => (search.severity ? search.severity : undefined),
-    [search.severity]
-  );
-
-  const itemStatus = useMemo(
-    () => (search.itemResolved ? search.itemResolved : undefined),
-    [search.itemResolved]
-  );
-
-  const category = useMemo(
-    () => (search.category ? search.category : undefined),
-    [search.category]
-  );
-
-  const packageIdentifier = useMemo(
-    () => (search.pkgId ? search.pkgId : undefined),
-    [search.pkgId]
-  );
-
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const severity = search.severity;
+  const itemStatus = search.itemResolved;
+  const packageIdentifier = search.pkgId;
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+  const resolved =
+    itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
+  const sortBy =
+    search.sortBy?.filter((sort) => supportedSortColumns.has(sort.id)) ?? [];
 
-  const columnFilters = useMemo(() => {
-    const filters = [];
-    if (severity) {
-      filters.push({ id: 'severity', value: severity });
-    }
-    if (itemStatus) {
-      filters.push({ id: 'itemStatus', value: itemStatus });
-    }
-    if (category) {
-      filters.push({ id: 'category', value: category });
-    }
-    if (packageIdentifier) {
-      filters.push({ id: columnId, value: packageIdentifier });
-    }
-    return filters;
-  }, [severity, itemStatus, category, packageIdentifier, columnId]);
-
-  const sortBy = useMemo(
-    () => (search.sortBy ? search.sortBy : undefined),
-    [search.sortBy]
-  );
+  const columnFilters = [
+    { id: 'severity', value: severity },
+    { id: 'status', value: itemStatus },
+    { id: columnId, value: packageIdentifier },
+  ].filter(({ value }) => value !== undefined);
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -434,6 +358,18 @@ const IssuesComponent = () => {
   });
 
   const {
+    data: totalIssues,
+    isPending: totalIsPending,
+    isError: totalIsError,
+    error: totalError,
+  } = useQuery({
+    ...getRunIssuesOptions({
+      path: { runId: ortRun.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  const {
     data: issues,
     isPending,
     isError,
@@ -441,7 +377,16 @@ const IssuesComponent = () => {
   } = useQuery({
     ...getRunIssuesOptions({
       path: { runId: ortRun.id },
-      query: { limit: ALL_ITEMS },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(sortBy),
+        resolved,
+        severity: severity?.join(','),
+        ...(packageIdType === 'ORT_ID'
+          ? { identifier: packageIdentifier }
+          : { purl: packageIdentifier }),
+      },
     }),
   });
 
@@ -494,6 +439,7 @@ const IssuesComponent = () => {
   const table = useReactTable({
     data: issues?.data || [],
     columns,
+    pageCount: Math.ceil((issues?.pagination.totalCount ?? 0) / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -503,8 +449,7 @@ const IssuesComponent = () => {
       columnVisibility: {
         [columnId]: false,
         severity: false,
-        itemStatus: false,
-        category: false,
+        status: false,
         affectedPath: false,
         source: false,
       },
@@ -514,28 +459,29 @@ const IssuesComponent = () => {
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
   });
 
-  if (isPending) {
+  if (isPending || totalIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
-    toastError('Unable to load data', error);
+  if (isError || totalIsError) {
+    toastError('Unable to load data', error || totalError);
     return;
   }
-  const filtersInUse = table.getState().columnFilters.length > 0;
-  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
+  const filtersInUse =
+    totalIssues.pagination.totalCount !== issues.pagination.totalCount;
+  const matching = `, ${issues.pagination.totalCount} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Issues ({issues.pagination.totalCount} in total
+          Issues ({totalIssues.pagination.totalCount} in total
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
@@ -584,7 +530,6 @@ export const Route = createFileRoute(
     ...severitySearchParameterSchema.shape,
     ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
-    ...issueCategorySearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),

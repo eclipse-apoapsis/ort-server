@@ -169,10 +169,6 @@ export const detectedLicenseSearchParameterSchema = z.object({
     .optional(),
 });
 
-export const issueCategorySearchParameterSchema = z.object({
-  category: z.array(issueCategorySchema).optional(),
-});
-
 export const ruleSearchParameterSchema = z.object({
   rule: z
     .array(z.string())
