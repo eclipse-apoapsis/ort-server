@@ -286,7 +286,7 @@ const CreateUser = () => {
                           Loading...
                         </p>
                       }
-                      value={(field.value || []).map((organizationId) => ({
+                      value={field.value.map((organizationId) => ({
                         label:
                           organizationNames.current.get(organizationId) ??
                           organizationId,

@@ -69,9 +69,7 @@ const columnHelper = createColumnHelper<UserWithSuperuserStatus>();
 const columns = [
   columnHelper.accessor('user.username', {
     header: 'Username',
-    cell: ({ row }) => (
-      <TooltipIfTruncated text={row.original.user.username ?? ''} />
-    ),
+    cell: ({ row }) => <TooltipIfTruncated text={row.original.user.username} />,
   }),
   columnHelper.accessor('user.firstName', {
     header: 'First name',
@@ -214,7 +212,7 @@ const Users = () => {
   });
 
   const table = useReactTable({
-    data: users || [],
+    data: users,
     columns,
 
     state: {

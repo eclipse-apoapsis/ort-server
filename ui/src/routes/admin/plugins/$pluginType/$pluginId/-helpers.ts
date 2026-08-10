@@ -90,7 +90,7 @@ export function buildPluginTemplateRequestBody(
   return (
     options
       ?.filter((option) => !formValues[`${option.name}_isNotSet`])
-      ?.map((option) => {
+      .map((option) => {
         const value = formValues[option.name];
         const isFinal = Boolean(formValues[`${option.name}_isFinal`]);
 
