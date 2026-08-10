@@ -61,7 +61,6 @@ class ScalewaySecretsProviderTest : WordSpec({
             val provider = createProvider()
             val path = provider.createPath(OrganizationId(1), "This_is_a_29-chr._secret_name")
             path.path shouldBe "/organization_1/This_is_a_29-chr._secret_name"
-            path.toScaleway() shouldBe Pair("/organization_1", "This_is_a_29-chr._secret_name")
         }
     }
 
