@@ -184,7 +184,7 @@ export const Header = () => {
   // or the URL is invalid, fall back to the default favicon.
   useEffect(() => {
     if (isFaviconPending || isFaviconError) return;
-    if (dbFavicon?.isEnabled) {
+    if (dbFavicon.isEnabled) {
       setCustomFavicon(dbFavicon.value ?? '');
     } else {
       setCustomFavicon();

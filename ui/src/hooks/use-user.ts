@@ -50,10 +50,10 @@ export const useUser = () => {
   };
 
   // Return the logged-in username.
-  const username = auth?.user?.profile?.preferred_username;
+  const username = auth.user?.profile.preferred_username;
 
   // Return end-user's full name, including all name parts.
-  const fullName = auth?.user?.profile?.name;
+  const fullName = auth.user?.profile.name;
 
   // TODO: Handle errors for the superuser query.
   const { data: isSuperuser } = useQuery({

@@ -99,7 +99,7 @@ export function getDurationChartData(
 ): DurationChartData[] | undefined {
   return runs?.data.map((run) => {
     const getJobDuration = (job: JobSummary | null | undefined) => {
-      return job?.startedAt && job?.finishedAt
+      return job?.startedAt && job.finishedAt
         ? calculateDuration(job.startedAt, job.finishedAt).durationMs
         : null;
     };

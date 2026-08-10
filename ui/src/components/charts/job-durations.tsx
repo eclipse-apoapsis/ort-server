@@ -149,7 +149,7 @@ export const JobDurations = ({
   }
 
   const handleBarClick = (runIndex: string) => {
-    const run = runs.data?.find((run) => run.index === Number(runIndex));
+    const run = runs.data.find((run) => run.index === Number(runIndex));
     if (run)
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
@@ -237,7 +237,7 @@ export const JobDurations = ({
                             />
                             <div>
                               {chartConfig[name as keyof typeof chartConfig]
-                                ?.label || name}
+                                .label || name}
                             </div>
                           </div>
                           <div className='text-muted-foreground font-mono text-xs'>

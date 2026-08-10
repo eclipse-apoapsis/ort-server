@@ -224,7 +224,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
             <CommandItem asChild value={org.name} onSelect={closeDropdown}>
               <Link
                 to='/organizations/$orgId'
-                params={{ orgId: org.id.toString() ?? '' }}
+                params={{ orgId: org.id.toString() }}
                 preload={false}
               >
                 <div className='grid w-full grid-cols-6 items-center gap-2'>
@@ -256,7 +256,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 to='/organizations/$orgId/products/$productId'
                 params={{
                   orgId: params.orgId ?? '',
-                  productId: prod.id.toString() ?? '',
+                  productId: prod.id.toString(),
                 }}
                 preload={false}
               >
@@ -294,7 +294,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 params={{
                   orgId: params.orgId ?? '',
                   productId: params.productId ?? '',
-                  repoId: repo.id.toString() ?? '',
+                  repoId: repo.id.toString(),
                 }}
                 preload={false}
               >
@@ -334,7 +334,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                   orgId: params.orgId ?? '',
                   productId: params.productId ?? '',
                   repoId: params.repoId ?? '',
-                  runIndex: run.index.toString() ?? '',
+                  runIndex: run.index.toString(),
                 }}
                 preload={false}
               >
