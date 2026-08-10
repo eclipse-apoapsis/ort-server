@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueFilter
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
@@ -47,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
@@ -84,7 +86,6 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.services.ProjectService
@@ -220,7 +221,8 @@ fun Route.runs() = route("runs") {
                 val pagingOptions = call.pagingOptions(SortProperty("timestamp", SortDirection.DESCENDING))
                 val filters = call.issueFilters()
 
-                val issueForOrtRun = issueService.listForOrtRunId(call.ortRun.id, pagingOptions.mapToModel(), filters)
+                val issueForOrtRun =
+                    issueService.listForOrtRunId(call.ortRun.id, pagingOptions.mapToModel(), filters.mapToModel())
 
                 val pagedResponse = issueForOrtRun.mapToApi(Issue::mapToApi)
 
@@ -555,10 +557,26 @@ private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
 /**
  * Extract the issue filters from this [ApplicationCall].
  */
-private fun ApplicationCall.issueFilters() =
-    IssueFilter(
-        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
+private fun ApplicationCall.issueFilters(): IssueFilter {
+    val severity: FilterOperatorAndValue<Set<Severity>>? = parameters["severity"]?.let { value ->
+        val parts = value.split(',')
+        val operator = if (parts.first() == "-") ComparisonOperator.NOT_IN else ComparisonOperator.IN
+        val severities = if (operator == ComparisonOperator.NOT_IN) parts.drop(1) else parts
+
+        FilterOperatorAndValue(operator, severities.mapTo(mutableSetOf()) { findByName<Severity>(it) })
+    }
+
+    return IssueFilter(
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
+        identifier = parameters["identifier"]?.let {
+            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        },
+        purl = parameters["purl"]?.let {
+            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        },
+        severity = severity
     )
+}
 
 /**
  * Extract the vulnerability filters from this [ApplicationCall].

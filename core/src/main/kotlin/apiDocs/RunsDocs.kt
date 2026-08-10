@@ -211,6 +211,9 @@ val getRunLogs: RouteConfig.() -> Unit = {
 val getRunIssues: RouteConfig.() -> Unit = {
     operationId = "getRunIssues"
     summary = "Get the issues of an ORT run"
+    description = "Supported sort fields are 'timestamp', 'source', 'message', 'severity', 'affectedPath', " +
+            "'identifier', 'purl', 'status', and 'worker'. Package ID tables use 'identifier' or 'purl'; status, " +
+            "severity, and source can also be sorted."
     tags = listOf("Runs")
 
     request {
@@ -224,6 +227,23 @@ val getRunIssues: RouteConfig.() -> Unit = {
                     If true, only resolved issues are returned. If false, only unresolved issues are returned.
                     If missing, both resolved and unresolved issues are returned.
                 """.trimIndent()
+        }
+
+        queryParameter<String>("identifier") {
+            description = "Defines an ORT package identifier to filter the results by. Uses a case-insensitive " +
+                    "substring match against the full ORT coordinates."
+        }
+
+        queryParameter<String>("purl") {
+            description = "Defines a package purl to filter the results by. Uses a case-insensitive substring match " +
+                    "against the effective purl, where a curated purl takes precedence over the analyzer purl."
+        }
+
+        queryParameter<String>("severity") {
+            description = "Defines the severities to filter the results by. This is a comma-separated string with " +
+                    "the following allowed severities: " + Severity.entries.joinToString { "'$it'" } +
+                    " (ignoring case). Add a minus as the first item to exclude issues with the specified " +
+                    "severities, e.g. '-,HINT,WARNING'."
         }
 
         standardListQueryParameters()

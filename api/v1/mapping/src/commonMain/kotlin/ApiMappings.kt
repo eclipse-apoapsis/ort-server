@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJ
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as ApiFilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueFilter as ApiIssueFilter
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
@@ -130,6 +131,7 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
@@ -300,6 +302,15 @@ fun ApiIssue.mapToModel() =
         resolutions = resolutions.map { it.mapToModel() },
         unappliedResolutions = unappliedResolutions.map { it.mapToModel() }
     )
+
+fun ApiIssueFilter.mapToModel(): IssueFilter = IssueFilter(
+    resolved = resolved,
+    identifier = identifier?.mapToModel { it },
+    purl = purl?.mapToModel { it },
+    severity = severity?.mapToModel { severities ->
+        severities.mapTo(mutableSetOf()) { it.mapToModel() }
+    }
+)
 
 fun ApiIssueResolution.mapToModel() =
     IssueResolution(message = message, reason = reason.mapToModel(), comment = comment, source = source.mapToModel())
