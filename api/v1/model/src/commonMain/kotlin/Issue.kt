@@ -64,3 +64,19 @@ data class Issue(
      */
     val purl: String? = null
 )
+
+/** Filters to apply when querying for issues. */
+@Serializable
+data class IssueFilter(
+    /** Filter by resolution status. Null if both resolved and unresolved issues should be returned. */
+    val resolved: Boolean? = null,
+
+    /** Substring filter for the package identifier. */
+    val identifier: FilterOperatorAndValue<String>? = null,
+
+    /** Substring filter for the package purl. */
+    val purl: FilterOperatorAndValue<String>? = null,
+
+    /** Set of [Severity] values to filter with. */
+    val severity: FilterOperatorAndValue<Set<Severity>>? = null
+)

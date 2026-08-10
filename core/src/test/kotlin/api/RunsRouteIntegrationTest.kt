@@ -290,6 +290,66 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         checkLogArchive(downloadFile, sources)
     }
 
+    data class IssueRouteScenario(
+        val ortRun: OrtRun,
+        val resolvedIssue: Issue,
+        val unresolvedIssue: Issue,
+        val resolvedIssuePurl: String
+    )
+
+    fun createIssueRouteScenario(): IssueRouteScenario {
+        val ortRun = dbExtension.fixtures.createOrtRun(
+            repositoryId = repositoryId,
+            revision = "revision",
+            jobConfigurations = JobConfigurations()
+        )
+        val resolvedPackage = dbExtension.fixtures.generatePackage(
+            Identifier("Maven", "com.example", "alpha-lib", "1.0")
+        )
+        val unresolvedPackage = dbExtension.fixtures.generatePackage(
+            Identifier("NPM", "org.example", "beta-lib", "2.0")
+        )
+        val now = Clock.System.now()
+        val resolvedIssue = Issue(
+            timestamp = now.toDatabasePrecision(),
+            source = "Zulu",
+            message = "resolved alpha issue",
+            severity = Severity.ERROR,
+            identifier = resolvedPackage.identifier
+        )
+        val unresolvedIssue = Issue(
+            timestamp = now.plus(1.seconds).toDatabasePrecision(),
+            source = "Alpha",
+            message = "unresolved beta issue",
+            severity = Severity.WARNING,
+            identifier = unresolvedPackage.identifier
+        )
+
+        dbExtension.fixtures.ortRunRepository.update(
+            ortRun.id,
+            issues = listOf(resolvedIssue, unresolvedIssue).asPresent()
+        )
+
+        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRun.id)
+        dbExtension.fixtures.createAnalyzerRun(
+            analyzerJob.id,
+            packages = setOf(resolvedPackage, unresolvedPackage)
+        )
+
+        val resolution = IssueResolution(
+            message = resolvedIssue.message,
+            reason = IssueResolutionReason.CANT_FIX_ISSUE,
+            comment = "Known issue",
+            source = ResolutionSource.REPOSITORY_FILE
+        )
+        dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+            ortRun.id,
+            ResolvedItemsResult(issues = mapOf(resolvedIssue to listOf(resolution)))
+        )
+
+        return IssueRouteScenario(ortRun, resolvedIssue, unresolvedIssue, resolvedPackage.purl)
+    }
+
     "GET /runs/{runId}" should {
         "return the requested ORT run" {
             integrationTestApplication {
@@ -1386,6 +1446,154 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 // Applies a default sort order
                 pagedIssues.pagination.sortProperties.firstOrNull()?.name shouldBe "timestamp"
                 pagedIssues.pagination.sortProperties.firstOrNull()?.direction shouldBe SortDirection.DESCENDING
+            }
+        }
+
+        "filter issues by identifier" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues?identifier=ALPHA-LIB"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<PagedResponse<ApiIssue>>().data.shouldBeSingleton {
+                    it.message shouldBe scenario.resolvedIssue.message
+                }
+            }
+        }
+
+        "filter issues by analyzer PURL" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues?purl=ALPHA-LIB"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<PagedResponse<ApiIssue>>().data.shouldBeSingleton {
+                    it.message shouldBe scenario.resolvedIssue.message
+                    it.purl shouldBe scenario.resolvedIssuePurl
+                }
+            }
+        }
+
+        "include or exclude issues by severity" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val includedResponse = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues?severity=error,warning"
+                )
+                val excludedResponse = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues?severity=-,warning"
+                )
+
+                includedResponse shouldHaveStatus HttpStatusCode.OK
+                includedResponse.body<PagedResponse<ApiIssue>>().data.map { it.message }.shouldContainExactlyInAnyOrder(
+                    scenario.resolvedIssue.message,
+                    scenario.unresolvedIssue.message
+                )
+
+                excludedResponse shouldHaveStatus HttpStatusCode.OK
+                excludedResponse.body<PagedResponse<ApiIssue>>().data.shouldBeSingleton {
+                    it.message shouldBe scenario.resolvedIssue.message
+                }
+            }
+        }
+
+        "combine filters before pagination and counting" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues" +
+                            "?identifier=example&purl=pkg:&severity=error,warning&sort=identifier&limit=1&offset=1"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val pagedIssues = response.body<PagedResponse<ApiIssue>>()
+                pagedIssues.pagination.totalCount shouldBe 2
+                pagedIssues.pagination.limit shouldBe 1
+                pagedIssues.pagination.offset shouldBe 1
+                pagedIssues.data.shouldBeSingleton {
+                    it.message shouldBe scenario.unresolvedIssue.message
+                }
+            }
+        }
+
+        "reject an invalid severity" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues?severity=critical"
+                )
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
+        "sort issues by all table fields in both directions" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+                val resolvedFirst = listOf(scenario.resolvedIssue.message, scenario.unresolvedIssue.message)
+                val unresolvedFirst = resolvedFirst.reversed()
+                val expectedAscending = mapOf(
+                    "identifier" to resolvedFirst,
+                    "purl" to resolvedFirst,
+                    "status" to resolvedFirst,
+                    "severity" to unresolvedFirst,
+                    "source" to unresolvedFirst
+                )
+
+                expectedAscending.forEach { (field, expectedMessages) ->
+                    val ascendingResponse = superuserClient.get(
+                        "/api/v1/runs/${scenario.ortRun.id}/issues?sort=$field"
+                    )
+                    val descendingResponse = superuserClient.get(
+                        "/api/v1/runs/${scenario.ortRun.id}/issues?sort=-$field"
+                    )
+
+                    ascendingResponse shouldHaveStatus HttpStatusCode.OK
+                    ascendingResponse.body<PagedResponse<ApiIssue>>().data.map { it.message } shouldBe expectedMessages
+
+                    descendingResponse shouldHaveStatus HttpStatusCode.OK
+                    descendingResponse.body<PagedResponse<ApiIssue>>().data.map { it.message } shouldBe
+                        expectedMessages.reversed()
+                }
+            }
+        }
+
+        "apply sorting with filtering and pagination" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues" +
+                            "?severity=error,warning&sort=source&limit=1&offset=1"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val pagedIssues = response.body<PagedResponse<ApiIssue>>()
+                pagedIssues.pagination.totalCount shouldBe 2
+                pagedIssues.data.shouldBeSingleton {
+                    it.message shouldBe scenario.resolvedIssue.message
+                }
+            }
+        }
+
+        "reject an unsupported sort field" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/issues?sort=category"
+                )
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
 
