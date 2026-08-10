@@ -66,9 +66,7 @@ export const OrganizationProductsStatisticsCard = ({
       </CardHeader>
       <CardContent className='text-sm'>
         <div className='flex'>
-          <div className='text-2xl font-bold'>
-            {total !== undefined ? total : 'Failed'}
-          </div>
+          <div className='text-2xl font-bold'>{total}</div>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
