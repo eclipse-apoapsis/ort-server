@@ -26,10 +26,3 @@ export type ThemeProviderState = {
   setMode: (mode: Mode) => void;
   setColorTheme: (theme: ColorTheme) => void;
 };
-
-export const initialState: ThemeProviderState = {
-  mode: 'light',
-  colorTheme: 'default',
-  setMode: () => null,
-  setColorTheme: () => null,
-};
