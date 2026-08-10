@@ -652,7 +652,7 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
-            reporterConfig shouldBe AdminConfig.DEFAULT_REPORTER_CONFIG
+            reporterConfig shouldBe ReporterConfig()
             reporterConfig.reportDefinitionNames should containAll("WebApp", "PdfTemplate")
         }
 

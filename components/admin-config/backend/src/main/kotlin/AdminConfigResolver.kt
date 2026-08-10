@@ -28,21 +28,10 @@ internal object AdminConfigResolver {
     fun resolve(config: AdminConfigFile): AdminConfig =
         AdminConfig(
             notifierConfig = config.notifier,
-            reporterConfig = resolve(config.reporter),
+            reporterConfig = config.reporter ?: ReporterConfig(),
             scannerConfig = config.scanner,
             defaultRuleSet = config.defaultRuleSet,
             ruleSets = config.ruleSets,
             mavenCentralMirror = config.mavenCentralMirror
         )
-
-    private fun resolve(config: ReporterConfigTemplate?): ReporterConfig {
-        if (config == null) return AdminConfig.DEFAULT_REPORTER_CONFIG
-
-        return ReporterConfig(
-            reportDefinitionsMap = config.reports.orEmpty(),
-            howToFixTextProviderFile = config.howToFixTextProviderFile,
-            customLicenseTextDir = config.customLicenseTextDir,
-            globalAssets = config.assets
-        )
-    }
 }
