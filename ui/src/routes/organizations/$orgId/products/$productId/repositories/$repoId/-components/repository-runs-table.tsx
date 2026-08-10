@@ -124,7 +124,7 @@ const SummaryCard = ({
     comparison.onSelectRun(summary);
   };
 
-  const hasLabels = summary.labels && Object.keys(summary.labels).length > 0;
+  const hasLabels = Object.keys(summary.labels).length > 0;
 
   return (
     <div className='grid grid-cols-12 gap-2'>

@@ -145,7 +145,7 @@ const RepositorySettingsPage = () => {
     ...deleteRepositoryMutation(),
     onSuccess() {
       toast.info('Delete Repository', {
-        description: `Repository "${repository?.url}" deleted successfully.`,
+        description: `Repository "${repository.url}" deleted successfully.`,
       });
       repositoryDeleted(queryClient, repository);
       navigate({

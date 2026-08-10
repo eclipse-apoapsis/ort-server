@@ -200,7 +200,7 @@ const EditTemplate = () => {
               <Input value={params.templateName} disabled />
               <FormDescription>The name of the template.</FormDescription>
             </FormItem>
-            {plugin?.options && (
+            {plugin.options && (
               <PluginOptionFormFields
                 options={plugin.options}
                 form={form as unknown as UseFormReturn<FieldValues>}

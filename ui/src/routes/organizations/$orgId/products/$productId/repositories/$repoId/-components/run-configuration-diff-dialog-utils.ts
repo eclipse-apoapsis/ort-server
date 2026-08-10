@@ -54,7 +54,9 @@ const formatValue = (value: unknown): string => {
     return String(value);
   }
 
-  const jsonValue = JSON.stringify(value);
+  // JSON.stringify() is typed to return a string, but returns undefined for
+  // the values that are left here, such as functions and symbols.
+  const jsonValue = JSON.stringify(value) as string | undefined;
 
   return jsonValue ?? String(value);
 };
