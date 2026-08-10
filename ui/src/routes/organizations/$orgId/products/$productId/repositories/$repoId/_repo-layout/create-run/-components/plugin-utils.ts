@@ -90,7 +90,7 @@ export function validateRequiredPluginOptions(
 
     const pluginConfig = config?.[plugin.id];
 
-    for (const option of plugin.options ?? []) {
+    for (const option of plugin.options) {
       if (!option.isRequired) continue;
 
       const section = option.type === 'SECRET' ? 'secrets' : 'options';
@@ -120,7 +120,7 @@ export const createPluginConfigSchema = (
   const optionsSchema: Record<string, z.ZodTypeAny> = {};
   const secretsSchema: Record<string, z.ZodTypeAny> = {};
 
-  plugin.options?.forEach((option) => {
+  plugin.options.forEach((option) => {
     let schema = optionTypeToZodType(option.type);
     if (option.isNullable) {
       schema = schema.nullable();
@@ -263,7 +263,7 @@ export function getPluginDefaultValues(
       const options: Record<string, string | boolean | string[]> = {};
       const secrets: Record<string, string> = {};
 
-      plugin.options?.forEach((option) => {
+      plugin.options.forEach((option) => {
         if (option.defaultValue !== undefined) {
           if (option.type === 'SECRET') {
             // A secret option never carries a real default value. A non-null default indicates

@@ -110,7 +110,7 @@ function PackageManagerField({
             <FormControl>
               <Input
                 {...field}
-                value={(field.value as string) ?? ''}
+                value={(field.value as string | undefined) ?? ''}
                 placeholder={def.optional ? '(optional)' : undefined}
               />
             </FormControl>
@@ -135,7 +135,9 @@ function PackageManagerField({
             </div>
             <FormControl>
               <Switch
-                checked={((field.value as string) ?? 'true') === 'true'}
+                checked={
+                  ((field.value as string | undefined) ?? 'true') === 'true'
+                }
                 onCheckedChange={(checked) =>
                   form.setValue(name, checked ? 'true' : 'false', {
                     shouldDirty: true,
