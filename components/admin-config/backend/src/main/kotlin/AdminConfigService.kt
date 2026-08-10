@@ -148,14 +148,14 @@ class AdminConfigService(
                 .addStreamSource(it, "conf")
                 .withResolveTypesCaseInsensitive()
                 .build()
-                .loadConfigOrThrow<AdminConfigFile>()
+                .loadConfigOrThrow<AdminConfig>()
         }
 
-        return AdminConfigResolver.resolve(adminConfigFile).also {
-            if (validate) {
-                validate(context, it)
-            }
+        if (validate) {
+            validate(context, adminConfigFile)
         }
+
+        return adminConfigFile
     }
 
     /**
