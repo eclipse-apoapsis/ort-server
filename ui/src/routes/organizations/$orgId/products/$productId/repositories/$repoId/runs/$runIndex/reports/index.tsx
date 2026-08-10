@@ -104,7 +104,7 @@ const ReportComponent = () => {
       </CardHeader>
       <CardContent>
         {ortRun.jobs.reporter?.reportFilenames &&
-        ortRun.jobs.reporter?.reportFilenames.length > 0
+        ortRun.jobs.reporter.reportFilenames.length > 0
           ? ortRun.jobs.reporter.reportFilenames
               .filter(
                 (filename) =>

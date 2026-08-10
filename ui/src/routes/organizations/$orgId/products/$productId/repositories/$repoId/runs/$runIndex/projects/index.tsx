@@ -89,7 +89,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
     ...(project.processedDeclaredLicense.spdxExpression
       ? [project.processedDeclaredLicense.spdxExpression]
       : []),
-    ...(project.processedDeclaredLicense.unmappedLicenses ?? []),
+    ...project.processedDeclaredLicense.unmappedLicenses,
   ];
 
   return (
@@ -155,7 +155,7 @@ const renderSubComponent = ({
           ...(project.processedDeclaredLicense.spdxExpression
             ? [project.processedDeclaredLicense.spdxExpression]
             : []),
-          ...(project.processedDeclaredLicense.unmappedLicenses ?? []),
+          ...project.processedDeclaredLicense.unmappedLicenses,
         ]}
       />
       <RenderProperty label='Homepage' value={project.homepageUrl} type='url' />

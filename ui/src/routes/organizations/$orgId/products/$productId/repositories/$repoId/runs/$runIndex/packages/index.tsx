@@ -112,7 +112,7 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
     ...(pkg.processedDeclaredLicense.spdxExpression
       ? [pkg.processedDeclaredLicense.spdxExpression]
       : []),
-    ...(pkg.processedDeclaredLicense.unmappedLicenses ?? []),
+    ...pkg.processedDeclaredLicense.unmappedLicenses,
   ];
 
   return (
@@ -246,7 +246,7 @@ const renderSubComponent = ({
           ...(pkg.processedDeclaredLicense.spdxExpression
             ? [pkg.processedDeclaredLicense.spdxExpression]
             : []),
-          ...(pkg.processedDeclaredLicense.unmappedLicenses ?? []),
+          ...pkg.processedDeclaredLicense.unmappedLicenses,
         ]}
       />
       <RenderProperty label='CPE' value={pkg.cpe} />
@@ -399,7 +399,6 @@ const PackagesComponent = () => {
 
   const {
     data: packages,
-    isPending,
     isError,
     error,
   } = useSuspenseQuery({
@@ -561,9 +560,9 @@ const PackagesComponent = () => {
   );
 
   const table = useReactTable({
-    data: packages?.data || [],
+    data: packages.data,
     columns,
-    pageCount: Math.ceil((packages?.pagination.totalCount ?? 0) / pageSize),
+    pageCount: Math.ceil(packages.pagination.totalCount / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -589,10 +588,6 @@ const PackagesComponent = () => {
     getRowCanExpand: () => true,
     manualPagination: true,
   });
-
-  if (isPending) {
-    return <LoadingIndicator />;
-  }
 
   if (isError) {
     toastError('Unable to load data', error);

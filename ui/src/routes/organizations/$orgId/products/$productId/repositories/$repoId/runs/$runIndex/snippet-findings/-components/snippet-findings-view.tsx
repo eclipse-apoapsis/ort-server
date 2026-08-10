@@ -37,7 +37,6 @@ import {
 import { BreakableString } from '@/components/breakable-string';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { Sha1Component } from '@/components/sha1-component';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -168,7 +167,6 @@ export const SnippetFindingsView = () => {
 
   const {
     data: provenances,
-    isPending,
     isError,
     error,
   } = useSuspenseQuery({
@@ -271,10 +269,6 @@ export const SnippetFindingsView = () => {
     getRowCanExpand: () => true,
     manualPagination: true,
   });
-
-  if (isPending) {
-    return <LoadingIndicator />;
-  }
 
   if (isError) {
     toastError('Unable to load data', error);

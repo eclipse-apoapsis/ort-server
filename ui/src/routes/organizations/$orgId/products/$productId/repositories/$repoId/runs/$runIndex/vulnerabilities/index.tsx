@@ -227,7 +227,6 @@ const VulnerabilitiesComponent = () => {
 
   const {
     data: advisors,
-    isPending: advisorsIsPending,
     isError: advisorsIsError,
     error: advisorsError,
   } = useSuspenseQuery({
@@ -410,7 +409,6 @@ const VulnerabilitiesComponent = () => {
 
   const {
     data: totalVulnerabilities,
-    isPending: totalIsPending,
     isError: totalIsError,
     error: totalError,
   } = useSuspenseQuery({
@@ -422,7 +420,6 @@ const VulnerabilitiesComponent = () => {
 
   const {
     data: vulnerabilities,
-    isPending,
     isError,
     error,
   } = useSuspenseQuery({
@@ -574,11 +571,9 @@ const VulnerabilitiesComponent = () => {
   );
 
   const table = useReactTable({
-    data: vulnerabilities?.data || [],
+    data: vulnerabilities.data,
     columns,
-    pageCount: Math.ceil(
-      (vulnerabilities?.pagination.totalCount ?? 0) / pageSize
-    ),
+    pageCount: Math.ceil(vulnerabilities.pagination.totalCount / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -608,10 +603,6 @@ const VulnerabilitiesComponent = () => {
     getRowCanExpand: () => true,
     manualPagination: true,
   });
-
-  if (isPending || totalIsPending || advisorsIsPending) {
-    return <LoadingIndicator />;
-  }
 
   if (isError || totalIsError || advisorsIsError) {
     toastError('Unable to load data', error || totalError || advisorsError);

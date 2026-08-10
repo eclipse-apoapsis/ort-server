@@ -48,19 +48,19 @@ export const ScannerJobDetails = ({ run }: ScannerJobDetailsProps) => {
           {jobConfigs.scanners.map((scanner) => (
             <div className='ml-2' key={scanner}>
               <Label className='font-semibold'>{scanner}</Label>
-              {jobConfigs?.config?.[scanner] && (
+              {jobConfigs.config?.[scanner] && (
                 <div className='ml-2'>
                   <Label className='font-semibold'>Configuration</Label>
                   <div className='ml-2'>
                     <RenderProperty
                       label='Options'
-                      value={jobConfigs.config?.[scanner].options}
+                      value={jobConfigs.config[scanner].options}
                       type='keyvalue'
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Secrets'
-                      value={jobConfigs.config?.[scanner].secrets}
+                      value={jobConfigs.config[scanner].secrets}
                       type='keyvalue'
                       showIfEmpty={false}
                     />

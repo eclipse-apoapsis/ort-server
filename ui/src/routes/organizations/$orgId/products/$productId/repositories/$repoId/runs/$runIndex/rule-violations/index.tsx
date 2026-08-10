@@ -502,7 +502,7 @@ const RuleViolationsComponent = () => {
   );
 
   const table = useReactTable({
-    data: ruleViolations?.data || [],
+    data: ruleViolations.data,
     columns,
     state: {
       pagination: {
