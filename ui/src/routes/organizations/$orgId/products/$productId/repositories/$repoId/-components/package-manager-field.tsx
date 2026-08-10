@@ -77,14 +77,13 @@ export const PackageManagerField = ({
             <Checkbox
               id='check-all-items'
               checked={
-                Object.values(field.value || {}).every((pm) => pm.enabled)
+                Object.values(field.value).every((pm) => pm.enabled)
                   ? true
-                  : Object.values(field.value || {}).some((pm) => pm.enabled)
+                  : Object.values(field.value).some((pm) => pm.enabled)
                     ? 'indeterminate'
                     : false
               }
               onCheckedChange={(checked) => {
-                if (!field.value) return;
                 const enabledItems = Object.fromEntries(
                   Object.entries(field.value).map(([key, value]) => [
                     key,
@@ -103,7 +102,7 @@ export const PackageManagerField = ({
           </div>
           <Separator />
           {packageManagers.map((pm, index) => {
-            const enabled = field.value?.[pm.id]?.enabled;
+            const enabled = field.value[pm.id].enabled;
 
             return (
               <div key={pm.id} className='flex items-start space-y-0 space-x-3'>
@@ -112,7 +111,6 @@ export const PackageManagerField = ({
                     <Checkbox
                       checked={enabled}
                       onCheckedChange={(checked) => {
-                        if (!field.value) return;
                         return checked
                           ? field.onChange({
                               ...field.value,

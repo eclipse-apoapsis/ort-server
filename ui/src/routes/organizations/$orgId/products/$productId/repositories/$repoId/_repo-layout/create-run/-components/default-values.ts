@@ -57,12 +57,12 @@ export function defaultValues(
         enabled:
           ortRun.jobConfigs.analyzer?.enabledPackageManagers === undefined
             ? enabledByDefault
-            : ortRun.jobConfigs.analyzer?.enabledPackageManagers?.includes(
+            : ortRun.jobConfigs.analyzer.enabledPackageManagers?.includes(
                 packageManagerId
               ) || false,
         mustRunAfter:
           (ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
-            ?.mustRunAfter as PackageManagerId[]) || [],
+            ?.mustRunAfter as PackageManagerId[] | undefined) || [],
         options: convertMapToArray(
           ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
             ?.options || {}
@@ -82,7 +82,7 @@ export function defaultValues(
     ? ortRun.jobConfigs.reporter?.config &&
       Object.keys(ortRun.jobConfigs.reporter.config ?? {}).some((key) => {
         const config = ortRun.jobConfigs.reporter?.config?.[key];
-        return config?.options?.deduplicateDependencyTree === 'true';
+        return config?.options.deduplicateDependencyTree === 'true';
       })
     : false;
 
@@ -218,7 +218,7 @@ export function defaultValues(
   const hasEnvironmentDefinitions =
     parsedEnvironmentDefinitions !== undefined &&
     Object.values(parsedEnvironmentDefinitions).some(
-      (entries) => entries && entries.length > 0
+      (entries) => entries.length > 0
     );
 
   return ortRun
@@ -259,7 +259,7 @@ export function defaultValues(
             keepAlivePhases:
               ortRun.jobConfigs.analyzer?.keepAliveWorker &&
               isSuperuser &&
-              ortRun.jobConfigs.analyzer?.keepAlivePhases?.length
+              ortRun.jobConfigs.analyzer.keepAlivePhases?.length
                 ? ortRun.jobConfigs.analyzer.keepAlivePhases
                 : baseDefaults.jobConfigs.analyzer.keepAlivePhases,
           },
@@ -274,7 +274,7 @@ export function defaultValues(
               ortRun.jobConfigs.advisor?.advisors ||
               baseDefaults.jobConfigs.advisor.advisors,
             config: mergePluginConfigs(
-              ortRun?.jobConfigs?.advisor?.config,
+              ortRun.jobConfigs.advisor?.config,
               advisorPluginDefaultValues,
               advisorPlugins
             ),
@@ -357,7 +357,7 @@ export function defaultValues(
           parameters: convertMapToArray(ortRun.jobConfigs.parameters || {}),
           ruleSet: baseDefaults.jobConfigs.ruleSet,
         },
-        labels: convertMapToArray(ortRun.labels || {}),
+        labels: convertMapToArray(ortRun.labels),
         jobConfigContext:
           ortRun.jobConfigContext || baseDefaults.jobConfigContext,
         environmentConfigPath:

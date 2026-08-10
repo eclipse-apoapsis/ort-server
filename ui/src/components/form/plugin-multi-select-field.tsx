@@ -247,12 +247,10 @@ export const PluginMultiSelectField = <
                 <FormLabel className='font-normal'>
                   {plugin.displayName}
                 </FormLabel>
-                {plugin.summary != null && (
-                  <MarkdownRenderer
-                    markdown={plugin.summary}
-                    className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
-                  />
-                )}
+                <MarkdownRenderer
+                  markdown={plugin.summary}
+                  className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
+                />
                 {scannerScopeName && isSelected && (
                   <FormField
                     control={form.control}
@@ -265,7 +263,10 @@ export const PluginMultiSelectField = <
                           <ToggleGroup
                             type='single'
                             variant='outline'
-                            value={(scopeField.value as ScannerScope) ?? 'both'}
+                            value={
+                              (scopeField.value as ScannerScope | undefined) ??
+                              'both'
+                            }
                             onValueChange={(value) => {
                               if (value)
                                 scopeField.onChange(value as ScannerScope);

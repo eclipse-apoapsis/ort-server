@@ -93,17 +93,17 @@ const CreateRunPage = () => {
   const permissions = Route.useRouteContext().permissions;
 
   const advisorPlugins =
-    plugins?.data?.filter((plugin) => plugin.type === 'ADVISOR') || [];
+    plugins.data?.filter((plugin) => plugin.type === 'ADVISOR') || [];
   const reporterPlugins =
-    plugins?.data?.filter((plugin) => plugin.type === 'REPORTER') || [];
+    plugins.data?.filter((plugin) => plugin.type === 'REPORTER') || [];
   const scannerPlugins =
-    plugins?.data?.filter((plugin) => plugin.type === 'SCANNER') || [];
+    plugins.data?.filter((plugin) => plugin.type === 'SCANNER') || [];
   const packageCurationProviderPlugins =
-    plugins?.data?.filter(
+    plugins.data?.filter(
       (plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER'
     ) || [];
   const packageConfigurationProviderPlugins =
-    plugins?.data?.filter(
+    plugins.data?.filter(
       (plugin) => plugin.type === 'PACKAGE_CONFIGURATION_PROVIDER'
     ) || [];
 
