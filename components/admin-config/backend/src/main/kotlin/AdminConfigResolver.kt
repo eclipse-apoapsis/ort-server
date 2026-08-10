@@ -33,7 +33,7 @@ internal object AdminConfigResolver {
             reporterConfig = resolve(config.reporter),
             scannerConfig = config.scanner,
             defaultRuleSet = config.defaultRuleSet,
-            ruleSets = config.ruleSets.orEmpty().mapValues { resolve(it.value, config.defaultRuleSet) },
+            ruleSets = config.ruleSets,
             mavenCentralMirror = config.mavenCentralMirror
         )
 
@@ -73,17 +73,6 @@ internal object AdminConfigResolver {
             howToFixTextProviderFile = config.howToFixTextProviderFile,
             customLicenseTextDir = config.customLicenseTextDir,
             globalAssets = config.assets
-        )
-    }
-
-    private fun resolve(config: RuleSetTemplate?, default: RuleSet): RuleSet {
-        if (config == null) return default
-
-        return RuleSet(
-            copyrightGarbageFile = config.copyrightGarbageFile ?: default.copyrightGarbageFile,
-            licenseClassificationsFile = config.licenseClassificationsFile ?: default.licenseClassificationsFile,
-            resolutionsFile = config.resolutionsFile ?: default.resolutionsFile,
-            evaluatorRules = config.evaluatorRules ?: default.evaluatorRules
         )
     }
 }

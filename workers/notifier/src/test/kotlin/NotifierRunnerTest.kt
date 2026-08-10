@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.adminconfig.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.components.adminconfig.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.components.adminconfig.NotifierConfig
-import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
+import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -172,7 +172,7 @@ private val notifierConfig = NotifierConfig(
 private val adminConfig = AdminConfig(
     notifierConfig = notifierConfig,
     ruleSets = mapOf(
-        RULE_SET to RuleSet(
+        RULE_SET to RuleSetTemplate(
             copyrightGarbageFile = "copyright-garbage.txt",
             licenseClassificationsFile = "license-classifications.yml",
             resolutionsFile = RESOLUTION_FILE,

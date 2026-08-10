@@ -54,3 +54,11 @@ data class RuleSet(
         internal const val DEFAULT_EVALUATOR_RULES_FILE = ORT_EVALUATOR_RULES_FILENAME
     }
 }
+
+/** A template for a [RuleSet] where all properties are nullable. */
+data class RuleSetTemplate(
+    val copyrightGarbageFile: String? = null,
+    val licenseClassificationsFile: String? = null,
+    val resolutionsFile: String? = null,
+    val evaluatorRules: String? = null
+)
