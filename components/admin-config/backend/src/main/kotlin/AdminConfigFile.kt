@@ -27,7 +27,7 @@ internal data class AdminConfigFile(
     val reporter: ReporterConfigTemplate?,
     val scanner: ScannerConfig = ScannerConfig(),
     val defaultRuleSet: RuleSet = RuleSet(),
-    val ruleSets: Map<String, RuleSetTemplate>?,
+    val ruleSets: Map<String, RuleSetTemplate> = emptyMap(),
     val mavenCentralMirror: MavenCentralMirror?
 )
 
@@ -47,12 +47,4 @@ internal data class ReportDefinitionTemplate(
     val assetDirectories: List<ReporterAsset> = emptyList(),
     val assetDirectoriesRefs: List<String> = emptyList(),
     val nameMapping: ReportNameMapping? = null
-)
-
-/** A representation of the rule set section of the admin config file. */
-internal data class RuleSetTemplate(
-    val copyrightGarbageFile: String?,
-    val licenseClassificationsFile: String?,
-    val resolutionsFile: String?,
-    val evaluatorRules: String?
 )

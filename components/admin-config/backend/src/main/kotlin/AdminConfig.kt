@@ -38,8 +38,11 @@ class AdminConfig(
     /** The default rule set. */
     private val defaultRuleSet: RuleSet = RuleSet(),
 
-    /** A map containing named rule sets. */
-    private val ruleSets: Map<String, RuleSet> = emptyMap(),
+    /**
+     *  A map containing named rule set templates. Any `null` properties of the templates will be replaced with the
+     *  respective values from the [defaultRuleSet].
+     */
+    ruleSets: Map<String, RuleSetTemplate> = emptyMap(),
 
     /** The global mirror for Maven Central. */
     val mavenCentralMirror: MavenCentralMirror? = null
@@ -61,6 +64,16 @@ class AdminConfig(
          * and the default path does not exist.
          */
         val DEFAULT = AdminConfig()
+    }
+
+    private val ruleSets: Map<String, RuleSet> = ruleSets.mapValues { (_, template) ->
+        RuleSet(
+            copyrightGarbageFile = template.copyrightGarbageFile ?: defaultRuleSet.copyrightGarbageFile,
+            licenseClassificationsFile = template.licenseClassificationsFile
+                ?: defaultRuleSet.licenseClassificationsFile,
+            resolutionsFile = template.resolutionsFile ?: defaultRuleSet.resolutionsFile,
+            evaluatorRules = template.evaluatorRules ?: defaultRuleSet.evaluatorRules
+        )
     }
 
     /**

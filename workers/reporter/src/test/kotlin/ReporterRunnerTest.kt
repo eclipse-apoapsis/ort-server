@@ -65,7 +65,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
-import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
+import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
@@ -118,7 +118,7 @@ private const val ORGANIZATION_ID = 20250707045021L
 private const val RULE_SET_NAME = "selectedRuleSet"
 private val configurationContext = Context("theConfigContext")
 
-private val ruleSet = RuleSet(
+private val ruleSet = RuleSetTemplate(
     copyrightGarbageFile = "testCopyrightGarbageFile",
     licenseClassificationsFile = "testLicenseClassificationsFile",
     resolutionsFile = "testResolutionsFile",

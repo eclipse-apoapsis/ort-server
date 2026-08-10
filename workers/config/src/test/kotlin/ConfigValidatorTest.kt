@@ -44,7 +44,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
-import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
+import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
@@ -231,7 +231,7 @@ val testHierarchy = Hierarchy(
 )
 
 /** A rule set used by test cases. */
-private val testRuleSet: RuleSet = RuleSet(
+private val testRuleSet = RuleSetTemplate(
     copyrightGarbageFile = "garbage.yml",
     licenseClassificationsFile = "license.yml",
     resolutionsFile = "resolutions.yml",
