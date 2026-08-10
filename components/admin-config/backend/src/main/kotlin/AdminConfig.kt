@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
-
 /**
  * A class representing the admin configuration for the ORT server. It defines an object model for the configuration
  * file loaded from the config file provider.
@@ -30,7 +28,7 @@ class AdminConfig(
     val scannerConfig: ScannerConfig = ScannerConfig(),
 
     /** The configuration for the Reporter worker. */
-    val reporterConfig: ReporterConfig = DEFAULT_REPORTER_CONFIG,
+    val reporterConfig: ReporterConfig = ReporterConfig(),
 
     /** The configuration for the Notifier worker. */
     val notifierConfig: NotifierConfig = NotifierConfig(),
@@ -48,17 +46,6 @@ class AdminConfig(
     val mavenCentralMirror: MavenCentralMirror? = null
 ) {
     companion object {
-        /**
-         * A default [ReporterConfig] instance that is used if the admin configuration does not contain any
-         * reporter-specific settings. This instance is not really useful, however, since it does not support any
-         * reports. Typically, some reports should be configured.
-         */
-        val DEFAULT_REPORTER_CONFIG = ReporterConfig(
-            reportDefinitionsMap = emptyMap(),
-            howToFixTextProviderFile = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
-            customLicenseTextDir = null
-        )
-
         /**
          * An empty default configuration. This is going to be used if no path to a configuration file is specified,
          * and the default path does not exist.

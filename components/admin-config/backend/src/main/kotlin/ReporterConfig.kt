@@ -19,11 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import com.sksamuel.hoplite.ConfigAlias
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService.Companion.UNRESOLVABLE_ASSET_PREFIX
 import org.eclipse.apoapsis.ortserver.model.Options
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginType
+
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 
 /**
  * A class defining an asset (such as a font or an image) which is required to generate a report.
@@ -169,13 +173,14 @@ data class ReporterConfig(
      * A [Map] containing the definitions of all reports supported by this ORT Server instance. The keys are the logic
      * names under which the reports can be accessed.
      */
-    private val reportDefinitionsMap: Map<String, ReportDefinitionTemplate>,
+    @param:ConfigAlias("reports")
+    private val reportDefinitionsMap: Map<String, ReportDefinitionTemplate> = emptyMap(),
 
     /**
      * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
      * will be used to instantiate an instance of HowToFixTextProvider, which injects how-to-fix texts for ORT issues.
      */
-    val howToFixTextProviderFile: String,
+    val howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
 
     /**
      * An optional path to a configuration directory containing custom license texts. If defined, all files from this
@@ -184,6 +189,7 @@ data class ReporterConfig(
     val customLicenseTextDir: String? = null,
 
     /** A [Map] with global [ReporterAsset]s that can be referenced from report definitions. */
+    @param:ConfigAlias("assets")
     val globalAssets: GlobalReporterAssets = emptyMap()
 ) {
     companion object {

@@ -19,22 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
-
 /** A representation of the admin config file. */
 internal data class AdminConfigFile(
     val notifier: NotifierConfig = NotifierConfig(),
-    val reporter: ReporterConfigTemplate?,
+    val reporter: ReporterConfig?,
     val scanner: ScannerConfig = ScannerConfig(),
     val defaultRuleSet: RuleSet = RuleSet(),
     val ruleSets: Map<String, RuleSetTemplate> = emptyMap(),
     val mavenCentralMirror: MavenCentralMirror?
-)
-
-/** A representation of the reporter section of the admin config file. */
-internal data class ReporterConfigTemplate(
-    val reports: Map<String, ReportDefinitionTemplate>?,
-    val howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
-    val customLicenseTextDir: String?,
-    val assets: Map<String, List<ReporterAsset>> = emptyMap()
 )
