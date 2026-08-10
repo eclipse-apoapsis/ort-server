@@ -26,6 +26,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 /**
  * A data class describing an issue that occurred during an ORT run.
@@ -69,8 +70,15 @@ data class Issue(
  * Filters to apply when querying for issues.
  */
 data class IssueFilter(
-    /**
-     * Filter to only return resolved issues. Null if both, resolved an unresolved rule violations should be returned.
-     */
-    val resolved: Boolean? = null
+    /** Filter by resolution status. Null if both resolved and unresolved issues should be returned. */
+    val resolved: Boolean? = null,
+
+    /** Filter issues by their package identifier. */
+    val identifier: FilterOperatorAndValue<String>? = null,
+
+    /** Filter issues by their package PURL. */
+    val purl: FilterOperatorAndValue<String>? = null,
+
+    /** Filter issues by their [Severity]. */
+    val severity: FilterOperatorAndValue<Set<Severity>>? = null
 )

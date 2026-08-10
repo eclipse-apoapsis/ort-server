@@ -23,6 +23,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
@@ -48,7 +50,9 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -57,8 +61,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -470,6 +478,311 @@ class IssueServiceTest : WordSpec() {
                 dependencyIssue.purl shouldBe pkg.purl
             }
 
+            "filter by identifier using case-insensitive coordinate substrings" {
+                val scenario = createIssuePackageScenario()
+                val filter = IssueFilter(
+                    identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "EXAMPLE:ALPHA-LIB:1")
+                )
+
+                val result = service.listForOrtRunId(scenario.ortRun.id, issuesFilter = filter)
+
+                result.data.shouldBeSingleton {
+                    it.message shouldBe scenario.packageIssue.message
+                }
+                result.totalCount shouldBe 1
+            }
+
+            "filter by analyzer PURL within the requested run" {
+                val scenario = createIssuePackageScenario()
+                val otherScenario = createIssuePackageScenario(
+                    repositoryId = scenario.ortRun.repositoryId,
+                    primaryPackageName = "other-lib"
+                )
+
+                val matchingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "ALPHA-LIB")
+                    )
+                )
+                val otherRunResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        purl = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            otherScenario.packagePurl
+                        )
+                    )
+                )
+
+                matchingResult.data.shouldBeSingleton {
+                    it.purl shouldBe scenario.packagePurl
+                    it.purl.orEmpty().lowercase() shouldContain "alpha-lib"
+                }
+                matchingResult.totalCount shouldBe 1
+                otherRunResult.data should beEmpty()
+            }
+
+            "filter by curated PURL instead of analyzer PURL" {
+                val curatedPurl = "pkg:maven/com.example/curated-alpha@2.0"
+                val scenario = createIssuePackageScenario(curatedPurl = curatedPurl)
+
+                val curatedResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "CURATED-ALPHA")
+                    )
+                )
+                val analyzerResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, scenario.packagePurl)
+                    )
+                )
+
+                curatedResult.data.shouldBeSingleton {
+                    it.purl shouldBe curatedPurl
+                    it.purl.orEmpty().lowercase() shouldContain "curated-alpha"
+                }
+                analyzerResult.data should beEmpty()
+            }
+
+            "filter by multiple included and excluded severities" {
+                val scenario = createIssuePackageScenario()
+
+                val includedResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        severity = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(Severity.HINT, Severity.WARNING)
+                        )
+                    )
+                )
+                val excludedResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        severity = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf(Severity.HINT, Severity.WARNING)
+                        )
+                    )
+                )
+
+                includedResult.data.map { it.severity }.shouldContainExactlyInAnyOrder(
+                    Severity.HINT,
+                    Severity.WARNING
+                )
+                excludedResult.data.map { it.severity }.shouldContainExactly(Severity.ERROR, Severity.ERROR)
+            }
+
+            "combine identifier, PURL, severity, and resolved filters" {
+                val scenario = createIssuePackageScenario()
+                val resolution = IssueResolution(
+                    message = scenario.packageIssue.message,
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                    comment = "Known issue.",
+                    source = ResolutionSource.REPOSITORY_FILE
+                )
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    scenario.ortRun.id,
+                    ResolvedItemsResult(issues = mapOf(scenario.packageIssue to listOf(resolution)))
+                )
+
+                val result = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        resolved = true,
+                        identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "alpha-lib"),
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "alpha-lib"),
+                        severity = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(Severity.ERROR, Severity.WARNING)
+                        )
+                    )
+                )
+
+                result.data.shouldBeSingleton {
+                    it.message shouldBe scenario.packageIssue.message
+                    it.purl shouldBe scenario.packagePurl
+                }
+                result.totalCount shouldBe 1
+            }
+
+            "count all filtered issues before pagination" {
+                val scenario = createIssuePackageScenario()
+                val parameters = ListQueryParameters(
+                    sortFields = listOf(OrderField("source", OrderDirection.ASCENDING)),
+                    limit = 1,
+                    offset = 1
+                )
+                val filter = IssueFilter(
+                    severity = FilterOperatorAndValue(
+                        ComparisonOperator.IN,
+                        setOf(Severity.ERROR, Severity.WARNING)
+                    )
+                )
+
+                val result = service.listForOrtRunId(scenario.ortRun.id, parameters, filter)
+
+                result.data shouldHaveSize 1
+                result.totalCount shouldBe 3
+            }
+
+            "reject unsupported filter operators" {
+                val scenario = createIssuePackageScenario()
+
+                shouldThrow<IllegalArgumentException> {
+                    service.listForOrtRunId(
+                        scenario.ortRun.id,
+                        issuesFilter = IssueFilter(
+                            identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "alpha-lib")
+                        )
+                    )
+                }.message shouldContain "Unsupported operator for identifier filter"
+
+                shouldThrow<IllegalArgumentException> {
+                    service.listForOrtRunId(
+                        scenario.ortRun.id,
+                        issuesFilter = IssueFilter(
+                            purl = FilterOperatorAndValue(ComparisonOperator.EQUALS, "alpha-lib")
+                        )
+                    )
+                }.message shouldContain "Unsupported operator for PURL filter"
+
+                shouldThrow<IllegalArgumentException> {
+                    service.listForOrtRunId(
+                        scenario.ortRun.id,
+                        issuesFilter = IssueFilter(
+                            severity = FilterOperatorAndValue(ComparisonOperator.ILIKE, setOf(Severity.ERROR))
+                        )
+                    )
+                }.message shouldContain "Unsupported operator for collections"
+            }
+
+            "keep package, project, and unidentified issues in unfiltered results" {
+                val scenario = createIssuePackageScenario()
+
+                val result = service.listForOrtRunId(scenario.ortRun.id)
+
+                result.data.map { it.message }.shouldContainExactlyInAnyOrder(
+                    scenario.packageIssue.message,
+                    scenario.secondPackageIssue.message,
+                    scenario.projectIssue.message,
+                    scenario.unidentifiedIssue.message
+                )
+                result.totalCount shouldBe 4
+            }
+
+            "sort by identifier in both directions" {
+                val scenario = createIssuePackageScenario()
+
+                val ascendingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING))
+                    )
+                )
+                val descendingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("identifier", OrderDirection.DESCENDING))
+                    )
+                )
+
+                ascendingResult.data.map { it.message }.shouldContainExactly(
+                    scenario.projectIssue.message,
+                    scenario.packageIssue.message,
+                    scenario.secondPackageIssue.message,
+                    scenario.unidentifiedIssue.message
+                )
+                descendingResult.data.map { it.message }.shouldContainExactly(
+                    scenario.unidentifiedIssue.message,
+                    scenario.secondPackageIssue.message,
+                    scenario.packageIssue.message,
+                    scenario.projectIssue.message
+                )
+            }
+
+            "sort by effective PURL with identifier fallbacks in both directions" {
+                val curatedPurl = "pkg:zzz/curated@1.0"
+                val scenario = createIssuePackageScenario(curatedPurl = curatedPurl)
+
+                val ascendingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField("purl", OrderDirection.ASCENDING)))
+                )
+                val descendingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField("purl", OrderDirection.DESCENDING)))
+                )
+
+                ascendingResult.data.map { it.message }.shouldContainExactly(
+                    scenario.unidentifiedIssue.message,
+                    scenario.projectIssue.message,
+                    scenario.secondPackageIssue.message,
+                    scenario.packageIssue.message
+                )
+                ascendingResult.data.last().purl shouldBe curatedPurl
+                descendingResult.data.map { it.message }.shouldContainExactly(
+                    scenario.packageIssue.message,
+                    scenario.secondPackageIssue.message,
+                    scenario.projectIssue.message,
+                    scenario.unidentifiedIssue.message
+                )
+            }
+
+            "sort by status in both directions" {
+                val scenario = createIssuePackageScenario()
+                val resolution = IssueResolution(
+                    message = scenario.packageIssue.message,
+                    reason = IssueResolutionReason.CANT_FIX_ISSUE,
+                    comment = "Known issue.",
+                    source = ResolutionSource.REPOSITORY_FILE
+                )
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    scenario.ortRun.id,
+                    ResolvedItemsResult(issues = mapOf(scenario.packageIssue to listOf(resolution)))
+                )
+
+                val ascendingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField("status", OrderDirection.ASCENDING)))
+                )
+                val descendingResult = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField("status", OrderDirection.DESCENDING)))
+                )
+
+                ascendingResult.data.first().message shouldBe scenario.packageIssue.message
+                descendingResult.data.last().message shouldBe scenario.packageIssue.message
+            }
+
+            "apply multiple sort fields before pagination with a stable tie-breaker" {
+                val now = Clock.System.now()
+                val issues = listOf(
+                    Issue(now, "A", "first error", Severity.ERROR),
+                    Issue(now, "A", "second error", Severity.ERROR),
+                    Issue(now, "B", "warning", Severity.WARNING)
+                )
+                val ortRun = createOrtRunWithIssues(issues = issues)
+                val parameters = ListQueryParameters(
+                    sortFields = listOf(
+                        OrderField("severity", OrderDirection.ASCENDING),
+                        OrderField("source", OrderDirection.DESCENDING)
+                    ),
+                    limit = 1,
+                    offset = 1
+                )
+
+                val result = service.listForOrtRunId(ortRun.id, parameters)
+
+                result.data.shouldBeSingleton {
+                    it.message shouldBe "first error"
+                }
+                result.totalCount shouldBe 3
+            }
+
             "sort by timestamp descending by default" {
                 val repositoryId = fixtures.createRepository().id
                 val now = Clock.System.now()
@@ -573,10 +886,18 @@ class IssueServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id, params)
 
                 result.data shouldHaveSize 3
-                // Severity is stored as enumerationByName, so SQL sorts alphabetically:
-                // ERROR < HINT < WARNING
                 result.data.map { it.severity } shouldBe
-                    listOf(Severity.ERROR, Severity.HINT, Severity.WARNING)
+                    listOf(Severity.HINT, Severity.WARNING, Severity.ERROR)
+
+                val descendingResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("severity", OrderDirection.DESCENDING))
+                    )
+                )
+
+                descendingResult.data.map { it.severity } shouldBe
+                    listOf(Severity.ERROR, Severity.WARNING, Severity.HINT)
             }
 
             "sort by source" {
@@ -640,7 +961,7 @@ class IssueServiceTest : WordSpec() {
 
                 val ortRun = createOrtRunWithIssues(repositoryId, issues)
 
-                // Sort by severity DESC (alphabetically: WARNING > HINT > ERROR), then timestamp ASC.
+                // Sort by severity DESC, then timestamp ASC.
                 val params = ListQueryParameters(
                     sortFields = listOf(
                         OrderField("severity", OrderDirection.DESCENDING),
@@ -651,9 +972,9 @@ class IssueServiceTest : WordSpec() {
                 val result = service.listForOrtRunId(ortRun.id, params)
 
                 result.data shouldHaveSize 3
-                result.data[0].message shouldBe "warning"
-                result.data[1].message shouldBe "error-older"
-                result.data[2].message shouldBe "error-newer"
+                result.data[0].message shouldBe "error-older"
+                result.data[1].message shouldBe "error-newer"
+                result.data[2].message shouldBe "warning"
             }
 
             "apply pagination with limit and offset" {
@@ -1188,6 +1509,93 @@ class IssueServiceTest : WordSpec() {
                 affectedPath = "package/dist/somefile"
             )
         )
+
+    private data class IssuePackageScenario(
+        val ortRun: OrtRun,
+        val packageIssue: Issue,
+        val secondPackageIssue: Issue,
+        val projectIssue: Issue,
+        val unidentifiedIssue: Issue,
+        val packagePurl: String
+    )
+
+    private fun createIssuePackageScenario(
+        repositoryId: Long = fixtures.createRepository().id,
+        primaryPackageName: String = "alpha-lib",
+        curatedPurl: String? = null
+    ): IssuePackageScenario {
+        val pkg = fixtures.generatePackage(
+            Identifier("Maven", "com.example", primaryPackageName, "1.0")
+        )
+        val secondPkg = fixtures.generatePackage(
+            Identifier("NPM", "org.example", "zeta-lib", "2.0")
+        )
+        val project = fixtures.getProject()
+        val now = Clock.System.now()
+        val packageIssue = Issue(
+            timestamp = now,
+            source = "Analyzer",
+            message = "issue for $primaryPackageName",
+            severity = Severity.ERROR,
+            identifier = pkg.identifier
+        )
+        val secondPackageIssue = Issue(
+            timestamp = now.plus(1.seconds),
+            source = "Scanner",
+            message = "issue for zeta-lib",
+            severity = Severity.WARNING,
+            identifier = secondPkg.identifier
+        )
+        val projectIssue = Issue(
+            timestamp = now.plus(2.seconds),
+            source = "Project",
+            message = "project issue",
+            severity = Severity.HINT,
+            identifier = project.identifier
+        )
+        val unidentifiedIssue = Issue(
+            timestamp = now.plus(3.seconds),
+            source = "Other",
+            message = "unidentified issue",
+            severity = Severity.ERROR
+        )
+        val ortRun = createOrtRunWithIssues(
+            repositoryId,
+            listOf(packageIssue, secondPackageIssue, projectIssue, unidentifiedIssue)
+        )
+        val analyzerJob = fixtures.createAnalyzerJob(ortRun.id)
+        fixtures.createAnalyzerRun(
+            analyzerJob.id,
+            projects = setOf(project),
+            packages = setOf(pkg, secondPkg)
+        )
+
+        if (curatedPurl != null) {
+            fixtures.resolvedConfigurationRepository.addPackageCurations(
+                ortRun.id,
+                listOf(
+                    ResolvedPackageCurations(
+                        provider = PackageCurationProviderConfig("test"),
+                        curations = listOf(
+                            PackageCuration(
+                                id = pkg.identifier,
+                                data = PackageCurationData(purl = curatedPurl)
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
+        return IssuePackageScenario(
+            ortRun,
+            packageIssue,
+            secondPackageIssue,
+            projectIssue,
+            unidentifiedIssue,
+            pkg.purl
+        )
+    }
 
     private fun createOrtRunWithIssueResolutions(
         repositoryId: Long,

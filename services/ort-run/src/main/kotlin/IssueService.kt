@@ -30,7 +30,10 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
+import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
+import org.eclipse.apoapsis.ortserver.dao.utils.severitySortRank
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -40,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -47,20 +51,36 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
 
+import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.Count
+import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.concat
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.not
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
+
+private class IssueQueryContext(
+    val query: Query,
+    val identifierExpression: ExpressionWithColumnType<String>,
+    val purlColumn: ExpressionWithColumnType<String>,
+    val statusExpression: ExpressionWithColumnType<String>
+)
 
 /**
  * A service to manage and get information about issues.
@@ -70,6 +90,7 @@ class IssueService(
     private val ortRunService: OrtRunService,
     private val issueResolutionService: IssueResolutionService
 ) {
+    /** Return a page of issues for the given ORT run after applying the requested filters. */
     fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
@@ -80,10 +101,10 @@ class IssueService(
         )
 
         return db.blockingQuery {
-            val query = buildListForOrtRunIdQuery(ortRunId, issuesFilter)
+            val context = buildListForOrtRunIdQueryContext(ortRunId, issuesFilter)
 
-            val totalCount = query.count()
-            val ortRunIssueIds = fetchPagedIssueIds(query, parameters)
+            val totalCount = context.query.count()
+            val ortRunIssueIds = fetchPagedIssueIds(context, parameters)
 
             if (ortRunIssueIds.isEmpty()) {
                 return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
@@ -110,18 +131,57 @@ class IssueService(
         }
     }
 
-    private fun buildListForOrtRunIdQuery(ortRunId: Long, issuesFilter: IssueFilter): Query {
-        val baseJoin = OrtRunsIssuesTable
-            .innerJoin(IssuesTable, { issueId }, { id })
-            .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
+    private fun buildListForOrtRunIdQueryContext(
+        ortRunId: Long,
+        issuesFilter: IssueFilter
+    ): IssueQueryContext {
+        val riOrtRunId = OrtRunsIssuesTable.ortRunId.alias("issue_ri_ort_run_id")
 
-        val query = baseJoin
-            .select(OrtRunsIssuesTable.id)
-            .where { OrtRunsIssuesTable.ortRunId eq ortRunId }
+        // Null identifier IDs are excluded from the pairs query before this is passed to the shared PURL builder.
+        @Suppress("UNCHECKED_CAST")
+        val identifierId = OrtRunsIssuesTable.identifierId as ExpressionWithColumnType<EntityID<Long>>
+        val riIdentifierId = identifierId.alias("issue_ri_identifier_id")
+        val runIdPairs = OrtRunsIssuesTable
+            .select(riOrtRunId, riIdentifierId)
+            .where {
+                (OrtRunsIssuesTable.ortRunId eq ortRunId) and OrtRunsIssuesTable.identifierId.isNotNull()
+            }
+            .withDistinct()
+            .alias("issue_run_identifier_pairs")
+
+        val purls = buildPurlByRunIdentifier(
+            runIdPairs,
+            runIdPairs[riOrtRunId],
+            runIdPairs[riIdentifierId]
+        )
+        val purlColumn = purls.alias[purls.purl]
+
+        val identifierExpression = concat(
+            IdentifiersTable.type,
+            stringLiteral(":"),
+            IdentifiersTable.namespace,
+            stringLiteral(":"),
+            IdentifiersTable.name,
+            stringLiteral(":"),
+            IdentifiersTable.version
+        )
 
         val resolvedIssueIdsSubquery = ResolvedIssuesTable
             .select(ResolvedIssuesTable.ortRunIssueId)
             .where { ResolvedIssuesTable.ortRunId eq ortRunId }
+        val statusExpression = Case()
+            .When(OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery, stringLiteral("Resolved"))
+            .Else(stringLiteral("Unresolved"))
+
+        val query = OrtRunsIssuesTable
+            .innerJoin(IssuesTable, { issueId }, { id })
+            .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
+            .join(purls.alias, JoinType.LEFT) {
+                (OrtRunsIssuesTable.ortRunId eq purls.alias[purls.ortRunId]) and
+                    (OrtRunsIssuesTable.identifierId eq purls.alias[purls.identifierId])
+            }
+            .select(OrtRunsIssuesTable.id)
+            .where { OrtRunsIssuesTable.ortRunId eq ortRunId }
 
         when (issuesFilter.resolved) {
             true -> query.andWhere { OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery }
@@ -129,10 +189,31 @@ class IssueService(
             null -> {}
         }
 
-        return query
+        issuesFilter.identifier?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for identifier filter: ${filter.operator}"
+            }
+
+            query.andWhere { identifierExpression.applyILike(filter.value) }
+        }
+
+        issuesFilter.purl?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for PURL filter: ${filter.operator}"
+            }
+
+            query.andWhere { purlColumn.applyILike(filter.value) }
+        }
+
+        issuesFilter.severity?.let { filter ->
+            query.andWhere { IssuesTable.severity.applyFilter(filter.operator, filter.value) }
+        }
+
+        return IssueQueryContext(query, identifierExpression, purlColumn, statusExpression)
     }
 
-    private fun fetchPagedIssueIds(query: Query, parameters: ListQueryParameters): List<Long> {
+    private fun fetchPagedIssueIds(context: IssueQueryContext, parameters: ListQueryParameters): List<Long> {
+        val query = context.query
         val sortFields = parameters.sortFields.ifEmpty {
             listOf(OrderField("timestamp", OrderDirection.DESCENDING))
         }
@@ -146,7 +227,7 @@ class IssueService(
 
                 "message" -> query.orderBy(IssuesTable.message to sortOrder)
 
-                "severity" -> query.orderBy(IssuesTable.severity to sortOrder)
+                "severity" -> query.orderBy(IssuesTable.severity.severitySortRank() to sortOrder)
 
                 "affectedPath" -> query.orderBy(IssuesTable.affectedPath to sortOrder)
 
@@ -156,6 +237,19 @@ class IssueService(
                     query.orderBy(IdentifiersTable.name to sortOrder)
                     query.orderBy(IdentifiersTable.version to sortOrder)
                 }
+
+                "purl" -> {
+                    val purlWithIdentifierFallback = Case()
+                        .When(
+                            context.purlColumn.isNull() or (context.purlColumn eq ""),
+                            context.identifierExpression
+                        )
+                        .Else(context.purlColumn)
+
+                    query.orderBy(purlWithIdentifierFallback to sortOrder)
+                }
+
+                "status" -> query.orderBy(context.statusExpression to sortOrder)
 
                 "worker" -> query.orderBy(OrtRunsIssuesTable.worker to sortOrder)
 
