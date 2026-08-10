@@ -38,13 +38,3 @@ internal data class ReporterConfigTemplate(
     val customLicenseTextDir: String?,
     val assets: Map<String, List<ReporterAsset>> = emptyMap()
 )
-
-/** A representation of the report definition section of the admin config file. */
-internal data class ReportDefinitionTemplate(
-    val pluginId: String,
-    val assetFiles: List<ReporterAsset> = emptyList(),
-    val assetFilesRefs: List<String> = emptyList(),
-    val assetDirectories: List<ReporterAsset> = emptyList(),
-    val assetDirectoriesRefs: List<String> = emptyList(),
-    val nameMapping: ReportNameMapping? = null
-)

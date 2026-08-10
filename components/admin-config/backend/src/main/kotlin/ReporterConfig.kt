@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService.Companion.UNRESOLVABLE_ASSET_PREFIX
 import org.eclipse.apoapsis.ortserver.model.Options
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
@@ -120,6 +121,31 @@ data class ReportDefinition(
 )
 
 /**
+ * A template for a [ReportDefinition] that allows to use references to [global assets][ReporterConfig.globalAssets].
+ */
+data class ReportDefinitionTemplate(
+    /** The ID of the reporter plugin that generates this report. */
+    val pluginId: String,
+
+    /** A list of [ReporterAsset]s pointing to files that must be downloaded from the config provider. */
+    val assetFiles: List<ReporterAsset> = emptyList(),
+
+    /** A list of references to [global assets][ReporterConfig.globalAssets] that will be resolved to [assetFiles]. */
+    val assetFilesRefs: List<String> = emptyList(),
+
+    /** A list of [ReporterAsset]s pointing to directories that must be downloaded from the config provider. */
+    val assetDirectories: List<ReporterAsset> = emptyList(),
+
+    /**
+     * A list of references to [global assets][ReporterConfig.globalAssets] that will be resolved to [assetDirectories].
+     */
+    val assetDirectoriesRefs: List<String> = emptyList(),
+
+    /** An optional name mapping for this report definition. */
+    val nameMapping: ReportNameMapping? = null
+)
+
+/**
  * A type definition for a [Map] of named [ReporterAsset]s. In the [ReporterConfig], it is possible to define groups of
  * asset files and directories that can then be referenced from report definitions by their name. This reduces
  * redundancy in definitions and also allows selecting assets dynamically.
@@ -143,7 +169,7 @@ data class ReporterConfig(
      * A [Map] containing the definitions of all reports supported by this ORT Server instance. The keys are the logic
      * names under which the reports can be accessed.
      */
-    private val reportDefinitionsMap: Map<String, ReportDefinition>,
+    private val reportDefinitionsMap: Map<String, ReportDefinitionTemplate>,
 
     /**
      * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
@@ -218,18 +244,57 @@ data class ReporterConfig(
     }
 
     /**
+     * A map of the resolved [report definitions][reportDefinitionsMap]. This ensures that all
+     * [asset directories][ReportDefinition.assetDirectories] end with a trailing slash and resolves the
+     * [file references][ReportDefinitionTemplate.assetFilesRefs] and
+     * [directory references][ReportDefinitionTemplate.assetDirectoriesRefs] to concrete [ReporterAsset]s. If a
+     * reference cannot be resolved, placeholder assets are created where the [source path][ReporterAsset.sourcePath]
+     * is prefixed with [UNRESOLVABLE_ASSET_PREFIX].
+     *
+     * This map also contains report definitions for all reporter plugins that are not referenced in the given
+     * [reportDefinitionsMap]. This makes sure that there is always a definition for each existing reporter plugin.
+     */
+    private val resolvedReportDefinitions = reportDefinitionsMap.mapValues { (_, template) ->
+        val resolvedAssetFilesRefs = template.assetFilesRefs.flatMap { assetRef ->
+            // Replace the reference with the referenced list of asset files from the global assets. If this does
+            // not exist, add a placeholder asset that marks the reference as not resolvable.
+            globalAssets[assetRef] ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
+        }
+
+        val assetDirectories = template.assetDirectories.map {
+            it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
+        }
+
+        val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.flatMap { assetRef ->
+            // Replace the reference with the referenced list of asset directories from the global assets. If this
+            // does not exist, add a placeholder asset that marks the reference as not resolvable.
+            globalAssets[assetRef]?.map {
+                // Ensure that directory asset paths end with a trailing slash.
+                it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
+            } ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
+        }
+
+        ReportDefinition(
+            pluginId = template.pluginId,
+            assetFiles = template.assetFiles + resolvedAssetFilesRefs,
+            assetDirectories = assetDirectories + resolvedAssetDirectoriesRefs,
+            nameMapping = template.nameMapping
+        )
+    }.let { addDefinitionsForUnreferencedPlugins(it) }
+
+    /**
      * A [Map] with the existing report definitions using lowercase names as keys. This is used to simplify
      * case-insensitive lookups of report definitions by name.
      */
-    private val lowercaseReportDefinitions = reportDefinitionsMap.mapKeys { it.key.lowercase() }
+    private val lowercaseReportDefinitions = resolvedReportDefinitions.mapKeys { it.key.lowercase() }
 
     /** A set with the names of all existing report definitions. */
     val reportDefinitionNames: Set<String>
-        get() = reportDefinitionsMap.keys
+        get() = resolvedReportDefinitions.keys
 
     /** A collection of all existing report definitions. */
     val reportDefinitions: Collection<ReportDefinition>
-        get() = reportDefinitionsMap.values
+        get() = resolvedReportDefinitions.values
 
     /**
      * Return the [ReportDefinition] for the report with the given [name] or *null* if no such report is defined. The
@@ -282,3 +347,5 @@ data class ReporterConfig(
             }
     }
 }
+
+private fun String.ensureTrailingSlash() = takeIf { it.endsWith("/") } ?: plus("/")
