@@ -87,9 +87,9 @@ const ReportComponent = () => {
       const filename = response.headers
         .get('content-disposition')
         ?.split(';')
-        ?.find((entry) => entry.includes('filename='))
+        .find((entry) => entry.includes('filename='))
         ?.replace('filename=', '')
-        ?.trim();
+        .trim();
       a.download = filename ?? `run-${runId}-${level}-logs.zip`;
       a.click();
       window.URL.revokeObjectURL(url);

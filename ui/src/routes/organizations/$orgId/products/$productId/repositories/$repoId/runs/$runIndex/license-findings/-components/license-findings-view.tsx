@@ -37,7 +37,6 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { SpdxExpressionBadgeGroup } from '@/components/licenses';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -118,7 +117,6 @@ export const LicenseFindingsView = () => {
 
   const {
     data: detectedLicenseFindings,
-    isPending,
     isError,
     error,
   } = useSuspenseQuery({
@@ -209,10 +207,10 @@ export const LicenseFindingsView = () => {
   ];
 
   const table = useReactTable({
-    data: detectedLicenseFindings?.data || [],
+    data: detectedLicenseFindings.data,
     columns,
     pageCount: Math.ceil(
-      (detectedLicenseFindings?.pagination.totalCount ?? 0) / pageSize
+      detectedLicenseFindings.pagination.totalCount / pageSize
     ),
     state: {
       pagination: {
@@ -256,10 +254,6 @@ export const LicenseFindingsView = () => {
     });
     // Identifier mode changes invalidate the nested package query inputs.
   }, [navigate, packageIdType, search]);
-
-  if (isPending) {
-    return <LoadingIndicator />;
-  }
 
   if (isError) {
     toastError('Unable to load data', error);
