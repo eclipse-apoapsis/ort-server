@@ -19,18 +19,23 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
+import com.sksamuel.hoplite.ConfigAlias
+
 /**
  * A class representing the admin configuration for the ORT server. It defines an object model for the configuration
  * file loaded from the config file provider.
  */
-class AdminConfig(
+data class AdminConfig(
     /** The configuration for the Scanner worker. */
+    @param:ConfigAlias("scanner")
     val scannerConfig: ScannerConfig = ScannerConfig(),
 
     /** The configuration for the Reporter worker. */
+    @param:ConfigAlias("reporter")
     val reporterConfig: ReporterConfig = ReporterConfig(),
 
     /** The configuration for the Notifier worker. */
+    @param:ConfigAlias("notifier")
     val notifierConfig: NotifierConfig = NotifierConfig(),
 
     /** The default rule set. */
@@ -40,7 +45,7 @@ class AdminConfig(
      *  A map containing named rule set templates. Any `null` properties of the templates will be replaced with the
      *  respective values from the [defaultRuleSet].
      */
-    ruleSets: Map<String, RuleSetTemplate> = emptyMap(),
+    private val ruleSets: Map<String, RuleSetTemplate> = emptyMap(),
 
     /** The global mirror for Maven Central. */
     val mavenCentralMirror: MavenCentralMirror? = null
@@ -53,7 +58,7 @@ class AdminConfig(
         val DEFAULT = AdminConfig()
     }
 
-    private val ruleSets: Map<String, RuleSet> = ruleSets.mapValues { (_, template) ->
+    private val resolvedRuleSets: Map<String, RuleSet> = ruleSets.mapValues { (_, template) ->
         RuleSet(
             copyrightGarbageFile = template.copyrightGarbageFile ?: defaultRuleSet.copyrightGarbageFile,
             licenseClassificationsFile = template.licenseClassificationsFile
@@ -69,7 +74,7 @@ class AdminConfig(
      * rule set.
      */
     val ruleSetNames: Set<String>
-        get() = ruleSets.keys
+        get() = resolvedRuleSets.keys
 
     /**
      * Return the [RuleSet] with the given [name]. A *null* name returns the default rule set. All other names refer
@@ -80,6 +85,6 @@ class AdminConfig(
         if (name == null) {
             defaultRuleSet
         } else {
-            ruleSets[name] ?: throw NoSuchElementException("No rule set defined with the name '$name'.")
+            resolvedRuleSets[name] ?: throw NoSuchElementException("No rule set defined with the name '$name'.")
         }
 }
