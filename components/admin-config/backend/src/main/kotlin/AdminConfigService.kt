@@ -100,10 +100,10 @@ class AdminConfigService(
 
         /** Add all configuration files referenced by this [RuleSet] to the given [target] set for validation. */
         private fun RuleSet.getConfigurationFiles(target: MutableSet<String>) {
-            target.addNonDefault(copyrightGarbageFile, AdminConfig.DEFAULT_RULE_SET.copyrightGarbageFile)
-            target.addNonDefault(licenseClassificationsFile, AdminConfig.DEFAULT_RULE_SET.licenseClassificationsFile)
-            target.addNonDefault(resolutionsFile, AdminConfig.DEFAULT_RULE_SET.resolutionsFile)
-            target.addNonDefault(evaluatorRules, AdminConfig.DEFAULT_RULE_SET.evaluatorRules)
+            target.addNonDefault(copyrightGarbageFile, RuleSet.DEFAULT_COPYRIGHT_GARBAGE_FILE)
+            target.addNonDefault(licenseClassificationsFile, RuleSet.DEFAULT_LICENSE_CLASSIFICATIONS_FILE)
+            target.addNonDefault(resolutionsFile, RuleSet.DEFAULT_RESOLUTIONS_FILE)
+            target.addNonDefault(evaluatorRules, RuleSet.DEFAULT_EVALUATOR_RULES_FILE)
         }
 
         /** Add all configuration files referenced by this [ReporterConfig] to the given [target] set for validation. */
