@@ -49,7 +49,7 @@ export function DataTableCardsSort<TData>({
   table,
   setSortingOptions,
 }: DataTableCardsSortProps<TData>) {
-  const isSortingActive = table.getState().sorting?.length > 0;
+  const isSortingActive = table.getState().sorting.length > 0;
   // Determine which columns are used as invisible sorting columns.
   // They will be shown in the sorting dropdown in the header.
   const sortableColumns = table

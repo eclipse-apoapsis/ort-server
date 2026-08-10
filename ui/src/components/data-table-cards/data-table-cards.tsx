@@ -75,7 +75,7 @@ export function DataTableCards<TData>({
           columnCount={table.getVisibleLeafColumns().length}
         />
       </Table>
-      {table.getRowModel().rows?.length > 0 && (
+      {table.getRowModel().rows.length > 0 && (
         <div className='flex flex-col gap-2.5'>
           <DataTablePagination
             currentPage={pagination.pageIndex + 1}

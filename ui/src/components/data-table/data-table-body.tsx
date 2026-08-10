@@ -39,7 +39,7 @@ export function DataTableBody<TData>({
 }: DataTableBodyProps<TData>) {
   return (
     <TableBody>
-      {rows?.length ? (
+      {rows.length ? (
         rows.map((row) => (
           <Fragment key={row.id}>
             <TableRow

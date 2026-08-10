@@ -80,7 +80,7 @@ export function DataTableFilter<TData, TValue>({
         title={title}
         showTitle={showTitle}
         options={selectOptions}
-        selected={(columnFilterValue as TValue[]) ?? []}
+        selected={(columnFilterValue as TValue[] | undefined) ?? []}
         setSelected={setSelected}
         align={align}
       />

@@ -75,7 +75,7 @@ export const OrtRunJobStatus = ({
                 <div className='flex gap-2'>
                   <div>Duration:</div>
                   <RunDuration
-                    createdAt={jobs.analyzer?.startedAt}
+                    createdAt={jobs.analyzer.startedAt}
                     finishedAt={jobs.analyzer.finishedAt ?? undefined}
                   />
                 </div>
@@ -111,7 +111,7 @@ export const OrtRunJobStatus = ({
                 <div className='flex gap-2'>
                   <div>Duration:</div>
                   <RunDuration
-                    createdAt={jobs.advisor?.startedAt}
+                    createdAt={jobs.advisor.startedAt}
                     finishedAt={jobs.advisor.finishedAt ?? undefined}
                   />
                 </div>
@@ -147,7 +147,7 @@ export const OrtRunJobStatus = ({
                 <div className='flex gap-2'>
                   <div>Duration:</div>
                   <RunDuration
-                    createdAt={jobs.scanner?.startedAt}
+                    createdAt={jobs.scanner.startedAt}
                     finishedAt={jobs.scanner.finishedAt ?? undefined}
                   />
                 </div>
@@ -183,7 +183,7 @@ export const OrtRunJobStatus = ({
                 <div className='flex gap-2'>
                   <div>Duration:</div>
                   <RunDuration
-                    createdAt={jobs.evaluator?.startedAt}
+                    createdAt={jobs.evaluator.startedAt}
                     finishedAt={jobs.evaluator.finishedAt ?? undefined}
                   />
                 </div>
@@ -219,7 +219,7 @@ export const OrtRunJobStatus = ({
                 <div className='flex gap-2'>
                   <div>Duration:</div>
                   <RunDuration
-                    createdAt={jobs.reporter?.startedAt}
+                    createdAt={jobs.reporter.startedAt}
                     finishedAt={jobs.reporter.finishedAt ?? undefined}
                   />
                 </div>
