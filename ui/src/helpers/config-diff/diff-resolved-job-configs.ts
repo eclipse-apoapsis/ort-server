@@ -111,10 +111,6 @@ export function diffResolvedJobConfigs(
   baseConfig: JobConfigurations,
   comparedConfig: JobConfigurations
 ): RunConfigurationDiff {
-  if (baseConfig === undefined || comparedConfig === undefined) {
-    throw new TypeError('Resolved job configurations must be defined.');
-  }
-
   const microdiffEntries = diff(
     baseConfig as Record<string, unknown>,
     comparedConfig as Record<string, unknown>
