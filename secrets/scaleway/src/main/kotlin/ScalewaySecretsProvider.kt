@@ -230,7 +230,7 @@ class ScalewaySecretsProvider(
         // The returned path needs to be absolute.
         return Path("/$secretType/$secretName")
     }
-}
 
-internal fun Path.toScaleway(): Pair<String, String> =
-    path.substringBeforeLast('/') to path.substringAfterLast('/')
+    private fun Path.toScaleway(): Pair<String, String> =
+        path.substringBeforeLast('/') to path.substringAfterLast('/')
+}
