@@ -29,6 +29,7 @@ import kotlin.time.toDuration
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -36,10 +37,12 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
 import org.jetbrains.exposed.v1.core.AbstractQuery
+import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ComparisonOp
 import org.jetbrains.exposed.v1.core.EqOp
 import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.QueryParameter
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -49,7 +52,9 @@ import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.intLiteral
 import org.jetbrains.exposed.v1.core.notInList
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.dao.EntityClass
@@ -190,6 +195,13 @@ fun OrderDirection.toSortOrder(): SortOrder =
         OrderDirection.ASCENDING -> SortOrder.ASC
         OrderDirection.DESCENDING -> SortOrder.DESC
     }
+
+/** Return a SQL expression that ranks severities from least to most severe. */
+fun ExpressionWithColumnType<Severity>.severitySortRank(): ExpressionWithColumnType<Int> =
+    Case()
+        .When(this eq Severity.HINT, intLiteral(1))
+        .When(this eq Severity.WARNING, intLiteral(2))
+        .Else(intLiteral(3))
 
 /**
  * Represents a case-insensitive LIKE operation. This is an extension of the [ComparisonOp] class that uses the ILIKE
