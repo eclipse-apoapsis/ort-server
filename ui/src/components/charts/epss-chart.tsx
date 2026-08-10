@@ -120,7 +120,7 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
                           />
                           <div className='text-muted-foreground'>
                             {chartConfig[name as keyof typeof chartConfig]
-                              ?.label || name}
+                              .label || name}
                           </div>
                         </div>
                         <div className='flex items-baseline gap-0.5'>
@@ -206,7 +206,7 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
                           />
                           <div className='text-muted-foreground'>
                             {chartConfig[name as keyof typeof chartConfig]
-                              ?.label || name}
+                              .label || name}
                           </div>
                         </div>
                         <div className='flex items-baseline gap-0.5'>

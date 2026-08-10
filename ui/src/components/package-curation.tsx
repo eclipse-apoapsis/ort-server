@@ -40,7 +40,6 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
     ...curation,
     comment: undefined,
     declaredLicenseMapping:
-      curation.data.declaredLicenseMapping &&
       Object.keys(curation.data.declaredLicenseMapping).length > 0
         ? curation.data.declaredLicenseMapping
         : undefined,
@@ -67,154 +66,150 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
           <TooltipContent>The provider of the curation.</TooltipContent>
         </Tooltip>
       </CardHeader>
-      {curationToDisplay &&
-        Object.keys(curationToDisplay).some(
-          (key) =>
-            curationToDisplay[key as keyof typeof curationToDisplay] !==
-            undefined
-        ) && (
-          <CardContent>
-            <div className='flex flex-col gap-4'>
-              <RenderProperty
-                label='Authors'
-                value={curation.data.authors}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='Description'
-                value={curation.data.description}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='Homepage'
-                value={curation.data.homepageUrl}
-                type='url'
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='CPE'
-                value={curation.data.cpe}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='Source Code Origins'
-                value={curation.data.sourceCodeOrigins}
-                showIfEmpty={false}
-              />
-              {curation.data.vcs && (
-                <div>
-                  <div className='font-semibold'>VCS</div>
-                  <div className='ml-2'>
-                    <RenderProperty
-                      label='Type'
-                      value={curation.data.vcs.type}
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='URL'
-                      value={curation.data.vcs.url}
-                      type='url'
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='Revision'
-                      value={curation.data.vcs.revision}
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='Path'
-                      value={curation.data.vcs.path}
-                      showIfEmpty={false}
-                    />
-                  </div>
-                </div>
-              )}
-              {curation.data.binaryArtifact && (
-                <div>
-                  <div className='font-semibold'>Binary Artifact</div>
-                  <div className='ml-2'>
-                    <RenderProperty
-                      label='URL'
-                      value={curation.data.binaryArtifact.url}
-                      type='url'
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='Hash Value'
-                      value={curation.data.binaryArtifact.hashValue}
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='Hash Algorithm'
-                      value={curation.data.binaryArtifact.hashAlgorithm}
-                      showIfEmpty={false}
-                    />
-                  </div>
-                </div>
-              )}
-              {curation.data.sourceArtifact && (
-                <div>
-                  <div className='font-semibold'>Source Artifact</div>
-                  <div className='ml-2'>
-                    <RenderProperty
-                      label='URL'
-                      value={curation.data.sourceArtifact.url}
-                      type='url'
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='Hash Value'
-                      value={curation.data.sourceArtifact.hashValue}
-                      showIfEmpty={false}
-                    />
-                    <RenderProperty
-                      label='Hash Algorithm'
-                      value={curation.data.sourceArtifact.hashAlgorithm}
-                      showIfEmpty={false}
-                    />
-                  </div>
-                </div>
-              )}
-              {curation.data.declaredLicenseMapping &&
-                Object.keys(curation.data.declaredLicenseMapping).length >
-                  0 && (
+      {Object.keys(curationToDisplay).some(
+        (key) =>
+          curationToDisplay[key as keyof typeof curationToDisplay] !== undefined
+      ) && (
+        <CardContent>
+          <div className='flex flex-col gap-4'>
+            <RenderProperty
+              label='Authors'
+              value={curation.data.authors}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Description'
+              value={curation.data.description}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Homepage'
+              value={curation.data.homepageUrl}
+              type='url'
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='CPE'
+              value={curation.data.cpe}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Source Code Origins'
+              value={curation.data.sourceCodeOrigins}
+              showIfEmpty={false}
+            />
+            {curation.data.vcs && (
+              <div>
+                <div className='font-semibold'>VCS</div>
+                <div className='ml-2'>
                   <RenderProperty
-                    label='Declared License Mapping'
-                    value={curation.data.declaredLicenseMapping}
-                    type='keyvalue'
-                    useArrowsInKeyValue
+                    label='Type'
+                    value={curation.data.vcs.type}
                     showIfEmpty={false}
                   />
-                )}
+                  <RenderProperty
+                    label='URL'
+                    value={curation.data.vcs.url}
+                    type='url'
+                    showIfEmpty={false}
+                  />
+                  <RenderProperty
+                    label='Revision'
+                    value={curation.data.vcs.revision}
+                    showIfEmpty={false}
+                  />
+                  <RenderProperty
+                    label='Path'
+                    value={curation.data.vcs.path}
+                    showIfEmpty={false}
+                  />
+                </div>
+              </div>
+            )}
+            {curation.data.binaryArtifact && (
+              <div>
+                <div className='font-semibold'>Binary Artifact</div>
+                <div className='ml-2'>
+                  <RenderProperty
+                    label='URL'
+                    value={curation.data.binaryArtifact.url}
+                    type='url'
+                    showIfEmpty={false}
+                  />
+                  <RenderProperty
+                    label='Hash Value'
+                    value={curation.data.binaryArtifact.hashValue}
+                    showIfEmpty={false}
+                  />
+                  <RenderProperty
+                    label='Hash Algorithm'
+                    value={curation.data.binaryArtifact.hashAlgorithm}
+                    showIfEmpty={false}
+                  />
+                </div>
+              </div>
+            )}
+            {curation.data.sourceArtifact && (
+              <div>
+                <div className='font-semibold'>Source Artifact</div>
+                <div className='ml-2'>
+                  <RenderProperty
+                    label='URL'
+                    value={curation.data.sourceArtifact.url}
+                    type='url'
+                    showIfEmpty={false}
+                  />
+                  <RenderProperty
+                    label='Hash Value'
+                    value={curation.data.sourceArtifact.hashValue}
+                    showIfEmpty={false}
+                  />
+                  <RenderProperty
+                    label='Hash Algorithm'
+                    value={curation.data.sourceArtifact.hashAlgorithm}
+                    showIfEmpty={false}
+                  />
+                </div>
+              </div>
+            )}
+            {Object.keys(curation.data.declaredLicenseMapping).length > 0 && (
               <RenderProperty
-                label='Concluded License'
-                value={curation.data.concludedLicense}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='Metadata Only'
-                value={curation.data.isMetadataOnly}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='Modified'
-                value={curation.data.isModified}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='PURL'
-                value={curation.data.purl}
-                showIfEmpty={false}
-              />
-              <RenderProperty
-                label='Labels'
-                value={curation.data.labels}
+                label='Declared License Mapping'
+                value={curation.data.declaredLicenseMapping}
                 type='keyvalue'
+                useArrowsInKeyValue
                 showIfEmpty={false}
               />
-            </div>
-          </CardContent>
-        )}
+            )}
+            <RenderProperty
+              label='Concluded License'
+              value={curation.data.concludedLicense}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Metadata Only'
+              value={curation.data.isMetadataOnly}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Modified'
+              value={curation.data.isModified}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='PURL'
+              value={curation.data.purl}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Labels'
+              value={curation.data.labels}
+              type='keyvalue'
+              showIfEmpty={false}
+            />
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 };
