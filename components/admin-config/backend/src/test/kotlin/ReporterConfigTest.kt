@@ -128,7 +128,7 @@ private const val PLUGIN_ID = "PdfTemplateReporter"
 private val reporterConfig = ReporterConfig(
     howToFixTextProviderFile = "how-to-fix.txt",
     reportDefinitionsMap = mapOf(
-        REPORT_DEFINITION_NAME to ReportDefinition(pluginId = PLUGIN_ID)
+        REPORT_DEFINITION_NAME to ReportDefinitionTemplate(pluginId = PLUGIN_ID)
     )
 )
 

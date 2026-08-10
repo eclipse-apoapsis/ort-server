@@ -61,7 +61,7 @@ import kotlin.time.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinitionTemplate
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
@@ -785,9 +785,9 @@ class ReporterRunnerTest : WordSpec({
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             downloadedAssets.keys shouldHaveSize 2
-            downloadedAssets[Path("data")] shouldBe configDirectory
+            downloadedAssets[Path("data/")] shouldBe configDirectory
 
-            downloadedAssets[Path("images")] shouldNotBeNull {
+            downloadedAssets[Path("images/")] shouldNotBeNull {
                 parentFile shouldBe configDirectory
                 name shouldBe "imgs"
             }
@@ -1182,7 +1182,7 @@ private fun mockReporterFactoryAll(vararg reporterFactories: Pair<String, Report
 }
 
 /**
- * Create a [ReportDefinition] for the given [pluginId] with the given parameters. Return a [Pair] with the
+ * Create a [ReportDefinitionTemplate] for the given [pluginId] with the given parameters. Return a [Pair] with the
  * [reportName] and the definition which can be added to the map of definitions in a [ReporterConfig].
  */
 private fun createReportDefinition(
@@ -1191,8 +1191,8 @@ private fun createReportDefinition(
     assetFiles: List<ReporterAsset> = emptyList(),
     assetDirectories: List<ReporterAsset> = emptyList(),
     nameMapping: ReportNameMapping? = null
-): Pair<String, ReportDefinition> =
-    reportName to ReportDefinition(
+): Pair<String, ReportDefinitionTemplate> =
+    reportName to ReportDefinitionTemplate(
         pluginId = pluginId,
         assetFiles = assetFiles,
         assetDirectories = assetDirectories,
@@ -1205,7 +1205,7 @@ private fun createReportDefinition(
 private fun createReporterConfig(
     howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
     customLicenseTextDir: String? = null,
-    vararg reportDefinitions: Pair<String, ReportDefinition>
+    vararg reportDefinitions: Pair<String, ReportDefinitionTemplate>
 ): ReporterConfig =
     ReporterConfig(
         reportDefinitionsMap = reportDefinitions.toMap(),

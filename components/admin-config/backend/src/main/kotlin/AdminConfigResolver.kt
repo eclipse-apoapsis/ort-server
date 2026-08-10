@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService.Companion.UNRESOLVABLE_ASSET_PREFIX
-
 /** A class to resolve an [AdminConfigFile] to an [AdminConfig]. */
 internal object AdminConfigResolver {
     /**
@@ -40,41 +38,11 @@ internal object AdminConfigResolver {
     private fun resolve(config: ReporterConfigTemplate?): ReporterConfig {
         if (config == null) return AdminConfig.DEFAULT_REPORTER_CONFIG
 
-        val reportDefinitions = config.reports.orEmpty().mapValues { (_, template) ->
-            val resolvedAssetFilesRefs = template.assetFilesRefs.flatMap { assetRef ->
-                // Replace the reference with the referenced list of asset files from the global assets. If this does
-                // not exist, add a placeholder asset that marks the reference as not resolvable.
-                config.assets[assetRef] ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
-            }
-
-            val assetDirectories = template.assetDirectories.map {
-                it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
-            }
-
-            val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.flatMap { assetRef ->
-                // Replace the reference with the referenced list of asset directories from the global assets. If this
-                // does not exist, add a placeholder asset that marks the reference as not resolvable.
-                config.assets[assetRef]?.map {
-                    // Ensure that directory asset paths end with a trailing slash.
-                    it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
-                } ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
-            }
-
-            ReportDefinition(
-                pluginId = template.pluginId,
-                assetFiles = template.assetFiles + resolvedAssetFilesRefs,
-                assetDirectories = assetDirectories + resolvedAssetDirectoriesRefs,
-                nameMapping = template.nameMapping
-            )
-        }
-
         return ReporterConfig(
-            reportDefinitionsMap = ReporterConfig.addDefinitionsForUnreferencedPlugins(reportDefinitions),
+            reportDefinitionsMap = config.reports.orEmpty(),
             howToFixTextProviderFile = config.howToFixTextProviderFile,
             customLicenseTextDir = config.customLicenseTextDir,
             globalAssets = config.assets
         )
     }
 }
-
-private fun String.ensureTrailingSlash() = takeIf { it.endsWith("/") } ?: plus("/")

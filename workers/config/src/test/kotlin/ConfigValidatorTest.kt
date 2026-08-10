@@ -41,7 +41,7 @@ import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
+import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinitionTemplate
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
@@ -243,7 +243,7 @@ private val testAdminConfig = AdminConfig(
     ruleSets = mapOf(RULE_SET to testRuleSet),
     reporterConfig = ReporterConfig(
         reportDefinitionsMap = mapOf(
-            "WebApp" to ReportDefinition("webapp-reporter")
+            "WebApp" to ReportDefinitionTemplate("webapp-reporter")
         ),
         howToFixTextProviderFile = "how-to-fix.kts",
         globalAssets = mapOf(
