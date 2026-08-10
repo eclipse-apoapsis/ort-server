@@ -41,11 +41,11 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [mode, setMode] = useState<Mode>(
-    () => (localStorage.getItem(storageKeyMode) as Mode) || defaultMode
+    () => (localStorage.getItem(storageKeyMode) as Mode | null) || defaultMode
   );
   const [colorTheme, setColorTheme] = useState<ColorTheme>(
     () =>
-      (localStorage.getItem(storageKeyColorTheme) as ColorTheme) ||
+      (localStorage.getItem(storageKeyColorTheme) as ColorTheme | null) ||
       defaultColorTheme
   );
 
