@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -334,18 +335,23 @@ export const EnvironmentDefinitionsFields = ({
             </CardHeader>
             <CardContent className='flex flex-col gap-4'>
               <FormItem>
-                <FormLabel>Package manager</FormLabel>
+                <Label
+                  htmlFor={`environment-definition-${card.schema.key}-${card.index}`}
+                >
+                  Package manager
+                </Label>
                 <Select
                   value={card.schema.key}
                   onValueChange={(value) => {
                     changeEnvironmentDefinitionSchema(card, value);
                   }}
                 >
-                  <FormControl>
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='Select a package manager' />
-                    </SelectTrigger>
-                  </FormControl>
+                  <SelectTrigger
+                    id={`environment-definition-${card.schema.key}-${card.index}`}
+                    className='w-full'
+                  >
+                    <SelectValue placeholder='Select a package manager' />
+                  </SelectTrigger>
                   <SelectContent>
                     {ENVIRONMENT_DEFINITION_SCHEMAS.map((schema) => (
                       <SelectItem key={schema.key} value={schema.key}>

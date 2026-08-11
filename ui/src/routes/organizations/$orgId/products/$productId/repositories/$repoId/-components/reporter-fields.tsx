@@ -71,13 +71,15 @@ export const ReporterFields = ({
         control={form.control}
         name='jobConfigs.reporter.enabled'
         render={({ field }) => (
-          <FormControl>
-            <Switch
-              className='my-4 mr-4 data-[state=checked]:bg-green-500'
-              checked={field.value}
-              onCheckedChange={field.onChange}
-            />
-          </FormControl>
+          <FormItem>
+            <FormControl>
+              <Switch
+                className='my-4 mr-4 data-[state=checked]:bg-green-500'
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
         )}
       />
       <AccordionItem value={value} className='flex-1'>
