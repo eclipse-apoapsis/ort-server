@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import com.github.michaelbull.result.Ok
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
@@ -30,6 +31,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
 import io.mockk.mockk
@@ -60,9 +62,15 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+@Suppress("LargeClass")
 class RuleViolationServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
@@ -196,6 +204,205 @@ class RuleViolationServiceTest : WordSpec() {
                 resultsUnresolved shouldHaveSize 2
                 resultsUnresolved[0].rule shouldBe "Rule-2"
                 resultsUnresolved[1].rule shouldBe "Rule-3-no-id"
+
+                val statusAscending = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("status", OrderDirection.ASCENDING))
+                    )
+                ).data
+                val statusDescending = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("status", OrderDirection.DESCENDING))
+                    )
+                ).data
+                val combinedFilters = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        resolved = true,
+                        identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "LOG4J-CORE"),
+                        severity = FilterOperatorAndValue(ComparisonOperator.IN, setOf(Severity.WARNING)),
+                        rule = FilterOperatorAndValue(ComparisonOperator.IN, setOf("Rule-1"))
+                    )
+                )
+
+                statusAscending.map { it.rule } shouldBe listOf("Rule-1", "Rule-2", "Rule-3-no-id")
+                statusDescending.map { it.rule } shouldBe listOf("Rule-2", "Rule-3-no-id", "Rule-1")
+                combinedFilters.data.map { it.rule } shouldBe listOf("Rule-1")
+            }
+
+            "filter by identifier, severity, and rule" {
+                val ortRun = createRuleViolationEntries()
+
+                val identifierResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "LOGGING.LOG4J:LOG4J-CO")
+                    )
+                )
+                val severityResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        severity = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(Severity.HINT, Severity.ERROR)
+                        )
+                    )
+                )
+                val excludedSeverityResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        severity = FilterOperatorAndValue(
+                            ComparisonOperator.NOT_IN,
+                            setOf(Severity.HINT, Severity.ERROR)
+                        )
+                    )
+                )
+                val ruleResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        rule = FilterOperatorAndValue(ComparisonOperator.IN, setOf("Rule-1", "Rule-3-no-id"))
+                    )
+                )
+                val excludedRuleResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        rule = FilterOperatorAndValue(ComparisonOperator.NOT_IN, setOf("Rule-1", "Rule-2"))
+                    )
+                )
+
+                identifierResult.data.map { it.rule } shouldBe listOf("Rule-1")
+                severityResult.data.map { it.rule } shouldBe listOf("Rule-2", "Rule-3-no-id")
+                excludedSeverityResult.data.map { it.rule } shouldBe listOf("Rule-1")
+                ruleResult.data.map { it.rule } shouldBe listOf("Rule-1", "Rule-3-no-id")
+                excludedRuleResult.data.map { it.rule } shouldBe listOf("Rule-3-no-id")
+            }
+
+            "compose filters and count before pagination" {
+                val violations = listOf(
+                    RuleViolation(
+                        "Matching-1",
+                        Identifier("Maven", "com.example", "alpha", "1.0"),
+                        null,
+                        emptySet(),
+                        Severity.WARNING,
+                        "Message-1",
+                        "Fix"
+                    ),
+                    RuleViolation(
+                        "Matching-2",
+                        Identifier("Maven", "com.example", "beta", "1.0"),
+                        null,
+                        emptySet(),
+                        Severity.WARNING,
+                        "Message-2",
+                        "Fix"
+                    ),
+                    RuleViolation(
+                        "Other",
+                        Identifier("Maven", "org.example", "gamma", "1.0"),
+                        null,
+                        emptySet(),
+                        Severity.ERROR,
+                        "Message-3",
+                        "Fix"
+                    )
+                )
+                val ortRun = createRuleViolationEntries(ruleViolations = violations)
+
+                val result = service.listForOrtRunId(
+                    ortRun.id,
+                    parameters = ListQueryParameters(limit = 1, offset = 1),
+                    ruleViolationFilter = RuleViolationFilters(
+                        identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "maven:com.example"),
+                        severity = FilterOperatorAndValue(ComparisonOperator.IN, setOf(Severity.WARNING)),
+                        rule = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf("Matching-1", "Matching-2")
+                        )
+                    )
+                )
+
+                result.totalCount shouldBe 2
+                result.data.map { it.rule } shouldBe listOf("Matching-2")
+            }
+
+            "reject unsupported filter operators" {
+                val ortRun = createRuleViolationEntries()
+
+                shouldThrow<IllegalArgumentException> {
+                    service.listForOrtRunId(
+                        ortRun.id,
+                        ruleViolationFilter = RuleViolationFilters(
+                            identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "Maven")
+                        )
+                    )
+                }.message shouldContain "Unsupported operator for identifier filter"
+
+                shouldThrow<IllegalArgumentException> {
+                    service.listForOrtRunId(
+                        ortRun.id,
+                        ruleViolationFilter = RuleViolationFilters(
+                            purl = FilterOperatorAndValue(ComparisonOperator.EQUALS, "pkg:maven")
+                        )
+                    )
+                }.message shouldContain "Unsupported operator for PURL filter"
+
+                shouldThrow<IllegalArgumentException> {
+                    service.listForOrtRunId(
+                        ortRun.id,
+                        ruleViolationFilter = RuleViolationFilters(
+                            severity = FilterOperatorAndValue(ComparisonOperator.EQUALS, setOf(Severity.ERROR))
+                        )
+                    )
+                }.message shouldContain "Unsupported operator for collections"
+            }
+
+            "sort identifier, severity, and rule in both directions" {
+                val ortRun = createRuleViolationEntries()
+
+                fun sorted(field: String, direction: OrderDirection) = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField(field, direction)))
+                ).data.map { it.rule }
+
+                sorted("identifier", OrderDirection.ASCENDING) shouldBe
+                    listOf("Rule-2", "Rule-1", "Rule-3-no-id")
+                sorted("identifier", OrderDirection.DESCENDING) shouldBe
+                    listOf("Rule-3-no-id", "Rule-1", "Rule-2")
+                sorted("severity", OrderDirection.ASCENDING) shouldBe
+                    listOf("Rule-3-no-id", "Rule-1", "Rule-2")
+                sorted("severity", OrderDirection.DESCENDING) shouldBe
+                    listOf("Rule-2", "Rule-1", "Rule-3-no-id")
+                sorted("rule", OrderDirection.ASCENDING) shouldBe
+                    listOf("Rule-1", "Rule-2", "Rule-3-no-id")
+                sorted("rule", OrderDirection.DESCENDING) shouldBe
+                    listOf("Rule-3-no-id", "Rule-2", "Rule-1")
+            }
+
+            "sort by multiple fields before pagination and use the ID as a tie-breaker" {
+                val violations = listOf(
+                    RuleViolation("Same", null, null, emptySet(), Severity.ERROR, "First", "Fix"),
+                    RuleViolation("Same", null, null, emptySet(), Severity.ERROR, "Second", "Fix"),
+                    RuleViolation("Alpha", null, null, emptySet(), Severity.ERROR, "Third", "Fix"),
+                    RuleViolation("Beta", null, null, emptySet(), Severity.HINT, "Fourth", "Fix")
+                )
+                val ortRun = createRuleViolationEntries(ruleViolations = violations)
+
+                val result = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(
+                        limit = 2,
+                        offset = 1,
+                        sortFields = listOf(
+                            OrderField("severity", OrderDirection.DESCENDING),
+                            OrderField("rule", OrderDirection.ASCENDING)
+                        )
+                    )
+                )
+
+                result.data.map { it.message } shouldBe listOf("First", "Second")
             }
 
             "return new resolutions which were created after the run" {
@@ -392,6 +599,49 @@ class RuleViolationServiceTest : WordSpec() {
 
                 results[3].rule shouldBe "Rule-4-project-id"
                 results[3].purl should beNull()
+
+                val analyzerPurlResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        purl = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            pkg2.purl.uppercase().substringAfter("PKG:").substringBefore('@')
+                        )
+                    )
+                )
+                val curatedPurlResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "CURAT")
+                    )
+                )
+                val replacedAnalyzerPurlResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, pkg1.purl)
+                    )
+                )
+                val nonPackageResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "does-not-match")
+                    )
+                )
+                val purlAscending = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField("purl", OrderDirection.ASCENDING)))
+                ).data.map { it.rule }
+                val purlDescending = service.listForOrtRunId(
+                    ortRun.id,
+                    ListQueryParameters(sortFields = listOf(OrderField("purl", OrderDirection.DESCENDING)))
+                ).data.map { it.rule }
+
+                analyzerPurlResult.data.shouldBeSingleton { it.purl shouldBe pkg2.purl }
+                curatedPurlResult.data.shouldBeSingleton { it.purl shouldBe "curated" }
+                replacedAnalyzerPurlResult.data should beEmpty()
+                nonPackageResult.data should beEmpty()
+                purlAscending shouldBe listOf("Rule-3-no-id", "Rule-1", "Rule-4-project-id", "Rule-2")
+                purlDescending shouldBe listOf("Rule-2", "Rule-4-project-id", "Rule-1", "Rule-3-no-id")
             }
         }
 
