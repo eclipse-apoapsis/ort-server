@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunPackageLicenses
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunPackages
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunProjects
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunReport
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunRuleViolationRules
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunRuleViolations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunVulnerabilities
@@ -272,6 +273,12 @@ fun Route.runs() = route("runs") {
                 )
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
+            }
+
+            route("rules") {
+                get(getRunRuleViolationRules, requireRunPermission()) {
+                    call.respond(HttpStatusCode.OK, ruleViolationService.getRulesForOrtRunId(call.ortRun.id))
+                }
             }
         }
 
@@ -561,7 +568,11 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
  */
 private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
     RuleViolationFilters(
-        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
+        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        severity = severityFilter(),
+        rule = stringSetFilter("rule")
     )
 
 /**

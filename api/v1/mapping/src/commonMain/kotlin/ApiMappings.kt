@@ -870,7 +870,13 @@ fun ApiPackageFilters.mapToModel(): PackageFilters =
         isDirectDependency = isDirectDependency
     )
 
-fun ApiRuleViolationFilters.mapToModel(): RuleViolationFilters = RuleViolationFilters(resolved = resolved)
+fun ApiRuleViolationFilters.mapToModel(): RuleViolationFilters = RuleViolationFilters(
+    resolved = resolved,
+    identifier = identifier?.mapToModel { it },
+    purl = purl?.mapToModel { it },
+    severity = severity?.mapToModel { severities -> severities.mapTo(mutableSetOf()) { it.mapToModel() } },
+    rule = rule?.mapToModel { it }
+)
 
 fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFilters(
     resolved = resolved,

@@ -350,6 +350,100 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         return IssueRouteScenario(ortRun, resolvedIssue, unresolvedIssue, resolvedPackage.purl)
     }
 
+    data class RuleViolationRouteScenario(
+        val ortRun: OrtRun,
+        val resolvedViolation: RuleViolation,
+        val warningViolation: RuleViolation,
+        val hintViolation: RuleViolation,
+        val resolvedViolationPurl: String
+    )
+
+    fun createRuleViolationRouteScenario(includeDuplicateRule: Boolean = false): RuleViolationRouteScenario {
+        val ortRun = dbExtension.fixtures.createOrtRun(
+            repositoryId = repositoryId,
+            revision = "revision",
+            jobConfigurations = JobConfigurations()
+        )
+        val resolvedPackage = dbExtension.fixtures.generatePackage(
+            Identifier("Maven", "com.example", "alpha-lib", "1.0")
+        )
+        val warningPackage = dbExtension.fixtures.generatePackage(
+            Identifier("NPM", "org.example", "beta-lib", "2.0")
+        )
+        val hintPackage = dbExtension.fixtures.generatePackage(
+            Identifier("PyPI", "", "gamma-lib", "3.0")
+        )
+        val resolvedViolation = RuleViolation(
+            rule = "zebra-rule",
+            id = resolvedPackage.identifier,
+            license = "MIT",
+            licenseSources = setOf(LicenseSource.DECLARED),
+            severity = Severity.ERROR,
+            message = "resolved alpha violation",
+            howToFix = "Fix alpha"
+        )
+        val warningViolation = RuleViolation(
+            rule = "middle-rule",
+            id = warningPackage.identifier,
+            license = "Apache-2.0",
+            licenseSources = setOf(LicenseSource.CONCLUDED),
+            severity = Severity.WARNING,
+            message = "unresolved beta violation",
+            howToFix = "Fix beta"
+        )
+        val hintViolation = RuleViolation(
+            rule = "Alpha-rule",
+            id = hintPackage.identifier,
+            license = "BSD-2-Clause",
+            licenseSources = setOf(LicenseSource.DETECTED),
+            severity = Severity.HINT,
+            message = "unresolved gamma violation",
+            howToFix = "Fix gamma"
+        )
+
+        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(ortRun.id)
+        dbExtension.fixtures.createAnalyzerRun(
+            analyzerJob.id,
+            packages = setOf(resolvedPackage, warningPackage, hintPackage)
+        )
+
+        val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(
+            ortRunId = ortRun.id,
+            configuration = EvaluatorJobConfiguration()
+        )
+        val violations = listOf(resolvedViolation, warningViolation, hintViolation).toMutableList()
+        if (includeDuplicateRule) {
+            violations += hintViolation.copy(message = "another violation from the same rule")
+        }
+
+        dbExtension.fixtures.evaluatorRunRepository.create(
+            evaluatorJobId = evaluatorJob.id,
+            startTime = Clock.System.now().toDatabasePrecision(),
+            endTime = Clock.System.now().toDatabasePrecision(),
+            environment = Environment.EMPTY,
+            violations = violations
+        )
+
+        val resolution = RuleViolationResolution(
+            message = resolvedViolation.message,
+            reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+            comment = "Known violation",
+            source = ResolutionSource.REPOSITORY_FILE
+        )
+        dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+            ortRun.id,
+            ResolvedItemsResult(ruleViolations = mapOf(resolvedViolation to listOf(resolution)))
+        )
+
+        return RuleViolationRouteScenario(
+            ortRun,
+            resolvedViolation,
+            warningViolation,
+            hintViolation,
+            resolvedPackage.purl
+        )
+    }
+
     "GET /runs/{runId}" should {
         "return the requested ORT run" {
             integrationTestApplication {
@@ -2679,6 +2773,220 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ApiLicenseSource.DECLARED,
                     ApiLicenseSource.DETECTED
                 )
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            integrationTestApplication {
+                superuserClient.get("/api/v1/runs/12345/rule-violations") shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "filter rule violations by identifier and analyzer PURL" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                val baseUrl = "/api/v1/runs/${scenario.ortRun.id}/rule-violations"
+
+                val identifierResponse = superuserClient.get("$baseUrl?identifier=ALPHA-LIB")
+                val purlResponse = superuserClient.get("$baseUrl?purl=ALPHA-LIB")
+
+                identifierResponse shouldHaveStatus HttpStatusCode.OK
+                identifierResponse.body<PagedResponse<ApiRuleViolation>>().data.shouldBeSingleton {
+                    it.message shouldBe scenario.resolvedViolation.message
+                }
+                purlResponse shouldHaveStatus HttpStatusCode.OK
+                purlResponse.body<PagedResponse<ApiRuleViolation>>().data.shouldBeSingleton {
+                    it.message shouldBe scenario.resolvedViolation.message
+                    it.purl shouldBe scenario.resolvedViolationPurl
+                }
+            }
+        }
+
+        "include or exclude rule violations by severity and rule" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                val baseUrl = "/api/v1/runs/${scenario.ortRun.id}/rule-violations"
+
+                val includedSeverities = superuserClient.get("$baseUrl?severity=error,warning")
+                val excludedSeverity = superuserClient.get("$baseUrl?severity=-,warning")
+                val includedRules = superuserClient.get("$baseUrl?rule=zebra-rule,middle-rule")
+                val excludedRule = superuserClient.get("$baseUrl?rule=-,middle-rule")
+
+                includedSeverities.body<PagedResponse<ApiRuleViolation>>().data.map { it.message }
+                    .shouldContainExactlyInAnyOrder(
+                        scenario.resolvedViolation.message,
+                        scenario.warningViolation.message
+                    )
+                excludedSeverity.body<PagedResponse<ApiRuleViolation>>().data.map { it.message }
+                    .shouldContainExactlyInAnyOrder(
+                        scenario.resolvedViolation.message,
+                        scenario.hintViolation.message
+                    )
+                includedRules.body<PagedResponse<ApiRuleViolation>>().data.map { it.message }
+                    .shouldContainExactlyInAnyOrder(
+                        scenario.resolvedViolation.message,
+                        scenario.warningViolation.message
+                    )
+                excludedRule.body<PagedResponse<ApiRuleViolation>>().data.map { it.message }
+                    .shouldContainExactlyInAnyOrder(
+                        scenario.resolvedViolation.message,
+                        scenario.hintViolation.message
+                    )
+            }
+        }
+
+        "combine filters before pagination and counting" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/rule-violations" +
+                            "?identifier=example&purl=pkg:&severity=error,warning&rule=zebra-rule,middle-rule" +
+                            "&sort=identifier&limit=1&offset=1"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val body = response.body<PagedResponse<ApiRuleViolation>>()
+                body.pagination.totalCount shouldBe 2
+                body.pagination.limit shouldBe 1
+                body.pagination.offset shouldBe 1
+                body.data.shouldBeSingleton {
+                    it.message shouldBe scenario.warningViolation.message
+                }
+            }
+        }
+
+        "reject an invalid severity" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/rule-violations?severity=critical"
+                ) shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
+        "sort rule violations by all table fields in both directions" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                val identifierOrder = listOf(
+                    scenario.resolvedViolation.message,
+                    scenario.warningViolation.message,
+                    scenario.hintViolation.message
+                )
+                val expectedAscending = mapOf(
+                    "identifier" to identifierOrder,
+                    "purl" to identifierOrder,
+                    "status" to identifierOrder,
+                    "severity" to listOf(
+                        scenario.hintViolation.message,
+                        scenario.warningViolation.message,
+                        scenario.resolvedViolation.message
+                    ),
+                    "rule" to listOf(
+                        scenario.hintViolation.message,
+                        scenario.warningViolation.message,
+                        scenario.resolvedViolation.message
+                    )
+                )
+                val expectedDescending = expectedAscending.mapValues { (field, messages) ->
+                    if (field == "status") {
+                        listOf(
+                            scenario.warningViolation.message,
+                            scenario.hintViolation.message,
+                            scenario.resolvedViolation.message
+                        )
+                    } else {
+                        messages.reversed()
+                    }
+                }
+                val baseUrl = "/api/v1/runs/${scenario.ortRun.id}/rule-violations"
+
+                expectedAscending.forEach { (field, expectedMessages) ->
+                    val ascendingResponse = superuserClient.get("$baseUrl?sort=$field")
+                    val descendingResponse = superuserClient.get("$baseUrl?sort=-$field")
+
+                    ascendingResponse shouldHaveStatus HttpStatusCode.OK
+                    ascendingResponse.body<PagedResponse<ApiRuleViolation>>().data.map { it.message } shouldBe
+                        expectedMessages
+                    descendingResponse shouldHaveStatus HttpStatusCode.OK
+                    descendingResponse.body<PagedResponse<ApiRuleViolation>>().data.map { it.message } shouldBe
+                        expectedDescending.getValue(field)
+                }
+            }
+        }
+
+        "apply sorting with filtering and pagination" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/rule-violations" +
+                            "?severity=hint,warning,error&sort=severity&limit=1&offset=1"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val body = response.body<PagedResponse<ApiRuleViolation>>()
+                body.pagination.totalCount shouldBe 3
+                body.data.shouldBeSingleton {
+                    it.message shouldBe scenario.warningViolation.message
+                }
+            }
+        }
+
+        "reject an unsupported sort field" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario()
+                superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/rule-violations?sort=message"
+                ) shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+    }
+
+    "GET /runs/{runId}/rule-violations/rules" should {
+        "return distinct sorted rules scoped to the run" {
+            integrationTestApplication {
+                val scenario = createRuleViolationRouteScenario(includeDuplicateRule = true)
+                createRuleViolationRouteScenario()
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${scenario.ortRun.id}/rule-violations/rules"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() shouldBe listOf("Alpha-rule", "middle-rule", "zebra-rule")
+            }
+        }
+
+        "return an empty list if the run has no violations" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/rule-violations/rules")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<List<String>>() should beEmpty()
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            integrationTestApplication {
+                superuserClient.get("/api/v1/runs/12345/rule-violations/rules") shouldHaveStatus
+                    HttpStatusCode.NotFound
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRun = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            )
+
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
+                get("/api/v1/runs/${ortRun.id}/rule-violations/rules")
             }
         }
     }

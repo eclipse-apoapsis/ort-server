@@ -63,5 +63,17 @@ data class RuleViolationFilters(
      * Filter to only return resolved rule violations. Null if both, resolved an unresolved rule violations should be
      * returned.
      */
-    val resolved: Boolean? = null
+    val resolved: Boolean? = null,
+
+    /** Substring filter for the package identifier. */
+    val identifier: FilterOperatorAndValue<String>? = null,
+
+    /** Substring filter for the effective package purl. */
+    val purl: FilterOperatorAndValue<String>? = null,
+
+    /** Set of [Severity] values to filter with. */
+    val severity: FilterOperatorAndValue<Set<Severity>>? = null,
+
+    /** Set of rule names to filter with. */
+    val rule: FilterOperatorAndValue<Set<String>>? = null
 )

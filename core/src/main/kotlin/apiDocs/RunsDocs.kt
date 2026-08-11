@@ -437,11 +437,35 @@ val getRunVulnerabilityAdvisors: RouteConfig.() -> Unit = {
 val getRunRuleViolations: RouteConfig.() -> Unit = {
     operationId = "getRunRuleViolations"
     summary = "Get the rule violations found in an ORT run"
+    description = "Supported sort fields are 'identifier', 'purl', 'status', 'severity', and 'rule'."
     tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
             description = "The ID of the ORT run."
+        }
+
+        queryParameter<String>("identifier") {
+            description = "Defines an ORT package identifier to filter the results by. Uses a case-insensitive " +
+                    "substring match against the full ORT coordinates."
+        }
+
+        queryParameter<String>("purl") {
+            description = "Defines a package purl to filter the results by. Uses a case-insensitive substring match " +
+                    "against the effective purl, where a curated purl takes precedence over the analyzer purl."
+        }
+
+        queryParameter<String>("severity") {
+            description = "Defines the severities to filter the results by. This is a comma-separated string with " +
+                    "the following allowed severities: " + Severity.entries.joinToString { "'$it'" } +
+                    " (ignoring case). Add a minus as the first item to exclude rule violations with the specified " +
+                    "severities, e.g. '-,HINT,WARNING'."
+        }
+
+        queryParameter<String>("rule") {
+            description = "Defines the exact rule names to filter the results by as a comma-separated string. Add a " +
+                    "minus as the first item to exclude rule violations with the specified rules, e.g. " +
+                    "'-,Unmapped declared license found'."
         }
 
         queryParameter<Boolean>("resolved") {
@@ -529,6 +553,34 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                         `licenseSource` property containing only the first license source if available. This is
                         deprecated, and clients should migrate to using the `licenseSources` property.
                     """.trimIndent()
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getRunRuleViolationRules: RouteConfig.() -> Unit = {
+    operationId = "getRunRuleViolationRules"
+    summary = "Get the rules found in an ORT run"
+    description = "Returns the distinct rule names found in the run, sorted case-insensitively by name."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<List<String>> {
+                example("Get rules for an ORT run") {
+                    value = listOf("LicenseRule", "VulnerabilityRule")
                 }
             }
         }
