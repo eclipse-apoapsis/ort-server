@@ -61,15 +61,15 @@ export const EvaluatorFields = ({
         control={form.control}
         name='jobConfigs.evaluator.enabled'
         render={({ field }) => (
-          <FormControl>
-            <>
+          <FormItem>
+            <FormControl>
               <Switch
                 className='my-4 mr-4 data-[state=checked]:bg-green-500'
                 checked={field.value}
                 onCheckedChange={field.onChange}
               />
-            </>
-          </FormControl>
+            </FormControl>
+          </FormItem>
         )}
       />
       <AccordionItem value={value} className='flex-1'>

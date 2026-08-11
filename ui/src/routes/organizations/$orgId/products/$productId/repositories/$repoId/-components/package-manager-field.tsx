@@ -202,12 +202,12 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
               className='my-2 flex flex-row items-end space-x-2'
             >
               <div className='flex-auto'>
-                {index === 0 && <FormLabel>Key</FormLabel>}
                 <FormField
                   control={form.control}
                   name={`jobConfigs.analyzer.packageManagers.${pmName}.options.${index}.key`}
                   render={({ field }) => (
                     <FormItem>
+                      {index === 0 && <FormLabel>Key</FormLabel>}
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -217,12 +217,12 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
                 />
               </div>
               <div className='flex-auto'>
-                {index === 0 && <FormLabel>Value</FormLabel>}
                 <FormField
                   control={form.control}
                   name={`jobConfigs.analyzer.packageManagers.${pmName}.options.${index}.value`}
                   render={({ field }) => (
                     <FormItem>
+                      {index === 0 && <FormLabel>Value</FormLabel>}
                       <FormControl>
                         <Input {...field} />
                       </FormControl>

@@ -389,12 +389,14 @@ const CreateRunPage = () => {
                 className='my-2 flex flex-row items-end space-x-2'
               >
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel className='mb-2'>Key</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`jobConfigs.parameters.${index}.key`}
                     render={({ field }) => (
                       <FormItem>
+                        {index === 0 && (
+                          <FormLabel className='mb-2'>Key</FormLabel>
+                        )}
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -404,12 +406,14 @@ const CreateRunPage = () => {
                   />
                 </div>
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel className='mb-2'>Value</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`jobConfigs.parameters.${index}.value`}
                     render={({ field }) => (
                       <FormItem>
+                        {index === 0 && (
+                          <FormLabel className='mb-2'>Value</FormLabel>
+                        )}
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -455,12 +459,14 @@ const CreateRunPage = () => {
                 className='my-2 flex flex-row items-end space-x-2'
               >
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel className='mb-2'>Key</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`labels.${index}.key`}
                     render={({ field }) => (
                       <FormItem>
+                        {index === 0 && (
+                          <FormLabel className='mb-2'>Key</FormLabel>
+                        )}
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -470,12 +476,14 @@ const CreateRunPage = () => {
                   />
                 </div>
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel className='mb-2'>Value</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`labels.${index}.value`}
                     render={({ field }) => (
                       <FormItem>
+                        {index === 0 && (
+                          <FormLabel className='mb-2'>Value</FormLabel>
+                        )}
                         <FormControl>
                           <Input {...field} />
                         </FormControl>

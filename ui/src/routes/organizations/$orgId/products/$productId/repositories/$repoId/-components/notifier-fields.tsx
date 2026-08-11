@@ -63,13 +63,15 @@ export const NotifierFields = ({
         control={form.control}
         name='jobConfigs.notifier.enabled'
         render={({ field }) => (
-          <FormControl>
-            <Switch
-              className='my-4 mr-4 data-[state=checked]:bg-green-500'
-              checked={field.value}
-              onCheckedChange={field.onChange}
-            />
-          </FormControl>
+          <FormItem>
+            <FormControl>
+              <Switch
+                className='my-4 mr-4 data-[state=checked]:bg-green-500'
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
         )}
       />
       <AccordionItem value={value} className='flex-1'>
@@ -84,12 +86,12 @@ export const NotifierFields = ({
               className='my-2 flex flex-row items-end space-x-2'
             >
               <div className='flex-auto'>
-                {index === 0 && <FormLabel>E-mail address</FormLabel>}
                 <FormField
                   control={form.control}
                   name={`jobConfigs.notifier.recipientAddresses.${index}.email`}
                   render={({ field }) => (
                     <FormItem>
+                      {index === 0 && <FormLabel>E-mail address</FormLabel>}
                       <FormControl>
                         <Input {...field} />
                       </FormControl>

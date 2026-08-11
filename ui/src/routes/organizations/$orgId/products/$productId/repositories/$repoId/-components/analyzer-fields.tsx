@@ -97,14 +97,16 @@ export const AnalyzerFields = ({
         control={form.control}
         name='jobConfigs.analyzer.enabled'
         render={({ field }) => (
-          <FormControl>
-            <Switch
-              className='my-4 mr-4 data-[state=checked]:bg-green-500'
-              checked={field.value}
-              disabled
-              onCheckedChange={field.onChange}
-            />
-          </FormControl>
+          <FormItem>
+            <FormControl>
+              <Switch
+                className='my-4 mr-4 data-[state=checked]:bg-green-500'
+                checked={field.value}
+                disabled
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
         )}
       />
       <AccordionItem value={value} className='flex-1'>
