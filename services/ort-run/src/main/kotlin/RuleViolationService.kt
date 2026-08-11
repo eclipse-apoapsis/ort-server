@@ -93,6 +93,25 @@ class RuleViolationService(
     private val ortRunService: OrtRunService,
     private val ruleViolationResolutionService: RuleViolationResolutionService
 ) {
+    /** Return the distinct rule names found in the given ORT run, sorted case-insensitively. */
+    fun getRulesForOrtRunId(ortRunId: Long): List<String> {
+        if (ortRunService.getOrtRun(ortRunId) == null) {
+            throw ResourceNotFoundException("ORT run with ID $ortRunId not found.")
+        }
+
+        return db.blockingQuery {
+            RuleViolationsTable
+                .innerJoin(EvaluatorRunsRuleViolationsTable)
+                .innerJoin(EvaluatorRunsTable)
+                .innerJoin(EvaluatorJobsTable)
+                .select(RuleViolationsTable.rule)
+                .where { EvaluatorJobsTable.ortRunId eq ortRunId }
+                .withDistinct()
+                .map { it[RuleViolationsTable.rule] }
+                .sortedWith(String.CASE_INSENSITIVE_ORDER)
+        }
+    }
+
     /** Return a page of rule violations for the given ORT run after applying the requested filters. */
     fun listForOrtRunId(
         ortRunId: Long,

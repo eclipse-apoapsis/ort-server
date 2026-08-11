@@ -26,6 +26,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
@@ -111,6 +112,38 @@ class RuleViolationServiceTest : WordSpec() {
             }
 
             service = RuleViolationService(db, ortRunService, ruleViolationResolutionService)
+        }
+
+        "getRulesForOrtRunId" should {
+            "return distinct case-insensitively sorted rules for the given ORT run" {
+                val repositoryId = fixtures.createRepository().id
+                val ruleViolations = generateRuleViolations()
+                val ortRun = createRuleViolationEntries(
+                    repositoryId,
+                    listOf(
+                        ruleViolations[0].copy(rule = "zeta"),
+                        ruleViolations[1].copy(rule = "alpha"),
+                        ruleViolations[2].copy(rule = "Beta"),
+                        ruleViolations[0].copy(rule = "alpha", message = "Another message")
+                    )
+                )
+
+                createRuleViolationEntries(
+                    repositoryId,
+                    listOf(ruleViolations[0].copy(rule = "A rule from another run"))
+                )
+
+                service.getRulesForOrtRunId(ortRun.id) shouldContainExactly listOf("alpha", "Beta", "zeta")
+            }
+
+            "return an empty list when the ORT run has no rule violations" {
+                val repositoryId = fixtures.createRepository().id
+                val ortRunWithoutEvaluatorResult = fixtures.createOrtRun(repositoryId)
+                val ortRunWithoutViolations = createRuleViolationEntries(repositoryId, emptyList())
+
+                service.getRulesForOrtRunId(ortRunWithoutEvaluatorResult.id) should beEmpty()
+                service.getRulesForOrtRunId(ortRunWithoutViolations.id) should beEmpty()
+            }
         }
 
         "listForOrtRunId" should {
