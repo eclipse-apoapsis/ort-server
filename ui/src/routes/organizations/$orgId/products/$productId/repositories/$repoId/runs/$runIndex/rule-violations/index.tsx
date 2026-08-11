@@ -17,26 +17,24 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import z from 'zod';
 
 import { RuleViolation, Severity } from '@/api';
 import {
   getRepositoryRunOptions,
+  getRunRuleViolationRulesOptions,
   getRunRuleViolationsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
@@ -72,15 +70,18 @@ import {
   getResolvedBackgroundColor,
   getRuleViolationSeverityBackgroundColor,
 } from '@/helpers/get-status-class';
-import { updateColumnSorting } from '@/helpers/handle-multisort';
+import {
+  convertToBackendSorting,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
   getResolutionAccordionDefaultValue,
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
-import { compareSeverity } from '@/helpers/sorting-functions';
-import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
+import { ACTION_COLUMN_SIZE } from '@/lib/constants';
+import { toastError } from '@/lib/toast';
 import {
   ItemResolved,
   itemResolvedSchema,
@@ -95,6 +96,13 @@ import {
 import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
+const supportedSortColumns = new Set([
+  'identifier',
+  'purl',
+  'status',
+  'severity',
+  'rule',
+]);
 
 const columnHelper = createColumnHelper<RuleViolation>();
 
@@ -208,27 +216,72 @@ const RuleViolationsComponent = () => {
     }),
   });
 
-  const { data: ruleViolations } = useSuspenseQuery({
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const severity = search.severity;
+  const itemStatus = search.itemResolved;
+  const packageIdentifier = search.pkgId;
+  const selectedRules = search.rule;
+  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+  const resolved =
+    itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
+  const sortBy =
+    search.sortBy?.filter((sort) => supportedSortColumns.has(sort.id)) ?? [];
+
+  const columnFilters = [
+    { id: 'severity', value: severity },
+    { id: 'status', value: itemStatus },
+    { id: columnId, value: packageIdentifier },
+    { id: 'rule', value: selectedRules },
+  ].filter(({ value }) => value !== undefined);
+
+  const {
+    data: totalRuleViolations,
+    isPending: totalIsPending,
+    isError: totalIsError,
+    error: totalError,
+  } = useQuery({
     ...getRunRuleViolationsOptions({
       path: { runId: ortRun.id },
-      query: { limit: ALL_ITEMS },
+      query: { limit: 1 },
     }),
   });
 
-  const ruleOptions = useMemo(
-    () =>
-      [
-        ...new Set(
-          ruleViolations.data.map((ruleViolation) => ruleViolation.rule)
-        ),
-      ]
-        .sort((a, b) => a.localeCompare(b))
-        .map((rule) => ({
-          label: rule,
-          value: rule,
-        })),
-    [ruleViolations.data]
-  );
+  const {
+    data: availableRules,
+    isPending: rulesIsPending,
+    isError: rulesIsError,
+    error: rulesError,
+  } = useQuery({
+    ...getRunRuleViolationRulesOptions({
+      path: { runId: ortRun.id },
+    }),
+  });
+
+  const {
+    data: ruleViolations,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
+    ...getRunRuleViolationsOptions({
+      path: { runId: ortRun.id },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(sortBy),
+        resolved,
+        severity: severity?.join(','),
+        rule: selectedRules?.join(','),
+        ...(packageIdType === 'ORT_ID'
+          ? { identifier: packageIdentifier }
+          : { purl: packageIdentifier }),
+      },
+    }),
+  });
+
+  const ruleOptions =
+    availableRules?.map((rule) => ({ label: rule, value: rule })) ?? [];
 
   const columns = [
     columnHelper.display({
@@ -305,11 +358,8 @@ const RuleViolationsComponent = () => {
         return getResolvedStatus(ruleViolation);
       },
       {
-        id: 'itemStatus',
+        id: 'status',
         header: 'Status',
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getResolvedStatus(row.original));
-        },
         meta: {
           filter: {
             filterVariant: 'select',
@@ -332,12 +382,6 @@ const RuleViolationsComponent = () => {
     ),
     columnHelper.accessor('severity', {
       header: 'Severity',
-      filterFn: (row, _columnId, filterValue): boolean => {
-        return filterValue.includes(row.original.severity);
-      },
-      sortingFn: (rowA, rowB) => {
-        return compareSeverity(rowA.original.severity, rowB.original.severity);
-      },
       meta: {
         filter: {
           filterVariant: 'select',
@@ -360,9 +404,6 @@ const RuleViolationsComponent = () => {
 
     columnHelper.accessor('rule', {
       header: 'Rule',
-      filterFn: (row, _columnId, filterValue): boolean => {
-        return filterValue.includes(row.original.rule);
-      },
       meta: {
         filter: {
           filterVariant: 'select',
@@ -381,62 +422,6 @@ const RuleViolationsComponent = () => {
       },
     }),
   ];
-
-  // Memoize the search parameters to prevent unnecessary re-rendering
-
-  const pageIndex = useMemo(
-    () => (search.page ? search.page - 1 : 0),
-    [search.page]
-  );
-
-  const pageSize = useMemo(
-    () => (search.pageSize ? search.pageSize : defaultPageSize),
-    [search.pageSize]
-  );
-
-  const severity = useMemo(
-    () => (search.severity ? search.severity : undefined),
-    [search.severity]
-  );
-
-  const itemStatus = useMemo(
-    () => (search.itemResolved ? search.itemResolved : undefined),
-    [search.itemResolved]
-  );
-
-  const packageIdentifier = useMemo(
-    () => (search.pkgId ? search.pkgId : undefined),
-    [search.pkgId]
-  );
-
-  const rules = useMemo(
-    () => (search.rule ? search.rule : undefined),
-    [search.rule]
-  );
-
-  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
-
-  const columnFilters = useMemo(() => {
-    const filters = [];
-    if (severity) {
-      filters.push({ id: 'severity', value: severity });
-    }
-    if (itemStatus) {
-      filters.push({ id: 'itemStatus', value: itemStatus });
-    }
-    if (packageIdentifier) {
-      filters.push({ id: columnId, value: packageIdentifier });
-    }
-    if (rules) {
-      filters.push({ id: 'rule', value: rules });
-    }
-    return filters;
-  }, [severity, itemStatus, packageIdentifier, rules, columnId]);
-
-  const sortBy = useMemo(
-    () => (search.sortBy ? search.sortBy : undefined),
-    [search.sortBy]
-  );
 
   const renderSubComponent = useCallback(
     ({ row }: { row: Row<RuleViolation> }) => {
@@ -502,8 +487,11 @@ const RuleViolationsComponent = () => {
   );
 
   const table = useReactTable({
-    data: ruleViolations.data,
+    data: ruleViolations?.data || [],
     columns,
+    pageCount: Math.ceil(
+      (ruleViolations?.pagination.totalCount ?? 0) / pageSize
+    ),
     state: {
       pagination: {
         pageIndex,
@@ -513,7 +501,7 @@ const RuleViolationsComponent = () => {
       columnVisibility: {
         [columnId]: false,
         severity: false,
-        itemStatus: false,
+        status: false,
         rule: false,
       },
       sorting: sortBy,
@@ -522,13 +510,23 @@ const RuleViolationsComponent = () => {
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
   });
+
+  if (isPending || totalIsPending || rulesIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (isError || totalIsError || rulesIsError) {
+    toastError('Unable to load data', error || totalError || rulesError);
+    return;
+  }
+
   const filtersInUse = table.getState().columnFilters.length > 0;
-  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
+  const matching = `, ${ruleViolations.pagination.totalCount} matching filters`;
   const evaluatorWasIncludedInRun = ortRun.jobs.evaluator != null;
   const noResultsContent = !evaluatorWasIncludedInRun ? (
     <div className='text-muted-foreground text-sm'>
@@ -541,7 +539,7 @@ const RuleViolationsComponent = () => {
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Rule Violations ({ruleViolations.pagination.totalCount} in total
+          Rule Violations ({totalRuleViolations.pagination.totalCount} in total
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
@@ -571,7 +569,12 @@ const RuleViolationsComponent = () => {
               to: Route.to,
               search: {
                 ...search,
-                sortBy: updateColumnSorting(search.sortBy, sortBy),
+                sortBy: updateColumnSorting(
+                  search.sortBy?.filter((sort) =>
+                    supportedSortColumns.has(sort.id)
+                  ),
+                  sortBy
+                ),
               },
             };
           }}
