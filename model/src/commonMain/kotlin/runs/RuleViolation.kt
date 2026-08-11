@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.model.runs
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 /**
  * A data class describing a rule violation that occurred during an ORT run.
@@ -47,9 +48,18 @@ data class RuleViolation(
  * Filters to apply when querying for rule violations.
  */
 data class RuleViolationFilters(
-    /**
-     * Filter to only return resolved rule violations. Null if both, resolved an unresolved rule violations should be
-     * returned.
-     */
-    val resolved: Boolean? = null
+    /** Filter by resolution status. Null if both resolved and unresolved rule violations should be returned. */
+    val resolved: Boolean? = null,
+
+    /** Filter rule violations by their package identifier. */
+    val identifier: FilterOperatorAndValue<String>? = null,
+
+    /** Filter rule violations by their package PURL. */
+    val purl: FilterOperatorAndValue<String>? = null,
+
+    /** Filter rule violations by their [Severity]. */
+    val severity: FilterOperatorAndValue<Set<Severity>>? = null,
+
+    /** Filter rule violations by their rule name. */
+    val rule: FilterOperatorAndValue<Set<String>>? = null
 )

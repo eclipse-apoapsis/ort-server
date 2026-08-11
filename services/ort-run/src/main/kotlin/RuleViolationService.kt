@@ -32,7 +32,10 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRule
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RuleViolationResolutionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
+import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
+import org.eclipse.apoapsis.ortserver.dao.utils.severitySortRank
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -43,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -50,20 +54,36 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
 
+import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.Count
+import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.concat
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.not
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
+
+private class RuleViolationQueryContext(
+    val query: Query,
+    val identifierExpression: ExpressionWithColumnType<String>,
+    val purlColumn: ExpressionWithColumnType<String>,
+    val statusExpression: ExpressionWithColumnType<String>
+)
 
 /**
  * A service to interact with rule violations.
@@ -73,6 +93,7 @@ class RuleViolationService(
     private val ortRunService: OrtRunService,
     private val ruleViolationResolutionService: RuleViolationResolutionService
 ) {
+    /** Return a page of rule violations for the given ORT run after applying the requested filters. */
     fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
@@ -83,10 +104,10 @@ class RuleViolationService(
         )
 
         return db.blockingQuery {
-            val query = buildListForOrtRunIdQuery(ortRunId, ruleViolationFilter)
+            val context = buildListForOrtRunIdQueryContext(ortRunId, ruleViolationFilter)
 
-            val totalCount = query.count()
-            val ruleViolationIds = fetchPagedRuleViolationIds(query, parameters)
+            val totalCount = context.query.count()
+            val ruleViolationIds = fetchPagedRuleViolationIds(context, parameters)
 
             if (ruleViolationIds.isEmpty()) {
                 return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
@@ -113,17 +134,62 @@ class RuleViolationService(
         }
     }
 
-    private fun buildListForOrtRunIdQuery(ortRunId: Long, ruleViolationFilter: RuleViolationFilters): Query {
-        val query = RuleViolationsTable
+    private fun buildListForOrtRunIdQueryContext(
+        ortRunId: Long,
+        ruleViolationFilter: RuleViolationFilters
+    ): RuleViolationQueryContext {
+        val riOrtRunId = EvaluatorJobsTable.ortRunId.alias("rule_violation_ri_ort_run_id")
+
+        // Null identifier IDs are excluded from the pairs query before this is passed to the shared PURL builder.
+        @Suppress("UNCHECKED_CAST")
+        val identifierId = RuleViolationsTable.identifierId as ExpressionWithColumnType<EntityID<Long>>
+        val riIdentifierId = identifierId.alias("rule_violation_ri_identifier_id")
+        val runIdPairs = RuleViolationsTable
             .innerJoin(EvaluatorRunsRuleViolationsTable)
             .innerJoin(EvaluatorRunsTable)
             .innerJoin(EvaluatorJobsTable)
-            .select(RuleViolationsTable.id)
-            .where { EvaluatorJobsTable.ortRunId eq ortRunId }
+            .select(riOrtRunId, riIdentifierId)
+            .where {
+                (EvaluatorJobsTable.ortRunId eq ortRunId) and RuleViolationsTable.identifierId.isNotNull()
+            }
+            .withDistinct()
+            .alias("rule_violation_run_identifier_pairs")
+
+        val purls = buildPurlByRunIdentifier(
+            runIdPairs,
+            runIdPairs[riOrtRunId],
+            runIdPairs[riIdentifierId]
+        )
+        val purlColumn = purls.alias[purls.purl]
+
+        val identifierExpression = concat(
+            IdentifiersTable.type,
+            stringLiteral(":"),
+            IdentifiersTable.namespace,
+            stringLiteral(":"),
+            IdentifiersTable.name,
+            stringLiteral(":"),
+            IdentifiersTable.version
+        )
 
         val resolvedRuleViolationIdsSubquery = ResolvedRuleViolationsTable
             .select(ResolvedRuleViolationsTable.ruleViolationId)
             .where { ResolvedRuleViolationsTable.ortRunId eq ortRunId }
+        val statusExpression = Case()
+            .When(RuleViolationsTable.id inSubQuery resolvedRuleViolationIdsSubquery, stringLiteral("Resolved"))
+            .Else(stringLiteral("Unresolved"))
+
+        val query = RuleViolationsTable
+            .innerJoin(EvaluatorRunsRuleViolationsTable)
+            .innerJoin(EvaluatorRunsTable)
+            .innerJoin(EvaluatorJobsTable)
+            .join(IdentifiersTable, JoinType.LEFT, RuleViolationsTable.identifierId, IdentifiersTable.id)
+            .join(purls.alias, JoinType.LEFT) {
+                (EvaluatorJobsTable.ortRunId eq purls.alias[purls.ortRunId]) and
+                    (RuleViolationsTable.identifierId eq purls.alias[purls.identifierId])
+            }
+            .select(RuleViolationsTable.id)
+            .where { EvaluatorJobsTable.ortRunId eq ortRunId }
 
         when (ruleViolationFilter.resolved) {
             true -> query.andWhere { RuleViolationsTable.id inSubQuery resolvedRuleViolationIdsSubquery }
@@ -131,10 +197,38 @@ class RuleViolationService(
             null -> {}
         }
 
-        return query
+        ruleViolationFilter.identifier?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for identifier filter: ${filter.operator}"
+            }
+
+            query.andWhere { identifierExpression.applyILike(filter.value) }
+        }
+
+        ruleViolationFilter.purl?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for PURL filter: ${filter.operator}"
+            }
+
+            query.andWhere { purlColumn.applyILike(filter.value) }
+        }
+
+        ruleViolationFilter.severity?.let { filter ->
+            query.andWhere { RuleViolationsTable.severity.applyFilter(filter.operator, filter.value) }
+        }
+
+        ruleViolationFilter.rule?.let { filter ->
+            query.andWhere { RuleViolationsTable.rule.applyFilter(filter.operator, filter.value) }
+        }
+
+        return RuleViolationQueryContext(query, identifierExpression, purlColumn, statusExpression)
     }
 
-    private fun fetchPagedRuleViolationIds(query: Query, parameters: ListQueryParameters): List<Long> {
+    private fun fetchPagedRuleViolationIds(
+        context: RuleViolationQueryContext,
+        parameters: ListQueryParameters
+    ): List<Long> {
+        val query = context.query
         val sortFields = parameters.sortFields.ifEmpty {
             listOf(OrderField("rule", OrderDirection.ASCENDING))
         }
@@ -143,8 +237,30 @@ class RuleViolationService(
             val sortOrder = orderField.direction.toSortOrder()
 
             when (orderField.name) {
+                "identifier" -> {
+                    query.orderBy(IdentifiersTable.type to sortOrder)
+                    query.orderBy(IdentifiersTable.namespace to sortOrder)
+                    query.orderBy(IdentifiersTable.name to sortOrder)
+                    query.orderBy(IdentifiersTable.version to sortOrder)
+                }
+
+                "purl" -> {
+                    val purlWithIdentifierFallback = Case()
+                        .When(
+                            context.purlColumn.isNull() or (context.purlColumn eq ""),
+                            context.identifierExpression
+                        )
+                        .Else(context.purlColumn)
+
+                    query.orderBy(purlWithIdentifierFallback to sortOrder)
+                }
+
+                "status" -> query.orderBy(context.statusExpression to sortOrder)
+
+                "severity" -> query.orderBy(RuleViolationsTable.severity.severitySortRank() to sortOrder)
+
                 "rule" -> query.orderBy(RuleViolationsTable.rule to sortOrder)
-                "severity" -> query.orderBy(RuleViolationsTable.severity to sortOrder)
+
                 else -> throw QueryParametersException("Unknown sort field '${orderField.name}'.")
             }
         }
