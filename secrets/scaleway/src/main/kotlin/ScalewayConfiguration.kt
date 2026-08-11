@@ -32,6 +32,7 @@ internal const val NAME_OF_API_VERSION = "scwApiVersion"
 internal const val NAME_OF_REGION = "scwRegion"
 internal const val NAME_OF_SECRET_KEY = "scwSecretKey"
 internal const val NAME_OF_PROJECT_ID = "scwProjectId"
+internal const val NAME_OF_ROOT_PATH = "scwRootPath"
 
 /** The path in the application configuration that contains Scaleway-specific HTTP client overrides. */
 const val SCALEWAY_HTTP_CLIENT_OVERRIDES_PATH = "scalewayHttpClient"
@@ -41,10 +42,12 @@ data class ScalewayConfiguration(
     val apiVersion: ScalewayApiVersion = DEFAULT_API_VERSION,
     val region: ScalewayRegion = DEFAULT_REGION,
     val secretKey: String,
-    val projectId: String
+    val projectId: String,
+    val rootPath: String = DEFAULT_ROOT_PATH
 ) {
     companion object {
         const val DEFAULT_SERVER_URL = "https://api.scaleway.com/"
+        const val DEFAULT_ROOT_PATH = ""
 
         val DEFAULT_API_VERSION = ScalewayApiVersion.V1_BETA1
         val DEFAULT_REGION = ScalewayRegion.FRANCE_PARIS
@@ -55,7 +58,10 @@ data class ScalewayConfiguration(
                 apiVersion = configManager.getEnumOrDefault(NAME_OF_API_VERSION, DEFAULT_API_VERSION),
                 region = configManager.getEnumOrDefault(NAME_OF_REGION, DEFAULT_REGION),
                 secretKey = configManager.getSecret(Path(NAME_OF_SECRET_KEY)),
-                projectId = configManager.getString(NAME_OF_PROJECT_ID)
+                projectId = configManager.getString(NAME_OF_PROJECT_ID),
+                rootPath = configManager.getStringOrDefault(NAME_OF_ROOT_PATH, DEFAULT_ROOT_PATH)
+                    .trim('/')
+                    .let { if (it.isEmpty()) "" else "/$it" }
             )
     }
 
