@@ -523,9 +523,10 @@ private fun ApplicationCall.filters(): OrtRunFilters =
  * null. Otherwise, it is interpreted as a comma-delimited list of license strings to filter the result by. If the
  * first item on the list is a minus, the provided licenses will be excluded from the result.
  */
-private fun ApplicationCall.declaredLicense(): FilterOperatorAndValue<Set<String>>? = licenseFilter("declaredLicense")
+private fun ApplicationCall.declaredLicense(): FilterOperatorAndValue<Set<String>>? =
+    stringSetFilter("declaredLicense")
 
-private fun ApplicationCall.licenseFilter(parameterName: String): FilterOperatorAndValue<Set<String>>? {
+private fun ApplicationCall.stringSetFilter(parameterName: String): FilterOperatorAndValue<Set<String>>? {
     val parts = parameters[parameterName]?.split(',')?.toSet() ?: return null
 
     return if ("-" in parts) {
@@ -534,6 +535,15 @@ private fun ApplicationCall.licenseFilter(parameterName: String): FilterOperator
         FilterOperatorAndValue(ComparisonOperator.IN, parts)
     }
 }
+
+private fun ApplicationCall.severityFilter(): FilterOperatorAndValue<Set<Severity>>? =
+    parameters["severity"]?.let { value ->
+        val parts = value.split(',')
+        val operator = if (parts.first() == "-") ComparisonOperator.NOT_IN else ComparisonOperator.IN
+        val severities = if (operator == ComparisonOperator.NOT_IN) parts.drop(1) else parts
+
+        FilterOperatorAndValue(operator, severities.mapTo(mutableSetOf()) { findByName<Severity>(it) })
+    }
 
 /**
  * Extract the package filters from this [ApplicationCall].
@@ -557,16 +567,8 @@ private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
 /**
  * Extract the issue filters from this [ApplicationCall].
  */
-private fun ApplicationCall.issueFilters(): IssueFilter {
-    val severity: FilterOperatorAndValue<Set<Severity>>? = parameters["severity"]?.let { value ->
-        val parts = value.split(',')
-        val operator = if (parts.first() == "-") ComparisonOperator.NOT_IN else ComparisonOperator.IN
-        val severities = if (operator == ComparisonOperator.NOT_IN) parts.drop(1) else parts
-
-        FilterOperatorAndValue(operator, severities.mapTo(mutableSetOf()) { findByName<Severity>(it) })
-    }
-
-    return IssueFilter(
+private fun ApplicationCall.issueFilters(): IssueFilter =
+    IssueFilter(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
         identifier = parameters["identifier"]?.let {
             FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
@@ -574,9 +576,8 @@ private fun ApplicationCall.issueFilters(): IssueFilter {
         purl = parameters["purl"]?.let {
             FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
         },
-        severity = severity
+        severity = severityFilter()
     )
-}
 
 /**
  * Extract the vulnerability filters from this [ApplicationCall].
