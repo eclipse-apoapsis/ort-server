@@ -65,16 +65,19 @@ export function PluginOptionFormFields({ options, form }: Props) {
     const isNotSet = form.watch(`${option.name}_isNotSet`);
 
     return (
-      <FormItem key={option.name}>
-        <FormLabel>
-          {option.name}
-          <Badge className='ml-2 bg-blue-200 text-black'>{option.type}</Badge>
-        </FormLabel>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FormField
-            control={form.control}
-            name={option.name}
-            render={({ field }) => (
+      <FormField
+        key={option.name}
+        control={form.control}
+        name={option.name}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              {option.name}
+              <Badge className='ml-2 bg-blue-200 text-black'>
+                {option.type}
+              </Badge>
+            </FormLabel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <FormControl>
                 {option.type === 'BOOLEAN' ? (
                   <Switch
@@ -161,78 +164,78 @@ export function PluginOptionFormFields({ options, form }: Props) {
                   />
                 )}
               </FormControl>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={`${option.name}_isFinal`}
-            render={({ field }) => (
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <Checkbox
-                  checked={field.value as CheckedState}
-                  onCheckedChange={field.onChange}
-                  disabled={Boolean(isNotSet)}
-                />
-                <p className='text-sm'>Final</p>
-              </label>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={`${option.name}_isNotSet`}
-            render={({ field }) => (
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <Checkbox
-                  checked={field.value as CheckedState}
-                  onCheckedChange={(checked) => {
-                    field.onChange(checked);
-                    if (checked) {
-                      form.setValue(
-                        option.name,
-                        option.type === 'BOOLEAN'
-                          ? false
-                          : option.type === 'ENUM_LIST'
-                            ? parseStoredPluginOptionValue(
-                                option.defaultValue,
-                                option.type
-                              )
-                            : (option.defaultValue ?? '')
-                      );
-                    }
-                  }}
-                />
-                <p className='text-sm'>Undefined</p>
-              </label>
-            )}
-          />
-        </div>
-        <FormDescription>
-          {option.description}
-          {option.type === 'SECRET' && (
-            <>
-              <br />
-              <span className='text-red-500'>
-                This must be the name of a secret available in the config secret
-                provider, not a secret configured on the organization, product,
-                or repository levels.
-              </span>
-            </>
-          )}
-        </FormDescription>
-        <FormMessage />
-      </FormItem>
+              <FormField
+                control={form.control}
+                name={`${option.name}_isFinal`}
+                render={({ field }) => (
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <Checkbox
+                      checked={field.value as CheckedState}
+                      onCheckedChange={field.onChange}
+                      disabled={Boolean(isNotSet)}
+                    />
+                    <p className='text-sm'>Final</p>
+                  </label>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`${option.name}_isNotSet`}
+                render={({ field }) => (
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <Checkbox
+                      checked={field.value as CheckedState}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        if (checked) {
+                          form.setValue(
+                            option.name,
+                            option.type === 'BOOLEAN'
+                              ? false
+                              : option.type === 'ENUM_LIST'
+                                ? parseStoredPluginOptionValue(
+                                    option.defaultValue,
+                                    option.type
+                                  )
+                                : (option.defaultValue ?? '')
+                          );
+                        }
+                      }}
+                    />
+                    <p className='text-sm'>Undefined</p>
+                  </label>
+                )}
+              />
+            </div>
+            <FormDescription>
+              {option.description}
+              {option.type === 'SECRET' && (
+                <>
+                  <br />
+                  <span className='text-red-500'>
+                    This must be the name of a secret available in the config
+                    secret provider, not a secret configured on the
+                    organization, product, or repository levels.
+                  </span>
+                </>
+              )}
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   });
 }
