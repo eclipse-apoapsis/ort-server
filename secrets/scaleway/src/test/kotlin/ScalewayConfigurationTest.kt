@@ -44,6 +44,34 @@ class ScalewayConfigurationTest : StringSpec({
         config.apiVersion shouldBe ScalewayApiVersion.V1_BETA1
         config.region shouldBe DEFAULT_REGION
     }
+
+    "Root path defaults to an empty string" {
+        val config = ScalewayConfiguration.create(createConfigManager(mapOf(NAME_OF_PROJECT_ID to "projectId")))
+
+        config.rootPath shouldBe ""
+    }
+
+    "Root path is normalized to have a leading slash and no trailing slash" {
+        val rootPaths = listOf(
+            "root" to "/root",
+            "/root" to "/root",
+            "root/" to "/root",
+            "/root/" to "/root"
+        )
+
+        rootPaths.forEach { (rootPath, expectedRootPath) ->
+            val config = ScalewayConfiguration.create(
+                createConfigManager(
+                    mapOf(
+                        NAME_OF_PROJECT_ID to "projectId",
+                        NAME_OF_ROOT_PATH to rootPath
+                    )
+                )
+            )
+
+            config.rootPath shouldBe expectedRootPath
+        }
+    }
 })
 
 /**

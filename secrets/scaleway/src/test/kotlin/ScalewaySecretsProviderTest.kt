@@ -75,6 +75,17 @@ class ScalewaySecretsProviderTest : WordSpec({
 
             server.verifySecretAccess("/organization_1", "This_is_a_29-chr._secret_name")
         }
+
+        "include the configured root path in path parameters" {
+            server.stubSecretAccess()
+
+            val provider = createProvider(server.createConfig(rootPath = "/root"))
+            val path = Path("/organization_1/This_is_a_29-chr._secret_name")
+
+            provider.readSecret(path) shouldBe SecretValue("secret")
+
+            server.verifySecretAccess("/root/organization_1", "This_is_a_29-chr._secret_name")
+        }
     }
 
     "writeSecret()" should {
@@ -106,6 +117,21 @@ class ScalewaySecretsProviderTest : WordSpec({
             server.verify(0, postRequestedFor(urlPathEqualTo(SECRETS_ENDPOINT)))
             server.verifySecretVersionCreate()
         }
+
+        "write secret to the expected path if a root path is configured" {
+            server.stubSecretsList(totalCount = 0)
+            server.stubSecretCreate()
+            server.stubSecretVersionCreate()
+
+            val provider = createProvider(server.createConfig(rootPath = "/root"))
+            val path = Path("/organization_1/This_is_a_29-chr._secret_name")
+
+            provider.writeSecret(path, SecretValue("secret"))
+
+            server.verifySecretsList("/root/organization_1", "This_is_a_29-chr._secret_name")
+            server.verifySecretCreate("/root/organization_1", "This_is_a_29-chr._secret_name")
+            server.verifySecretVersionCreate()
+        }
     }
 
     "removeSecret()" should {
@@ -133,6 +159,19 @@ class ScalewaySecretsProviderTest : WordSpec({
             server.verifySecretsList("/organization_1", "This_is_a_29-chr._secret_name")
             server.verifySecretDelete(count = 0)
         }
+
+        "delete the secret from the expected path if a root path is configured" {
+            server.stubSecretsList(totalCount = 1)
+            server.stubSecretDelete()
+
+            val provider = createProvider(server.createConfig(rootPath = "/root"))
+            val path = Path("/organization_1/This_is_a_29-chr._secret_name")
+
+            provider.removeSecret(path)
+
+            server.verifySecretsList("/root/organization_1", "This_is_a_29-chr._secret_name")
+            server.verifySecretDelete()
+        }
     }
 
     "A CRUD workflow" should {
@@ -140,7 +179,8 @@ class ScalewaySecretsProviderTest : WordSpec({
         // environment variables.
         val config = createConfig(
             secretKey = System.getenv("SCW_SECRET_KEY").orEmpty(),
-            projectId = System.getenv("SCW_PROJECT_ID").orEmpty()
+            projectId = System.getenv("SCW_PROJECT_ID").orEmpty(),
+            rootPath = System.getenv("SCW_ROOT_PATH").orEmpty()
         )
         val provider = createProvider(config)
         val path = provider.createPath(OrganizationId(1), "This_is_a_29-chr._secret_name")
@@ -171,17 +211,20 @@ class ScalewaySecretsProviderTest : WordSpec({
 private fun createConfig(
     serverUrl: String = ScalewayConfiguration.DEFAULT_SERVER_URL,
     secretKey: String = "",
-    projectId: String = ""
+    projectId: String = "",
+    rootPath: String = ""
 ) = ScalewayConfiguration(
     serverUrl = serverUrl,
     secretKey = secretKey,
-    projectId = projectId
+    projectId = projectId,
+    rootPath = rootPath
 )
 
-private fun WireMockServer.createConfig() = createConfig(
+private fun WireMockServer.createConfig(rootPath: String = "") = createConfig(
     serverUrl = "http://localhost:${port()}",
     secretKey = "test-secret-key",
-    projectId = "test-project-id"
+    projectId = "test-project-id",
+    rootPath = rootPath
 )
 
 private fun createProvider(config: ScalewayConfiguration = createConfig()) =

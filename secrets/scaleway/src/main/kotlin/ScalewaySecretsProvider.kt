@@ -232,5 +232,5 @@ class ScalewaySecretsProvider(
     }
 
     private fun Path.toScaleway(): Pair<String, String> =
-        path.substringBeforeLast('/') to path.substringAfterLast('/')
+        "${config.rootPath}${path.substringBeforeLast('/')}" to path.substringAfterLast('/')
 }
