@@ -45,13 +45,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormDescription,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
@@ -195,11 +191,13 @@ const EditTemplate = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className='space-y-4'>
-            <FormItem>
-              <FormLabel>Template Name</FormLabel>
-              <Input value={params.templateName} disabled />
-              <FormDescription>The name of the template.</FormDescription>
-            </FormItem>
+            <div className='grid gap-2'>
+              <Label htmlFor='template-name'>Template Name</Label>
+              <Input id='template-name' value={params.templateName} disabled />
+              <p className='text-muted-foreground text-sm'>
+                The name of the template.
+              </p>
+            </div>
             {plugin.options && (
               <PluginOptionFormFields
                 options={plugin.options}
