@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs
 
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
+
 data class Project(
     val identifier: Identifier,
     val cpe: String? = null,
@@ -31,4 +33,16 @@ data class Project(
     val description: String,
     val homepageUrl: String,
     val scopeNames: Set<String>
+)
+
+/** Object containing values to filter a project listing with. */
+data class ProjectFilters(
+    /** Substring filter for the full project identifier. Null if not set. */
+    val identifier: FilterOperatorAndValue<String>? = null,
+
+    /** Set of displayed declared license values to filter with. Null if not set. */
+    val declaredLicense: FilterOperatorAndValue<Set<String>>? = null,
+
+    /** Substring filter for the definition file path. Null if not set. */
+    val definitionFilePath: FilterOperatorAndValue<String>? = null
 )

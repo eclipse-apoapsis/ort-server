@@ -19,42 +19,143 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
-import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.ProjectFilters
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
-import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.concat
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.not
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A service to interact with projects.
- */
+/** A service to interact with projects. */
 class ProjectService(private val db: Database) {
-    /**
-     * Return a list of projects for the given ORT [ortRunId] according to the given [parameters].
-     */
+    /** Return a filtered page of projects for the given ORT [ortRunId]. */
     suspend fun listForOrtRunId(
         ortRunId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filters: ProjectFilters = ProjectFilters()
     ): ListQueryResult<Project> = db.dbQuery {
-        ProjectDao.listCustomQuery(parameters, ResultRow::toProject) {
-            ProjectsTable.joinAnalyzerTables()
-                .select(ProjectsTable.columns)
-                .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+        val query = ProjectsTable.joinAnalyzerTables()
+            .innerJoin(IdentifiersTable)
+            .innerJoin(ProcessedDeclaredLicensesTable)
+            .select(ProjectsTable.id)
+            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+
+        filters.identifier?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for identifier filter: ${filter.operator}"
+            }
+
+            val identifierExpression = concat(
+                IdentifiersTable.type,
+                stringLiteral(":"),
+                IdentifiersTable.namespace,
+                stringLiteral(":"),
+                IdentifiersTable.name,
+                stringLiteral(":"),
+                IdentifiersTable.version
+            )
+
+            query.andWhere { identifierExpression.applyILike(filter.value) }
         }
+
+        filters.declaredLicense?.let { filter ->
+            require(filter.operator == ComparisonOperator.IN || filter.operator == ComparisonOperator.NOT_IN) {
+                "Unsupported operator for declared license filter: ${filter.operator}"
+            }
+
+            val projectIdsWithSelectedLicenses = ProjectsTable.joinAnalyzerTables()
+                .innerJoin(ProcessedDeclaredLicensesTable)
+                .leftJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
+                .leftJoin(UnmappedDeclaredLicensesTable)
+                .select(ProjectsTable.id)
+                .where {
+                    (AnalyzerJobsTable.ortRunId eq ortRunId) and
+                        (
+                            (ProcessedDeclaredLicensesTable.spdxExpression inList filter.value) or
+                                (UnmappedDeclaredLicensesTable.unmappedLicense inList filter.value)
+                        )
+                }
+
+            query.andWhere {
+                if (filter.operator == ComparisonOperator.IN) {
+                    ProjectsTable.id inSubQuery projectIdsWithSelectedLicenses
+                } else {
+                    not(ProjectsTable.id inSubQuery projectIdsWithSelectedLicenses)
+                }
+            }
+        }
+
+        filters.definitionFilePath?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for definition file path filter: ${filter.operator}"
+            }
+
+            query.andWhere { ProjectsTable.definitionFilePath.applyILike(filter.value) }
+        }
+
+        val totalCount = query.count()
+
+        parameters.sortFields.forEach { orderField ->
+            val sortOrder = when (orderField.direction) {
+                OrderDirection.ASCENDING -> SortOrder.ASC
+                OrderDirection.DESCENDING -> SortOrder.DESC
+            }
+
+            when (orderField.name) {
+                "id" -> query.orderBy(ProjectsTable.id to sortOrder)
+
+                "identifier" -> {
+                    query.orderBy(IdentifiersTable.type to sortOrder)
+                    query.orderBy(IdentifiersTable.namespace to sortOrder)
+                    query.orderBy(IdentifiersTable.name to sortOrder)
+                    query.orderBy(IdentifiersTable.version to sortOrder)
+                }
+
+                "declaredLicense" -> query.orderBy(ProcessedDeclaredLicensesTable.spdxExpression to sortOrder)
+
+                "definitionFilePath" -> query.orderBy(ProjectsTable.definitionFilePath to sortOrder)
+
+                else -> throw QueryParametersException("Unsupported field for sorting: '${orderField.name}'.")
+            }
+        }
+
+        query.orderBy(ProjectsTable.id to SortOrder.ASC)
+        query.limit(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT).offset(parameters.offset ?: 0L)
+
+        val projectIds = query.map { it[ProjectsTable.id] }
+        if (projectIds.isEmpty()) return@dbQuery ListQueryResult(emptyList(), parameters, totalCount)
+
+        val projectsById = ProjectDao.find { ProjectsTable.id inList projectIds }.associateBy { it.id }
+        val projects = projectIds.map { projectsById.getValue(it).mapToModel() }
+
+        ListQueryResult(projects, parameters, totalCount)
     }
 }
-
-private fun ResultRow.toProject(): Project = ProjectDao.wrapRow(this).mapToModel()
 
 private fun ProjectsTable.joinAnalyzerTables() =
     innerJoin(ProjectsAnalyzerRunsTable)

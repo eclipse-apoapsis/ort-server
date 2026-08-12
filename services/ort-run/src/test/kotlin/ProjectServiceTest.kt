@@ -19,13 +19,18 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -35,7 +40,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.ProjectFilters
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -44,66 +55,285 @@ class ProjectServiceTest : WordSpec() {
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
+    private lateinit var service: ProjectService
 
     init {
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
+            service = ProjectService(db)
         }
 
         "listForOrtRunId" should {
-            "return projects for the given ORT run ID, ignoring projects from other runs" {
-                val service = ProjectService(db)
-
-                val projects1 = createProjects(
-                    listOf(
-                        Identifier("Maven", "com.example1", "project1", "1.1.5"),
-                        Identifier("Maven", "com.example2", "project2", "2.0.1"),
-                        Identifier("Maven", "com.example3", "project3", "3.5.2")
-                    )
+            "map projects for the requested run and retain the default ID order" {
+                val projects = linkedSetOf(
+                    createProject(Identifier("Maven", "com.example", "first", "1.0")),
+                    createProject(Identifier("NPM", "", "second", "2.0"))
                 )
+                createAnalyzerRunWithProjects(setOf(createProject(Identifier("Gradle", "", "other", "1.0"))))
+                val ortRunId = createAnalyzerRunWithProjects(projects).id
 
-                val projects2 = createProjects(
-                    listOf(
-                        Identifier("Maven", "com.example4", "project4", "4.0.5")
-                    )
-                )
-                createAnalyzerRunWithProjects(projects2)
+                val result = service.listForOrtRunId(ortRunId)
 
-                val ortRunId = createAnalyzerRunWithProjects(projects1).id
-
-                val results = service.listForOrtRunId(ortRunId).data
-
-                results shouldHaveSize projects1.size
-                results.map { it.identifier } shouldContainExactlyInAnyOrder projects1.map { it.identifier }
-
-                with(results.first()) {
+                result.totalCount shouldBe 2
+                result.data.map { it.identifier.name }.shouldContainExactly("first", "second")
+                with(result.data.first()) {
                     authors shouldContainExactlyInAnyOrder setOf("Author1", "Author2")
                     declaredLicenses shouldBe setOf("Apache-2.0")
-                    identifier.type shouldBe "Maven"
-                    identifier.namespace shouldBe "com.example1"
-                    identifier.name shouldBe "project1"
-                    identifier.version shouldBe "1.1.5"
+                    scopeNames shouldBe setOf("Compile")
                 }
+            }
+
+            "return an empty result for a run without projects" {
+                val ortRunId = createAnalyzerRunWithProjects(emptySet()).id
+
+                val result = service.listForOrtRunId(ortRunId)
+
+                result.data.shouldBeEmpty()
+                result.totalCount shouldBe 0
+            }
+
+            "filter identifiers by a case-insensitive substring of the full coordinates" {
+                val matching = Identifier("Maven", "Com.Example", "matching", "1.0")
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(matching),
+                        createProject(Identifier("NPM", "com.example", "matching", "1.0")),
+                        createProject(Identifier("Maven", "com.example", "other", "1.0"))
+                    )
+                ).id
+
+                val result = service.listForOrtRunId(
+                    ortRunId,
+                    filters = ProjectFilters(identifier = ilike("maven:com.example:MATCH"))
+                )
+
+                result.data.shouldBeSingleton { it.identifier shouldBe matching }
+                result.totalCount shouldBe 1
+            }
+
+            "filter definition file paths by a case-insensitive substring" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(identifier("gradle"), definitionFilePath = "Services/App/BUILD.gradle.kts"),
+                        createProject(identifier("maven"), definitionFilePath = "services/app/pom.xml")
+                    )
+                ).id
+
+                val result = service.listForOrtRunId(
+                    ortRunId,
+                    filters = ProjectFilters(definitionFilePath = ilike("app/build.GRADLE"))
+                )
+
+                result.data.shouldBeSingleton { it.identifier.name shouldBe "gradle" }
+            }
+
+            "include projects matching processed or unmapped declared licenses" {
+                val licenseUrl = "https://example.com/license"
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(identifier("processed"), processedLicense = "MIT"),
+                        createProject(
+                            identifier("unmapped"),
+                            processedLicense = null,
+                            unmappedLicenses = setOf(licenseUrl)
+                        ),
+                        createProject(identifier("other"), processedLicense = "Apache-2.0")
+                    )
+                ).id
+
+                val result = service.listForOrtRunId(
+                    ortRunId,
+                    parameters = sortedBy("identifier"),
+                    filters = ProjectFilters(declaredLicense = included("MIT", licenseUrl))
+                )
+
+                result.data.map { it.identifier.name }.shouldContainExactly("processed", "unmapped")
+                result.totalCount shouldBe 2
+            }
+
+            "exclude projects matching any selected license and retain projects without licenses" {
+                val licenseUrl = "https://example.com/license"
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(identifier("processed"), processedLicense = "MIT"),
+                        createProject(
+                            identifier("unmapped"),
+                            processedLicense = "Apache-2.0",
+                            unmappedLicenses = setOf(licenseUrl)
+                        ),
+                        createProject(identifier("none"), processedLicense = null),
+                        createProject(identifier("other"), processedLicense = "BSD-2-Clause")
+                    )
+                ).id
+
+                val result = service.listForOrtRunId(
+                    ortRunId,
+                    parameters = sortedBy("identifier"),
+                    filters = ProjectFilters(declaredLicense = excluded("MIT", licenseUrl))
+                )
+
+                result.data.map { it.identifier.name }.shouldContainExactly("none", "other")
+                result.totalCount shouldBe 2
+            }
+
+            "compose all filters before counting and pagination and scope them to the run" {
+                val matching = createProject(
+                    Identifier("Maven", "com.example", "matching", "1.0"),
+                    definitionFilePath = "modules/app/pom.xml",
+                    processedLicense = "MIT"
+                )
+                val secondMatching = matching.copy(identifier = matching.identifier.copy(version = "2.0"))
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        matching,
+                        secondMatching,
+                        matching.copy(
+                            identifier = identifier("wrong-license"),
+                            processedDeclaredLicense = license("Apache-2.0")
+                        ),
+                        matching.copy(identifier = identifier("wrong-path"), definitionFilePath = "other/pom.xml")
+                    )
+                ).id
+                createAnalyzerRunWithProjects(
+                    setOf(matching.copy(identifier = matching.identifier.copy(version = "3.0")))
+                )
+
+                val result = service.listForOrtRunId(
+                    ortRunId,
+                    parameters = ListQueryParameters(limit = 1, offset = 1),
+                    filters = ProjectFilters(
+                        identifier = ilike("maven:com.example:matching"),
+                        declaredLicense = included("MIT"),
+                        definitionFilePath = ilike("modules/app")
+                    )
+                )
+
+                result.data.shouldBeSingleton { it.identifier.version shouldBe "2.0" }
+                result.totalCount shouldBe 2
+            }
+
+            "reject unsupported filter operators" {
+                val ortRunId = createAnalyzerRunWithProjects(setOf(createProject(identifier("project")))).id
+
+                listOf(
+                    ProjectFilters(identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "project")),
+                    ProjectFilters(declaredLicense = FilterOperatorAndValue(ComparisonOperator.ILIKE, setOf("MIT"))),
+                    ProjectFilters(definitionFilePath = FilterOperatorAndValue(ComparisonOperator.EQUALS, "pom.xml"))
+                ).forEach { filters ->
+                    shouldThrow<IllegalArgumentException> {
+                        service.listForOrtRunId(ortRunId, filters = filters)
+                    }.message shouldContain "Unsupported operator"
+                }
+            }
+
+            "sort identifiers in both directions before pagination" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(Identifier("NPM", "", "z", "1.0")),
+                        createProject(Identifier("Maven", "org.example", "b", "1.0")),
+                        createProject(Identifier("Maven", "com.example", "a", "2.0")),
+                        createProject(Identifier("Maven", "com.example", "a", "1.0"))
+                    )
+                ).id
+
+                val ascending = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("identifier", OrderDirection.ASCENDING)),
+                        limit = 2
+                    )
+                )
+                val descending = service.listForOrtRunId(ortRunId, sortedBy("identifier", OrderDirection.DESCENDING))
+
+                ascending.data.map { it.identifier.version }.shouldContainExactly("1.0", "2.0")
+                descending.data.map { it.identifier.type }.shouldContainExactly("NPM", "Maven", "Maven", "Maven")
+            }
+
+            "sort declared licenses and definition file paths in both directions" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(identifier("mit"), "z/pom.xml", "MIT"),
+                        createProject(identifier("apache"), "a/pom.xml", "Apache-2.0"),
+                        createProject(identifier("bsd"), "m/pom.xml", "BSD-2-Clause")
+                    )
+                ).id
+
+                service.listForOrtRunId(ortRunId, sortedBy("declaredLicense"))
+                    .data.map { it.identifier.name }.shouldContainExactly("apache", "bsd", "mit")
+                service.listForOrtRunId(ortRunId, sortedBy("declaredLicense", OrderDirection.DESCENDING))
+                    .data.map { it.identifier.name }.shouldContainExactly("mit", "bsd", "apache")
+                service.listForOrtRunId(ortRunId, sortedBy("definitionFilePath"))
+                    .data.map { it.identifier.name }.shouldContainExactly("apache", "bsd", "mit")
+                service.listForOrtRunId(ortRunId, sortedBy("definitionFilePath", OrderDirection.DESCENDING))
+                    .data.map { it.identifier.name }.shouldContainExactly("mit", "bsd", "apache")
+            }
+
+            "use multiple sort fields in priority order and project ID as the final tie-breaker" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    linkedSetOf(
+                        createProject(identifier("first"), "same/pom.xml", null),
+                        createProject(identifier("second"), "same/pom.xml", null),
+                        createProject(identifier("third"), "other/pom.xml", "MIT"),
+                        createProject(identifier("fourth"), "same/pom.xml", "MIT")
+                    )
+                ).id
+                val parameters = ListQueryParameters(
+                    sortFields = listOf(
+                        OrderField("declaredLicense", OrderDirection.ASCENDING),
+                        OrderField("definitionFilePath", OrderDirection.ASCENDING)
+                    )
+                )
+
+                val result = service.listForOrtRunId(ortRunId, parameters)
+
+                result.data.map { it.identifier.name }
+                    .shouldContainExactly("third", "fourth", "first", "second")
+            }
+
+            "reject unsupported sort fields" {
+                val ortRunId = createAnalyzerRunWithProjects(setOf(createProject(identifier("project")))).id
+
+                shouldThrow<QueryParametersException> {
+                    service.listForOrtRunId(ortRunId, sortedBy("unknown"))
+                }.message shouldContain "Unsupported field for sorting"
             }
         }
     }
 
-    private fun createProjects(identifiers: List<Identifier>): Set<Project> =
-        identifiers.map { identifier ->
-            Project(
-                identifier = identifier,
-                definitionFilePath = "pom.xml",
-                authors = setOf("Author1", "Author2"),
-                declaredLicenses = setOf("Apache-2.0"),
-                processedDeclaredLicense = ProcessedDeclaredLicense("Apache-2.0", emptyMap(), emptySet()),
-                vcs = VcsInfo(RepositoryType.GIT, "https://example.com", "main", "v1.0.0"),
-                vcsProcessed = VcsInfo(RepositoryType.GIT, "https://example.com", "main", "v1.0.0"),
-                description = "Description",
-                homepageUrl = "https://example.com",
-                scopeNames = setOf("Compile")
-            )
-        }.toSet()
+    private fun identifier(name: String) = Identifier("Maven", "com.example", name, "1.0")
+
+    private fun ilike(value: String) = FilterOperatorAndValue(ComparisonOperator.ILIKE, value)
+
+    private fun included(vararg values: String) = FilterOperatorAndValue(ComparisonOperator.IN, values.toSet())
+
+    private fun excluded(vararg values: String) = FilterOperatorAndValue(ComparisonOperator.NOT_IN, values.toSet())
+
+    private fun sortedBy(
+        field: String,
+        direction: OrderDirection = OrderDirection.ASCENDING
+    ) = ListQueryParameters(sortFields = listOf(OrderField(field, direction)))
+
+    private fun license(spdxExpression: String?, unmappedLicenses: Set<String> = emptySet()) =
+        ProcessedDeclaredLicense(spdxExpression, emptyMap(), unmappedLicenses)
+
+    private fun createProject(
+        identifier: Identifier,
+        definitionFilePath: String = "pom.xml",
+        processedLicense: String? = "Apache-2.0",
+        unmappedLicenses: Set<String> = emptySet()
+    ) = Project(
+        identifier = identifier,
+        definitionFilePath = definitionFilePath,
+        authors = setOf("Author1", "Author2"),
+        declaredLicenses = processedLicense?.let(::setOf).orEmpty() + unmappedLicenses,
+        processedDeclaredLicense = license(processedLicense, unmappedLicenses),
+        vcs = VcsInfo(RepositoryType.GIT, "https://example.com", "main", "v1.0.0"),
+        vcsProcessed = VcsInfo(RepositoryType.GIT, "https://example.com", "main", "v1.0.0"),
+        description = "Description",
+        homepageUrl = "https://example.com",
+        scopeNames = setOf("Compile")
+    )
 
     private fun createAnalyzerRunWithProjects(projects: Set<Project>): OrtRun {
         val ortRun = fixtures.createOrtRun()
