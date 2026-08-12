@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProjectFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
@@ -723,11 +724,29 @@ val getRunPackages: RouteConfig.() -> Unit = {
 val getRunProjects: RouteConfig.() -> Unit = {
     operationId = "getRunProjects"
     summary = "Get the projects found in an ORT run"
+    description = "Supported sort fields are 'id', 'identifier', 'declaredLicense', and 'definitionFilePath'."
     tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
             description = "The ID of the ORT run."
+        }
+
+        queryParameter<String>("identifier") {
+            description = "Defines an ORT project identifier to filter the results by. Uses a case-insensitive " +
+                    "substring match against the full ORT coordinates."
+        }
+
+        queryParameter<String>("declaredLicense") {
+            description = "Defines the displayed declared license values for which projects are to be retrieved, " +
+                    "including processed declared licenses and unmapped declared license strings. This is a " +
+                    "comma-separated string. Add a minus as the first item to exclude projects with the specified " +
+                    "licenses, e.g. '-,MIT'."
+        }
+
+        queryParameter<String>("definitionFilePath") {
+            description = "Defines a definition file path to filter the results by. Uses a case-insensitive " +
+                    "substring match."
         }
 
         standardListQueryParameters()
@@ -736,9 +755,9 @@ val getRunProjects: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success."
-            jsonBody<PagedResponse<Project>> {
-                example("Get project for an ORT run") {
-                    value = PagedResponse(
+            jsonBody<PagedSearchResponse<Project, ProjectFilters>> {
+                example("Get projects for an ORT run") {
+                    value = PagedSearchResponse(
                         listOf(
                             Project(
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
@@ -762,8 +781,45 @@ val getRunProjects: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 1,
-                            sortProperties = listOf(SortProperty("purl", SortDirection.ASCENDING))
+                            sortProperties = listOf(SortProperty("identifier", SortDirection.ASCENDING))
+                        ),
+                        ProjectFilters(
+                            identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "org.namespace"),
+                            declaredLicense = FilterOperatorAndValue(ComparisonOperator.IN, setOf("Expression")),
+                            definitionFilePath = FilterOperatorAndValue(ComparisonOperator.ILIKE, "path/to")
                         )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getRunProjectLicenses: RouteConfig.() -> Unit = {
+    operationId = "getRunProjectLicenses"
+    summary = "Get the declared licenses for projects found in an ORT run"
+    description = "The response contains independently deduplicated and case-insensitively sorted processed and " +
+            "unmapped declared licenses."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<Licenses> {
+                example("Get licenses for projects") {
+                    value = Licenses(
+                        processedDeclaredLicenses = listOf("Apache-2.0", "MIT"),
+                        unmappedDeclaredLicenses = listOf("custom-license")
                     )
                 }
             }

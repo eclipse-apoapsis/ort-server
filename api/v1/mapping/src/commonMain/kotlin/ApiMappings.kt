@@ -61,6 +61,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConf
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProjectFilters as ApiProjectFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact as ApiRemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob as ApiReporterJob
@@ -138,6 +139,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.ProjectFilters
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
@@ -887,6 +889,12 @@ fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFi
     purl = purl?.mapToModel { it },
     externalId = externalId?.mapToModel { it },
     advisors = advisors?.mapToModel { it }
+)
+
+fun ApiProjectFilters.mapToModel(): ProjectFilters = ProjectFilters(
+    identifier = identifier?.mapToModel { it },
+    declaredLicense = declaredLicense?.mapToModel { it },
+    definitionFilePath = definitionFilePath?.mapToModel { it }
 )
 
 fun Project.mapToApi() = ApiProject(
