@@ -217,7 +217,7 @@ export const LicenseFindingsView = () => {
         pageIndex,
         pageSize,
       },
-      sorting: search.sortBy,
+      sorting: search.sortBy ?? [],
       expanded,
       columnFilters: [{ id: 'license', value: detectedLicenses }],
     },

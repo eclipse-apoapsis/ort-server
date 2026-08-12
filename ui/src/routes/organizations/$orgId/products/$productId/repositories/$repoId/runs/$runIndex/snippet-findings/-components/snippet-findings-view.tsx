@@ -254,7 +254,7 @@ export const SnippetFindingsView = () => {
         pageIndex,
         pageSize,
       },
-      sorting: search.sortBy,
+      sorting: search.sortBy ?? [],
       expanded,
       columnVisibility: {
         type: false,

@@ -183,7 +183,7 @@ export const SnippetFindingSnippetsTable = ({
         pageIndex: snippetsPageIndex,
         pageSize: snippetsPageSize,
       },
-      sorting: search.snippetsSortBy,
+      sorting: search.snippetsSortBy ?? [],
       columnVisibility: {
         purl: false,
         license: false,

@@ -443,7 +443,7 @@ const ProjectsComponent = () => {
         declaredLicense: false,
         definitionFilePath: false,
       },
-      sorting: sortBy,
+      sorting: sortBy ?? [],
       expanded: expanded,
     },
     onExpandedChange: setExpanded,
