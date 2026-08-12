@@ -199,7 +199,7 @@ export const DetectedLicensePackagesTable = ({
         pageIndex: packagePageIndex,
         pageSize: packagePageSize,
       },
-      sorting: packageSortBy,
+      sorting: packageSortBy ?? [],
       expanded: packageExpanded,
       columnFilters: [{ id: packageColumnId, value: packageIdFilter }],
     },

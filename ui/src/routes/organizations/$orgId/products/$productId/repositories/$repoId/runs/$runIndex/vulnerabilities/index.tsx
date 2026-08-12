@@ -594,7 +594,7 @@ const VulnerabilitiesComponent = () => {
         advisorName: false,
         summary: false,
       },
-      sorting: sortBy,
+      sorting: sortBy ?? [],
       expanded: expanded,
     },
     onExpandedChange: setExpanded,

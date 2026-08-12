@@ -163,7 +163,7 @@ export const ProvenanceSnippetFindingsTable = ({
         pageIndex: findingsPageIndex,
         pageSize: findingsPageSize,
       },
-      sorting: search.findingsSortBy,
+      sorting: search.findingsSortBy ?? [],
       expanded,
     },
     onExpandedChange: setExpanded,

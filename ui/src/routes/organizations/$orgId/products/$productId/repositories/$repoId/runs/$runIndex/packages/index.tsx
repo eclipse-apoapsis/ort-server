@@ -568,7 +568,7 @@ const PackagesComponent = () => {
         pageIndex,
         pageSize,
       },
-      sorting: search.sortBy,
+      sorting: search.sortBy ?? [],
       expanded: expanded,
       columnFilters: [
         { id: 'isDirectDependency', value: search.isDirectDependency },

@@ -223,7 +223,7 @@ function SearchPackageComponent() {
         pageIndex,
         pageSize,
       },
-      sorting: sortBy,
+      sorting: sortBy ?? [],
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

@@ -500,7 +500,7 @@ const ProductVulnerabilitiesComponent = () => {
         externalId: false,
         summary: false,
       },
-      sorting: sortBy,
+      sorting: sortBy ?? [],
       expanded: expanded,
     },
     onExpandedChange: setExpanded,

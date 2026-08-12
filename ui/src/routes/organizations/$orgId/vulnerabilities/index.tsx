@@ -494,7 +494,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         externalId: false,
         summary: false,
       },
-      sorting: search.sortBy,
+      sorting: search.sortBy ?? [],
       expanded: expanded,
     },
     onExpandedChange: setExpanded,
