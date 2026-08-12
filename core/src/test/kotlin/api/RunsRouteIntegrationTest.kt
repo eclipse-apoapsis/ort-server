@@ -84,6 +84,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProjectFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -209,6 +210,23 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     val labelsMap = mapOf("label1" to "value1", "label2" to "value2")
     val reportFile = "disclosure-document-pdf"
     val reportData = "Data of the report to download".toByteArray()
+
+    /** Create an [OrtRun] containing the given [projects]. */
+    fun createRunWithProjects(projects: Set<Project>): OrtRun {
+        val ortRun = dbExtension.fixtures.createOrtRun(
+            repositoryId = repositoryId,
+            revision = "revision",
+            jobConfigurations = JobConfigurations()
+        )
+        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+            ortRunId = ortRun.id,
+            configuration = AnalyzerJobConfiguration()
+        )
+
+        dbExtension.fixtures.createAnalyzerRun(analyzerJob.id, projects = projects)
+
+        return ortRun
+    }
 
     /**
      * Create an [OrtRun], store a report for the created run, and return the created run.
@@ -2376,7 +2394,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                val projects = response.body<PagedResponse<ApiProject>>()
+                val projects = response.body<PagedSearchResponse<ApiProject, ProjectFilters>>()
 
                 with(projects.data) {
                     shouldHaveSize(1)
@@ -2386,6 +2404,124 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     first().processedDeclaredLicense.mappedLicenses shouldHaveSize 2
                     first().processedDeclaredLicense.unmappedLicenses shouldHaveSize 4
                 }
+            }
+        }
+
+        "filter projects and apply pagination after filtering" {
+            integrationTestApplication {
+                val processedLicense = "Apache-2.0 OR LGPL-2.1-or-later"
+                val unmappedLicense = "custom-license"
+                val projects = linkedSetOf(
+                    dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "zebra", "1.0")).copy(
+                        definitionFilePath = "apps/middle/pom.xml",
+                        processedDeclaredLicense = ProcessedDeclaredLicense(
+                            processedLicense,
+                            emptyMap(),
+                            setOf(unmappedLicense)
+                        )
+                    ),
+                    dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "alpha", "1.0")).copy(
+                        definitionFilePath = "apps/zeta/pom.xml",
+                        processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                    ),
+                    dbExtension.fixtures.getProject(Identifier("Maven", "org.other", "middle", "1.0")).copy(
+                        definitionFilePath = "lib/alpha/build.gradle.kts",
+                        processedDeclaredLicense = ProcessedDeclaredLicense("BSD-2-Clause", emptyMap(), emptySet())
+                    )
+                )
+                val ortRun = createRunWithProjects(projects)
+
+                suspend fun getProjects(vararg parameters: Pair<String, String>) =
+                    superuserClient.get("/api/v1/runs/${ortRun.id}/projects") {
+                        url { parameters.forEach { (name, value) -> this.parameters.append(name, value) } }
+                    }.also { it shouldHaveStatus HttpStatusCode.OK }
+                        .body<PagedSearchResponse<ApiProject, ProjectFilters>>()
+
+                getProjects("identifier" to "ORG.EXAMPLE").data.map { it.identifier.name } should
+                    containExactly("zebra", "alpha")
+                getProjects("definitionFilePath" to "ZETA/POM").data.map { it.identifier.name } should
+                    containExactly("alpha")
+                getProjects("declaredLicense" to processedLicense).data.map { it.identifier.name } should
+                    containExactly("zebra")
+                getProjects("declaredLicense" to unmappedLicense).data.map { it.identifier.name } should
+                    containExactly("zebra")
+                getProjects("declaredLicense" to "-,MIT").data.map { it.identifier.name } should
+                    containExactly("zebra", "middle")
+
+                val response = getProjects(
+                    "identifier" to "org.example",
+                    "declaredLicense" to "$processedLicense,MIT",
+                    "definitionFilePath" to "apps/",
+                    "limit" to "1",
+                    "offset" to "1"
+                )
+
+                response.data.map { it.identifier.name } should containExactly("alpha")
+                response.pagination.totalCount shouldBe 2
+                response.filters shouldBe ProjectFilters(
+                    identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "org.example"),
+                    declaredLicense = FilterOperatorAndValue(
+                        ComparisonOperator.IN,
+                        setOf(processedLicense, "MIT")
+                    ),
+                    definitionFilePath = FilterOperatorAndValue(ComparisonOperator.ILIKE, "apps/")
+                )
+            }
+        }
+
+        "sort projects by all supported fields in both directions" {
+            integrationTestApplication {
+                val projects = linkedSetOf(
+                    dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "zebra", "1.0")).copy(
+                        definitionFilePath = "middle/pom.xml",
+                        processedDeclaredLicense = ProcessedDeclaredLicense("Apache-2.0", emptyMap(), emptySet())
+                    ),
+                    dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "alpha", "1.0")).copy(
+                        definitionFilePath = "zeta/pom.xml",
+                        processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                    ),
+                    dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "middle", "1.0")).copy(
+                        definitionFilePath = "alpha/pom.xml",
+                        processedDeclaredLicense = ProcessedDeclaredLicense("BSD-2-Clause", emptyMap(), emptySet())
+                    )
+                )
+                val ortRun = createRunWithProjects(projects)
+
+                suspend fun sortedNames(sort: String): List<String> {
+                    val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects?sort=$sort")
+                    response shouldHaveStatus HttpStatusCode.OK
+                    return response.body<PagedSearchResponse<ApiProject, ProjectFilters>>()
+                        .data.map { it.identifier.name }
+                }
+
+                sortedNames("identifier") shouldBe listOf("alpha", "middle", "zebra")
+                sortedNames("-identifier") shouldBe listOf("zebra", "middle", "alpha")
+                sortedNames("declaredLicense") shouldBe listOf("zebra", "middle", "alpha")
+                sortedNames("-declaredLicense") shouldBe listOf("alpha", "middle", "zebra")
+                sortedNames("definitionFilePath") shouldBe listOf("middle", "zebra", "alpha")
+                sortedNames("-definitionFilePath") shouldBe listOf("alpha", "zebra", "middle")
+
+                val filteredPage = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/projects?identifier=org.example&sort=identifier&limit=1&offset=1"
+                )
+                filteredPage shouldHaveStatus HttpStatusCode.OK
+                filteredPage.body<PagedSearchResponse<ApiProject, ProjectFilters>>().data
+                    .map { it.identifier.name } should containExactly("middle")
+            }
+        }
+
+        "reject unsupported sort fields" {
+            integrationTestApplication {
+                val ortRun = createRunWithProjects(setOf(dbExtension.fixtures.getProject()))
+
+                superuserClient.get("/api/v1/runs/${ortRun.id}/projects?sort=purl") shouldHaveStatus
+                    HttpStatusCode.BadRequest
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            integrationTestApplication {
+                superuserClient.get("/api/v1/runs/12345/projects") shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
@@ -2403,6 +2539,83 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}/projects")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/projects/licenses" should {
+        "return distinct sorted licenses scoped to the requested run" {
+            integrationTestApplication {
+                val licenseUrl = "https://example.org/custom-license"
+                val ortRun = createRunWithProjects(
+                    linkedSetOf(
+                        dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "one", "1.0")).copy(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                setOf("z-license", licenseUrl)
+                            )
+                        ),
+                        dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "two", "1.0")).copy(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "apache-2.0",
+                                emptyMap(),
+                                setOf("Alpha-license", licenseUrl)
+                            )
+                        ),
+                        dbExtension.fixtures.getProject(Identifier("Maven", "org.example", "three", "1.0")).copy(
+                            processedDeclaredLicense = ProcessedDeclaredLicense("MIT", emptyMap(), emptySet())
+                        )
+                    )
+                )
+                createRunWithProjects(
+                    setOf(
+                        dbExtension.fixtures.getProject(Identifier("Maven", "org.other", "other", "1.0")).copy(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "BSD-2-Clause",
+                                emptyMap(),
+                                setOf("other-license")
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects/licenses")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<Licenses>() shouldBe Licenses(
+                    processedDeclaredLicenses = listOf("apache-2.0", "MIT"),
+                    unmappedDeclaredLicenses = listOf("Alpha-license", licenseUrl, "z-license")
+                )
+            }
+        }
+
+        "return empty lists if the run has no project licenses" {
+            integrationTestApplication {
+                val ortRun = createRunWithProjects(setOf(dbExtension.fixtures.getProject()))
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects/licenses")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<Licenses>() shouldBe Licenses(emptyList(), emptyList())
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            integrationTestApplication {
+                superuserClient.get("/api/v1/runs/12345/projects/licenses") shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRun = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            )
+
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
+                get("/api/v1/runs/${ortRun.id}/projects/licenses")
             }
         }
     }

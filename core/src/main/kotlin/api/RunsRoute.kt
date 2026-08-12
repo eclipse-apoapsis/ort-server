@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProjectFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
@@ -65,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunIssues
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunLogs
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunPackageLicenses
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunPackages
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunProjectLicenses
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunProjects
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunReport
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunRuleViolationRules
@@ -454,12 +456,30 @@ fun Route.runs() = route("runs") {
         route("projects") {
             get(getRunProjects, requireRunPermission()) {
                 val pagingOptions = call.pagingOptions(SortProperty("id", SortDirection.ASCENDING))
+                val filters = call.projectFilters()
 
-                val projectsForOrtRun = projectService.listForOrtRunId(call.ortRun.id, pagingOptions.mapToModel())
+                val projectsForOrtRun = projectService.listForOrtRunId(
+                    call.ortRun.id,
+                    pagingOptions.mapToModel(),
+                    filters.mapToModel()
+                )
 
-                val pagedResponse = projectsForOrtRun.mapToApi(Project::mapToApi)
+                val pagedResponse = projectsForOrtRun
+                    .mapToApi(Project::mapToApi)
+                    .toSearchResponse(filters)
 
                 call.respond(HttpStatusCode.OK, pagedResponse)
+            }
+
+            route("licenses") {
+                get(getRunProjectLicenses, requireRunPermission()) {
+                    val licenses = Licenses(
+                        processedDeclaredLicenses = projectService.getProcessedDeclaredLicenses(call.ortRun.id),
+                        unmappedDeclaredLicenses = projectService.getUnmappedDeclaredLicenses(call.ortRun.id)
+                    )
+
+                    call.respond(HttpStatusCode.OK, licenses)
+                }
             }
         }
     }
@@ -561,6 +581,16 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         declaredLicense = declaredLicense(),
         isDirectDependency = parameters["isDirectDependency"]?.lowercase()?.toBooleanStrictOrNull()
+    )
+
+/** Extract the project filters from this [ApplicationCall]. */
+private fun ApplicationCall.projectFilters(): ProjectFilters =
+    ProjectFilters(
+        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        declaredLicense = stringSetFilter("declaredLicense"),
+        definitionFilePath = parameters["definitionFilePath"]?.let {
+            FilterOperatorAndValue(ComparisonOperator.ILIKE, it)
+        }
     )
 
 /**
