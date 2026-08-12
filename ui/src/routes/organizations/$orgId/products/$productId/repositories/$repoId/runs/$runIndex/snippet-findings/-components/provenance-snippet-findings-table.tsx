@@ -37,6 +37,7 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { toastError } from '@/lib/toast';
@@ -163,7 +164,7 @@ export const ProvenanceSnippetFindingsTable = ({
         pageIndex: findingsPageIndex,
         pageSize: findingsPageSize,
       },
-      sorting: search.findingsSortBy ?? [],
+      sorting: search.findingsSortBy ?? EMPTY_SORTING_STATE,
       expanded,
     },
     onExpandedChange: setExpanded,

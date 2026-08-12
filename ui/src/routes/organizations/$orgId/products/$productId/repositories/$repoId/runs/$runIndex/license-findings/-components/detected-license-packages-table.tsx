@@ -39,6 +39,7 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
@@ -199,7 +200,7 @@ export const DetectedLicensePackagesTable = ({
         pageIndex: packagePageIndex,
         pageSize: packagePageSize,
       },
-      sorting: packageSortBy ?? [],
+      sorting: packageSortBy ?? EMPTY_SORTING_STATE,
       expanded: packageExpanded,
       columnFilters: [{ id: packageColumnId, value: packageIdFilter }],
     },

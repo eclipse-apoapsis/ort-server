@@ -47,7 +47,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { updateColumnSorting } from '@/helpers/handle-multisort';
+import {
+  EMPTY_SORTING_STATE,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { toastError } from '@/lib/toast';
 import {
@@ -223,7 +226,7 @@ function SearchPackageComponent() {
         pageIndex,
         pageSize,
       },
-      sorting: sortBy ?? [],
+      sorting: sortBy ?? EMPTY_SORTING_STATE,
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

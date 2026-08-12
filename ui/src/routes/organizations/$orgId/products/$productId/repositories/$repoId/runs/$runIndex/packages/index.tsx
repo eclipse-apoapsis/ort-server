@@ -72,6 +72,7 @@ import {
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
@@ -568,7 +569,7 @@ const PackagesComponent = () => {
         pageIndex,
         pageSize,
       },
-      sorting: search.sortBy ?? [],
+      sorting: search.sortBy ?? EMPTY_SORTING_STATE,
       expanded: expanded,
       columnFilters: [
         { id: 'isDirectDependency', value: search.isDirectDependency },

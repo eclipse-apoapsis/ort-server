@@ -20,6 +20,14 @@
 import { SortingState } from '@tanstack/react-table';
 
 /**
+ * A stable empty sorting state for controlled TanStack tables.
+ *
+ * Recreating an empty array during every render can make TanStack Table continuously reset its derived state when
+ * another controlled state, such as row expansion, changes.
+ */
+export const EMPTY_SORTING_STATE: SortingState = [];
+
+/**
  * Handle multi-sorting of table columns.
  *
  * @param columns Current sorting state of the table.
