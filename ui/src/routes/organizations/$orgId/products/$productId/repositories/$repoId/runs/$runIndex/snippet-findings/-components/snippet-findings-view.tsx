@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/card';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
@@ -254,7 +255,7 @@ export const SnippetFindingsView = () => {
         pageIndex,
         pageSize,
       },
-      sorting: search.sortBy ?? [],
+      sorting: search.sortBy ?? EMPTY_SORTING_STATE,
       expanded,
       columnVisibility: {
         type: false,

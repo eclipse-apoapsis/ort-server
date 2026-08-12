@@ -69,6 +69,7 @@ import {
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
@@ -500,7 +501,7 @@ const ProductVulnerabilitiesComponent = () => {
         externalId: false,
         summary: false,
       },
-      sorting: sortBy ?? [],
+      sorting: sortBy ?? EMPTY_SORTING_STATE,
       expanded: expanded,
     },
     onExpandedChange: setExpanded,

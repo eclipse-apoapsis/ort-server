@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/card';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { toastError } from '@/lib/toast';
@@ -217,7 +218,7 @@ export const LicenseFindingsView = () => {
         pageIndex,
         pageSize,
       },
-      sorting: search.sortBy ?? [],
+      sorting: search.sortBy ?? EMPTY_SORTING_STATE,
       expanded,
       columnFilters: [{ id: 'license', value: detectedLicenses }],
     },

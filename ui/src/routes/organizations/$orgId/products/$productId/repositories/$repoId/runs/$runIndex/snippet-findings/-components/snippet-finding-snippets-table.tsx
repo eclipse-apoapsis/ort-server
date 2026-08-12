@@ -34,6 +34,7 @@ import { SpdxExpressionBadgeGroup } from '@/components/licenses';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   convertToBackendSorting,
+  EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { toastError } from '@/lib/toast';
@@ -183,7 +184,7 @@ export const SnippetFindingSnippetsTable = ({
         pageIndex: snippetsPageIndex,
         pageSize: snippetsPageSize,
       },
-      sorting: search.snippetsSortBy ?? [],
+      sorting: search.snippetsSortBy ?? EMPTY_SORTING_STATE,
       columnVisibility: {
         purl: false,
         license: false,

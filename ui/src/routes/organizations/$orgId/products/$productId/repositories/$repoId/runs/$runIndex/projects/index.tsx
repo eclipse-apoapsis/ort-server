@@ -56,7 +56,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { updateColumnSorting } from '@/helpers/handle-multisort';
+import {
+  EMPTY_SORTING_STATE,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import { routePrefetchStaleTime } from '@/lib/query-client';
@@ -443,7 +446,7 @@ const ProjectsComponent = () => {
         declaredLicense: false,
         definitionFilePath: false,
       },
-      sorting: sortBy ?? [],
+      sorting: sortBy ?? EMPTY_SORTING_STATE,
       expanded: expanded,
     },
     onExpandedChange: setExpanded,
