@@ -24,9 +24,6 @@ import {
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
@@ -37,6 +34,7 @@ import z from 'zod';
 import { Project } from '@/api';
 import {
   getRepositoryRunOptions,
+  getRunProjectLicensesOptions,
   getRunProjectsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -57,11 +55,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  convertToBackendSorting,
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
+import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
@@ -75,6 +74,12 @@ import {
 } from '@/schemas';
 
 const defaultPageSize = 10;
+
+const supportedSortColumns = new Set([
+  'identifier',
+  'declaredLicense',
+  'definitionFilePath',
+]);
 
 const columnHelper = createColumnHelper<Project>();
 
@@ -252,7 +257,7 @@ const ProjectsComponent = () => {
     const filters = [];
 
     if (projectIdentifier) {
-      filters.push({ id: 'projectIdentifier', value: projectIdentifier });
+      filters.push({ id: 'identifier', value: projectIdentifier });
     }
     if (definitionFilePath) {
       filters.push({ id: 'definitionFilePath', value: definitionFilePath });
@@ -264,7 +269,9 @@ const ProjectsComponent = () => {
   }, [projectIdentifier, definitionFilePath, declaredLicense]);
 
   const sortBy = useMemo(
-    () => (search.sortBy ? search.sortBy : undefined),
+    () =>
+      search.sortBy?.filter((sort) => supportedSortColumns.has(sort.id)) ??
+      EMPTY_SORTING_STATE,
     [search.sortBy]
   );
 
@@ -278,6 +285,30 @@ const ProjectsComponent = () => {
   });
 
   const {
+    data: totalProjects,
+    isPending: totalIsPending,
+    isError: totalIsError,
+    error: totalError,
+  } = useQuery({
+    ...getRunProjectsOptions({
+      path: { runId: ortRun.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  const {
+    data: declaredLicenseOptions,
+    isPending: licensesIsPending,
+    isError: licensesIsError,
+    error: licensesError,
+  } = useQuery({
+    ...getRunProjectLicensesOptions({
+      path: { runId: ortRun.id },
+    }),
+    staleTime: routePrefetchStaleTime,
+  });
+
+  const {
     data: projects,
     isPending,
     isError,
@@ -285,34 +316,17 @@ const ProjectsComponent = () => {
   } = useQuery({
     ...getRunProjectsOptions({
       path: { runId: ortRun.id },
-      query: { limit: ALL_ITEMS },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(sortBy),
+        identifier: projectIdentifier,
+        declaredLicense: declaredLicense?.join(','),
+        definitionFilePath,
+      },
     }),
     staleTime: routePrefetchStaleTime,
   });
-
-  // Use memoizing to ensure that the filter options (decuplidated SPDX expressions
-  // and unmapped licenses) are only calculated when the projects data changes.
-  // "individualLicenses" will contain all SDPX expressions as first elements (sorted),
-  // followed by all unmapped licenses (sorted).
-  const individualLicenses = useMemo(() => {
-    const spdxExpressions = new Set<string>();
-    const unmappedLicenses = new Set<string>();
-
-    projects?.data.forEach((project) => {
-      const spdxExpression = project.processedDeclaredLicense.spdxExpression;
-      if (spdxExpression) {
-        spdxExpressions.add(spdxExpression);
-      }
-      project.processedDeclaredLicense.unmappedLicenses.forEach((license) => {
-        unmappedLicenses.add(license);
-      });
-    });
-
-    return [
-      ...Array.from(spdxExpressions).sort(),
-      ...Array.from(unmappedLicenses).sort(),
-    ];
-  }, [projects]);
 
   const columns = [
     columnHelper.display({
@@ -365,7 +379,7 @@ const ProjectsComponent = () => {
         return identifierToString(project.identifier);
       },
       {
-        id: 'projectIdentifier',
+        id: 'identifier',
         header: 'Project ID',
         meta: {
           filter: {
@@ -382,23 +396,25 @@ const ProjectsComponent = () => {
     columnHelper.accessor('processedDeclaredLicense', {
       id: 'declaredLicense',
       header: 'Declared License',
-      filterFn: (row, _columnId, filterValue): boolean => {
-        return (
-          filterValue.includes(
-            row.original.processedDeclaredLicense.spdxExpression
-          ) ||
-          row.original.processedDeclaredLicense.unmappedLicenses.some(
-            (license) => filterValue.includes(license)
-          )
-        );
-      },
       meta: {
         filter: {
           filterVariant: 'select',
-          selectOptions: individualLicenses.map((license) => ({
-            label: license,
-            value: license,
-          })),
+          selectOptions: [
+            ...(declaredLicenseOptions?.processedDeclaredLicenses ?? []).map(
+              (license) => ({
+                label: license,
+                value: license,
+                group: 'Processed licenses',
+              })
+            ),
+            ...(declaredLicenseOptions?.unmappedDeclaredLicenses ?? []).map(
+              (license) => ({
+                label: license,
+                value: license,
+                group: 'Unmapped licenses',
+              })
+            ),
+          ],
           setSelected: (licenses: string[]) => {
             navigate({
               search: {
@@ -435,6 +451,7 @@ const ProjectsComponent = () => {
   const table = useReactTable({
     data: projects?.data || [],
     columns,
+    pageCount: Math.ceil((projects?.pagination.totalCount ?? 0) / pageSize),
     state: {
       pagination: {
         pageIndex,
@@ -442,40 +459,40 @@ const ProjectsComponent = () => {
       },
       columnFilters,
       columnVisibility: {
-        projectIdentifier: false,
+        identifier: false,
         declaredLicense: false,
         definitionFilePath: false,
       },
-      sorting: sortBy ?? EMPTY_SORTING_STATE,
+      sorting: sortBy,
       expanded: expanded,
     },
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
     getRowId: (row) => identifierToString(row.identifier),
   });
 
-  if (isPending) {
+  if (isPending || totalIsPending || licensesIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
-    toastError('Unable to load data', error);
+  if (isError || totalIsError || licensesIsError) {
+    toastError('Unable to load data', error || totalError || licensesError);
     return;
   }
 
   const filtersInUse = table.getState().columnFilters.length > 0;
-  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
+  const matching = `, ${projects.pagination.totalCount} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Projects ({projects.pagination.totalCount} in total
+          Projects ({totalProjects.pagination.totalCount} in total
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>This view shows all projects.</CardDescription>
@@ -503,7 +520,12 @@ const ProjectsComponent = () => {
               to: Route.to,
               search: {
                 ...search,
-                sortBy: updateColumnSorting(search.sortBy, sortBy),
+                sortBy: updateColumnSorting(
+                  search.sortBy?.filter((sort) =>
+                    supportedSortColumns.has(sort.id)
+                  ),
+                  sortBy
+                ),
               },
             };
           }}
@@ -534,13 +556,21 @@ export const Route = createFileRoute(
       }),
     });
 
-    await queryClient.prefetchQuery({
-      ...getRunProjectsOptions({
-        path: { runId: ortRun.id },
-        query: { limit: ALL_ITEMS },
+    await Promise.all([
+      queryClient.prefetchQuery({
+        ...getRunProjectsOptions({
+          path: { runId: ortRun.id },
+          query: { limit: defaultPageSize, offset: 0 },
+        }),
+        staleTime: routePrefetchStaleTime,
       }),
-      staleTime: routePrefetchStaleTime,
-    });
+      queryClient.prefetchQuery({
+        ...getRunProjectLicensesOptions({
+          path: { runId: ortRun.id },
+        }),
+        staleTime: routePrefetchStaleTime,
+      }),
+    ]);
   },
   component: ProjectsComponent,
   pendingComponent: LoadingIndicator,

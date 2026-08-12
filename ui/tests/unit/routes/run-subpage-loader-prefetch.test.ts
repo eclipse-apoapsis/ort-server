@@ -19,7 +19,6 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { ALL_ITEMS } from '@/lib/constants';
 import { Route as DependenciesRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/index';
 import { Route as ProjectsRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects/index';
 import { getQueryKeyRequest } from '../fixtures/loader-test-utils';
@@ -83,9 +82,15 @@ describe('run subpage loaders', () => {
       ortRunIndex: 7,
     });
 
+    expect(prefetchQuery).toHaveBeenCalledTimes(2);
+
     const projectsRequest = getQueryKeyRequest(prefetchQuery.mock.calls[0]![0]);
     expect(projectsRequest._id).toBe('getRunProjects');
     expect(projectsRequest.path).toEqual({ runId: 123 });
-    expect(projectsRequest.query).toEqual({ limit: ALL_ITEMS });
+    expect(projectsRequest.query).toEqual({ limit: 10, offset: 0 });
+
+    const licensesRequest = getQueryKeyRequest(prefetchQuery.mock.calls[1]![0]);
+    expect(licensesRequest._id).toBe('getRunProjectLicenses');
+    expect(licensesRequest.path).toEqual({ runId: 123 });
   });
 });
