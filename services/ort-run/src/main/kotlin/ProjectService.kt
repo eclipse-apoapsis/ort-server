@@ -155,6 +155,30 @@ class ProjectService(private val db: Database) {
 
         ListQueryResult(projects, parameters, totalCount)
     }
+
+    /** Return distinct processed declared SPDX license expressions for the ORT run. */
+    suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> = db.dbQuery {
+        ProjectsTable.joinAnalyzerTables()
+            .innerJoin(ProcessedDeclaredLicensesTable)
+            .select(ProcessedDeclaredLicensesTable.spdxExpression)
+            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+            .withDistinct()
+            .mapNotNullTo(mutableSetOf()) { it[ProcessedDeclaredLicensesTable.spdxExpression] }
+            .sortedWith(String.CASE_INSENSITIVE_ORDER)
+    }
+
+    /** Return distinct unmapped declared license strings for the ORT run. */
+    suspend fun getUnmappedDeclaredLicenses(ortRunId: Long): List<String> = db.dbQuery {
+        ProjectsTable.joinAnalyzerTables()
+            .innerJoin(ProcessedDeclaredLicensesTable)
+            .innerJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
+            .innerJoin(UnmappedDeclaredLicensesTable)
+            .select(UnmappedDeclaredLicensesTable.unmappedLicense)
+            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+            .withDistinct()
+            .mapTo(mutableSetOf()) { it[UnmappedDeclaredLicensesTable.unmappedLicense] }
+            .sortedWith(String.CASE_INSENSITIVE_ORDER)
+    }
 }
 
 private fun ProjectsTable.joinAnalyzerTables() =
