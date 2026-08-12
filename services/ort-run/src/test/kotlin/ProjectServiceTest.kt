@@ -299,6 +299,70 @@ class ProjectServiceTest : WordSpec() {
                 }.message shouldContain "Unsupported field for sorting"
             }
         }
+
+        "getProcessedDeclaredLicenses" should {
+            "return distinct sorted expressions scoped to the requested run" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(identifier("mit-1"), processedLicense = "MIT"),
+                        createProject(identifier("mit-2"), processedLicense = "MIT"),
+                        createProject(identifier("apache"), processedLicense = "Apache-2.0"),
+                        createProject(identifier("bsd"), processedLicense = "bsd-2-Clause"),
+                        createProject(identifier("none"), processedLicense = null)
+                    )
+                ).id
+                createAnalyzerRunWithProjects(
+                    setOf(createProject(identifier("other-run"), processedLicense = "EPL-2.0"))
+                )
+
+                service.getProcessedDeclaredLicenses(ortRunId)
+                    .shouldContainExactly("Apache-2.0", "bsd-2-Clause", "MIT")
+            }
+
+            "return an empty list if the run has no processed expressions" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(createProject(identifier("none"), processedLicense = null))
+                ).id
+
+                service.getProcessedDeclaredLicenses(ortRunId).shouldBeEmpty()
+            }
+        }
+
+        "getUnmappedDeclaredLicenses" should {
+            "return distinct sorted strings scoped to the requested run" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(
+                            identifier("first"),
+                            unmappedLicenses = setOf("unknown-license", "custom-license")
+                        ),
+                        createProject(
+                            identifier("second"),
+                            unmappedLicenses = setOf("custom-license", "another-unknown-license")
+                        )
+                    )
+                ).id
+                createAnalyzerRunWithProjects(
+                    setOf(
+                        createProject(
+                            identifier("other-run"),
+                            unmappedLicenses = setOf("excluded-unknown-license")
+                        )
+                    )
+                )
+
+                service.getUnmappedDeclaredLicenses(ortRunId)
+                    .shouldContainExactly("another-unknown-license", "custom-license", "unknown-license")
+            }
+
+            "return an empty list if the run has no unmapped licenses" {
+                val ortRunId = createAnalyzerRunWithProjects(
+                    setOf(createProject(identifier("none"), processedLicense = null))
+                ).id
+
+                service.getUnmappedDeclaredLicenses(ortRunId).shouldBeEmpty()
+            }
+        }
     }
 
     private fun identifier(name: String) = Identifier("Maven", "com.example", name, "1.0")
