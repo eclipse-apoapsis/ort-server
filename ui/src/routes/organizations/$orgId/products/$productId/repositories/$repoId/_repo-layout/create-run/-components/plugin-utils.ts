@@ -42,6 +42,17 @@ function optionTypeToZodType(type: PluginOptionType): ZodType {
       }, z.boolean());
     case 'ENUM':
       return z.string();
+    case 'ENUM_LIST':
+      // Preprocess to coerce the comma-separated representation used by the API
+      // into the array representation used by the form.
+      return z.preprocess((val) => {
+        if (typeof val === 'string')
+          return val
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        return val;
+      }, z.array(z.string()));
     case 'INTEGER':
       return z.coerce.string();
     case 'LONG':
@@ -96,7 +107,12 @@ export function validateRequiredPluginOptions(
       const section = option.type === 'SECRET' ? 'secrets' : 'options';
       const value = pluginConfig?.[section]?.[option.name];
 
-      if (value === undefined || value === null || value === '') {
+      if (
+        value === undefined ||
+        value === null ||
+        value === '' ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
         ctx.addIssue({
           code: 'invalid_type',
           expected: 'string',
@@ -275,7 +291,10 @@ export function getPluginDefaultValues(
             return;
           } else if (option.type === 'BOOLEAN') {
             options[option.name] = option.defaultValue === 'true';
-          } else if (option.type === 'STRING_LIST') {
+          } else if (
+            option.type === 'ENUM_LIST' ||
+            option.type === 'STRING_LIST'
+          ) {
             options[option.name] =
               typeof option.defaultValue === 'string'
                 ? option.defaultValue
