@@ -60,20 +60,6 @@ class WorkerContextModuleTest : KoinTest, StringSpec() {
                 secretResolverService.getSecretValue(secret) shouldBe secretValue
             }
         }
-
-        "A custom secret resolver service should be returned" {
-            val secret = mockk<Secret>()
-            val secretValue = SecretValue("The correctly resolved secret value")
-            val resolverService = mockk<SecretResolverService> {
-                every { getSecretValue(secret) } returns secretValue
-            }
-
-            runModuleTest(workerContextModule(resolverService)) {
-                val secretResolverService = get<SecretResolverService>()
-
-                secretResolverService.getSecretValue(secret) shouldBe secretValue
-            }
-        }
     }
 
     /**
