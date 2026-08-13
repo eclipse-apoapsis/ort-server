@@ -91,13 +91,19 @@ import {
   getResolvedStatus,
 } from '@/helpers/resolutions';
 import { getVersionsRelativeToReference } from '@/helpers/versions';
+import {
+  splitVulnerabilityStatusSelection,
+  toTriState,
+  vulnerabilityStatusOptions,
+} from '@/helpers/vulnerability-status';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
   advisorSearchParameterSchema,
   externalIdSearchParameterSchema,
+  ItemFix,
+  itemFixSearchParameterSchema,
   ItemResolved,
-  itemResolvedSchema,
   itemStatusSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
@@ -205,14 +211,18 @@ const VulnerabilitiesComponent = () => {
   const navigate = Route.useNavigate();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
-  const itemStatus = search.itemResolved;
+  const selectedStatuses = [
+    ...(search.itemResolved ?? []),
+    ...(search.itemFix ?? []),
+  ];
+  const itemStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
   const packageIdentifier = search.pkgId;
   const rating = search.rating;
   const externalId = search.externalId;
   const advisor = search.advisor;
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
-  const resolved =
-    itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
+  const resolved = toTriState(search.itemResolved, 'Resolved');
+  const fixAvailable = toTriState(search.itemFix, 'Fix available');
   const sortBy = search.sortBy?.filter((sort) =>
     supportedSortColumns.has(sort.id)
   );
@@ -342,9 +352,12 @@ const VulnerabilitiesComponent = () => {
       },
     }),
     columnHelper.accessor(
-      (vuln) => {
-        return getResolvedStatus(vuln);
-      },
+      (vuln) => [
+        getResolvedStatus(vuln),
+        (vuln.firstFixedVersions?.length ?? 0) > 0
+          ? 'Fix available'
+          : 'Fix unavailable',
+      ],
       {
         id: 'itemStatus',
         header: 'Status',
@@ -352,16 +365,13 @@ const VulnerabilitiesComponent = () => {
         meta: {
           filter: {
             filterVariant: 'select',
-            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
-              label: itemResolved,
-              value: itemResolved,
-            })),
-            setSelected: (statuses: ItemResolved[]) => {
+            selectOptions: vulnerabilityStatusOptions,
+            setSelected: (statuses: (ItemResolved | ItemFix)[]) => {
               navigate({
                 search: {
                   ...search,
                   page: 1,
-                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                  ...splitVulnerabilityStatusSelection(statuses),
                 },
               });
             },
@@ -431,6 +441,7 @@ const VulnerabilitiesComponent = () => {
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(sortBy),
         resolved,
+        fixAvailable,
         rating: rating?.join(','),
         advisors: advisor?.join(','),
         ...(packageIdType === 'ORT_ID'
@@ -675,6 +686,7 @@ export const Route = createFileRoute(
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...itemStatusSearchParameterSchema.shape,
+    ...itemFixSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
     ...advisorSearchParameterSchema.shape,
