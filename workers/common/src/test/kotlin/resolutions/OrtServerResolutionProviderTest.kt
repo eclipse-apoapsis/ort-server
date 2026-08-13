@@ -23,9 +23,11 @@ import com.github.michaelbull.result.Ok
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.mockk
@@ -196,7 +198,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                     comment = "matching repository configuration issue resolution"
                 ),
                 IssueResolution(
-                    message = "match",
+                    message = Regex.escape("match"),
                     reason = IssueResolutionReason.CANT_FIX_ISSUE,
                     comment = "matching managed issue resolution"
                 )
@@ -303,7 +305,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             provider.getResolutionsFor(Issue(source = "source", message = literalMessage)) should
                     containExactlyInAnyOrder(
                         IssueResolution(
-                            message = literalMessage,
+                            message = Regex.escape(literalMessage),
                             reason = IssueResolutionReason.CANT_FIX_ISSUE,
                             comment = "matching managed issue resolution"
                         )
@@ -406,7 +408,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             val managedResolutions = Resolutions(
                 issues = listOf(
                     IssueResolution(
-                        message = "match",
+                        message = Regex.escape("match"),
                         reason = IssueResolutionReason.CANT_FIX_ISSUE,
                         comment = "matching managed issue resolution"
                     ),
@@ -450,6 +452,37 @@ class OrtServerResolutionProviderTest : WordSpec({
             )
 
             provider.getResolutionsFor(issue) should containExactlyInAnyOrder(expectedMatchingResolutions)
+        }
+
+        "escape the messages from server issue resolutions" {
+            val issueMessage = "IOException: Could not resolve provenance for package " +
+                    "'Maven:org.apache.commons:commons-configuration2:2.15.1' " +
+                    "for source code origins [ARTIFACT, VCS].\n" +
+                    "Resolution of ARTIFACT failed with:\n" +
+                    "IOException: Could not verify existence of source artifact at " +
+                    "https://non-existing.repo.org/maven2/org/apache/commons/commons-configuration2/2.15.1/" +
+                    "commons-configuration2-2.15.1-sources.jar. HTTP request got response 403."
+            val issue = Issue(source = "source", message = issueMessage)
+
+            val provider = OrtServerResolutionProvider(
+                globalResolutions = Resolutions(),
+                repositoryConfigurationResolutions = Resolutions(),
+                managedIssueResolutions = listOf(
+                    ServerIssueResolution(
+                        message = issueMessage,
+                        messageHash = calculateResolutionMessageHash(issueMessage),
+                        reason = ServerIssueResolutionReason.CANT_FIX_ISSUE,
+                        comment = "matching managed issue resolution",
+                        source = ResolutionSource.SERVER
+                    )
+                ),
+                managedRuleViolationResolutions = emptyList(),
+                managedVulnerabilityResolutions = emptyList()
+            )
+
+            provider.getResolutionsFor(issue).shouldBeSingleton { resolution ->
+                resolution.matches(issue) shouldBe true
+            }
         }
 
         "return matching rule violation resolutions from all three sources" {

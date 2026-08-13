@@ -74,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
@@ -320,7 +321,9 @@ fun Issue.mapToOrt() = OrtIssue(
 )
 
 fun IssueResolution.mapToOrt() = OrtIssueResolution(
-    message = message,
+    // ORT interprets the message as a regex, while Server-managed resolutions are exact string matches.
+    // Therefore, the message must be escaped.
+    message = message.takeUnless { source == ResolutionSource.SERVER } ?: Regex.escape(message),
     reason = reason.mapToOrt(),
     comment = comment
 )
