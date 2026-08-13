@@ -229,7 +229,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                     comment = "matching repository configuration rule violation resolution"
                 ),
                 RuleViolationResolution(
-                    message = "match",
+                    message = Regex.escape("match"),
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "matching managed rule violation resolution"
                 )
@@ -365,7 +365,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                 )
             ) should containExactlyInAnyOrder(
                 RuleViolationResolution(
-                    message = literalMessage,
+                    message = Regex.escape(literalMessage),
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "matching managed rule violation resolution"
                 )
@@ -553,13 +553,46 @@ class OrtServerResolutionProviderTest : WordSpec({
                 globalResolutions.ruleViolations.first(),
                 repositoryConfigurationResolutions.ruleViolations.first(),
                 RuleViolationResolution(
-                    message = "match",
+                    message = Regex.escape("match"),
                     reason = RuleViolationResolutionReason.CANT_FIX_EXCEPTION,
                     comment = "matching managed rule violation resolution"
                 )
             )
 
             provider.getResolutionsFor(ruleViolation) should containExactlyInAnyOrder(expectedMatchingResolutions)
+        }
+
+        "escape the messages from server rule violation resolutions" {
+            val ruleViolationMessage = "License *GPL-2.0-only* found in files [source1, source2]."
+            val ruleViolation = RuleViolation(
+                rule = "rule",
+                pkg = null,
+                license = null,
+                licenseSources = enumSetOf(),
+                severity = Severity.WARNING,
+                message = ruleViolationMessage,
+                howToFix = ""
+            )
+
+            val provider = OrtServerResolutionProvider(
+                globalResolutions = Resolutions(),
+                repositoryConfigurationResolutions = Resolutions(),
+                managedIssueResolutions = emptyList(),
+                managedRuleViolationResolutions = listOf(
+                    ServerRuleViolationResolution(
+                        message = ruleViolationMessage,
+                        messageHash = calculateResolutionMessageHash(ruleViolationMessage),
+                        reason = ServerRuleViolationResolutionReason.CANT_FIX_EXCEPTION,
+                        comment = "matching managed rule violation resolution",
+                        source = ResolutionSource.SERVER
+                    )
+                ),
+                managedVulnerabilityResolutions = emptyList()
+            )
+
+            provider.getResolutionsFor(ruleViolation).shouldBeSingleton { resolution ->
+                resolution.matches(ruleViolation) shouldBe true
+            }
         }
 
         "return matching vulnerability resolutions from all three sources" {

@@ -606,7 +606,9 @@ fun RuleViolation.mapToOrt() =
 
 fun RuleViolationResolution.mapToOrt() =
     OrtRuleViolationResolution(
-        message = message,
+        // ORT interprets the message as a regex, while Server-managed resolutions are exact string matches.
+        // Therefore, the message must be escaped.
+        message = message.takeUnless { source == ResolutionSource.SERVER } ?: Regex.escape(message),
         reason = reason.mapToOrt(),
         comment = comment
     )
