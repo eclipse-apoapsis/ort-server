@@ -882,6 +882,7 @@ fun ApiRuleViolationFilters.mapToModel(): RuleViolationFilters = RuleViolationFi
 
 fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFilters(
     resolved = resolved,
+    fixAvailable = fixAvailable,
     rating = rating?.mapToModel { ratingSet ->
         ratingSet.mapTo(mutableSetOf()) { it.mapToModel() }
     },

@@ -626,6 +626,7 @@ private fun ApplicationCall.issueFilters(): IssueFilter =
 private fun ApplicationCall.vulnerabilityFilters() =
     VulnerabilityFilters(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
+        fixAvailable = parameters["fixAvailable"]?.lowercase()?.toBooleanStrictOrNull(),
         rating = vulnerabilityRatingFilter(),
         identifier = vulnerabilityIdentifierFilter(),
         purl = vulnerabilityPurlFilter(),
