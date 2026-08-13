@@ -56,6 +56,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input.tsx';
 import { Label } from '@/components/ui/label';
+import MultipleSelector, {
+  Option as MultipleSelectorOption,
+} from '@/components/ui/multiple-selector';
 import {
   Select,
   SelectContent,
@@ -68,6 +71,19 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group.tsx';
 import { cn } from '@/lib/utils';
 
 export type ScannerScope = 'both' | 'packages' | 'projects';
+
+function parsePluginOptionList(value: unknown): string[] {
+  if (Array.isArray(value)) return value as string[];
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
 
 type SortablePluginListItemProps = {
   id: string;
@@ -418,6 +434,30 @@ export const PluginMultiSelectField = <
                                   ))}
                                 </SelectContent>
                               </Select>
+                            ) : option.type === 'ENUM_LIST' ? (
+                              <MultipleSelector
+                                className='min-w-[280px]'
+                                placeholder='Select values'
+                                hidePlaceholderWhenSelected
+                                value={parsePluginOptionList(
+                                  field.value
+                                ).map<MultipleSelectorOption>((entry) => ({
+                                  value: entry,
+                                  label: entry,
+                                }))}
+                                options={(
+                                  option.enumEntries ?? []
+                                ).map<MultipleSelectorOption>((entry) => ({
+                                  value: entry,
+                                  label: entry,
+                                }))}
+                                onChange={(selected) => {
+                                  field.onChange(
+                                    selected.map((entry) => entry.value)
+                                  );
+                                }}
+                                disabled={option.isFixed}
+                              />
                             ) : option.isRequired ? (
                               <Input
                                 {...field}

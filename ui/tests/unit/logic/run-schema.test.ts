@@ -83,6 +83,84 @@ describe('createRunFormSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('accepts enum list plugin options', () => {
+    const scannerPlugin = createPluginDescriptor({
+      id: 'Scanner',
+      options: [
+        {
+          name: 'rules',
+          description: 'Enabled rules.',
+          type: 'ENUM_LIST',
+          enumEntries: ['copyright', 'license'],
+          isFixed: false,
+          isNullable: false,
+          isRequired: true,
+        },
+      ],
+    });
+    const schema = createRunFormSchema([], [scannerPlugin], [], []);
+    const formData = createValidFormData();
+    formData.jobConfigs.scanner.scanners = ['Scanner'];
+    formData.jobConfigs.scanner.config = {
+      Scanner: {
+        options: {
+          rules: 'copyright, license',
+        },
+        secrets: {},
+      },
+    };
+
+    const result = schema.safeParse(formData);
+
+    expect(result.success).toBe(true);
+    const parsedConfig = result.data?.jobConfigs.scanner.config as
+      Record<string, { options?: Record<string, unknown> }> | undefined;
+    expect(parsedConfig?.Scanner?.options?.rules).toEqual([
+      'copyright',
+      'license',
+    ]);
+  });
+
+  it('rejects an empty required enum list plugin option', () => {
+    const scannerPlugin = createPluginDescriptor({
+      id: 'Scanner',
+      options: [
+        {
+          name: 'rules',
+          description: 'Enabled rules.',
+          type: 'ENUM_LIST',
+          enumEntries: ['copyright', 'license'],
+          isFixed: false,
+          isNullable: false,
+          isRequired: true,
+        },
+      ],
+    });
+    const schema = createRunFormSchema([], [scannerPlugin], [], []);
+    const formData = createValidFormData();
+    formData.jobConfigs.scanner.scanners = ['Scanner'];
+    formData.jobConfigs.scanner.config = {
+      Scanner: {
+        options: {
+          rules: [] as unknown as string,
+        },
+        secrets: {},
+      },
+    };
+
+    const result = schema.safeParse(formData);
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map((issue) => issue.path)).toContainEqual([
+      'jobConfigs',
+      'scanner',
+      'config',
+      'Scanner',
+      'options',
+      'rules',
+    ]);
+  });
+
   it('validates reporter package configuration providers when evaluator is disabled', () => {
     const schema = createRunFormSchema(
       [],
