@@ -1061,6 +1061,64 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter vulnerabilities by available fix" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResultWithFixAvailability()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?fixAvailable=true"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<PagedResponse<VulnerabilityWithDetails>>().data.shouldBeSingleton {
+                    it.vulnerability.externalId shouldBe "CVE-2021-1234"
+                }
+            }
+        }
+
+        "filter vulnerabilities by unavailable fix" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    providerIssues = emptySet(),
+                    results = generateAdvisorResultWithFixAvailability()
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/vulnerabilities?fixAvailable=false"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<PagedResponse<VulnerabilityWithDetails>>().data.shouldBeSingleton {
+                    it.vulnerability.externalId shouldBe "CVE-2018-14721"
+                }
+            }
+        }
+
         "filter vulnerabilities by identifier" {
             integrationTestApplication {
                 val ortRun = dbExtension.fixtures.createOrtRun(
@@ -3820,6 +3878,20 @@ private fun generateAdvisorConfiguration() = AdvisorConfiguration(
         )
     )
 )
+
+private fun generateAdvisorResultWithFixAvailability() = generateAdvisorResult().mapValues { (_, advisorResults) ->
+    advisorResults.map { advisorResult ->
+        advisorResult.copy(
+            vulnerabilities = advisorResult.vulnerabilities.map { vulnerability ->
+                if (vulnerability.externalId == "CVE-2018-14721") {
+                    vulnerability.copy(firstFixedVersions = emptySet())
+                } else {
+                    vulnerability
+                }
+            }
+        )
+    }
+}
 
 private fun generateAdvisorResult() = mapOf(
         Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0") to listOf(

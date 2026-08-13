@@ -319,6 +319,17 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                 """.trimIndent()
         }
 
+        queryParameter<Boolean>("fixAvailable") {
+            description =
+                """
+                    If true, only vulnerabilities for which at least one fixed version is known are returned. If false,
+                    only vulnerabilities without any known fixed version are returned. If missing, vulnerabilities are
+                    returned regardless of fix availability. This does not take the version of the affected package into
+                    account; a known fixed version may be older than the version in use.
+                """.trimIndent()
+            required = false
+        }
+
         queryParameter<String>("rating") {
             description = "Defines the ratings to filter the results by. This is a comma-separated string with the " +
                     "following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it" } + ". Add a " +
