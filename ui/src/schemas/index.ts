@@ -57,6 +57,10 @@ export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
 export const itemResolvedSchema = z.enum(['Resolved', 'Unresolved']);
 export type ItemResolved = z.infer<typeof itemResolvedSchema>;
 
+// Enum schema and type for the fix availability of vulnerabilities
+export const itemFixSchema = z.enum(['Fix available', 'Fix unavailable']);
+export type ItemFix = z.infer<typeof itemFixSchema>;
+
 // Enum schema and type for the possible values of the issue categories.
 export const issueCategorySchema = z.enum([
   'Build System',
@@ -131,6 +135,10 @@ export const severitySearchParameterSchema = z.object({
 
 export const itemStatusSearchParameterSchema = z.object({
   itemResolved: z.array(itemResolvedSchema).optional(),
+});
+
+export const itemFixSearchParameterSchema = z.object({
+  itemFix: z.array(itemFixSchema).optional(),
 });
 
 export const packageIdentifierSearchParameterSchema = z.object({
