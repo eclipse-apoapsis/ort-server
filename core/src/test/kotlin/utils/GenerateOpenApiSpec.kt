@@ -38,7 +38,6 @@ import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.plugins.configureOpenApi
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
-import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
 /**
  * This fake test starts the [ortServerTestApplication] to get the generated OpenAPI specification and writes it to
@@ -50,11 +49,8 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
  */
 @EnabledIf(GenerateOpenApiSpecCondition::class)
 class GenerateOpenApiSpec : StringSpec({
-    val dbExtension = extension(DatabaseTestExtension())
-
     "Generate the OpenAPI specification" {
         ortServerTestApplication(
-            db = dbExtension.db,
             config = TestConfig.Test,
             additionalConfigs = mapOf("jwt.issuer" to "http://localhost:8081/realms/master")
         ) {
