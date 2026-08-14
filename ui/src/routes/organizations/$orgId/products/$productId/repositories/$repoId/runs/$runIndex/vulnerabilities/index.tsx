@@ -464,7 +464,7 @@ const VulnerabilitiesComponent = () => {
         >
           <AccordionItem value='fixed-versions'>
             <AccordionTrigger className='font-semibold'>
-              Fixed versions
+              First fixed versions
             </AccordionTrigger>
             <AccordionContent>
               {(row.original.firstFixedVersions?.length ?? 0) > 0 ? (
