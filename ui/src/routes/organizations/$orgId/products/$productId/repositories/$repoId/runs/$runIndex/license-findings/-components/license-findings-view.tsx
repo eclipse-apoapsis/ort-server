@@ -33,6 +33,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DetectedLicense } from '@/api';
 import {
   getRepositoryRunOptions,
+  getRunDetectedLicensesInfiniteOptions,
   getRunDetectedLicensesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
@@ -50,6 +51,9 @@ import {
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useInfiniteList } from '@/hooks/use-infinite-list';
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { DetectedLicensePackagesTable } from './detected-license-packages-table';
@@ -90,6 +94,9 @@ export const LicenseFindingsView = () => {
   const [expanded, setExpanded] = useState<ExpandedState>(
     getMarkerExpandedState(search.marked)
   );
+  const [licenseFilterOpen, setLicenseFilterOpen] = useState(false);
+  const [licenseSearchTerm, setLicenseSearchTerm] = useState('');
+  const debouncedLicenseSearchTerm = useDebounce(licenseSearchTerm, 300).trim();
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -100,19 +107,28 @@ export const LicenseFindingsView = () => {
     }),
   });
 
+  const detectedLicenseOptions = useInfiniteList(
+    getRunDetectedLicensesInfiniteOptions({
+      path: { runId: ortRun.id },
+      query: {
+        limit: DROPDOWN_PAGE_SIZE,
+        license: debouncedLicenseSearchTerm || undefined,
+      },
+    }),
+    { enabled: licenseFilterOpen }
+  );
+  const licenseFilterOptions = {
+    ...detectedLicenseOptions,
+    items: detectedLicenseOptions.items.map(({ license }) => ({
+      label: license,
+      value: license,
+    })),
+  };
+
   const { data: totalDetectedLicenses } = useSuspenseQuery({
     ...getRunDetectedLicensesOptions({
       path: { runId: ortRun.id },
       query: { limit: 1 },
-    }),
-  });
-
-  const { data: detectedLicensesOptions } = useSuspenseQuery({
-    ...getRunDetectedLicensesOptions({
-      path: { runId: ortRun.id },
-      query: {
-        limit: totalDetectedLicenses.pagination.totalCount || 1,
-      },
     }),
   });
 
@@ -180,12 +196,17 @@ export const LicenseFindingsView = () => {
       meta: {
         isGrow: true,
         filter: {
-          filterVariant: 'select',
+          filterVariant: 'infinite-select',
           align: 'end',
-          selectOptions: detectedLicensesOptions.data.map((license) => ({
-            label: license.license,
-            value: license.license,
-          })),
+          selectOptions: licenseFilterOptions,
+          getSelectedOption: (license: string) => ({
+            label: license,
+            value: license,
+          }),
+          open: licenseFilterOpen,
+          onOpenChange: setLicenseFilterOpen,
+          searchTerm: licenseSearchTerm,
+          onSearchTermChange: setLicenseSearchTerm,
           setSelected: (licenses: string[]) => {
             navigate({
               search: clearDetectedLicenseMarkers({
