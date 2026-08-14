@@ -1,0 +1,143 @@
+/*
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+import { Check, Filter } from 'lucide-react';
+
+import { includeSelectedFilterOptions } from '@/components/data-table/filter-infinite-multi-select-utils';
+import { FilterOption } from '@/components/data-table/filter-multi-select';
+import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
+import { Button } from '@/components/ui/button';
+import {
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+} from '@/components/ui/command';
+import { InfiniteList } from '@/lib/infinite-list';
+import { cn } from '@/lib/utils';
+
+type FilterInfiniteMultiSelectProps<TValue> = {
+  title?: string;
+  showTitle?: boolean;
+  options: InfiniteList<FilterOption<TValue>>;
+  selected: TValue[];
+  getSelectedOption: (value: TValue) => FilterOption<TValue>;
+  setSelected: (selected: TValue[]) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  align?: 'start' | 'end' | 'center';
+};
+
+/** A multi-select filter that loads its options from a paged API endpoint. */
+export function FilterInfiniteMultiSelect<TValue>({
+  title,
+  showTitle,
+  options,
+  selected,
+  getSelectedOption,
+  setSelected,
+  open,
+  onOpenChange,
+  searchTerm,
+  onSearchTermChange,
+  align = 'start',
+}: FilterInfiniteMultiSelectProps<TValue>) {
+  const list = {
+    ...options,
+    items: includeSelectedFilterOptions(
+      options.items,
+      selected,
+      getSelectedOption
+    ),
+  };
+
+  return (
+    <SearchableInfiniteList
+      trigger={
+        <Button variant='ghost' size='narrow' className='font-medium'>
+          {showTitle && <span className='text-sm'>{title}</span>}
+          <Filter
+            className={cn(
+              'size-4',
+              selected.length > 0 ? 'text-blue-500' : undefined
+            )}
+          />
+        </Button>
+      }
+      open={open}
+      onOpenChange={onOpenChange}
+      list={list}
+      getItemKey={(option) => String(option.value)}
+      renderItem={(option) => {
+        const isSelected = selected.includes(option.value);
+
+        return (
+          <CommandItem
+            value={option.label}
+            onSelect={() => {
+              if (isSelected) {
+                setSelected(selected.filter((value) => value !== option.value));
+              } else {
+                setSelected([...selected, option.value]);
+              }
+            }}
+          >
+            <div
+              className={cn(
+                'border-primary mr-2 flex h-4 w-4 items-center justify-center rounded-sm border',
+                isSelected
+                  ? 'bg-primary text-primary-foreground'
+                  : 'opacity-50 [&_svg]:invisible'
+              )}
+            >
+              <Check className='h-4 w-4' />
+            </div>
+            {option.icon && (
+              <option.icon className='text-muted-foreground mr-2 h-4 w-4' />
+            )}
+            <span>{option.label}</span>
+          </CommandItem>
+        );
+      }}
+      emptyMessage='No results found.'
+      errorMessage='Failed to load filter options'
+      searchPlaceholder={title}
+      searchTerm={searchTerm}
+      onSearchTermChange={onSearchTermChange}
+      align={align}
+      className='w-[200px]'
+      footer={
+        selected.length > 0 ? (
+          <>
+            <CommandSeparator />
+            <CommandGroup>
+              <CommandItem
+                onSelect={() => setSelected([])}
+                className='justify-center text-center'
+              >
+                Clear selection
+              </CommandItem>
+            </CommandGroup>
+          </>
+        ) : undefined
+      }
+    />
+  );
+}

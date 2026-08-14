@@ -19,12 +19,14 @@
 
 import {
   Column,
+  InfiniteSelectFilter,
   RegexFilter,
   SelectFilter,
   SingleSelectFilter,
   TextFilter,
 } from '@tanstack/react-table';
 
+import { FilterInfiniteMultiSelect } from '@/components/data-table/filter-infinite-multi-select';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterSingleSelect } from '@/components/data-table/filter-single-select';
@@ -82,6 +84,35 @@ export function DataTableFilter<TData, TValue>({
         options={selectOptions}
         selected={(columnFilterValue as TValue[] | undefined) ?? []}
         setSelected={setSelected}
+        align={align}
+      />
+    );
+  }
+
+  if (filterVariant === 'infinite-select') {
+    const {
+      selectOptions,
+      getSelectedOption,
+      setSelected,
+      open,
+      onOpenChange,
+      searchTerm,
+      onSearchTermChange,
+    } = column.columnDef.meta?.filter as InfiniteSelectFilter<TValue>;
+    const align = column.columnDef.meta?.filter?.align;
+
+    return (
+      <FilterInfiniteMultiSelect
+        title={title}
+        showTitle={showTitle}
+        options={selectOptions}
+        selected={(columnFilterValue as TValue[] | undefined) ?? []}
+        getSelectedOption={getSelectedOption}
+        setSelected={setSelected}
+        open={open}
+        onOpenChange={onOpenChange}
+        searchTerm={searchTerm}
+        onSearchTermChange={onSearchTermChange}
         align={align}
       />
     );

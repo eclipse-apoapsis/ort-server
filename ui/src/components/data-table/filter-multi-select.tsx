@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-type FilterOption<TValue> = {
+export type FilterOption<TValue> = {
   label: string;
   value: TValue;
   icon?: React.ComponentType<{ className?: string }>;
