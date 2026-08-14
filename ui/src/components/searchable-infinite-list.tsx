@@ -57,6 +57,8 @@ type SearchableInfiniteListProps<TItem> = {
   onSearchTermChange?: (value: string) => void;
   align?: 'start' | 'center' | 'end';
   className?: string;
+  /** Additional actions shown after the loaded entries. */
+  footer?: ReactNode;
 };
 
 /**
@@ -82,6 +84,7 @@ export function SearchableInfiniteList<TItem>({
   onSearchTermChange,
   align = 'start',
   className,
+  footer,
 }: SearchableInfiniteListProps<TItem>) {
   const { ref, inView } = useInView();
   const { items, isPending, isError, error } = list;
@@ -144,6 +147,7 @@ export function SearchableInfiniteList<TItem>({
                 ))}
               </CommandGroup>
             )}
+            {footer}
             {/* Scrolling this into view is what asks for the next page. */}
             <div ref={ref} />
             {isFetchingNextPage && (

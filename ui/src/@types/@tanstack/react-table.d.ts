@@ -19,6 +19,9 @@
 
 import '@tanstack/react-table';
 
+import type { FilterOption } from '@/components/data-table/filter-multi-select';
+import type { InfiniteList } from '@/lib/infinite-list';
+
 declare module '@tanstack/react-table' {
   // Extend the ColumnMeta interface to include properties needed for filtering
   // Disable no-unused-vars for TData, it is needed here to ensure the extended
@@ -46,13 +49,20 @@ declare module '@tanstack/react-table' {
 
   type SelectFilter<TValue> = {
     filterVariant: 'select';
-    selectOptions: {
-      label: string;
-      value: TValue;
-      icon?: React.ComponentType<{ className?: string }>;
-      group?: string;
-    }[];
+    selectOptions: FilterOption<TValue>[];
     setSelected: (selected: TValue[]) => void;
+    align?: 'start' | 'end' | 'center';
+  };
+
+  type InfiniteSelectFilter<TValue> = {
+    filterVariant: 'infinite-select';
+    selectOptions: InfiniteList<FilterOption<TValue>>;
+    getSelectedOption: (value: TValue) => FilterOption<TValue>;
+    setSelected: (selected: TValue[]) => void;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    searchTerm: string;
+    onSearchTermChange: (value: string) => void;
     align?: 'start' | 'end' | 'center';
   };
 
@@ -72,5 +82,6 @@ declare module '@tanstack/react-table' {
     | TextFilter
     | RegexFilter
     | SelectFilter<TValue>
+    | InfiniteSelectFilter<TValue>
     | SingleSelectFilter<TValue>;
 }
