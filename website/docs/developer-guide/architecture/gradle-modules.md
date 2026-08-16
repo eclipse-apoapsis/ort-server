@@ -21,20 +21,20 @@ The modules for each API version are responsible for defining the API model, map
 The CLI module contains a command line interface for the ORT server, leveraging the API client.
 This is useful for implementing scripts or other tools that interact with the ORT server, for example, to integrate it into a CI/CD pipeline.
 
-## `clients`
+### `clients`
 
 The client modules contain independent clients, for example, for Keycloak, that can be used by the services.
 
-## `config`
+### `config`
 
 The config abstraction contains implementations to load configuration files and infrastructure secrets from different sources.
 
-## `core`
+### `core`
 
 The core module contains the Ktor backend including route definitions, dependency injection, and configuration.
 It is also responsible for authentication.
 
-## `dao`
+### `dao`
 
 The DAO module contains all code related to database access, for example, database-specific repository implementations.
 A repository only has to be implemented for an [aggregate root](https://martinfowler.com/bliki/DDD_Aggregate.html) and not for every table.
@@ -43,45 +43,45 @@ Because of this, only the business model classes representing aggregate roots ha
 For all other classes, this is considered an implementation detail of the DAO layer.
 Note that we are currently not strict with regard to DDD and allow multiple repositories to access the same tables, for example, both analyzer and scanner runs contain an environment object and store its information in the same tables.
 
-## `logaccess`
+### `logaccess`
 
 The logaccess abstraction contains implementations to access log files from different sources, for example, log aggregation services.
 
-## `model`
+### `model`
 
 The model module contains the business model of the ORT server.
 This includes classes that represent server specific concepts, as well as classes that represent the ORT model.
 For the most part, the ORT Server does not directly use the ORT model classes, but instead maps them to its own model classes to allow for a more flexible handling of breaking changes in the ORT model.
 
-## `orchestrator`
+### `orchestrator`
 
 The orchestrator module contains the code for the Orchestrator, which is responsible for scheduling the different jobs of an ORT run.
 
-## `secrets`
+### `secrets`
 
 The secrets abstraction contains implementations to access secrets from different secret management services.
 
-## `services`
+### `services`
 
 The service modules contain business logic that is used by the different applications.
 
-## `storage`
+### `storage`
 
 The storage abstraction contains implementations to store binary data in different storage systems.
 
-## `tasks`
+### `tasks`
 
 The tasks module contains the logic for regular background tasks that are executed by the ORT Server, for example, to clean up old data or to monitor Kubernetes jobs.
 
-## `transport`
+### `transport`
 
 The transport abstraction contains implementations for different messaging systems.
 
-## `utils`
+### `utils`
 
 The utils modules contain utility functions that are used across the project.
 
-## `workers`
+### `workers`
 
 The worker modules contain code that runs the individual ORT tools, like the analyzer.
 The workers are individual applications that run independently of the `core` and `orchestrator` applications.
