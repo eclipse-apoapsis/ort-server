@@ -150,13 +150,6 @@ data class ReportDefinitionTemplate(
 )
 
 /**
- * A type definition for a [Map] of named [ReporterAsset]s. In the [ReporterConfig], it is possible to define groups of
- * asset files and directories that can then be referenced from report definitions by their name. This reduces
- * redundancy in definitions and also allows selecting assets dynamically.
- */
-typealias GlobalReporterAssets = Map<String, List<ReporterAsset>>
-
-/**
  * A data class that represents the configuration of the Reporter worker.
  *
  * An instance of this class is part of the [AdminConfig]. It defines the reports users can request from this ORT
@@ -190,7 +183,7 @@ data class ReporterConfig(
 
     /** A [Map] with global [ReporterAsset]s that can be referenced from report definitions. */
     @param:ConfigAlias("assets")
-    val globalAssets: GlobalReporterAssets = emptyMap()
+    val globalAssets: Map<String, List<ReporterAsset>> = emptyMap()
 ) {
     companion object {
         /**
