@@ -61,7 +61,7 @@ ARG ASKALONO_VERSION=0.5.0
 # renovate: datasource=rubygems depName=licensee
 ARG LICENSEE_VERSION=10.1.0
 # renovate: datasource=github-releases depName=getprovenant/provenant extractVersion=^v(?<version>.*)$
-ARG PROVENANT_VERSION=1.0.6
+ARG PROVENANT_VERSION=1.0.7
 # renovate: datasource=ruby-version depName=ruby
 ARG RUBY_VERSION=4.0.6
 # renovate: datasource=pypi depName=scancode-toolkit
