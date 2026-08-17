@@ -106,6 +106,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.stringSetFilter
 
 import org.koin.ktor.ext.inject
 
@@ -552,16 +553,6 @@ private fun ApplicationCall.filters(): OrtRunFilters =
  */
 private fun ApplicationCall.declaredLicense(): FilterOperatorAndValue<Set<String>>? =
     stringSetFilter("declaredLicense")
-
-private fun ApplicationCall.stringSetFilter(parameterName: String): FilterOperatorAndValue<Set<String>>? {
-    val parts = parameters[parameterName]?.split(',')?.toSet() ?: return null
-
-    return if ("-" in parts) {
-        FilterOperatorAndValue(ComparisonOperator.NOT_IN, parts - "-")
-    } else {
-        FilterOperatorAndValue(ComparisonOperator.IN, parts)
-    }
-}
 
 private fun ApplicationCall.severityFilter(): FilterOperatorAndValue<Set<Severity>>? =
     parameters["severity"]?.let { value ->

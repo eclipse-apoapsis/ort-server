@@ -23,6 +23,8 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.plugins.ParameterConversionException
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.FilterOptions
 
 /**
@@ -48,6 +50,20 @@ fun ApplicationCall.requireIdParameter(name: String): Long {
     val id = requireParameter(name).toLongOrNull()
 
     return if (id != null && id > 0) id else throw ParameterConversionException(name, "ID")
+}
+
+/**
+ * Get a comma-separated string set filter from this [ApplicationCall], or return null if the parameter is absent.
+ * If the filter contains `-`, exclude the remaining values instead of including them.
+ */
+fun ApplicationCall.stringSetFilter(parameterName: String): FilterOperatorAndValue<Set<String>>? {
+    val parts = parameters[parameterName]?.split(',')?.toSet() ?: return null
+
+    return if ("-" in parts) {
+        FilterOperatorAndValue(ComparisonOperator.NOT_IN, parts - "-")
+    } else {
+        FilterOperatorAndValue(ComparisonOperator.IN, parts)
+    }
 }
 
 /**

@@ -29,6 +29,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
+    api(projects.api.v1.apiV1Model)
     api(projects.shared.apiModel)
 
     api(ktorLibs.server.core)
