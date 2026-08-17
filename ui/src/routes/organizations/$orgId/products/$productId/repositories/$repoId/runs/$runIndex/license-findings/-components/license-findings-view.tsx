@@ -112,7 +112,7 @@ export const LicenseFindingsView = () => {
       path: { runId: ortRun.id },
       query: {
         limit: DROPDOWN_PAGE_SIZE,
-        license: debouncedLicenseSearchTerm || undefined,
+        licenseSearch: debouncedLicenseSearchTerm || undefined,
       },
     }),
     { enabled: licenseFilterOpen }

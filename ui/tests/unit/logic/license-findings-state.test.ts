@@ -28,16 +28,21 @@ import {
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/-components/license-findings-state';
 
 describe('license findings deep-link state', () => {
-  it('uses an exact license filter for a marked license', () => {
-    expect(
-      getDetectedLicenseQueryFilter('MIT', 'MIT,MIT AND Apache-2.0')
-    ).toEqual({ license: 'MIT', licenseMatchType: 'exact' });
+  it('uses a marked license instead of the interactive filter', () => {
+    const filter = getDetectedLicenseQueryFilter(
+      'MIT',
+      'MIT,MIT AND Apache-2.0'
+    );
+
+    expect(filter).toEqual({ license: 'MIT' });
+    expect(filter).not.toHaveProperty('licenseMatchType');
   });
 
-  it('keeps normal license filters when no license is marked', () => {
-    expect(getDetectedLicenseQueryFilter(undefined, 'MIT,Apache-2.0')).toEqual({
-      license: 'MIT,Apache-2.0',
-    });
+  it('keeps comma-separated interactive license filters', () => {
+    const filter = getDetectedLicenseQueryFilter(undefined, 'MIT,Apache-2.0');
+
+    expect(filter).toEqual({ license: 'MIT,Apache-2.0' });
+    expect(filter).not.toHaveProperty('licenseMatchType');
   });
 
   it('uses stable marker values as expanded row IDs', () => {

@@ -62,12 +62,14 @@ class LicenseFindingService(private val db: Database) {
      * Return the detected licenses for the ORT run with the given [ortRunId].
      *
      * The result contains one entry per detected license together with the number of distinct packages that contain the
-     * license. The result can be filtered by [licenseFilter], and paged and sorted according to [parameters].
+     * license. [licenseFilter] selects exact license expressions, while [licenseSearch] applies a case-insensitive
+     * substring search. The result is paged and sorted according to [parameters].
      */
     fun getDetectedLicensesForRun(
         ortRunId: Long,
         parameters: ListQueryParameters,
-        licenseFilter: FilterOperatorAndValue<String>?
+        licenseFilter: FilterOperatorAndValue<Set<String>>?,
+        licenseSearch: String?
     ): ListQueryResult<DetectedLicense> = db.blockingQuery {
         val licenseFindingsJoin = buildLicenseFindingsJoin()
         val packageCount = Count(IdentifiersTable.id, distinct = true)
@@ -82,6 +84,7 @@ class LicenseFindingService(private val db: Database) {
         licenseFilter?.let {
             query.andWhere { LicenseFindingsTable.license.applyFilter(it.operator, it.value) }
         }
+        licenseSearch?.let { query.andWhere { LicenseFindingsTable.license.applyILike(it) } }
 
         parameters.sortFields.forEach { orderField ->
             val sortOrder = orderField.direction.toSortOrder()

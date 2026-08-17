@@ -36,6 +36,7 @@ dependencies {
 
     routesApi(projects.components.authorization.authorizationBackend)
 
+    routesImplementation(projects.api.v1.apiV1Mapping)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.ktorUtils)
 

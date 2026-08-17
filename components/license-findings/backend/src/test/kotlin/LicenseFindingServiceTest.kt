@@ -79,6 +79,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 val result = service.getDetectedLicensesForRun(
                     seed.otherOrtRunId + 999L,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null,
                     null
                 )
 
@@ -90,6 +91,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null,
                     null
                 )
 
@@ -101,30 +103,33 @@ class LicenseFindingServiceTest : WordSpec() {
                 )
             }
 
-            "apply licenseFilter ILIKE" {
+            "filter by one exact license" {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
-                    FilterOperatorAndValue(ComparisonOperator.ILIKE, "apache")
-                )
-
-                result.totalCount shouldBe 1
-                result.data should containExactly(DetectedLicense("Apache-2.0", 2))
-            }
-
-            "not include scan results from a different scanner run sharing the same package provenance" {
-                val cross = seedCrossRunData(fixtures, db)
-
-                val result = service.getDetectedLicensesForRun(
-                    cross.ortRunId2,
-                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    FilterOperatorAndValue(ComparisonOperator.IN, setOf("MIT")),
                     null
                 )
 
-                result.data.map { it.license } should containExactly("MIT")
+                result.data should containExactly(DetectedLicense("MIT", 1))
             }
 
-            "apply an EQUALS licenseFilter" {
+            "filter by multiple exact licenses" {
+                val result = service.getDetectedLicensesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    FilterOperatorAndValue(ComparisonOperator.IN, setOf("MIT", "Apache-2.0")),
+                    null
+                )
+
+                result.totalCount shouldBe 2
+                result.data should containExactly(
+                    DetectedLicense("Apache-2.0", 2),
+                    DetectedLicense("MIT", 1)
+                )
+            }
+
+            "search licenses by a case-insensitive substring" {
                 addLicenseFindings(
                     db,
                     seed.scannerRunId,
@@ -135,16 +140,52 @@ class LicenseFindingServiceTest : WordSpec() {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
-                    FilterOperatorAndValue(ComparisonOperator.EQUALS, "MIT")
+                    null,
+                    "mit"
                 )
 
-                result.data should containExactly(DetectedLicense("MIT", 1))
+                result.data should containExactly(
+                    DetectedLicense("MIT", 1),
+                    DetectedLicense("MIT OR Apache-2.0", 1)
+                )
+            }
+
+            "combine exact filtering and substring search" {
+                addLicenseFindings(
+                    db,
+                    seed.scannerRunId,
+                    Identifier("Maven", "com.example", "mit-or-apache", "1.0"),
+                    listOf("MIT OR Apache-2.0")
+                )
+
+                val result = service.getDetectedLicensesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    FilterOperatorAndValue(ComparisonOperator.IN, setOf("MIT", "MIT OR Apache-2.0")),
+                    "apache"
+                )
+
+                result.data should containExactly(DetectedLicense("MIT OR Apache-2.0", 1))
+            }
+
+            "not include scan results from a different scanner run sharing the same package provenance" {
+                val cross = seedCrossRunData(fixtures, db)
+
+                val result = service.getDetectedLicensesForRun(
+                    cross.ortRunId2,
+                    ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null,
+                    null
+                )
+
+                result.data.map { it.license } should containExactly("MIT")
             }
 
             "sort by packageCount descending without throwing" {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("packageCount", OrderDirection.DESCENDING))),
+                    null,
                     null
                 )
 
@@ -155,6 +196,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null,
                     null
                 )
 
@@ -165,6 +207,7 @@ class LicenseFindingServiceTest : WordSpec() {
                 val result = service.getDetectedLicensesForRun(
                     seed.ortRunId,
                     ListQueryParameters(sortFields = listOf(OrderField("license", OrderDirection.ASCENDING))),
+                    null,
                     null
                 )
 
@@ -183,6 +226,7 @@ class LicenseFindingServiceTest : WordSpec() {
                         limit = 1,
                         offset = 1
                     ),
+                    null,
                     null
                 )
 

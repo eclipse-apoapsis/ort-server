@@ -27,7 +27,7 @@ export const getMarkerExpandedState = (marker?: string): ExpandedState =>
 export const getDetectedLicenseQueryFilter = (
   marked: string | undefined,
   license: string | undefined
-) => (marked ? { license: marked, licenseMatchType: 'exact' } : { license });
+) => (marked ? { license: marked } : { license });
 
 export const getPackageIdentifierQueryFilter = (
   packageMarked: string | undefined,
