@@ -27,6 +27,7 @@ plugins {
     application
 
     // Apply precompiled plugins.
+    id("ort-server-koin-conventions")
     id("ort-server-kotlin-jvm-application-conventions")
 
     // Apply third-party plugins.
