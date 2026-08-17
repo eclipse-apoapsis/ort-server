@@ -32,6 +32,7 @@ repositories {
 dependencies {
     implementation(libs.kotlinxSerializationJson)
     implementation(libs.plugin.detekt)
+    implementation(libs.plugin.koinCompiler)
     implementation(libs.plugin.kotlin)
     implementation(libs.plugin.mavenPublish)
     implementation(libs.plugin.tinyJib)
