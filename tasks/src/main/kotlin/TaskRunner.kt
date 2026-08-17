@@ -144,8 +144,7 @@ suspend fun main() {
 }
 
 /**
- * Set up a Koin application with the given [modules] and run all configured tasks. Note that a module for the
- * configuration is added automatically.
+ * Set up a Koin application with the given [modules] and run all configured tasks.
  *
  * The tasks to run are defined via the configuration as a comma-separated list of task names. To change the set of
  * tasks dynamically, the configuration can be overwritten using an environment variable. The task names must match
