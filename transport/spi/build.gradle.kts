@@ -22,6 +22,7 @@ plugins {
     `java-test-fixtures`
 
     // Apply precompiled plugins.
+    id("ort-server-koin-conventions")
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
 

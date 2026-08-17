@@ -24,6 +24,7 @@ val dockerBaseImageTag = project.property("dockerBaseImageTag") as String
 
 plugins {
     // Apply precompiled plugins.
+    id("ort-server-koin-conventions")
     id("ort-server-kotlin-jvm-application-conventions")
 }
 
