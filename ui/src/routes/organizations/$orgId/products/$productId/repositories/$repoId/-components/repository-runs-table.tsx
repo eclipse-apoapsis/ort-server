@@ -129,7 +129,7 @@ const SummaryCard = ({
   return (
     <div className='grid grid-cols-12 gap-2'>
       {/* Left column - status, job status, duration */}
-      <div className='col-span-4 flex flex-col gap-1'>
+      <div className='col-span-5 flex flex-col gap-2'>
         <Badge
           className={`border ${getStatusBackgroundColor(summary.status)} w-fit`}
         >
@@ -151,30 +151,38 @@ const SummaryCard = ({
         />
       </div>
 
-      {/* Middle column - reserved for future use */}
-      <div className='col-span-2'></div>
-
       {/* Right column - created at, revision, configuration */}
-      <div className='col-span-6 flex flex-col items-end gap-1'>
-        <div className='flex gap-1'>
-          <div className='text-muted-foreground'>Created at</div>
-          <TimestampWithUTC timestamp={summary.createdAt} />
-          <div className='text-muted-foreground'>by</div>
-          {summary.userDisplayName?.username ? (
-            <Tooltip>
-              <TooltipTrigger>
-                {summary.userDisplayName.fullName ||
-                  summary.userDisplayName.username}
-              </TooltipTrigger>
-              <TooltipContent>
-                {summary.userDisplayName.username}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span>{summary.userDisplayName?.fullName}</span>
+      <div className='col-span-7 flex flex-col items-end gap-1'>
+        <div className='flex flex-wrap items-baseline justify-end gap-x-1'>
+          <div className='text-muted-foreground shrink-0 whitespace-nowrap'>
+            Created at
+          </div>
+          <TimestampWithUTC
+            timestamp={summary.createdAt}
+            className='shrink-0 whitespace-nowrap'
+          />
+          {summary.userDisplayName && (
+            <div className='flex min-w-0 items-baseline gap-1'>
+              <div className='text-muted-foreground shrink-0'>by</div>
+              {summary.userDisplayName.username ? (
+                <Tooltip>
+                  <TooltipTrigger className='min-w-0 text-right'>
+                    {summary.userDisplayName.fullName ||
+                      summary.userDisplayName.username}
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {summary.userDisplayName.username}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <span className='min-w-0 text-right'>
+                  {summary.userDisplayName.fullName}
+                </span>
+              )}
+            </div>
           )}
         </div>
-        <div className='flex gap-1 text-sm'>
+        <div className='flex items-baseline gap-1 text-sm'>
           <div className='text-muted-foreground'>Revision</div>{' '}
           {summary.revision}
           {summary.resolvedRevision &&
@@ -297,7 +305,7 @@ const createColumns = (
 ) => [
   columnHelper.accessor('index', {
     header: 'Index',
-    size: 50,
+    size: 70,
     cell: ({ row }) => (
       <RunIndexCell favoriteContext={favoriteContext} summary={row.original} />
     ),
