@@ -23,12 +23,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel as mapApiFilterToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.licensefindings.DetectedLicense
 import org.eclipse.apoapsis.ortserver.components.licensefindings.LicenseFindingService
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
-import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
@@ -39,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.stringSetFilter
 
 internal fun Route.getRunDetectedLicenses(
     service: LicenseFindingService,
@@ -54,11 +54,11 @@ internal fun Route.getRunDetectedLicenses(
                 description = "The ID of the ORT run."
             }
             queryParameter<String>("license") {
-                description = "Filter by license. Uses a case-insensitive substring match by default."
+                description = "Filter by exact license expressions. Multiple values can be separated by commas. " +
+                    "Include '-' to exclude the provided values."
             }
-            queryParameter<String>("licenseMatchType") {
-                description = "How to match the license filter: 'substring' performs a case-insensitive substring " +
-                    "match (the default), while 'exact' performs case-sensitive equality."
+            queryParameter<String>("licenseSearch") {
+                description = "Search licenses using a case-insensitive substring match."
             }
             standardListQueryParameters()
         }
@@ -83,35 +83,17 @@ internal fun Route.getRunDetectedLicenses(
                     }
                 }
             }
-            HttpStatusCode.BadRequest to {
-                description = "If 'licenseMatchType' has an unsupported value."
-            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")
 
         ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
-        val licenseFilter = call.parameters["license"]?.let { value ->
-            val matchType = call.parameters["licenseMatchType"] ?: "substring"
-            val operator = when (matchType) {
-                "substring" -> ComparisonOperator.ILIKE
-
-                "exact" -> ComparisonOperator.EQUALS
-
-                else -> return@get call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Unsupported 'licenseMatchType' value '$matchType'. Supported values are 'substring' and 'exact'."
-                )
-            }
-
-            FilterOperatorAndValue(operator, value)
-        }
-
         val result = service.getDetectedLicensesForRun(
             ortRunId = runId,
             parameters = call.pagingOptions(SortProperty("license", SortDirection.ASCENDING)).mapToModel(),
-            licenseFilter = licenseFilter
+            licenseFilter = call.stringSetFilter("license")?.mapApiFilterToModel { it },
+            licenseSearch = call.parameters["licenseSearch"]
         )
 
         call.respond(HttpStatusCode.OK, result.mapToApi { it })
