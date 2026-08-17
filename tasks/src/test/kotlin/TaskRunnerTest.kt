@@ -143,13 +143,13 @@ class TaskRunnerTest : KoinTest, WordSpec() {
 
 /**
  * Call the task runner function to execute the tasks with the given [taskNames] and return a [TaskLog] with
- * information about the executed tasks. Optionally, set the property to exit the JVM to the given [exitFlag].
+ * information about the executed tasks.
  */
-private suspend fun checkTaskExecution(vararg taskNames: String, exitFlag: Boolean = false): TaskLog {
+private suspend fun checkTaskExecution(vararg taskNames: String): TaskLog {
     val tasksToExecute = taskNames.joinToString(",")
     val taskLog = TaskLog()
 
-    val environment = mapOf("TASKS" to tasksToExecute, "TASKS_EXIT_JVM" to exitFlag.toString())
+    val environment = mapOf("TASKS" to tasksToExecute)
     withEnvironment(environment) {
         ConfigFactory.invalidateCaches()
         runTasks(listOf(configModule(), createTestModule(taskLog)))
