@@ -64,7 +64,7 @@ class VaultTestContainer {
         private const val ROLE_NAME = "test-server"
 
         /** The name of the docker image for the vault test container. */
-        private val image = DockerImageName.parse("hashicorp/vault:1.13").asCompatibleSubstituteFor("vault")
+        private val image = DockerImageName.parse("hashicorp/vault:1.13.13").asCompatibleSubstituteFor("vault")
 
         /**
          * Obtain the [VaultCredentials] to construct an authorized token for the test Vault container. Use [client]
