@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
-private const val ARTEMIS_CONTAINER = "quay.io/arkmq-org/activemq-artemis-broker:artemis.2.50.0"
+private const val ARTEMIS_CONTAINER = "apache/artemis:2.55.0"
 private const val ARTEMIS_PORT = 61616
 
 /**
@@ -39,13 +39,11 @@ private const val ARTEMIS_PORT = 61616
  * and [transportType]. The resulting [ConfigManager] can be used to connect to the broker in the container.
  */
 fun Spec.startArtemisContainer(consumerName: String, transportType: String): ConfigManager {
-    val containerEnv = mapOf("AMQ_USER" to "admin", "AMQ_PASSWORD" to "admin")
     val artemisContainer = install(
         TestContainerSpecExtension(
             GenericContainer(ARTEMIS_CONTAINER).apply {
                 startupAttempts = 1
                 withExposedPorts(ARTEMIS_PORT)
-                withEnv(containerEnv)
                 withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))
             }
         )
@@ -55,6 +53,7 @@ fun Spec.startArtemisContainer(consumerName: String, transportType: String): Con
         consumerName = consumerName,
         transportType = transportType,
         transportName = "activeMQ",
-        serverUri = "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}"
+        serverUri = "amqp://${artemisContainer.host}:${artemisContainer.firstMappedPort}" +
+                "?jms.username=artemis&jms.password=artemis"
     )
 }
