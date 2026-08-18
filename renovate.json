@@ -3,6 +3,11 @@
   "extends": [
     "github>eclipse-apoapsis/renovate"
   ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/src/test/**",
+    "**/tests/**"
+  ],
   "customManagers": [
     {
       "customType": "regex",
