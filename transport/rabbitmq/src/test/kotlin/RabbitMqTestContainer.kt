@@ -36,7 +36,7 @@ import org.testcontainers.rabbitmq.RabbitMQContainer
 fun Spec.startRabbitMqContainer(consumerName: String, transportType: String): ConfigManager {
     val rabbitMq = install(
         TestContainerSpecExtension(
-            RabbitMQContainer("rabbitmq")
+            RabbitMQContainer("rabbitmq:4.3.4")
         )
     )
 
