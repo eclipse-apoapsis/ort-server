@@ -25,13 +25,13 @@ import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.slf4j.LoggerFactory
 
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
-private const val ARTEMIS_CONTAINER = "apache/artemis:2.55.0"
 private const val ARTEMIS_PORT = 61616
 
 /**
@@ -41,7 +41,7 @@ private const val ARTEMIS_PORT = 61616
 fun Spec.startArtemisContainer(consumerName: String, transportType: String): ConfigManager {
     val artemisContainer = install(
         TestContainerSpecExtension(
-            GenericContainer(ARTEMIS_CONTAINER).apply {
+            GenericContainer(Images.ARTEMIS).apply {
                 startupAttempts = 1
                 withExposedPorts(ARTEMIS_PORT)
                 withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))

@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageException
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
@@ -52,7 +53,7 @@ import org.testcontainers.utility.DockerImageName
 class S3StorageTest : WordSpec({
     val localStackContainer = install(
         TestContainerSpecExtension(
-            LocalStackContainer(DockerImageName.parse(LOCALSTACK_IMAGE)).withServices("s3")
+            LocalStackContainer(DockerImageName.parse(Images.LOCALSTACK)).withServices("s3")
         )
     )
 
@@ -271,7 +272,6 @@ class S3StorageTest : WordSpec({
     }
 })
 
-internal const val LOCALSTACK_IMAGE = "localstack/localstack:3.4.0"
 internal const val S3_REGION = "eu-central-1"
 internal const val TEST_BUCKET_NAME = "test-bucket"
 

@@ -26,6 +26,7 @@ import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.testcontainers.rabbitmq.RabbitMQContainer
 
@@ -36,7 +37,7 @@ import org.testcontainers.rabbitmq.RabbitMQContainer
 fun Spec.startRabbitMqContainer(consumerName: String, transportType: String): ConfigManager {
     val rabbitMq = install(
         TestContainerSpecExtension(
-            RabbitMQContainer("rabbitmq:4.3.4")
+            RabbitMQContainer(Images.RABBITMQ)
         )
     )
 

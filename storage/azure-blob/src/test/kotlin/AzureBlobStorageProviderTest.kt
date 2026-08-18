@@ -32,10 +32,9 @@ import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageException
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.testcontainers.containers.GenericContainer
-
-private const val AZURITE_IMAGE = "mcr.microsoft.com/azure-storage/azurite:3.35.0"
 
 // Default account name and key, see https://github.com/Azure/Azurite/blob/main/README.md#default-storage-account.
 private const val ACCOUNT_NAME = "devstoreaccount1"
@@ -47,7 +46,7 @@ private const val CONTAINER = "test"
 class AzureBlobStorageProviderTest : WordSpec({
     val azuriteContainer = install(
         TestContainerSpecExtension(
-            GenericContainer(AZURITE_IMAGE)
+            GenericContainer(Images.AZURITE)
                 // Skip the API version check to work around https://github.com/Azure/Azurite/issues/2623.
                 .withCommand("azurite-blob", "--skipApiVersionCheck", "--blobHost", "0.0.0.0")
                 .withExposedPorts(10000)

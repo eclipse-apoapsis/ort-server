@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.vault.VaultContainer
@@ -64,7 +65,7 @@ class VaultTestContainer {
         private const val ROLE_NAME = "test-server"
 
         /** The name of the docker image for the vault test container. */
-        private val image = DockerImageName.parse("hashicorp/vault:1.13.13").asCompatibleSubstituteFor("vault")
+        private val image = DockerImageName.parse(Images.VAULT).asCompatibleSubstituteFor("vault")
 
         /**
          * Obtain the [VaultCredentials] to construct an authorized token for the test Vault container. Use [client]
