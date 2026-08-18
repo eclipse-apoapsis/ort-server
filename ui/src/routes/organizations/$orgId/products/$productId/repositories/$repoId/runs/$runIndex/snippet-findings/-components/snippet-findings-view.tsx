@@ -48,7 +48,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  convertToBackendSorting,
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
@@ -56,6 +55,10 @@ import { identifierToString } from '@/helpers/identifier-conversion';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import { ProvenanceSnippetFindingsTable } from './provenance-snippet-findings-table';
+import {
+  getSnippetFindingProvenancePageCount,
+  getSnippetFindingProvenancesQuery,
+} from './snippet-findings-state';
 
 const provenanceColumnHelper = createColumnHelper<SnippetFindingProvenance>();
 const defaultPageSize = 10;
@@ -159,13 +162,6 @@ export const SnippetFindingsView = () => {
     }),
   });
 
-  const { data: totalProvenances } = useSuspenseQuery({
-    ...getRunSnippetFindingProvenancesOptions({
-      path: { runId: ortRun.id },
-      query: { limit: 1 },
-    }),
-  });
-
   const {
     data: provenances,
     isError,
@@ -173,20 +169,13 @@ export const SnippetFindingsView = () => {
   } = useSuspenseQuery({
     ...getRunSnippetFindingProvenancesOptions({
       path: { runId: ortRun.id },
-      query: {
-        limit: totalProvenances.pagination.totalCount || 1,
-        sort: convertToBackendSorting(search.sortBy),
-      },
+      query: getSnippetFindingProvenancesQuery(
+        pageIndex,
+        pageSize,
+        search.sortBy
+      ),
     }),
   });
-
-  const provenancesWithFindings = provenances.data.filter(
-    (provenance) => provenance.snippetFindingCount > 0
-  );
-  const pagedProvenances = provenancesWithFindings.slice(
-    pageIndex * pageSize,
-    (pageIndex + 1) * pageSize
-  );
 
   const columns = [
     provenanceColumnHelper.display({
@@ -247,9 +236,12 @@ export const SnippetFindingsView = () => {
   ];
 
   const table = useReactTable({
-    data: pagedProvenances,
+    data: provenances.data,
     columns,
-    pageCount: Math.ceil(provenancesWithFindings.length / pageSize),
+    pageCount: getSnippetFindingProvenancePageCount(
+      provenances.pagination.totalCount,
+      pageSize
+    ),
     state: {
       pagination: {
         pageIndex,
@@ -282,7 +274,7 @@ export const SnippetFindingsView = () => {
       No detected snippets are available because the scanner job was not enabled
       for this run.
     </div>
-  ) : provenancesWithFindings.length === 0 ? (
+  ) : provenances.pagination.totalCount === 0 ? (
     <div className='text-muted-foreground text-sm'>
       No detected snippets were found for this run, or no snippet scanner was
       used.
@@ -293,7 +285,7 @@ export const SnippetFindingsView = () => {
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Detected Snippets ({provenancesWithFindings.length} package
+          Detected Snippets ({provenances.pagination.totalCount} package
           provenances with findings)
         </CardTitle>
         <CardDescription>
