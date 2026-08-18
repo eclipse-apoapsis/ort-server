@@ -48,5 +48,7 @@ dependencies {
     testFixturesApi(libs.kotestFrameworkEngine)
     testFixturesApi(libs.testContainersKeycloak)
 
+    testFixturesImplementation(projects.utils.test)
+
     testFixturesImplementation(libs.kotlinxSerializationJson)
 }

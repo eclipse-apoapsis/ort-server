@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak.test
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
+import org.eclipse.apoapsis.ortserver.utils.test.Images
+
 /**
  * A singleton that manages a shared [KeycloakContainer] across all test specs within a JVM process. The container is
  * started lazily on the first access to [container] and stopped via a JVM shutdown hook when the process exits.
@@ -31,7 +33,7 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
  */
 internal object SharedKeycloakTestContainer {
     private val containerLazy: Lazy<KeycloakContainer> = lazy {
-        KeycloakContainer("quay.io/keycloak/keycloak:26.6.0").also { it.start() }
+        KeycloakContainer(Images.KEYCLOAK).also { it.start() }
     }
 
     val container: KeycloakContainer by containerLazy

@@ -36,6 +36,7 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.dao.connect
 import org.eclipse.apoapsis.ortserver.dao.migrate
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
@@ -55,7 +56,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
  * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
 open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
-    private val postgres = PostgreSQLContainer("postgres:15.19").apply {
+    private val postgres = PostgreSQLContainer(Images.POSTGRES).apply {
         startupAttempts = 1
     }
 

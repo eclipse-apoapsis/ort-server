@@ -66,6 +66,7 @@ dependencies {
     testFixturesApi(projects.model)
 
     testFixturesImplementation(projects.config.configSpi)
+    testFixturesImplementation(projects.utils.test)
 
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.hikari)

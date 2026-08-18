@@ -26,6 +26,7 @@ import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
+import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
@@ -36,7 +37,7 @@ import org.testcontainers.utility.DockerImageName
 fun Spec.createSqsConfigManager(consumerName: String, transportType: String): ConfigManager {
     val localStack = install(
         TestContainerSpecExtension(
-            LocalStackContainer(DockerImageName.parse("localstack/localstack:3.4.0")).withServices("sqs")
+            LocalStackContainer(DockerImageName.parse(Images.LOCALSTACK)).withServices("sqs")
         )
     )
 
