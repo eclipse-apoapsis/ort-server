@@ -33,6 +33,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.testing.testApplication
 
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_MAX_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -54,6 +55,55 @@ class PaginationHelpersTest : WordSpec({
             val limit = 42
             testPagingOptionsExtraction("?limit=$limit") {
                 limit shouldBe limit
+                offset shouldBe 0
+            }
+        }
+
+        "handle a request with the maximum limit parameter" {
+            testPagingOptionsExtraction("?limit=$DEFAULT_MAX_LIMIT") {
+                limit shouldBe DEFAULT_MAX_LIMIT
+                offset shouldBe 0
+            }
+        }
+
+        "reduce a limit greater than the maximum" {
+            testPagingOptionsExtraction("?limit=${DEFAULT_MAX_LIMIT + 1}") {
+                limit shouldBe DEFAULT_MAX_LIMIT
+                offset shouldBe 0
+            }
+        }
+
+        "reduce a limit greater than the integer range without overflowing" {
+            testPagingOptionsExtraction("?limit=${Long.MAX_VALUE}") {
+                limit shouldBe DEFAULT_MAX_LIMIT
+                offset shouldBe 0
+            }
+        }
+
+        "allow a limit greater than the default maximum with a custom maximum" {
+            val limit = DEFAULT_MAX_LIMIT + 1
+            val maxLimit = limit + 1
+
+            testPagingOptionsExtraction("?limit=$limit", maxLimit) {
+                this.limit shouldBe limit
+                offset shouldBe 0
+            }
+        }
+
+        "reduce a limit to a custom maximum" {
+            val maxLimit = 10
+
+            testPagingOptionsExtraction("?limit=42", maxLimit) {
+                limit shouldBe maxLimit
+                offset shouldBe 0
+            }
+        }
+
+        "reduce the default limit to a smaller custom maximum" {
+            val maxLimit = 10
+
+            testPagingOptionsExtraction(null, maxLimit) {
+                limit shouldBe maxLimit
                 offset shouldBe 0
             }
         }
@@ -110,11 +160,15 @@ class PaginationHelpersTest : WordSpec({
 /**
  * Execute a test for extracting the [PagingOptions] from the given [query] by applying the specified [check] function.
  */
-private fun testPagingOptionsExtraction(query: String?, check: PagingOptions.() -> Unit) {
+private fun testPagingOptionsExtraction(
+    query: String?,
+    maxLimit: Int = DEFAULT_MAX_LIMIT,
+    check: PagingOptions.() -> Unit
+) {
     testApplication {
         routing {
             get("/test") {
-                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
+                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING), maxLimit)
 
                 check(pagingOptions)
 

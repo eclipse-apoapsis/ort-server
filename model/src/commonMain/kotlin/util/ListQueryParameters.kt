@@ -78,5 +78,10 @@ data class ListQueryParameters(
          * Constant for [limit] used as default if no limit is given as request parameter.
          */
         const val DEFAULT_LIMIT = 20
+
+        /**
+         * Default maximum value for [limit] accepted from a request parameter.
+         */
+        const val DEFAULT_MAX_LIMIT = 100
     }
 }

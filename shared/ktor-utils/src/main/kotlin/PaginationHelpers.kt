@@ -31,15 +31,21 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 
 /**
  * Return a [PagingOptions] object for this [ApplicationCall]. If no limit is provided,
- * [ListQueryParameters.DEFAULT_LIMIT] is used. If no offset is provided, 0 is used. If no sort order is provided, the
- * [defaultSortProperty] is used.
+ * [ListQueryParameters.DEFAULT_LIMIT] is used. Limits greater than [maxLimit] are reduced to the maximum. If no offset
+ * is provided, 0 is used. If no sort order is provided, the [defaultSortProperty] is used.
  *
  * The default values ensure that reproducible results are returned and that large numbers of results are avoided.
  */
-fun ApplicationCall.pagingOptions(defaultSortProperty: SortProperty): PagingOptions {
+fun ApplicationCall.pagingOptions(
+    defaultSortProperty: SortProperty,
+    maxLimit: Int = ListQueryParameters.DEFAULT_MAX_LIMIT
+): PagingOptions {
+    require(maxLimit > 0) { "The maximum limit must be positive." }
+
     val sortProperties = parameters["sort"]?.let(::processSortParameter).orEmpty().takeIf { it.isNotEmpty() }
         ?: listOf(defaultSortProperty)
-    val limit = numberParameter("limit")?.toInt()?.takeIf { it > 0 } ?: ListQueryParameters.DEFAULT_LIMIT
+    val limit = (numberParameter("limit")?.toLong()?.takeIf { it > 0 } ?: ListQueryParameters.DEFAULT_LIMIT.toLong())
+        .coerceAtMost(maxLimit.toLong()).toInt()
     val offset = numberParameter("offset")?.toLong()?.takeIf { it >= 0 } ?: 0
 
     return PagingOptions(limit, offset, sortProperties)

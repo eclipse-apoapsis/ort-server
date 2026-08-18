@@ -25,6 +25,8 @@ import io.github.smiley4.ktoropenapi.config.SimpleBodyConfig
 
 import io.ktor.http.ContentType
 
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+
 inline fun <reified T> RequestConfig.jsonBody(noinline block: SimpleBodyConfig.() -> Unit) =
     body<T> {
         mediaTypes = setOf(ContentType.Application.Json)
@@ -49,11 +51,15 @@ fun RequestConfig.standardSortQueryParameter() {
 }
 
 /**
- * Generate documentation for standard list query parameters.
+ * Generate documentation for standard list query parameters, using [maxLimit] as the maximum accepted limit.
  */
-fun RequestConfig.standardListQueryParameters() {
+fun RequestConfig.standardListQueryParameters(maxLimit: Int = ListQueryParameters.DEFAULT_MAX_LIMIT) {
+    require(maxLimit > 0) { "The maximum limit must be positive." }
+
     queryParameter<Int>("limit") {
-        description = "The maximum number of items to retrieve. If not specified at most 20 items are retrieved."
+        description = "The maximum number of items to retrieve. Values greater than $maxLimit are reduced to this " +
+                "maximum. If not specified, at most ${minOf(ListQueryParameters.DEFAULT_LIMIT, maxLimit)} items are " +
+                "retrieved."
     }
     queryParameter<Long>("offset") {
         description = "The offset of the first item in the result. Together with 'limit', this can be used to " +
