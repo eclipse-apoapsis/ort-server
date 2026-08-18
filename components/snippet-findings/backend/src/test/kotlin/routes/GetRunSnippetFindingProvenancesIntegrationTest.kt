@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.snippetfindings.routes
 
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -28,7 +29,10 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SeedResult
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingProvenance
+import org.eclipse.apoapsis.ortserver.components.snippetfindings.addDirectScanResult
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.seedData
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier as ModelIdentifier
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
@@ -56,12 +60,47 @@ class GetRunSnippetFindingProvenancesIntegrationTest : SnippetFindingIntegration
                     totalCount = 1,
                     sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
                 )
-                body.data.size shouldBe 1
-                body.data[0].id shouldBe seeded.provenanceId
-                body.data[0].identifier shouldBe Identifier("Maven", "com.example", "artifact-package", "1.0")
-                body.data[0].provenanceType shouldBe "REPOSITORY"
-                body.data[0].vcsUrl shouldBe "https://example.com/scm/artifact-package.git"
-                body.data[0].vcsRevision shouldBe "abcdef1234567890"
+                body.data.shouldBeSingleton {
+                    it.id shouldBe seeded.provenanceId
+                    it.identifier shouldBe Identifier("Maven", "com.example", "artifact-package", "1.0")
+                    it.provenanceType shouldBe "REPOSITORY"
+                    it.vcsUrl shouldBe "https://example.com/scm/artifact-package.git"
+                    it.vcsRevision shouldBe "abcdef1234567890"
+                }
+            }
+        }
+
+        "page and sort only provenances with findings" {
+            var firstScanResultId = -1L
+            dbExtension.db.blockingQuery {
+                firstScanResultId = addDirectScanResult(
+                    seeded,
+                    ModelIdentifier("Maven", "com.example", "aaa-package", "1.0")
+                )
+                addDirectScanResult(
+                    seeded,
+                    ModelIdentifier("Maven", "com.example", "zzz-empty-package", "1.0"),
+                    findingCount = 0
+                )
+            }
+
+            snippetFindingTestApplication { client ->
+                val response = client.get(
+                    "/runs/${seeded.ortRunId}/snippet-findings/provenances?sort=-name&limit=1&offset=1"
+                )
+
+                response.status shouldBe HttpStatusCode.OK
+                val body = response.body<PagedResponse<SnippetFindingProvenance>>()
+                body.pagination shouldBe PagingData(
+                    limit = 1,
+                    offset = 1,
+                    totalCount = 2,
+                    sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
+                )
+                body.data.shouldBeSingleton {
+                    it.id shouldBe firstScanResultId
+                    it.snippetFindingCount shouldBe 1
+                }
             }
         }
 

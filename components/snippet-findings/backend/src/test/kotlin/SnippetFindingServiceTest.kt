@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.snippetfindings
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
@@ -28,6 +29,7 @@ import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
@@ -104,10 +106,13 @@ class SnippetFindingServiceTest : WordSpec() {
                 )
             }
 
-            "return both direct and nested sub-repository provenances" {
+            "return both direct and nested sub-repository provenances with findings" {
                 var subRepoScanResultId = -1L
                 db.blockingQuery {
-                    subRepoScanResultId = addNestedSubRepoScanResult(seed)
+                    subRepoScanResultId = addNestedSubRepoScanResult(
+                        seed,
+                        snippetFinding = SnippetFindingSeed("submodule/source.c", 4, 9)
+                    )
                 }
 
                 val result = service.getProvenancesForRun(
@@ -120,15 +125,131 @@ class SnippetFindingServiceTest : WordSpec() {
                     seed.provenanceId,
                     subRepoScanResultId
                 )
-                // Both provenances belong to the same package identifier.
                 result.data.map { it.identifier }.toSet() shouldBe setOf(
                     ApiIdentifier("Maven", "com.example", "artifact-package", "1.0")
                 )
-                // The nested provenance has the sub-repository VCS details.
                 result.data.first { it.id == subRepoScanResultId }.let { nested ->
                     nested.provenanceType shouldBe "REPOSITORY"
+                    nested.snippetFindingCount shouldBe 1
                     nested.vcsUrl shouldBe "https://example.com/scm/artifact-package-sub.git"
                     nested.vcsRevision shouldBe "fedcba9876543210"
+                }
+            }
+
+            "omit direct and nested provenances without findings" {
+                db.blockingQuery {
+                    addDirectScanResult(
+                        seed,
+                        Identifier("Maven", "com.example", "empty-package", "1.0"),
+                        findingCount = 0
+                    )
+                    addNestedSubRepoScanResult(seed)
+                }
+
+                val result = service.getProvenancesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)))
+                )
+
+                result.totalCount shouldBe 1
+                result.data.map { it.id } should containExactly(seed.provenanceId)
+            }
+
+            "support sorting by every identifier field" {
+                var gradleScanResultId = -1L
+                var npmScanResultId = -1L
+                db.blockingQuery {
+                    gradleScanResultId = addDirectScanResult(
+                        seed,
+                        Identifier("Gradle", "zulu", "alpha-package", "3.0")
+                    )
+                    npmScanResultId = addDirectScanResult(
+                        seed,
+                        Identifier("NPM", "alpha", "zeta-package", "2.0")
+                    )
+                }
+
+                val expectedIdsBySortField = mapOf(
+                    "type" to listOf(gradleScanResultId, seed.provenanceId, npmScanResultId),
+                    "namespace" to listOf(npmScanResultId, seed.provenanceId, gradleScanResultId),
+                    "name" to listOf(gradleScanResultId, seed.provenanceId, npmScanResultId),
+                    "version" to listOf(seed.provenanceId, npmScanResultId, gradleScanResultId)
+                )
+
+                expectedIdsBySortField.forEach { (sortField, expectedIds) ->
+                    val result = service.getProvenancesForRun(
+                        seed.ortRunId,
+                        ListQueryParameters(sortFields = listOf(OrderField(sortField, OrderDirection.ASCENDING)))
+                    )
+
+                    result.data.map { it.id } should containExactly(expectedIds)
+                }
+            }
+
+            "sort and page the combined result in the database" {
+                var firstScanResultId = -1L
+                var lastScanResultId = -1L
+                var nestedScanResultId = -1L
+                db.blockingQuery {
+                    firstScanResultId = addDirectScanResult(
+                        seed,
+                        Identifier("Maven", "com.example", "aaa-package", "1.0")
+                    )
+                    lastScanResultId = addDirectScanResult(
+                        seed,
+                        Identifier("Maven", "com.example", "zzz-package", "1.0")
+                    )
+                    nestedScanResultId = addNestedSubRepoScanResult(
+                        seed,
+                        snippetFinding = SnippetFindingSeed("submodule/source.c", 4, 9)
+                    )
+                }
+
+                val ascendingPage = service.getProvenancesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)),
+                        limit = 2,
+                        offset = 1
+                    )
+                )
+
+                ascendingPage.totalCount shouldBe 4
+                ascendingPage.data.map { it.id } should containExactly(seed.provenanceId, nestedScanResultId)
+
+                val descendingPage = service.getProvenancesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", OrderDirection.DESCENDING)),
+                        limit = 2
+                    )
+                )
+
+                descendingPage.totalCount shouldBe 4
+                descendingPage.data.map { it.id } should containExactly(lastScanResultId, seed.provenanceId)
+                descendingPage.data.none { it.id == firstScanResultId } shouldBe true
+            }
+
+            "preserve the total count for an offset beyond the last page" {
+                val result = service.getProvenancesForRun(
+                    seed.ortRunId,
+                    ListQueryParameters(
+                        sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)),
+                        limit = 1,
+                        offset = 100
+                    )
+                )
+
+                result.totalCount shouldBe 1
+                result.data.shouldBeEmpty()
+            }
+
+            "reject unsupported sort fields" {
+                shouldThrow<QueryParametersException> {
+                    service.getProvenancesForRun(
+                        seed.ortRunId,
+                        ListQueryParameters(sortFields = listOf(OrderField("findings", OrderDirection.ASCENDING)))
+                    )
                 }
             }
 
@@ -467,6 +588,29 @@ internal fun createPackageProvenance(
     return provenance
 }
 
+internal fun addDirectScanResult(
+    seed: SeedResult,
+    identifier: Identifier,
+    findingCount: Int = 1
+): Long {
+    val artifactUrl = "https://example.com/packages/${identifier.name}-${identifier.version}.tgz"
+    val packageProvenance = createPackageProvenance(
+        seed.scannerRunId,
+        identifier,
+        RemoteArtifact(artifactUrl, artifactUrl.hashCode().toString(), "SHA-1")
+    )
+    val snippetFindings = (1..findingCount).associate { index ->
+        SnippetFindingSeed("src/${identifier.name}-$index.c", index, index + 1) to emptyList<SnippetDao>()
+    }
+
+    return createScanResultWithSnippetFindings(
+        seed.scannerRunId,
+        packageProvenance.id.value,
+        snippetFindings,
+        artifactUrl = artifactUrl
+    ).first
+}
+
 internal fun createArtifactSnippet(
     purl: String,
     path: String,
@@ -574,7 +718,8 @@ internal fun createScanResultWithSnippetFindings(
 internal fun addNestedSubRepoScanResult(
     seed: SeedResult,
     subRepoUrl: String = "https://example.com/scm/artifact-package-sub.git",
-    subRepoRevision: String = "fedcba9876543210"
+    subRepoRevision: String = "fedcba9876543210",
+    snippetFinding: SnippetFindingSeed? = null
 ): Long {
     val rootVcsInfo = VcsInfoDao.getOrPut(
         VcsInfo(RepositoryType.GIT, "https://example.com/scm/artifact-package.git", "abcdef1234567890", "")
@@ -604,6 +749,21 @@ internal fun addNestedSubRepoScanResult(
 
     // Create the scan result for the sub-repo. Intentionally NOT inserted into ScanResultPackageProvenancesTable —
     // that's what distinguishes nested sub-repo scan results from root ones.
+    val scanSummary = ScanSummaryDao.new {
+        startTime = Clock.System.now()
+        endTime = Clock.System.now()
+        hash = "sub-repo-summary-$subRepoRevision"
+    }
+
+    snippetFinding?.let { finding ->
+        SnippetFindingDao.new {
+            path = finding.path
+            startLine = finding.startLine
+            endLine = finding.endLine
+            this.scanSummary = scanSummary
+        }
+    }
+
     val subRepoScanResult = ScanResultDao.new {
         artifactUrl = null
         artifactHash = null
@@ -611,11 +771,7 @@ internal fun addNestedSubRepoScanResult(
         vcsType = "GIT"
         vcsUrl = subRepoUrl
         vcsRevision = subRepoRevision
-        scanSummary = ScanSummaryDao.new {
-            startTime = Clock.System.now()
-            endTime = Clock.System.now()
-            hash = "sub-repo-summary-$subRepoRevision"
-        }
+        this.scanSummary = scanSummary
         scannerName = "SnippetScanner"
         scannerVersion = "1.0.0"
         scannerConfiguration = "default"

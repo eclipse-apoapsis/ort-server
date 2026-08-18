@@ -40,69 +40,116 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.toSortOrder
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 
 import org.jetbrains.exposed.v1.core.Count
 import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
-import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.union
 
 /**
  * A service for querying snippet findings and their snippet sources for ORT runs.
  */
 class SnippetFindingService(private val db: Database) {
     /**
-     * Return all package provenances associated with the scanner run for the ORT run with the given [ortRunId].
+     * Return package provenances with snippet findings for the ORT run with the given [ortRunId].
      *
-     * Each entry carries the package identifier and provenance details (artifact or VCS). The result is paged and
-     * sorted according to [parameters].
+     * Each entry carries the package identifier, provenance details (artifact or VCS), and the number of snippet
+     * findings. The result is paged and sorted according to [parameters].
      */
     fun getProvenancesForRun(
         ortRunId: Long,
         parameters: ListQueryParameters
     ): ListQueryResult<SnippetFindingProvenance> = db.blockingQuery {
-        // Two separate queries are needed because sub-repository scan results are not linked via
-        // ScanResultPackageProvenancesTable — they can only be reached through NestedProvenancesTable.
-        val directProvenances = queryProvenances(buildDirectProvenancesJoin(), ortRunId)
-        val nestedProvenances = queryProvenances(buildNestedProvenancesJoin(), ortRunId)
+        val provenances = buildProvenancesQuery(ortRunId).alias("provenances")
 
-        // Merge, giving direct matches priority (a scan result should not appear on both paths,
-        // but deduplicate by id just to be safe).
-        val mergedProvenances = mutableMapOf<Long, SnippetFindingProvenance>()
-        (directProvenances + nestedProvenances).forEach { mergedProvenances.putIfAbsent(it.id, it) }
+        val provenanceId = provenances[provenanceIdAlias]
+        val identifierType = provenances[identifierTypeAlias]
+        val identifierNamespace = provenances[identifierNamespaceAlias]
+        val identifierName = provenances[identifierNameAlias]
+        val identifierVersion = provenances[identifierVersionAlias]
+        val artifactUrl = provenances[artifactUrlAlias]
+        val vcsType = provenances[vcsTypeAlias]
+        val vcsUrl = provenances[vcsUrlAlias]
+        val vcsRevision = provenances[vcsRevisionAlias]
 
-        // Attach snippet finding counts so callers can see how many findings each provenance has.
-        val counts = countSnippetFindingsByProvenanceId(mergedProvenances.keys.toList())
-        var result = mergedProvenances.values.map { it.copy(snippetFindingCount = counts[it.id] ?: 0L) }
+        val query = provenances
+            .join(ScanResultsTable, JoinType.INNER, provenanceId, ScanResultsTable.id)
+            .join(ScanSummariesTable, JoinType.INNER, ScanResultsTable.scanSummaryId, ScanSummariesTable.id)
+            .join(SnippetFindingsTable, JoinType.INNER, ScanSummariesTable.id, SnippetFindingsTable.scanSummaryId)
+            .select(
+                provenanceId,
+                identifierType,
+                identifierNamespace,
+                identifierName,
+                identifierVersion,
+                artifactUrl,
+                vcsType,
+                vcsUrl,
+                vcsRevision,
+                snippetFindingCountAlias
+            )
+            .groupBy(
+                provenanceId,
+                identifierType,
+                identifierNamespace,
+                identifierName,
+                identifierVersion,
+                artifactUrl,
+                vcsType,
+                vcsUrl,
+                vcsRevision
+            )
 
-        // Sort in Kotlin because the two query paths cannot share a single ORDER BY clause.
-        // TODO: Improve this to sort and page in the database because loading all rows to sort and limit them in
-        // memory is inefficient.
-        for (orderField in parameters.sortFields.reversed()) {
-            val comparator: Comparator<SnippetFindingProvenance> = when (orderField.name) {
-                "name" -> compareBy { it.identifier.name }
-                "namespace" -> compareBy { it.identifier.namespace }
-                "version" -> compareBy { it.identifier.version }
-                "type" -> compareBy { it.identifier.type }
+        val sortExpressions = parameters.sortFields.map { orderField ->
+            val sortExpression = when (orderField.name) {
+                "name" -> identifierName
+                "namespace" -> identifierNamespace
+                "version" -> identifierVersion
+                "type" -> identifierType
                 else -> throw QueryParametersException("Unsupported sort field: '${orderField.name}'.")
             }
-            result = result.sortedWith(
-                if (orderField.direction == OrderDirection.ASCENDING) comparator else comparator.reversed()
-            )
+
+            sortExpression to orderField.direction.toSortOrder()
         }
 
-        val totalCount = result.size.toLong()
-        val offset = (parameters.offset ?: 0L).toInt()
-        val limit = parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT
+        val totalCount = query.count()
+
+        sortExpressions.forEach(query::orderBy)
+        query.orderBy(provenanceId to SortOrder.ASC)
+        query.limit(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT).offset(parameters.offset ?: 0L)
 
         ListQueryResult(
-            data = result.drop(offset).take(limit),
+            data = query.map { row ->
+                val rowArtifactUrl = row.getOrNull(artifactUrl)
+                val rowVcsUrl = row.getOrNull(vcsUrl)
+
+                SnippetFindingProvenance(
+                    id = row[provenanceId].value,
+                    identifier = Identifier(
+                        type = row[identifierType],
+                        namespace = row[identifierNamespace],
+                        name = row[identifierName],
+                        version = row[identifierVersion]
+                    ),
+                    provenanceType = when {
+                        rowArtifactUrl != null -> "ARTIFACT"
+                        rowVcsUrl != null -> "REPOSITORY"
+                        else -> "UNKNOWN"
+                    },
+                    snippetFindingCount = row[snippetFindingCountAlias],
+                    artifactUrl = rowArtifactUrl,
+                    vcsType = row.getOrNull(vcsType),
+                    vcsUrl = rowVcsUrl,
+                    vcsRevision = row.getOrNull(vcsRevision)
+                )
+            },
             params = parameters,
             totalCount = totalCount
         )
@@ -283,23 +330,6 @@ class SnippetFindingService(private val db: Database) {
 }
 
 /**
- * Return the number of snippet findings per scan result ID for the given [scanResultIds].
- *
- * Scan result IDs with no findings are absent from the map (callers should default to 0).
- */
-private fun countSnippetFindingsByProvenanceId(scanResultIds: List<Long>): Map<Long, Long> {
-    if (scanResultIds.isEmpty()) return emptyMap()
-    val count = Count(SnippetFindingsTable.id)
-    return SnippetFindingsTable
-        .innerJoin(ScanSummariesTable)
-        .join(ScanResultsTable, JoinType.INNER, ScanSummariesTable.id, ScanResultsTable.scanSummaryId)
-        .select(ScanResultsTable.id, count)
-        .where { scanResultIds.map { ScanResultsTable.id eq it }.reduce(Op<Boolean>::or) }
-        .groupBy(ScanResultsTable.id)
-        .associate { it[ScanResultsTable.id].value to it[count] }
-}
-
-/**
  * Build the common join for snippet findings queries.
  *
  * Goes directly from the snippet finding's scan result to the scanner run via [ScannerRunsScanResultsTable]. This
@@ -317,44 +347,35 @@ private fun buildQueryContext(): Join = SnippetFindingsTable
     .join(ScannerRunsTable, JoinType.INNER, ScannerRunsScanResultsTable.scannerRunId, ScannerRunsTable.id)
     .join(ScannerJobsTable, JoinType.INNER, ScannerRunsTable.scannerJobId, ScannerJobsTable.id)
 
+private val provenanceIdAlias = ScanResultsTable.id.alias("provenance_id")
+private val identifierTypeAlias = IdentifiersTable.type.alias("identifier_type")
+private val identifierNamespaceAlias = IdentifiersTable.namespace.alias("identifier_namespace")
+private val identifierNameAlias = IdentifiersTable.name.alias("identifier_name")
+private val identifierVersionAlias = IdentifiersTable.version.alias("identifier_version")
+private val artifactUrlAlias = ScanResultsTable.artifactUrl.alias("artifact_url")
+private val vcsTypeAlias = ScanResultsTable.vcsType.alias("vcs_type")
+private val vcsUrlAlias = ScanResultsTable.vcsUrl.alias("vcs_url")
+private val vcsRevisionAlias = ScanResultsTable.vcsRevision.alias("vcs_revision")
+private val snippetFindingCountAlias = Count(SnippetFindingsTable.id).alias("snippet_finding_count")
+
 private val provenanceColumns = listOf(
-    ScanResultsTable.id,
-    IdentifiersTable.type,
-    IdentifiersTable.namespace,
-    IdentifiersTable.name,
-    IdentifiersTable.version,
-    ScanResultsTable.artifactUrl,
-    ScanResultsTable.vcsType,
-    ScanResultsTable.vcsUrl,
-    ScanResultsTable.vcsRevision
+    provenanceIdAlias,
+    identifierTypeAlias,
+    identifierNamespaceAlias,
+    identifierNameAlias,
+    identifierVersionAlias,
+    artifactUrlAlias,
+    vcsTypeAlias,
+    vcsUrlAlias,
+    vcsRevisionAlias
 )
 
-private fun queryProvenances(join: Join, ortRunId: Long): List<SnippetFindingProvenance> =
-    join.select(provenanceColumns)
-        .where { ScannerJobsTable.ortRunId eq ortRunId }
-        .map { row ->
-            val artifactUrl = row.getOrNull(ScanResultsTable.artifactUrl)
-            val vcsUrl = row.getOrNull(ScanResultsTable.vcsUrl)
-            SnippetFindingProvenance(
-                id = row[ScanResultsTable.id].value,
-                identifier = Identifier(
-                    type = row[IdentifiersTable.type],
-                    namespace = row[IdentifiersTable.namespace],
-                    name = row[IdentifiersTable.name],
-                    version = row[IdentifiersTable.version]
-                ),
-                provenanceType = when {
-                    artifactUrl != null -> "ARTIFACT"
-                    vcsUrl != null -> "REPOSITORY"
-                    else -> "UNKNOWN"
-                },
-                snippetFindingCount = 0L, // filled in by getProvenancesForRun via countSnippetFindingsByProvenanceId
-                artifactUrl = artifactUrl,
-                vcsType = row.getOrNull(ScanResultsTable.vcsType),
-                vcsUrl = vcsUrl,
-                vcsRevision = row.getOrNull(ScanResultsTable.vcsRevision)
-            )
-        }
+private fun buildProvenancesQuery(ortRunId: Long) =
+    buildProvenancesQuery(buildDirectProvenancesJoin(), ortRunId)
+        .union(buildProvenancesQuery(buildNestedProvenancesJoin(), ortRunId))
+
+private fun buildProvenancesQuery(join: Join, ortRunId: Long) =
+    join.select(provenanceColumns).where { ScannerJobsTable.ortRunId eq ortRunId }
 
 /**
  * Build the join for scan results directly linked to a package provenance via [ScanResultPackageProvenancesTable].
