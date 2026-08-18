@@ -10,6 +10,14 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s*\\nARG \\w+_VERSION=(?<currentValue>\\S+)"
       ]
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/utils/test/src/commonMain/kotlin/Images\\.kt$/"],
+      "matchStrings": [
+        "const val \\w+ = \"(?<depName>[^\"]+):(?<currentValue>[^\":]+)\""
+      ],
+      "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
