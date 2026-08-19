@@ -139,7 +139,7 @@ class EvaluatorRunner(
             ortResult = resolvedOrtResult,
             licenseClassifications = licenseClassifications,
             licenseInfoResolver = licenseInfoResolver,
-            resolutionProvider = resolutionProvider
+            resolutionProvider = resolvedOrtResult
         )
 
         val evaluatorRun = evaluator.runScript(script)
