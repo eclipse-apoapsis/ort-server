@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty as collectionBeEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.beEmpty
@@ -75,6 +76,7 @@ import org.ossreviewtoolkit.utils.spdxexpression.toSpdx
 
 const val SCRIPT_FILE = "/example.rules.kts"
 private const val PACKAGE_CONFIGURATION_RULES = "package-configurations.rules.kts"
+private const val VULNERABILITY_RULES = "vulnerability.rules.kts"
 private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
 private const val RESOLUTIONS_FILE = "/resolutions.yml"
 private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
@@ -300,6 +302,42 @@ class EvaluatorRunnerTest : WordSpec({
             }
         }
 
+        "not create a violation for a vulnerability that is resolved in the repository configuration" {
+            val ruleSet = testRuleSet.copy(evaluatorRules = VULNERABILITY_RULES)
+            adminConfigService.initRuleSet(ruleSet)
+
+            val result = runner.run(
+                OrtTestData.result,
+                EvaluatorJobConfiguration(),
+                createWorkerContext()
+            )
+
+            result.evaluatorRun.violations should collectionBeEmpty()
+        }
+
+        "not create a violation for a vulnerability that is only resolved in the resolved configuration" {
+            val ruleSet = testRuleSet.copy(evaluatorRules = VULNERABILITY_RULES)
+            adminConfigService.initRuleSet(ruleSet)
+
+            // Remove the resolution from the repository configuration so that the only remaining matching
+            // resolution is the one already present in OrtTestData.resolvedConfiguration.resolutions.vulnerabilities.
+            val ortResultWithResolutionInResolvedConfiguration = OrtTestData.result.copy(
+                repository = OrtTestData.repository.copy(
+                    config = OrtTestData.repository.config.copy(
+                        resolutions = OrtTestData.repository.config.resolutions.copy(vulnerabilities = emptyList())
+                    )
+                )
+            )
+
+            val result = runner.run(
+                ortResultWithResolutionInResolvedConfiguration,
+                EvaluatorJobConfiguration(),
+                createWorkerContext()
+            )
+
+            result.evaluatorRun.violations should collectionBeEmpty()
+        }
+
         "load managed rule violation resolutions from the server" {
             adminConfigService.initRuleSet(testRuleSet)
 
@@ -344,6 +382,9 @@ private fun createConfigManager(): ConfigManager {
 
         every { getFileAsString(resolvedConfigContext, Path(PACKAGE_CONFIGURATION_RULES)) } returns
                 File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
+
+        every { getFileAsString(resolvedConfigContext, Path(VULNERABILITY_RULES)) } returns
+                File("src/test/resources/$VULNERABILITY_RULES").readText()
 
         every { getFile(resolvedConfigContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
