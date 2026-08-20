@@ -65,7 +65,7 @@ export default defineConfig([
       // value that is never nullish, so that the checks that do matter stand
       // out.
       '@typescript-eslint/no-unnecessary-condition': 'error',
-      // Silence the warnings about useLegacyTable() hook, because React Compiler
+      // Silence the warnings about TanStack Table hooks, because React Compiler
       // is not used in this project.
       'react-hooks/incompatible-library': 'off',
     },
