@@ -19,21 +19,28 @@
 
 import '@tanstack/react-table';
 
+import type { CellData, RowData, TableFeatures } from '@tanstack/react-table';
+
 import type { FilterOption } from '@/components/data-table/filter-multi-select';
 import type { InfiniteList } from '@/lib/infinite-list';
 
 declare module '@tanstack/react-table' {
   // Extend the ColumnMeta interface to include properties needed for filtering
-  // Disable no-unused-vars for TData, it is needed here to ensure the extended
-  // interface matches the original one.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends RowData, TValue> {
+  // Disable no-unused-vars for TFeatures and TData, they are needed here to
+  // ensure the extended interface matches the original one.
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  interface ColumnMeta<
+    in out TFeatures extends TableFeatures,
+    in out TData extends RowData,
+    TValue extends CellData = CellData,
+  > {
     filter?: Filter<TValue>;
     /** Column takes this percentage of total table width (e.g., 30 = 30%) */
     widthPercentage?: number;
     /** Column expands to fill remaining available space */
     isGrow?: boolean;
   }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   // Define the different filter variants
 
