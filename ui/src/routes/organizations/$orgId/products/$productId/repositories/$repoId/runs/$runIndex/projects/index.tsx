@@ -19,14 +19,14 @@
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
@@ -81,7 +81,7 @@ const supportedSortColumns = new Set([
   'definitionFilePath',
 ]);
 
-const columnHelper = createColumnHelper<Project>();
+const columnHelper = legacyCreateColumnHelper<Project>();
 
 const LicenseList = ({ licenses }: { licenses: string[] }) => (
   <div className='flex flex-wrap gap-1'>
@@ -143,7 +143,7 @@ const renderSubComponent = ({
   row,
   runId,
 }: {
-  row: Row<Project>;
+  row: LegacyRow<Project>;
   runId: number;
 }) => {
   const project = row.original;
@@ -328,7 +328,7 @@ const ProjectsComponent = () => {
     staleTime: routePrefetchStaleTime,
   });
 
-  const columns = [
+  const columns = columnHelper.columns([
     columnHelper.display({
       id: 'details',
       header: 'Details',
@@ -442,13 +442,13 @@ const ProjectsComponent = () => {
         },
       },
     }),
-  ];
+  ]);
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: projects?.data || [],
     columns,
     pageCount: Math.ceil((projects?.pagination.totalCount ?? 0) / pageSize),

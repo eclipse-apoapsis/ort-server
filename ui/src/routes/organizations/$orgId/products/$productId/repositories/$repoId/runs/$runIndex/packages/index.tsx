@@ -19,14 +19,14 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
@@ -92,7 +92,7 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<Package>();
+const columnHelper = legacyCreateColumnHelper<Package>();
 
 const LicenseList = ({ licenses }: { licenses: string[] }) => (
   <div className='flex flex-wrap gap-1'>
@@ -205,7 +205,7 @@ const renderSubComponent = ({
   packageIdType,
   runId,
 }: {
-  row: Row<Package>;
+  row: LegacyRow<Package>;
   packageIdType?: PackageIdType;
   runId: number;
 }) => {
@@ -420,7 +420,7 @@ const PackagesComponent = () => {
     }),
   });
 
-  const columns = [
+  const columns = columnHelper.columns([
     // Leftmost action column.
     columnHelper.display({
       id: 'details',
@@ -552,7 +552,7 @@ const PackagesComponent = () => {
         },
       }
     ),
-  ];
+  ]);
 
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
@@ -560,7 +560,7 @@ const PackagesComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: packages.data,
     columns,
     pageCount: Math.ceil(packages.pagination.totalCount / pageSize),

@@ -19,14 +19,14 @@
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import z from 'zod';
@@ -104,7 +104,7 @@ const supportedSortColumns = new Set([
   'rule',
 ]);
 
-const columnHelper = createColumnHelper<RuleViolation>();
+const columnHelper = legacyCreateColumnHelper<RuleViolation>();
 
 // Component to render a single rule violation card in the list.
 const RuleViolationCard = ({
@@ -283,7 +283,7 @@ const RuleViolationsComponent = () => {
   const ruleOptions =
     availableRules?.map((rule) => ({ label: rule, value: rule })) ?? [];
 
-  const columns = [
+  const columns = columnHelper.columns([
     columnHelper.display({
       id: 'details',
       header: 'Details',
@@ -421,10 +421,10 @@ const RuleViolationsComponent = () => {
         },
       },
     }),
-  ];
+  ]);
 
   const renderSubComponent = useCallback(
-    ({ row }: { row: Row<RuleViolation> }) => {
+    ({ row }: { row: LegacyRow<RuleViolation> }) => {
       const ruleViolation = row.original;
 
       return (
@@ -486,7 +486,7 @@ const RuleViolationsComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: ruleViolations?.data || [],
     columns,
     pageCount: Math.ceil(
