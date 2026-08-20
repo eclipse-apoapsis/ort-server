@@ -20,10 +20,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 
 import { SnippetSource } from '@/api';
 import { getRunSnippetFindingSnippetsOptions } from '@/api/@tanstack/react-query.gen';
@@ -40,7 +40,7 @@ import {
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 
-const snippetColumnHelper = createColumnHelper<SnippetSource>();
+const snippetColumnHelper = legacyCreateColumnHelper<SnippetSource>();
 const defaultPageSize = 10;
 const snippetFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings/';
@@ -154,7 +154,7 @@ export const SnippetFindingSnippetsTable = ({
     }),
   });
 
-  const snippetColumns = [
+  const snippetColumns = snippetColumnHelper.columns([
     snippetColumnHelper.display({
       id: 'card',
       cell: ({ row }) => <SnippetSourceCard snippet={row.original} />,
@@ -171,9 +171,9 @@ export const SnippetFindingSnippetsTable = ({
       id: 'score',
       header: 'Score',
     }),
-  ];
+  ]);
 
-  const snippetsTable = useReactTable({
+  const snippetsTable = useLegacyTable({
     data: snippets?.data || [],
     columns: snippetColumns,
     pageCount: Math.ceil(
