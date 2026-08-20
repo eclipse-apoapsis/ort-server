@@ -20,12 +20,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { useMemo } from 'react';
 import z from 'zod';
 
@@ -57,7 +57,7 @@ import {
 import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
-const columnHelper = createColumnHelper<RunWithPackage>();
+const columnHelper = legacyCreateColumnHelper<RunWithPackage>();
 
 function SearchPackageComponent() {
   const params = Route.useParams();
@@ -66,7 +66,7 @@ function SearchPackageComponent() {
   const identifier = search.pkgId ?? '';
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
-  const columns = [
+  const columns = columnHelper.columns([
     columnHelper.accessor('createdAt', {
       header: 'Created At',
       cell: ({ row }) => (
@@ -127,7 +127,7 @@ function SearchPackageComponent() {
         );
       },
     }),
-  ];
+  ]);
 
   const pageIndex = useMemo(
     () => (search.page ? search.page - 1 : 0),
@@ -161,7 +161,7 @@ function SearchPackageComponent() {
     enabled: identifier !== '',
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: runsWithPackage || [],
     columns,
     state: {
