@@ -24,11 +24,11 @@ import {
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
   getPaginationRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ShieldCheck, ShieldMinus, ShieldPlus, UserPlus } from 'lucide-react';
 
 import { UserWithSuperuserStatus } from '@/api';
@@ -64,9 +64,9 @@ import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<UserWithSuperuserStatus>();
+const columnHelper = legacyCreateColumnHelper<UserWithSuperuserStatus>();
 
-const columns = [
+const columns = columnHelper.columns([
   columnHelper.accessor('user.username', {
     header: 'Username',
     cell: ({ row }) => <TooltipIfTruncated text={row.original.user.username} />,
@@ -199,7 +199,7 @@ const columns = [
       );
     },
   }),
-];
+]);
 
 const Users = () => {
   const search = Route.useSearch();
@@ -211,7 +211,7 @@ const Users = () => {
     staleTime: routePrefetchStaleTime,
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: users,
     columns,
 

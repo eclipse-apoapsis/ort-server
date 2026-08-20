@@ -25,10 +25,10 @@ import {
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { Repeat, View } from 'lucide-react';
 import z from 'zod';
 
@@ -75,7 +75,7 @@ import {
 const defaultPageSize = 10;
 const pollInterval = config.pollInterval;
 
-const columnHelper = createColumnHelper<OrtRunSummary>();
+const columnHelper = legacyCreateColumnHelper<OrtRunSummary>();
 
 const RunsComponent = () => {
   const search = Route.useSearch();
@@ -86,7 +86,7 @@ const RunsComponent = () => {
 
   const columnFilters = status ? [{ id: 'status', value: status }] : [];
 
-  const columns = [
+  const columns = columnHelper.columns([
     columnHelper.display({
       id: 'repository',
       header: 'Repository',
@@ -324,7 +324,7 @@ const RunsComponent = () => {
       size: 70,
       enableColumnFilter: false,
     }),
-  ];
+  ]);
 
   const { data: runs } = useQuery({
     ...getRunsOptions({
@@ -344,7 +344,7 @@ const RunsComponent = () => {
     refetchInterval: pollInterval,
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: data?.data || [],
     columns,
     pageCount: Math.ceil((data?.pagination.totalCount ?? 0) / pageSize),
