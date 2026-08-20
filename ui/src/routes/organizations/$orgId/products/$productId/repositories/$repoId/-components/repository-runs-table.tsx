@@ -25,10 +25,10 @@ import {
 } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { GitCompare, Repeat, View } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -101,7 +101,7 @@ type RunComparisonContext = {
 
 const pollInterval = config.pollInterval;
 
-const columnHelper = createColumnHelper<OrtRunSummary>();
+const columnHelper = legacyCreateColumnHelper<OrtRunSummary>();
 
 const SummaryCard = ({
   summary,
@@ -302,148 +302,152 @@ const RunIndexCell = ({
 const createColumns = (
   favoriteContext: FavoriteContext,
   comparison: RunComparisonContext
-) => [
-  columnHelper.accessor('index', {
-    header: 'Index',
-    size: 70,
-    cell: ({ row }) => (
-      <RunIndexCell favoriteContext={favoriteContext} summary={row.original} />
-    ),
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'card',
-    header: 'Run Details',
-    cell: ({ row }) => (
-      <SummaryCard summary={row.original} comparison={comparison} />
-    ),
-    meta: {
-      isGrow: true,
-    },
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: 'Actions',
-    size: 70,
-    cell: function Row({ row }) {
-      const queryClient = useQueryClient();
+) =>
+  columnHelper.columns([
+    columnHelper.accessor('index', {
+      header: 'Index',
+      size: 70,
+      cell: ({ row }) => (
+        <RunIndexCell
+          favoriteContext={favoriteContext}
+          summary={row.original}
+        />
+      ),
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'card',
+      header: 'Run Details',
+      cell: ({ row }) => (
+        <SummaryCard summary={row.original} comparison={comparison} />
+      ),
+      meta: {
+        isGrow: true,
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'Actions',
+      size: 70,
+      cell: function Row({ row }) {
+        const queryClient = useQueryClient();
 
-      const repository = useSuspenseQuery({
-        ...getRepositoryOptions({
-          path: {
-            repositoryId: row.original.repositoryId,
+        const repository = useSuspenseQuery({
+          ...getRepositoryOptions({
+            path: {
+              repositoryId: row.original.repositoryId,
+            },
+          }),
+        });
+
+        const { isAllowed: canTriggerRun } = useRepositoryPermission(
+          row.original.repositoryId,
+          'TRIGGER_ORT_RUN'
+        );
+
+        const { isAllowed: canDeleteRun } = useRepositoryPermission(
+          row.original.repositoryId,
+          'DELETE'
+        );
+
+        const { mutateAsync: deleteRun } = useMutation({
+          ...deleteRepositoryRunMutation(),
+          onSuccess() {
+            toast.info('Delete Run', {
+              description: `Run "${row.original.index}" deleted successfully.`,
+            });
+            runDeleted(
+              queryClient,
+              row.original.repositoryId,
+              row.original.index
+            );
           },
-        }),
-      });
-
-      const { isAllowed: canTriggerRun } = useRepositoryPermission(
-        row.original.repositoryId,
-        'TRIGGER_ORT_RUN'
-      );
-
-      const { isAllowed: canDeleteRun } = useRepositoryPermission(
-        row.original.repositoryId,
-        'DELETE'
-      );
-
-      const { mutateAsync: deleteRun } = useMutation({
-        ...deleteRepositoryRunMutation(),
-        onSuccess() {
-          toast.info('Delete Run', {
-            description: `Run "${row.original.index}" deleted successfully.`,
-          });
-          runDeleted(
-            queryClient,
-            row.original.repositoryId,
-            row.original.index
-          );
-        },
-        onError(error: ApiError) {
-          toastError(error.message, error);
-        },
-      });
-
-      async function handleDelete() {
-        await deleteRun({
-          path: {
-            ortRunIndex: row.original.index,
-            repositoryId: row.original.repositoryId,
+          onError(error: ApiError) {
+            toastError(error.message, error);
           },
         });
-      }
 
-      return (
-        <div className='flex flex-col items-center gap-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant='outline' asChild size='sm' className='w-10'>
-                <Link
-                  to={
-                    '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-                  }
-                  params={{
-                    orgId: row.original.organizationId.toString(),
-                    productId: row.original.productId.toString(),
-                    repoId: row.original.repositoryId.toString(),
-                    runIndex: row.original.index.toString(),
-                  }}
+        async function handleDelete() {
+          await deleteRun({
+            path: {
+              ortRunIndex: row.original.index,
+              repositoryId: row.original.repositoryId,
+            },
+          });
+        }
+
+        return (
+          <div className='flex flex-col items-center gap-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant='outline' asChild size='sm' className='w-10'>
+                  <Link
+                    to={
+                      '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+                    }
+                    params={{
+                      orgId: row.original.organizationId.toString(),
+                      productId: row.original.productId.toString(),
+                      repoId: row.original.repositoryId.toString(),
+                      runIndex: row.original.index.toString(),
+                    }}
+                  >
+                    <View className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View the details of this run</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  asChild
+                  size='sm'
+                  className='w-10'
+                  disabled={canTriggerRun === false}
                 >
-                  <View className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>View the details of this run</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='outline'
-                asChild
-                size='sm'
-                className='w-10'
-                disabled={canTriggerRun === false}
-              >
-                <Link
-                  to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                  params={{
-                    orgId: row.original.organizationId.toString(),
-                    productId: row.original.productId.toString(),
-                    repoId: row.original.repositoryId.toString(),
-                  }}
-                  search={{
-                    rerunIndex: row.original.index,
-                  }}
-                >
-                  <Repeat className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {canTriggerRun !== false
-                ? 'Create a new run based on this run'
-                : 'Insufficient permissions.'}
-            </TooltipContent>
-          </Tooltip>
-          <DeleteDialog
-            thingName={
-              <>
-                run with index{' '}
-                <span className='font-bold'>{row.original.index}</span>
-                from repository{' '}
-                <span className='font-bold'>{repository.data.url}</span>
-              </>
-            }
-            uiComponent={<DeleteIconButton />}
-            onDelete={handleDelete}
-            disabled={canDeleteRun === false}
-          />
-        </div>
-      );
-    },
-    enableColumnFilter: false,
-  }),
-];
+                  <Link
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                    params={{
+                      orgId: row.original.organizationId.toString(),
+                      productId: row.original.productId.toString(),
+                      repoId: row.original.repositoryId.toString(),
+                    }}
+                    search={{
+                      rerunIndex: row.original.index,
+                    }}
+                  >
+                    <Repeat className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {canTriggerRun !== false
+                  ? 'Create a new run based on this run'
+                  : 'Insufficient permissions.'}
+              </TooltipContent>
+            </Tooltip>
+            <DeleteDialog
+              thingName={
+                <>
+                  run with index{' '}
+                  <span className='font-bold'>{row.original.index}</span>
+                  from repository{' '}
+                  <span className='font-bold'>{repository.data.url}</span>
+                </>
+              }
+              uiComponent={<DeleteIconButton />}
+              onDelete={handleDelete}
+              disabled={canDeleteRun === false}
+            />
+          </div>
+        );
+      },
+      enableColumnFilter: false,
+    }),
+  ]);
 
 export const RepositoryRunsTable = ({
   orgId,
@@ -548,7 +552,7 @@ export const RepositoryRunsTable = ({
     refetchInterval: pollInterval,
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: runs?.data || [],
     columns,
     pageCount: Math.ceil((runs?.pagination.totalCount ?? 0) / pageSize),

@@ -20,10 +20,10 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import z from 'zod';
@@ -55,7 +55,7 @@ import {
 } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-const columnHelper = createColumnHelper<Organization>();
+const columnHelper = legacyCreateColumnHelper<Organization>();
 
 export const OrganizationsPage = () => {
   const orgPageSize = useTablePrefsStore((state) => state.orgPageSize);
@@ -101,49 +101,50 @@ export const OrganizationsPage = () => {
   });
 
   const columns = useMemo(
-    () => [
-      columnHelper.accessor('name', {
-        id: 'organization',
-        header: 'Organizations',
-        cell: ({ row }) => (
-          <>
-            <div className='flex items-center gap-1.5'>
-              <Link
-                className='font-semibold text-blue-400 hover:underline'
-                to={`/organizations/$orgId`}
-                params={{ orgId: row.original.id.toString() }}
-              >
-                {row.original.name}
-              </Link>
-              <OrganizationFavoriteButton
-                organization={row.original}
-                size='xs'
-                variant='ghost'
-                className='size-6 p-0'
-              />
-            </div>
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor('name', {
+          id: 'organization',
+          header: 'Organizations',
+          cell: ({ row }) => (
+            <>
+              <div className='flex items-center gap-1.5'>
+                <Link
+                  className='font-semibold text-blue-400 hover:underline'
+                  to={`/organizations/$orgId`}
+                  params={{ orgId: row.original.id.toString() }}
+                >
+                  {row.original.name}
+                </Link>
+                <OrganizationFavoriteButton
+                  organization={row.original}
+                  size='xs'
+                  variant='ghost'
+                  className='size-6 p-0'
+                />
+              </div>
 
-            <div className='text-muted-foreground hidden text-sm md:inline'>
-              {row.original.description}
-            </div>
-          </>
-        ),
-        meta: {
-          filter: {
-            filterVariant: 'regex',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, filter: value },
-              });
+              <div className='text-muted-foreground hidden text-sm md:inline'>
+                {row.original.description}
+              </div>
+            </>
+          ),
+          meta: {
+            filter: {
+              filterVariant: 'regex',
+              setFilterValue: (value: string | undefined) => {
+                navigate({
+                  search: { ...search, page: 1, filter: value },
+                });
+              },
             },
           },
-        },
-      }),
-    ],
+        }),
+      ]),
     [navigate, search]
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: organizations?.data || [],
     columns,
     pageCount: Math.ceil(
