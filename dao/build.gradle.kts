@@ -59,7 +59,9 @@ dependencies {
 
     testImplementation(testFixtures(projects.config.configSpi))
 
+    testImplementation(libs.koin.test)
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.extensions.koin)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainers.postgresql)

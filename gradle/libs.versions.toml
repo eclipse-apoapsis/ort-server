@@ -109,6 +109,7 @@ konform = { module = "io.konform:konform", version.ref = "konform" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-ktor = { module = "io.kotest.extensions:kotest-assertions-ktor", version.ref = "kotestAssertionsKtor" }
 kotest-assertions-table = { module = "io.kotest:kotest-assertions-table", version.ref = "kotest" }
+kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin", version.ref = "kotest" }
 kotest-extensions-testcontainers = { module = "io.kotest:kotest-extensions-testcontainers", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
