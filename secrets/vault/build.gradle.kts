@@ -42,10 +42,10 @@ dependencies {
     testImplementation(testFixtures(projects.config.configSpi))
 
     testImplementation(ktorLibs.client.okhttp)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.extensions.testcontainers)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.testContainersVault)
+    testImplementation(libs.testContainers.vault)
     testImplementation(libs.wiremock)
 }

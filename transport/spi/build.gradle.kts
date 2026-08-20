@@ -41,14 +41,14 @@ dependencies {
 
     api(projects.config.configSpi)
 
-    api(libs.koinCore)
+    api(libs.koin.core)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 
     testFixturesApi(projects.model)
 
-    testFixturesImplementation(libs.kotestAssertionsCore)
-    testFixturesImplementation(libs.kotlinxCoroutines)
+    testFixturesImplementation(libs.kotest.assertions.core)
+    testFixturesImplementation(libs.kotlinx.coroutines)
 }

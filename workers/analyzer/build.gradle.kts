@@ -88,9 +88,9 @@ dependencies {
     testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.koinTest)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }
 

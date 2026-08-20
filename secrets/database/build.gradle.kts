@@ -30,14 +30,14 @@ dependencies {
 
     implementation(projects.utils.config)
 
-    implementation(libs.exposedCore)
-    implementation(libs.exposedJdbc)
-    implementation(libs.exposedKotlinDatetime)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlinDatetime)
     implementation(libs.slf4j)
-    implementation(libs.springSecurityCrypto)
+    implementation(libs.spring.security.crypto)
 
     testImplementation(testFixtures(projects.dao))
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
 }

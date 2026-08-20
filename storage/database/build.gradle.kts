@@ -28,15 +28,15 @@ group = "org.eclipse.apoapsis.ortserver.storage"
 dependencies {
     api(projects.storage.storageSpi)
 
-    api(libs.exposedDao)
+    api(libs.exposed.dao)
 
-    implementation(libs.exposedJdbc)
-    implementation(libs.exposedKotlinDatetime)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlinDatetime)
     implementation(libs.postgres)
 
     testImplementation(testFixtures(projects.dao))
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

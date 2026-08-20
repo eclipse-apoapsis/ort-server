@@ -41,8 +41,8 @@ dependencies {
     implementation(libs.slf4j)
     implementation(ktorLibs.serialization.kotlinx.json)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
     testImplementation(libs.typesafeConfig)
     testImplementation(libs.wiremock)

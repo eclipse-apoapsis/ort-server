@@ -38,7 +38,7 @@ kotlin {
             dependencies {
                 api(projects.shared.apiModel)
 
-                api(libs.kotlinxSerializationCore)
+                api(libs.kotlinx.serialization.core)
             }
         }
     }

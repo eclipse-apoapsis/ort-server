@@ -28,11 +28,11 @@ dependencies {
     api(projects.components.licenseFindings.licenseFindingsApiModel)
     api(projects.model)
 
-    api(libs.exposedJdbc)
+    api(libs.exposed.jdbc)
 
     implementation(projects.dao)
 
-    implementation(libs.exposedCore)
+    implementation(libs.exposed.core)
 
     routesApi(projects.components.authorization.authorizationBackend)
 
@@ -46,5 +46,5 @@ dependencies {
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotest.assertions.core)
 }

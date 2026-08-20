@@ -33,7 +33,7 @@ group = "org.eclipse.apoapsis.ortserver.clients"
 
 dependencies {
     api(ktorLibs.client.core)
-    api(libs.kotlinxSerializationJson)
+    api(libs.kotlinx.serialization.json)
 
     implementation(projects.shared.ktorClientUtils)
     implementation(ktorLibs.client.auth)
@@ -41,14 +41,14 @@ dependencies {
     implementation(ktorLibs.client.okhttp)
     implementation(ktorLibs.serialization.kotlinx.json)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.wiremock)
 
-    testFixturesApi(libs.kotestFrameworkEngine)
-    testFixturesApi(libs.testContainersKeycloak)
+    testFixturesApi(libs.kotest.framework.engine)
+    testFixturesApi(libs.testContainers.keycloak)
 
     testFixturesImplementation(projects.utils.test)
 
-    testFixturesImplementation(libs.kotlinxSerializationJson)
+    testFixturesImplementation(libs.kotlinx.serialization.json)
 }

@@ -45,7 +45,7 @@ dependencies {
 
     implementation(projects.dao)
 
-    implementation(libs.exposedCore)
+    implementation(libs.exposed.core)
 
     routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.components.infrastructureServices.infrastructureServicesApiModel)
@@ -53,7 +53,7 @@ dependencies {
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.core)
-    routesImplementation(libs.ktorOpenApi)
+    routesImplementation(libs.ktor.openApi)
 
     testImplementation(projects.components.secrets.secretsBackend)
     testImplementation(testFixtures(projects.dao))
@@ -63,9 +63,9 @@ dependencies {
     testImplementation(ktorLibs.serialization.kotlinx.json)
     testImplementation(ktorLibs.server.statusPages)
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.ktor)
+    testImplementation(libs.kotest.runner.junit5)
 }
 
 tasks.withType<KotlinCompile> {

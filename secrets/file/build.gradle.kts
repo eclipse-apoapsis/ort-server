@@ -35,6 +35,6 @@ dependencies {
 
     implementation(ktorLibs.serialization.kotlinx.json)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
 }

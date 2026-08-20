@@ -73,8 +73,8 @@ kotlin {
                 implementation(ktorLibs.client.auth)
                 implementation(ktorLibs.client.core)
                 implementation(libs.kaml)
-                implementation(libs.kotlinxCoroutines)
-                implementation(libs.kotlinxSerializationJson)
+                implementation(libs.kotlinx.coroutines)
+                implementation(libs.kotlinx.serialization.json)
                 implementation(libs.mordantCoroutines)
             }
         }
@@ -91,8 +91,8 @@ kotlin {
             dependencies {
                 implementation(projects.api.v1.apiV1Model)
 
-                implementation(libs.kotestAssertionsCore)
-                implementation(libs.kotestRunnerJunit5)
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.kotest.runner.junit5)
                 implementation(libs.mockk)
             }
         }

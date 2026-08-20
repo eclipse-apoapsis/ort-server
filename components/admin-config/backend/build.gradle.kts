@@ -28,17 +28,17 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
-    api(libs.hopliteCore)
+    api(libs.hoplite.core)
 
     implementation(projects.shared.pluginInfo)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.hopliteHocon)
+    implementation(libs.hoplite.hocon)
     implementation(libs.slf4j)
     implementation(ortLibs.model)
     implementation(ortLibs.utils.ort)
 
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

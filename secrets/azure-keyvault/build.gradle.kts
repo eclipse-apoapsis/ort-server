@@ -31,14 +31,14 @@ group = "org.eclipse.apoapsis.ortserver.secrets"
 dependencies {
     api(projects.secrets.secretsSpi)
 
-    api(libs.azureSecurityKeyvaultSecrets)
+    api(libs.azure.security.keyvault.secrets)
 
     implementation(projects.utils.logging)
 
     implementation(ktorLibs.serialization.kotlinx.json)
-    implementation(libs.azureIdentity)
+    implementation(libs.azure.identity)
 
     testImplementation(testFixtures(projects.config.configSpi))
 
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.runner.junit5)
 }

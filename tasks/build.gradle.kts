@@ -40,10 +40,10 @@ dependencies {
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
 
-    implementation(libs.koinCore)
-    implementation(libs.kotlinxCoroutines)
-    implementation(libs.kotlinxSerializationJson)
-    implementation(libs.kubernetesClient)
+    implementation(libs.koin.core)
+    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kubernetes.client)
     implementation(libs.logback)
     implementation(libs.typesafeConfig)
     implementation(ortLibs.downloader)
@@ -57,8 +57,8 @@ dependencies {
     testImplementation(testFixtures(projects.utils.logging))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
-    testImplementation(libs.koinTest)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }
 

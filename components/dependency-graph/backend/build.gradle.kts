@@ -28,7 +28,7 @@ dependencies {
     api(projects.components.dependencyGraph.dependencyGraphApiModel)
     api(projects.model)
 
-    api(libs.exposedJdbc)
+    api(libs.exposed.jdbc)
 
     implementation(projects.dao)
 
@@ -40,14 +40,14 @@ dependencies {
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.core)
-    routesImplementation(libs.ktorOpenApi)
+    routesImplementation(libs.ktor.openApi)
 
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.serialization.kotlinx.json)
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.ktor)
+    testImplementation(libs.kotest.runner.junit5)
 }

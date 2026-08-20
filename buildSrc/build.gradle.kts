@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.plugin.detekt)
     implementation(libs.plugin.koinCompiler)
     implementation(libs.plugin.kotlin)

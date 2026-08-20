@@ -39,26 +39,26 @@ repositories {
 dependencies {
     api(projects.components.serverSettings.serverSettingsApiModel)
 
-    api(libs.exposedCore)
+    api(libs.exposed.core)
 
     implementation(projects.dao)
 
-    implementation(libs.exposedJdbc)
-    implementation(libs.exposedKotlinDatetime)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlinDatetime)
 
     routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.core)
-    routesImplementation(libs.ktorOpenApi)
+    routesImplementation(libs.ktor.openApi)
 
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.serialization.kotlinx.json)
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.ktor)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }
