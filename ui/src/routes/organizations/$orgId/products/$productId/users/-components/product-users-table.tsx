@@ -20,10 +20,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import { UserWithGroups } from '@/api';
@@ -47,9 +47,9 @@ import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 
-const columnHelper = createColumnHelper<UserWithGroups>();
+const columnHelper = legacyCreateColumnHelper<UserWithGroups>();
 
-const columns = [
+const columns = columnHelper.columns([
   columnHelper.accessor('user.username', {
     header: 'Username',
     cell: ({ row }) => <>{row.original.user.username}</>,
@@ -236,7 +236,7 @@ const columns = [
       );
     },
   }),
-];
+]);
 
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/users');
 
@@ -257,7 +257,7 @@ export const ProductUsersTable = () => {
     }),
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: usersWithGroups?.data || [],
     columns: columns,
     pageCount: Math.ceil(
