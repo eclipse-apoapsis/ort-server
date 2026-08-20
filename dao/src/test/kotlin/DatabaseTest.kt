@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.koin.KoinExtension
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
@@ -35,69 +36,67 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
 import org.koin.dsl.module
+import org.koin.test.KoinTest
+import org.koin.test.inject
 
-class DatabaseTest : WordSpec({
-    tags(Integration)
+val testModule = module {
+    includes(databaseModule(startEager = false))
 
-    val dbExtension = extension(DatabaseTestExtension())
+    single { ConfigManager.create(get()) }
+}
 
-    afterEach {
-        stopKoin()
-    }
+class DatabaseTest : KoinTest, WordSpec() {
+    init {
+        tags(Integration)
 
-    "databaseModule" should {
-        "add a working database to the Koin context" {
-            val postgres = dbExtension.postgres
+        val dbExtension = extension(DatabaseTestExtension())
+        extension(KoinExtension(testModule))
 
-            val secretsMap = mapOf(
-                "database.username" to postgres.username,
-                "database.password" to postgres.password
-            )
+        "databaseModule" should {
+            "add a working database to the Koin context" {
+                val postgres = dbExtension.postgres
 
-            val secretConfigMap = mapOf(
-                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
-                ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
-            )
-
-            val config = ConfigFactory.parseMap(
-                mapOf(
-                    "database.host" to postgres.host,
-                    "database.port" to postgres.firstMappedPort,
-                    "database.name" to postgres.databaseName,
-                    "database.schema" to TEST_DB_SCHEMA,
-                    "database.connectionTimeout" to 30000,
-                    "database.idleTimeout" to 600000,
-                    "database.keepaliveTime" to 0,
-                    "database.maxLifetime" to 1800000,
-                    "database.maximumPoolSize" to 5,
-                    "database.minimumIdle" to 1,
-                    "database.sslMode" to "disable",
-                    ConfigManager.CONFIG_MANAGER_SECTION to secretConfigMap
+                val secretsMap = mapOf(
+                    "database.username" to postgres.username,
+                    "database.password" to postgres.password
                 )
-            )
 
-            val baseModule = module {
-                single { config }
-                single { ConfigManager.create(get()) }
-            }
+                val secretConfigMap = mapOf(
+                    ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+                    ConfigSecretProviderFactoryForTesting.SECRETS_PROPERTY to secretsMap
+                )
 
-            val app = startKoin {
-                modules(baseModule, databaseModule())
-            }
+                val config = ConfigFactory.parseMap(
+                    mapOf(
+                        "database.host" to postgres.host,
+                        "database.port" to postgres.firstMappedPort,
+                        "database.name" to postgres.databaseName,
+                        "database.schema" to TEST_DB_SCHEMA,
+                        "database.connectionTimeout" to 30000,
+                        "database.idleTimeout" to 600000,
+                        "database.keepaliveTime" to 0,
+                        "database.maxLifetime" to 1800000,
+                        "database.maximumPoolSize" to 5,
+                        "database.minimumIdle" to 1,
+                        "database.sslMode" to "disable",
+                        ConfigManager.CONFIG_MANAGER_SECTION to secretConfigMap
+                    )
+                )
 
-            val db = app.koin.get<Database>()
+                getKoin().declare(config)
 
-            shouldNotThrowAny {
-                transaction(db) {
-                    OrganizationsTable.insert {
-                        it[name] = "name"
-                        it[description] = "description"
+                val db by inject<Database>()
+
+                shouldNotThrowAny {
+                    transaction(db) {
+                        OrganizationsTable.insert {
+                            it[name] = "name"
+                            it[description] = "description"
+                        }
                     }
                 }
             }
         }
     }
-})
+}
