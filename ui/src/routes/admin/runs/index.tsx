@@ -24,11 +24,6 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { Repeat, View } from 'lucide-react';
 import z from 'zod';
 
@@ -65,6 +60,11 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import {
@@ -75,7 +75,7 @@ import {
 const defaultPageSize = 10;
 const pollInterval = config.pollInterval;
 
-const columnHelper = legacyCreateColumnHelper<OrtRunSummary>();
+const columnHelper = createAppColumnHelper<OrtRunSummary>();
 
 const RunsComponent = () => {
   const search = Route.useSearch();
@@ -344,21 +344,23 @@ const RunsComponent = () => {
     refetchInterval: pollInterval,
   });
 
-  const table = useLegacyTable({
-    data: data?.data || [],
-    columns,
-    pageCount: Math.ceil((data?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: data?.data || [],
+      columns,
+      pageCount: Math.ceil((data?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters,
       },
-      columnFilters,
+      manualPagination: true,
+      manualFiltering: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    manualFiltering: true,
-  });
+    selectNoTableState
+  );
 
   if (error) {
     toastError('Unable to load data', error);

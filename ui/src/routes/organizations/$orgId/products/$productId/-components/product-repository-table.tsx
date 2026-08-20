@@ -19,11 +19,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { useMemo } from 'react';
 
 import { Repository } from '@/api';
@@ -35,6 +30,11 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { RepositoryFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from './last-job-status';
@@ -43,7 +43,7 @@ import { LastRunStatus } from './last-run-status';
 import { RepositoryItemCounts } from './repository-item-counts';
 import { TotalRuns } from './total-runs';
 
-const columnHelper = legacyCreateColumnHelper<Repository>();
+const columnHelper = createAppColumnHelper<Repository>();
 
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/');
 
@@ -222,20 +222,24 @@ export const ProductRepositoryTable = () => {
     [navigate, organization, product, search]
   );
 
-  const table = useLegacyTable({
-    data: repositories?.data || [],
-    columns,
-    pageCount: Math.ceil((repositories?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: repositories?.data || [],
+      columns,
+      pageCount: Math.ceil(
+        (repositories?.pagination.totalCount ?? 0) / pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters: [{ id: 'repository', value: nameFilter }],
       },
-      columnFilters: [{ id: 'repository', value: nameFilter }],
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (reposIsPending) {
     return <LoadingIndicator />;

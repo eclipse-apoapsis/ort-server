@@ -20,13 +20,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
@@ -73,6 +66,12 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
@@ -88,7 +87,7 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
-const columnHelper = legacyCreateColumnHelper<VulnerabilityWithStats>();
+const columnHelper = createAppColumnHelper<VulnerabilityWithStats>();
 
 // Component to render a single vulnerability card in the list.
 const VulnerabilityCard = ({
@@ -166,7 +165,7 @@ const VulnerabilityCard = ({
 const renderSubComponent = ({
   row,
 }: {
-  row: LegacyRow<VulnerabilityWithStats>;
+  row: AppRow<VulnerabilityWithStats>;
 }) => {
   const vulnerability = row.original.vulnerability;
 
@@ -486,35 +485,36 @@ const ProductVulnerabilitiesComponent = () => {
 
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
-  const table = useLegacyTable({
-    data: vulnerabilities?.data || [],
-    columns,
-    pageCount: Math.ceil(
-      (vulnerabilities?.pagination.totalCount ?? 0) / pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: vulnerabilities?.data || [],
+      columns,
+      pageCount: Math.ceil(
+        (vulnerabilities?.pagination.totalCount ?? 0) / pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters,
+        columnVisibility: {
+          [columnId]: false,
+          rating: false,
+          repositoriesCount: false,
+          advisor: false,
+          externalId: false,
+          summary: false,
+        },
+        sorting: sortBy ?? EMPTY_SORTING_STATE,
+        expanded: expanded,
       },
-      columnFilters,
-      columnVisibility: {
-        [columnId]: false,
-        rating: false,
-        repositoriesCount: false,
-        advisor: false,
-        externalId: false,
-        summary: false,
-      },
-      sorting: sortBy ?? EMPTY_SORTING_STATE,
-      expanded: expanded,
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualPagination: true,
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending || totIsPending || advisorsIsPending) {
     return <LoadingIndicator />;

@@ -20,12 +20,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -52,6 +46,11 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import { ProvenanceSnippetFindingsTable } from './provenance-snippet-findings-table';
@@ -61,7 +60,7 @@ import {
 } from './snippet-findings-state';
 
 const provenanceColumnHelper =
-  legacyCreateColumnHelper<SnippetFindingProvenance>();
+  createAppColumnHelper<SnippetFindingProvenance>();
 const defaultPageSize = 10;
 const snippetFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings/';
@@ -236,33 +235,34 @@ export const SnippetFindingsView = () => {
     }),
   ]);
 
-  const table = useLegacyTable({
-    data: provenances.data,
-    columns,
-    pageCount: getSnippetFindingProvenancePageCount(
-      provenances.pagination.totalCount,
-      pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: provenances.data,
+      columns,
+      pageCount: getSnippetFindingProvenancePageCount(
+        provenances.pagination.totalCount,
+        pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        sorting: search.sortBy ?? EMPTY_SORTING_STATE,
+        expanded,
+        columnVisibility: {
+          type: false,
+          namespace: false,
+          name: false,
+          version: false,
+        },
       },
-      sorting: search.sortBy ?? EMPTY_SORTING_STATE,
-      expanded,
-      columnVisibility: {
-        type: false,
-        namespace: false,
-        name: false,
-        version: false,
-      },
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualPagination: true,
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isError) {
     toastError('Unable to load data', error);

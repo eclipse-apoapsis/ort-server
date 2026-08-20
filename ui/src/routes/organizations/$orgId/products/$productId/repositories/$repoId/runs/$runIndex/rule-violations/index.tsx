@@ -20,13 +20,6 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import z from 'zod';
@@ -80,6 +73,12 @@ import {
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
@@ -104,7 +103,7 @@ const supportedSortColumns = new Set([
   'rule',
 ]);
 
-const columnHelper = legacyCreateColumnHelper<RuleViolation>();
+const columnHelper = createAppColumnHelper<RuleViolation>();
 
 // Component to render a single rule violation card in the list.
 const RuleViolationCard = ({
@@ -424,7 +423,7 @@ const RuleViolationsComponent = () => {
   ]);
 
   const renderSubComponent = useCallback(
-    ({ row }: { row: LegacyRow<RuleViolation> }) => {
+    ({ row }: { row: AppRow<RuleViolation> }) => {
       const ruleViolation = row.original;
 
       return (
@@ -486,35 +485,36 @@ const RuleViolationsComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useLegacyTable({
-    data: ruleViolations?.data || [],
-    columns,
-    pageCount: Math.ceil(
-      (ruleViolations?.pagination.totalCount ?? 0) / pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: ruleViolations?.data || [],
+      columns,
+      pageCount: Math.ceil(
+        (ruleViolations?.pagination.totalCount ?? 0) / pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters,
+        columnVisibility: {
+          [columnId]: false,
+          severity: false,
+          status: false,
+          rule: false,
+        },
+        sorting: sortBy,
+        expanded: expanded,
       },
-      columnFilters,
-      columnVisibility: {
-        [columnId]: false,
-        severity: false,
-        status: false,
-        rule: false,
-      },
-      sorting: sortBy,
-      expanded: expanded,
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualFiltering: true,
+      manualPagination: true,
+      manualSorting: true,
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualFiltering: true,
-    manualPagination: true,
-    manualSorting: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending || totalIsPending || rulesIsPending) {
     return <LoadingIndicator />;
@@ -525,7 +525,7 @@ const RuleViolationsComponent = () => {
     return;
   }
 
-  const filtersInUse = table.getState().columnFilters.length > 0;
+  const filtersInUse = columnFilters.length > 0;
   const matching = `, ${ruleViolations.pagination.totalCount} matching filters`;
   const evaluatorWasIncludedInRun = ortRun.jobs.evaluator != null;
   const noResultsContent = !evaluatorWasIncludedInRun ? (

@@ -20,13 +20,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -51,6 +44,12 @@ import {
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
@@ -64,7 +63,7 @@ import {
   getMarkerExpandedState,
 } from './license-findings-state';
 
-const licenseColumnHelper = legacyCreateColumnHelper<DetectedLicense>();
+const licenseColumnHelper = createAppColumnHelper<DetectedLicense>();
 const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
@@ -73,7 +72,7 @@ const renderSubComponent = ({
   row,
   runId,
 }: {
-  row: LegacyRow<DetectedLicense>;
+  row: AppRow<DetectedLicense>;
   runId: number;
 }) => <DetectedLicensePackagesTable row={row} runId={runId} />;
 
@@ -228,27 +227,28 @@ export const LicenseFindingsView = () => {
     }),
   ]);
 
-  const table = useLegacyTable({
-    data: detectedLicenseFindings.data,
-    columns,
-    pageCount: Math.ceil(
-      detectedLicenseFindings.pagination.totalCount / pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: detectedLicenseFindings.data,
+      columns,
+      pageCount: Math.ceil(
+        detectedLicenseFindings.pagination.totalCount / pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        sorting: search.sortBy ?? EMPTY_SORTING_STATE,
+        expanded,
+        columnFilters: [{ id: 'license', value: detectedLicenses }],
       },
-      sorting: search.sortBy ?? EMPTY_SORTING_STATE,
-      expanded,
-      columnFilters: [{ id: 'license', value: detectedLicenses }],
+      getRowCanExpand: () => true,
+      getRowId: (row) => row.license,
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    getRowId: (row) => row.license,
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   useEffect(() => {
     if (preserveManualExpansion.current) {

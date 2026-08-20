@@ -23,12 +23,6 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  getPaginationRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ShieldCheck, ShieldMinus, ShieldPlus, UserPlus } from 'lucide-react';
 
 import { UserWithSuperuserStatus } from '@/api';
@@ -57,6 +51,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { ApiError } from '@/lib/api-error';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
@@ -64,7 +63,7 @@ import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columnHelper = legacyCreateColumnHelper<UserWithSuperuserStatus>();
+const columnHelper = createAppColumnHelper<UserWithSuperuserStatus>();
 
 const columns = columnHelper.columns([
   columnHelper.accessor('user.username', {
@@ -211,19 +210,21 @@ const Users = () => {
     staleTime: routePrefetchStaleTime,
   });
 
-  const table = useLegacyTable({
-    data: users,
-    columns,
+  const table = useAppTable(
+    {
+      data: users,
+      columns,
 
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
       },
+      manualPagination: false,
     },
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
+    selectNoTableState
+  );
 
   return (
     <Card className='h-fit'>

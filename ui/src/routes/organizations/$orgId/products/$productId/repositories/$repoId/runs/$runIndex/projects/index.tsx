@@ -20,13 +20,6 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
@@ -60,6 +53,12 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toastError } from '@/lib/toast';
@@ -81,7 +80,7 @@ const supportedSortColumns = new Set([
   'definitionFilePath',
 ]);
 
-const columnHelper = legacyCreateColumnHelper<Project>();
+const columnHelper = createAppColumnHelper<Project>();
 
 const LicenseList = ({ licenses }: { licenses: string[] }) => (
   <div className='flex flex-wrap gap-1'>
@@ -143,7 +142,7 @@ const renderSubComponent = ({
   row,
   runId,
 }: {
-  row: LegacyRow<Project>;
+  row: AppRow<Project>;
   runId: number;
 }) => {
   const project = row.original;
@@ -448,33 +447,34 @@ const ProjectsComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useLegacyTable({
-    data: projects?.data || [],
-    columns,
-    pageCount: Math.ceil((projects?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: projects?.data || [],
+      columns,
+      pageCount: Math.ceil((projects?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters,
+        columnVisibility: {
+          identifier: false,
+          declaredLicense: false,
+          definitionFilePath: false,
+        },
+        sorting: sortBy,
+        expanded: expanded,
       },
-      columnFilters,
-      columnVisibility: {
-        identifier: false,
-        declaredLicense: false,
-        definitionFilePath: false,
-      },
-      sorting: sortBy,
-      expanded: expanded,
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualFiltering: true,
+      manualPagination: true,
+      manualSorting: true,
+      getRowId: (row) => identifierToString(row.identifier),
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualFiltering: true,
-    manualPagination: true,
-    manualSorting: true,
-    getRowId: (row) => identifierToString(row.identifier),
-  });
+    selectNoTableState
+  );
 
   if (isPending || totalIsPending || licensesIsPending) {
     return <LoadingIndicator />;
@@ -485,7 +485,7 @@ const ProjectsComponent = () => {
     return;
   }
 
-  const filtersInUse = table.getState().columnFilters.length > 0;
+  const filtersInUse = columnFilters.length > 0;
   const matching = `, ${projects.pagination.totalCount} matching filters`;
 
   return (

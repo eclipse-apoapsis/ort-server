@@ -24,11 +24,6 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { GitCompare, Repeat, View } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -67,6 +62,11 @@ import {
 import { config } from '@/config';
 import { diffResolvedJobConfigs } from '@/helpers/config-diff';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { runDeleted } from '@/lib/entity-cache';
@@ -101,7 +101,7 @@ type RunComparisonContext = {
 
 const pollInterval = config.pollInterval;
 
-const columnHelper = legacyCreateColumnHelper<OrtRunSummary>();
+const columnHelper = createAppColumnHelper<OrtRunSummary>();
 
 const SummaryCard = ({
   summary,
@@ -552,19 +552,21 @@ export const RepositoryRunsTable = ({
     refetchInterval: pollInterval,
   });
 
-  const table = useLegacyTable({
-    data: runs?.data || [],
-    columns,
-    pageCount: Math.ceil((runs?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: runs?.data || [],
+      columns,
+      pageCount: Math.ceil((runs?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   const comparisonDiff = useMemo(() => {
     const baseConfig = baseRunQuery.data?.resolvedJobConfigs;

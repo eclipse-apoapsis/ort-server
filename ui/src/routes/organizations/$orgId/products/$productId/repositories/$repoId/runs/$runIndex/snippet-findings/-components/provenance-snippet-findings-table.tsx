@@ -20,12 +20,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -40,11 +34,16 @@ import {
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 import { SnippetFindingSnippetsTable } from './snippet-finding-snippets-table';
 
-const findingColumnHelper = legacyCreateColumnHelper<SnippetFinding>();
+const findingColumnHelper = createAppColumnHelper<SnippetFinding>();
 const defaultPageSize = 10;
 const snippetFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings/';
@@ -153,26 +152,27 @@ export const ProvenanceSnippetFindingsTable = ({
     }),
   ]);
 
-  const findingsTable = useLegacyTable({
-    data: findings?.data || [],
-    columns: findingColumns,
-    pageCount: Math.ceil(
-      (findings?.pagination.totalCount ?? 0) / findingsPageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex: findingsPageIndex,
-        pageSize: findingsPageSize,
+  const findingsTable = useAppTable(
+    {
+      data: findings?.data || [],
+      columns: findingColumns,
+      pageCount: Math.ceil(
+        (findings?.pagination.totalCount ?? 0) / findingsPageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex: findingsPageIndex,
+          pageSize: findingsPageSize,
+        },
+        sorting: search.findingsSortBy ?? EMPTY_SORTING_STATE,
+        expanded,
       },
-      sorting: search.findingsSortBy ?? EMPTY_SORTING_STATE,
-      expanded,
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualPagination: true,
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending) {
     return <LoadingIndicator />;
