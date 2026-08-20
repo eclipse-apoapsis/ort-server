@@ -19,13 +19,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -44,7 +44,7 @@ import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 import { SnippetFindingSnippetsTable } from './snippet-finding-snippets-table';
 
-const findingColumnHelper = createColumnHelper<SnippetFinding>();
+const findingColumnHelper = legacyCreateColumnHelper<SnippetFinding>();
 const defaultPageSize = 10;
 const snippetFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings/';
@@ -83,7 +83,7 @@ export const ProvenanceSnippetFindingsTable = ({
     }),
   });
 
-  const findingColumns = [
+  const findingColumns = findingColumnHelper.columns([
     findingColumnHelper.display({
       id: 'details',
       header: 'Details',
@@ -151,9 +151,9 @@ export const ProvenanceSnippetFindingsTable = ({
         widthPercentage: 14,
       },
     }),
-  ];
+  ]);
 
-  const findingsTable = useReactTable({
+  const findingsTable = useLegacyTable({
     data: findings?.data || [],
     columns: findingColumns,
     pageCount: Math.ceil(
