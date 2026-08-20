@@ -18,7 +18,8 @@
  */
 
 import { Link, LinkOptions } from '@tanstack/react-router';
-import { Table } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type { LegacyReactTable } from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -37,15 +38,15 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-interface DataTableCardsSortProps<TData> {
-  table: Table<TData>;
+interface DataTableCardsSortProps<TData extends RowData> {
+  table: LegacyReactTable<TData>;
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
   }) => LinkOptions;
 }
 
-export function DataTableCardsSort<TData>({
+export function DataTableCardsSort<TData extends RowData>({
   table,
   setSortingOptions,
 }: DataTableCardsSortProps<TData>) {

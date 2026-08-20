@@ -18,20 +18,21 @@
  */
 
 import { LinkOptions } from '@tanstack/react-router';
-import { Table } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type { LegacyReactTable } from '@tanstack/react-table/legacy';
 
 import { DataTableCardsSort } from '@/components/data-table-cards/data-table-cards-sort';
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
 
-interface DataTableCardsHeaderProps<TData> {
-  table: Table<TData>;
+interface DataTableCardsHeaderProps<TData extends RowData> {
+  table: LegacyReactTable<TData>;
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
   }) => LinkOptions;
 }
 
-export function DataTableCardsHeader<TData>({
+export function DataTableCardsHeader<TData extends RowData>({
   table,
   setSortingOptions,
 }: DataTableCardsHeaderProps<TData>) {

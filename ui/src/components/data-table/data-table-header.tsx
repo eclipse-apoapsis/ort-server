@@ -18,7 +18,8 @@
  */
 
 import { Link, LinkOptions } from '@tanstack/react-router';
-import { flexRender, Header } from '@tanstack/react-table';
+import { flexRender, type RowData } from '@tanstack/react-table';
+import type { LegacyHeader } from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
@@ -30,8 +31,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-interface DataTableHeaderProps<TData> {
-  headers: Header<TData, unknown>[];
+interface DataTableHeaderProps<TData extends RowData> {
+  headers: LegacyHeader<TData, unknown>[];
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
@@ -39,7 +40,7 @@ interface DataTableHeaderProps<TData> {
   columnSizing?: Record<string, number>;
 }
 
-export function DataTableHeader<TData>({
+export function DataTableHeader<TData extends RowData>({
   headers,
   setSortingOptions,
   columnSizing,

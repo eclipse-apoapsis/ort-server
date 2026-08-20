@@ -17,20 +17,21 @@
  * License-Filename: LICENSE
  */
 
-import { flexRender, Row } from '@tanstack/react-table';
+import { flexRender, type RowData } from '@tanstack/react-table';
+import type { LegacyRow } from '@tanstack/react-table/legacy';
 import React, { Fragment } from 'react';
 
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 
-interface DataTableBodyProps<TData> {
-  rows: Row<TData>[];
-  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+interface DataTableBodyProps<TData extends RowData> {
+  rows: LegacyRow<TData>[];
+  renderSubComponent?: (props: { row: LegacyRow<TData> }) => React.ReactElement;
   columnSizing?: Record<string, number>;
   columnCount: number;
   noResultsContent?: React.ReactNode;
 }
 
-export function DataTableBody<TData>({
+export function DataTableBody<TData extends RowData>({
   rows,
   renderSubComponent,
   columnSizing,

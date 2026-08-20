@@ -18,7 +18,11 @@
  */
 
 import { LinkOptions } from '@tanstack/react-router';
-import { Row, type Table as TanstackTable } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type {
+  LegacyRow,
+  LegacyReactTable as TanstackTable,
+} from '@tanstack/react-table/legacy';
 import React from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
@@ -31,9 +35,11 @@ import { DataTableHeader } from './data-table-header';
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PAGE_SIZE = 10;
 
-interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableProps<
+  TData extends RowData,
+> extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
-  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  renderSubComponent?: (props: { row: LegacyRow<TData> }) => React.ReactElement;
   noResultsContent?: React.ReactNode;
   setCurrentPageOptions: (page: number) => LinkOptions;
   setPageSizeOptions: (pageSize: number) => LinkOptions;
@@ -46,7 +52,7 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   }) => LinkOptions;
 }
 
-export function DataTable<TData>({
+export function DataTable<TData extends RowData>({
   table,
   renderSubComponent,
   noResultsContent,

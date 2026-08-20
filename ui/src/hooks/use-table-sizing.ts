@@ -17,7 +17,8 @@
  * License-Filename: LICENSE
  */
 
-import { Table } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type { LegacyTable } from '@tanstack/react-table/legacy';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 const DEFAULT_MIN_SIZE = 40;
@@ -148,7 +149,9 @@ export function calculateColumnSizing(
  * }
  * ```
  */
-export function useTableSizing<TData>(table: Table<TData>) {
+export function useTableSizing<TData extends RowData>(
+  table: LegacyTable<TData>
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef(table);
   const lastWidthRef = useRef<number>(0);

@@ -18,7 +18,8 @@
  */
 
 import { Link, LinkOptions } from '@tanstack/react-router';
-import { Row } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type { LegacyRow } from '@tanstack/react-table/legacy';
 import { Link as Chain } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -28,15 +29,18 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-interface MarkItemsProps<TData> {
-  row: Row<TData>;
+interface MarkItemsProps<TData extends RowData> {
+  row: LegacyRow<TData>;
   /**
    * A function to provide `LinkOptions` for a link to set marked item in the URL.
    */
   setMarked: (marked: string) => LinkOptions;
 }
 
-export function MarkItems<TData>({ row, setMarked }: MarkItemsProps<TData>) {
+export function MarkItems<TData extends RowData>({
+  row,
+  setMarked,
+}: MarkItemsProps<TData>) {
   // Copy the URL with marked item to clipboard.
   // Because TanStack Router updates the URL asynchronously,
   // a small delay is used before copying to ensure the new
