@@ -56,7 +56,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
  * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
 open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
-    private val postgres = PostgreSQLContainer(Images.POSTGRES).apply {
+    internal val postgres = PostgreSQLContainer(Images.POSTGRES).apply {
         startupAttempts = 1
     }
 
@@ -91,7 +91,7 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
     }
 }
 
-private const val TEST_DB_SCHEMA = "ort_server_test"
+internal const val TEST_DB_SCHEMA = "ort_server_test"
 
 private fun clean(dataSource: DataSource) {
     Flyway(getTestFlywayConfig(dataSource)).clean()
