@@ -17,8 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { RowData } from '@tanstack/react-table';
-import type { LegacyColumn } from '@tanstack/react-table/legacy';
+import type { RowData } from '@tanstack/react-table';
 
 import type {
   InfiniteSelectFilter,
@@ -32,9 +31,10 @@ import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterSingleSelect } from '@/components/data-table/filter-single-select';
 import { FilterText } from '@/components/data-table/filter-text';
+import type { AppColumn } from '@/hooks/use-app-table';
 
 interface DataTableFilterProps<TData extends RowData, TValue> {
-  column: LegacyColumn<TData, TValue>;
+  column: AppColumn<TData, TValue>;
   showTitle?: boolean; // Whether to show the title next to the filter icon
 }
 

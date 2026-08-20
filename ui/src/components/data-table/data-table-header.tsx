@@ -19,7 +19,6 @@
 
 import { Link, LinkOptions } from '@tanstack/react-router';
 import { flexRender, type RowData } from '@tanstack/react-table';
-import type { LegacyHeader } from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
@@ -30,9 +29,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { AppReactTable, AppTableState } from '@/hooks/use-app-table';
+
+const selectHeaderState = (state: AppTableState) => ({
+  columnFilters: state.columnFilters,
+  columnVisibility: state.columnVisibility,
+  sorting: state.sorting,
+});
 
 interface DataTableHeaderProps<TData extends RowData> {
-  headers: LegacyHeader<TData, unknown>[];
+  table: AppReactTable<TData>;
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
@@ -41,82 +47,86 @@ interface DataTableHeaderProps<TData extends RowData> {
 }
 
 export function DataTableHeader<TData extends RowData>({
-  headers,
+  table,
   setSortingOptions,
   columnSizing,
 }: DataTableHeaderProps<TData>) {
   return (
-    <TableHeader>
-      <TableRow>
-        {headers.map((header) => {
-          const { column } = header;
+    <table.Subscribe selector={selectHeaderState}>
+      {() => (
+        <TableHeader>
+          <TableRow>
+            {table.getLeafHeaders().map((header) => {
+              const { column } = header;
 
-          const renderSortButton = () => (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  {...setSortingOptions?.({
-                    id: column.id,
-                    desc:
-                      column.getIsSorted() === 'desc'
-                        ? undefined
-                        : column.getIsSorted() === 'asc',
-                  })}
+              const renderSortButton = () => (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      {...setSortingOptions?.({
+                        id: column.id,
+                        desc:
+                          column.getIsSorted() === 'desc'
+                            ? undefined
+                            : column.getIsSorted() === 'asc',
+                      })}
+                    >
+                      <Button
+                        variant='ghost'
+                        size='narrow'
+                        className='ml-4'
+                        onClick={column.getToggleSortingHandler()}
+                      >
+                        {column.getIsSorted() === 'asc' ? (
+                          <ChevronUp className='h-4 w-4 text-blue-500' />
+                        ) : column.getIsSorted() === 'desc' ? (
+                          <ChevronDown className='h-4 w-4 text-blue-500' />
+                        ) : (
+                          <ChevronsUpDown className='h-4 w-4' />
+                        )}
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {column.getCanSort()
+                      ? column.getIsSorted() === 'asc'
+                        ? 'Sort descending'
+                        : column.getIsSorted() === 'desc'
+                          ? 'Clear sorting'
+                          : 'Sort ascending'
+                      : undefined}
+                  </TooltipContent>
+                </Tooltip>
+              );
+
+              return (
+                <TableHead
+                  key={header.id}
+                  style={{
+                    width: columnSizing?.[header.id] ?? header.getSize(),
+                    minWidth: column.columnDef.minSize,
+                  }}
+                  colSpan={header.colSpan}
                 >
-                  <Button
-                    variant='ghost'
-                    size='narrow'
-                    className='ml-4'
-                    onClick={column.getToggleSortingHandler()}
-                  >
-                    {column.getIsSorted() === 'asc' ? (
-                      <ChevronUp className='h-4 w-4 text-blue-500' />
-                    ) : column.getIsSorted() === 'desc' ? (
-                      <ChevronDown className='h-4 w-4 text-blue-500' />
-                    ) : (
-                      <ChevronsUpDown className='h-4 w-4' />
-                    )}
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                {column.getCanSort()
-                  ? column.getIsSorted() === 'asc'
-                    ? 'Sort descending'
-                    : column.getIsSorted() === 'desc'
-                      ? 'Clear sorting'
-                      : 'Sort ascending'
-                  : undefined}
-              </TooltipContent>
-            </Tooltip>
-          );
-
-          return (
-            <TableHead
-              key={header.id}
-              style={{
-                width: columnSizing?.[header.id] ?? header.getSize(),
-                minWidth: column.columnDef.minSize,
-              }}
-              colSpan={header.colSpan}
-            >
-              {header.isPlaceholder ? null : (
-                <div className='flex items-center'>
-                  {flexRender(column.columnDef.header, header.getContext())}
-                  <div className='flex items-center'>
-                    {setSortingOptions && column.getCanSort()
-                      ? renderSortButton()
-                      : null}
-                    {column.getCanFilter() && (
-                      <DataTableFilter column={column} />
-                    )}
-                  </div>
-                </div>
-              )}
-            </TableHead>
-          );
-        })}
-      </TableRow>
-    </TableHeader>
+                  {header.isPlaceholder ? null : (
+                    <div className='flex items-center'>
+                      {flexRender(column.columnDef.header, header.getContext())}
+                      <div className='flex items-center'>
+                        {setSortingOptions && column.getCanSort()
+                          ? renderSortButton()
+                          : null}
+                        {column.getCanFilter() && (
+                          <DataTableFilter column={column} />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        </TableHeader>
+      )}
+    </table.Subscribe>
   );
 }

@@ -19,14 +19,15 @@
 
 import { LinkOptions } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
-import type {
-  LegacyRow,
-  LegacyReactTable as TanstackTable,
-} from '@tanstack/react-table/legacy';
 import React from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Table } from '@/components/ui/table';
+import type {
+  AppReactTable,
+  AppRow,
+  AppTableState,
+} from '@/hooks/use-app-table';
 import { useTableSizing } from '@/hooks/use-table-sizing';
 import { cn } from '@/lib/utils';
 import { DataTableBody } from './data-table-body';
@@ -35,11 +36,25 @@ import { DataTableHeader } from './data-table-header';
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PAGE_SIZE = 10;
 
+const selectBodyState = (state: AppTableState) => ({
+  columnFilters: state.columnFilters,
+  columnVisibility: state.columnVisibility,
+  expanded: state.expanded,
+  pagination: state.pagination,
+  sorting: state.sorting,
+});
+
+const selectPaginationState = (state: AppTableState) => ({
+  columnFilters: state.columnFilters,
+  pagination: state.pagination,
+  sorting: state.sorting,
+});
+
 interface DataTableProps<
   TData extends RowData,
 > extends React.HTMLAttributes<HTMLDivElement> {
-  table: TanstackTable<TData>;
-  renderSubComponent?: (props: { row: LegacyRow<TData> }) => React.ReactElement;
+  table: AppReactTable<TData>;
+  renderSubComponent?: (props: { row: AppRow<TData> }) => React.ReactElement;
   noResultsContent?: React.ReactNode;
   setCurrentPageOptions: (page: number) => LinkOptions;
   setPageSizeOptions: (pageSize: number) => LinkOptions;
@@ -63,8 +78,6 @@ export function DataTable<TData extends RowData>({
   ...props
 }: DataTableProps<TData>) {
   const { containerRef, columnSizing } = useTableSizing(table);
-  const pagination = table.getState().pagination;
-  const totalPages = table.getPageCount();
 
   return (
     <div
@@ -74,29 +87,43 @@ export function DataTable<TData extends RowData>({
     >
       <Table style={{ tableLayout: 'fixed' }}>
         <DataTableHeader
-          headers={table.getLeafHeaders()}
+          table={table}
           setSortingOptions={setSortingOptions}
           columnSizing={columnSizing}
         />
-        <DataTableBody
-          rows={table.getRowModel().rows}
-          renderSubComponent={renderSubComponent}
-          columnSizing={columnSizing}
-          columnCount={table.getVisibleLeafColumns().length}
-          noResultsContent={noResultsContent}
-        />
+        <table.Subscribe selector={selectBodyState}>
+          {() => {
+            const rows = table.getRowModel().rows;
+
+            return (
+              <DataTableBody
+                rows={rows}
+                renderSubComponent={renderSubComponent}
+                columnSizing={columnSizing}
+                columnCount={table.getVisibleLeafColumns().length}
+                noResultsContent={noResultsContent}
+              />
+            );
+          }}
+        </table.Subscribe>
       </Table>
-      {table.getRowModel().rows.length > 0 && (
-        <div className='flex flex-col gap-2.5'>
-          <DataTablePagination
-            currentPage={pagination.pageIndex + 1}
-            pageSize={pagination.pageSize}
-            totalPages={totalPages}
-            setCurrentPageOptions={setCurrentPageOptions}
-            setPageSizeOptions={setPageSizeOptions}
-          />
-        </div>
-      )}
+      <table.Subscribe selector={selectPaginationState}>
+        {({ pagination }) => {
+          if (table.getRowModel().rows.length === 0) return null;
+
+          return (
+            <div className='flex flex-col gap-2.5'>
+              <DataTablePagination
+                currentPage={pagination.pageIndex + 1}
+                pageSize={pagination.pageSize}
+                totalPages={table.getPageCount()}
+                setCurrentPageOptions={setCurrentPageOptions}
+                setPageSizeOptions={setPageSizeOptions}
+              />
+            </div>
+          );
+        }}
+      </table.Subscribe>
     </div>
   );
 }

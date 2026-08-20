@@ -18,8 +18,9 @@
  */
 
 import type { RowData } from '@tanstack/react-table';
-import type { LegacyTable } from '@tanstack/react-table/legacy';
 import { useLayoutEffect, useRef, useState } from 'react';
+
+import type { AppTable } from '@/hooks/use-app-table';
 
 const DEFAULT_MIN_SIZE = 40;
 
@@ -149,9 +150,7 @@ export function calculateColumnSizing(
  * }
  * ```
  */
-export function useTableSizing<TData extends RowData>(
-  table: LegacyTable<TData>
-) {
+export function useTableSizing<TData extends RowData>(table: AppTable<TData>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef(table);
   const lastWidthRef = useRef<number>(0);

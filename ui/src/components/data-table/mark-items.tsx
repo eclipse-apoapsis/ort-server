@@ -19,7 +19,6 @@
 
 import { Link, LinkOptions } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
-import type { LegacyRow } from '@tanstack/react-table/legacy';
 import { Link as Chain } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -28,9 +27,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { AppRow } from '@/hooks/use-app-table';
 
 interface MarkItemsProps<TData extends RowData> {
-  row: LegacyRow<TData>;
+  row: AppRow<TData>;
   /**
    * A function to provide `LinkOptions` for a link to set marked item in the URL.
    */
