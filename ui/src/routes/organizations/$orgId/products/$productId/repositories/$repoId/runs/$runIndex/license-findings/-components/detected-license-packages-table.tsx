@@ -20,13 +20,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -43,6 +36,12 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import { PackageIdType } from '@/schemas';
@@ -54,7 +53,7 @@ import {
   getPackageIdentifierQueryFilter,
 } from './license-findings-state';
 
-const packageColumnHelper = legacyCreateColumnHelper<PackageIdentifier>();
+const packageColumnHelper = createAppColumnHelper<PackageIdentifier>();
 const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
@@ -80,7 +79,7 @@ const PackageIdCell = ({
 };
 
 type DetectedLicensePackagesTableProps = {
-  row: LegacyRow<DetectedLicense>;
+  row: AppRow<DetectedLicense>;
   runId: number;
 };
 
@@ -189,28 +188,29 @@ export const DetectedLicensePackagesTable = ({
     ),
   ]);
 
-  const packageTable = useLegacyTable({
-    data: packages?.data || [],
-    columns: packageColumns,
-    pageCount: Math.ceil(
-      (packages?.pagination.totalCount ?? 0) / packagePageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex: packagePageIndex,
-        pageSize: packagePageSize,
+  const packageTable = useAppTable(
+    {
+      data: packages?.data || [],
+      columns: packageColumns,
+      pageCount: Math.ceil(
+        (packages?.pagination.totalCount ?? 0) / packagePageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex: packagePageIndex,
+          pageSize: packagePageSize,
+        },
+        sorting: packageSortBy ?? EMPTY_SORTING_STATE,
+        expanded: packageExpanded,
+        columnFilters: [{ id: packageColumnId, value: packageIdFilter }],
       },
-      sorting: packageSortBy ?? EMPTY_SORTING_STATE,
-      expanded: packageExpanded,
-      columnFilters: [{ id: packageColumnId, value: packageIdFilter }],
+      onExpandedChange: setPackageExpanded,
+      getRowCanExpand: () => true,
+      getRowId: (row) => identifierToString(row.identifier),
+      manualPagination: true,
     },
-    onExpandedChange: setPackageExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    getRowId: (row) => identifierToString(row.identifier),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   useEffect(() => {
     if (preserveManualExpansion.current) {

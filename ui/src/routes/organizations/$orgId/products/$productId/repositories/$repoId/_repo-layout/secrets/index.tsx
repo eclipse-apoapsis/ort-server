@@ -24,13 +24,6 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { CellContext } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  LegacyColumnDef,
-  LegacyFeatures,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { EditIcon, PlusIcon } from 'lucide-react';
 import z from 'zod';
 
@@ -63,6 +56,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { selectNoTableState, useAppTable } from '@/hooks/use-app-table';
+import type { AppCellContext, AppColumnDef } from '@/hooks/use-app-table';
 import {
   useOrganizationPermission,
   useProductPermission,
@@ -78,7 +73,7 @@ import {
 
 const defaultPageSize = 5;
 
-const ActionCell = ({ row }: CellContext<LegacyFeatures, Secret, unknown>) => {
+const ActionCell = ({ row }: AppCellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -138,7 +133,7 @@ const ActionCell = ({ row }: CellContext<LegacyFeatures, Secret, unknown>) => {
   );
 };
 
-const baseColumns: LegacyColumnDef<Secret>[] = [
+const baseColumns: AppColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -151,7 +146,7 @@ const baseColumns: LegacyColumnDef<Secret>[] = [
   },
 ];
 
-const columns: LegacyColumnDef<Secret>[] = [
+const columns: AppColumnDef<Secret>[] = [
   ...baseColumns,
   {
     id: 'actions',
@@ -255,51 +250,57 @@ const RepositorySecrets = () => {
     }),
   });
 
-  const table = useLegacyTable({
-    data: secrets?.data || [],
-    columns,
-    pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: secrets?.data || [],
+      columns,
+      pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
-  const productTable = useLegacyTable({
-    data: productSecrets?.data || [],
-    columns: baseColumns,
-    pageCount: Math.ceil(
-      (productSecrets?.pagination.totalCount ?? 0) / orgPageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex: productPageIndex,
-        pageSize: productPageSize,
+  const productTable = useAppTable(
+    {
+      data: productSecrets?.data || [],
+      columns: baseColumns,
+      pageCount: Math.ceil(
+        (productSecrets?.pagination.totalCount ?? 0) / orgPageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex: productPageIndex,
+          pageSize: productPageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
-  const orgTable = useLegacyTable({
-    data: orgSecrets?.data || [],
-    columns: baseColumns,
-    pageCount: Math.ceil(
-      (orgSecrets?.pagination.totalCount ?? 0) / orgPageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex: orgPageIndex,
-        pageSize: orgPageSize,
+  const orgTable = useAppTable(
+    {
+      data: orgSecrets?.data || [],
+      columns: baseColumns,
+      pageCount: Math.ceil(
+        (orgSecrets?.pagination.totalCount ?? 0) / orgPageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex: orgPageIndex,
+          pageSize: orgPageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (
     repoIsPending ||

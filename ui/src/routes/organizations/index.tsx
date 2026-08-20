@@ -19,11 +19,6 @@
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import z from 'zod';
@@ -46,6 +41,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { useIsSuperuser } from '@/hooks/use-authorization';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toastError } from '@/lib/toast';
@@ -55,7 +55,7 @@ import {
 } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-const columnHelper = legacyCreateColumnHelper<Organization>();
+const columnHelper = createAppColumnHelper<Organization>();
 
 export const OrganizationsPage = () => {
   const orgPageSize = useTablePrefsStore((state) => state.orgPageSize);
@@ -144,22 +144,24 @@ export const OrganizationsPage = () => {
     [navigate, search]
   );
 
-  const table = useLegacyTable({
-    data: organizations?.data || [],
-    columns,
-    pageCount: Math.ceil(
-      (organizations?.pagination.totalCount ?? 0) / pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: organizations?.data || [],
+      columns,
+      pageCount: Math.ceil(
+        (organizations?.pagination.totalCount ?? 0) / pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters: [{ id: 'organization', value: nameFilter }],
       },
-      columnFilters: [{ id: 'organization', value: nameFilter }],
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending) {
     return <LoadingIndicator />;

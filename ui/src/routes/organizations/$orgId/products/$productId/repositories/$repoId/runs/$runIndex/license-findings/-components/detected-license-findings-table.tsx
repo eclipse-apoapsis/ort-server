@@ -19,11 +19,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 
 import { LicenseFinding } from '@/api';
 import { getRunDetectedLicenseFindingsOptions } from '@/api/@tanstack/react-query.gen';
@@ -36,11 +31,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 
-const findingColumnHelper = legacyCreateColumnHelper<LicenseFinding>();
+const findingColumnHelper = createAppColumnHelper<LicenseFinding>();
 const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
@@ -157,21 +157,23 @@ export const DetectedLicenseFindingsTable = ({
     }),
   ]);
 
-  const findingsTable = useLegacyTable({
-    data: findings?.data || [],
-    columns: findingColumns,
-    pageCount: Math.ceil(
-      (findings?.pagination.totalCount ?? 0) / findingsPageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex: findingsPageIndex,
-        pageSize: findingsPageSize,
+  const findingsTable = useAppTable(
+    {
+      data: findings?.data || [],
+      columns: findingColumns,
+      pageCount: Math.ceil(
+        (findings?.pagination.totalCount ?? 0) / findingsPageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex: findingsPageIndex,
+          pageSize: findingsPageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending) {
     return <LoadingIndicator />;

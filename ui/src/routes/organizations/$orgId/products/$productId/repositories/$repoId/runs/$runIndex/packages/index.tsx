@@ -20,13 +20,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
@@ -76,6 +69,12 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
@@ -92,7 +91,7 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
-const columnHelper = legacyCreateColumnHelper<Package>();
+const columnHelper = createAppColumnHelper<Package>();
 
 const LicenseList = ({ licenses }: { licenses: string[] }) => (
   <div className='flex flex-wrap gap-1'>
@@ -205,7 +204,7 @@ const renderSubComponent = ({
   packageIdType,
   runId,
 }: {
-  row: LegacyRow<Package>;
+  row: AppRow<Package>;
   packageIdType?: PackageIdType;
   runId: number;
 }) => {
@@ -561,35 +560,36 @@ const PackagesComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useLegacyTable({
-    data: packages.data,
-    columns,
-    pageCount: Math.ceil(packages.pagination.totalCount / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: packages.data,
+      columns,
+      pageCount: Math.ceil(packages.pagination.totalCount / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        sorting: search.sortBy ?? EMPTY_SORTING_STATE,
+        expanded: expanded,
+        columnFilters: [
+          { id: 'isDirectDependency', value: search.isDirectDependency },
+          { id: columnId, value: packageId },
+          { id: 'processedDeclaredLicense', value: declaredLicense },
+        ],
+        // Always hide the columns that are used for filtering/sorting only.
+        columnVisibility: {
+          isDirectDependency: false,
+          [columnId]: false,
+          processedDeclaredLicense: false,
+        },
       },
-      sorting: search.sortBy ?? EMPTY_SORTING_STATE,
-      expanded: expanded,
-      columnFilters: [
-        { id: 'isDirectDependency', value: search.isDirectDependency },
-        { id: columnId, value: packageId },
-        { id: 'processedDeclaredLicense', value: declaredLicense },
-      ],
-      // Always hide the columns that are used for filtering/sorting only.
-      columnVisibility: {
-        isDirectDependency: false,
-        [columnId]: false,
-        processedDeclaredLicense: false,
-      },
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualPagination: true,
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isError) {
     toastError('Unable to load data', error);

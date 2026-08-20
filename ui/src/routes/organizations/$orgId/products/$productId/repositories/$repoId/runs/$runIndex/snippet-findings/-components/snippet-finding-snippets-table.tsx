@@ -19,11 +19,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 
 import { SnippetSource } from '@/api';
 import { getRunSnippetFindingSnippetsOptions } from '@/api/@tanstack/react-query.gen';
@@ -37,10 +32,15 @@ import {
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 
-const snippetColumnHelper = legacyCreateColumnHelper<SnippetSource>();
+const snippetColumnHelper = createAppColumnHelper<SnippetSource>();
 const defaultPageSize = 10;
 const snippetFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/snippet-findings/';
@@ -173,27 +173,29 @@ export const SnippetFindingSnippetsTable = ({
     }),
   ]);
 
-  const snippetsTable = useLegacyTable({
-    data: snippets?.data || [],
-    columns: snippetColumns,
-    pageCount: Math.ceil(
-      (snippets?.pagination.totalCount ?? 0) / snippetsPageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex: snippetsPageIndex,
-        pageSize: snippetsPageSize,
+  const snippetsTable = useAppTable(
+    {
+      data: snippets?.data || [],
+      columns: snippetColumns,
+      pageCount: Math.ceil(
+        (snippets?.pagination.totalCount ?? 0) / snippetsPageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex: snippetsPageIndex,
+          pageSize: snippetsPageSize,
+        },
+        sorting: search.snippetsSortBy ?? EMPTY_SORTING_STATE,
+        columnVisibility: {
+          purl: false,
+          license: false,
+          score: false,
+        },
       },
-      sorting: search.snippetsSortBy ?? EMPTY_SORTING_STATE,
-      columnVisibility: {
-        purl: false,
-        license: false,
-        score: false,
-      },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending) {
     return <LoadingIndicator />;

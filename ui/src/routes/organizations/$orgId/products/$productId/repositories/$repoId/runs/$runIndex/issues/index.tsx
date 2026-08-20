@@ -20,13 +20,6 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  legacyCreateColumnHelper,
-  LegacyRow,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import z from 'zod';
@@ -80,6 +73,12 @@ import {
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
+import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
@@ -103,7 +102,7 @@ const supportedSortColumns = new Set([
   'source',
 ]);
 
-const columnHelper = legacyCreateColumnHelper<Issue>();
+const columnHelper = createAppColumnHelper<Issue>();
 
 // Component to render a single issue card in the list.
 const IssueCard = ({ issue }: { issue: Issue }) => {
@@ -391,7 +390,7 @@ const IssuesComponent = () => {
   });
 
   const renderSubComponent = useCallback(
-    ({ row }: { row: LegacyRow<Issue> }) => {
+    ({ row }: { row: AppRow<Issue> }) => {
       const issue = row.original;
 
       return (
@@ -436,34 +435,35 @@ const IssuesComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useLegacyTable({
-    data: issues?.data || [],
-    columns,
-    pageCount: Math.ceil((issues?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: issues?.data || [],
+      columns,
+      pageCount: Math.ceil((issues?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters,
+        columnVisibility: {
+          [columnId]: false,
+          severity: false,
+          status: false,
+          affectedPath: false,
+          source: false,
+        },
+        sorting: sortBy,
+        expanded: expanded,
       },
-      columnFilters,
-      columnVisibility: {
-        [columnId]: false,
-        severity: false,
-        status: false,
-        affectedPath: false,
-        source: false,
-      },
-      sorting: sortBy,
-      expanded: expanded,
+      onExpandedChange: setExpanded,
+      getRowCanExpand: () => true,
+      manualFiltering: true,
+      manualPagination: true,
+      manualSorting: true,
     },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-    manualFiltering: true,
-    manualPagination: true,
-    manualSorting: true,
-  });
+    selectNoTableState
+  );
 
   if (isPending || totalIsPending) {
     return <LoadingIndicator />;

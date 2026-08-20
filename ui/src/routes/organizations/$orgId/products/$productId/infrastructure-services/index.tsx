@@ -19,13 +19,6 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { CellContext } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  LegacyColumnDef,
-  LegacyFeatures,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import { InfrastructureService } from '@/api';
@@ -53,6 +46,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { selectNoTableState, useAppTable } from '@/hooks/use-app-table';
+import type { AppCellContext, AppColumnDef } from '@/hooks/use-app-table';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -62,7 +57,7 @@ const defaultPageSize = 10;
 
 const ActionCell = ({
   row,
-}: CellContext<LegacyFeatures, InfrastructureService, unknown>) => {
+}: AppCellContext<InfrastructureService, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -148,7 +143,7 @@ const InfrastructureServices = () => {
     }),
   });
 
-  const columns: LegacyColumnDef<InfrastructureService>[] = [
+  const columns: AppColumnDef<InfrastructureService>[] = [
     {
       accessorKey: 'details',
       header: undefined,
@@ -203,21 +198,23 @@ const InfrastructureServices = () => {
     },
   ];
 
-  const table = useLegacyTable({
-    data: infraServices?.data || [],
-    columns,
-    pageCount: Math.ceil(
-      (infraServices?.pagination.totalCount ?? 0) / pageSize
-    ),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: infraServices?.data || [],
+      columns,
+      pageCount: Math.ceil(
+        (infraServices?.pagination.totalCount ?? 0) / pageSize
+      ),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (productIsPending || infraIsPending) {
     return <LoadingIndicator />;

@@ -24,13 +24,6 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { CellContext } from '@tanstack/react-table';
-import {
-  getCoreRowModel,
-  LegacyColumnDef,
-  LegacyFeatures,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import { Secret } from '@/api';
@@ -58,6 +51,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { selectNoTableState, useAppTable } from '@/hooks/use-app-table';
+import type { AppCellContext, AppColumnDef } from '@/hooks/use-app-table';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -65,7 +60,7 @@ import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const ActionCell = ({ row }: CellContext<LegacyFeatures, Secret, unknown>) => {
+const ActionCell = ({ row }: AppCellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -123,7 +118,7 @@ const ActionCell = ({ row }: CellContext<LegacyFeatures, Secret, unknown>) => {
   );
 };
 
-const columns: LegacyColumnDef<Secret>[] = [
+const columns: AppColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -170,19 +165,21 @@ const OrganizationSecrets = () => {
     }),
   });
 
-  const table = useLegacyTable({
-    data: secrets?.data || [],
-    columns,
-    pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: secrets?.data || [],
+      columns,
+      pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
       },
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (orgIsPending || secretsIsPending) {
     return <LoadingIndicator />;

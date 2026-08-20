@@ -19,11 +19,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -36,6 +31,11 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { ProductFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from '../products/$productId/-components/last-job-status';
@@ -44,7 +44,7 @@ import { LastRunStatus } from '../products/$productId/-components/last-run-statu
 import { TotalRuns } from '../products/$productId/-components/total-runs';
 import { ProductItemCounts } from './product-item-counts';
 
-const columnHelper = legacyCreateColumnHelper<Product>();
+const columnHelper = createAppColumnHelper<Product>();
 
 const routeApi = getRouteApi('/organizations/$orgId/');
 
@@ -267,20 +267,22 @@ export const OrganizationProductTable = () => {
     [navigate, organization, search]
   );
 
-  const table = useLegacyTable({
-    data: products?.data || [],
-    columns,
-    pageCount: Math.ceil((products?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: products?.data || [],
+      columns,
+      pageCount: Math.ceil((products?.pagination.totalCount ?? 0) / pageSize),
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        columnFilters: [{ id: 'product', value: nameFilter }],
       },
-      columnFilters: [{ id: 'product', value: nameFilter }],
+      manualPagination: true,
     },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+    selectNoTableState
+  );
 
   if (prodIsPending) {
     return <LoadingIndicator />;

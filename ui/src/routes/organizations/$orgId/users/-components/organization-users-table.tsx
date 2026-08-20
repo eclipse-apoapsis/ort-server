@@ -19,11 +19,6 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import { UserWithGroups } from '@/api';
@@ -43,11 +38,16 @@ import {
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
 import { mapUserGroupToOrganizationRole } from '@/helpers/role-helpers.ts';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 
-const columnHelper = legacyCreateColumnHelper<UserWithGroups>();
+const columnHelper = createAppColumnHelper<UserWithGroups>();
 
 const columns = columnHelper.columns([
   columnHelper.accessor('user.username', {
@@ -263,21 +263,23 @@ export const OrganizationUsersTable = () => {
     }),
   });
 
-  const table = useLegacyTable({
-    data: usersWithGroups?.data || [],
-    columns: columns,
-    pageCount: Math.ceil(
-      (usersWithGroups?.pagination.totalCount ?? 0) / pageSize
-    ),
-    manualPagination: true, // Using server-side pagination
-    state: {
-      pagination: {
-        pageIndex: pageIndex,
-        pageSize: pageSize,
+  const table = useAppTable(
+    {
+      data: usersWithGroups?.data || [],
+      columns: columns,
+      pageCount: Math.ceil(
+        (usersWithGroups?.pagination.totalCount ?? 0) / pageSize
+      ),
+      manualPagination: true, // Using server-side pagination
+      state: {
+        pagination: {
+          pageIndex: pageIndex,
+          pageSize: pageSize,
+        },
       },
     },
-    getCoreRowModel: getCoreRowModel(),
-  });
+    selectNoTableState
+  );
 
   return (
     <DataTable

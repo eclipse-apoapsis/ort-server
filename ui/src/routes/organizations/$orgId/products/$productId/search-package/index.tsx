@@ -19,13 +19,6 @@
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import {
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  legacyCreateColumnHelper,
-  useLegacyTable,
-} from '@tanstack/react-table/legacy';
 import { useMemo } from 'react';
 import z from 'zod';
 
@@ -51,6 +44,11 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  createAppColumnHelper,
+  selectNoTableState,
+  useAppTable,
+} from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
 import {
   packageIdentifierSearchParameterSchema,
@@ -60,7 +58,7 @@ import {
 import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
-const columnHelper = legacyCreateColumnHelper<RunWithPackage>();
+const columnHelper = createAppColumnHelper<RunWithPackage>();
 
 function SearchPackageComponent() {
   const params = Route.useParams();
@@ -192,20 +190,22 @@ function SearchPackageComponent() {
     enabled: identifier !== '',
   });
 
-  const table = useLegacyTable({
-    data: runsWithPackage || [],
-    columns,
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
+  const table = useAppTable(
+    {
+      data: runsWithPackage || [],
+      columns,
+      state: {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+        sorting: sortBy ?? EMPTY_SORTING_STATE,
       },
-      sorting: sortBy ?? EMPTY_SORTING_STATE,
+      manualPagination: false,
+      manualSorting: false,
     },
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+    selectNoTableState
+  );
 
   if (isRunsError) {
     toastError('Unable to load data', runsError);
