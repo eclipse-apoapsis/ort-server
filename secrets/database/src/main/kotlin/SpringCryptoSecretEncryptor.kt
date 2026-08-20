@@ -29,6 +29,8 @@ internal class SpringCryptoSecretEncryptor(
     salt: String,
     private val keyVersion: Int
 ) : SecretEncryptor {
+    // The new AesGcmBytesEncryptor is more secure but cannot decrypt existing secrets created via delux().
+    @Suppress("DEPRECATION")
     private val encryptor = Encryptors.delux(password, salt)
 
     override fun encrypt(plaintext: String): StoredSecret =
