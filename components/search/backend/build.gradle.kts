@@ -42,14 +42,14 @@ dependencies {
 
     implementation(projects.dao)
 
-    implementation(libs.exposedCore)
+    implementation(libs.exposed.core)
 
     routesApi(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.auth)
     routesImplementation(ktorLibs.server.core)
-    routesImplementation(libs.ktorOpenApi)
+    routesImplementation(libs.ktor.openApi)
 
     testImplementation(testFixtures(projects.dao))
     testImplementation(projects.shared.apiModel)
@@ -60,8 +60,8 @@ dependencies {
     testImplementation(ktorLibs.server.contentNegotiation)
     testImplementation(ktorLibs.server.statusPages)
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.kotlinxSerializationJson)
+    testImplementation(libs.kotest.assertions.ktor)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.mockk)
 }

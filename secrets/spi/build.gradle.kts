@@ -32,8 +32,8 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 
     testFixturesImplementation(projects.utils.config)

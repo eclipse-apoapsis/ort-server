@@ -46,7 +46,7 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
-    implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.typesafeConfig)
     implementation(ortLibs.scanner)
     implementation(ortLibs.utils.common)
@@ -70,9 +70,9 @@ dependencies {
     testImplementation(testFixtures(projects.storage.storageSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
-    testImplementation(libs.koinTest)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }
 

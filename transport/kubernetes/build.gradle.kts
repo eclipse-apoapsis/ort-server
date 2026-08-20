@@ -28,16 +28,16 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 dependencies {
     api(projects.transport.transportSpi)
 
-    api(libs.kubernetesClientApiFluent)
+    api(libs.kubernetes.clientApiFluent)
 
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.kubernetesClient)
+    implementation(libs.kubernetes.client)
 
     testImplementation(projects.model)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

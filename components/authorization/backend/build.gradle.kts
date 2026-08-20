@@ -32,14 +32,14 @@ dependencies {
     api(ktorLibs.server.auth)
     api(ktorLibs.server.auth.jwt)
     api(ktorLibs.server.core)
-    api(libs.exposedCore)
-    api(libs.exposedJdbc)
-    api(libs.ktorOpenApi)
+    api(libs.exposed.core)
+    api(libs.exposed.jdbc)
+    api(libs.ktor.openApi)
 
     implementation(projects.dao)
     implementation(projects.shared.ktorUtils)
 
-    routesImplementation(libs.ktorOpenApi)
+    routesImplementation(libs.ktor.openApi)
 
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
@@ -48,8 +48,8 @@ dependencies {
     testImplementation(ktorLibs.server.statusPages)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(ktorLibs.utils)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.ktor)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

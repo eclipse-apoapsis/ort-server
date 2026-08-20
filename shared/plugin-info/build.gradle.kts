@@ -53,8 +53,8 @@ dependencies {
     compileOnly(projects.shared.packageCurationProviders)
     compileOnly(projects.shared.reporters)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
 }
 
 val pluginSummary = tasks.register("pluginSummary", PluginSummaryTask::class.java) {

@@ -41,42 +41,42 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.system)
 
-    api(libs.exposedCore)
-    api(libs.exposedDao)
-    api(libs.exposedJdbc)
-    api(libs.koinCore)
-    api(libs.kotlinxSerializationJson)
+    api(libs.exposed.core)
+    api(libs.exposed.dao)
+    api(libs.exposed.jdbc)
+    api(libs.koin.core)
+    api(libs.kotlinx.serialization.json)
 
     implementation(libs.bundles.flyway)
-    implementation(libs.exposedJson)
-    implementation(libs.exposedKotlinDatetime)
+    implementation(libs.exposed.json)
+    implementation(libs.exposed.kotlinDatetime)
     implementation(libs.hikari)
     implementation(libs.postgres)
     implementation(libs.typesafeConfig)
 
-    runtimeOnly(libs.exposedJdbc)
+    runtimeOnly(libs.exposed.jdbc)
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(projects.config.configSpi))
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.testContainersPostgresql)
+    testImplementation(libs.testContainers.postgresql)
 
     testFixturesApi(projects.model)
 
     testFixturesImplementation(projects.config.configSpi)
     testFixturesImplementation(projects.utils.test)
 
-    testFixturesImplementation(libs.flywayCore)
+    testFixturesImplementation(libs.flyway.core)
     testFixturesImplementation(libs.hikari)
-    testFixturesImplementation(libs.koinTest)
-    testFixturesImplementation(libs.kotestExtensionsTestcontainers)
-    testFixturesImplementation(libs.kotestRunnerJunit5)
+    testFixturesImplementation(libs.koin.test)
+    testFixturesImplementation(libs.kotest.extensions.testcontainers)
+    testFixturesImplementation(libs.kotest.runner.junit5)
     testFixturesImplementation(libs.mockk)
     testFixturesImplementation(libs.testContainers)
-    testFixturesImplementation(libs.testContainersPostgresql)
+    testFixturesImplementation(libs.testContainers.postgresql)
 }
 
 tasks.withType<KotlinCompile> {

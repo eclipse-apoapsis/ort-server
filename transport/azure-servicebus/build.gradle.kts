@@ -28,19 +28,19 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 dependencies {
     api(projects.transport.transportSpi)
 
-    api(libs.azureMessagingServicebus)
+    api(libs.azure.messaging.servicebus)
 
     implementation(projects.utils.logging)
 
-    implementation(libs.kotlinxCoroutines)
-    implementation(libs.azureIdentity)
+    implementation(libs.kotlinx.coroutines)
+    implementation(libs.azure.identity)
 
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

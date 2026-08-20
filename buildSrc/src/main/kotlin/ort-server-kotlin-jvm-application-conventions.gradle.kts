@@ -28,7 +28,7 @@ plugins {
 }
 
 dependencies {
-    implementation(platform(libsCatalog.findLibrary("kotlinBom").get())) {
+    implementation(platform(libsCatalog.findLibrary("kotlin.bom").get())) {
         version {
             require(libsCatalog.findVersion("kotlinPlugin").get().requiredVersion)
         }

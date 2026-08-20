@@ -49,7 +49,7 @@ kotlin {
 
         commonTest {
             dependencies {
-                implementation(libs.kotestAssertionsCore)
+                implementation(libs.kotest.assertions.core)
                 implementation(ktorLibs.client.mock)
             }
         }
@@ -81,7 +81,7 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation(libs.kotestRunnerJunit5)
+                implementation(libs.kotest.runner.junit5)
                 implementation(libs.mockk)
             }
         }

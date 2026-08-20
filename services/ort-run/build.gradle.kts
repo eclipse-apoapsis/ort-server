@@ -49,6 +49,6 @@ dependencies {
     testImplementation(projects.components.authorization.authorizationBackend)
     testImplementation(projects.shared.ortTestData)
 
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

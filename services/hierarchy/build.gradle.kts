@@ -29,7 +29,7 @@ dependencies {
     api(projects.components.authorization.authorizationBackend)
     api(projects.model)
 
-    api(libs.exposedCore)
+    api(libs.exposed.core)
 
     implementation(projects.dao)
     implementation(projects.utils.logging)
@@ -38,6 +38,6 @@ dependencies {
 
     testImplementation(testFixtures(projects.dao))
 
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

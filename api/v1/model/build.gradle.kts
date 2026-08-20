@@ -45,8 +45,8 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation(libs.kotestAssertionsCore)
-                implementation(libs.kotestRunnerJunit5)
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.kotest.runner.junit5)
             }
         }
     }

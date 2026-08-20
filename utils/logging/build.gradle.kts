@@ -30,18 +30,18 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.utils"
 
 dependencies {
-    api(libs.kotlinxCoroutines)
-    api(libs.kotlinxSerializationJson)
+    api(libs.kotlinx.coroutines)
+    api(libs.kotlinx.serialization.json)
     api(libs.logback)
 
-    implementation(libs.kotlinxCoroutinesSlf4j)
+    implementation(libs.kotlinx.coroutines.slf4j)
     implementation(libs.slf4j)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
 
     testFixturesImplementation(libs.logback)
-    testFixturesImplementation(libs.kotestRunnerJunit5)
-    testFixturesImplementation(libs.kotlinxSerializationJson)
+    testFixturesImplementation(libs.kotest.runner.junit5)
+    testFixturesImplementation(libs.kotlinx.serialization.json)
     testFixturesImplementation(libs.slf4j)
 }

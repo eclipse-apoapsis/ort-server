@@ -31,15 +31,15 @@ dependencies {
     api(projects.model)
     api(projects.services.hierarchyService)
 
-    api(libs.exposedJdbc)
+    api(libs.exposed.jdbc)
     api(libs.kotlinResult)
 
     implementation(projects.dao)
     implementation(projects.utils.logging)
 
-    implementation(libs.exposedCore)
-    implementation(libs.exposedKotlinDatetime)
-    implementation(libs.kotlinxSerializationJson)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.kotlinDatetime)
+    implementation(libs.kotlinx.serialization.json)
 
     routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.components.resolutions.resolutionsApiModel)
@@ -55,7 +55,7 @@ dependencies {
 
     testImplementation(ktorLibs.serialization.kotlinx.json)
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.ktor)
     testImplementation(libs.mockk)
 }

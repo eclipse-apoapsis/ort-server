@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    api(libs.koinCore)
+    api(libs.koin.core)
 
     implementation(projects.components.adminConfig.adminConfigBackend)
     implementation(projects.components.infrastructureServices.infrastructureServicesBackend)
@@ -52,10 +52,10 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.commonsText)
+    implementation(libs.commons.text)
     implementation(libs.kaml)
-    implementation(libs.kotlinxCoroutines)
-    implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.typesafeConfig)
     implementation(ortLibs.downloader)
     implementation(ortLibs.model)
@@ -69,8 +69,8 @@ dependencies {
     testImplementation(testFixtures(projects.storage.storageSpi))
 
     testImplementation(libs.jsonSchemaValidator)
-    testImplementation(libs.koinTest)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }

@@ -25,11 +25,11 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.components.snippetfindings"
 
 dependencies {
-    api(libs.exposedJdbc)
+    api(libs.exposed.jdbc)
     api(projects.components.snippetFindings.snippetFindingsApiModel)
     api(projects.model)
 
-    implementation(libs.exposedCore)
+    implementation(libs.exposed.core)
     implementation(projects.dao)
 
     routesApi(projects.components.authorization.authorizationBackend)
@@ -39,7 +39,7 @@ dependencies {
     routesImplementation(projects.shared.ktorUtils)
 
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotest.assertions.core)
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 }

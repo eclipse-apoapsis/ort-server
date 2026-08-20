@@ -29,7 +29,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.kotestFrameworkEngine)
+                api(libs.kotest.framework.engine)
             }
         }
 

@@ -34,7 +34,7 @@ dependencies {
     implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.shared.ktorUtils)
 
-    implementation(libs.ktorOpenApi)
+    implementation(libs.ktor.openApi)
 
     testImplementation(projects.components.secrets.secretsBackend) {
         capabilities { requireCapability("$group:routes") }
@@ -44,7 +44,7 @@ dependencies {
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.ktor)
     testImplementation(libs.mockk)
 }

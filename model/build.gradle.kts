@@ -33,14 +33,14 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.konform)
-                implementation(libs.kotlinxSerializationJson)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
 
         jvmTest {
             dependencies {
-                implementation(libs.kotestRunnerJunit5)
-                implementation(libs.kotestAssertionsCore)
+                implementation(libs.kotest.runner.junit5)
+                implementation(libs.kotest.assertions.core)
             }
         }
     }

@@ -38,10 +38,10 @@ dependencies {
 
     implementation(ortLibs.utils.common)
 
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestcontainers)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.testContainersLocalStack)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.extensions.testcontainers)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.testContainers.localStack)
 
     testFixturesRuntimeOnly(libs.testContainers)
 }
