@@ -18,14 +18,14 @@
  */
 
 import { flexRender, type RowData } from '@tanstack/react-table';
-import type { LegacyRow } from '@tanstack/react-table/legacy';
 import React, { Fragment } from 'react';
 
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
+import type { AppRow } from '@/hooks/use-app-table';
 
 interface DataTableBodyProps<TData extends RowData> {
-  rows: LegacyRow<TData>[];
-  renderSubComponent?: (props: { row: LegacyRow<TData> }) => React.ReactElement;
+  rows: AppRow<TData>[];
+  renderSubComponent?: (props: { row: AppRow<TData> }) => React.ReactElement;
   columnSizing?: Record<string, number>;
   columnCount: number;
   noResultsContent?: React.ReactNode;
@@ -44,7 +44,6 @@ export function DataTableBody<TData extends RowData>({
         rows.map((row) => (
           <Fragment key={row.id}>
             <TableRow
-              data-state={row.getIsSelected() && 'selected'}
               className={
                 row.getIsExpanded() && renderSubComponent
                   ? 'border-0'
@@ -60,9 +59,7 @@ export function DataTableBody<TData extends RowData>({
                     minWidth: cell.column.columnDef.minSize,
                   }}
                 >
-                  {cell.getIsPlaceholder()
-                    ? null
-                    : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}
             </TableRow>

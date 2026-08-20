@@ -19,7 +19,6 @@
 
 import { Link, LinkOptions } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
-import type { LegacyReactTable } from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -36,10 +35,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { AppReactTable, AppTableState } from '@/hooks/use-app-table';
 import { cn } from '@/lib/utils';
 
+const selectSortState = (state: AppTableState) => ({
+  columnVisibility: state.columnVisibility,
+  sorting: state.sorting,
+});
+
 interface DataTableCardsSortProps<TData extends RowData> {
-  table: LegacyReactTable<TData>;
+  table: AppReactTable<TData>;
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
@@ -50,80 +55,95 @@ export function DataTableCardsSort<TData extends RowData>({
   table,
   setSortingOptions,
 }: DataTableCardsSortProps<TData>) {
-  const isSortingActive = table.getState().sorting.length > 0;
-  // Determine which columns are used as invisible sorting columns.
-  // They will be shown in the sorting dropdown in the header.
-  const sortableColumns = table
-    .getAllColumns()
-    .filter((column) => !column.getIsVisible() && column.getCanSort());
-
-  if (!setSortingOptions || sortableColumns.length === 0) {
-    return null;
-  }
+  if (!setSortingOptions) return null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div className='flex items-center gap-2'>
-          <Button variant='ghost' size='narrow' className='text-sm font-medium'>
-            <div className='text-sm font-medium'>Sort</div>
-            <ChevronDown
-              className={cn('size-4', isSortingActive && 'text-blue-500')}
-            />
-          </Button>
-        </div>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align='end'>
-        <DropdownMenuGroup>
-          {sortableColumns.map((column) => {
-            const isSorted = column.getIsSorted();
+    <table.Subscribe selector={selectSortState}>
+      {({ sorting }) => {
+        // Invisible sorting columns are rendered in the card header menu.
+        const sortableColumns = table
+          .getAllColumns()
+          .filter((column) => !column.getIsVisible() && column.getCanSort());
 
-            return (
-              <Tooltip key={column.id}>
-                <TooltipTrigger asChild>
-                  <Link
-                    {...setSortingOptions({
-                      id: column.id,
-                      desc:
-                        isSorted === 'desc' ? undefined : isSorted === 'asc',
-                    })}
+        if (sortableColumns.length === 0) return null;
+
+        const isSortingActive = sorting.length > 0;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className='flex items-center gap-2'>
+                <Button
+                  variant='ghost'
+                  size='narrow'
+                  className='text-sm font-medium'
+                >
+                  <div className='text-sm font-medium'>Sort</div>
+                  <ChevronDown
+                    className={cn('size-4', isSortingActive && 'text-blue-500')}
+                  />
+                </Button>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              <DropdownMenuGroup>
+                {sortableColumns.map((column) => {
+                  const isSorted = column.getIsSorted();
+
+                  return (
+                    <Tooltip key={column.id}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          {...setSortingOptions({
+                            id: column.id,
+                            desc:
+                              isSorted === 'desc'
+                                ? undefined
+                                : isSorted === 'asc',
+                          })}
+                        >
+                          <DropdownMenuItem>
+                            {isSorted === 'asc' ? (
+                              <ChevronUp className='mr-2 h-4 w-4 text-blue-500' />
+                            ) : isSorted === 'desc' ? (
+                              <ChevronDown className='mr-2 h-4 w-4 text-blue-500' />
+                            ) : (
+                              <ChevronsUpDown className='mr-2 h-4 w-4' />
+                            )}
+                            <div>{column.columnDef.header?.toString()}</div>
+                          </DropdownMenuItem>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {column.getCanSort()
+                          ? column.getIsSorted() === 'asc'
+                            ? 'Sort descending'
+                            : column.getIsSorted() === 'desc'
+                              ? 'Clear sorting'
+                              : 'Sort ascending'
+                          : undefined}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </DropdownMenuGroup>
+              {isSortingActive && (
+                <DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className='justify-center text-center'
+                    asChild
                   >
-                    <DropdownMenuItem>
-                      {isSorted === 'asc' ? (
-                        <ChevronUp className='mr-2 h-4 w-4 text-blue-500' />
-                      ) : isSorted === 'desc' ? (
-                        <ChevronDown className='mr-2 h-4 w-4 text-blue-500' />
-                      ) : (
-                        <ChevronsUpDown className='mr-2 h-4 w-4' />
-                      )}
-                      <div>{column.columnDef.header?.toString()}</div>
-                    </DropdownMenuItem>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {column.getCanSort()
-                    ? column.getIsSorted() === 'asc'
-                      ? 'Sort descending'
-                      : column.getIsSorted() === 'desc'
-                        ? 'Clear sorting'
-                        : 'Sort ascending'
-                    : undefined}
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </DropdownMenuGroup>
-        {isSortingActive && (
-          <DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className='justify-center text-center' asChild>
-              <Link {...setSortingOptions({ id: '', desc: undefined })}>
-                Clear Sorting
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+                    <Link {...setSortingOptions({ id: '', desc: undefined })}>
+                      Clear Sorting
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      }}
+    </table.Subscribe>
   );
 }

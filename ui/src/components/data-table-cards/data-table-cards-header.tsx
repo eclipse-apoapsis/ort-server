@@ -19,13 +19,18 @@
 
 import { LinkOptions } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
-import type { LegacyReactTable } from '@tanstack/react-table/legacy';
 
 import { DataTableCardsSort } from '@/components/data-table-cards/data-table-cards-sort';
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
+import type { AppReactTable, AppTableState } from '@/hooks/use-app-table';
+
+const selectFilterState = (state: AppTableState) => ({
+  columnFilters: state.columnFilters,
+  columnVisibility: state.columnVisibility,
+});
 
 interface DataTableCardsHeaderProps<TData extends RowData> {
-  table: LegacyReactTable<TData>;
+  table: AppReactTable<TData>;
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
@@ -36,21 +41,24 @@ export function DataTableCardsHeader<TData extends RowData>({
   table,
   setSortingOptions,
 }: DataTableCardsHeaderProps<TData>) {
-  // Determine which columns are used as invisible filtering columns.
-  // They will be shown as filtering components in the header.
-  const filterableColumns = table
-    .getAllColumns()
-    .filter((column) => !column.getIsVisible() && column.getCanFilter());
-
   return (
     <div className='mb-0 flex items-center justify-end gap-6 border-b p-2'>
-      {filterableColumns.map((column) => {
-        return (
-          <div className='flex items-center gap-2' key={column.id}>
-            <DataTableFilter column={column} showTitle />
-          </div>
-        );
-      })}
+      <table.Subscribe selector={selectFilterState}>
+        {() => {
+          // Invisible filtering columns are rendered in the card header.
+          const filterableColumns = table
+            .getAllColumns()
+            .filter(
+              (column) => !column.getIsVisible() && column.getCanFilter()
+            );
+
+          return filterableColumns.map((column) => (
+            <div className='flex items-center gap-2' key={column.id}>
+              <DataTableFilter column={column} showTitle />
+            </div>
+          ));
+        }}
+      </table.Subscribe>
 
       <DataTableCardsSort table={table} setSortingOptions={setSortingOptions} />
     </div>
