@@ -20,10 +20,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 
 import { LicenseFinding } from '@/api';
 import { getRunDetectedLicenseFindingsOptions } from '@/api/@tanstack/react-query.gen';
@@ -40,7 +40,7 @@ import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
 
-const findingColumnHelper = createColumnHelper<LicenseFinding>();
+const findingColumnHelper = legacyCreateColumnHelper<LicenseFinding>();
 const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
@@ -81,7 +81,7 @@ export const DetectedLicenseFindingsTable = ({
     }),
   });
 
-  const findingColumns = [
+  const findingColumns = findingColumnHelper.columns([
     findingColumnHelper.accessor('path', {
       id: 'path',
       header: 'Path',
@@ -155,9 +155,9 @@ export const DetectedLicenseFindingsTable = ({
         widthPercentage: 15,
       },
     }),
-  ];
+  ]);
 
-  const findingsTable = useReactTable({
+  const findingsTable = useLegacyTable({
     data: findings?.data || [],
     columns: findingColumns,
     pageCount: Math.ceil(
