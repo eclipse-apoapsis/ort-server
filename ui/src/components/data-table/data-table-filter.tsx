@@ -18,13 +18,14 @@
  */
 
 import {
-  Column,
   InfiniteSelectFilter,
   RegexFilter,
+  RowData,
   SelectFilter,
   SingleSelectFilter,
   TextFilter,
 } from '@tanstack/react-table';
+import type { LegacyColumn } from '@tanstack/react-table/legacy';
 
 import { FilterInfiniteMultiSelect } from '@/components/data-table/filter-infinite-multi-select';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
@@ -32,12 +33,12 @@ import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterSingleSelect } from '@/components/data-table/filter-single-select';
 import { FilterText } from '@/components/data-table/filter-text';
 
-interface DataTableFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
+interface DataTableFilterProps<TData extends RowData, TValue> {
+  column: LegacyColumn<TData, TValue>;
   showTitle?: boolean; // Whether to show the title next to the filter icon
 }
 
-export function DataTableFilter<TData, TValue>({
+export function DataTableFilter<TData extends RowData, TValue>({
   column,
   showTitle,
 }: DataTableFilterProps<TData, TValue>) {

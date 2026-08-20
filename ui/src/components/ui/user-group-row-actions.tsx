@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Row } from '@tanstack/react-table';
+import type { LegacyRow } from '@tanstack/react-table/legacy';
 import { Eye, Pen, Shield } from 'lucide-react';
 
 import { UserGroup, UserWithGroups } from '@/api';
@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu.tsx';
 
 type UserGroupRowActionsProps = {
-  row: Row<UserWithGroups>;
+  row: LegacyRow<UserWithGroups>;
   onJoinAdminsGroup: (user: UserWithGroups) => Promise<void>;
   onJoinWritersGroup: (user: UserWithGroups) => Promise<void>;
   onJoinReadersGroup: (user: UserWithGroups) => Promise<void>;

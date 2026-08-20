@@ -18,7 +18,11 @@
  */
 
 import { LinkOptions } from '@tanstack/react-router';
-import { Row, type Table as TanstackTable } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type {
+  LegacyRow,
+  LegacyReactTable as TanstackTable,
+} from '@tanstack/react-table/legacy';
 import React from 'react';
 
 import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
@@ -29,10 +33,10 @@ import { useTableSizing } from '@/hooks/use-table-sizing';
 import { cn } from '@/lib/utils';
 
 interface DataTableCardsProps<
-  TData,
+  TData extends RowData,
 > extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
-  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  renderSubComponent?: (props: { row: LegacyRow<TData> }) => React.ReactElement;
   noResultsContent?: React.ReactNode;
   setCurrentPageOptions: (page: number) => LinkOptions;
   setPageSizeOptions: (pageSize: number) => LinkOptions;
@@ -42,7 +46,7 @@ interface DataTableCardsProps<
   }) => LinkOptions;
 }
 
-export function DataTableCards<TData>({
+export function DataTableCards<TData extends RowData>({
   table,
   renderSubComponent,
   noResultsContent,
