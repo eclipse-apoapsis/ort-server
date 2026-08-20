@@ -20,10 +20,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import {
-  createColumnHelper,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { useMemo } from 'react';
 
 import { Repository } from '@/api';
@@ -43,7 +43,7 @@ import { LastRunStatus } from './last-run-status';
 import { RepositoryItemCounts } from './repository-item-counts';
 import { TotalRuns } from './total-runs';
 
-const columnHelper = createColumnHelper<Repository>();
+const columnHelper = legacyCreateColumnHelper<Repository>();
 
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/');
 
@@ -96,132 +96,133 @@ export const ProductRepositoryTable = () => {
   });
 
   const columns = useMemo(
-    () => [
-      columnHelper.accessor(
-        (repository) => `${repository.name ?? ''} ${repository.url}`.trim(),
-        {
-          id: 'repository',
-          header: 'Repositories',
-          size: 300,
-          cell: ({ row }) => {
-            const linkParams = {
-              orgId: row.original.organizationId.toString(),
-              productId: row.original.productId.toString(),
-              repoId: row.original.id.toString(),
-            };
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor(
+          (repository) => `${repository.name ?? ''} ${repository.url}`.trim(),
+          {
+            id: 'repository',
+            header: 'Repositories',
+            size: 300,
+            cell: ({ row }) => {
+              const linkParams = {
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.productId.toString(),
+                repoId: row.original.id.toString(),
+              };
 
-            return (
-              <>
-                <div className='flex flex-wrap items-center gap-1.5'>
-                  <Link
-                    className='font-semibold text-blue-400 hover:underline'
-                    to={
-                      '/organizations/$orgId/products/$productId/repositories/$repoId'
-                    }
-                    params={linkParams}
-                  >
-                    {row.original.name || row.original.url}
-                  </Link>
-                  {organization && product && (
-                    <RepositoryFavoriteButton
-                      organization={organization}
-                      organizationId={row.original.organizationId}
-                      product={product}
-                      productId={row.original.productId}
-                      repository={row.original}
-                      size='xs'
-                      variant='ghost'
-                      className='size-6 p-0'
-                    />
+              return (
+                <>
+                  <div className='flex flex-wrap items-center gap-1.5'>
+                    <Link
+                      className='font-semibold text-blue-400 hover:underline'
+                      to={
+                        '/organizations/$orgId/products/$productId/repositories/$repoId'
+                      }
+                      params={linkParams}
+                    >
+                      {row.original.name || row.original.url}
+                    </Link>
+                    {organization && product && (
+                      <RepositoryFavoriteButton
+                        organization={organization}
+                        organizationId={row.original.organizationId}
+                        product={product}
+                        productId={row.original.productId}
+                        repository={row.original}
+                        size='xs'
+                        variant='ghost'
+                        className='size-6 p-0'
+                      />
+                    )}
+                  </div>
+                  {row.original.name && (
+                    <Link
+                      className='block font-semibold text-blue-400 hover:underline'
+                      to={
+                        '/organizations/$orgId/products/$productId/repositories/$repoId'
+                      }
+                      params={linkParams}
+                    >
+                      {row.original.url}
+                    </Link>
                   )}
-                </div>
-                {row.original.name && (
-                  <Link
-                    className='block font-semibold text-blue-400 hover:underline'
-                    to={
-                      '/organizations/$orgId/products/$productId/repositories/$repoId'
-                    }
-                    params={linkParams}
-                  >
-                    {row.original.url}
-                  </Link>
-                )}
-                <div className='text-muted-foreground text-sm md:inline'>
-                  {row.original.type}
-                  {row.original.description
-                    ? ` | ${row.original.description}`
-                    : ''}
-                </div>
-              </>
-            );
-          },
-          meta: {
-            filter: {
-              filterVariant: 'regex',
-              setFilterValue: (value: string | undefined) => {
-                navigate({
-                  search: { ...search, page: 1, filter: value },
-                });
+                  <div className='text-muted-foreground text-sm md:inline'>
+                    {row.original.type}
+                    {row.original.description
+                      ? ` | ${row.original.description}`
+                      : ''}
+                  </div>
+                </>
+              );
+            },
+            meta: {
+              filter: {
+                filterVariant: 'regex',
+                setFilterValue: (value: string | undefined) => {
+                  navigate({
+                    search: { ...search, page: 1, filter: value },
+                  });
+                },
               },
             },
-          },
-        }
-      ),
-      columnHelper.display({
-        id: 'runs',
-        header: 'Runs',
-        size: 50,
-        cell: ({ row }) => (
-          <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
-            params={{
-              orgId: row.original.organizationId.toString(),
-              productId: row.original.productId.toString(),
-              repoId: row.original.id.toString(),
-            }}
-            className='font-semibold text-blue-400 hover:underline'
-          >
-            <TotalRuns repoId={row.original.id} />
-          </Link>
+          }
         ),
-        enableColumnFilter: false,
-      }),
-      columnHelper.display({
-        id: 'runStatus',
-        header: 'Last Run Status',
-        cell: ({ row }) => (
-          <div className='flex flex-col gap-1'>
-            <LastRunStatus repoId={row.original.id} />
-            <div className='flex'>
-              <RepositoryItemCounts repoId={row.original.id} />
+        columnHelper.display({
+          id: 'runs',
+          header: 'Runs',
+          size: 50,
+          cell: ({ row }) => (
+            <Link
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+              params={{
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.productId.toString(),
+                repoId: row.original.id.toString(),
+              }}
+              className='font-semibold text-blue-400 hover:underline'
+            >
+              <TotalRuns repoId={row.original.id} />
+            </Link>
+          ),
+          enableColumnFilter: false,
+        }),
+        columnHelper.display({
+          id: 'runStatus',
+          header: 'Last Run Status',
+          cell: ({ row }) => (
+            <div className='flex flex-col gap-1'>
+              <LastRunStatus repoId={row.original.id} />
+              <div className='flex'>
+                <RepositoryItemCounts repoId={row.original.id} />
+              </div>
             </div>
-          </div>
-        ),
-        enableColumnFilter: false,
-      }),
-      columnHelper.display({
-        id: 'lastRunDate',
-        header: 'Last Run Date',
-        cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
-        meta: {
-          widthPercentage: 12,
-        },
-        enableColumnFilter: false,
-      }),
-      columnHelper.display({
-        id: 'jobStatus',
-        header: 'Last Job Status',
-        cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
-        meta: {
-          widthPercentage: 8,
-        },
-        enableColumnFilter: false,
-      }),
-    ],
+          ),
+          enableColumnFilter: false,
+        }),
+        columnHelper.display({
+          id: 'lastRunDate',
+          header: 'Last Run Date',
+          cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
+          meta: {
+            widthPercentage: 12,
+          },
+          enableColumnFilter: false,
+        }),
+        columnHelper.display({
+          id: 'jobStatus',
+          header: 'Last Job Status',
+          cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
+          meta: {
+            widthPercentage: 8,
+          },
+          enableColumnFilter: false,
+        }),
+      ]),
     [navigate, organization, product, search]
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: repositories?.data || [],
     columns,
     pageCount: Math.ceil((repositories?.pagination.totalCount ?? 0) / pageSize),
