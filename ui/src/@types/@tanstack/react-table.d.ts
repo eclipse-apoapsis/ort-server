@@ -21,74 +21,19 @@ import '@tanstack/react-table';
 
 import type { CellData, RowData, TableFeatures } from '@tanstack/react-table';
 
-import type { FilterOption } from '@/components/data-table/filter-multi-select';
-import type { InfiniteList } from '@/lib/infinite-list';
+import type { DataTableColumnMeta } from '@/components/data-table/data-table-types';
 
 declare module '@tanstack/react-table' {
-  // Extend the ColumnMeta interface to include properties needed for filtering
-  // Disable no-unused-vars for TFeatures and TData, they are needed here to
-  // ensure the extended interface matches the original one.
-  /* eslint-disable @typescript-eslint/no-unused-vars */
+  // Keep the global metadata available to legacy tables during the incremental
+  // migration. Native tables receive this type from appTableFeatures instead.
+  // Disable no-unused-vars for the type parameters, which are required to match
+  // the original interface. The intentionally empty body declaration-merges
+  // the shared metadata type into that interface.
+  /* eslint-disable @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unused-vars */
   interface ColumnMeta<
     in out TFeatures extends TableFeatures,
     in out TData extends RowData,
     TValue extends CellData = CellData,
-  > {
-    filter?: Filter<TValue>;
-    /** Column takes this percentage of total table width (e.g., 30 = 30%) */
-    widthPercentage?: number;
-    /** Column expands to fill remaining available space */
-    isGrow?: boolean;
-  }
-  /* eslint-enable @typescript-eslint/no-unused-vars */
-
-  // Define the different filter variants
-
-  type TextFilter = {
-    filterVariant: 'text';
-    setFilterValue: (value: string | undefined) => void;
-  };
-
-  type RegexFilter = {
-    filterVariant: 'regex';
-    setFilterValue: (value: string | undefined) => void;
-  };
-
-  type SelectFilter<TValue> = {
-    filterVariant: 'select';
-    selectOptions: FilterOption<TValue>[];
-    setSelected: (selected: TValue[]) => void;
-    align?: 'start' | 'end' | 'center';
-  };
-
-  type InfiniteSelectFilter<TValue> = {
-    filterVariant: 'infinite-select';
-    selectOptions: InfiniteList<FilterOption<TValue>>;
-    getSelectedOption: (value: TValue) => FilterOption<TValue>;
-    setSelected: (selected: TValue[]) => void;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    searchTerm: string;
-    onSearchTermChange: (value: string) => void;
-    align?: 'start' | 'end' | 'center';
-  };
-
-  type SingleSelectFilter<TValue> = {
-    filterVariant: 'single-select';
-    selectOptions: {
-      label: string;
-      value: TValue;
-      icon?: React.ComponentType<{ className?: string }>;
-    }[];
-    setSelected: (selected: TValue | undefined) => void;
-    align?: 'start' | 'end' | 'center';
-  };
-
-  // Define the Filter type as a union of the filter variants
-  type Filter =
-    | TextFilter
-    | RegexFilter
-    | SelectFilter<TValue>
-    | InfiniteSelectFilter<TValue>
-    | SingleSelectFilter<TValue>;
+  > extends DataTableColumnMeta {}
+  /* eslint-enable @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unused-vars */
 }

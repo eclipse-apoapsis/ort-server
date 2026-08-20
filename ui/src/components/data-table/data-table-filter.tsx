@@ -17,16 +17,16 @@
  * License-Filename: LICENSE
  */
 
-import {
+import { RowData } from '@tanstack/react-table';
+import type { LegacyColumn } from '@tanstack/react-table/legacy';
+
+import type {
   InfiniteSelectFilter,
   RegexFilter,
-  RowData,
   SelectFilter,
   SingleSelectFilter,
   TextFilter,
-} from '@tanstack/react-table';
-import type { LegacyColumn } from '@tanstack/react-table/legacy';
-
+} from '@/components/data-table/data-table-types';
 import { FilterInfiniteMultiSelect } from '@/components/data-table/filter-infinite-multi-select';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
