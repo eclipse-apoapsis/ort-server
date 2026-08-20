@@ -19,14 +19,14 @@
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import z from 'zod';
@@ -103,7 +103,7 @@ const supportedSortColumns = new Set([
   'source',
 ]);
 
-const columnHelper = createColumnHelper<Issue>();
+const columnHelper = legacyCreateColumnHelper<Issue>();
 
 // Component to render a single issue card in the list.
 const IssueCard = ({ issue }: { issue: Issue }) => {
@@ -201,7 +201,7 @@ const IssuesComponent = () => {
   const navigate = Route.useNavigate();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
-  const columns = [
+  const columns = columnHelper.columns([
     columnHelper.display({
       id: 'details',
       header: 'Details',
@@ -329,7 +329,7 @@ const IssuesComponent = () => {
       header: 'Source',
       enableColumnFilter: false,
     }),
-  ];
+  ]);
 
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
@@ -391,7 +391,7 @@ const IssuesComponent = () => {
   });
 
   const renderSubComponent = useCallback(
-    ({ row }: { row: Row<Issue> }) => {
+    ({ row }: { row: LegacyRow<Issue> }) => {
       const issue = row.original;
 
       return (
@@ -436,7 +436,7 @@ const IssuesComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: issues?.data || [],
     columns,
     pageCount: Math.ceil((issues?.pagination.totalCount ?? 0) / pageSize),
