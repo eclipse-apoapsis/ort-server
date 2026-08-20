@@ -19,14 +19,14 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PackageURL } from 'packageurl-js';
 import { useCallback, useState } from 'react';
@@ -121,7 +121,7 @@ const supportedSortColumns = new Set([
   'rating',
 ]);
 
-const columnHelper = createColumnHelper<VulnerabilityWithDetails>();
+const columnHelper = legacyCreateColumnHelper<VulnerabilityWithDetails>();
 
 // Component to render a single vulnerability card in the list.
 const VulnerabilityCard = ({
@@ -246,7 +246,7 @@ const VulnerabilitiesComponent = () => {
     }),
   });
 
-  const columns = [
+  const columns = columnHelper.columns([
     columnHelper.display({
       id: 'details',
       header: 'Details',
@@ -414,7 +414,7 @@ const VulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }
     ),
-  ];
+  ]);
 
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
@@ -453,7 +453,7 @@ const VulnerabilitiesComponent = () => {
   });
 
   const renderSubComponent = useCallback(
-    ({ row }: { row: Row<VulnerabilityWithDetails> }) => {
+    ({ row }: { row: LegacyRow<VulnerabilityWithDetails> }) => {
       const vulnerability = row.original.vulnerability;
       let pkgVersion;
       try {
@@ -582,7 +582,7 @@ const VulnerabilitiesComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: vulnerabilities.data,
     columns,
     pageCount: Math.ceil(vulnerabilities.pagination.totalCount / pageSize),

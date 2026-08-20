@@ -19,14 +19,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
@@ -88,7 +88,7 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<VulnerabilityWithStats>();
+const columnHelper = legacyCreateColumnHelper<VulnerabilityWithStats>();
 
 // Component to render a single vulnerability card in the list.
 const VulnerabilityCard = ({
@@ -163,7 +163,11 @@ const VulnerabilityCard = ({
   );
 };
 
-const renderSubComponent = ({ row }: { row: Row<VulnerabilityWithStats> }) => {
+const renderSubComponent = ({
+  row,
+}: {
+  row: LegacyRow<VulnerabilityWithStats>;
+}) => {
   const vulnerability = row.original.vulnerability;
 
   return (
@@ -234,155 +238,156 @@ const ProductVulnerabilitiesComponent = () => {
   // Prevent infinite rerenders by providing a stable reference to columns via memoization.
   // https://tanstack.com/table/latest/docs/faq#solution-1-stable-references-with-usememo-or-usestate
   const columns = useMemo(
-    () => [
-      columnHelper.display({
-        id: 'moreInfo',
-        header: 'Details',
-        size: ACTION_COLUMN_SIZE,
-        cell: function CellComponent({ row }) {
-          return row.getCanExpand() ? (
-            <div className='flex items-center gap-1'>
-              <Button
-                variant='outline'
-                size='sm'
-                {...{
-                  onClick: row.getToggleExpandedHandler(),
-                  style: { cursor: 'pointer' },
-                }}
-              >
-                {row.getIsExpanded() ? (
-                  <ChevronUp className='h-4 w-4' />
-                ) : (
-                  <ChevronDown className='h-4 w-4' />
-                )}
-              </Button>
-              <MarkItems
-                row={row}
-                setMarked={(marked) => {
-                  return {
-                    to: Route.to,
-                    search: {
-                      ...search,
-                      // If no items are marked for inspection, remove the "marked" parameter
-                      // from search parameters.
-                      marked: marked === '' ? undefined : marked,
-                    },
-                  };
-                }}
-              />
-            </div>
-          ) : (
-            'No info'
-          );
-        },
-        enableSorting: false,
-        enableColumnFilter: false,
-      }),
-      columnHelper.display({
-        id: 'card',
-        cell: ({ row }) => (
-          <VulnerabilityCard
-            vulnerability={row.original}
-            organizationId={params.orgId}
-            productId={params.productId}
-          />
-        ),
-      }),
-      columnHelper.accessor(
-        (vuln) => {
-          if (packageIdType === 'PURL') {
-            return vuln.purl;
-          } else {
-            return identifierToString(vuln.identifier);
+    () =>
+      columnHelper.columns([
+        columnHelper.display({
+          id: 'moreInfo',
+          header: 'Details',
+          size: ACTION_COLUMN_SIZE,
+          cell: function CellComponent({ row }) {
+            return row.getCanExpand() ? (
+              <div className='flex items-center gap-1'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  {...{
+                    onClick: row.getToggleExpandedHandler(),
+                    style: { cursor: 'pointer' },
+                  }}
+                >
+                  {row.getIsExpanded() ? (
+                    <ChevronUp className='h-4 w-4' />
+                  ) : (
+                    <ChevronDown className='h-4 w-4' />
+                  )}
+                </Button>
+                <MarkItems
+                  row={row}
+                  setMarked={(marked) => {
+                    return {
+                      to: Route.to,
+                      search: {
+                        ...search,
+                        // If no items are marked for inspection, remove the "marked" parameter
+                        // from search parameters.
+                        marked: marked === '' ? undefined : marked,
+                      },
+                    };
+                  }}
+                />
+              </div>
+            ) : (
+              'No info'
+            );
+          },
+          enableSorting: false,
+          enableColumnFilter: false,
+        }),
+        columnHelper.display({
+          id: 'card',
+          cell: ({ row }) => (
+            <VulnerabilityCard
+              vulnerability={row.original}
+              organizationId={params.orgId}
+              productId={params.productId}
+            />
+          ),
+        }),
+        columnHelper.accessor(
+          (vuln) => {
+            if (packageIdType === 'PURL') {
+              return vuln.purl;
+            } else {
+              return identifierToString(vuln.identifier);
+            }
+          },
+          {
+            id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
+            header: 'Package ID',
+            meta: {
+              filter: {
+                filterVariant: 'text',
+                setFilterValue: (value: string | undefined) => {
+                  navigate({
+                    search: { ...search, page: 1, pkgId: value },
+                  });
+                },
+              },
+            },
           }
-        },
-        {
-          id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
-          header: 'Package ID',
+        ),
+        columnHelper.accessor('vulnerability.externalId', {
+          id: 'externalId',
+          header: 'External ID',
           meta: {
             filter: {
               filterVariant: 'text',
               setFilterValue: (value: string | undefined) => {
                 navigate({
-                  search: { ...search, page: 1, pkgId: value },
+                  search: { ...search, page: 1, externalId: value },
                 });
               },
             },
           },
-        }
-      ),
-      columnHelper.accessor('vulnerability.externalId', {
-        id: 'externalId',
-        header: 'External ID',
-        meta: {
-          filter: {
-            filterVariant: 'text',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, externalId: value },
-              });
+        }),
+        columnHelper.accessor('rating', {
+          id: 'rating',
+          header: 'Rating',
+          meta: {
+            filter: {
+              filterVariant: 'select',
+              selectOptions: zVulnerabilityRating.options.map((rating) => ({
+                label: rating,
+                value: rating,
+              })),
+              setSelected: (ratings: VulnerabilityRating[]) => {
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    rating: ratings.length === 0 ? undefined : ratings,
+                  },
+                });
+              },
             },
           },
-        },
-      }),
-      columnHelper.accessor('rating', {
-        id: 'rating',
-        header: 'Rating',
-        meta: {
-          filter: {
-            filterVariant: 'select',
-            selectOptions: zVulnerabilityRating.options.map((rating) => ({
-              label: rating,
-              value: rating,
-            })),
-            setSelected: (ratings: VulnerabilityRating[]) => {
-              navigate({
-                search: {
-                  ...search,
-                  page: 1,
-                  rating: ratings.length === 0 ? undefined : ratings,
-                },
-              });
+        }),
+        columnHelper.accessor('repositoriesCount', {
+          id: 'repositoriesCount',
+          header: 'Repositories',
+          enableColumnFilter: false,
+        }),
+        columnHelper.accessor(() => '', {
+          id: 'advisor',
+          header: 'Advisor',
+          enableSorting: false,
+          enableColumnFilter: (advisors?.length ?? 0) > 1,
+          meta: {
+            filter: {
+              filterVariant: 'select',
+              selectOptions: (advisors ?? []).map((advisor) => ({
+                label: advisor,
+                value: advisor,
+              })),
+              setSelected: (advisors: string[]) => {
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    advisor: advisors.length === 0 ? undefined : advisors,
+                  },
+                });
+              },
             },
           },
-        },
-      }),
-      columnHelper.accessor('repositoriesCount', {
-        id: 'repositoriesCount',
-        header: 'Repositories',
-        enableColumnFilter: false,
-      }),
-      columnHelper.accessor(() => '', {
-        id: 'advisor',
-        header: 'Advisor',
-        enableSorting: false,
-        enableColumnFilter: (advisors?.length ?? 0) > 1,
-        meta: {
-          filter: {
-            filterVariant: 'select',
-            selectOptions: (advisors ?? []).map((advisor) => ({
-              label: advisor,
-              value: advisor,
-            })),
-            setSelected: (advisors: string[]) => {
-              navigate({
-                search: {
-                  ...search,
-                  page: 1,
-                  advisor: advisors.length === 0 ? undefined : advisors,
-                },
-              });
-            },
-          },
-        },
-      }),
-      columnHelper.accessor('vulnerability.summary', {
-        id: 'summary',
-        header: 'Summary',
-        enableSorting: false,
-        enableColumnFilter: false,
-      }),
-    ],
+        }),
+        columnHelper.accessor('vulnerability.summary', {
+          id: 'summary',
+          header: 'Summary',
+          enableSorting: false,
+          enableColumnFilter: false,
+        }),
+      ]),
     [advisors, navigate, packageIdType, params.orgId, params.productId, search]
   );
 
@@ -481,7 +486,7 @@ const ProductVulnerabilitiesComponent = () => {
 
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: vulnerabilities?.data || [],
     columns,
     pageCount: Math.ceil(
