@@ -19,14 +19,14 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { ExpandedState } from '@tanstack/react-table';
 import {
-  createColumnHelper,
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  Row,
-  useReactTable,
-} from '@tanstack/react-table';
+  legacyCreateColumnHelper,
+  LegacyRow,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -64,7 +64,7 @@ import {
   getMarkerExpandedState,
 } from './license-findings-state';
 
-const licenseColumnHelper = createColumnHelper<DetectedLicense>();
+const licenseColumnHelper = legacyCreateColumnHelper<DetectedLicense>();
 const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
@@ -73,7 +73,7 @@ const renderSubComponent = ({
   row,
   runId,
 }: {
-  row: Row<DetectedLicense>;
+  row: LegacyRow<DetectedLicense>;
   runId: number;
 }) => <DetectedLicensePackagesTable row={row} runId={runId} />;
 
@@ -148,7 +148,7 @@ export const LicenseFindingsView = () => {
     }),
   });
 
-  const columns = [
+  const columns = licenseColumnHelper.columns([
     licenseColumnHelper.display({
       id: 'details',
       header: 'Details',
@@ -226,9 +226,9 @@ export const LicenseFindingsView = () => {
         widthPercentage: 14,
       },
     }),
-  ];
+  ]);
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: detectedLicenseFindings.data,
     columns,
     pageCount: Math.ceil(
