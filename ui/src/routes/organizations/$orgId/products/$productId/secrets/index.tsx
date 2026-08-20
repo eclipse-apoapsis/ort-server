@@ -24,12 +24,13 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { CellContext } from '@tanstack/react-table';
 import {
-  CellContext,
-  ColumnDef,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  LegacyColumnDef,
+  LegacyFeatures,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { EditIcon, PlusIcon } from 'lucide-react';
 import z from 'zod';
 
@@ -71,7 +72,7 @@ import {
 
 const defaultPageSize = 5;
 
-const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
+const ActionCell = ({ row }: CellContext<LegacyFeatures, Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -133,7 +134,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   );
 };
 
-const baseColumns: ColumnDef<Secret>[] = [
+const baseColumns: LegacyColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -146,7 +147,7 @@ const baseColumns: ColumnDef<Secret>[] = [
   },
 ];
 
-const columns: ColumnDef<Secret>[] = [
+const columns: LegacyColumnDef<Secret>[] = [
   ...baseColumns,
   {
     id: 'actions',
@@ -213,7 +214,7 @@ const ProductSecrets = () => {
     }),
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: secrets?.data || [],
     columns,
     pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),
@@ -227,7 +228,7 @@ const ProductSecrets = () => {
     manualPagination: true,
   });
 
-  const orgTable = useReactTable({
+  const orgTable = useLegacyTable({
     data: orgSecrets?.data || [],
     columns: baseColumns,
     pageCount: Math.ceil(

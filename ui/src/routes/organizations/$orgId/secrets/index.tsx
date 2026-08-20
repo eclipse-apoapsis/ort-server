@@ -24,12 +24,13 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { CellContext } from '@tanstack/react-table';
 import {
-  CellContext,
-  ColumnDef,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  LegacyColumnDef,
+  LegacyFeatures,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import { Secret } from '@/api';
@@ -64,7 +65,7 @@ import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
+const ActionCell = ({ row }: CellContext<LegacyFeatures, Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -122,7 +123,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   );
 };
 
-const columns: ColumnDef<Secret>[] = [
+const columns: LegacyColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -169,7 +170,7 @@ const OrganizationSecrets = () => {
     }),
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: secrets?.data || [],
     columns,
     pageCount: Math.ceil((secrets?.pagination.totalCount ?? 0) / pageSize),

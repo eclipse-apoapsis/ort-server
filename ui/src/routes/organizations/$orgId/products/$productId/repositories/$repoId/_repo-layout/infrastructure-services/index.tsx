@@ -19,12 +19,13 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { CellContext } from '@tanstack/react-table';
 import {
-  CellContext,
-  ColumnDef,
   getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  LegacyColumnDef,
+  LegacyFeatures,
+  useLegacyTable,
+} from '@tanstack/react-table/legacy';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import { InfrastructureService } from '@/api';
@@ -59,7 +60,9 @@ import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
+const ActionCell = ({
+  row,
+}: CellContext<LegacyFeatures, InfrastructureService, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -150,7 +153,7 @@ const InfrastructureServices = () => {
     }),
   });
 
-  const columns: ColumnDef<InfrastructureService>[] = [
+  const columns: LegacyColumnDef<InfrastructureService>[] = [
     {
       accessorKey: 'details',
       header: undefined,
@@ -205,7 +208,7 @@ const InfrastructureServices = () => {
     },
   ];
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: infraServices?.data || [],
     columns,
     pageCount: Math.ceil(
