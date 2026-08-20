@@ -470,6 +470,7 @@ const PackagesComponent = () => {
     columnHelper.accessor(() => search.isDirectDependency, {
       id: 'isDirectDependency',
       header: 'Dependency Type',
+      enableSorting: false,
       meta: {
         filter: {
           filterVariant: 'single-select',
