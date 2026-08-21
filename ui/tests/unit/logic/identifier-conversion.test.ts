@@ -20,6 +20,8 @@
 import { expect, it } from 'vitest';
 
 import {
+  comparePackageIds,
+  getPackageIdString,
   identifierToPurl,
   identifierToString,
 } from '@/helpers/identifier-conversion';
@@ -41,4 +43,35 @@ it('identifierToString', () => {
   expect(identifierToString(id)).toBe(
     'Maven:com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
   );
+});
+
+it('getPackageIdString returns the configured identifier type', () => {
+  const pkg = {
+    packageId: id,
+    purl: 'pkg:maven/com.google.guava/listenablefuture@9999.0',
+  };
+
+  expect(getPackageIdString(pkg, 'ORT_ID')).toBe(
+    'Maven:com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
+  );
+  expect(getPackageIdString(pkg, 'PURL')).toBe(
+    'pkg:maven/com.google.guava/listenablefuture@9999.0'
+  );
+});
+
+it.each([
+  [
+    'ORT_ID' as const,
+    { packageId: { ...id, version: '2' }, purl: null },
+    { packageId: { ...id, version: '10' }, purl: null },
+  ],
+  [
+    'PURL' as const,
+    { packageId: null, purl: 'pkg:maven/example/pkg@2' },
+    { packageId: null, purl: 'pkg:maven/example/pkg@10' },
+  ],
+])('comparePackageIds naturally sorts %s values', (packageIdType, two, ten) => {
+  expect(comparePackageIds(two, ten, packageIdType)).toBeLessThan(0);
+  expect(comparePackageIds(ten, two, packageIdType)).toBeGreaterThan(0);
+  expect(comparePackageIds(two, two, packageIdType)).toBe(0);
 });

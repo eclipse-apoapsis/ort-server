@@ -17,9 +17,16 @@
  * License-Filename: LICENSE
  */
 
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 
-import { appTableFeatures } from '@/hooks/use-app-table';
+import {
+  appTableFeatures,
+  selectNoTableState,
+  useAppTable,
+  type AppColumnDef,
+} from '@/hooks/use-app-table';
 
 it('registers only the required table features and row models', () => {
   expect(Object.keys(appTableFeatures).sort()).toEqual([
@@ -33,4 +40,42 @@ it('registers only the required table features and row models', () => {
     'rowSortingFeature',
     'sortedRowModel',
   ]);
+});
+
+it('sorts client-side rows by a controlled string accessor', () => {
+  type PackageRow = { packageId: string };
+
+  const data: PackageRow[] = [
+    { packageId: 'pkg:z' },
+    { packageId: 'pkg:a' },
+    { packageId: 'pkg:m' },
+  ];
+  const columns: AppColumnDef<PackageRow>[] = [{ accessorKey: 'packageId' }];
+  let sortedPackageIds: string[] = [];
+
+  function TestTable() {
+    const table = useAppTable(
+      {
+        data,
+        columns,
+        state: {
+          pagination: { pageIndex: 0, pageSize: 10 },
+          sorting: [{ id: 'packageId', desc: false }],
+        },
+        manualPagination: false,
+        manualSorting: false,
+      },
+      selectNoTableState
+    );
+
+    sortedPackageIds = table
+      .getRowModel()
+      .rows.map((row) => row.original.packageId);
+
+    return null;
+  }
+
+  renderToStaticMarkup(createElement(TestTable));
+
+  expect(sortedPackageIds).toEqual(['pkg:a', 'pkg:m', 'pkg:z']);
 });
