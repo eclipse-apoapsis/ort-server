@@ -95,7 +95,7 @@ internal class AuthenticatedServices private constructor(
  * correct prefix matching.
  */
 private fun ResolvedInfrastructureService.withTrailingSlash(): ResolvedInfrastructureService =
-    this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
+    takeIf { url.endsWith('/') } ?: copy(url = "$url/")
 
 /**
  * Try to find the best matching service in the given list of [services] for the given [url]. This function is used if

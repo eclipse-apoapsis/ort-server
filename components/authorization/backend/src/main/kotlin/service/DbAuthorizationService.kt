@@ -468,7 +468,7 @@ private fun IdsByLevel.filterContainedIn(
     if (containedInId == null) {
         this
     } else {
-        this.mapValues { (_, ids) ->
+        mapValues { (_, ids) ->
             ids.filter { id -> id in containedInId }
         }.filterValues { it.isNotEmpty() }
     }
