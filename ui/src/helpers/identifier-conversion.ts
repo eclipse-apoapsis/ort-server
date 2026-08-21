@@ -20,6 +20,7 @@
 import { PackageURL } from 'packageurl-js';
 
 import { Identifier } from '@/api';
+import type { PackageIdType } from '@/schemas';
 
 export function identifierToPurl(pkg: Identifier | undefined | null): string {
   if (!pkg) {
@@ -35,4 +36,34 @@ export function identifierToString(pkg: Identifier | undefined | null): string {
   }
   const { type, namespace, name, version } = pkg;
   return `${type}:${namespace}:${name}:${version}`;
+}
+
+type PackageIdentifier = {
+  packageId?: Identifier | null;
+  purl?: string | null;
+};
+
+/** Return the package identifier matching the configured display format. */
+export function getPackageIdString(
+  pkg: PackageIdentifier,
+  packageIdType: PackageIdType
+): string {
+  return packageIdType === 'PURL'
+    ? (pkg.purl ?? '')
+    : identifierToString(pkg.packageId);
+}
+
+/** Compare packages by the identifiers displayed in package columns. */
+export function comparePackageIds(
+  pkgA: PackageIdentifier,
+  pkgB: PackageIdentifier,
+  packageIdType: PackageIdType
+): number {
+  const idA = getPackageIdString(pkgA, packageIdType);
+  const idB = getPackageIdString(pkgB, packageIdType);
+
+  return idA.localeCompare(idB, undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
 }
