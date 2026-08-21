@@ -40,7 +40,10 @@ import {
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  comparePackageIds,
+  getPackageIdString,
+} from '@/helpers/identifier-conversion';
 import {
   createAppColumnHelper,
   selectNoTableState,
@@ -98,13 +101,13 @@ function SearchPackageComponent() {
         );
       },
     }),
-    columnHelper.accessor('packageId', {
+    columnHelper.accessor((row) => getPackageIdString(row, packageIdType), {
+      id: 'packageId',
       header: 'Matching Package',
+      sortFn: (rowA, rowB) =>
+        comparePackageIds(rowA.original, rowB.original, packageIdType),
       cell: function CellComponent({ row }) {
-        const id =
-          packageIdType === 'PURL'
-            ? row.original.purl
-            : identifierToString(row.original.packageId);
+        const id = getPackageIdString(row.original, packageIdType);
         return (
           <Link
             className='font-semibold text-blue-400 hover:underline'
@@ -116,11 +119,11 @@ function SearchPackageComponent() {
               runIndex: row.original.ortRunIndex.toString(),
             }}
             search={{
-              pkgId: id ?? undefined,
+              pkgId: id || undefined,
               marked: '0',
             }}
           >
-            <BreakableString text={id ?? ''} />
+            <BreakableString text={id} />
           </Link>
         );
       },
