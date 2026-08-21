@@ -24,6 +24,7 @@
 ARG ANDROID_CMD_VERSION=13114758
 ARG BAZELISK_VERSION=1.29.0
 ARG BOWER_VERSION=1.8.14
+ARG BUN_VERSION=1.3.14
 ARG COCOAPODS_VERSION=1.16.2
 ARG COREPACK_VERSION=0.34.7
 ARG COSIGN_VERSION=3.0.3
@@ -166,6 +167,7 @@ COPY --from=pythonbuild /opt/python /opt/python
 FROM ort-base-image AS nodebuild
 
 ARG BOWER_VERSION
+ARG BUN_VERSION
 ARG COREPACK_VERSION
 ARG FNM_VERSION
 ARG NODEJS_VERSION
@@ -186,7 +188,7 @@ RUN if [ "$(arch)" = "aarch64" ]; then \
     && rm /tmp/fnm.zip
 RUN fnm install "$NODEJS_VERSION" \
     && fnm default "$NODEJS_VERSION" \
-    && npm install --global bower@$BOWER_VERSION corepack@$COREPACK_VERSION \
+    && npm install --global bower@$BOWER_VERSION bun@$BUN_VERSION corepack@$COREPACK_VERSION \
     && corepack enable
 
 FROM scratch AS node
