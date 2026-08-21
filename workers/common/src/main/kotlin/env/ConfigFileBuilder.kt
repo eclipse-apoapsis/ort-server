@@ -118,7 +118,7 @@ class ConfigFileBuilder(
                     noProxy = proxySettings[ProxyVariables.NO_PROXY]
                 )
 
-                this.block(proxyConfig)
+                block(proxyConfig)
             }
         }
 
