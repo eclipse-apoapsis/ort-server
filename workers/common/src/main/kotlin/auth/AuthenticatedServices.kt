@@ -116,7 +116,7 @@ private fun findBestMatchingService(
 
     val matchingServices = url?.let { requestUrl ->
         val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-        services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
+        services.filter { strUrl.startsWith(it.url) }
     } ?: services
 
     return matchingServices.maxByOrNull { it.url.length }
