@@ -101,12 +101,12 @@ internal class OrtServerAuthenticator(
             val environmentServices = getAuthenticationInfoFromEnvironment(secretResolverFun)
 
             return ServiceData(
-                    authenticationInfo = environmentServices,
-                    authenticatedServices = AuthenticatedServices.create(
-                        environmentServices.services,
-                        enableFuzzyMatching = false
-                    )
+                authenticationInfo = environmentServices,
+                authenticatedServices = AuthenticatedServices.create(
+                    environmentServices.services,
+                    enableFuzzyMatching = false
                 )
+            )
         }
     }
 

@@ -84,11 +84,9 @@ internal class AuthenticatedServices private constructor(
         val hostName = url?.host ?: host
         val services = servicesByHost[hostName].orEmpty()
 
-        return (
-                services.singleOrNull()?.takeIf { url == null }?.also {
-                    logger.debug("Using single service for host '{}'.", hostName)
-                } ?: findBestMatchingService(services, url, enableFuzzyMatching)
-                )
+        return services.singleOrNull()?.takeIf { url == null }?.also {
+            logger.debug("Using single service for host '{}'.", hostName)
+        } ?: findBestMatchingService(services, url, enableFuzzyMatching)
     }
 }
 
