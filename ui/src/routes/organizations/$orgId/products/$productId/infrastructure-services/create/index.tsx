@@ -151,12 +151,12 @@ const CreateInfrastructureServicePage = () => {
               name='url'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Url</FormLabel>
+                  <FormLabel>URL Prefix</FormLabel>
                   <FormControl>
                     <Input {...field} type='url' />
                   </FormControl>
                   <FormDescription>
-                    The URL of the infrastructure service.
+                    The URL prefix to match against the service's URL.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

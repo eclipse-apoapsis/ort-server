@@ -84,11 +84,9 @@ internal class AuthenticatedServices private constructor(
         val hostName = url?.host ?: host
         val services = servicesByHost[hostName].orEmpty()
 
-        return (
-                services.singleOrNull()?.takeIf { url == null }?.also {
-                    logger.debug("Using single service for host '{}'.", hostName)
-                } ?: findBestMatchingService(services, url, enableFuzzyMatching)
-                )
+        return services.singleOrNull()?.takeIf { url == null }?.also {
+            logger.debug("Using single service for host '{}'.", hostName)
+        } ?: findBestMatchingService(services, url, enableFuzzyMatching)
     }
 }
 
@@ -97,7 +95,7 @@ internal class AuthenticatedServices private constructor(
  * correct prefix matching.
  */
 private fun ResolvedInfrastructureService.withTrailingSlash(): ResolvedInfrastructureService =
-    this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
+    takeIf { url.endsWith('/') } ?: copy(url = "$url/")
 
 /**
  * Try to find the best matching service in the given list of [services] for the given [url]. This function is used if
@@ -118,11 +116,11 @@ private fun findBestMatchingService(
 
     val matchingServices = url?.let { requestUrl ->
         val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-        services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
+        services.filter { strUrl.startsWith(it.url) }
     } ?: services
 
     return matchingServices.maxByOrNull { it.url.length }
-        ?: findMostSimilarService(services, url, enableFuzzyMatching)
+        ?: if (enableFuzzyMatching) findFuzzyMatchingService(services, url) else null
 }
 
 /**
@@ -132,16 +130,13 @@ private fun findBestMatchingService(
 private val fuzzyScore = FuzzyScore(Locale.US)
 
 /**
- * Try to find a service that most closely matches the given [url]. This function is called if no service for the URL
- * can be found based on prefix matching. If there are services at all and [enableFuzzyMatching] is *true*, it tries to
- * find the best match using a fuzzy search.
+ * Try to find a service that most closely matches the given [url] based on a fuzzy score.
  */
-private fun findMostSimilarService(
+private fun findFuzzyMatchingService(
     services: Collection<ResolvedInfrastructureService>,
-    url: URL?,
-    enableFuzzyMatching: Boolean
+    url: URL?
 ): ResolvedInfrastructureService? {
-    if (services.isEmpty() || url == null || !enableFuzzyMatching) return null
+    if (services.isEmpty() || url == null) return null
 
     if (services.size < 2) {
         logger.info(
