@@ -28,8 +28,6 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
-import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
-
 import org.slf4j.LoggerFactory
 
 /**
@@ -67,41 +65,14 @@ class AdminConfigService(
          * The set does not contain any default paths because for those it is allowed to not exist.
          */
         private fun getConfigurationFiles(config: AdminConfig): Set<String> = buildSet {
-            config.getRuleSet(null).getConfigurationFiles(this)
+            addAll(config.getRuleSet(null).getNonDefaultConfigFiles())
 
             config.ruleSetNames.forEach { ruleSet ->
-                config.getRuleSet(ruleSet).getConfigurationFiles(this)
+                addAll(config.getRuleSet(ruleSet).getNonDefaultConfigFiles())
             }
 
-            config.reporterConfig.getConfigurationFiles(this)
-        }
-
-        /** Add all configuration files referenced by this [RuleSet] to the given [target] set for validation. */
-        private fun RuleSet.getConfigurationFiles(target: MutableSet<String>) {
-            target.addNonDefault(copyrightGarbageFile, RuleSet.DEFAULT_COPYRIGHT_GARBAGE_FILE)
-            target.addNonDefault(licenseClassificationsFile, RuleSet.DEFAULT_LICENSE_CLASSIFICATIONS_FILE)
-            target.addNonDefault(resolutionsFile, RuleSet.DEFAULT_RESOLUTIONS_FILE)
-            target.addNonDefault(evaluatorRules, RuleSet.DEFAULT_EVALUATOR_RULES_FILE)
-        }
-
-        /** Add all configuration files referenced by this [ReporterConfig] to the given [target] set for validation. */
-        private fun ReporterConfig.getConfigurationFiles(target: MutableSet<String>) {
-            target.addNonDefault(howToFixTextProviderFile, ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
-            customLicenseTextDir?.also(target::add)
-            target += globalAssets.values.flatMap { it.map(ReporterAsset::sourcePath) }
-
-            reportDefinitions.forEach { definition ->
-                (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
-                    .filterNot { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
-                    .forEach(target::add)
-            }
-        }
-
-        /** Add the given [path] to this [Set] only if it is not *null* and not equal to the given [default]. */
-        private fun MutableSet<String>.addNonDefault(path: String?, default: String) {
-            if (path != null && path != default) {
-                add(path)
-            }
+            addAll(config.reporterConfig.getAllAssets())
+            addAll(config.reporterConfig.getNonDefaultConfigFiles())
         }
     }
 
