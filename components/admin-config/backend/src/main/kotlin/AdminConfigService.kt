@@ -61,16 +61,6 @@ class AdminConfigService(
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
-        /** Validate the given [reporterConfig]. Add found issues to the given [issues] list. */
-        private fun validateReporterConfig(issues: MutableList<String>, reporterConfig: ReporterConfig) {
-            issues += reporterConfig.reportDefinitions.flatMapTo(mutableSetOf()) { definition ->
-                (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
-                    .filter { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
-            }.map { "Undefined reference to a reporter asset: '${it.removePrefix(UNRESOLVABLE_ASSET_PREFIX)}'." }
-
-            reporterConfig.validateReportDefinitions(issues)
-        }
-
         /**
          * Return a [Set] with the paths to all configuration files referenced by this [AdminConfig]. This is used
          * to perform a validation after loading the configuration whether these files can actually be resolved.
@@ -163,7 +153,7 @@ class AdminConfigService(
         }
 
         issues += config.scannerConfig.validate()
-        validateReporterConfig(issues, config.reporterConfig)
+        issues += config.reporterConfig.validate()
 
         if (issues.isNotEmpty()) {
             throw ConfigException("Invalid admin configuration:\n ${issues.joinToString(separator = "\n")}")

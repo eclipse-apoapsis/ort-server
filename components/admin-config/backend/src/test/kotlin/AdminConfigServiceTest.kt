@@ -194,44 +194,6 @@ class AdminConfigServiceTest : WordSpec({
             }
         }
 
-        "handle references to reporter assets that cannot be resolved" {
-            val config = """
-                    reporter {
-                      assets {
-                        logo: [
-                          {
-                            sourcePath = "reporter/template/logo.png"
-                            targetFolder = "images"
-                            targetName = "report-logo.png"
-                          }
-                        ]
-                      }
-                      reports {
-                        disclosurePdf {
-                          pluginId = "PdfTemplate"
-                          assetFilesRefs = [ "logo", "nonExistingFile" ]
-                          assetDirectories = [
-                            {
-                              sourcePath = "reporter/template/assets-files"
-                              targetFolder = "assets"
-                              targetName = "files"
-                            }
-                          ]
-                          assetDirectoriesRefs = [ "nonExistingDirectory" ]
-                        }
-                      }
-                    }
-                """.trimIndent()
-
-            val service = createServiceWithConfig(config)
-            val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, validate = true)
-            }
-
-            exception.message shouldContain "'nonExistingFile'"
-            exception.message shouldContain "'nonExistingDirectory'"
-        }
-
         "throw an exception if a configuration file cannot be resolved" {
             val config = """
                     defaultRuleSet {
@@ -266,6 +228,26 @@ class AdminConfigServiceTest : WordSpec({
             }
         }
 
+        "throw an exception if the reporter config is invalid" {
+            val config = """
+                    reporter {
+                        reports {
+                            invalidReporter {
+                                pluginId = "InvalidPlugin"
+                            }
+                        }
+                    }
+                """.trimIndent()
+
+            val service = createServiceWithConfig(config)
+
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, validate = true)
+            }
+
+            exception.message shouldContain "'invalidReporter'"
+        }
+
         "throw an exception if the scanner config is invalid" {
             val config = """
                     scanner {
@@ -280,35 +262,6 @@ class AdminConfigServiceTest : WordSpec({
             }
 
             exception.message shouldContain "'sourceCodeOrigins'"
-        }
-
-        "throw an exception if a non-existing reporter plugin is referenced" {
-            val invalidPluginId = "nonExistingPlugin"
-            val reportDefinitionName = "someStrangeReport"
-            val config = """
-                    reporter {
-                      reports {
-                        $reportDefinitionName {
-                          pluginId = "$invalidPluginId"
-                          assetFiles = [
-                            {
-                              sourcePath = "reporter/template/logo.png"
-                              targetFolder = "images"
-                              targetName = "report-logo.png"
-                            }
-                          ]
-                        }
-                      }
-                    }
-                """.trimIndent()
-            val service = createServiceWithConfig(config)
-
-            val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, validate = true)
-            }
-
-            exception.message shouldContain invalidPluginId
-            exception.message shouldContain reportDefinitionName
         }
 
         "only validate the configuration if requested" {

@@ -335,16 +335,26 @@ data class ReporterConfig(
         }
 
     /**
-     * Validate the report definitions contained in this configuration. Add messages for found issues to the given
-     * [issues] list.
+     * Validate this [ReporterConfig] and return a list of found issues. If the returned list is empty, this config is
+     * valid.
      */
-    internal fun validateReportDefinitions(issues: MutableList<String>) {
-        issues += reportDefinitionNames.map { it to getReportDefinition(it) }
-            .filter { it.second?.pluginId?.lowercase() !in reporterPluginIds }
-            .map {
-                "Unknown reporter plugin '${it.second?.pluginId}' referenced from report definition '${it.first}'."
+    fun validate(): List<String> =
+        buildList {
+            resolvedReportDefinitions.forEach { (name, definition) ->
+                (definition.assetFiles + definition.assetDirectories).forEach { asset ->
+                    if (asset.sourcePath.startsWith(UNRESOLVABLE_ASSET_PREFIX)) {
+                        add(
+                            "Undefined reporter asset '${asset.sourcePath.removePrefix(UNRESOLVABLE_ASSET_PREFIX)}' " +
+                                    "referenced from report definition '$name'."
+                        )
+                    }
+                }
+
+                if (definition.pluginId.lowercase() !in reporterPluginIds) {
+                    add("Unknown reporter plugin '${definition.pluginId}' referenced from report definition '$name'.")
+                }
             }
-    }
+        }
 }
 
 private fun String.ensureTrailingSlash() = takeIf { it.endsWith("/") } ?: plus("/")
