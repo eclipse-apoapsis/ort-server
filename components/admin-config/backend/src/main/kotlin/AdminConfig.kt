@@ -98,4 +98,10 @@ data class AdminConfig(
 
         addAll(reporterConfig.getNonDefaultConfigFiles())
     }
+
+    /**
+     * Validate this [AdminConfig] and return a list of found issues. If the returned list is empty, this config is
+     * valid.
+     */
+    fun validate(): List<String> = scannerConfig.validate() + reporterConfig.validate()
 }
