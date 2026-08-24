@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
+import org.eclipse.apoapsis.ortserver.transport.testing.ReceiverHandle
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
@@ -63,17 +64,33 @@ class SqsMessageReceiverFactoryTest : StringSpec({
         client.sendMessage(request)
     }
 
+    // All tests use the same queue name, so a receiver that is still running after its test has finished competes
+    // for the messages of the following tests. Keep track of the started receivers to be able to stop them again.
+    val receivers = mutableListOf<ReceiverHandle>()
+
+    fun startTestReceiver(result: EndpointHandlerResult = EndpointHandlerResult.CONTINUE) =
+        startReceiver(configManager, result).also { receivers += it }
+
     beforeTest {
         client.createQueue(CreateQueueRequest { queueName = TEST_QUEUE_NAME })
         queueResponse = client.getQueueUrl(GetQueueUrlRequest { queueName = TEST_QUEUE_NAME })
     }
 
     afterTest {
+        // Stopping the receivers is what isolates the tests from each other. Deleting and recreating the queue does
+        // not achieve this, because the recreated queue has the same name and therefore the same URL, so a receiver
+        // that is still running simply continues to poll it.
+        receivers.forEach { receiver -> receiver.stop() }
+        receivers.clear()
+
+        // Deleting the queue is still needed to discard messages that no test has consumed. Stopping a receiver can
+        // leave behind a message that SQS has already handed out, but that was neither processed nor deleted. Such a
+        // message becomes visible again after the visibility timeout and would then show up in a later test.
         client.deleteQueue(DeleteQueueRequest { this.queueUrl = queueResponse.queueUrl })
     }
 
     "Messages can be received via the SQS transport" {
-        val messageQueue = startReceiver(configManager)
+        val messageQueue = startTestReceiver()
 
         val traceId1 = "trace1"
         val ortRunId1 = 1L
@@ -91,7 +108,7 @@ class SqsMessageReceiverFactoryTest : StringSpec({
     }
 
     "Exceptions during message receiving are handled" {
-        val messageQueue = startReceiver(configManager)
+        val messageQueue = startTestReceiver()
 
         val traceId = "validTraceId"
         val ortRunId = 10L
@@ -104,7 +121,7 @@ class SqsMessageReceiverFactoryTest : StringSpec({
     }
 
     "Messages can have empty trace IDs" {
-        val messageQueue = startReceiver(configManager)
+        val messageQueue = startTestReceiver()
 
         val traceId = EMPTY_VALUE
         val ortRunId = 10L
@@ -116,7 +133,7 @@ class SqsMessageReceiverFactoryTest : StringSpec({
     }
 
     "Message receiving is stopped when the handler returns STOP" {
-        val messageQueue = startReceiver(configManager, EndpointHandlerResult.STOP)
+        val messageQueue = startTestReceiver(EndpointHandlerResult.STOP)
 
         val traceId1 = "trace1"
         val ortRunId1 = 1L
