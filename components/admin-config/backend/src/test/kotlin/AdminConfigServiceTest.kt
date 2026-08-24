@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
@@ -37,7 +38,6 @@ import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
 import io.mockk.spyk
-import io.mockk.verify
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -63,169 +63,24 @@ class AdminConfigServiceTest : WordSpec({
             service.loadAdminConfig(context) shouldBe AdminConfig.DEFAULT
         }
 
-        "throw for an unresolvable non-default config file" {
-            val exception = IllegalArgumentException("Test exception: unresolvable config file")
+        "throw an exception if config file validation fails" {
+            val config = """
+                    defaultRuleSet {
+                      copyrightGarbageFile = "non-default-garbage.yml"
+                    }
+                """.trimIndent()
+
             val service = createService {
-                every { getFile(context, Path(ADMIN_CONFIG_PATH)) } throws exception
-            }
-
-            shouldThrow<IllegalArgumentException> {
-                service.loadAdminConfig(context)
-            } shouldBe exception
-        }
-
-        "check that all files referenced by rule sets actually exist" {
-            val config = """
-                    defaultRuleSet {
-                      copyrightGarbageFile = "defaultCopyrightGarbageFile"
-                      licenseClassificationsFile = "defaultLicenseClassificationsFile"
-                      resolutionsFile = "defaultResolutionsFile"
-                      evaluatorRules = "defaultEvaluatorRules"
-                    }
-                    ruleSets {
-                      customRuleSet1 {
-                        copyrightGarbageFile = "testCopyrightGarbageFile1"
-                      }  
-                      customRuleSet2 {
-                        licenseClassificationsFile = "testLicenseClassificationsFile2"
-                        resolutionsFile = "testResolutionsFile2"
-                        evaluatorRules = "testEvaluatorRules2"
-                      }  
-                    }
-                """.trimIndent()
-
-            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, validate = true)
-
-            verify(exactly = 1) {
-                configManager.containsFile(context, Path("defaultCopyrightGarbageFile"))
-                configManager.containsFile(context, Path("defaultLicenseClassificationsFile"))
-                configManager.containsFile(context, Path("defaultResolutionsFile"))
-                configManager.containsFile(context, Path("defaultEvaluatorRules"))
-                configManager.containsFile(context, Path("testCopyrightGarbageFile1"))
-                configManager.containsFile(context, Path("testLicenseClassificationsFile2"))
-                configManager.containsFile(context, Path("testResolutionsFile2"))
-                configManager.containsFile(context, Path("testEvaluatorRules2"))
-            }
-        }
-
-        "check that configuration files referenced by the reporter section exist" {
-            val config = """
-                    reporter {
-                      howToFixTextProviderFile = "testHowToFixTextProviderFile"
-                      customLicenseTextDir = "testCustomLicenseTextDir"
-                    }
-                """.trimIndent()
-
-            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, validate = true)
-
-            verify(exactly = 1) {
-                configManager.containsFile(context, Path("testHowToFixTextProviderFile"))
-                configManager.containsFile(context, Path("testCustomLicenseTextDir"))
-            }
-        }
-
-        "check that reporter assets referenced by the reporter section exist" {
-            val config = """
-                    reporter {
-                      reports {
-                        disclosurePdf {
-                          pluginId = "PdfTemplate"
-                          assetFiles = [
-                            {
-                              sourcePath = "reporter/template/logo.png"
-                              targetFolder = "images"
-                              targetName = "report-logo.png"
-                            },
-                            {
-                              sourcePath = "reporter/template/title.ttf"
-                              targetFolder = "fonts"
-                              targetName = "main-font.ftt"
-                            }
-                          ]
-                          assetDirectories = [
-                            {
-                              sourcePath = "reporter/template/assets-files"
-                              targetFolder = "assets"
-                              targetName = "files"
-                            }
-                          ]
-                          nameMapping {
-                            namePrefix = "disclosure-"
-                            startIndex = 0
-                            alwaysAppendIndex = true
-                          }
-                        }
-                      }
-                    }
-                """.trimIndent()
-
-            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, validate = true)
-
-            verify(exactly = 1) {
-                configManager.containsFile(context, Path("reporter/template/logo.png"))
-                configManager.containsFile(context, Path("reporter/template/title.ttf"))
-                configManager.containsFile(context, Path("reporter/template/assets-files/"))
-            }
-        }
-
-        "check that global reporter assets exist" {
-            val config = """
-                    reporter {
-                      assets {
-                        logo: [
-                          {
-                            sourcePath = "reporter/template/logo.png"
-                            targetFolder = "images"
-                            targetName = "report-logo.png"
-                          }
-                        ]
-                      }
-                    }
-                """.trimIndent()
-
-            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
-            service.loadAdminConfig(context, validate = true)
-
-            verify(exactly = 1) {
-                configManager.containsFile(context, Path("reporter/template/logo.png"))
-            }
-        }
-
-        "throw an exception if a configuration file cannot be resolved" {
-            val config = """
-                    defaultRuleSet {
-                      copyrightGarbageFile = "defaultCopyrightGarbageFile"
-                      licenseClassificationsFile = "defaultLicenseClassificationsFile"
-                      resolutionsFile = "defaultResolutionsFile"
-                      evaluatorRules = "defaultEvaluatorRules"
-                    }
-                    ruleSets {
-                      customRuleSet1 {
-                        copyrightGarbageFile = "testCopyrightGarbageFile1"
-                      }  
-                    }
-                """.trimIndent()
-
-            val (service, configManager) = createServiceAndConfigManager {
                 initAdminConfig(config)
 
-                every { containsFile(context, Path("defaultCopyrightGarbageFile")) } returns false
-                every { containsFile(context, Path("testCopyrightGarbageFile1")) } returns false
+                every { containsFile(context, Path("non-default-garbage.yml")) } returns false
             }
 
             val exception = shouldThrow<ConfigException> {
                 service.loadAdminConfig(context, validate = true)
             }
 
-            exception.message shouldContain "'defaultCopyrightGarbageFile'"
-            exception.message shouldContain "'testCopyrightGarbageFile1'"
-
-            verify(exactly = 1) {
-                configManager.containsFile(context, Path("defaultResolutionsFile"))
-            }
+            exception.message shouldContain "non-default-garbage.yml"
         }
 
         "throw an exception if the reporter config is invalid" {
@@ -939,6 +794,167 @@ class AdminConfigServiceTest : WordSpec({
                 usernameSecret should beNull()
                 passwordSecret should beNull()
             }
+        }
+    }
+
+    "validateConfigFiles" should {
+        "not return an issue if a default rule set config file is missing" {
+            val config = AdminConfig()
+
+            val service = createService {
+                every { containsFile(context, Path(RuleSet.DEFAULT_COPYRIGHT_GARBAGE_FILE)) } returns false
+            }
+
+            service.validateConfigFiles(context, config) should beEmpty()
+        }
+
+        "return an issue if non-default rule set config files are missing" {
+            val config = AdminConfig(
+                defaultRuleSet = RuleSet(
+                    copyrightGarbageFile = "non-default-garbage.yml",
+                    licenseClassificationsFile = "non-default-license-classifications.yml"
+                ),
+                ruleSets = mapOf(
+                    "first" to RuleSetTemplate(
+                        resolutionsFile = "non-default-resolutions.yml",
+                        evaluatorRules = "non-default.evaluator.rules.kts"
+                    )
+                )
+            )
+
+            val service = createService {
+                every { containsFile(context, Path("non-default-garbage.yml")) } returns false
+                every { containsFile(context, Path("non-default.evaluator.rules.kts")) } returns false
+            }
+
+            service.validateConfigFiles(context, config).shouldBeSingleton {
+                it shouldContain "non-default-garbage.yml"
+                it shouldContain "non-default.evaluator.rules.kts"
+            }
+        }
+
+        "not return an issue if a default reporter config file is missing" {
+            val config = AdminConfig()
+
+            val service = createService {
+                every { containsFile(context, Path(ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)) } returns false
+            }
+
+            service.validateConfigFiles(context, config) should beEmpty()
+        }
+
+        "return an issue if non-default reporter config files are missing" {
+            val config = AdminConfig(
+                reporterConfig = ReporterConfig(
+                    howToFixTextProviderFile = "non-default.how-to-fix-text-provider.kts",
+                    customLicenseTextDir = "non-default-custom-license-text-dir"
+                )
+            )
+
+            val service = createService {
+                every { containsFile(context, Path("non-default.how-to-fix-text-provider.kts")) } returns false
+                every { containsFile(context, Path("non-default-custom-license-text-dir")) } returns false
+            }
+
+            service.validateConfigFiles(context, config).shouldBeSingleton {
+                it shouldContain "non-default.how-to-fix-text-provider.kts"
+                it shouldContain "non-default-custom-license-text-dir"
+            }
+        }
+
+        "return an issue if global asset files are missing" {
+            val config = AdminConfig(
+                reporterConfig = ReporterConfig(
+                    globalAssets = mapOf(
+                        "first" to listOf(
+                            ReporterAsset(sourcePath = "existing-file-1"),
+                            ReporterAsset(sourcePath = "missing-file-1")
+                        ),
+                        "second" to listOf(
+                            ReporterAsset(sourcePath = "existing-file-2"),
+                            ReporterAsset(sourcePath = "missing-file-2")
+                        )
+                    )
+                )
+            )
+
+            val service = createService {
+                every { containsFile(context, Path("missing-file-1")) } returns false
+                every { containsFile(context, Path("missing-file-2")) } returns false
+            }
+
+            service.validateConfigFiles(context, config).shouldBeSingleton {
+                it shouldContain "missing-file-1"
+                it shouldContain "missing-file-2"
+            }
+        }
+
+        "return an issue if report definition asset files are missing" {
+            val config = AdminConfig(
+                reporterConfig = ReporterConfig(
+                    reportDefinitionsMap = mapOf(
+                        "first" to ReportDefinitionTemplate(
+                            pluginId = "PdfTemplate",
+                            assetFiles = listOf(
+                                ReporterAsset(sourcePath = "existing-file-1"),
+                                ReporterAsset(sourcePath = "missing-file-1")
+                            ),
+                            assetDirectories = listOf(
+                                ReporterAsset(sourcePath = "existing-dir-1/"),
+                                ReporterAsset(sourcePath = "missing-dir-1/")
+                            )
+                        ),
+                        "second" to ReportDefinitionTemplate(
+                            pluginId = "PdfTemplate",
+                            assetFiles = listOf(
+                                ReporterAsset(sourcePath = "existing-file-2"),
+                                ReporterAsset(sourcePath = "missing-file-2")
+                            ),
+                            assetDirectories = listOf(
+                                ReporterAsset(sourcePath = "existing-dir-2/"),
+                                ReporterAsset(sourcePath = "missing-dir-2/")
+                            )
+                        )
+                    )
+                )
+            )
+
+            val service = createService {
+                every { containsFile(context, Path("missing-file-1")) } returns false
+                every { containsFile(context, Path("missing-file-2")) } returns false
+                every { containsFile(context, Path("missing-dir-1/")) } returns false
+                every { containsFile(context, Path("missing-dir-2/")) } returns false
+            }
+
+            service.validateConfigFiles(context, config).shouldBeSingleton {
+                it shouldContain "missing-file-1"
+                it shouldContain "missing-file-2"
+                it shouldContain "missing-dir-1/"
+                it shouldContain "missing-dir-2/"
+            }
+        }
+
+        "return no issue if all non-default config files and assets can be found" {
+            val config = AdminConfig(
+                defaultRuleSet = RuleSet(copyrightGarbageFile = "non-default-garbage.yml"),
+                ruleSets = mapOf(
+                    "first" to RuleSetTemplate(licenseClassificationsFile = "non-default-license-classifications.yml")
+                ),
+                reporterConfig = ReporterConfig(
+                    howToFixTextProviderFile = "non-default.how-to-fix-text-provider.kts",
+                    globalAssets = mapOf(
+                        "first" to listOf(ReporterAsset("asset-file-1"))
+                    ),
+                    reportDefinitionsMap = mapOf(
+                        "first" to ReportDefinitionTemplate(
+                            pluginId = "PdfTemplate",
+                            assetFiles = listOf(ReporterAsset("asset-file-2"))
+                        )
+                    )
+                )
+            )
+
+            createService().validateConfigFiles(context, config) should beEmpty()
         }
     }
 })

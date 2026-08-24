@@ -96,23 +96,7 @@ class AdminConfigService(
      * called after loading the configuration to fail early if invalid properties are found.
      */
     private fun validate(context: Context?, config: AdminConfig): AdminConfig {
-        val issues = mutableListOf<String>()
-
-        config.getNonDefaultConfigFiles().filterNot { file ->
-            configManager.containsFile(context, Path(file))
-        }.takeIf { it.isNotEmpty() }?.let { missingFiles ->
-            issues += "The following configuration files referenced by the admin config are not found in the " +
-                    "config file provider: ${missingFiles.joinToString { "'$it'" }}"
-        }
-
-        config.reporterConfig.getAllAssets().filterNot { asset ->
-            configManager.containsFile(context, Path(asset))
-        }.takeIf { it.isNotEmpty() }?.let { missingAssets ->
-            issues += "The following reporter assets referenced by the admin config are not found in the config " +
-                    "file provider: ${missingAssets.joinToString { "'$it'" }}"
-        }
-
-        issues += config.validate()
+        val issues = config.validate() + validateConfigFiles(context, config)
 
         if (issues.isNotEmpty()) {
             throw ConfigException("Invalid admin configuration:\n${issues.joinToString(separator = "\n")}")
@@ -120,4 +104,30 @@ class AdminConfigService(
 
         return config
     }
+
+    /**
+     * Check if the config files and reporter assets referenced from the [config] exist for the provided configuration
+     * [context] by looking it up from the [configManager]. If config files or assets are not found, return error
+     * messages that explain which files are missing.
+     */
+    internal fun validateConfigFiles(context: Context?, config: AdminConfig): List<String> =
+        buildList {
+            config.getNonDefaultConfigFiles().filterNot { file ->
+                configManager.containsFile(context, Path(file))
+            }.takeIf { it.isNotEmpty() }?.let { missingFiles ->
+                add(
+                    "The following configuration files referenced by the admin config are not found in the " +
+                        "config file provider: ${missingFiles.joinToString { "'$it'" }}"
+                )
+            }
+
+            config.reporterConfig.getAllAssets().filterNot { asset ->
+                configManager.containsFile(context, Path(asset))
+            }.takeIf { it.isNotEmpty() }?.let { missingAssets ->
+                add(
+                    "The following reporter assets referenced by the admin config are not found in the config " +
+                        "file provider: ${missingAssets.joinToString { "'$it'" }}"
+                )
+            }
+        }
 }
