@@ -28,9 +28,11 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
-import kotlin.concurrent.thread
-
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
@@ -64,13 +66,37 @@ fun createConfigManager(
 }
 
 /**
- * Start a receiver that is initialized from the given [configManager]. Since the receiver blocks, this has to be done
- * in a separate thread. Return a queue that can be polled to obtain the received messages.
+ * A handle to a receiver started via [startReceiver]. It acts as the [BlockingQueue] the received messages are put
+ * into, and additionally allows to [stop] the receiver again.
+ */
+class ReceiverHandle internal constructor(
+    private val job: Job,
+    queue: BlockingQueue<Message<OrchestratorMessage>>
+) : BlockingQueue<Message<OrchestratorMessage>> by queue {
+    /**
+     * Stop this receiver and wait until it has terminated. Tests that share a queue between test cases must do this
+     * at the end of each test case; otherwise the still running receiver of an already finished test case competes
+     * for the messages that are meant for the next test case.
+     *
+     * This requires a receiver that suspends while waiting for messages. That is the case for SQS, which checks
+     * `coroutineContext.isActive` in its receive loop, and for RabbitMQ, which collects a cancellable flow. It does
+     * not work for Artemis, whose receive loop does not check whether it is still active and blocks in a JMS
+     * `receive()` call that cannot be interrupted from the outside.
+     */
+    suspend fun stop() {
+        job.cancelAndJoin()
+    }
+}
+
+/**
+ * Start a receiver that is initialized from the given [configManager]. Since the receiver runs until it is stopped,
+ * this has to be done in a separate coroutine. Return a [ReceiverHandle] that can be polled to obtain the received
+ * messages and that allows to stop the receiver again.
  */
 fun startReceiver(
     configManager: ConfigManager,
     result: EndpointHandlerResult = EndpointHandlerResult.CONTINUE
-): LinkedBlockingQueue<Message<OrchestratorMessage>> {
+): ReceiverHandle {
     val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
 
     fun handler(message: Message<OrchestratorMessage>): EndpointHandlerResult {
@@ -78,14 +104,11 @@ fun startReceiver(
         return result
     }
 
-    thread {
-        @Suppress("ForbiddenMethodCall")
-        runBlocking {
-            MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
-        }
+    val job = CoroutineScope(Dispatchers.IO).launch {
+        MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
     }
 
-    return queue
+    return ReceiverHandle(job, queue)
 }
 
 /**
