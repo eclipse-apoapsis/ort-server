@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -118,6 +120,81 @@ class ReporterConfigTest : WordSpec({
                 secrets["testSecret2"] shouldBe "testSecretValue2"
                 secrets["testSecret3"] shouldBe "testSecretValue3"
             }
+        }
+    }
+
+    "getAllAssets()" should {
+        "be empty if no assets are configured" {
+            ReporterConfig().getAllAssets() should beEmpty()
+        }
+
+        "contain all global assets" {
+            ReporterConfig(
+                globalAssets = mapOf(
+                    "first" to listOf(
+                        ReporterAsset("asset-1"),
+                        ReporterAsset("asset-2")
+                    ),
+                    "second" to listOf(
+                        ReporterAsset("asset-3"),
+                        ReporterAsset("asset-4")
+                    )
+                )
+            ).getAllAssets() should containExactlyInAnyOrder("asset-1", "asset-2", "asset-3", "asset-4")
+        }
+
+        "contain all assets from report definitions" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf(
+                    "first" to ReportDefinitionTemplate(
+                        pluginId = PLUGIN_ID,
+                        assetFiles = listOf(
+                            ReporterAsset("asset-file-1"),
+                            ReporterAsset("asset-file-2")
+                        ),
+                        assetDirectories = listOf(
+                            ReporterAsset("asset-dir-1/"),
+                            ReporterAsset("asset-dir-2/")
+                        )
+                    ),
+                    "second" to ReportDefinitionTemplate(
+                        pluginId = PLUGIN_ID,
+                        assetFiles = listOf(
+                            ReporterAsset("asset-file-3"),
+                            ReporterAsset("asset-file-4")
+                        ),
+                        assetDirectories = listOf(
+                            ReporterAsset("asset-dir-3/"),
+                            ReporterAsset("asset-dir-4/")
+                        )
+                    )
+                )
+            ).getAllAssets() should containExactlyInAnyOrder(
+                "asset-file-1",
+                "asset-file-2",
+                "asset-file-3",
+                "asset-file-4",
+                "asset-dir-1/",
+                "asset-dir-2/",
+                "asset-dir-3/",
+                "asset-dir-4/"
+            )
+        }
+    }
+
+    "getNonDefaultConfigFiles()" should {
+        "be empty if only default files are used" {
+            ReporterConfig().getNonDefaultConfigFiles() should beEmpty()
+        }
+
+        "contain all non-default files" {
+            ReporterConfig(
+                howToFixTextProviderFile = "non-default.how-to-fix-text-provider.kts",
+                customLicenseTextDir = "customLicenseTextDir"
+            ).getNonDefaultConfigFiles() should containExactlyInAnyOrder(
+                "non-default.how-to-fix-text-provider.kts",
+                "customLicenseTextDir"
+            )
         }
     }
 
