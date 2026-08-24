@@ -112,8 +112,7 @@ class AdminConfigService(
                     "file provider: ${missingAssets.joinToString { "'$it'" }}"
         }
 
-        issues += config.scannerConfig.validate()
-        issues += config.reporterConfig.validate()
+        issues += config.validate()
 
         if (issues.isNotEmpty()) {
             throw ConfigException("Invalid admin configuration:\n${issues.joinToString(separator = "\n")}")
