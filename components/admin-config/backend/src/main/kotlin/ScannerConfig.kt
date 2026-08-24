@@ -52,4 +52,22 @@ data class ScannerConfig(
     /** The source code origins to use, ordered by priority. The list must not be empty or contain any duplicates. */
     val sourceCodeOrigins: List<SourceCodeOrigin> =
         ortDefaultDownloaderConfig.sourceCodeOrigins.map { SourceCodeOrigin.valueOf(it.name) }
-)
+) {
+    /**
+     * Validate this [ScannerConfig] and return a list of found issues. If the returned list is empty, this config is
+     * valid.
+     */
+    internal fun validate(): List<String> =
+        buildList {
+            if (sourceCodeOrigins.isEmpty()) {
+                add("'sourceCodeOrigins' from scanner configuration must not be empty.")
+            }
+
+            if (sourceCodeOrigins.toSet().size != sourceCodeOrigins.size) {
+                add(
+                    "'sourceCodeOrigins' from scanner configuration must not contain duplicates. " +
+                            "Current value is $sourceCodeOrigins."
+                )
+            }
+        }
+}

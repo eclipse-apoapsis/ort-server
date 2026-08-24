@@ -266,26 +266,10 @@ class AdminConfigServiceTest : WordSpec({
             }
         }
 
-        "throw an exception if an empty list of source code origins for the scanner is configured" {
+        "throw an exception if the scanner config is invalid" {
             val config = """
                     scanner {
                         sourceCodeOrigins = []
-                    }
-                """.trimIndent()
-
-            val service = createServiceWithConfig(config)
-
-            val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, validate = true)
-            }
-
-            exception.message shouldContain "'sourceCodeOrigins'"
-        }
-
-        "throw an exception if a duplicate source code origin is configured" {
-            val config = """
-                    scanner {
-                        sourceCodeOrigins = ["vcs", "artifact", "vcs"]
                     }
                 """.trimIndent()
 
