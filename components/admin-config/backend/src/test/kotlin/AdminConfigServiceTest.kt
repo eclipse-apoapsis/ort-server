@@ -483,6 +483,7 @@ class AdminConfigServiceTest : WordSpec({
                       reports {
                         disclosurePdf {
                           pluginId = "PdfTemplate"
+                          description = "A disclosure document in PDF format."
                           assetFiles = [
                             {
                               sourcePath = "reporter/template/logo.png"
@@ -522,6 +523,7 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
                 pluginId shouldBe "PdfTemplate"
+                description shouldBe "A disclosure document in PDF format."
                 assetFiles should containExactly(
                     ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
                     ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")

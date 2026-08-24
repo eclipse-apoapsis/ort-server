@@ -104,6 +104,9 @@ data class ReportDefinition(
      */
     val pluginId: String,
 
+    /** An optional description for this report. */
+    val description: String = "",
+
     /**
      * A list with [ReporterAsset]s pointing to files that must be downloaded before the generation of this report is
      * started.
@@ -130,6 +133,9 @@ data class ReportDefinition(
 data class ReportDefinitionTemplate(
     /** The ID of the reporter plugin that generates this report. */
     val pluginId: String,
+
+    /** An optional description for this report. */
+    val description: String = "",
 
     /** A list of [ReporterAsset]s pointing to files that must be downloaded from the config provider. */
     val assetFiles: List<ReporterAsset> = emptyList(),
@@ -275,6 +281,7 @@ data class ReporterConfig(
 
         ReportDefinition(
             pluginId = template.pluginId,
+            description = template.description,
             assetFiles = template.assetFiles + resolvedAssetFilesRefs,
             assetDirectories = assetDirectories + resolvedAssetDirectoriesRefs,
             nameMapping = template.nameMapping
