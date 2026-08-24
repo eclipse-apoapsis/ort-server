@@ -116,7 +116,7 @@ class AdminConfigService(
         issues += config.reporterConfig.validate()
 
         if (issues.isNotEmpty()) {
-            throw ConfigException("Invalid admin configuration:\n ${issues.joinToString(separator = "\n")}")
+            throw ConfigException("Invalid admin configuration:\n${issues.joinToString(separator = "\n")}")
         }
 
         return config
