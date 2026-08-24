@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.should
 
 class AdminConfigTest : WordSpec({
@@ -44,6 +45,26 @@ class AdminConfigTest : WordSpec({
             ).getNonDefaultConfigFiles() should containExactlyInAnyOrder(
                 "non-default-1", "non-default-2", "non-default-3", "non-default-4", "non-default-5"
             )
+        }
+    }
+
+    "validate" should {
+        "contain issues from the scanner config" {
+            AdminConfig(scannerConfig = ScannerConfig(sourceCodeOrigins = emptyList())).validate() should haveSize(1)
+        }
+
+        "contain issues from the reporter config" {
+            AdminConfig(
+                reporterConfig = ReporterConfig(
+                    reportDefinitionsMap = mapOf(
+                        "first" to ReportDefinitionTemplate(pluginId = "invalid-plugin")
+                    )
+                )
+            ).validate() should haveSize(1)
+        }
+
+        "be empty if the config is valid" {
+            AdminConfig().validate() should beEmpty()
         }
     }
 })
