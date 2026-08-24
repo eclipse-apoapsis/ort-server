@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -119,10 +120,42 @@ class ReporterConfigTest : WordSpec({
             }
         }
     }
+
+    "validate" should {
+        "return an issue if a report definition contains an invalid asset files reference" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf(
+                    "definition" to ReportDefinitionTemplate(
+                        pluginId = PLUGIN_ID,
+                        assetFilesRefs = listOf("non-existing")
+                    )
+                ),
+                globalAssets = mapOf("existing" to listOf(ReporterAsset(sourcePath = "path")))
+            ).validate() should haveSize(1)
+        }
+
+        "return an issue if a report definition contains an invalid asset directories reference" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf(
+                    "definition" to ReportDefinitionTemplate(
+                        pluginId = PLUGIN_ID,
+                        assetDirectoriesRefs = listOf("non-existing")
+                    )
+                ),
+                globalAssets = mapOf("existing" to listOf(ReporterAsset(sourcePath = "path")))
+            ).validate() should haveSize(1)
+        }
+
+        "return an issue if a report definition references a non-existing plugin" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf("definition" to ReportDefinitionTemplate(pluginId = "non-existing"))
+            ).validate() should haveSize(1)
+        }
+    }
 })
 
 private const val REPORT_DEFINITION_NAME = "disclosure-document"
-private const val PLUGIN_ID = "PdfTemplateReporter"
+private const val PLUGIN_ID = "PdfTemplate"
 
 /** A test [ReporterConfig] with a report definition that is used in the tests. */
 private val reporterConfig = ReporterConfig(
