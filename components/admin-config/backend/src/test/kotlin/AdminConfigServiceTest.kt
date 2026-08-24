@@ -77,7 +77,7 @@ class AdminConfigServiceTest : WordSpec({
             }
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, validate = true)
+                service.loadAdminConfig(context, validateConfigFiles = true)
             }
 
             exception.message shouldContain "non-default-garbage.yml"
@@ -97,7 +97,7 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, validate = true)
+                service.loadAdminConfig(context)
             }
 
             exception.message shouldContain "'invalidReporter'"
@@ -113,7 +113,7 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
 
             val exception = shouldThrow<ConfigException> {
-                service.loadAdminConfig(context, validate = true)
+                service.loadAdminConfig(context)
             }
 
             exception.message shouldContain "'sourceCodeOrigins'"
