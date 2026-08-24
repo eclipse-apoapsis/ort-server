@@ -76,7 +76,7 @@ class AdminConfigService(
         }
 
         logger.info("Loading admin configuration from path '{}'.", configPath.path)
-        val adminConfigFile = configManager.getFile(context, configPath).use {
+        val adminConfig = configManager.getFile(context, configPath).use {
             ConfigLoaderBuilder.default()
                 .addStreamSource(it, "conf")
                 .withResolveTypesCaseInsensitive()
@@ -85,10 +85,10 @@ class AdminConfigService(
         }
 
         if (validate) {
-            validate(context, adminConfigFile)
+            validate(context, adminConfig)
         }
 
-        return adminConfigFile
+        return adminConfig
     }
 
     /**
