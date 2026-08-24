@@ -20,10 +20,12 @@
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 
@@ -119,10 +121,48 @@ class ReporterConfigTest : WordSpec({
             }
         }
     }
+
+    "validate()" should {
+        "return an issue if a report definition contains an invalid asset files reference" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf(
+                    "definition" to ReportDefinitionTemplate(
+                        pluginId = PLUGIN_ID,
+                        assetFilesRefs = listOf("non-existing")
+                    )
+                ),
+                globalAssets = mapOf("existing" to listOf(ReporterAsset(sourcePath = "path")))
+            ).validate().shouldBeSingleton {
+                it shouldContain "non-existing"
+            }
+        }
+
+        "return an issue if a report definition contains an invalid asset directories reference" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf(
+                    "definition" to ReportDefinitionTemplate(
+                        pluginId = PLUGIN_ID,
+                        assetDirectoriesRefs = listOf("non-existing")
+                    )
+                ),
+                globalAssets = mapOf("existing" to listOf(ReporterAsset(sourcePath = "path")))
+            ).validate().shouldBeSingleton {
+                it shouldContain "non-existing"
+            }
+        }
+
+        "return an issue if a report definition references a non-existing plugin" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf("definition" to ReportDefinitionTemplate(pluginId = "non-existing"))
+            ).validate().shouldBeSingleton {
+                it shouldContain "non-existing"
+            }
+        }
+    }
 })
 
 private const val REPORT_DEFINITION_NAME = "disclosure-document"
-private const val PLUGIN_ID = "PdfTemplateReporter"
+private const val PLUGIN_ID = "PdfTemplate"
 
 /** A test [ReporterConfig] with a report definition that is used in the tests. */
 private val reporterConfig = ReporterConfig(
