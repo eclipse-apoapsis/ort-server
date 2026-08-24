@@ -61,18 +61,6 @@ class AdminConfigService(
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
-        /** Validate the given [scannerConfig]. Add found issues to the given [issues] list. */
-        private fun validateScannerConfig(issues: MutableList<String>, scannerConfig: ScannerConfig) {
-            if (scannerConfig.sourceCodeOrigins.isEmpty()) {
-                issues += "'sourceCodeOrigins' from scanner configuration must not be empty."
-            }
-
-            if (scannerConfig.sourceCodeOrigins.toSet().size != scannerConfig.sourceCodeOrigins.size) {
-                issues += "'sourceCodeOrigins' from scanner configuration must not contain duplicates. " +
-                        "Current value is ${scannerConfig.sourceCodeOrigins}."
-            }
-        }
-
         /** Validate the given [reporterConfig]. Add found issues to the given [issues] list. */
         private fun validateReporterConfig(issues: MutableList<String>, reporterConfig: ReporterConfig) {
             issues += reporterConfig.reportDefinitions.flatMapTo(mutableSetOf()) { definition ->
@@ -174,7 +162,7 @@ class AdminConfigService(
                     "${unresolvableFiles.joinToString(separator = ", ") { "'$it'" }}."
         }
 
-        validateScannerConfig(issues, config.scannerConfig)
+        issues += config.scannerConfig.validate()
         validateReporterConfig(issues, config.reporterConfig)
 
         if (issues.isNotEmpty()) {
