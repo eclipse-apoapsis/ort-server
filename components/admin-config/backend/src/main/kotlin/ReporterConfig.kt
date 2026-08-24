@@ -355,6 +355,31 @@ data class ReporterConfig(
                 }
             }
         }
+
+    /** Return a set of all asset files and directories referenced by this config. */
+    fun getAllAssets() =
+        buildSet {
+            globalAssets.values.forEach { assets ->
+                assets.forEach { asset ->
+                    add(asset.sourcePath)
+                }
+            }
+
+            reportDefinitions.forEach { definition ->
+                (definition.assetFiles + definition.assetDirectories).forEach {
+                    if (!it.sourcePath.startsWith(UNRESOLVABLE_ASSET_PREFIX)) {
+                        add(it.sourcePath)
+                    }
+                }
+            }
+        }
+
+    /** Return a set of all non-default config files referenced by this config. */
+    fun getNonDefaultConfigFiles() =
+        setOfNotNull(
+            howToFixTextProviderFile.takeIf { it != ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME },
+            customLicenseTextDir
+        )
 }
 
 private fun String.ensureTrailingSlash() = takeIf { it.endsWith("/") } ?: plus("/")

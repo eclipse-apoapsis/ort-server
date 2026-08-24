@@ -53,6 +53,15 @@ data class RuleSet(
         internal const val DEFAULT_RESOLUTIONS_FILE = ORT_RESOLUTIONS_FILENAME
         internal const val DEFAULT_EVALUATOR_RULES_FILE = ORT_EVALUATOR_RULES_FILENAME
     }
+
+    /** Return a set of all non-default config files referenced by this rule set. */
+    fun getNonDefaultConfigFiles() =
+        setOfNotNull(
+            copyrightGarbageFile.takeIf { it != DEFAULT_COPYRIGHT_GARBAGE_FILE },
+            licenseClassificationsFile.takeIf { it != DEFAULT_LICENSE_CLASSIFICATIONS_FILE },
+            resolutionsFile.takeIf { it != DEFAULT_RESOLUTIONS_FILE },
+            evaluatorRules.takeIf { it != DEFAULT_EVALUATOR_RULES_FILE }
+        )
 }
 
 /** A template for a [RuleSet] where all properties are nullable. */
