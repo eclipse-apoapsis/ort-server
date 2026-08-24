@@ -87,4 +87,15 @@ data class AdminConfig(
         } else {
             resolvedRuleSets[name] ?: throw NoSuchElementException("No rule set defined with the name '$name'.")
         }
+
+    /** Return a set of all non-default config files referenced by this config. */
+    fun getNonDefaultConfigFiles(): Set<String> = buildSet {
+        addAll(defaultRuleSet.getNonDefaultConfigFiles())
+
+        resolvedRuleSets.forEach { (_, ruleSet) ->
+            addAll(ruleSet.getNonDefaultConfigFiles())
+        }
+
+        addAll(reporterConfig.getNonDefaultConfigFiles())
+    }
 }

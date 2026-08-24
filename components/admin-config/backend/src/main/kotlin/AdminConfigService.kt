@@ -58,22 +58,6 @@ class AdminConfigService(
         internal const val UNRESOLVABLE_ASSET_PREFIX = "<<UNRESOLVABLE_ASSET>>"
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
-
-        /**
-         * Return a [Set] with the paths to all configuration files referenced by this [AdminConfig]. This is used
-         * to perform a validation after loading the configuration whether these files can actually be resolved.
-         * The set does not contain any default paths because for those it is allowed to not exist.
-         */
-        private fun getConfigurationFiles(config: AdminConfig): Set<String> = buildSet {
-            addAll(config.getRuleSet(null).getNonDefaultConfigFiles())
-
-            config.ruleSetNames.forEach { ruleSet ->
-                addAll(config.getRuleSet(ruleSet).getNonDefaultConfigFiles())
-            }
-
-            addAll(config.reporterConfig.getAllAssets())
-            addAll(config.reporterConfig.getNonDefaultConfigFiles())
-        }
     }
 
     /**
@@ -112,15 +96,20 @@ class AdminConfigService(
      * called after loading the configuration to fail early if invalid properties are found.
      */
     private fun validate(context: Context?, config: AdminConfig): AdminConfig {
-        val unresolvableFiles = getConfigurationFiles(config).filterNot { file ->
-            configManager.containsFile(context, Path(file))
-        }
-
         val issues = mutableListOf<String>()
 
-        if (unresolvableFiles.isNotEmpty()) {
-            issues += "Found unresolvable configuration files referenced from the admin configuration: " +
-                    "${unresolvableFiles.joinToString(separator = ", ") { "'$it'" }}."
+        config.getNonDefaultConfigFiles().filterNot { file ->
+            configManager.containsFile(context, Path(file))
+        }.takeIf { it.isNotEmpty() }?.let { missingFiles ->
+            issues += "The following configuration files referenced by the admin config are not found in the " +
+                    "config file provider: ${missingFiles.joinToString { "'$it'" }}"
+        }
+
+        config.reporterConfig.getAllAssets().filterNot { asset ->
+            configManager.containsFile(context, Path(asset))
+        }.takeIf { it.isNotEmpty() }?.let { missingAssets ->
+            issues += "The following reporter assets referenced by the admin config are not found in the config " +
+                    "file provider: ${missingAssets.joinToString { "'$it'" }}"
         }
 
         issues += config.scannerConfig.validate()
