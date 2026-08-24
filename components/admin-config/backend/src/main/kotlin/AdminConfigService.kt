@@ -61,10 +61,12 @@ class AdminConfigService(
     }
 
     /**
-     * Load the [AdminConfig] from the configured path in the given [context].
-     * [Optionally][validate], perform a validation after loading.
+     * Load the [AdminConfig] from the configured path in the given [context] of the [configManager]. This function also
+     * validates that the structure of the loaded config is valid. If [validateConfigFiles] is true, it is also
+     * validated that all configured config files and reporter assets exist for the provided [context] of the
+     * [configManager].
      */
-    fun loadAdminConfig(context: Context?, validate: Boolean = false): AdminConfig {
+    fun loadAdminConfig(context: Context?, validateConfigFiles: Boolean = false): AdminConfig {
         val configPath = Path(configManager.getStringOrDefault(PATH_PROPERTY, DEFAULT_PATH))
         if (configPath.path == DEFAULT_PATH && !configManager.containsFile(context, configPath)) {
             logger.warn(
@@ -84,25 +86,17 @@ class AdminConfigService(
                 .loadConfigOrThrow<AdminConfig>()
         }
 
-        if (validate) {
-            validate(context, adminConfig)
+        val issues = adminConfig.validate().toMutableList()
+
+        if (validateConfigFiles) {
+            issues += validateConfigFiles(context, adminConfig)
         }
-
-        return adminConfig
-    }
-
-    /**
-     * Perform a validation of the given [config]. Throw an exception if problems are encountered. This function is
-     * called after loading the configuration to fail early if invalid properties are found.
-     */
-    private fun validate(context: Context?, config: AdminConfig): AdminConfig {
-        val issues = config.validate() + validateConfigFiles(context, config)
 
         if (issues.isNotEmpty()) {
             throw ConfigException("Invalid admin configuration:\n${issues.joinToString(separator = "\n")}")
         }
 
-        return config
+        return adminConfig
     }
 
     /**
