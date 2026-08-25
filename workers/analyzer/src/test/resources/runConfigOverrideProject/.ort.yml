@@ -1,0 +1,10 @@
+---
+analyzer:
+  allow_dynamic_versions: true
+  skip_excluded: false
+excludes:
+  paths:
+    - pattern: "**/test"
+      reason: TEST_OF
+      comment: >-
+        This path should not be analyzed.
