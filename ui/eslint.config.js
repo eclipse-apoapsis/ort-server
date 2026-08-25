@@ -61,6 +61,15 @@ export default defineConfig([
         },
       ],
       'no-console': ['warn'],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'JSXElement[openingElement.name.name="Link"] JSXElement[openingElement.name.name="Button"]',
+          message:
+            'Do not nest a Button inside a Link, which renders an anchor. Use <Button asChild><Link …/></Button>.',
+        },
+      ],
       // Report conditions that can never change the outcome, such as `?.` on a
       // value that is never nullish, so that the checks that do matter stand
       // out.
