@@ -187,15 +187,15 @@ class ReporterRunner(
     }
 
     /**
-     * Generate all reports for the current [context] as defined by the given [config] and [adminConfig] using as input
-     * the given [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider]. Return
-     * a pair with a map from report names to their file sizes in bytes for reports that were created successfully
-     * and a list of issues that occurred during the report generation.
+     * Generate all reports for the current [context] as defined by the given [config] and [reporterConfig] using as
+     * input the given [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider].
+     * Return a pair with a map from report names to their file sizes in bytes for reports that were created
+     * successfully and a list of issues that occurred during the report generation.
      */
     private suspend fun generateReports(
         context: WorkerContext,
         config: ReporterJobConfiguration,
-        adminConfig: ReporterConfig,
+        reporterConfig: ReporterConfig,
         resolvedOrtResult: OrtResult,
         copyrightGarbage: CopyrightGarbage,
         licenseClassifications: LicenseClassifications,
@@ -205,7 +205,7 @@ class ReporterRunner(
             val outputDir = context.createTempDir()
             val issues = ConcurrentLinkedQueue<Issue>()
 
-            val deferredTransformedOptions = async { processReporterOptions(context, config, adminConfig) }
+            val deferredTransformedOptions = async { processReporterOptions(context, config, reporterConfig) }
 
             val deferredReporterInput = async {
                 // TODO: Some parameters of ReporterInput are still set to default values. Make sure that for all
@@ -221,7 +221,7 @@ class ReporterRunner(
                     ),
                     copyrightGarbage = copyrightGarbage,
                     licenseClassifications = licenseClassifications,
-                    licenseFactProvider = createLicenseFactProvider(context, adminConfig),
+                    licenseFactProvider = createLicenseFactProvider(context, reporterConfig),
                     howToFixTextProvider = howToFixTextProvider
                 )
             }
@@ -239,14 +239,14 @@ class ReporterRunner(
 
                     val result = runCatching {
                         measureTimedValue {
-                            val reporterFactory = adminConfig.getReporterFactory(format)
+                            val reporterFactory = reporterConfig.getReporterFactory(format)
 
-                            val reporterConfig = adminConfig.pluginOptionsForDefinition(
+                            val pluginConfig = reporterConfig.pluginOptionsForDefinition(
                                 format,
                                 transformedOptions
                             )?.mapToOrt().orEmpty()
 
-                            val reporter = reporterFactory.create(reporterConfig)
+                            val reporter = reporterFactory.create(pluginConfig)
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir)
 
                             val reportFiles = reportFileResults.mapNotNull { result ->
@@ -267,7 +267,7 @@ class ReporterRunner(
 
                     result.getOrNull()?.let { (_, reportFiles) ->
                         val nameMapper = ReportNameMapper.create(
-                            requireNotNull(adminConfig.getReportDefinition(format))
+                            requireNotNull(reporterConfig.getReportDefinition(format))
                         )
 
                         val namedReportFiles = nameMapper.mapReportNames(reportFiles)
@@ -297,17 +297,17 @@ class ReporterRunner(
 
     /**
      * Prepare the generation of reports by processing the options passed to the single reporters in the given
-     * [config], also taking the given [adminConfig] into account. This includes downloading of all files that are
+     * [config], also taking the given [reporterConfig] into account. This includes downloading of all files that are
      * referenced by reporters, such as template files and other assets like fonts or images. Also, the secrets
      * required by reporters need to be resolved. Use the given [context] for the processing.
      */
     private suspend fun processReporterOptions(
         context: WorkerContext,
         config: ReporterJobConfiguration,
-        adminConfig: ReporterConfig
+        reporterConfig: ReporterConfig
     ): Map<String, PluginConfig> = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
-        val (assetFiles, assetDirectories) = adminConfig.getReporterAssets(config)
+        val (assetFiles, assetDirectories) = reporterConfig.getReporterAssets(config)
 
         launch { context.downloadAssetFiles(assetFiles, templateDir) }
         launch { context.downloadAssetDirectories(assetDirectories, templateDir) }
