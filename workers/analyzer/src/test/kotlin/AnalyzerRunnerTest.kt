@@ -27,6 +27,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -79,6 +80,7 @@ import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice
+import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration
@@ -112,6 +114,18 @@ private val testRunnerConfig = AnalyzerRunnerConfig(
             options = mapOf("foo" to "bar")
         )
     ),
+    repositoryConfigPath = null,
+    keepAliveWorker = false,
+    keepAlivePhases = emptySet()
+)
+
+/** An [AnalyzerRunnerConfig] with all optional properties set to `null`, to be used as a base for merge tests. */
+private val emptyRunnerConfig = AnalyzerRunnerConfig(
+    allowDynamicVersions = false,
+    skipExcluded = null,
+    enabledPackageManagers = null,
+    disabledPackageManagers = null,
+    packageManagerOptions = null,
     repositoryConfigPath = null,
     keepAliveWorker = false,
     keepAlivePhases = emptySet()
@@ -389,6 +403,160 @@ class AnalyzerRunnerTest : WordSpec({
             }
 
             exception.message shouldContain "The forked process died"
+        }
+
+        "override the repository configuration with the run configuration" {
+            val inputDir = File("src/test/resources/runConfigOverrideProject/").absoluteFile
+            val config = testRunnerConfig.copy(skipExcluded = true)
+
+            val result = run(inputDir = inputDir, config = config)
+
+            result.getProjects(omitExcluded = false) shouldHaveSize 1
+        }
+    }
+
+    "AnalyzerRunnerConfig.merge" should {
+        "prefer properties from the runner config over the file config" {
+            val runnerConfig = emptyRunnerConfig.copy(
+                allowDynamicVersions = true,
+                enabledPackageManagers = listOf("Maven"),
+                disabledPackageManagers = listOf("Gradle"),
+                skipExcluded = true
+            )
+            val fileConfig = RepositoryAnalyzerConfiguration(
+                allowDynamicVersions = false,
+                enabledPackageManagers = listOf("Gradle"),
+                disabledPackageManagers = listOf("NPM"),
+                skipExcluded = false
+            )
+
+            val merged = runnerConfig.merge(fileConfig)
+
+            merged.allowDynamicVersions shouldBe true
+            merged.enabledPackageManagers shouldBe listOf("Maven")
+            merged.disabledPackageManagers shouldBe listOf("Gradle")
+            merged.skipExcluded shouldBe true
+        }
+
+        "fall back to the file config for properties not set in the runner config" {
+            val fileConfig = RepositoryAnalyzerConfiguration(
+                enabledPackageManagers = listOf("Gradle"),
+                disabledPackageManagers = listOf("NPM"),
+                skipExcluded = true
+            )
+
+            val merged = emptyRunnerConfig.merge(fileConfig)
+
+            merged.enabledPackageManagers shouldBe listOf("Gradle")
+            merged.disabledPackageManagers shouldBe listOf("NPM")
+            merged.skipExcluded shouldBe true
+        }
+
+        "fall back to the ORT defaults for properties not set in either config" {
+            val merged = emptyRunnerConfig.merge(RepositoryAnalyzerConfiguration())
+
+            merged.enabledPackageManagers shouldBe AnalyzerConfiguration().enabledPackageManagers
+            merged.disabledPackageManagers shouldBe null
+
+            merged.skipExcluded shouldBe false
+        }
+
+        "return null package manager options if neither config defines any" {
+            val merged = emptyRunnerConfig.merge(RepositoryAnalyzerConfiguration())
+
+            merged.packageManagers shouldBe null
+        }
+
+        "use the package manager options from the file config if the runner config does not define any" {
+            val fileOptions = mapOf(
+                "Maven" to OrtPackageManagerConfiguration(options = mapOf("file" to "value"))
+            )
+            val fileConfig = RepositoryAnalyzerConfiguration(packageManagers = fileOptions)
+
+            emptyRunnerConfig.merge(fileConfig).packageManagers shouldBe fileOptions
+        }
+
+        "use the package manager options from the runner config if the file config does not define any" {
+            val runnerConfig = emptyRunnerConfig.copy(
+                packageManagerOptions = mapOf(
+                    "Maven" to PackageManagerConfiguration(options = mapOf("job" to "value"))
+                )
+            )
+
+            val merged = runnerConfig.merge(RepositoryAnalyzerConfiguration())
+
+            merged.packageManagers shouldBe mapOf(
+                "Maven" to OrtPackageManagerConfiguration(options = mapOf("job" to "value"))
+            )
+        }
+
+        "combine package manager options for different package managers from both configs" {
+            val runnerConfig = emptyRunnerConfig.copy(
+                packageManagerOptions = mapOf(
+                    "Maven" to PackageManagerConfiguration(options = mapOf("job" to "value"))
+                )
+            )
+            val fileConfig = RepositoryAnalyzerConfiguration(
+                packageManagers = mapOf(
+                    "NPM" to OrtPackageManagerConfiguration(options = mapOf("file" to "value"))
+                )
+            )
+
+            val merged = runnerConfig.merge(fileConfig).packageManagers
+
+            merged shouldBe mapOf(
+                "Maven" to OrtPackageManagerConfiguration(options = mapOf("job" to "value")),
+                "NPM" to OrtPackageManagerConfiguration(options = mapOf("file" to "value"))
+            )
+        }
+
+        "merge the options of the same package manager, preferring the runner config's options on conflicts" {
+            val runnerConfig = emptyRunnerConfig.copy(
+                packageManagerOptions = mapOf(
+                    "Maven" to PackageManagerConfiguration(
+                        mustRunAfter = listOf("Gradle"),
+                        options = mapOf("shared" to "fromJob", "job" to "onlyJob")
+                    )
+                )
+            )
+            val fileConfig = RepositoryAnalyzerConfiguration(
+                packageManagers = mapOf(
+                    "Maven" to OrtPackageManagerConfiguration(
+                        mustRunAfter = listOf("NPM"),
+                        options = mapOf("shared" to "fromFile", "file" to "onlyFile")
+                    )
+                )
+            )
+
+            val merged = runnerConfig.merge(fileConfig).packageManagers
+
+            merged shouldBe mapOf(
+                "Maven" to OrtPackageManagerConfiguration(
+                    mustRunAfter = listOf("Gradle"),
+                    options = mapOf("shared" to "fromJob", "file" to "onlyFile", "job" to "onlyJob")
+                )
+            )
+        }
+
+        "merge package manager options case-insensitively" {
+            val runnerConfig = emptyRunnerConfig.copy(
+                packageManagerOptions = mapOf(
+                    "maven" to PackageManagerConfiguration(options = mapOf("job" to "value"))
+                )
+            )
+            val fileConfig = RepositoryAnalyzerConfiguration(
+                packageManagers = mapOf(
+                    "Maven" to OrtPackageManagerConfiguration(options = mapOf("file" to "value"))
+                )
+            )
+
+            val merged = runnerConfig.merge(fileConfig).packageManagers
+
+            merged.shouldNotBeNull()
+            merged.keys shouldHaveSize 1
+            merged["MAVEN"] shouldBe OrtPackageManagerConfiguration(
+                options = mapOf("file" to "value", "job" to "value")
+            )
         }
     }
 
