@@ -123,62 +123,97 @@ export function DataTablePagination({
           </form>
         </div>
         <div className='flex items-center space-x-2'>
-          <Link disabled={currentPage <= 1} {...setCurrentPageOptions(1)}>
-            <Button
-              aria-label='Go to first page'
-              variant='outline'
-              className='hidden size-8 p-0 lg:flex'
+          <Button
+            asChild
+            aria-label='Go to first page'
+            variant='outline'
+            className='hidden size-8 p-0 lg:flex'
+          >
+            <Link
+              {...setCurrentPageOptions(1)}
               disabled={currentPage <= 1}
-              onClick={() => setPage(1)}
+              aria-disabled={currentPage <= 1}
+              tabIndex={currentPage <= 1 ? -1 : undefined}
+              onClick={(event) => {
+                if (currentPage <= 1) {
+                  event.preventDefault();
+                  return;
+                }
+                setPage(1);
+              }}
             >
               <ChevronsLeft className='size-4' aria-hidden='true' />
-            </Button>
-          </Link>
-          <Link
-            disabled={currentPage <= 1}
-            {...setCurrentPageOptions(currentPage - 1)}
+            </Link>
+          </Button>
+          <Button
+            asChild
+            aria-label='Go to previous page'
+            variant='outline'
+            size='icon'
+            className='size-8'
           >
-            <Button
-              aria-label='Go to previous page'
-              variant='outline'
-              size='icon'
-              className='size-8'
+            <Link
+              {...setCurrentPageOptions(currentPage - 1)}
               disabled={currentPage <= 1}
-              onClick={() => setPage((prevPage) => prevPage - 1)}
+              aria-disabled={currentPage <= 1}
+              tabIndex={currentPage <= 1 ? -1 : undefined}
+              onClick={(event) => {
+                if (currentPage <= 1) {
+                  event.preventDefault();
+                  return;
+                }
+                setPage((prevPage) => prevPage - 1);
+              }}
             >
               <ChevronLeft className='size-4' aria-hidden='true' />
-            </Button>
-          </Link>
-          <Link
-            disabled={currentPage >= totalPages}
-            {...setCurrentPageOptions(currentPage + 1)}
+            </Link>
+          </Button>
+          <Button
+            asChild
+            aria-label='Go to next page'
+            variant='outline'
+            size='icon'
+            className='size-8'
           >
-            <Button
-              aria-label='Go to next page'
-              variant='outline'
-              size='icon'
-              className='size-8'
+            <Link
+              {...setCurrentPageOptions(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              onClick={() => setPage((prevPage) => prevPage + 1)}
+              aria-disabled={currentPage >= totalPages}
+              tabIndex={currentPage >= totalPages ? -1 : undefined}
+              onClick={(event) => {
+                if (currentPage >= totalPages) {
+                  event.preventDefault();
+                  return;
+                }
+                setPage((prevPage) => prevPage + 1);
+              }}
             >
               <ChevronRight className='size-4' aria-hidden='true' />
-            </Button>
-          </Link>
-          <Link
-            disabled={currentPage >= totalPages}
-            {...setCurrentPageOptions(totalPages)}
+            </Link>
+          </Button>
+          <Button
+            asChild
+            aria-label='Go to last page'
+            variant='outline'
+            size='icon'
+            className='hidden size-8 lg:flex'
           >
-            <Button
-              aria-label='Go to last page'
-              variant='outline'
-              size='icon'
-              className='hidden size-8 lg:flex'
-              onClick={() => setPage(totalPages)}
+            <Link
+              {...setCurrentPageOptions(totalPages)}
               disabled={currentPage >= totalPages}
+              aria-disabled={currentPage >= totalPages}
+              tabIndex={currentPage >= totalPages ? -1 : undefined}
+              onClick={(event) => {
+                if (currentPage >= totalPages) {
+                  event.preventDefault();
+                  return;
+                }
+                setPage(totalPages);
+              }}
             >
               <ChevronsRight className='size-4' aria-hidden='true' />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

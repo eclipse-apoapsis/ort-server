@@ -55,11 +55,11 @@ export function MarkItems<TData extends RowData>({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link {...setMarked(row.id)} onClick={urlToClipboard}>
-          <Button size='sm' variant='ghost'>
+        <Button asChild size='sm' variant='ghost'>
+          <Link {...setMarked(row.id)} onClick={urlToClipboard}>
             <Chain className='h-3 w-3' />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </TooltipTrigger>
 
       <TooltipContent>

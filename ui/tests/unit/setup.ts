@@ -22,6 +22,16 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
+if (typeof window !== 'undefined') {
+  window.scrollTo = () => {};
+
+  globalThis.ResizeObserver = class implements ResizeObserver {
+    disconnect() {}
+    observe() {}
+    unobserve() {}
+  };
+}
+
 afterEach(() => {
   if (typeof document !== 'undefined') {
     cleanup();
