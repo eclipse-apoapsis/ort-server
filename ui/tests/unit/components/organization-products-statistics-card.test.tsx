@@ -17,11 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import type { ReactNode } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OrganizationProductsStatisticsCard } from '@/routes/organizations/$orgId/-components/organization-products-statistics-card';
+import { renderStaticWithRouter } from '../fixtures/router-harness';
 
 const mocks = vi.hoisted(() => ({
   canCreateProduct: true,
@@ -38,35 +37,20 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    className,
-    disabled,
-    params,
-  }: {
-    children: ReactNode;
-    className?: string;
-    disabled?: boolean;
-    params: { orgId: string };
-  }) => (
-    <a
-      className={className}
-      href={`/organizations/${params.orgId}/create-product`}
-      aria-disabled={disabled}
-    >
-      {children}
-    </a>
-  ),
-}));
-
 vi.mock('@/hooks/use-authorization', () => ({
   useOrganizationPermission: mocks.useOrganizationPermission,
 }));
 
 const renderCard = () =>
-  renderToStaticMarkup(
-    <OrganizationProductsStatisticsCard orgId='42' className='col-span-2' />
+  renderStaticWithRouter(
+    <OrganizationProductsStatisticsCard orgId='42' className='col-span-2' />,
+    {
+      path: '/organizations/42',
+      routes: [
+        { path: '/organizations/$orgId' },
+        { path: '/organizations/$orgId/create-product' },
+      ],
+    }
   );
 
 describe('OrganizationProductsStatisticsCard', () => {
@@ -82,8 +66,8 @@ describe('OrganizationProductsStatisticsCard', () => {
     });
   });
 
-  it('renders the product total and add action', () => {
-    const markup = renderCard();
+  it('renders the product total and add action', async () => {
+    const markup = await renderCard();
 
     expect(markup).toContain('Products');
     expect(markup).toContain('>12<');
@@ -96,10 +80,10 @@ describe('OrganizationProductsStatisticsCard', () => {
     );
   });
 
-  it('disables the add action without permission', () => {
+  it('disables the add action without permission', async () => {
     mocks.canCreateProduct = false;
 
-    const markup = renderCard();
+    const markup = await renderCard();
 
     expect(markup).toContain('aria-disabled="true"');
   });
