@@ -18,25 +18,30 @@
  */
 
 import type { ReactNode } from 'react';
-import type { UseFormReturn } from 'react-hook-form';
+import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
+import { Accordion } from '@/components/ui/accordion';
 import {
   defaultValues,
   type CreateRunFormValues,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import {
   AdvisorFields,
+  AnalyzerFields,
   EvaluatorFields,
   NotifierFields,
   ReporterFields,
   ScannerFields,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 import {
+  createPackageCurationProviderPlugins,
+  createPermissions,
   createPluginDescriptor,
   createPluginSecrets,
 } from '../fixtures/create-run';
 import { renderWithForm } from '../fixtures/form-harness';
+import { renderStaticWithRouter } from '../fixtures/router-harness';
 
 const advisorPlugins = [
   createPluginDescriptor({
@@ -62,6 +67,8 @@ const packageConfigurationProviderPlugins = [
     displayName: 'ORT configuration',
   }),
 ];
+const packageCurationProviderPlugins = createPackageCurationProviderPlugins();
+const permissions = createPermissions();
 const secrets = createPluginSecrets();
 const formDefaultValues = defaultValues(
   null,
@@ -79,6 +86,46 @@ type JobFieldsTestCase = {
   trigger: string;
   contentLabel: string;
   render: (form: UseFormReturn<CreateRunFormValues>) => ReactNode;
+};
+
+const AnalyzerFieldsHarness = () => {
+  const form = useForm<CreateRunFormValues>({
+    defaultValues: formDefaultValues,
+  });
+
+  return (
+    <FormProvider {...form}>
+      <Accordion type='multiple' defaultValue={['analyzer']}>
+        <AnalyzerFields
+          form={form}
+          value='analyzer'
+          onToggle={onToggle}
+          isSuperuser
+          packageCurationProviderPlugins={packageCurationProviderPlugins}
+          pluginSecrets={secrets}
+          isRerun={false}
+          permissions={permissions}
+        />
+      </Accordion>
+    </FormProvider>
+  );
+};
+
+const expectOpenJobFields = (
+  markup: string,
+  trigger: string,
+  contentLabel: string
+) => {
+  const triggerIndex = markup.indexOf(`>${trigger}<`);
+  const switchIndexes = [...markup.matchAll(/role="switch"/g)].map(
+    (match) => match.index
+  );
+
+  expect(triggerIndex).toBeGreaterThan(-1);
+  expect(markup).toContain('data-state="open"');
+  expect(markup).toContain(contentLabel);
+  expect(switchIndexes.some((index) => index < triggerIndex)).toBe(true);
+  expect(switchIndexes.some((index) => index > triggerIndex)).toBe(true);
 };
 
 const testCases: JobFieldsTestCase[] = [
@@ -178,16 +225,20 @@ describe('create run job fields', () => {
         openAccordion: sectionValue,
       });
 
-      const triggerIndex = markup.indexOf(`>${trigger}<`);
-      const switchIndexes = [...markup.matchAll(/role="switch"/g)].map(
-        (match) => match.index
-      );
-
-      expect(triggerIndex).toBeGreaterThan(-1);
-      expect(markup).toContain('data-state="open"');
-      expect(markup).toContain(contentLabel);
-      expect(switchIndexes.some((index) => index < triggerIndex)).toBe(true);
-      expect(switchIndexes.some((index) => index > triggerIndex)).toBe(true);
+      expectOpenJobFields(markup, trigger, contentLabel);
     }
   );
+
+  it('renders the analyzer controls inside an open accordion', async () => {
+    const markup = await renderStaticWithRouter(<AnalyzerFieldsHarness />, {
+      path: '/organizations/1/products/2/repositories/3',
+      routes: [
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        },
+      ],
+    });
+
+    expectOpenJobFields(markup, 'Analyzer', 'Repository configuration path');
+  });
 });
