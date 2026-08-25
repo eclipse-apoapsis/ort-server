@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,13 @@
  * License-Filename: LICENSE
  */
 
-/// <reference types="vitest/config" />
+import '@testing-library/jest-dom/vitest';
 
-import path from 'path';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
 
-import { tanstackRouter } from '@tanstack/router-vite-plugin';
-import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), tanstackRouter()],
-  resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, './src'),
-    },
-  },
-  test: {
-    include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
-    setupFiles: ['./tests/unit/setup.ts'],
-  },
+afterEach(() => {
+  if (typeof document !== 'undefined') {
+    cleanup();
+  }
 });
