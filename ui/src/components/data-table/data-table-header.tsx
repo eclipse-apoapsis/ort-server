@@ -62,20 +62,21 @@ export function DataTableHeader<TData extends RowData>({
               const renderSortButton = () => (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link
-                      {...setSortingOptions?.({
-                        id: column.id,
-                        desc:
-                          column.getIsSorted() === 'desc'
-                            ? undefined
-                            : column.getIsSorted() === 'asc',
-                      })}
+                    <Button
+                      asChild
+                      variant='ghost'
+                      size='narrow'
+                      className='ml-4'
+                      onClick={column.getToggleSortingHandler()}
                     >
-                      <Button
-                        variant='ghost'
-                        size='narrow'
-                        className='ml-4'
-                        onClick={column.getToggleSortingHandler()}
+                      <Link
+                        {...setSortingOptions?.({
+                          id: column.id,
+                          desc:
+                            column.getIsSorted() === 'desc'
+                              ? undefined
+                              : column.getIsSorted() === 'asc',
+                        })}
                       >
                         {column.getIsSorted() === 'asc' ? (
                           <ChevronUp className='h-4 w-4 text-blue-500' />
@@ -84,8 +85,8 @@ export function DataTableHeader<TData extends RowData>({
                         ) : (
                           <ChevronsUpDown className='h-4 w-4' />
                         )}
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     {column.getCanSort()

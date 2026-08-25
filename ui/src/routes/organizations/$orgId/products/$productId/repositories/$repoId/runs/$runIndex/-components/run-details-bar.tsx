@@ -124,33 +124,37 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
       className={cn('flex flex-col justify-between p-4 md:flex-row', className)}
     >
       <div className='flex items-start'>
-        <Link
-          to={hasPrevious ? buildRunPath(previousIndex!) : '#'}
-          disabled={!hasPrevious}
-        >
-          <Button variant='ghost' disabled={!hasPrevious}>
+        <Button asChild variant='ghost'>
+          <Link
+            to={hasPrevious ? buildRunPath(previousIndex!) : '#'}
+            disabled={!hasPrevious}
+          >
             <ArrowBigLeft className='h-5 w-5' />
             <div className='text-muted-foreground text-xs'>Previous</div>
-          </Button>
-        </Link>
-        <Link
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
-          params={params}
+          </Link>
+        </Button>
+        <Button
+          asChild
+          variant='ghost'
+          className='flex flex-col items-center gap-0.5'
         >
-          <Button
-            variant='ghost'
-            className='flex flex-col items-center gap-0.5'
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+            params={params}
           >
             <ArrowBigUp className='h-5 w-5' />
             <div className='text-muted-foreground text-xs'>All</div>
-          </Button>
-        </Link>
-        <Link to={hasNext ? buildRunPath(nextIndex!) : '#'} disabled={!hasNext}>
-          <Button variant='ghost' disabled={!hasNext}>
+          </Link>
+        </Button>
+        <Button asChild variant='ghost'>
+          <Link
+            to={hasNext ? buildRunPath(nextIndex!) : '#'}
+            disabled={!hasNext}
+          >
             <div className='text-muted-foreground text-xs'>Next</div>
             <ArrowBigRight className='h-5 w-5' />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
       <div className='flex gap-4'>
         <div className='flex flex-col gap-2'>
