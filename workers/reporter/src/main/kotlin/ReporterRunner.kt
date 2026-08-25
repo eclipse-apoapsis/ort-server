@@ -239,7 +239,7 @@ class ReporterRunner(
 
                     val result = runCatching {
                         measureTimedValue {
-                            val reporterFactory = fetchReporterFactory(format, adminConfig)
+                            val reporterFactory = getReporterFactory(format, adminConfig)
 
                             val reporterConfig = adminConfig.pluginOptionsForDefinition(
                                 format,
@@ -307,7 +307,7 @@ class ReporterRunner(
         adminConfig: ReporterConfig
     ): Map<String, PluginConfig> = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
-        val (assetFiles, assetDirectories) = fetchReporterAssets(config, adminConfig)
+        val (assetFiles, assetDirectories) = getReporterAssets(config, adminConfig)
 
         launch { context.downloadAssetFiles(assetFiles, templateDir) }
         launch { context.downloadAssetDirectories(assetDirectories, templateDir) }
@@ -465,12 +465,12 @@ private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
  * Obtain all [ReporterAsset]s that must be downloaded based on the given [config] and [adminConfig]. Return a pair
  * with the asset files and asset directories referenced by the configuration.
  */
-private fun fetchReporterAssets(
+private fun getReporterAssets(
     config: ReporterJobConfiguration,
     adminConfig: ReporterConfig
 ): Pair<Collection<ReporterAsset>, Collection<ReporterAsset>> {
-    val assetFiles = adminConfig.fetchGlobalAssets(config.assetFilesGroups)
-    val assetDirectories = adminConfig.fetchGlobalAssets(config.assetDirectoriesGroups)
+    val assetFiles = adminConfig.getGlobalAssets(config.assetFilesGroups)
+    val assetDirectories = adminConfig.getGlobalAssets(config.assetDirectoriesGroups)
 
     config.formats.forEach { format ->
         adminConfig.getReportDefinition(format)?.also { definition ->
@@ -487,7 +487,7 @@ private fun fetchReporterAssets(
  * referenced by the given [groupNames]. Unresolvable groups names are ignored; a validation should have taken
  * place already in an earlier step.
  */
-private fun ReporterConfig.fetchGlobalAssets(groupNames: Collection<String>): MutableSet<ReporterAsset> =
+private fun ReporterConfig.getGlobalAssets(groupNames: Collection<String>): MutableSet<ReporterAsset> =
     groupNames.flatMapTo(mutableSetOf()) { groupName ->
         globalAssets[groupName].orEmpty()
     }
@@ -495,7 +495,7 @@ private fun ReporterConfig.fetchGlobalAssets(groupNames: Collection<String>): Mu
 /**
  * Obtain the [ReporterFactory] for the given [format] using the definitions from the given [adminConfig].
  */
-private fun fetchReporterFactory(format: String, adminConfig: ReporterConfig): ReporterFactory {
+private fun getReporterFactory(format: String, adminConfig: ReporterConfig): ReporterFactory {
     val pluginId = requireNotNull(adminConfig.getReportDefinition(format)?.pluginId) {
         "No reporter found for the configured format '$format'."
     }
