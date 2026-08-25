@@ -239,7 +239,7 @@ class ReporterRunner(
 
                     val result = runCatching {
                         measureTimedValue {
-                            val reporterFactory = getReporterFactory(format, adminConfig)
+                            val reporterFactory = adminConfig.getReporterFactory(format)
 
                             val reporterConfig = adminConfig.pluginOptionsForDefinition(
                                 format,
@@ -307,7 +307,7 @@ class ReporterRunner(
         adminConfig: ReporterConfig
     ): Map<String, PluginConfig> = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
-        val (assetFiles, assetDirectories) = getReporterAssets(config, adminConfig)
+        val (assetFiles, assetDirectories) = adminConfig.getReporterAssets(config)
 
         launch { context.downloadAssetFiles(assetFiles, templateDir) }
         launch { context.downloadAssetDirectories(assetDirectories, templateDir) }
@@ -462,18 +462,17 @@ private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
 }
 
 /**
- * Obtain all [ReporterAsset]s that must be downloaded based on the given [config] and [adminConfig]. Return a pair
- * with the asset files and asset directories referenced by the configuration.
+ * Obtain all [ReporterAsset]s that must be downloaded based on the given [config]. Return a pair with the asset files
+ * and asset directories referenced by the configuration.
  */
-private fun getReporterAssets(
-    config: ReporterJobConfiguration,
-    adminConfig: ReporterConfig
+private fun ReporterConfig.getReporterAssets(
+    config: ReporterJobConfiguration
 ): Pair<Collection<ReporterAsset>, Collection<ReporterAsset>> {
-    val assetFiles = adminConfig.getGlobalAssets(config.assetFilesGroups)
-    val assetDirectories = adminConfig.getGlobalAssets(config.assetDirectoriesGroups)
+    val assetFiles = getGlobalAssets(config.assetFilesGroups)
+    val assetDirectories = getGlobalAssets(config.assetDirectoriesGroups)
 
     config.formats.forEach { format ->
-        adminConfig.getReportDefinition(format)?.also { definition ->
+        getReportDefinition(format)?.also { definition ->
             assetFiles += definition.assetFiles
             assetDirectories += definition.assetDirectories
         }
@@ -493,10 +492,10 @@ private fun ReporterConfig.getGlobalAssets(groupNames: Collection<String>): Muta
     }
 
 /**
- * Obtain the [ReporterFactory] for the given [format] using the definitions from the given [adminConfig].
+ * Obtain the [ReporterFactory] for the given [format] using the definitions from this [ReporterConfig].
  */
-private fun getReporterFactory(format: String, adminConfig: ReporterConfig): ReporterFactory {
-    val pluginId = requireNotNull(adminConfig.getReportDefinition(format)?.pluginId) {
+private fun ReporterConfig.getReporterFactory(format: String): ReporterFactory {
+    val pluginId = requireNotNull(getReportDefinition(format)?.pluginId) {
         "No reporter found for the configured format '$format'."
     }
 
