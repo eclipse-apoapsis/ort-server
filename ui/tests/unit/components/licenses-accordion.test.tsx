@@ -17,47 +17,23 @@
  * License-Filename: LICENSE
  */
 
-import { ReactNode } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Identifier } from '@/api';
 import { LicensesAccordion } from '@/components/licenses/licenses-accordion';
+import { renderStaticWithRouter } from '../fixtures/router-harness';
 
 const mocks = vi.hoisted(() => ({
   queryState: {
     data: undefined as string[] | undefined,
     isPending: false,
   },
-  links: [] as Array<{
-    search: Record<string, string | string[] | number>;
-  }>,
   getOptions: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: () => mocks.queryState,
-}));
-
-vi.mock('@tanstack/react-router', () => ({
-  getRouteApi: () => ({
-    useParams: () => ({
-      orgId: '1',
-      productId: '2',
-      repoId: '3',
-      runIndex: '4',
-    }),
-  }),
-  Link: ({
-    children,
-    search,
-  }: {
-    children: ReactNode;
-    search: Record<string, string | string[] | number>;
-  }) => {
-    mocks.links.push({ search });
-    return <a>{children}</a>;
-  },
 }));
 
 vi.mock('@/api/@tanstack/react-query.gen', () => ({
@@ -103,47 +79,68 @@ const identifier: Identifier = {
   version: '1.0/rc%1',
 };
 
+const runPath = '/organizations/1/products/2/repositories/3/runs/4' as const;
+
 const renderAccordion = (
   accordionIdentifier = identifier,
   runId = 42,
   declaredLicenses: string[] = []
 ) =>
-  renderToStaticMarkup(
+  renderStaticWithRouter(
     <LicensesAccordion
       runId={runId}
       identifier={accordionIdentifier}
       declaredLicenses={declaredLicenses}
-    />
+    />,
+    {
+      path: runPath,
+      routes: [
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+        },
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
+        },
+      ],
+    }
+  );
+
+const getLinkUrls = (markup: string) =>
+  Array.from(
+    markup.matchAll(/href="([^"]+)"/g),
+    ([, href]) => new URL(href!.replaceAll('&amp;', '&'), 'http://localhost')
   );
 
 describe('LicensesAccordion', () => {
   beforeEach(() => {
     mocks.queryState.data = undefined;
     mocks.queryState.isPending = false;
-    mocks.links.length = 0;
     mocks.getOptions.mockReset();
     mocks.getOptions.mockReturnValue({});
   });
 
-  it('shows a loading indicator while licenses are loading', () => {
+  it('shows a loading indicator while licenses are loading', async () => {
     mocks.queryState.isPending = true;
 
-    expect(renderAccordion()).toContain('Loading data...');
+    expect(await renderAccordion()).toContain('Loading data...');
   });
 
-  it('shows messages when no licenses were declared or detected', () => {
+  it('shows messages when no licenses were declared or detected', async () => {
     mocks.queryState.data = [];
 
-    const markup = renderAccordion();
+    const markup = await renderAccordion();
 
     expect(markup).toContain('No declared licenses.');
     expect(markup).toContain('No licenses detected.');
   });
 
-  it('renders comma-separated declared and detected licenses in labeled rows', () => {
+  it('renders comma-separated declared and detected licenses in labeled rows', async () => {
     mocks.queryState.data = ['Apache-2.0', 'GPL-2.0-only'];
 
-    const markup = renderAccordion(identifier, 42, ['MIT', 'BSD-3-Clause']);
+    const markup = await renderAccordion(identifier, 42, [
+      'MIT',
+      'BSD-3-Clause',
+    ]);
 
     expect(markup).toContain('Declared:');
     expect(markup).toMatch(/MIT.*?,.*?BSD-3-Clause/);
@@ -151,10 +148,10 @@ describe('LicensesAccordion', () => {
     expect(markup).toMatch(/Apache-2\.0.*?,.*?GPL-2\.0-only/);
   });
 
-  it('passes the raw identifier to the generated client for URL encoding', () => {
+  it('passes the raw identifier to the generated client for URL encoding', async () => {
     mocks.queryState.data = ['MIT'];
 
-    renderAccordion();
+    await renderAccordion();
 
     expect(mocks.getOptions).toHaveBeenCalledWith({
       path: {
@@ -164,16 +161,18 @@ describe('LicensesAccordion', () => {
     });
   });
 
-  it('renders one link for a detected license', () => {
+  it('renders one link for a detected license', async () => {
     mocks.queryState.data = ['Apache-2.0'];
 
-    const markup = renderAccordion();
+    const markup = await renderAccordion();
+    const links = getLinkUrls(markup);
 
     expect(markup).toContain('Apache-2.0');
-    expect(mocks.links).toHaveLength(1);
+    expect(links).toHaveLength(1);
+    expect(links[0]?.pathname).toBe(`${runPath}/license-findings`);
   });
 
-  it('uses a project ORT identifier in the query and deep link', () => {
+  it('uses a project ORT identifier in the query and deep link', async () => {
     const projectIdentifier: Identifier = {
       type: 'Gradle',
       namespace: '',
@@ -182,7 +181,7 @@ describe('LicensesAccordion', () => {
     };
     mocks.queryState.data = ['MIT'];
 
-    renderAccordion(projectIdentifier, 84);
+    const markup = await renderAccordion(projectIdentifier, 84);
 
     expect(mocks.getOptions).toHaveBeenCalledWith({
       path: {
@@ -190,32 +189,32 @@ describe('LicensesAccordion', () => {
         identifier: 'Gradle::example-project:',
       },
     });
-    expect(mocks.links[0]?.search.packageMarked).toBe(
+    expect(getLinkUrls(markup)[0]?.searchParams.get('packageMarked')).toBe(
       'Gradle::example-project:'
     );
   });
 
-  it('keeps multiple expressions in independent exact links', () => {
+  it('keeps multiple expressions in independent exact links', async () => {
     mocks.queryState.data = ['MIT', 'MIT AND Apache-2.0'];
 
-    renderAccordion();
+    const links = getLinkUrls(await renderAccordion());
 
-    expect(mocks.links).toHaveLength(2);
-    expect(mocks.links[0]?.search).toEqual({
-      detectedLicense: ['MIT'],
+    expect(links).toHaveLength(2);
+    expect(Object.fromEntries(links[0]!.searchParams)).toEqual({
+      detectedLicense: '["MIT"]',
       marked: 'MIT',
       packageMarked: 'Maven:com.example:some library:1.0/rc%1',
-      page: 1,
-      packagePage: 1,
-      findingsPage: 1,
+      page: '1',
+      packagePage: '1',
+      findingsPage: '1',
     });
-    expect(mocks.links[1]?.search).toEqual({
-      detectedLicense: ['MIT AND Apache-2.0'],
+    expect(Object.fromEntries(links[1]!.searchParams)).toEqual({
+      detectedLicense: '["MIT AND Apache-2.0"]',
       marked: 'MIT AND Apache-2.0',
       packageMarked: 'Maven:com.example:some library:1.0/rc%1',
-      page: 1,
-      packagePage: 1,
-      findingsPage: 1,
+      page: '1',
+      packagePage: '1',
+      findingsPage: '1',
     });
   });
 });

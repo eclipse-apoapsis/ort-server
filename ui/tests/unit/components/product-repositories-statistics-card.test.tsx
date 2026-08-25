@@ -17,11 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import type { ReactNode } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductRepositoriesStatisticsCard } from '@/routes/organizations/$orgId/products/$productId/-components/product-repositories-statistics-card';
+import { renderStaticWithRouter } from '../fixtures/router-harness';
 
 const mocks = vi.hoisted(() => ({
   canCreateRepository: true,
@@ -38,39 +37,26 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    className,
-    disabled,
-    params,
-  }: {
-    children: ReactNode;
-    className?: string;
-    disabled?: boolean;
-    params: { orgId: string; productId: string };
-  }) => (
-    <a
-      className={className}
-      href={`/organizations/${params.orgId}/products/${params.productId}/create-repository`}
-      aria-disabled={disabled}
-    >
-      {children}
-    </a>
-  ),
-}));
-
 vi.mock('@/hooks/use-authorization', () => ({
   useProductPermission: mocks.useProductPermission,
 }));
 
 const renderCard = () =>
-  renderToStaticMarkup(
+  renderStaticWithRouter(
     <ProductRepositoriesStatisticsCard
       orgId='42'
       productId='84'
       className='col-span-2'
-    />
+    />,
+    {
+      path: '/organizations/42/products/84',
+      routes: [
+        { path: '/organizations/$orgId/products/$productId' },
+        {
+          path: '/organizations/$orgId/products/$productId/create-repository',
+        },
+      ],
+    }
   );
 
 describe('ProductRepositoriesStatisticsCard', () => {
@@ -86,8 +72,8 @@ describe('ProductRepositoriesStatisticsCard', () => {
     });
   });
 
-  it('renders the repository total and add action', () => {
-    const markup = renderCard();
+  it('renders the repository total and add action', async () => {
+    const markup = await renderCard();
 
     expect(markup).toContain('Repositories');
     expect(markup).toContain('>12<');
@@ -102,10 +88,10 @@ describe('ProductRepositoriesStatisticsCard', () => {
     );
   });
 
-  it('disables the add action without permission', () => {
+  it('disables the add action without permission', async () => {
     mocks.canCreateRepository = false;
 
-    const markup = renderCard();
+    const markup = await renderCard();
 
     expect(markup).toContain('aria-disabled="true"');
   });
