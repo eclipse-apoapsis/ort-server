@@ -33,6 +33,8 @@ import aws.smithy.kotlin.runtime.net.url.Url
 
 import com.typesafe.config.ConfigFactory
 
+import io.floci.testcontainers.FlociContainer
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
@@ -47,24 +49,20 @@ import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 import org.eclipse.apoapsis.ortserver.utils.test.Images
 
-import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 
 class S3StorageTest : WordSpec({
-    val localStackContainer = install(
-        TestContainerSpecExtension(
-            LocalStackContainer(DockerImageName.parse(Images.LOCALSTACK)).withServices("s3")
-        )
-    )
+    val floci = install(TestContainerSpecExtension(FlociContainer(DockerImageName.parse(Images.FLOCI))))
 
     val s3Client: S3Client by lazy {
         S3Client {
-            region = localStackContainer.region
-            this.endpointUrl = Url.parse(localStackContainer.endpoint.toString())
             credentialsProvider = StaticCredentialsProvider {
-                accessKeyId = localStackContainer.accessKey
-                secretAccessKey = localStackContainer.secretKey
+                accessKeyId = floci.accessKey
+                secretAccessKey = floci.secretKey
             }
+            endpointUrl = Url.parse(floci.endpoint.toString())
+            forcePathStyle = true
+            region = floci.region
         }
     }
 
@@ -91,7 +89,7 @@ class S3StorageTest : WordSpec({
             val data = "This is a test object for the S3 storage."
             val contentType = "application/octet-stream"
 
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.write(key, data, contentType)
 
@@ -111,7 +109,7 @@ class S3StorageTest : WordSpec({
             val data = "The updated data of an S3 object."
             val contentType = "application/pdf"
 
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.write(key, "Old data of an object.", "text/plain")
 
@@ -133,7 +131,7 @@ class S3StorageTest : WordSpec({
             val data = "This is a test object for the S3 storage."
             val contentType = "application/octet-stream"
 
-            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+            val storage = floci.createStorage(keyPrefix = "prefix")
 
             storage.write(key, data, contentType)
 
@@ -162,7 +160,7 @@ class S3StorageTest : WordSpec({
                 this.key = key.key
             }
 
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.read(key).use {
                 it.contentType shouldBe contentType
@@ -171,7 +169,7 @@ class S3StorageTest : WordSpec({
         }
 
         "throw an exception if the key does not exist" {
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             shouldThrow<StorageException> {
                 storage.read(Key("object-not-existing"))
@@ -190,7 +188,7 @@ class S3StorageTest : WordSpec({
                 this.key = "prefix|${key.key}"
             }
 
-            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+            val storage = floci.createStorage(keyPrefix = "prefix")
 
             storage.read(key).use {
                 it.contentType shouldBe contentType
@@ -201,7 +199,7 @@ class S3StorageTest : WordSpec({
 
     "contains" should {
         "return false for a non existing object" {
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.containsKey(Key("object-not-existing")) shouldBe false
         }
@@ -209,7 +207,7 @@ class S3StorageTest : WordSpec({
         "return true for an existing object" {
             val key = Key("test-object")
 
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.write(key, "test-data")
 
@@ -228,7 +226,7 @@ class S3StorageTest : WordSpec({
                 this.key = "prefix|${key.key}"
             }
 
-            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+            val storage = floci.createStorage(keyPrefix = "prefix")
 
             storage.containsKey(key) shouldBe true
         }
@@ -238,7 +236,7 @@ class S3StorageTest : WordSpec({
         "delete an object from the bucket" {
             val key = Key("test-object")
 
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.write(key, "test-data")
 
@@ -247,7 +245,7 @@ class S3StorageTest : WordSpec({
         }
 
         "return false for a non existing object" {
-            val storage = localStackContainer.createStorage()
+            val storage = floci.createStorage()
 
             storage.delete(Key("object-not-existing")) shouldBe false
         }
@@ -264,7 +262,7 @@ class S3StorageTest : WordSpec({
                 this.key = "prefix|${key.key}"
             }
 
-            val storage = localStackContainer.createStorage(keyPrefix = "prefix")
+            val storage = floci.createStorage(keyPrefix = "prefix")
 
             storage.delete(key) shouldBe true
             storage.containsKey(key) shouldBe false
@@ -278,7 +276,7 @@ internal const val TEST_BUCKET_NAME = "test-bucket"
 /**
  * Create a [Storage] that is configured to use the [S3StorageProvider] implementation.
  */
-private fun LocalStackContainer.createStorage(
+private fun FlociContainer.createStorage(
     region: String = S3_REGION,
     bucket: String = TEST_BUCKET_NAME,
     keyPrefix: String? = null
@@ -291,7 +289,8 @@ private fun LocalStackContainer.createStorage(
                 S3StorageProviderFactory.ACCESS_KEY_PROPERTY to accessKey,
                 S3StorageProviderFactory.SECRET_KEY_PROPERTY to secretKey,
                 S3StorageProviderFactory.REGION_PROPERTY to region,
-                S3StorageProviderFactory.BUCKET_NAME_PROPERTY to bucket
+                S3StorageProviderFactory.BUCKET_NAME_PROPERTY to bucket,
+                S3StorageProviderFactory.FORCE_PATH_STYLE_PROPERTY to "true"
             ).let {
                 when {
                     keyPrefix != null -> it + (S3StorageProviderFactory.KEY_PREFIX_PROPERTY to keyPrefix)
