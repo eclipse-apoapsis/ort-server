@@ -22,9 +22,20 @@ import z from 'zod';
 import {
   zJobs,
   zOrtRunStatus,
+  zRepository,
   zSeverity,
   zVulnerabilityRating,
 } from '@/api/zod.gen';
+
+export const repositoryFormSchema = zRepository
+  .pick({
+    description: true,
+    name: true,
+    type: true,
+  })
+  .extend({ url: z.url({ protocol: /^https?$/ }) });
+
+export type RepositoryFormValues = z.infer<typeof repositoryFormSchema>;
 
 // Schema to validate that a string is a valid regular expression.
 export const regexSchema = z
