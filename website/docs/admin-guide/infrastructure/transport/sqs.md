@@ -1,7 +1,7 @@
 # SQS
 
-This module provides an implementation of the transport abstraction layer based on [AWS SQS](https://aws.amazon.com/sqs/).
-Any compatible implementations should be supported as well, including [LocalStack](https://www.localstack.cloud/) and [Scaleway](https://www.scaleway.com/en/developers/api/messaging-and-queuing/sqs-api/).
+This module provides an implementation of the transport abstraction layer based on [AWS SQS].
+While any AWS-compatible implementation of SQS should be supported, including AWS itself, this specifically targets the implementation at [Scaleway] for now.
 
 ## Synopsis
 
@@ -33,3 +33,6 @@ endpoint {
   }
 }
 ```
+
+[AWS SQS]: https://aws.amazon.com/sqs/
+[Scaleway]: https://www.scaleway.com/en/developers/api/messaging-and-queuing/sqs-api/

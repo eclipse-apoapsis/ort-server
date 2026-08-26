@@ -33,8 +33,8 @@ internal const val QUEUE_NAME_PROP_NAME = "queueName"
 
 /**
  * This class defines the configuration properties for an SQS transport. While any AWS-compatible implementation of SQS
- * should be supported, including AWS itself and e.g., LocalStack, this specifically targets the implementation at
- * Scaleway for now, see https://www.scaleway.com/en/developers/api/messaging-and-queuing/sqs-api/.
+ * should be supported, including AWS itself, this specifically targets the implementation at Scaleway for now, see
+ * https://www.scaleway.com/en/developers/api/messaging-and-queuing/sqs-api/.
  */
 data class SqsConfig(
     val serverUri: String,

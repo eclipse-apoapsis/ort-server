@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.transport.sqs
 
+import io.floci.testcontainers.FlociContainer
+
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.TestContainerSpecExtension
@@ -28,22 +30,17 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesti
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
 import org.eclipse.apoapsis.ortserver.utils.test.Images
 
-import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 
 /**
- * Create a [ConfigManager] with a test queue for [consumerName] using [transportType] running on LocalStack.
+ * Create a [ConfigManager] with a test queue for [consumerName] using [transportType].
  */
 fun Spec.createSqsConfigManager(consumerName: String, transportType: String): ConfigManager {
-    val localStack = install(
-        TestContainerSpecExtension(
-            LocalStackContainer(DockerImageName.parse(Images.LOCALSTACK)).withServices("sqs")
-        )
-    )
+    val floci = install(TestContainerSpecExtension(FlociContainer(DockerImageName.parse(Images.FLOCI))))
 
     val secretsMap = mapOf(
-        ACCESS_KEY_ID_PROP_NAME to localStack.accessKey,
-        SECRET_ACCESS_KEY_PROP_NAME to localStack.secretKey
+        ACCESS_KEY_ID_PROP_NAME to floci.accessKey,
+        SECRET_ACCESS_KEY_PROP_NAME to floci.secretKey
     )
 
     val configProvidersMap = mapOf(
@@ -55,7 +52,7 @@ fun Spec.createSqsConfigManager(consumerName: String, transportType: String): Co
         consumerName = consumerName,
         transportType = transportType,
         transportName = SqsConfig.TRANSPORT_NAME,
-        serverUri = localStack.endpoint.toString(),
+        serverUri = floci.endpoint.toString(),
         configProvidersMap = configProvidersMap
     )
 }

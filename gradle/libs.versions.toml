@@ -38,6 +38,7 @@ azureStorageBlob = "12.35.1"
 clikt = "5.1.0"
 commonsText = "1.15.0"
 exposed = "1.5.0"
+flociTestcontainerVersion = "2.15.0"
 flyway = "13.4.0"
 hikari = "7.1.0"
 hoplite = "2.9.0"
@@ -141,6 +142,7 @@ schemaKenerator-swagger = { module = "io.github.smiley4:schema-kenerator-swagger
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
+testContainers-floci = { module = "io.floci:testcontainers-floci", version.ref = "flociTestcontainerVersion" }
 testContainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
 testContainers-localStack = { module = "org.testcontainers:testcontainers-localstack", version.ref = "testContainers" }
 testContainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testContainers" }

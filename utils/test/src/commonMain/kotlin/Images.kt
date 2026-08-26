@@ -26,6 +26,7 @@ package org.eclipse.apoapsis.ortserver.utils.test
 object Images {
     const val ARTEMIS = "apache/artemis:2.55.0"
     const val AZURITE = "mcr.microsoft.com/azure-storage/azurite:3.37.0"
+    const val FLOCI = "floci/floci:1.7.0"
     const val KEYCLOAK = "quay.io/keycloak/keycloak:26.7.2"
     const val LOCALSTACK = "localstack/localstack:4.14.0"
     const val POSTGRES = "postgres:18.6"
