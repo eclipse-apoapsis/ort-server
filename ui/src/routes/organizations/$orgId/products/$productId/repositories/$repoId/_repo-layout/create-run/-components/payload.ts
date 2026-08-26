@@ -207,7 +207,6 @@ export function formValuesToPayload(
             )
           : undefined;
         return {
-          createMissingArchives: true,
           skipConcluded: values.jobConfigs.scanner.skipConcluded,
           skipExcluded: values.jobConfigs.scanner.skipExcluded,
           keepAliveWorker:

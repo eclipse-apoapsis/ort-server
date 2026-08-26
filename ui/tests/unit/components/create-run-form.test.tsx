@@ -160,7 +160,6 @@ describe('CreateRunForm', () => {
           keepAliveWorker: undefined,
         },
         scanner: {
-          createMissingArchives: true,
           skipConcluded: true,
           skipExcluded: true,
           keepAliveWorker: undefined,
