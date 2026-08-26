@@ -22,10 +22,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 import { postRepositoryMutation } from '@/api/@tanstack/react-query.gen';
-import { zRepository, zRepositoryType } from '@/api/zod.gen';
+import { zRepositoryType } from '@/api/zod.gen';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,65 +55,27 @@ import { ApiError } from '@/lib/api-error';
 import { repositoryCreated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
+import { repositoryFormSchema, type RepositoryFormValues } from '@/schemas';
 
-const formSchema = zRepository.pick({
-  description: true,
-  name: true,
-  type: true,
-  url: true,
-});
+interface CreateRepositoryFormProps {
+  isPending: boolean;
+  onSubmit: (values: RepositoryFormValues) => Promise<void> | void;
+}
 
-const CreateRepositoryPage = () => {
-  const navigate = useNavigate();
-  const params = Route.useParams();
-  const queryClient = useQueryClient();
-  const { refreshUser } = useUser();
-
-  const { mutateAsync, isPending } = useMutation({
-    ...postRepositoryMutation(),
-    onSuccess(data) {
-      // Refresh the user token and data to get the new roles after creating a new repository.
-      refreshUser();
-
-      toast.info('Add Repository', {
-        description: `Repository ${data.url} added successfully.`,
-      });
-      repositoryCreated(queryClient, data.productId);
-      navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: data.id.toString(),
-        },
-      });
-    },
-    onError(error: ApiError) {
-      toastError(error.message, error);
-    },
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export const CreateRepositoryForm = ({
+  isPending,
+  onSubmit,
+}: CreateRepositoryFormProps) => {
+  const form = useForm<RepositoryFormValues>({
+    resolver: zodResolver(repositoryFormSchema),
     defaultValues: {
       description: '',
       name: '',
       url: '',
       type: 'GIT',
     },
+    mode: 'onChange',
   });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    await mutateAsync({
-      path: { productId: Number.parseInt(params.productId) },
-      body: {
-        description: values.description,
-        name: values.name,
-        type: values.type,
-        url: values.url,
-      },
-    });
-  }
 
   return (
     <Card>
@@ -192,7 +153,10 @@ const CreateRepositoryPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type='submit' disabled={isPending}>
+            <Button
+              type='submit'
+              disabled={isPending || !form.formState.isValid}
+            >
               {isPending ? (
                 <>
                   <span className='sr-only'>Creating repository...</span>
@@ -207,6 +171,46 @@ const CreateRepositoryPage = () => {
       </Form>
     </Card>
   );
+};
+
+const CreateRepositoryPage = () => {
+  const navigate = useNavigate();
+  const params = Route.useParams();
+  const queryClient = useQueryClient();
+  const { refreshUser } = useUser();
+
+  const { mutateAsync, isPending } = useMutation({
+    ...postRepositoryMutation(),
+    onSuccess(data) {
+      // Refresh the user token and data to get the new roles after creating a new repository.
+      refreshUser();
+
+      toast.info('Add Repository', {
+        description: `Repository ${data.url} added successfully.`,
+      });
+      repositoryCreated(queryClient, data.productId);
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: data.id.toString(),
+        },
+      });
+    },
+    onError(error: ApiError) {
+      toastError(error.message, error);
+    },
+  });
+
+  async function onSubmit(values: RepositoryFormValues) {
+    await mutateAsync({
+      path: { productId: Number.parseInt(params.productId) },
+      body: values,
+    });
+  }
+
+  return <CreateRepositoryForm isPending={isPending} onSubmit={onSubmit} />;
 };
 
 export const Route = createFileRoute(
