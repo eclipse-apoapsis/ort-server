@@ -17,12 +17,15 @@
  * License-Filename: LICENSE
  */
 
+// @vitest-environment jsdom
+
+import { screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Identifier } from '@/api';
 import { LicensesAccordion } from '@/components/licenses/licenses-accordion';
-import { renderStaticWithRouter } from '../fixtures/router-harness';
+import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
 const mocks = vi.hoisted(() => ({
   queryState: {
@@ -38,19 +41,6 @@ vi.mock('@tanstack/react-query', () => ({
 
 vi.mock('@/api/@tanstack/react-query.gen', () => ({
   getRunDetectedLicensesForIdentifierOptions: mocks.getOptions,
-}));
-
-vi.mock('@/components/ui/accordion', () => ({
-  Accordion: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  AccordionItem: ({ children }: { children: ReactNode }) => (
-    <div>{children}</div>
-  ),
-  AccordionTrigger: ({ children }: { children: ReactNode }) => (
-    <div>{children}</div>
-  ),
-  AccordionContent: ({ children }: { children: ReactNode }) => (
-    <div>{children}</div>
-  ),
 }));
 
 vi.mock('@/components/licenses', () => ({
@@ -81,12 +71,12 @@ const identifier: Identifier = {
 
 const runPath = '/organizations/1/products/2/repositories/3/runs/4' as const;
 
-const renderAccordion = (
+const renderAccordion = async (
   accordionIdentifier = identifier,
   runId = 42,
   declaredLicenses: string[] = []
-) =>
-  renderStaticWithRouter(
+) => {
+  const result = renderInteractiveWithRouter(
     <LicensesAccordion
       runId={runId}
       identifier={accordionIdentifier}
@@ -105,11 +95,17 @@ const renderAccordion = (
     }
   );
 
-const getLinkUrls = (markup: string) =>
-  Array.from(
-    markup.matchAll(/href="([^"]+)"/g),
-    ([, href]) => new URL(href!.replaceAll('&amp;', '&'), 'http://localhost')
+  await result.user.click(
+    await screen.findByRole('button', { name: 'Licenses' })
   );
+
+  return result;
+};
+
+const getLinkUrls = () =>
+  screen
+    .getAllByRole('link')
+    .map((link) => new URL(link.getAttribute('href')!, 'http://localhost'));
 
 describe('LicensesAccordion', () => {
   beforeEach(() => {
@@ -122,30 +118,32 @@ describe('LicensesAccordion', () => {
   it('shows a loading indicator while licenses are loading', async () => {
     mocks.queryState.isPending = true;
 
-    expect(await renderAccordion()).toContain('Loading data...');
+    await renderAccordion();
+
+    expect(screen.getByText('Loading data...')).toBeVisible();
   });
 
   it('shows messages when no licenses were declared or detected', async () => {
     mocks.queryState.data = [];
 
-    const markup = await renderAccordion();
+    await renderAccordion();
 
-    expect(markup).toContain('No declared licenses.');
-    expect(markup).toContain('No licenses detected.');
+    expect(screen.getByText('No declared licenses.')).toBeVisible();
+    expect(screen.getByText('No licenses detected.')).toBeVisible();
   });
 
   it('renders comma-separated declared and detected licenses in labeled rows', async () => {
     mocks.queryState.data = ['Apache-2.0', 'GPL-2.0-only'];
 
-    const markup = await renderAccordion(identifier, 42, [
+    const { container } = await renderAccordion(identifier, 42, [
       'MIT',
       'BSD-3-Clause',
     ]);
 
-    expect(markup).toContain('Declared:');
-    expect(markup).toMatch(/MIT.*?,.*?BSD-3-Clause/);
-    expect(markup).toContain('Detected:');
-    expect(markup).toMatch(/Apache-2\.0.*?,.*?GPL-2\.0-only/);
+    expect(container).toHaveTextContent('Declared:');
+    expect(container).toHaveTextContent(/MIT,.*BSD-3-Clause/);
+    expect(container).toHaveTextContent('Detected:');
+    expect(container).toHaveTextContent(/Apache-2\.0,.*GPL-2\.0-only/);
   });
 
   it('passes the raw identifier to the generated client for URL encoding', async () => {
@@ -164,10 +162,10 @@ describe('LicensesAccordion', () => {
   it('renders one link for a detected license', async () => {
     mocks.queryState.data = ['Apache-2.0'];
 
-    const markup = await renderAccordion();
-    const links = getLinkUrls(markup);
+    await renderAccordion();
+    const links = getLinkUrls();
 
-    expect(markup).toContain('Apache-2.0');
+    expect(screen.getByRole('link', { name: 'Apache-2.0' })).toBeVisible();
     expect(links).toHaveLength(1);
     expect(links[0]?.pathname).toBe(`${runPath}/license-findings`);
   });
@@ -181,7 +179,7 @@ describe('LicensesAccordion', () => {
     };
     mocks.queryState.data = ['MIT'];
 
-    const markup = await renderAccordion(projectIdentifier, 84);
+    await renderAccordion(projectIdentifier, 84);
 
     expect(mocks.getOptions).toHaveBeenCalledWith({
       path: {
@@ -189,7 +187,7 @@ describe('LicensesAccordion', () => {
         identifier: 'Gradle::example-project:',
       },
     });
-    expect(getLinkUrls(markup)[0]?.searchParams.get('packageMarked')).toBe(
+    expect(getLinkUrls()[0]?.searchParams.get('packageMarked')).toBe(
       'Gradle::example-project:'
     );
   });
@@ -197,7 +195,8 @@ describe('LicensesAccordion', () => {
   it('keeps multiple expressions in independent exact links', async () => {
     mocks.queryState.data = ['MIT', 'MIT AND Apache-2.0'];
 
-    const links = getLinkUrls(await renderAccordion());
+    await renderAccordion();
+    const links = getLinkUrls();
 
     expect(links).toHaveLength(2);
     expect(Object.fromEntries(links[0]!.searchParams)).toEqual({
