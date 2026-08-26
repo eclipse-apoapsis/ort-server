@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   useMutation,
   useQueryClient,
@@ -28,54 +27,21 @@ import {
   useNavigate,
   useRouter,
 } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 import {
   deleteRepositoryMutation,
   getRepositoryOptions,
   patchRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
-import { zRepository, zRepositoryType } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
-import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ApiError } from '@/lib/api-error';
 import { repositoryDeleted, repositoryUpdated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
-import { getRepositoryTypeLabel } from '@/lib/types';
+import { EditRepositoryForm } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/-components/edit-repository-form';
 import { MoveRepository } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
-
-const formSchema = zRepository.pick({
-  description: true,
-  name: true,
-  type: true,
-  url: true,
-});
+import type { RepositoryFormValues } from '@/schemas';
 
 const RepositorySettingsPage = () => {
   const params = Route.useParams();
@@ -117,27 +83,12 @@ const RepositorySettingsPage = () => {
     },
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      description: repository.description || '',
-      name: repository.name || '',
-      url: repository.url,
-      type: repository.type,
-    },
-  });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: RepositoryFormValues) {
     await mutateAsync({
       path: {
         repositoryId: repository.id,
       },
-      body: {
-        description: values.description,
-        name: values.name,
-        type: values.type,
-        url: values.url,
-      },
+      body: values,
     });
   }
 
@@ -168,113 +119,25 @@ const RepositorySettingsPage = () => {
 
   return (
     <div className='flex flex-col gap-8'>
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Repository</CardTitle>
-        </CardHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <CardContent className='space-y-4'>
-              <FormField
-                control={form.control}
-                name='url'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL</FormLabel>
-                    <FormControl autoFocus>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='name'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <OptionalInput {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='description'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <OptionalInput {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='type'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select a type' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(zRepositoryType.enum).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {getRepositoryTypeLabel(type)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter>
-              <div className='flex w-full items-center justify-between'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={() =>
-                    navigate({
-                      to:
-                        '/organizations/' +
-                        params.orgId +
-                        '/products/' +
-                        params.productId,
-                    })
-                  }
-                  disabled={isPending}
-                >
-                  Cancel
-                </Button>
-                <Button type='submit' disabled={isPending}>
-                  {isPending ? (
-                    <>
-                      <span className='sr-only'>Editing repository...</span>
-                      <Loader2 size={16} className='mx-3 animate-spin' />
-                    </>
-                  ) : (
-                    'Submit'
-                  )}
-                </Button>
-              </div>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+      <EditRepositoryForm
+        defaultValues={{
+          description: repository.description || '',
+          name: repository.name || '',
+          url: repository.url,
+          type: repository.type,
+        }}
+        isPending={isPending}
+        onCancel={() =>
+          navigate({
+            to:
+              '/organizations/' +
+              params.orgId +
+              '/products/' +
+              params.productId,
+          })
+        }
+        onSubmit={onSubmit}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Danger Zone</CardTitle>
