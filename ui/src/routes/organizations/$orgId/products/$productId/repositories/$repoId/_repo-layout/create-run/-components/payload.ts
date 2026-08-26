@@ -18,10 +18,13 @@
  */
 
 import {
+  AdvisorJobConfiguration,
   AnalyzerJobConfiguration,
   EvaluatorJobConfiguration,
+  NotifierJobConfiguration,
   PostRepositoryRun,
   ReporterJobConfiguration,
+  ScannerJobConfiguration,
 } from '@/api';
 import { convertArrayToMap } from './form-primitives';
 import {
@@ -166,7 +169,8 @@ export function formValuesToPayload(
   // Advisor configuration
   //
 
-  const advisorConfig = values.jobConfigs.advisor.enabled
+  const advisorConfig: AdvisorJobConfiguration | undefined = values.jobConfigs
+    .advisor.enabled
     ? {
         skipExcluded: values.jobConfigs.advisor.skipExcluded,
         advisors: values.jobConfigs.advisor.advisors,
@@ -183,7 +187,7 @@ export function formValuesToPayload(
   //
 
   const scannerConfig = values.jobConfigs.scanner.enabled
-    ? (() => {
+    ? ((): ScannerJobConfiguration => {
         const allScanners = values.jobConfigs.scanner.scanners;
         const scopes = values.jobConfigs.scanner.scannerScopes;
         // When any scanner is set to 'packages' or 'projects', both lists must be
@@ -295,7 +299,8 @@ export function formValuesToPayload(
     };
   }
 
-  const reporterConfig = values.jobConfigs.reporter.enabled
+  const reporterConfig: ReporterJobConfiguration | undefined = values.jobConfigs
+    .reporter.enabled
     ? {
         formats: values.jobConfigs.reporter.formats,
         config: Object.keys(config).length > 0 ? config : undefined,
@@ -320,7 +325,8 @@ export function formValuesToPayload(
         (recipient) => recipient.email
       )
     : undefined;
-  const notifierConfig = values.jobConfigs.notifier.enabled
+  const notifierConfig: NotifierJobConfiguration | undefined = values.jobConfigs
+    .notifier.enabled
     ? {
         recipientAddresses: addresses || undefined,
         keepAliveWorker:
