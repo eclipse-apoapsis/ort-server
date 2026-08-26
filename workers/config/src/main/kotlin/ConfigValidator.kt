@@ -26,11 +26,7 @@ import kotlin.script.experimental.api.scriptsInstancesSharing
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
-import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -122,12 +118,7 @@ class ConfigValidator private constructor(
         val adminConfig =
             adminConfigService.loadAdminConfig(context.resolvedConfigurationContext, validateConfigFiles = true)
 
-        val validationIssues = mutableListOf<Issue>()
-
-        validateRuleSet(adminConfig, resolvedConfigurations.ruleSet, validationIssues)
-        resolvedConfigurations.reporter?.also {
-            validateReporterConfig(adminConfig.reporterConfig, it, validationIssues)
-        }
+        val validationIssues = AdminConfigValidator.validate(adminConfig, resolvedConfigurations)
 
         takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
     }.getOrElse { exception ->
@@ -137,47 +128,5 @@ class ConfigValidator private constructor(
             "Could not load admin configuration: '${exception.message}'. $ADMIN_CONFIG_ERROR_HINT"
         )
         ConfigValidationResultFailure(issues + issue)
-    }
-
-    /**
-     * Perform validation of the rule set with the given [ruleSetName] from the given [adminConfig]. Add issues that
-     * are found to the given [validationIssues].
-     */
-    private fun validateRuleSet(adminConfig: AdminConfig, ruleSetName: String?, validationIssues: MutableList<Issue>) {
-        if (ruleSetName != null && ruleSetName !in adminConfig.ruleSetNames) {
-            validationIssues += createIssue(
-                "Invalid rule set '$ruleSetName'. " +
-                        "Available rule sets are: ${adminConfig.ruleSetNames.joinToString()}.",
-                PARAMETER_VALIDATION_SOURCE
-            )
-        }
-    }
-
-    /**
-     * Perform validation of the given reporter [jobConfig] based on the given [reporterAdminConfig]. For invalid
-     * properties, create corresponding issues and add them to the given [validationIssues].
-     */
-    private fun validateReporterConfig(
-        reporterAdminConfig: ReporterConfig,
-        jobConfig: ReporterJobConfiguration,
-        validationIssues: MutableList<Issue>
-    ) {
-        jobConfig.formats.filter { reporterAdminConfig.getReportDefinition(it) == null }.forEach { format ->
-            validationIssues += createIssue(
-                "Invalid reporter format '$format'. " +
-                        "Available formats are: ${reporterAdminConfig.reportDefinitionNames.joinToString()}.",
-                PARAMETER_VALIDATION_SOURCE
-            )
-        }
-
-        (jobConfig.assetFilesGroups + jobConfig.assetDirectoriesGroups)
-            .filterNot { it in reporterAdminConfig.globalAssets }
-            .forEach { assetGroup ->
-                validationIssues += createIssue(
-                    "Invalid reporter asset group '$assetGroup'. " +
-                            "Available asset groups are: ${reporterAdminConfig.globalAssets.keys.joinToString()}.",
-                    PARAMETER_VALIDATION_SOURCE
-                )
-            }
     }
 }
