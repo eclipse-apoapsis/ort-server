@@ -144,7 +144,6 @@ sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainers-floci = { module = "io.floci:testcontainers-floci", version.ref = "flociTestcontainerVersion" }
 testContainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
-testContainers-localStack = { module = "org.testcontainers:testcontainers-localstack", version.ref = "testContainers" }
 testContainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testContainers" }
 testContainers-rabbitMq = { module = "org.testcontainers:testcontainers-rabbitmq", version.ref = "testContainers" }
 testContainers-vault = { module = "org.testcontainers:testcontainers-vault", version.ref = "testContainers" }
