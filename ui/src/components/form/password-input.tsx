@@ -30,6 +30,7 @@ export const PasswordInput = ({ ...props }) => {
       <Input type={showPassword ? 'text' : 'password'} {...props} />
       <button
         type='button'
+        aria-label={showPassword ? 'Hide password' : 'Show password'}
         className='absolute inset-y-0 right-0 flex items-center px-2'
         onClick={() => setShowPassword(!showPassword)}
       >

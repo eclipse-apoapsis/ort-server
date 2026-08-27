@@ -17,10 +17,23 @@
  * License-Filename: LICENSE
  */
 
+import type { ComponentProps } from 'react';
+
 import { Input } from '@/components/ui/input.tsx';
 
-export const OptionalInput = ({ ...props }) => {
+type OptionalInputProps = Omit<
+  ComponentProps<typeof Input>,
+  'placeholder' | 'value'
+> & {
+  placeholder?: string;
+  value?: ComponentProps<typeof Input>['value'] | null;
+};
+
+export const OptionalInput = ({
+  placeholder = '(optional)',
+  ...props
+}: OptionalInputProps) => {
   return (
-    <Input {...props} placeholder='(optional)' value={props.value ?? ''} />
+    <Input {...props} placeholder={placeholder} value={props.value ?? ''} />
   );
 };
