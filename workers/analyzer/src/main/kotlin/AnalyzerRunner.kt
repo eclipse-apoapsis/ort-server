@@ -39,7 +39,6 @@ import org.ossreviewtoolkit.analyzer.determineEnabledPackageManagers
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
-import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.readValueOrNull
@@ -234,6 +233,17 @@ class AnalyzerRunner(
      * invoked directly.
      */
     internal fun runInProcess(inputDir: File, config: AnalyzerRunnerConfig): OrtResult {
+        val ortPackageManagerOptions =
+            config.packageManagerOptions?.map { entry -> entry.key to entry.value.mapToOrt() }?.toMap()
+
+        val analyzerConfigFromJob = AnalyzerConfiguration(
+            config.allowDynamicVersions,
+            config.enabledPackageManagers ?: AnalyzerConfiguration().enabledPackageManagers,
+            config.disabledPackageManagers,
+            ortPackageManagerOptions,
+            config.skipExcluded ?: false
+        )
+
         val repositoryConfigPath = config.repositoryConfigPath ?: ORT_REPO_CONFIG_FILENAME
         val repositoryConfigFile = inputDir.resolve(repositoryConfigPath)
 
@@ -246,7 +256,8 @@ class AnalyzerRunner(
         val repositoryConfiguration = repositoryConfigFile.takeIf { it.isFile }?.readValueOrNull()
             ?: RepositoryConfiguration()
 
-        val analyzerConfig = config.merge(repositoryConfiguration.analyzer ?: RepositoryAnalyzerConfiguration())
+        val analyzerConfig = repositoryConfiguration.analyzer?.let { analyzerConfigFromJob.merge(it) }
+            ?: analyzerConfigFromJob
 
         val analyzer = Analyzer(analyzerConfig)
 
@@ -309,53 +320,4 @@ class AnalyzerRunner(
 
         return ortResult
     }
-}
-
-/**
- * Merge this [AnalyzerRunnerConfig] with the [fileConfig] read from the repository configuration file into an
- * [AnalyzerConfiguration] to be used for the analyzer run. In contrast to [AnalyzerConfiguration.merge], where the
- * repository configuration file takes precedence, values defined in this [AnalyzerRunnerConfig] take precedence
- * over the values from [fileConfig].
- */
-internal fun AnalyzerRunnerConfig.merge(fileConfig: RepositoryAnalyzerConfiguration): AnalyzerConfiguration {
-    val ortPackageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToOrt() }
-    val filePackageManagers = fileConfig.packageManagers
-
-    val mergedPackageManagers = when {
-        ortPackageManagerOptions == null -> filePackageManagers
-
-        filePackageManagers == null -> ortPackageManagerOptions
-
-        else -> {
-            val keys = sortedSetOf(String.CASE_INSENSITIVE_ORDER).apply {
-                addAll(ortPackageManagerOptions.keys)
-                addAll(filePackageManagers.keys)
-            }
-
-            val fromJob = ortPackageManagerOptions.toSortedMap(String.CASE_INSENSITIVE_ORDER)
-            val fromFile = filePackageManagers.toSortedMap(String.CASE_INSENSITIVE_ORDER)
-
-            keys.associateWithTo(sortedMapOf(String.CASE_INSENSITIVE_ORDER)) { key ->
-                val configFromJob = fromJob[key]
-                val configFromFile = fromFile[key]
-
-                when {
-                    configFromFile == null -> checkNotNull(configFromJob)
-                    configFromJob == null -> configFromFile
-                    else -> configFromFile.merge(configFromJob)
-                }
-            }
-        }
-    }
-
-    return AnalyzerConfiguration(
-        // TODO: allowDynamicVersions is not nullable in AnalyzerConfiguration. Therefore, the value is always taken,
-        //       and a fallback to the value from the repository configuration file is not possible.
-        allowDynamicVersions = allowDynamicVersions,
-        enabledPackageManagers = enabledPackageManagers ?: fileConfig.enabledPackageManagers
-            ?: AnalyzerConfiguration().enabledPackageManagers,
-        disabledPackageManagers = disabledPackageManagers ?: fileConfig.disabledPackageManagers,
-        packageManagers = mergedPackageManagers,
-        skipExcluded = skipExcluded ?: fileConfig.skipExcluded ?: false
-    )
 }
