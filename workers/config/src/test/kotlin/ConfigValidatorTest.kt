@@ -33,14 +33,7 @@ import io.mockk.mockk
 import kotlin.math.abs
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinitionTemplate
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
-import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -57,7 +50,7 @@ class ConfigValidatorTest : StringSpec({
         val run = mockRun()
         val context = mockContext(run)
 
-        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
@@ -82,7 +75,7 @@ class ConfigValidatorTest : StringSpec({
         val script = loadScript("validation-failure.params.kts")
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val expectedIssue = Issue(
@@ -100,7 +93,7 @@ class ConfigValidatorTest : StringSpec({
         val script = "This is not a valid Kotlin script!"
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validator = ConfigValidator.create(context)
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues.shouldBeSingleton {
@@ -108,25 +101,6 @@ class ConfigValidatorTest : StringSpec({
             it.message shouldContain "executing validation script"
             it.severity shouldBe Severity.ERROR
         }
-    }
-
-    "Exceptions when loading the admin configuration should be handled" {
-        val script = loadScript("validation-success.params.kts")
-        val context = mockContext(mockRun())
-
-        val configException = RuntimeException("Test exception: Could not load admin configuration.")
-        val adminConfigService = mockk<AdminConfigService> {
-            every {
-                loadAdminConfig(any(), validateConfigFiles = true)
-            } throws configException
-        }
-
-        val validator = ConfigValidator.create(context, adminConfigService)
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
-
-        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
-        errorIssue.source shouldBe ADMIN_CONFIG_VALIDATION_SOURCE
-        errorIssue.message shouldContain configException.message.orEmpty()
     }
 })
 
@@ -144,28 +118,6 @@ val testHierarchy = Hierarchy(
     repository = Repository(20230801094107L, ORGANIZATION_ID, 2, RepositoryType.GIT, "https://repo.example.org"),
     organization = mockk(),
     product = mockk()
-)
-
-/** A rule set used by test cases. */
-private val testRuleSet = RuleSetTemplate(
-    copyrightGarbageFile = "garbage.yml",
-    licenseClassificationsFile = "license.yml",
-    resolutionsFile = "resolutions.yml",
-    evaluatorRules = "rules.yml"
-)
-
-/** The admin configuration used by default in the test cases. */
-private val testAdminConfig = AdminConfig(
-    ruleSets = mapOf(RULE_SET to testRuleSet),
-    reporterConfig = ReporterConfig(
-        reportDefinitionsMap = mapOf(
-            "WebApp" to ReportDefinitionTemplate("webapp-reporter")
-        ),
-        howToFixTextProviderFile = "how-to-fix.kts",
-        globalAssets = mapOf(
-            "testAssetGroup" to listOf(ReporterAsset("testAsset"))
-        )
-    )
 )
 
 /**
@@ -219,13 +171,3 @@ private fun mockRun(ruleSetName: String = RULE_SET): OrtRun {
         every { organizationId } returns ORGANIZATION_ID
     }
 }
-
-/**
- * Return a mock for an [AdminConfigService] that returns the given [adminConfig].
- */
-private fun createAdminConfigService(adminConfig: AdminConfig = testAdminConfig): AdminConfigService =
-    mockk {
-        every {
-            loadAdminConfig(Context(RESOLVED_CONTEXT), validateConfigFiles = true)
-        } returns adminConfig
-    }

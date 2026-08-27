@@ -26,9 +26,7 @@ import kotlin.script.experimental.api.scriptsInstancesSharing
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.utils.script.ScriptRunner
 
@@ -42,26 +40,16 @@ import org.slf4j.LoggerFactory
  */
 class ConfigValidator private constructor(
     /** The current [WorkerContext]. */
-    private val context: WorkerContext,
-
-    /** The service to access the admin configuration. */
-    private val adminConfigService: AdminConfigService
+    context: WorkerContext
 ) : ScriptRunner<ConfigValidationResult>() {
     companion object {
-        /**
-         * A hint that is added to error issues generated if fatal errors in the admin configuration are detected.
-         */
-        const val ADMIN_CONFIG_ERROR_HINT = "This is a problem with the configuration of ORT Server. " +
-                "Please contact the administrator."
-
         private val logger = LoggerFactory.getLogger(ConfigValidator::class.java)
 
         /**
          * Return a new instance of [ConfigValidator] to validate the parameters of the ORT run stored in the given
-         * [context] using the given [configService] to access the admin configuration.
+         * [context].
          */
-        fun create(context: WorkerContext, configService: AdminConfigService): ConfigValidator =
-            ConfigValidator(context, configService)
+        fun create(context: WorkerContext): ConfigValidator = ConfigValidator(context)
 
         /**
          * Create a [ConfigValidationResult] for the case that there was an error during the execution of the given
@@ -94,7 +82,7 @@ class ConfigValidator private constructor(
 
         return when (val result = executedScript.validationResult) {
             is ConfigValidationResultFailure -> result
-            is ConfigValidationResultSuccess -> result.validateAdminConfig()
+            is ConfigValidationResultSuccess -> result
         }
     }
 
@@ -107,26 +95,5 @@ class ConfigValidator private constructor(
         runScript(script)
     }.getOrElse { exception ->
         createScriptErrorResult(script, exception)
-    }
-
-    /**
-     * Perform additional validation of this [ConfigValidationResultSuccess] using the current admin configuration.
-     * After the validation script has been run successfully, some checks can now be performed against the resolved
-     * job configurations.
-     */
-    private fun ConfigValidationResultSuccess.validateAdminConfig(): ConfigValidationResult = runCatching {
-        val adminConfig =
-            adminConfigService.loadAdminConfig(context.resolvedConfigurationContext, validateConfigFiles = true)
-
-        val validationIssues = AdminConfigValidator.validate(adminConfig, resolvedConfigurations)
-
-        takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
-    }.getOrElse { exception ->
-        logger.error("Error during admin configuration validation.", exception)
-
-        val issue = createIssue(
-            "Could not load admin configuration: '${exception.message}'. $ADMIN_CONFIG_ERROR_HINT"
-        )
-        ConfigValidationResultFailure(issues + issue)
     }
 }
