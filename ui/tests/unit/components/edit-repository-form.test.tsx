@@ -44,8 +44,16 @@ describe('EditRepositoryForm', () => {
     );
 
     const urlInput = screen.getByLabelText('URL');
+    const typeInput = screen.getByLabelText('Type');
     const submitButton = screen.getByRole('button', { name: 'Submit' });
+    const urlField = urlInput.closest('[data-slot="form-item"]');
+    const typeField = typeInput.closest('[data-slot="form-item"]');
 
+    expect(urlField?.parentElement).toBe(typeField?.parentElement);
+    expect(urlField?.parentElement).toHaveClass(
+      'grid',
+      'md:grid-cols-[minmax(0,1fr)_auto]'
+    );
     await waitFor(() => expect(submitButton).toBeEnabled());
 
     for (const invalidUrl of ['not a URL', 's:', 'httttps:']) {
