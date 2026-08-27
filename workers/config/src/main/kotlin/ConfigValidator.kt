@@ -50,24 +50,6 @@ class ConfigValidator private constructor(
          * [context].
          */
         fun create(context: WorkerContext): ConfigValidator = ConfigValidator(context)
-
-        /**
-         * Create a [ConfigValidationResult] for the case that there was an error during the execution of the given
-         * [validation script][script] caused by the given [exception].
-         */
-        private fun createScriptErrorResult(script: String, exception: Throwable): ConfigValidationResult =
-            ConfigValidationResultFailure(
-                issues = listOf(
-                    createIssue(
-                        "Error when executing validation script. This is a problem with the configuration " +
-                                "of ORT Server.",
-                        INVALID_SCRIPT_SOURCE
-                    )
-                )
-            ).also {
-                logger.error("Error when executing validation script.", exception)
-                logger.debug("Content of the script:\n{}", script)
-            }
     }
 
     override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()
@@ -77,23 +59,21 @@ class ConfigValidator private constructor(
         scriptsInstancesSharing(true)
     }
 
-    override fun runScript(script: SourceCode): ConfigValidationResult {
-        val executedScript = run(script).scriptInstance as ValidationScriptTemplate
-
-        return when (val result = executedScript.validationResult) {
-            is ConfigValidationResultFailure -> result
-            is ConfigValidationResultSuccess -> result
-        }
-    }
-
     /**
-     * Validate the parameters of the ORT run from the current context by executing the given [script]. Return the
-     * result of this script. If the script execution fails, return a failure result as well with the information
-     * available about the failure.
+     * Run the provided [script] and return the result. If script execution fails, return a
+     * [ConfigValidationResultFailure].
      */
-    fun validate(script: String): ConfigValidationResult = runCatching {
-        runScript(script)
-    }.getOrElse { exception ->
-        createScriptErrorResult(script, exception)
+    override fun runScript(script: SourceCode): ConfigValidationResult = runCatching {
+        (run(script).scriptInstance as ValidationScriptTemplate).validationResult
+    }.getOrElse { e ->
+        val issue = createIssue(
+            message = "Error when executing validation script. This is a problem with the configuration of ORT Server.",
+            source = INVALID_SCRIPT_SOURCE
+        )
+
+        ConfigValidationResultFailure(issues = listOf(issue)).also {
+            logger.error("Error when executing validation script.", e)
+            logger.debug("Content of the script:\n{}", script)
+        }
     }
 }
