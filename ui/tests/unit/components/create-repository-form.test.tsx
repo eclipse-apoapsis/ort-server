@@ -63,12 +63,26 @@ describe('CreateRepositoryForm', () => {
 
     expect(labels).toEqual([
       'URL',
+      'Type',
       'Name',
       'Description',
       'Username',
       passwordLabel,
-      'Type',
     ]);
+
+    const urlField = screen
+      .getByLabelText('URL')
+      .closest('[data-slot="form-item"]');
+    const typeField = screen
+      .getByLabelText('Type')
+      .closest('[data-slot="form-item"]');
+
+    expect(urlField?.parentElement).toBe(typeField?.parentElement);
+    expect(urlField?.parentElement).toHaveClass(
+      'grid',
+      'md:grid-cols-[minmax(0,1fr)_auto]'
+    );
+
     const usernameField = screen
       .getByLabelText('Username')
       .closest('[data-slot="form-item"]');
