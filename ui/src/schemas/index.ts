@@ -37,6 +37,44 @@ export const repositoryFormSchema = zRepository
 
 export type RepositoryFormValues = z.infer<typeof repositoryFormSchema>;
 
+export const createRepositoryFormSchema = repositoryFormSchema
+  .extend({
+    username: z
+      .string()
+      .refine((value) => value.length === 0 || value.trim().length > 0, {
+        message: 'A username cannot consist only of whitespace.',
+      }),
+    password: z
+      .string()
+      .refine((value) => value.length === 0 || value.trim().length > 0, {
+        message:
+          'A password or personal access token cannot consist only of whitespace.',
+      }),
+  })
+  .superRefine((values, ctx) => {
+    if (values.username && !values.password) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message:
+          'A password or personal access token is required for the username.',
+      });
+    }
+
+    if (!values.username && values.password) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['username'],
+        message:
+          'A username is required for the password or personal access token.',
+      });
+    }
+  });
+
+export type CreateRepositoryFormValues = z.infer<
+  typeof createRepositoryFormSchema
+>;
+
 // Schema to validate that a string is a valid regular expression.
 export const regexSchema = z
   .object({
