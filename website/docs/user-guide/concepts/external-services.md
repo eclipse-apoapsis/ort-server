@@ -31,6 +31,16 @@ If Git should not be able to obtain the credentials from the `Netrc` file, one c
 In some cases, there could be conflicting services; for instance, if multiple repositories with different credentials are defined on the same repository server.
 Therefore, it is also possible to choose not to include the credentials in any files.
 
+### Repository Credentials
+
+When adding a repository in the UI, you can optionally provide a username and a password or personal access token (PAT).
+ORT Server then creates the repository-scoped Secrets `REPOSITORY-USERNAME` and `REPOSITORY-PASSWORD` and the repository-scoped Infrastructure Service `REPOSITORY-ACCESS`.
+The Infrastructure Service points to the repository URL and references the two Secrets.
+For a Git repository, its credentials are added to the Git credentials file; no credential types is set for other repository types.
+
+You can view and edit these resources on the repository's _Secrets_ and _Infrastructure Services_ pages.
+If credentials are shared by multiple repositories, create an Infrastructure Service at the organization or product level instead.
+
 ### `.ort.env.yml` Example
 
 ```yaml
