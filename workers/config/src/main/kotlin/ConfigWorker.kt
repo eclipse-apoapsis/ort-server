@@ -40,7 +40,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.slf4j.LoggerFactory
 
 /**
- * A worker implementation that checks and transforms the configuration of an ORT run using a [ConfigValidator].
+ * A worker implementation that checks and transforms the configuration of an ORT run using a [ValidationScriptRunner].
  */
 class ConfigWorker(
     /** The database. */
@@ -102,11 +102,11 @@ class ConfigWorker(
                     resolvedJobConfigContext,
                     VALIDATION_SCRIPT_PATH
                 )
-                val validator = ConfigValidator.create(
+                val validationScriptRunner = ValidationScriptRunner.create(
                     createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
                 )
 
-                validator.runScript(validationScript).also {
+                validationScriptRunner.runScript(validationScript).also {
                     logger.debug("Issues returned by validation script: {}.", it.issues)
                 }
             } else {

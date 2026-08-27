@@ -43,15 +43,15 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
-class ConfigValidatorTest : StringSpec({
+class ValidationScriptRunnerTest : StringSpec({
     "A successful validation should be handled" {
         val script = loadScript("validation-success.params.kts")
 
         val run = mockRun()
         val context = mockContext(run)
 
-        val validator = ConfigValidator.create(context)
-        val validationResult = validator.runScript(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
+        val runner = ValidationScriptRunner.create(context)
+        val validationResult = runner.runScript(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
 
@@ -75,8 +75,8 @@ class ConfigValidatorTest : StringSpec({
         val script = loadScript("validation-failure.params.kts")
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context)
-        val validationResult = validator.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+        val runner = ValidationScriptRunner.create(context)
+        val validationResult = runner.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val expectedIssue = Issue(
             Clock.System.now(),
@@ -93,8 +93,8 @@ class ConfigValidatorTest : StringSpec({
         val script = "This is not a valid Kotlin script!"
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context)
-        val validationResult = validator.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+        val runner = ValidationScriptRunner.create(context)
+        val validationResult = runner.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues.shouldBeSingleton {
             it.source shouldBe INVALID_SCRIPT_SOURCE
@@ -124,7 +124,7 @@ val testHierarchy = Hierarchy(
  * Load the script with the given [name] from resources and return it as a string.
  */
 private fun loadScript(name: String): String =
-    ConfigValidatorTest::class.java.getResource("/$name")?.readText()
+    ValidationScriptRunnerTest::class.java.getResource("/$name")?.readText()
         ?: AssertionErrorBuilder.fail("Could not load script file '$name'.")
 
 /**
