@@ -102,7 +102,7 @@ class ConfigWorker(
                 VALIDATION_SCRIPT_PATH
             )
 
-            val (result, validationResult) = if (validationScriptExists) {
+            val validationResult = if (validationScriptExists) {
                 logger.info("Running validation script.")
 
                 val validationScript = context.configManager.getFileAsString(
@@ -113,50 +113,57 @@ class ConfigWorker(
                     createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs),
                     adminConfigService
                 )
-                val validationResult = validator.validate(validationScript)
 
-                logger.debug("Issues returned by validation script: {}.", validationResult.issues)
-
-                when (validationResult) {
-                    is ConfigValidationResultSuccess -> RunResult.Success to Triple(
-                        validationResult.resolvedConfigurations.asPresent(),
-                        validationResult.issues.asPresent(),
-                        validationResult.labelsToUpdate()
-                    )
-
-                    is ConfigValidationResultFailure -> RunResult.Failed(
-                        IllegalArgumentException("Parameter validation failed.")
-                    ) to Triple(
-                        OptionalValue.Absent,
-                        validationResult.issues.asPresent(),
-                        OptionalValue.Absent
-                    )
+                validator.validate(validationScript).also {
+                    logger.debug("Issues returned by validation script: {}.", it.issues)
                 }
             } else {
                 logger.info("Skipping validation as no script exists.")
 
-                RunResult.Success to Triple(
-                    baseConfigs.asPresent(),
-                    OptionalValue.Absent,
-                    OptionalValue.Absent
-                )
+                ConfigValidationResultSuccess(baseConfigs)
             }
 
-            val (configs, issues, labels) = validationResult
+            storeResult(ortRunId, resolvedJobConfigContext, validationResult)
 
-            db.dbQuery {
-                ortRunRepository.update(
-                    id = ortRunId,
-                    resolvedJobConfigs = configs,
-                    resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent(),
-                    issues = issues,
-                    labels = labels
-                )
+            when (validationResult) {
+                is ConfigValidationResultSuccess -> RunResult.Success
+
+                is ConfigValidationResultFailure ->
+                    RunResult.Failed(IllegalArgumentException("Parameter validation failed"))
             }
-
-            result
         }
     }.getOrElse { RunResult.Failed(it) }
+
+    private suspend fun storeResult(
+        ortRunId: Long,
+        resolvedJobConfigContext: Context,
+        validationResult: ConfigValidationResult
+    ) {
+        val labels: OptionalValue<Map<String, String>>
+        val resolvedJobConfigs: OptionalValue<JobConfigurations>
+
+        when (validationResult) {
+            is ConfigValidationResultSuccess -> {
+                resolvedJobConfigs = validationResult.resolvedConfigurations.asPresent()
+                labels = validationResult.labelsToUpdate()
+            }
+
+            is ConfigValidationResultFailure -> {
+                resolvedJobConfigs = OptionalValue.Absent
+                labels = OptionalValue.Absent
+            }
+        }
+
+        db.dbQuery {
+            ortRunRepository.update(
+                id = ortRunId,
+                resolvedJobConfigs = resolvedJobConfigs,
+                resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent(),
+                issues = validationResult.optionalIssues,
+                labels = labels
+            )
+        }
+    }
 
     /**
      * Create a [WorkerContext] that delegates to the given [context], but returns the provided

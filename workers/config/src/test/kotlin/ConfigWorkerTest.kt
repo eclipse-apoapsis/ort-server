@@ -208,7 +208,7 @@ class ConfigWorkerTest : StringSpec({
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any(), any())
             } returns mockk()
         }
 
@@ -226,7 +226,9 @@ class ConfigWorkerTest : StringSpec({
                 ortRunRepository.update(
                     id = RUN_ID,
                     resolvedJobConfigs = expectedJobConfigs.asPresent(),
-                    resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent()
+                    resolvedJobConfigContext = RESOLVED_CONTEXT.asPresent(),
+                    issues = OptionalValue.Absent,
+                    labels = OptionalValue.Absent
                 )
             }
         }

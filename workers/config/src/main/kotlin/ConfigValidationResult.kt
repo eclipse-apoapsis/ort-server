@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 /**
  * An interface defining the validation result of the configuration of an ORT run.
@@ -32,6 +34,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 sealed interface ConfigValidationResult {
     /** A (possibly empty) list with issues detected during validation. */
     val issues: List<Issue>
+
+    /** The [issues] as [OptionalValue] that is [absent][OptionalValue.Absent] if there are no issues. */
+    val optionalIssues
+        get() = if (issues.isEmpty()) OptionalValue.Absent else issues.asPresent()
 }
 
 /**
