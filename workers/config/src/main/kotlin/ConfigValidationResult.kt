@@ -52,7 +52,10 @@ data class ConfigValidationResultSuccess(
 
     /** A map with labels to be added to the ORT run. */
     val labels: Map<String, String> = emptyMap()
-) : ConfigValidationResult
+) : ConfigValidationResult {
+    /** The [labels] as [OptionalValue] that is [absent][OptionalValue.Absent] if there are no labels. */
+    val optionalLabels = if (labels.isEmpty()) OptionalValue.Absent else labels.asPresent()
+}
 
 /**
  * A data class representing a failed validation of a run configuration.

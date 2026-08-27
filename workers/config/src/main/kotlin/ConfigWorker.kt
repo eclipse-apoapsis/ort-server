@@ -66,13 +66,6 @@ class ConfigWorker(
         val VALIDATION_SCRIPT_PATH = Path("ort-server.params.kts")
 
         private val logger = LoggerFactory.getLogger(ConfigWorker::class.java)
-
-        /**
-         * Extract an [OptionalValue] with the labels to update for this result. If there are no new labels to add,
-         * return an [OptionalValue.Absent] result.
-         */
-        private fun ConfigValidationResultSuccess.labelsToUpdate(): OptionalValue<Map<String, String>> =
-            labels.takeUnless { it.isEmpty() }?.asPresent() ?: OptionalValue.Absent
     }
 
     /**
@@ -145,7 +138,7 @@ class ConfigWorker(
         when (validationResult) {
             is ConfigValidationResultSuccess -> {
                 resolvedJobConfigs = validationResult.resolvedConfigurations.asPresent()
-                labels = validationResult.labelsToUpdate()
+                labels = validationResult.optionalLabels
             }
 
             is ConfigValidationResultFailure -> {
