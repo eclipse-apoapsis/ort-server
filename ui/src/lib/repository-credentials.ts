@@ -17,8 +17,9 @@
  * License-Filename: LICENSE
  */
 
-import type { CredentialsType, RepositoryType } from '@/api';
+import type { CredentialsType, Repository, RepositoryType } from '@/api';
 import {
+  postRepository,
   postRepositoryInfrastructureService,
   postRepositorySecret,
 } from '@/api/sdk.gen';
@@ -27,6 +28,7 @@ import {
   REPOSITORY_PASSWORD_SECRET,
   REPOSITORY_USER_SECRET,
 } from '@/lib/constants';
+import type { CreateRepositoryFormValues } from '@/schemas';
 
 export function getCredentialsTypes(type: RepositoryType): CredentialsType[] {
   return type === 'GIT' ? ['GIT_CREDENTIALS_FILE'] : [];
@@ -82,4 +84,44 @@ export async function createRepositoryCredentials({
     },
     throwOnError: true,
   });
+}
+
+type CreateRepositoryAndCredentialsOptions = {
+  productId: number;
+  values: CreateRepositoryFormValues;
+};
+
+export type CreateRepositoryResult = {
+  repository: Repository;
+  credentialsError?: unknown;
+};
+
+export async function createRepositoryAndCredentials({
+  productId,
+  values,
+}: CreateRepositoryAndCredentialsOptions): Promise<CreateRepositoryResult> {
+  const { username, password, ...body } = values;
+
+  const { data: repository } = await postRepository({
+    path: { productId },
+    body,
+    throwOnError: true,
+  });
+
+  if (!username) return { repository };
+
+  try {
+    await createRepositoryCredentials({
+      repositoryId: repository.id,
+      url: repository.url,
+      type: repository.type,
+      username,
+      password,
+    });
+
+    return { repository };
+  } catch (error) {
+    // The repository exists; only its credentials are incomplete, which is reported and not undone.
+    return { repository, credentialsError: error };
+  }
 }

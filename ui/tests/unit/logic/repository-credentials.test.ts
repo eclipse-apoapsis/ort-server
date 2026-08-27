@@ -26,12 +26,14 @@ import {
   REPOSITORY_USER_SECRET,
 } from '@/lib/constants';
 import {
+  createRepositoryAndCredentials,
   createRepositoryCredentials,
   getCredentialsTypes,
 } from '@/lib/repository-credentials';
 
 const mocks = vi.hoisted(() => ({
   calls: [] as string[],
+  postRepository: vi.fn(),
   postRepositoryInfrastructureService: vi.fn(async () => {
     mocks.calls.push('infrastructure-service');
   }),
@@ -41,23 +43,42 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/api/sdk.gen', () => ({
+  postRepository: mocks.postRepository,
   postRepositoryInfrastructureService:
     mocks.postRepositoryInfrastructureService,
   postRepositorySecret: mocks.postRepositorySecret,
 }));
 
-const options = {
-  repositoryId: 42,
-  url: 'https://example.org/repository.git',
+const repository = {
+  id: 42,
+  organizationId: 1,
+  productId: 2,
   type: 'GIT' as const,
+  url: 'https://example.org/repository.git',
+};
+
+const options = {
+  repositoryId: repository.id,
+  url: repository.url,
+  type: repository.type,
   username: 'jdoe',
   password: 'token',
+};
+
+const formValues = {
+  description: '',
+  name: '',
+  type: repository.type,
+  url: repository.url,
+  username: '',
+  password: '',
 };
 
 describe('repository credentials', () => {
   beforeEach(() => {
     mocks.calls = [];
     vi.clearAllMocks();
+    mocks.postRepository.mockResolvedValue({ data: repository });
   });
 
   it('uses credential names accepted by the API', () => {
@@ -144,5 +165,71 @@ describe('repository credentials', () => {
 
     expect(mocks.postRepositorySecret).toHaveBeenCalledTimes(2);
     expect(mocks.postRepositoryInfrastructureService).toHaveBeenCalledOnce();
+  });
+
+  it('creates a repository without credentials', async () => {
+    const result = await createRepositoryAndCredentials({
+      productId: repository.productId,
+      values: formValues,
+    });
+
+    expect(mocks.postRepository).toHaveBeenCalledWith({
+      path: { productId: repository.productId },
+      body: {
+        description: formValues.description,
+        name: formValues.name,
+        type: formValues.type,
+        url: formValues.url,
+      },
+      throwOnError: true,
+    });
+    expect(mocks.postRepositorySecret).not.toHaveBeenCalled();
+    expect(mocks.postRepositoryInfrastructureService).not.toHaveBeenCalled();
+    expect(result).toEqual({ repository });
+  });
+
+  it('creates repository credentials', async () => {
+    const result = await createRepositoryAndCredentials({
+      productId: repository.productId,
+      values: {
+        ...formValues,
+        username: options.username,
+        password: options.password,
+      },
+    });
+
+    expect(mocks.postRepositorySecret).toHaveBeenCalledTimes(2);
+    expect(mocks.postRepositoryInfrastructureService).toHaveBeenCalledOnce();
+    expect(result).toEqual({ repository });
+  });
+
+  it('rejects if creating the repository fails', async () => {
+    const error = new Error('Could not create the repository.');
+    mocks.postRepository.mockRejectedValueOnce(error);
+
+    await expect(
+      createRepositoryAndCredentials({
+        productId: repository.productId,
+        values: formValues,
+      })
+    ).rejects.toBe(error);
+
+    expect(mocks.postRepositorySecret).not.toHaveBeenCalled();
+  });
+
+  it('returns the repository if creating credentials fails', async () => {
+    const error = new Error('Could not create the user secret.');
+    mocks.postRepositorySecret.mockRejectedValueOnce(error);
+
+    const result = await createRepositoryAndCredentials({
+      productId: repository.productId,
+      values: {
+        ...formValues,
+        username: options.username,
+        password: options.password,
+      },
+    });
+
+    expect(result).toEqual({ repository, credentialsError: error });
   });
 });
