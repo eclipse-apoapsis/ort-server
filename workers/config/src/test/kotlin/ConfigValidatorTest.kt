@@ -111,7 +111,7 @@ class ConfigValidatorTest : StringSpec({
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues.shouldBeSingleton {
-            it.source shouldBe ConfigValidator.INVALID_SCRIPT_SOURCE
+            it.source shouldBe INVALID_SCRIPT_SOURCE
             it.message shouldContain "executing validation script"
             it.severity shouldBe Severity.ERROR
         }
@@ -129,7 +129,7 @@ class ConfigValidatorTest : StringSpec({
 
         validationResult.issues shouldHaveSize 2
         val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
-        errorIssue.source shouldBe ConfigValidator.PARAMETER_VALIDATION_SOURCE
+        errorIssue.source shouldBe PARAMETER_VALIDATION_SOURCE
         errorIssue.message shouldContain "rule set"
         errorIssue.message shouldContain ruleSetName
     }
@@ -151,7 +151,7 @@ class ConfigValidatorTest : StringSpec({
         validationResult.issues shouldHaveSize invalidFormats.size + 1
         val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
         errorIssues.forAll { issue ->
-            issue.source shouldBe ConfigValidator.PARAMETER_VALIDATION_SOURCE
+            issue.source shouldBe PARAMETER_VALIDATION_SOURCE
             issue.message shouldContain "reporter format"
         }
 
@@ -183,7 +183,7 @@ class ConfigValidatorTest : StringSpec({
         validationResult.issues shouldHaveSize 3
         val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
         errorIssues.forAll { issue ->
-            issue.source shouldBe ConfigValidator.PARAMETER_VALIDATION_SOURCE
+            issue.source shouldBe PARAMETER_VALIDATION_SOURCE
             issue.message shouldContain "reporter asset group"
         }
 
@@ -209,7 +209,7 @@ class ConfigValidatorTest : StringSpec({
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
-        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.source shouldBe ADMIN_CONFIG_VALIDATION_SOURCE
         errorIssue.message shouldContain configException.message.orEmpty()
     }
 })
