@@ -21,6 +21,12 @@
 // the user scrolls, so this is only the size of one page, not the number of items reachable in it.
 export const DROPDOWN_PAGE_SIZE = 50;
 
+// A repository that is just being added cannot have secrets or an infrastructure service yet, so
+// fixed names keep them recognizable in the repository's Secrets and Infrastructure Services views.
+export const REPOSITORY_USER_SECRET = 'REPOSITORY-USERNAME';
+export const REPOSITORY_PASSWORD_SECRET = 'REPOSITORY-PASSWORD';
+export const REPOSITORY_ACCESS_SERVICE = 'REPOSITORY-ACCESS';
+
 // The base download URL for the downloadable assets of the latest ORT Server release.
 export const ORT_SERVER_GITHUB_RELEASES_BASE_URL =
   'https://github.com/eclipse-apoapsis/ort-server/releases';
