@@ -24,7 +24,7 @@ package org.eclipse.apoapsis.ortserver.utils.test
  * single location makes it easier to automatically update them with Renovate.
  */
 object Images {
-    const val ARTEMIS = "apache/artemis:2.55.0"
+    const val ARTEMIS = "apache/artemis:2.56.0"
     const val AZURITE = "mcr.microsoft.com/azure-storage/azurite:3.37.0"
     const val FLOCI = "floci/floci:1.7.0"
     const val KEYCLOAK = "quay.io/keycloak/keycloak:26.7.2"
