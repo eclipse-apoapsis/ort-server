@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContex
 
 class ConfigWorkerTest : StringSpec({
     beforeSpec {
-        mockkObject(ConfigValidator)
+        mockkObject(ValidationScriptRunner)
     }
 
     afterSpec {
@@ -215,7 +215,7 @@ class ConfigWorkerTest : StringSpec({
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext))
+                ValidationScriptRunner.create(capture(slotContext))
             }
             val capturedContext = slotContext.last()
 
@@ -294,7 +294,7 @@ class ConfigWorkerTest : StringSpec({
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext))
+                ValidationScriptRunner.create(capture(slotContext))
             }
 
             val capturedContext = slotContext.last()
@@ -330,7 +330,7 @@ class ConfigWorkerTest : StringSpec({
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext))
+                ValidationScriptRunner.create(capture(slotContext))
             }
 
             val capturedContext = slotContext.last()
@@ -415,15 +415,15 @@ private fun mockContext(
 }
 
 /**
- * Create a mock [ConfigValidator] and prepare the factory function to return it. The mock is configured to return the
- * given [result] for the test script.
+ * Create a mock [ValidationScriptRunner] and prepare the factory function to return it. The mock is configured to
+ * return the given [result] for the test script.
  */
-private fun mockValidator(result: ConfigValidationResult): ConfigValidator {
-    val validator = mockk<ConfigValidator> {
+private fun mockValidator(result: ConfigValidationResult): ValidationScriptRunner {
+    val validator = mockk<ValidationScriptRunner> {
         every { runScript(PARAMETERS_SCRIPT) } returns result
     }
 
-    every { ConfigValidator.create(any()) } returns validator
+    every { ValidationScriptRunner.create(any()) } returns validator
 
     return validator
 }
