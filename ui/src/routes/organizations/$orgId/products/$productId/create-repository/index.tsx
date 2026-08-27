@@ -21,11 +21,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
+import type { ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { postRepositoryMutation } from '@/api/@tanstack/react-query.gen';
 import { zRepositoryType } from '@/api/zod.gen';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
+import { PasswordInput } from '@/components/form/password-input';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -50,29 +51,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
 import { repositoryCreated } from '@/lib/entity-cache';
+import { createRepositoryAndCredentials } from '@/lib/repository-credentials';
 import { toast, toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
-import { repositoryFormSchema, type RepositoryFormValues } from '@/schemas';
+import {
+  createRepositoryFormSchema,
+  type CreateRepositoryFormValues,
+} from '@/schemas';
 
 interface CreateRepositoryFormProps {
   isPending: boolean;
-  onSubmit: (values: RepositoryFormValues) => Promise<void> | void;
+  onSubmit: (values: CreateRepositoryFormValues) => Promise<void> | void;
 }
 
 export const CreateRepositoryForm = ({
   isPending,
   onSubmit,
 }: CreateRepositoryFormProps) => {
-  const form = useForm<RepositoryFormValues>({
-    resolver: zodResolver(repositoryFormSchema),
+  const form = useForm<CreateRepositoryFormValues>({
+    resolver: zodResolver(createRepositoryFormSchema),
     defaultValues: {
       description: '',
       name: '',
       url: '',
       type: 'GIT',
+      username: '',
+      password: '',
     },
     mode: 'onChange',
   });
@@ -124,6 +130,50 @@ export const CreateRepositoryForm = ({
                 </FormItem>
               )}
             />
+            <div className='grid gap-4 md:grid-cols-2'>
+              <FormField
+                control={form.control}
+                name='username'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <OptionalInput
+                        placeholder='(optional, only needed for private repositories)'
+                        {...field}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          field.onChange(event);
+                          void form.trigger(['username', 'password']);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='password'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Password or Personal Access Token (PAT)
+                    </FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        placeholder='(optional, only needed for private repositories)'
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          field.onChange(event);
+                          void form.trigger(['username', 'password']);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name='type'
@@ -173,28 +223,38 @@ export const CreateRepositoryForm = ({
   );
 };
 
-const CreateRepositoryPage = () => {
+export const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const queryClient = useQueryClient();
-  const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } = useMutation({
-    ...postRepositoryMutation(),
-    onSuccess(data) {
-      // Refresh the user token and data to get the new roles after creating a new repository.
-      refreshUser();
+    mutationFn: (values: CreateRepositoryFormValues) =>
+      createRepositoryAndCredentials({
+        productId: Number.parseInt(params.productId),
+        values,
+      }),
+    onSuccess({ repository, credentialsError }) {
+      repositoryCreated(queryClient, repository.productId);
 
-      toast.info('Add Repository', {
-        description: `Repository ${data.url} added successfully.`,
-      });
-      repositoryCreated(queryClient, data.productId);
+      if (credentialsError) {
+        toastError(
+          `Repository ${repository.url} was added, but its credentials could not be stored. ` +
+            'Add the missing entries under the repository’s Secrets and Infrastructure Services.',
+          credentialsError
+        );
+      } else {
+        toast.info('Add Repository', {
+          description: `Repository ${repository.url} added successfully.`,
+        });
+      }
+
       navigate({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId',
         params: {
           orgId: params.orgId,
           productId: params.productId,
-          repoId: data.id.toString(),
+          repoId: repository.id.toString(),
         },
       });
     },
@@ -203,11 +263,8 @@ const CreateRepositoryPage = () => {
     },
   });
 
-  async function onSubmit(values: RepositoryFormValues) {
-    await mutateAsync({
-      path: { productId: Number.parseInt(params.productId) },
-      body: values,
-    });
+  async function onSubmit(values: CreateRepositoryFormValues) {
+    await mutateAsync(values);
   }
 
   return <CreateRepositoryForm isPending={isPending} onSubmit={onSubmit} />;
