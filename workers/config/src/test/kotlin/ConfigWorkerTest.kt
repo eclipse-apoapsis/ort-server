@@ -420,7 +420,7 @@ private fun mockContext(
  */
 private fun mockValidator(result: ConfigValidationResult): ConfigValidator {
     val validator = mockk<ConfigValidator> {
-        every { validate(PARAMETERS_SCRIPT) } returns result
+        every { runScript(PARAMETERS_SCRIPT) } returns result
     }
 
     every { ConfigValidator.create(any()) } returns validator

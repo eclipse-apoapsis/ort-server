@@ -51,7 +51,7 @@ class ConfigValidatorTest : StringSpec({
         val context = mockContext(run)
 
         val validator = ConfigValidator.create(context)
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
+        val validationResult = validator.runScript(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
 
@@ -76,7 +76,7 @@ class ConfigValidatorTest : StringSpec({
         val context = mockContext(mockk())
 
         val validator = ConfigValidator.create(context)
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+        val validationResult = validator.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val expectedIssue = Issue(
             Clock.System.now(),
@@ -94,7 +94,7 @@ class ConfigValidatorTest : StringSpec({
         val context = mockContext(mockk())
 
         val validator = ConfigValidator.create(context)
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+        val validationResult = validator.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues.shouldBeSingleton {
             it.source shouldBe INVALID_SCRIPT_SOURCE

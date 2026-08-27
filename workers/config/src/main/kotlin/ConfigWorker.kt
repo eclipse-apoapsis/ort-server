@@ -106,7 +106,7 @@ class ConfigWorker(
                     createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
                 )
 
-                validator.validate(validationScript).also {
+                validator.runScript(validationScript).also {
                     logger.debug("Issues returned by validation script: {}.", it.issues)
                 }
             } else {
