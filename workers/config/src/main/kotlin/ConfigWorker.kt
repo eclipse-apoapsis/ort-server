@@ -95,7 +95,7 @@ class ConfigWorker(
                 VALIDATION_SCRIPT_PATH
             )
 
-            val validationResult = if (validationScriptExists) {
+            val validationScriptResult = if (validationScriptExists) {
                 logger.info("Running validation script.")
 
                 val validationScript = context.configManager.getFileAsString(
@@ -103,8 +103,7 @@ class ConfigWorker(
                     VALIDATION_SCRIPT_PATH
                 )
                 val validator = ConfigValidator.create(
-                    createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs),
-                    adminConfigService
+                    createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
                 )
 
                 validator.validate(validationScript).also {
@@ -114,6 +113,13 @@ class ConfigWorker(
                 logger.info("Skipping validation as no script exists.")
 
                 ConfigValidationResultSuccess(baseConfigs)
+            }
+
+            val validationResult = when (validationScriptResult) {
+                is ConfigValidationResultSuccess ->
+                    validateAdminConfig(resolvedJobConfigContext, validationScriptResult)
+
+                is ConfigValidationResultFailure -> validationScriptResult
             }
 
             storeResult(ortRunId, resolvedJobConfigContext, validationResult)
@@ -126,6 +132,33 @@ class ConfigWorker(
             }
         }
     }.getOrElse { RunResult.Failed(it) }
+
+    private fun validateAdminConfig(
+        resolvedJobConfigContext: Context,
+        validationScriptResult: ConfigValidationResultSuccess
+    ) = runCatching {
+        logger.info("Validating admin config.")
+
+        val adminConfig = adminConfigService.loadAdminConfig(resolvedJobConfigContext, true)
+
+        val validationIssues =
+            AdminConfigValidator.validate(adminConfig, validationScriptResult.resolvedConfigurations)
+
+        if (validationIssues.isNotEmpty()) {
+            ConfigValidationResultFailure(validationScriptResult.issues + validationIssues)
+        } else {
+            validationScriptResult
+        }
+    }.getOrElse { e ->
+        logger.error("Error during admin configuration validation.", e)
+
+        val issue = createIssue(
+            message = "Could not load admin config: '${e.message}'. This is a problem with the configuration of ORT " +
+                    "Server, please contact the administrator."
+        )
+
+        ConfigValidationResultFailure(validationScriptResult.issues + issue)
+    }
 
     private suspend fun storeResult(
         ortRunId: Long,

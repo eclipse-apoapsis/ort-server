@@ -35,6 +35,8 @@ import io.mockk.verify
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -70,7 +72,7 @@ class ConfigWorkerTest : StringSpec({
     "The ORT run configuration should be validated successfully" {
         val (contextFactory, _, configManager) = mockContext()
 
-        val resolvedConfig = mockk<JobConfigurations>()
+        val resolvedConfig = JobConfigurations()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues, validationLabels))
 
         val ortRunRepository = mockk<OrtRunRepository> {
@@ -80,7 +82,15 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService(), mockk())
+            val worker = ConfigWorker(
+                mockk(),
+                ortRunRepository,
+                contextFactory,
+                mockAdminConfigService(),
+                mockPluginService(),
+                mockk()
+            )
+
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -100,7 +110,7 @@ class ConfigWorkerTest : StringSpec({
     "A null configuration context should be used if the user has not specified one" {
         val (contextFactory, _, configManager) = mockContext(null)
 
-        val resolvedConfig = mockk<JobConfigurations>()
+        val resolvedConfig = JobConfigurations()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
@@ -110,7 +120,15 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService(), mockk())
+            val worker = ConfigWorker(
+                mockk(),
+                ortRunRepository,
+                contextFactory,
+                mockAdminConfigService(),
+                mockPluginService(),
+                mockk()
+            )
+
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -174,7 +192,7 @@ class ConfigWorkerTest : StringSpec({
     "The context passed to the validator should have the correct resolved configuration context" {
         val (contextFactory, context, _) = mockContext()
 
-        val resolvedConfig = mockk<JobConfigurations>()
+        val resolvedConfig = JobConfigurations()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
@@ -184,12 +202,20 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService(), mockk())
+            val worker = ConfigWorker(
+                mockk(),
+                ortRunRepository,
+                contextFactory,
+                mockAdminConfigService(),
+                mockPluginService(),
+                mockk()
+            )
+
             worker.testRun() shouldBe RunResult.Success
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext), any())
+                ConfigValidator.create(capture(slotContext))
             }
             val capturedContext = slotContext.last()
 
@@ -213,7 +239,15 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService(), mockk())
+            val worker = ConfigWorker(
+                mockk(),
+                ortRunRepository,
+                contextFactory,
+                mockAdminConfigService(),
+                mockPluginService(),
+                mockk()
+            )
+
             worker.testRun() shouldBe RunResult.Success
 
             val expectedJobConfigs = JobConfigurations(
@@ -237,7 +271,7 @@ class ConfigWorkerTest : StringSpec({
     "Default package managers should be injected into the context passed to the validation script" {
         val (contextFactory, _, _) = mockContext()
 
-        val resolvedConfig = mockk<JobConfigurations>()
+        val resolvedConfig = JobConfigurations()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
@@ -247,12 +281,20 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService(), mockk())
+            val worker = ConfigWorker(
+                mockk(),
+                ortRunRepository,
+                contextFactory,
+                mockAdminConfigService(),
+                mockPluginService(),
+                mockk()
+            )
+
             worker.testRun() shouldBe RunResult.Success
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext), any())
+                ConfigValidator.create(capture(slotContext))
             }
 
             val capturedContext = slotContext.last()
@@ -265,7 +307,7 @@ class ConfigWorkerTest : StringSpec({
         val jobConfig = AnalyzerJobConfiguration(enabledPackageManagers = existingManagers)
         val (contextFactory, _, _) = mockContext(jobConfigs = JobConfigurations(analyzer = jobConfig))
 
-        val resolvedConfig = mockk<JobConfigurations>()
+        val resolvedConfig = JobConfigurations()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
 
         val ortRunRepository = mockk<OrtRunRepository> {
@@ -275,12 +317,20 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk(), mockPluginService(), mockk())
+            val worker = ConfigWorker(
+                mockk(),
+                ortRunRepository,
+                contextFactory,
+                mockAdminConfigService(),
+                mockPluginService(),
+                mockk()
+            )
+
             worker.testRun() shouldBe RunResult.Success
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext), any())
+                ConfigValidator.create(capture(slotContext))
             }
 
             val capturedContext = slotContext.last()
@@ -373,7 +423,7 @@ private fun mockValidator(result: ConfigValidationResult): ConfigValidator {
         every { validate(PARAMETERS_SCRIPT) } returns result
     }
 
-    every { ConfigValidator.create(any(), any()) } returns validator
+    every { ConfigValidator.create(any()) } returns validator
 
     return validator
 }
@@ -391,6 +441,10 @@ private fun mockConfigManager(validationScriptExists: Boolean = true): ConfigMan
     } returns PARAMETERS_SCRIPT
 
     every { resolveContext(any()) } returns Context(RESOLVED_CONTEXT)
+}
+
+private fun mockAdminConfigService(): AdminConfigService = mockk {
+    every { loadAdminConfig(any(), any()) } returns AdminConfig()
 }
 
 /**
