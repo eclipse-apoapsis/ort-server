@@ -21,13 +21,43 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import com.github.michaelbull.result.getOrElse
 
+import kotlin.time.Clock
+
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
+
+/**
+ * Constant for the source of an issue that is generated if the validation script fails to compile.
+ */
+const val INVALID_SCRIPT_SOURCE = "VALIDATION_SCRIPT_ERROR"
+
+/**
+ * Constant for the source of an issue that is generated if parameters to trigger a run do not comply with
+ * settings in the admin configuration.
+ */
+const val PARAMETER_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
+
+/**
+ * Constant for the source of an issue that is generated if an error in the admin configuration is detected.
+ * This is a fatal error that can only be fixed by an administrator of the server.
+ */
+const val ADMIN_CONFIG_VALIDATION_SOURCE = "ADMIN_CONFIG_VALIDATION"
+
+/** Create a new [Issue] with the given [message] and [source] and other properties set to default values. */
+fun createIssue(message: String, source: String = ADMIN_CONFIG_VALIDATION_SOURCE): Issue =
+    Issue(
+        timestamp = Clock.System.now(),
+        source = source,
+        message = message,
+        severity = Severity.ERROR
+    )
 
 /**
  * Returns the IDs of the package managers that are enabled by default. This includes package managers which are enabled

@@ -30,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
@@ -53,23 +52,6 @@ class ConfigValidator private constructor(
     private val adminConfigService: AdminConfigService
 ) : ScriptRunner<ConfigValidationResult>() {
     companion object {
-        /**
-         * Constant for the source of an issue that is generated if the validation script fails to compile.
-         */
-        const val INVALID_SCRIPT_SOURCE = "VALIDATION_SCRIPT_ERROR"
-
-        /**
-         * Constant for the source of an issue that is generated if parameters to trigger a run do not comply with
-         * settings in the admin configuration.
-         */
-        const val PARAMETER_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
-
-        /**
-         * Constant for the source of an issue that is generated if an error in the admin configuration is detected.
-         * This is a fatal error that can only be fixed by an administrator of the server.
-         */
-        const val ADMIN_CONFIG_VALIDATION_SOURCE = "ADMIN_CONFIG_VALIDATION"
-
         /**
          * A hint that is added to error issues generated if fatal errors in the admin configuration are detected.
          */
@@ -102,17 +84,6 @@ class ConfigValidator private constructor(
                 logger.error("Error when executing validation script.", exception)
                 logger.debug("Content of the script:\n{}", script)
             }
-
-        /**
-         * Create a new [Issue] with the given [message] and [source] and other properties set to default values.
-         */
-        private fun createIssue(message: String, source: String = ADMIN_CONFIG_VALIDATION_SOURCE): Issue =
-            Issue(
-                timestamp = Clock.System.now(),
-                source = source,
-                message = message,
-                severity = Severity.ERROR
-            ).also { logger.error("Error during config validation:\n$it") }
     }
 
     override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()
