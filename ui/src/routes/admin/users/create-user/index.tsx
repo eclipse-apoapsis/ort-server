@@ -316,8 +316,8 @@ const CreateUser = () => {
                     />
                   </FormControl>
                   <FormDescription>
-                    At least one organization needs to be chosen, to which the
-                    user is granted READERS access.
+                    At least one organization needs to be chosen to which the
+                    user is granted READERS access initially.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
