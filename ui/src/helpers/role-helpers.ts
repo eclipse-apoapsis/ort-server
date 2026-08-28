@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import { Eye, Pen, Shield } from 'lucide-react';
+import { createElement, type JSX } from 'react';
 import { z } from 'zod';
 
 import {
@@ -102,5 +104,18 @@ export const mapGroupSchemaToRepositoryRole = (
       return 'WRITER';
     case 'readers':
       return 'READER';
+  }
+};
+
+export const getGroupIcon = (
+  group: z.infer<typeof groupsSchema>
+): JSX.Element => {
+  switch (group) {
+    case 'admins':
+      return createElement(Shield, { size: 16 });
+    case 'writers':
+      return createElement(Pen, { size: 16 });
+    case 'readers':
+      return createElement(Eye, { size: 16 });
   }
 };
