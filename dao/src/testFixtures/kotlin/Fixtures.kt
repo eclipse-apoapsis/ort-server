@@ -147,14 +147,16 @@ class Fixtures(private val db: Database) {
     fun createOrtRun(
         repositoryId: Long = repository.id,
         revision: String = "revision",
-        jobConfigurations: JobConfigurations = this.jobConfigurations
+        jobConfigurations: JobConfigurations = this.jobConfigurations,
+        jobConfigContext: String? = null,
+        labels: Map<String, String> = mapOf("label key" to "label value")
     ) = ortRunRepository.create(
         repositoryId,
         revision,
         null,
         jobConfigurations,
-        null,
-        mapOf("label key" to "label value"),
+        jobConfigContext,
+        labels,
         traceId = "trace-this-run0",
         environmentConfigPath = "path/to/env.yml"
     )
