@@ -129,8 +129,11 @@ const ManageUsers = () => {
         <CardTitle>Manage Users</CardTitle>
         <CardDescription className='flex flex-col gap-2'>
           <span>
-            Assign or remove users to different groups in repository:{' '}
-            <span className='font-semibold'>{repository.url}</span>
+            Assign or remove users to different groups in the{' '}
+            <span className='font-semibold'>
+              {repository.name ?? repository.url}
+            </span>{' '}
+            repository.
           </span>
           <div className='grid grid-cols-[auto_1fr] items-center gap-x-1 gap-y-1'>
             <Eye size={16} />
