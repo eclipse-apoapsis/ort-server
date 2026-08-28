@@ -72,7 +72,7 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
             if (context == ConfigManager.EMPTY_CONTEXT) {
                 File("src/testFixtures/resources/config-files")
             } else {
-                File(context.name)
+                File(context.name.removePrefix(RESOLVED_PREFIX))
             }
 
         fun resolveFile(context: Context, path: Path): File =
