@@ -129,13 +129,13 @@ class ScalewaySecretsProvider(
         val secretId = if (listResponse.totalCount < 1) {
             val createResponse = createSecret(path)
             createResponse.id.also { id ->
-                logger.debug("Created a secret at $path as it did not exist before.")
+                logger.debug("Created secret '$id' at '$path' as it did not exist before.")
             }
         } else {
             check(listResponse.totalCount == 1)
 
             listResponse.secrets.first().id.also { id ->
-                logger.debug("Secret at $path already exists and is not created again.")
+                logger.debug("Secret '$id' at '$path' already exists and is not created again.")
             }
         }
 
