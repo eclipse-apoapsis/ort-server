@@ -58,7 +58,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mapGroupSchemaToProductRole } from '@/helpers/role-helpers.ts';
+import {
+  getGroupIcon,
+  mapGroupSchemaToProductRole,
+} from '@/helpers/role-helpers.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
@@ -186,9 +189,7 @@ const ManageUsers = () => {
                       {groupsSchema.options.map((group) => (
                         <SelectItem key={group} value={group}>
                           <div className='flex items-center gap-2'>
-                            {group === 'admins' && <Shield size={16} />}
-                            {group === 'writers' && <Pen size={16} />}
-                            {group === 'readers' && <Eye size={16} />}
+                            {getGroupIcon(group)}
                             {group.toUpperCase()}
                           </div>
                         </SelectItem>
