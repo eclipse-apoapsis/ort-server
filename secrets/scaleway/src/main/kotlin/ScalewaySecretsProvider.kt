@@ -106,7 +106,7 @@ class ScalewaySecretsProvider(
             // It is a confirmed bug that the current API returns "InternalServerError" when trying to read a
             // non-existing secret.
             response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.InternalServerError -> {
-                logger.debug("No secret to read at $path.")
+                logger.debug("No secret to read at '$path'.")
 
                 null
             }
@@ -114,7 +114,7 @@ class ScalewaySecretsProvider(
             response.status.isSuccess() -> {
                 val secretResponse = response.body<SecretsAccessResponse>()
 
-                logger.debug("Read a secret at $path.")
+                logger.debug("Read a secret at '$path'.")
 
                 SecretValue(String(Base64.decode(secretResponse.data)))
             }
@@ -141,7 +141,7 @@ class ScalewaySecretsProvider(
 
         val createResponse = createVersion(secretId, secret.value)
 
-        logger.debug("Created version ${createResponse.revision} for secret at $path.")
+        logger.debug("Created version ${createResponse.revision} for secret at '$path'.")
 
         check(createResponse.latest)
     }
@@ -192,7 +192,7 @@ class ScalewaySecretsProvider(
         val listResponse = listSecrets(path)
 
         if (listResponse.totalCount < 1) {
-            logger.debug("Skipping deletion of secret at $path as it does not exist.")
+            logger.debug("Skipping deletion of secret at '$path' as it does not exist.")
             return@runBlocking
         }
 
@@ -205,7 +205,7 @@ class ScalewaySecretsProvider(
 
         if (response.status != HttpStatusCode.NoContent) throw ClientRequestException(response, response.body())
 
-        logger.debug("Deleted the secret at $path.")
+        logger.debug("Deleted the secret at '$path'.")
     }
 
     override fun createPath(id: HierarchyId, secretName: String): Path {
