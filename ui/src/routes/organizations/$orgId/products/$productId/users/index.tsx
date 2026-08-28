@@ -129,8 +129,8 @@ const ManageUsers = () => {
         <CardTitle>Manage Users</CardTitle>
         <CardDescription className='flex flex-col gap-2'>
           <span>
-            Assign or remove users to different groups in product:{' '}
-            <span className='font-semibold'>{product.name}</span>
+            Assign or remove users to different groups in the{' '}
+            <span className='font-semibold'>{product.name}</span> product.
           </span>
           <div className='grid grid-cols-[auto_1fr] items-center gap-x-1 gap-y-1'>
             <Eye size={16} />
