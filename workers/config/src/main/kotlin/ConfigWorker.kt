@@ -102,7 +102,7 @@ class ConfigWorker(
                     resolvedJobConfigContext,
                     VALIDATION_SCRIPT_PATH
                 )
-                val validationScriptRunner = ValidationScriptRunner.create(
+                val validationScriptRunner = ValidationScriptRunner(
                     createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
                 )
 

@@ -50,7 +50,7 @@ class ValidationScriptRunnerTest : StringSpec({
         val run = mockRun()
         val context = mockContext(run)
 
-        val runner = ValidationScriptRunner.create(context)
+        val runner = ValidationScriptRunner(context)
         val validationResult = runner.runScript(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
@@ -75,7 +75,7 @@ class ValidationScriptRunnerTest : StringSpec({
         val script = loadScript("validation-failure.params.kts")
         val context = mockContext(mockk())
 
-        val runner = ValidationScriptRunner.create(context)
+        val runner = ValidationScriptRunner(context)
         val validationResult = runner.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val expectedIssue = Issue(
@@ -93,7 +93,7 @@ class ValidationScriptRunnerTest : StringSpec({
         val script = "This is not a valid Kotlin script!"
         val context = mockContext(mockk())
 
-        val runner = ValidationScriptRunner.create(context)
+        val runner = ValidationScriptRunner(context)
         val validationResult = runner.runScript(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues.shouldBeSingleton {
