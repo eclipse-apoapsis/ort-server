@@ -38,18 +38,12 @@ import org.slf4j.LoggerFactory
  * An instance can be created for a specific [WorkerContext]. It can then be used to run a specific validation and
  * transformation script and obtain the results produced by this script.
  */
-class ValidationScriptRunner private constructor(
+class ValidationScriptRunner(
     /** The current [WorkerContext]. */
     context: WorkerContext
 ) : ScriptRunner<ConfigValidationResult>() {
     companion object {
         private val logger = LoggerFactory.getLogger(ValidationScriptRunner::class.java)
-
-        /**
-         * Return a new instance of [ValidationScriptRunner] to validate the parameters of the ORT run stored in the
-         * given [context].
-         */
-        fun create(context: WorkerContext): ValidationScriptRunner = ValidationScriptRunner(context)
     }
 
     override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()
