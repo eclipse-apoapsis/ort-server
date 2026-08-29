@@ -43,7 +43,7 @@ const val PARAMETER_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
 const val ADMIN_CONFIG_VALIDATION_SOURCE = "ADMIN_CONFIG_VALIDATION"
 
 /** Create a new [Issue] with the given [message] and [source] and other properties set to default values. */
-fun createIssue(message: String, source: String = ADMIN_CONFIG_VALIDATION_SOURCE): Issue =
+fun createIssue(message: String, source: String): Issue =
     Issue(
         timestamp = Clock.System.now(),
         source = source,

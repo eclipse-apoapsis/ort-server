@@ -154,7 +154,8 @@ class ConfigWorker(
 
         val issue = createIssue(
             message = "Could not load admin config: '${e.message}'. This is a problem with the configuration of ORT " +
-                    "Server, please contact the administrator."
+                    "Server, please contact the administrator.",
+            source = ADMIN_CONFIG_VALIDATION_SOURCE
         )
 
         ConfigValidationResultFailure(validationScriptResult.issues + issue)
