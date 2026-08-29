@@ -33,21 +33,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 
-/**
- * Constant for the source of an issue that is generated if the validation script fails to compile.
- */
+/** An [Issue.source] for errors that occur when compiling or executing the validation script. */
 const val INVALID_SCRIPT_SOURCE = "VALIDATION_SCRIPT_ERROR"
 
-/**
- * Constant for the source of an issue that is generated if parameters to trigger a run do not comply with
- * settings in the admin configuration.
- */
+/** An [Issue.source] for errors that occur when validating the run request against the admin config file. */
 const val PARAMETER_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
 
-/**
- * Constant for the source of an issue that is generated if an error in the admin configuration is detected.
- * This is a fatal error that can only be fixed by an administrator of the server.
- */
+/** An [Issue.source] for errors that occur when validating the admin config file. */
 const val ADMIN_CONFIG_VALIDATION_SOURCE = "ADMIN_CONFIG_VALIDATION"
 
 /** Create a new [Issue] with the given [message] and [source] and other properties set to default values. */
