@@ -180,8 +180,12 @@ fun Route.organizations() = route("organizations") {
                 val createProduct = call.receive<PostProduct>()
                 val orgId = call.requireIdParameter("organizationId")
 
-                val createdProduct =
-                    organizationService.createProduct(createProduct.name, createProduct.description, orgId)
+                val createdProduct = organizationService.createProduct(
+                    createProduct.name,
+                    createProduct.description,
+                    orgId,
+                    requirePrincipal().username
+                )
 
                 call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
             }

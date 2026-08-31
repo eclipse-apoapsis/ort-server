@@ -25,9 +25,11 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.Authoriza
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
@@ -58,8 +60,26 @@ class OrganizationService(
     /**
      * Create a product inside an [organization][organizationId].
      */
-    suspend fun createProduct(name: String, description: String?, organizationId: Long) = db.dbQuery {
-        productRepository.create(name, description, organizationId)
+    suspend fun createProduct(
+        name: String,
+        description: String?,
+        organizationId: Long,
+        creatorId: String? = null
+    ): Product {
+        val product = db.dbQuery {
+            productRepository.create(name, description, organizationId)
+        }
+
+        if (creatorId != null) {
+            // TODO: Make product creation and creator role assignment atomic.
+            authorizationService.assignRole(
+                creatorId,
+                ProductRole.ADMIN,
+                CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(product.id))
+            )
+        }
+
+        return product
     }
 
     /**
