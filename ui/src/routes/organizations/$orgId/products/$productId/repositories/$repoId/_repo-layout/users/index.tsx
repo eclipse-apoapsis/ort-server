@@ -104,7 +104,7 @@ const ManageUsers = () => {
         }),
       });
       toast.info('Add User', {
-        description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
+        description: `Successfully assigned role "${form.getValues().groupId.toUpperCase()}" to user "${form.getValues().username}".`,
       });
     },
     onError(error: ApiError) {
@@ -132,7 +132,7 @@ const ManageUsers = () => {
         <CardTitle>Manage Users</CardTitle>
         <CardDescription className='flex flex-col gap-2'>
           <span>
-            Assign or remove users to different groups in the{' '}
+            Assign or remove roles to users in the{' '}
             <span className='font-semibold'>
               {repository.name ?? repository.url}
             </span>{' '}
@@ -173,14 +173,14 @@ const ManageUsers = () => {
               name='groupId'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Group</FormLabel>
+                  <FormLabel>Role</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder='Select a group' />
+                        <SelectValue placeholder='Select a role' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -211,7 +211,7 @@ const ManageUsers = () => {
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Add user to group'
+                'Assign role'
               )}
             </Button>
           </form>
