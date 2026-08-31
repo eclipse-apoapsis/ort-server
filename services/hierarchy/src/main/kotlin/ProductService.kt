@@ -24,11 +24,14 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.Authoriza
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
@@ -64,15 +67,33 @@ class ProductService(
         url: String,
         productId: Long,
         name: String?,
-        description: String?
-    ): Repository = db.dbQuery {
-        repositoryRepository.create(
-            type = type,
-            url = url,
-            productId = productId,
-            name = name,
-            description = description
-        )
+        description: String?,
+        creatorId: String? = null
+    ): Repository {
+        val repository = db.dbQuery {
+            repositoryRepository.create(
+                type = type,
+                url = url,
+                productId = productId,
+                name = name,
+                description = description
+            )
+        }
+
+        if (creatorId != null) {
+            // TODO: Make repository creation and creator role assignment atomic.
+            authorizationService.assignRole(
+                creatorId,
+                RepositoryRole.ADMIN,
+                CompoundHierarchyId.forRepository(
+                    OrganizationId(repository.organizationId),
+                    ProductId(productId),
+                    RepositoryId(repository.id)
+                )
+            )
+        }
+
+        return repository
     }
 
     /**

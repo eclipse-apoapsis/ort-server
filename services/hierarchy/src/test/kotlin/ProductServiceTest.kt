@@ -27,6 +27,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
@@ -107,6 +108,42 @@ class ProductServiceTest : WordSpec({
             repository.name shouldBe "Repository name"
             repository.description shouldBe "Repository description"
             repositoryRepository.get(repository.id)?.name shouldBe "Repository name"
+        }
+
+        "assign the admin role to the repository creator" {
+            val userId = "test-user"
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { assignRole(any(), any(), any()) } returns Unit
+            }
+            val service = ProductService(
+                db,
+                productRepository,
+                repositoryRepository,
+                ortRunRepository,
+                authorizationService
+            )
+            val product = fixtures.createProduct()
+
+            val repository = service.createRepository(
+                type = RepositoryType.GIT,
+                url = "https://example.com/repository.git",
+                productId = product.id,
+                name = "Repository name",
+                description = "Repository description",
+                creatorId = userId
+            )
+
+            coVerify {
+                authorizationService.assignRole(
+                    userId,
+                    RepositoryRole.ADMIN,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(product.organizationId),
+                        ProductId(product.id),
+                        RepositoryId(repository.id)
+                    )
+                )
+            }
         }
 
         "allow creating repositories with the same url if their names differ" {
