@@ -67,9 +67,3 @@ dependencies {
     testImplementation(libs.kotest.assertions.ktor)
     testImplementation(libs.kotest.runner.junit5)
 }
-
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}

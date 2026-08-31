@@ -80,9 +80,3 @@ dependencies {
     testFixturesImplementation(libs.testContainers)
     testFixturesImplementation(libs.testContainers.postgresql)
 }
-
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}
