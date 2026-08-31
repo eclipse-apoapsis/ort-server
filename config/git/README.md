@@ -40,6 +40,7 @@ To avoid hard-coding the configuration of the provider in the `application.conf`
 configManager {
   fileProvider = ${?ANALYZER_CONFIG_FILE_PROVIDER}
   gitUrl = ${?ANALYZER_CONFIG_GIT_URL}
+  gitRevisionCacheTtlSeconds = ${?ANALYZER_CONFIG_GIT_REVISION_CACHE_TTL}
 }
 ```
 
@@ -52,6 +53,25 @@ configManager {
 }
 ```
 The concrete secret values are then queried from the _secrets provider_.
+
+### Revision caching
+
+When a branch name (e.g. `main`) is used as the context, resolving it to a concrete revision via `resolveContext` requires network access to the Git repository.
+In deployments where `resolveContext` is called frequently (for instance, once per API request), the provider caches the mapping from a requested context to its resolved revision for a configurable time-to-live.
+Within this time-to-live, repeated calls to `resolveContext` for the same context return the cached revision without accessing the network.
+
+The time-to-live is controlled by the optional `gitRevisionCacheTtlSeconds` property (in seconds) and defaults to `60`:
+
+```
+configManager {
+  fileProvider = "git-config"
+  gitUrl = "https://config.repository.git"
+  gitRevisionCacheTtlSeconds = 60
+}
+```
+
+Note that, as a consequence of caching, a moved branch tip may not be observed until the cache entry expires; that is, changes to the configuration repository can be delayed by up to `gitRevisionCacheTtlSeconds`.
+Setting the property to `0` effectively disables the cache, so that every call to `resolveContext` resolves the revision anew.
 
 ### Runtime configuration
 
