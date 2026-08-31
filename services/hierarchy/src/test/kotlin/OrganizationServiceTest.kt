@@ -25,6 +25,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
@@ -55,6 +56,32 @@ class OrganizationServiceTest : WordSpec({
         organizationRepository = dbExtension.fixtures.organizationRepository
         productRepository = dbExtension.fixtures.productRepository
         fixtures = dbExtension.fixtures
+    }
+
+    "createProduct" should {
+        "assign the admin role to the product creator" {
+            val userId = "test-user"
+            val organizationId = fixtures.organization.id
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { assignRole(any(), any(), any()) } returns Unit
+            }
+            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
+
+            val product = service.createProduct(
+                name = "product",
+                description = "description",
+                organizationId = organizationId,
+                creatorId = userId
+            )
+
+            coVerify {
+                authorizationService.assignRole(
+                    userId,
+                    ProductRole.ADMIN,
+                    CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(product.id))
+                )
+            }
+        }
     }
 
     "getRepositoryIdsForOrganization" should {
