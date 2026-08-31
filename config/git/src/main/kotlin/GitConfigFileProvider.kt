@@ -26,6 +26,10 @@ import java.io.FilterInputStream
 import java.io.InputStream
 import java.util.HashMap
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import kotlin.time.measureTime
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
@@ -33,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
+import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getServiceUrl
 
 import org.ossreviewtoolkit.model.VcsInfo
@@ -49,13 +54,27 @@ import org.slf4j.LoggerFactory
  */
 class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
-    private val configDir: File
+    private val configDir: File,
+    internal val revisionCacheTtl: Duration = DEFAULT_REVISION_CACHE_TTL_SECONDS,
+    private val timeSource: TimeSource = TimeSource.Monotonic
 ) : ConfigFileProvider {
     companion object {
         /**
          * Configuration property for the Git URL.
          */
         const val GIT_URL = "gitUrl"
+
+        /**
+         * Configuration property for the time-to-live (in seconds) of the [revisionCache] that maps a requested context
+         * (like a branch name) to its resolved revision.
+         */
+        const val GIT_REVISION_CACHE_TTL_SECONDS = "gitRevisionCacheTtlSeconds"
+
+        /** The default time-to-live of the [revisionCache] if [GIT_REVISION_CACHE_TTL_SECONDS] is unset. */
+        val DEFAULT_REVISION_CACHE_TTL_SECONDS = 60.seconds
+
+        /** The maximum number of entries kept in the [revisionCache]. */
+        internal const val MAX_REVISION_CACHE_SIZE = 100
 
         private val logger = LoggerFactory.getLogger(GitConfigFileProvider::class.java)
 
@@ -64,10 +83,14 @@ class GitConfigFileProvider internal constructor(
          */
         fun create(config: Config): GitConfigFileProvider {
             val gitUrl = config.getServiceUrl(GIT_URL)
+            val revisionCacheTtl = config.getLongOrDefault(
+                GIT_REVISION_CACHE_TTL_SECONDS,
+                DEFAULT_REVISION_CACHE_TTL_SECONDS.inWholeSeconds
+            ).seconds
 
             logger.info("Creating GitConfigFileProvider for repository '{}'.", gitUrl)
 
-            return GitConfigFileProvider(gitUrl, createOrtTempDir())
+            return GitConfigFileProvider(gitUrl, createOrtTempDir(), revisionCacheTtl)
         }
     }
 
@@ -89,10 +112,37 @@ class GitConfigFileProvider internal constructor(
      */
     internal val snapshotDir = createOrtTempDir()
 
+    /**
+     * A cache mapping a requested [Context] name (like a branch name) to its most recently resolved revision together
+     * with the point in time when it expires. This is a bounded LRU map: it holds at most [MAX_REVISION_CACHE_SIZE]
+     * entries and evicts the least recently used one when that limit is exceeded, so that the cache cannot grow without
+     * bound in long-running processes.
+     */
+    private val revisionCache = object : LinkedHashMap<String, CachedRevision>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<String, CachedRevision>) = size > MAX_REVISION_CACHE_SIZE
+    }
+
     override fun resolveContext(context: Context): Context = synchronized(lock) {
-        val resolvedRevision = updateWorkingTree(context.name)
+        val requestedRevision = context.name
+
+        val cached = revisionCache[requestedRevision]
+
+        val resolvedRevision = if (cached != null && cached.expiresAt.hasNotPassedNow()) {
+            logger.debug("Using cached revision '{}' for context '{}'.", cached.revision, requestedRevision)
+            cached.revision
+        } else {
+            resolveRevision(requestedRevision).also {
+                logger.debug("Resolved revision '{}' for context '{}'.", it, requestedRevision)
+                revisionCache[requestedRevision] = CachedRevision(it, timeSource.markNow() + revisionCacheTtl)
+            }
+        }
+
         Context(resolvedRevision)
     }
+
+    /** Resolve the given [requestedRevision] to a concrete revision by updating the working tree. */
+    internal fun resolveRevision(requestedRevision: String): String =
+        synchronized(lock) { updateWorkingTree(requestedRevision) }
 
     override fun getFile(context: Context, path: Path): InputStream =
         synchronized(lock) {
@@ -205,6 +255,15 @@ class GitConfigFileProvider internal constructor(
         )
     }
 }
+
+/**
+ * A cached revision resolution: the resolved [revision] and the [expiresAt] time mark after which
+ * the entry is considered stale and must be resolved again.
+ */
+private data class CachedRevision(
+    val revision: String,
+    val expiresAt: TimeMark
+)
 
 /**
  * An [InputStream] that reads from the given [tempFile] and deletes it when the stream is closed. This is used to serve
