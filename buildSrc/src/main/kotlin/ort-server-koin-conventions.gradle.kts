@@ -28,6 +28,9 @@ koinCompiler {
     // Downgrade informational messages from WARNING to INFO as `allWarningsAsErrors` is on.
     logSeverity = "INFO"
 
+    // Ignore warnings about untested Kotlin compiler versions.
+    versionCheckSeverity = "INFO"
+
     // Silence the advertisement for Kotzilla MCP.
     aiAssist = false
 }
