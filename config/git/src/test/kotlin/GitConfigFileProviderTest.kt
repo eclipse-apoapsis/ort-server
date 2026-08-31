@@ -27,10 +27,15 @@ import io.kotest.matchers.shouldBe
 
 import java.io.IOException
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 internal const val GIT_URL = "https://github.com/doubleopen-project/ort-config-test.git"
@@ -244,6 +249,58 @@ class GitConfigFileProviderTest : WordSpec({
 
             shouldThrow<ConfigException> {
                 provider.getFile(RESOLVED_CONTEXT_MAIN, Path("/etc/passwd"))
+            }
+        }
+
+        "return a stream that is not affected by a later checkout of a different revision" {
+            val mainContent = "This is the main branch of the repository"
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            // Obtain the stream for the `main` branch but do not read it yet.
+            provider.getFile(RESOLVED_CONTEXT_MAIN, Path("README.md")).use { stream ->
+                // Change the shared working tree to a different revision before reading.
+                provider.resolveContext(RESOLVED_CONTEXT_DEV)
+
+                val fileContent = stream.bufferedReader(Charsets.UTF_8).readText()
+
+                fileContent shouldBe mainContent
+            }
+        }
+
+        "delete the backing temporary file when the returned stream is closed" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            val stream = provider.getFile(RESOLVED_CONTEXT_MAIN, Path("README.md"))
+
+            val tempDir = provider.snapshotDir
+            tempDir.walk().maxDepth(1).count { it.isFile } shouldBe 1
+
+            stream.use { it.bufferedReader(Charsets.UTF_8).readText() }
+
+            tempDir.walk().maxDepth(1).count { it.isFile } shouldBe 0
+        }
+    }
+
+    "concurrent access" should {
+        "read files from the correct revisions when accessed concurrently" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+            val mainContent = "This is the main branch of the repository"
+            val devContent = "This is a dev branch of the repository"
+
+            runBlocking(Dispatchers.IO) {
+                (1..10).map { index ->
+                    async {
+                        if (index % 2 == 0) {
+                            val content = provider.getFile(RESOLVED_CONTEXT_MAIN, Path("README.md"))
+                                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+                            content shouldBe mainContent
+                        } else {
+                            val content = provider.getFile(RESOLVED_CONTEXT_DEV, Path("README.md"))
+                                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+                            content shouldBe devContent
+                        }
+                    }
+                }.awaitAll()
             }
         }
     }

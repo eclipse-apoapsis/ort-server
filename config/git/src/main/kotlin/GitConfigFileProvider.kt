@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.config.git
 import com.typesafe.config.Config
 
 import java.io.File
+import java.io.FilterInputStream
 import java.io.InputStream
 import java.util.HashMap
 
@@ -43,7 +44,8 @@ import org.slf4j.LoggerFactory
 
 /**
  * An implementation of [ConfigFileProvider] that reads config files from Git and stores them to a local directory. The
- * directory is temporary and only exists for the lifetime of a job.
+ * directory is temporary and only exists for the lifetime of a job. The provider is thread-safe and all function calls
+ * are processed sequentially to avoid race conditions when using different [Context]s.
  */
 class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
@@ -71,28 +73,60 @@ class GitConfigFileProvider internal constructor(
 
     private val git = GitFactory.create(historyDepth = 1)
 
-    override fun resolveContext(context: Context): Context {
+    /**
+     * A lock guarding all access to the working tree in [configDir]. A single provider instance can be accessed
+     * concurrently by multiple threads, and all of them share this instance's one working tree. Therefore, the sequence
+     * of updating the tree to the requested revision and reading files from it must happen atomically. Otherwise, a
+     * concurrent call requesting a different revision could re-checkout the tree between the update and the read,
+     * causing files from the wrong revision, an inconsistent tree, or read failures to be observed.
+     */
+    private val lock = Any()
+
+    /**
+     * A dedicated temporary directory for storing snapshots of configuration files served via [getFile]. It exists for
+     * the lifetime of this provider. Individual snapshot files in this directory are deleted when their stream is
+     * closed.
+     */
+    internal val snapshotDir = createOrtTempDir()
+
+    override fun resolveContext(context: Context): Context = synchronized(lock) {
         val resolvedRevision = updateWorkingTree(context.name)
-        return Context(resolvedRevision)
+        Context(resolvedRevision)
     }
 
     override fun getFile(context: Context, path: Path): InputStream =
-        runCatching {
-            updateWorkingTree(context.name)
-            configDir.resolveSecurely(path).inputStream()
-        }.getOrElse {
-            throw ConfigException("Cannot read path '${path.path}'.", it)
+        synchronized(lock) {
+            runCatching {
+                updateWorkingTree(context.name)
+
+                // Copy the file to a temporary location while holding the lock, so that reading the returned stream is
+                // not affected by a concurrent update of the working tree.
+                val sourceFile = configDir.resolveSecurely(path)
+                val tempFile = File.createTempFile("config", null, snapshotDir)
+
+                runCatching {
+                    sourceFile.inputStream().use { input ->
+                        tempFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+
+                    DeleteOnCloseInputStream(tempFile)
+                }.onFailure {
+                    tempFile.delete()
+                }.getOrThrow()
+            }.getOrElse {
+                throw ConfigException("Cannot read path '${path.path}'.", it)
+            }
         }
 
-    override fun contains(context: Context, path: Path): Boolean {
+    override fun contains(context: Context, path: Path): Boolean = synchronized(lock) {
         updateWorkingTree(context.name)
         val p = configDir.resolveSecurely(path)
         val isDirectoryPath = path.path.endsWith("/")
 
-        return (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
+        (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
     }
 
-    override fun listFiles(context: Context, path: Path): Set<Path> {
+    override fun listFiles(context: Context, path: Path): Set<Path> = synchronized(lock) {
         updateWorkingTree(context.name)
 
         val dir = configDir.resolveSecurely(path)
@@ -101,42 +135,42 @@ class GitConfigFileProvider internal constructor(
             throw ConfigException("The provided path '${path.path}' does not refer a directory.")
         }
 
-        return dir.walk().maxDepth(1).filter { it.isFile }
+        dir.walk().maxDepth(1).filter { it.isFile }
             .mapTo(mutableSetOf()) { Path(it.relativeTo(configDir).path) }
     }
 
     /**
      * Update the working tree to the [requestedRevision]. If the [configDir] does not contain a ".git" subdirectory,
      * the working tree is initialized first. The resolved revision is returned.
+     *
+     * This function must not be called concurrently, all callers must make sure to synchronize against [lock].
      */
     private fun updateWorkingTree(requestedRevision: String): String {
-        synchronized(this) {
-            try {
-                val revisionToCheckout = requestedRevision.ifBlank { git.getDefaultBranchName(gitUrl) }
-                val workingTree = git.getWorkingTree(configDir)
+        try {
+            val revisionToCheckout = requestedRevision.ifBlank { git.getDefaultBranchName(gitUrl) }
+            val workingTree = git.getWorkingTree(configDir)
 
-                if (!workingTree.isValid()) {
-                    val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, revisionToCheckout)
+            if (!workingTree.isValid()) {
+                val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, revisionToCheckout)
 
-                    measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
-                        logger.debug("Initialized Git working tree in $it.")
-                    }
+                measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
+                    logger.debug("Initialized Git working tree in $it.")
                 }
-
-                // Check if the requested revision was already checked out.
-                if (workingTree.getRevision() == revisionToCheckout) return revisionToCheckout
-
-                // Update the working tree to the requested revision.
-                measureTime {
-                    git.updateWorkingTree(workingTree, revisionToCheckout, recursive = true).getOrThrow()
-                }.also {
-                    logger.debug("Updated Git working tree to revision '$revisionToCheckout' in $it.")
-                }
-
-                return workingTree.getRevision()
-            } finally {
-                clearHttpAuthCache()
             }
+
+            // Check if the requested revision was already checked out.
+            if (workingTree.getRevision() == revisionToCheckout) return revisionToCheckout
+
+            // Update the working tree to the requested revision.
+            measureTime {
+                git.updateWorkingTree(workingTree, revisionToCheckout, recursive = true).getOrThrow()
+            }.also {
+                logger.debug("Updated Git working tree to revision '$revisionToCheckout' in $it.")
+            }
+
+            return workingTree.getRevision()
+        } finally {
+            clearHttpAuthCache()
         }
     }
 
@@ -169,5 +203,21 @@ class GitConfigFileProvider internal constructor(
                     "setting '--add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED' javaOpts.",
             e
         )
+    }
+}
+
+/**
+ * An [InputStream] that reads from the given [tempFile] and deletes it when the stream is closed. This is used to serve
+ * the content of a configuration file from a temporary copy that is independent of the shared working tree.
+ */
+private class DeleteOnCloseInputStream(
+    private val tempFile: File
+) : FilterInputStream(tempFile.inputStream()) {
+    override fun close() {
+        try {
+            super.close()
+        } finally {
+            tempFile.delete()
+        }
     }
 }
