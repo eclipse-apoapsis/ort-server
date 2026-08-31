@@ -46,6 +46,7 @@ enum class ProductRole(
         productPermissions = setOf(
             ProductPermission.READ,
             ProductPermission.WRITE,
+            ProductPermission.WRITE_SECRETS,
             ProductPermission.READ_REPOSITORIES,
             ProductPermission.CREATE_REPOSITORY,
             ProductPermission.TRIGGER_ORT_RUN

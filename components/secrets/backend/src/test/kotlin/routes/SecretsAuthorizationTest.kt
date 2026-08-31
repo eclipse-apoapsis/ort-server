@@ -182,7 +182,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationRole.ADMIN,
+                role = OrganizationRole.WRITER,
                 successStatus = HttpStatusCode.NotFound,
                 hierarchyId = orgHierarchyId
             ) {
@@ -196,7 +196,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductRole.ADMIN,
+                role = ProductRole.WRITER,
                 successStatus = HttpStatusCode.NotFound,
                 hierarchyId = productHierarchyId
             ) {
@@ -210,7 +210,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryRole.ADMIN,
+                role = RepositoryRole.WRITER,
                 successStatus = HttpStatusCode.NotFound,
                 hierarchyId = repoHierarchyId
             ) {
@@ -224,7 +224,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationRole.ADMIN,
+                role = OrganizationRole.WRITER,
                 successStatus = HttpStatusCode.Created,
                 hierarchyId = orgHierarchyId
             ) {
@@ -238,7 +238,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductRole.ADMIN,
+                role = ProductRole.WRITER,
                 successStatus = HttpStatusCode.Created,
                 hierarchyId = productHierarchyId
             ) {
@@ -252,7 +252,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryRole.ADMIN,
+                role = RepositoryRole.WRITER,
                 successStatus = HttpStatusCode.Created,
                 hierarchyId = repoHierarchyId
             ) {

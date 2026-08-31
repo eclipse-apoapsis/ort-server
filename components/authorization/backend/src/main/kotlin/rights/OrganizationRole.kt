@@ -47,6 +47,7 @@ enum class OrganizationRole(
         organizationPermissions = setOf(
             OrganizationPermission.READ,
             OrganizationPermission.WRITE,
+            OrganizationPermission.WRITE_SECRETS,
             OrganizationPermission.READ_PRODUCTS,
             OrganizationPermission.CREATE_PRODUCT
         ),
