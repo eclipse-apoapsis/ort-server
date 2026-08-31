@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 internal const val GIT_URL = "https://github.com/doubleopen-project/ort-config-test.git"
 
@@ -43,6 +44,8 @@ private const val GIT_REVISION_DEV = "c7c011911baa064bef049c88807c4503fbe957c0"
 private val RESOLVED_CONTEXT_DEV = Context(GIT_REVISION_DEV)
 
 class GitConfigFileProviderTest : WordSpec({
+    tags(Integration)
+
     "resolveContext" should {
         "resolve an empty context successfully to HEAD of default branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
