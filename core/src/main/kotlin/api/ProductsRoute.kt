@@ -160,7 +160,8 @@ fun Route.products() = route("products/{productId}") {
                 createRepository.url,
                 id,
                 createRepository.name,
-                createRepository.description
+                createRepository.description,
+                requirePrincipal().username
             ).mapToApi()
 
             call.respond(
