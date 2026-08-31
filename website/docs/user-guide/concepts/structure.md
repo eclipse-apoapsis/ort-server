@@ -50,9 +50,12 @@ On repository level, they can see ORT run results.
 #### Writers
 
 Users in the _writers_ group have the roles of the _readers_ group.
-Additionally, they can create child entities. On repository level, they can trigger new ORT runs.
+Additionally, they can manage secrets and infrastructure services and create child entities.
+On product and repository levels, they can trigger new ORT runs.
 
 #### Admins
 
 Users in the _admins_ group have the roles of the _writers_ group.
-Additionally, they can manage secrets, infrastructure services and user groups.
+Additionally, they can manage user groups and delete the entity.
+
+A user who creates a product or repository automatically becomes an admin of it.
