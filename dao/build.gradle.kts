@@ -17,8 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     // Apply core plugins.
     `java-test-fixtures`
