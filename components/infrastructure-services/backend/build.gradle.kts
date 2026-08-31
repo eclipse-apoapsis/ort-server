@@ -17,10 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import org.gradle.kotlin.dsl.withType
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("ort-server-kotlin-component-backend-conventions")
     id("ort-server-publication-conventions")
