@@ -29,28 +29,27 @@ import {
 } from '@/components/ui/dropdown-menu.tsx';
 import type { AppRow } from '@/hooks/use-app-table';
 
-type UserGroupRowActionsProps = {
+type UserRoleRowActionsProps = {
   row: AppRow<UserWithGroups>;
-  onJoinAdminsGroup: (user: UserWithGroups) => Promise<void>;
-  onJoinWritersGroup: (user: UserWithGroups) => Promise<void>;
-  onJoinReadersGroup: (user: UserWithGroups) => Promise<void>;
+  onAssignAdminRole: (user: UserWithGroups) => Promise<void>;
+  onAssignWriterRole: (user: UserWithGroups) => Promise<void>;
+  onAssignReaderRole: (user: UserWithGroups) => Promise<void>;
   disabled: boolean;
 };
 
 /**
- * Component for rendering row actions in a user group table.
- * Provides options to join different user groups (ADMINS, WRITERS, READERS).
+ * Render actions for assigning hierarchy roles to a user.
  *
- * @param {UserGroupRowActionsProps} props - The props for the component.
+ * @param {UserRoleRowActionsProps} props - The props for the component.
  * @returns {JSX.Element} The rendered component.
  */
-export function UserGroupRowActions({
+export function UserRoleRowActions({
   row,
-  onJoinAdminsGroup,
-  onJoinWritersGroup,
-  onJoinReadersGroup,
+  onAssignAdminRole,
+  onAssignWriterRole,
+  onAssignReaderRole,
   ...nativeButtonAttributes // From standard HTML button attributes
-}: UserGroupRowActionsProps) {
+}: UserRoleRowActionsProps) {
   const userWithGroups: UserWithGroups = row.original;
   const groups: UserGroup[] = row.original.groups;
 
@@ -62,27 +61,27 @@ export function UserGroupRowActions({
 
       <DropdownMenuContent side='bottom' align='end'>
         {!groups.includes('ADMINS') && (
-          <DropdownMenuItem onSelect={() => onJoinAdminsGroup(userWithGroups)}>
+          <DropdownMenuItem onSelect={() => onAssignAdminRole(userWithGroups)}>
             <div className='flex items-center gap-x-2'>
-              <span>Join ADMINS</span>
+              <span>Assign ADMIN role</span>
               <Shield size={16} />
             </div>
           </DropdownMenuItem>
         )}
 
         {!groups.includes('WRITERS') && (
-          <DropdownMenuItem onSelect={() => onJoinWritersGroup(userWithGroups)}>
+          <DropdownMenuItem onSelect={() => onAssignWriterRole(userWithGroups)}>
             <div className='flex items-center gap-x-2'>
-              <span>Join WRITERS</span>
+              <span>Assign WRITER role</span>
               <Pen size={16} />
             </div>
           </DropdownMenuItem>
         )}
 
         {!groups.includes('READERS') && (
-          <DropdownMenuItem onSelect={() => onJoinReadersGroup(userWithGroups)}>
+          <DropdownMenuItem onSelect={() => onAssignReaderRole(userWithGroups)}>
             <div className='flex items-center gap-x-2'>
-              <span>Join READERS</span>
+              <span>Assign READER role</span>
               <Eye size={16} />
             </div>
           </DropdownMenuItem>

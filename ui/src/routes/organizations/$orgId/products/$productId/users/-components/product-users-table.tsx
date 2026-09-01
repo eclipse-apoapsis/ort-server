@@ -36,7 +36,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
+import { UserRoleRowActions } from '@/components/ui/user-role-row-actions.tsx';
 import { mapUserGroupToProductRole } from '@/helpers/role-helpers.ts';
 import {
   createAppColumnHelper,
@@ -67,20 +67,20 @@ const columns = columnHelper.columns([
     cell: ({ row }) => <>{row.original.user.email}</>,
   }),
   columnHelper.accessor('groups', {
-    header: 'Group',
+    header: 'Role',
     cell: ({ row }) => {
       const groups = row.original.groups;
       let IconComponent;
-      let effectiveGroup;
+      let effectiveRole;
       if (groups.includes('ADMINS')) {
         IconComponent = Shield;
-        effectiveGroup = 'ADMINS';
+        effectiveRole = 'ADMIN';
       } else if (groups.includes('WRITERS')) {
         IconComponent = Pen;
-        effectiveGroup = 'WRITERS';
+        effectiveRole = 'WRITER';
       } else if (groups.includes('READERS')) {
         IconComponent = Eye;
-        effectiveGroup = 'READERS';
+        effectiveRole = 'READER';
       } else {
         return <>{groups.join(' ')}</>;
       }
@@ -90,7 +90,7 @@ const columns = columnHelper.columns([
           <TooltipTrigger asChild>
             <IconComponent size={16} />
           </TooltipTrigger>
-          <TooltipContent>{effectiveGroup}</TooltipContent>
+          <TooltipContent>{effectiveRole}</TooltipContent>
         </Tooltip>
       );
     },
@@ -104,7 +104,7 @@ const columns = columnHelper.columns([
       const params = routeApi.useParams();
       const productId = Number.parseInt(params.productId);
 
-      const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
+      const { mutateAsync: assignRole, isPending: isAssignRolePending } =
         useMutation({
           ...putProductRoleToUserMutation(),
           onSuccess(_response, parameters) {
@@ -113,8 +113,8 @@ const columns = columnHelper.columns([
                 path: { productId: productId },
               }),
             });
-            toast.info('Join Group', {
-              description: `User "${row.original.user.username}" joined group ${parameters.path.role} successfully.`,
+            toast.info('Assign Role', {
+              description: `Role ${parameters.path.role} assigned to user "${row.original.user.username}" successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -122,13 +122,13 @@ const columns = columnHelper.columns([
           },
         });
 
-      const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
+      const { mutateAsync: removeRole, isPending: isRemoveRolePending } =
         useMutation({
           ...deleteProductRoleFromUserMutation(),
           onSuccess(_response, parameters) {
-            // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
-            toast.info('Leave Group', {
-              description: `User "${row.original.user.username}" left group ${parameters.path.role} successfully.`,
+            // The users query is invalidated after all roles have been removed.
+            toast.info('Remove Role', {
+              description: `Role ${parameters.path.role} removed from user "${row.original.user.username}" successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -136,8 +136,8 @@ const columns = columnHelper.columns([
           },
         });
 
-      async function joinAdminsGroup() {
-        await joinGroup({
+      async function assignAdminRole() {
+        await assignRole({
           path: { productId: productId, role: 'ADMIN' },
           body: {
             username: row.original.user.username,
@@ -145,8 +145,8 @@ const columns = columnHelper.columns([
         });
       }
 
-      async function joinWritersGroup() {
-        await joinGroup({
+      async function assignWriterRole() {
+        await assignRole({
           path: { productId: productId, role: 'WRITER' },
           body: {
             username: row.original.user.username,
@@ -154,8 +154,8 @@ const columns = columnHelper.columns([
         });
       }
 
-      async function joinReadersGroup() {
-        await joinGroup({
+      async function assignReaderRole() {
+        await assignRole({
           path: { productId: productId, role: 'READER' },
           body: {
             username: row.original.user.username,
@@ -163,13 +163,12 @@ const columns = columnHelper.columns([
         });
       }
 
-      // Remove the user from the product
-      // This is identical to removing the user from all groups.
+      // Remove the user from the product by removing all assigned roles.
       async function removeFromProduct() {
         try {
           await Promise.all(
             row.original.groups.map((group) =>
-              leaveGroup({
+              removeRole({
                 path: {
                   productId: productId,
                   role: mapUserGroupToProductRole(group),
@@ -202,15 +201,15 @@ const columns = columnHelper.columns([
         <div className='flex gap-2'>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <UserGroupRowActions
+              <UserRoleRowActions
                 row={row}
-                onJoinAdminsGroup={joinAdminsGroup}
-                onJoinWritersGroup={joinWritersGroup}
-                onJoinReadersGroup={joinReadersGroup}
-                disabled={isJoinGroupPending || isLeaveGroupPending}
+                onAssignAdminRole={assignAdminRole}
+                onAssignWriterRole={assignWriterRole}
+                onAssignReaderRole={assignReaderRole}
+                disabled={isAssignRolePending || isRemoveRolePending}
               />
             </TooltipTrigger>
-            <TooltipContent>Join group</TooltipContent>
+            <TooltipContent>Assign role</TooltipContent>
           </Tooltip>
 
           <DeleteDialog
@@ -222,7 +221,7 @@ const columns = columnHelper.columns([
             uiComponent={
               <DeleteIconButton
                 icon={<FileOutput size={16} />}
-                disabled={isLeaveGroupPending}
+                disabled={isRemoveRolePending}
                 srDescription='Remove user from this product'
               />
             }
