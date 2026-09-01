@@ -54,9 +54,6 @@ class AdminConfigService(
         /** The default path to the Admin configuration file. */
         const val DEFAULT_PATH = "ort-server.conf"
 
-        /** A special prefix to mark unresolvable assets in the reporter configuration. */
-        internal const val UNRESOLVABLE_ASSET_PREFIX = "<<UNRESOLVABLE_ASSET>>"
-
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
     }
 
