@@ -99,8 +99,8 @@ export const regexSchema = z
   })
   .optional();
 
-// Enum schema for the groupId parameter of the Groups endpoints
-export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
+// Enum schema for roles assigned to users at all hierarchy levels.
+export const roleSchema = z.enum(['ADMIN', 'WRITER', 'READER']);
 
 // Enum schema and type for the resolved statuses of issues, vulnerabilites, and rule violations
 export const itemResolvedSchema = z.enum(['Resolved', 'Unresolved']);

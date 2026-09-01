@@ -27,9 +27,10 @@ import {
   RepositoryRole,
   UserGroup,
 } from '@/api';
-import { groupsSchema } from '@/schemas';
+import { roleSchema } from '@/schemas';
 
-// Temporary helper functions to help with migration from groups to roles.
+// These helpers bridge the inconsistent generated list response and role
+// mutation contracts until the API uses role terminology consistently.
 
 export const mapUserGroupToOrganizationRole = (
   group: UserGroup
@@ -68,54 +69,13 @@ export const mapUserGroupToRepositoryRole = (
   }
 };
 
-export const mapGroupSchemaToOrganizationRole = (
-  group: z.infer<typeof groupsSchema>
-): OrganizationRole => {
-  switch (group) {
-    case 'admins':
-      return 'ADMIN';
-    case 'writers':
-      return 'WRITER';
-    case 'readers':
-      return 'READER';
-  }
-};
-
-export const mapGroupSchemaToProductRole = (
-  group: z.infer<typeof groupsSchema>
-): ProductRole => {
-  switch (group) {
-    case 'admins':
-      return 'ADMIN';
-    case 'writers':
-      return 'WRITER';
-    case 'readers':
-      return 'READER';
-  }
-};
-
-export const mapGroupSchemaToRepositoryRole = (
-  group: z.infer<typeof groupsSchema>
-): RepositoryRole => {
-  switch (group) {
-    case 'admins':
-      return 'ADMIN';
-    case 'writers':
-      return 'WRITER';
-    case 'readers':
-      return 'READER';
-  }
-};
-
-export const getGroupIcon = (
-  group: z.infer<typeof groupsSchema>
-): JSX.Element => {
-  switch (group) {
-    case 'admins':
+export const getRoleIcon = (role: z.infer<typeof roleSchema>): JSX.Element => {
+  switch (role) {
+    case 'ADMIN':
       return createElement(Shield, { size: 16 });
-    case 'writers':
+    case 'WRITER':
       return createElement(Pen, { size: 16 });
-    case 'readers':
+    case 'READER':
       return createElement(Eye, { size: 16 });
   }
 };
