@@ -58,18 +58,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  getGroupIcon,
-  mapGroupSchemaToProductRole,
-} from '@/helpers/role-helpers.ts';
+import { getRoleIcon } from '@/helpers/role-helpers.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
-import { groupsSchema } from '@/schemas';
+import { roleSchema } from '@/schemas';
 import { ProductUsersTable } from './-components/product-users-table';
 
 const formSchema = z.object({
   username: z.string().trim().min(1),
-  groupId: groupsSchema,
+  role: roleSchema,
 });
 
 const ManageUsers = () => {
@@ -79,7 +76,7 @@ const ManageUsers = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: '',
-      groupId: 'readers',
+      role: 'READER',
     },
   });
 
@@ -104,7 +101,7 @@ const ManageUsers = () => {
         }),
       });
       toast.info('Add User', {
-        description: `Successfully assigned role "${form.getValues().groupId.toUpperCase()}" to user "${form.getValues().username}".`,
+        description: `Successfully assigned role "${form.getValues().role}" to user "${form.getValues().username}".`,
       });
     },
     onError(error: ApiError) {
@@ -116,7 +113,7 @@ const ManageUsers = () => {
     await addUser({
       path: {
         productId: Number.parseInt(params.productId),
-        role: mapGroupSchemaToProductRole(values.groupId),
+        role: values.role,
       },
       body: {
         username: values.username,
@@ -148,7 +145,6 @@ const ManageUsers = () => {
               repositories.
             </span>
           </div>
-          <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
@@ -164,7 +160,7 @@ const ManageUsers = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    Usernames are case-insensitive and stored in lowercase.
+                    Enter the exact username of an existing user account.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -172,7 +168,7 @@ const ManageUsers = () => {
             />
             <FormField
               control={form.control}
-              name='groupId'
+              name='role'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
@@ -186,11 +182,11 @@ const ManageUsers = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {groupsSchema.options.map((group) => (
-                        <SelectItem key={group} value={group}>
+                      {roleSchema.options.map((role) => (
+                        <SelectItem key={role} value={role}>
                           <div className='flex items-center gap-2'>
-                            {getGroupIcon(group)}
-                            {group.toUpperCase()}
+                            {getRoleIcon(role)}
+                            {role}
                           </div>
                         </SelectItem>
                       ))}
