@@ -18,15 +18,8 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { ExternalLink } from 'lucide-react';
 
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Authorization = () => {
   return (
@@ -37,31 +30,15 @@ const Authorization = () => {
       <CardContent>
         <div>
           <p>
-            When an organization, a product, or a repository is created, groups
-            for admins, writers and readers for that entity are automatically
-            added.
+            Organizations, products, and repositories have reader, writer, and
+            admin roles.
           </p>
           <p className='mt-2'>
-            To give user access to an entity, browse to the corresponding entity
-            and add the user to the appropriate group in the "Users" section.
+            To give a user access to an organization, product, or repository,
+            browse to it and assign the appropriate role in its "Users" section.
           </p>
         </div>
       </CardContent>
-      <CardFooter>
-        <div className='text-sm'>
-          More information on{' '}
-          <a
-            href={
-              'https://eclipse-apoapsis.github.io/ort-server/docs/architecture/authorization'
-            }
-            target='_blank'
-            className='gap-1 text-blue-400 hover:underline'
-          >
-            <span>how authorization is implemented on ORT Server</span>
-            <ExternalLink className='mb-1 ml-1 inline' size={16} />
-          </a>
-        </div>
-      </CardFooter>
     </Card>
   );
 };
