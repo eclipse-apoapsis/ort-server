@@ -155,52 +155,54 @@ const ManageUsers = () => {
       <CardContent className='space-y-4'>
         <Form {...form}>
           <form className='space-y-8'>
-            <FormField
-              control={form.control}
-              name='username'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl autoFocus>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Enter the exact username of an existing user account.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='role'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select a role' />
-                      </SelectTrigger>
+            <div className='grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_auto]'>
+              <FormField
+                control={form.control}
+                name='username'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl autoFocus>
+                      <Input {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {roleSchema.options.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          <div className='flex items-center gap-2'>
-                            {getRoleIcon(role)}
-                            {role}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormDescription>
+                      Enter the exact username of an existing user account.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='role'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Select a role' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roleSchema.options.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            <div className='flex items-center gap-2'>
+                              {getRoleIcon(role)}
+                              {role}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Button
               size='sm'
               className='ml-auto gap-1'
