@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import com.sksamuel.hoplite.ConfigAlias
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService.Companion.UNRESOLVABLE_ASSET_PREFIX
 import org.eclipse.apoapsis.ortserver.model.Options
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
@@ -249,35 +248,48 @@ data class ReporterConfig(
     }
 
     /**
+     * A map that associates report definition names with [ReportDefinitionTemplate.assetFilesRefs] that could not be
+     * resolved to an entry in [ReporterConfig.globalAssets].
+     */
+    private val unresolvedAssetFilesRefs = mutableMapOf<String, List<String>>()
+
+    /**
+     * A map that associates report definition names with [ReportDefinitionTemplate.assetDirectoriesRefs] that could not
+     * be resolved to an entry in [ReporterConfig.globalAssets].
+     */
+    private val unresolvedAssetDirectoriesRefs = mutableMapOf<String, List<String>>()
+
+    /**
      * A map of the resolved [report definitions][reportDefinitionsMap]. This ensures that all
      * [asset directories][ReportDefinition.assetDirectories] end with a trailing slash and resolves the
      * [file references][ReportDefinitionTemplate.assetFilesRefs] and
      * [directory references][ReportDefinitionTemplate.assetDirectoriesRefs] to concrete [ReporterAsset]s. If a
-     * reference cannot be resolved, placeholder assets are created where the [source path][ReporterAsset.sourcePath]
-     * is prefixed with [UNRESOLVABLE_ASSET_PREFIX].
+     * reference cannot be resolved, it is recorded in [unresolvedAssetFilesRefs] or [unresolvedAssetDirectoriesRefs].
      *
      * This map also contains report definitions for all reporter plugins that are not referenced in the given
      * [reportDefinitionsMap]. This makes sure that there is always a definition for each existing reporter plugin.
      */
-    private val resolvedReportDefinitions = reportDefinitionsMap.mapValues { (_, template) ->
-        val resolvedAssetFilesRefs = template.assetFilesRefs.flatMap { assetRef ->
-            // Replace the reference with the referenced list of asset files from the global assets. If this does
-            // not exist, add a placeholder asset that marks the reference as not resolvable.
-            globalAssets[assetRef] ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
-        }
+    private val resolvedReportDefinitions = reportDefinitionsMap.mapValues { (name, template) ->
+        val resolvedAssetFilesRefs = template.assetFilesRefs.partition { it in globalAssets }
+            .let { (validRefs, invalidRefs) ->
+                unresolvedAssetFilesRefs[name] = invalidRefs
+                validRefs.flatMap { globalAssets.getValue(it) }
+            }
 
         val assetDirectories = template.assetDirectories.map {
             it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
         }
 
-        val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.flatMap { assetRef ->
-            // Replace the reference with the referenced list of asset directories from the global assets. If this
-            // does not exist, add a placeholder asset that marks the reference as not resolvable.
-            globalAssets[assetRef]?.map {
-                // Ensure that directory asset paths end with a trailing slash.
-                it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
-            } ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
-        }
+        val resolvedAssetDirectoriesRefs = template.assetDirectoriesRefs.partition { it in globalAssets }
+            .let { (validRefs, invalidRefs) ->
+                unresolvedAssetDirectoriesRefs[name] = invalidRefs
+                validRefs.flatMap { ref ->
+                    globalAssets.getValue(ref).map {
+                        // Ensure that directory asset paths end with a trailing slash.
+                        it.copy(sourcePath = it.sourcePath.ensureTrailingSlash())
+                    }
+                }
+            }
 
         ReportDefinition(
             pluginId = template.pluginId,
@@ -347,16 +359,25 @@ data class ReporterConfig(
      */
     fun validate(): List<String> =
         buildList {
-            resolvedReportDefinitions.forEach { (name, definition) ->
-                (definition.assetFiles + definition.assetDirectories).forEach { asset ->
-                    if (asset.sourcePath.startsWith(UNRESOLVABLE_ASSET_PREFIX)) {
-                        add(
-                            "Undefined reporter asset '${asset.sourcePath.removePrefix(UNRESOLVABLE_ASSET_PREFIX)}' " +
-                                    "referenced from report definition '$name'."
-                        )
-                    }
+            unresolvedAssetFilesRefs.forEach { (name, refs) ->
+                refs.forEach { ref ->
+                    add(
+                        "The assetFilesRefs entry '$ref' of the report definition '$name' does not match the name of " +
+                                "a global asset."
+                    )
                 }
+            }
 
+            unresolvedAssetDirectoriesRefs.forEach { (name, refs) ->
+                refs.forEach { ref ->
+                    add(
+                        "The assetDirectoriesRefs entry '$ref' of the report definition '$name' does not match the " +
+                                "name of a global asset."
+                    )
+                }
+            }
+
+            resolvedReportDefinitions.forEach { (name, definition) ->
                 if (definition.pluginId.lowercase() !in reporterPluginIds) {
                     add("Unknown reporter plugin '${definition.pluginId}' referenced from report definition '$name'.")
                 }
@@ -367,17 +388,12 @@ data class ReporterConfig(
     fun getAllAssets() =
         buildSet {
             globalAssets.values.forEach { assets ->
-                assets.forEach { asset ->
-                    add(asset.sourcePath)
-                }
+                assets.forEach { add(it.sourcePath) }
             }
 
             reportDefinitions.forEach { definition ->
-                (definition.assetFiles + definition.assetDirectories).forEach {
-                    if (!it.sourcePath.startsWith(UNRESOLVABLE_ASSET_PREFIX)) {
-                        add(it.sourcePath)
-                    }
-                }
+                definition.assetFiles.forEach { add(it.sourcePath) }
+                definition.assetDirectories.forEach { add(it.sourcePath) }
             }
         }
 
