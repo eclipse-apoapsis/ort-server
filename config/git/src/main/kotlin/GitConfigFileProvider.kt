@@ -182,7 +182,7 @@ class GitConfigFileProvider internal constructor(
         val dir = configDir.resolveSecurely(path)
 
         if (!dir.isDirectory) {
-            throw ConfigException("The provided path '${path.path}' does not refer a directory.")
+            throw ConfigException("The provided path '${path.path}' does not refer to a directory.")
         }
 
         dir.walk().maxDepth(1).filter { it.isFile }
