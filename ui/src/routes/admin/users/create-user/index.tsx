@@ -271,32 +271,30 @@ export const CreateUserPage = () => {
   const {
     mutateAsync: addUserToReaders,
     isPending: isAddUserToReadersPending,
-  } = useMutation({
-    ...putOrganizationRoleToUserMutation(),
-    onError(error) {
-      toastError(error.message, error);
-    },
-  });
+  } = useMutation(putOrganizationRoleToUserMutation());
 
   async function onSubmit(values: CreateUserFormValues) {
     const username = values.username.toLowerCase();
-    await createUser({
-      body: {
-        username,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
-        password: values.password,
-        temporary: values.temporary,
-      },
-    });
-    toast.info('Create User', {
-      description: `User "${username}" created successfully.`,
-    });
-    // Add the READER role to the user for each selected organization.
-    await Promise.all(
-      values.organizations.map(async (organization) => {
-        await addUserToReaders({
+
+    try {
+      await createUser({
+        body: {
+          username,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          password: values.password,
+          temporary: values.temporary,
+        },
+      });
+    } catch {
+      // The mutation's onError callback has already reported the error.
+      return;
+    }
+
+    const assignments = await Promise.allSettled(
+      values.organizations.map((organization) =>
+        addUserToReaders({
           path: {
             organizationId: Number.parseInt(organization.value),
             role: 'READER',
@@ -304,16 +302,47 @@ export const CreateUserPage = () => {
           body: {
             username,
           },
-        });
-
-        toast.info('Add Access Rights', {
-          description: `The "${username}" user was created and assigned the READER role for the "${organization.label}" organization.`,
-        });
-        navigate({
-          to: '/admin/users',
-        });
-      })
+        })
+      )
     );
+
+    const failedAssignments = assignments.flatMap((result, index) =>
+      result.status === 'rejected'
+        ? [
+            {
+              organization: values.organizations[index]!,
+              error: result.reason,
+            },
+          ]
+        : []
+    );
+
+    if (failedAssignments.length > 0) {
+      const organizationNames = failedAssignments
+        .map(({ organization }) => `"${organization.label}"`)
+        .join(', ');
+
+      toastError(
+        `User "${username}" was created, but the READER role could not be granted for ${organizationNames}. ` +
+          `Assign the missing roles in each organization's "Users" section.`,
+        failedAssignments[0]?.error
+      );
+    } else {
+      const organizationNames = values.organizations
+        .map((organization) => `"${organization.label}"`)
+        .join(', ');
+
+      toast.info('Create User', {
+        description:
+          values.organizations.length > 0
+            ? `User "${username}" was created and granted the READER role for ${organizationNames}.`
+            : `User "${username}" was created.`,
+      });
+    }
+
+    navigate({
+      to: '/admin/users',
+    });
   }
 
   return (
