@@ -941,6 +941,16 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 )
 
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(orgId),
+                        ProductId(productId),
+                        RepositoryId(repository1Id)
+                    )
+                )
+
                 val response =
                     superuserClient.get("/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositoriesCount")
 
@@ -983,6 +993,60 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     VulnerabilityForRunsFilters()
                 )
+
+                val restrictedResponse = testUserClient.get(
+                    "/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositoriesCount"
+                )
+
+                restrictedResponse shouldHaveStatus HttpStatusCode.OK
+                restrictedResponse shouldHaveBody PagedSearchResponse(
+                    listOf(
+                        VulnerabilityWithStats(
+                            vulnerability = commonVulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        ),
+                        VulnerabilityWithStats(
+                            vulnerability = run1Vulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING),
+                            SortProperty("repositoriesCount", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters()
+                )
+            }
+        }
+
+        "return an empty response when the user can read only an empty product" {
+            integrationTestApplication {
+                val product = createProduct()
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    product.hierarchyId()
+                )
+
+                val response = testUserClient.get("/api/v1/products/${product.id}/vulnerabilities")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities =
+                    response.body<PagedSearchResponse<VulnerabilityWithStats, VulnerabilityForRunsFilters>>()
+                vulnerabilities.data should beEmpty()
             }
         }
 
@@ -1410,18 +1474,39 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     status = JobStatus.FINISHED.asPresent2()
                 )
 
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(orgId),
+                        ProductId(productId),
+                        RepositoryId(repo1Id)
+                    )
+                )
+
                 val response = superuserClient.get("/api/v1/products/$productId/vulnerabilities/advisors")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<String>>() should containExactly("NexusIQ", "OSV", "VulnerableCode")
+
+                val restrictedResponse =
+                    testUserClient.get("/api/v1/products/$productId/vulnerabilities/advisors")
+
+                restrictedResponse shouldHaveStatus HttpStatusCode.OK
+                restrictedResponse.body<List<String>>() should containExactly("OSV", "VulnerableCode")
             }
         }
 
-        "return an empty list when no successful advisor jobs exist in the product" {
+        "return an empty list when the user can read only an empty product" {
             integrationTestApplication {
-                val productId = createProduct().id
+                val product = createProduct()
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    product.hierarchyId()
+                )
 
-                val response = superuserClient.get("/api/v1/products/$productId/vulnerabilities/advisors")
+                val response = testUserClient.get("/api/v1/products/${product.id}/vulnerabilities/advisors")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<String>>() should beEmpty()
@@ -1695,6 +1780,16 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 )
 
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(orgId),
+                        ProductId(prodId),
+                        RepositoryId(repo1Id)
+                    )
+                )
+
                 val response = superuserClient.get("/api/v1/products/$prodId/statistics/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -1766,14 +1861,82 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     )
                 }
+
+                val restrictedResponse = testUserClient.get("/api/v1/products/$prodId/statistics/runs")
+
+                restrictedResponse shouldHaveStatus HttpStatusCode.OK
+                with(restrictedResponse.body<OrtRunStatistics>()) {
+                    issuesCount shouldBe 2
+                    issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 1,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    issuesCountTotal shouldBe 2
+                    issuesCountTotalBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 1,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    packagesCount shouldBe 2
+                    ecosystems should containExactlyInAnyOrder(
+                        EcosystemStats("NPM", 1),
+                        EcosystemStats("Maven", 1)
+                    )
+                    vulnerabilitiesCount shouldBe 2
+                    vulnerabilitiesCountByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 1,
+                            VulnerabilityRating.MEDIUM to 0,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 1
+                        )
+                    )
+                    vulnerabilitiesCountTotal shouldBe 2
+                    vulnerabilitiesCountTotalByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 1,
+                            VulnerabilityRating.MEDIUM to 0,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 1
+                        )
+                    )
+                    ruleViolationsCount shouldBe 2
+                    ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 1,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                    ruleViolationsCountTotal shouldBe 2
+                    ruleViolationsCountTotalBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 1,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
+                }
             }
         }
 
-        "return nulls for counts if no valid runs are found" {
+        "return nulls when the user can read only an empty product" {
             integrationTestApplication {
-                val prodId = createProduct().id
+                val product = createProduct()
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    product.hierarchyId()
+                )
 
-                val response = superuserClient.get("/api/v1/products/$prodId/statistics/runs")
+                val response = testUserClient.get("/api/v1/products/${product.id}/statistics/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val statistics = response.body<OrtRunStatistics>()
