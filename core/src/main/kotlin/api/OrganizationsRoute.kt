@@ -247,7 +247,10 @@ fun Route.organizations() = route("organizations") {
                 val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
                 val filters = call.vulnerabilityForRunsFilters()
 
-                val repositoryIds = organizationService.getRepositoryIdsForOrganization(organizationId)
+                val repositoryIds = organizationService.getRepositoryIdsForOrganizationAndUser(
+                    organizationId,
+                    requirePrincipal().username
+                )
 
                 val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
                     repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
@@ -269,7 +272,10 @@ fun Route.organizations() = route("organizations") {
             route("advisors") {
                 get(getOrganizationVulnerabilityAdvisors, requirePermission(OrganizationPermission.READ)) {
                     val organizationId = call.requireIdParameter("organizationId")
-                    val repositoryIds = organizationService.getRepositoryIdsForOrganization(organizationId)
+                    val repositoryIds = organizationService.getRepositoryIdsForOrganizationAndUser(
+                        organizationId,
+                        requirePrincipal().username
+                    )
                     val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
                         repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
                     }
@@ -284,7 +290,10 @@ fun Route.organizations() = route("organizations") {
                 get(getOrganizationRunStatistics, requirePermission(OrganizationPermission.READ)) {
                     val orgId = call.requireIdParameter("organizationId")
 
-                    val repositoryIds = organizationService.getRepositoryIdsForOrganization(orgId)
+                    val repositoryIds = organizationService.getRepositoryIdsForOrganizationAndUser(
+                        orgId,
+                        requirePrincipal().username
+                    )
 
                     val latestRunsWithAnalyzerJobInFinalState = repositoryIds.mapNotNull {
                         repositoryService.getLatestOrtRunIdWithAnalyzerJobInFinalState(it)
