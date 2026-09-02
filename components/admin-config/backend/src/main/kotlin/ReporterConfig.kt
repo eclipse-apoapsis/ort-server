@@ -377,11 +377,12 @@ data class ReporterConfig(
                 }
             }
 
-            reportDefinitionsMap.forEach { (name, _) ->
-                if (name.lowercase() in reporterPluginIds) {
+            reportDefinitionsMap.forEach { (name, definition) ->
+                if (name.lowercase() != definition.pluginId.lowercase() && name.lowercase() in reporterPluginIds) {
                     add(
-                        "The report definition '$name' matches the name of an existing reporter plugin which is not " +
-                                "allowed to avoid ambiguity."
+                        "The report definition '$name' matches the name of the existing reporter plugin '$name', but " +
+                                "uses a different plugin ('${definition.pluginId}'). Reusing a plugin's name is only " +
+                                "allowed when the definition uses that plugin, to avoid ambiguity."
                     )
                 }
             }
