@@ -19,8 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
@@ -32,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -48,6 +53,7 @@ class OrganizationService(
     private val db: Database,
     private val organizationRepository: OrganizationRepository,
     private val productRepository: ProductRepository,
+    private val repositoryRepository: RepositoryRepository,
     private val authorizationService: AuthorizationService
 ) {
     /**
@@ -168,6 +174,19 @@ class OrganizationService(
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Organization = db.dbQuery {
         organizationRepository.update(organizationId, name, description)
+    }
+
+    /** Return the IDs of repositories in the organization that are readable by the given user. */
+    suspend fun getRepositoryIdsForOrganizationAndUser(organizationId: Long, userId: String): List<Long> {
+        val hierarchyFilter = authorizationService.filterHierarchyIds(
+            userId,
+            RepositoryRole.READER,
+            OrganizationId(organizationId)
+        )
+
+        return withContext(Dispatchers.IO) {
+            repositoryRepository.list(ListQueryParameters.DEFAULT, null, hierarchyFilter).data.map { it.id }
+        }
     }
 
     /** Get IDs for all repositories found in the products of the organization. */

@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -160,6 +163,19 @@ class ProductService(
             .select(RepositoriesTable.id)
             .where { RepositoriesTable.productId eq productId }
             .map { it[RepositoriesTable.id].value }
+    }
+
+    /** Return the IDs of repositories in the product that are readable by the given user. */
+    suspend fun getRepositoryIdsForProductAndUser(productId: Long, userId: String): List<Long> {
+        val hierarchyFilter = authorizationService.filterHierarchyIds(
+            userId,
+            RepositoryRole.READER,
+            ProductId(productId)
+        )
+
+        return withContext(Dispatchers.IO) {
+            repositoryRepository.list(ListQueryParameters.DEFAULT, null, hierarchyFilter).data.map { it.id }
+        }
     }
 
     /**
