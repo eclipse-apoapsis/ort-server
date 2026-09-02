@@ -34,7 +34,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: website
-      run: pnpm install --frozen-lockfile
+      run: pnpm ci
 
     - name: Test build
       working-directory: website
