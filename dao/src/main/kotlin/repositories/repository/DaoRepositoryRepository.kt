@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
@@ -66,7 +67,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long) = db.entityQuery { RepositoryDao[id].mapToModel() }
+    override fun get(id: Long) = db.blockingQueryCatching { RepositoryDao[id].mapToModel() }.getEntityOrNull()
 
     override fun getHierarchy(id: Long): Hierarchy = db.blockingQuery {
         val repository = RepositoryDao[id]

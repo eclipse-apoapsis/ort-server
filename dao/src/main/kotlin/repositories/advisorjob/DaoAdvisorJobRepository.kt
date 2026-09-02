@@ -23,7 +23,8 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -45,7 +46,7 @@ class DaoAdvisorJobRepository(private val db: Database) : AdvisorJobRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long) = db.entityQuery { AdvisorJobDao[id].mapToModel() }
+    override fun get(id: Long) = db.blockingQueryCatching { AdvisorJobDao[id].mapToModel() }.getEntityOrNull()
 
     override fun getForOrtRun(ortRunId: Long): AdvisorJob? = db.blockingQuery {
         AdvisorJobDao.find { AdvisorJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
