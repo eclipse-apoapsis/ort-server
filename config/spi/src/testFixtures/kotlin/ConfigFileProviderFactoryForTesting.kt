@@ -68,30 +68,30 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
     override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider {
         checkConfigManagerSecretAccess(config, secretProvider)
 
-        fun configRoot(context: Context): File =
-            if (context == ConfigManager.EMPTY_CONTEXT) {
+        fun configRoot(context: ResolvedConfigContext): File =
+            if (context == ResolvedConfigContext.EMPTY) {
                 File("src/testFixtures/resources/config-files")
             } else {
                 File(context.name.removePrefix(RESOLVED_PREFIX))
             }
 
-        fun resolveFile(context: Context, path: Path): File =
+        fun resolveFile(context: ResolvedConfigContext, path: Path): File =
             path.takeUnless { it.path == ERROR_VALUE }?.let { configRoot(context).resolve(it.path) }
                 ?: throw IllegalArgumentException("Error when accessing path.")
 
         return object : ConfigFileProvider {
-            override fun resolveContext(context: Context): Context =
+            override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
                 context.takeUnless { it.name == ERROR_VALUE }?.let {
-                    Context("$RESOLVED_PREFIX${it.name}")
+                    ResolvedConfigContext("$RESOLVED_PREFIX${it.name}")
                 } ?: throw IllegalArgumentException("Error context.")
 
-            override fun getFile(context: Context, path: Path): InputStream =
+            override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
                 resolveFile(context, path).inputStream()
 
-            override fun contains(context: Context, path: Path): Boolean =
+            override fun contains(context: ResolvedConfigContext, path: Path): Boolean =
                 resolveFile(context, path).isFile
 
-            override fun listFiles(context: Context, path: Path): Set<Path> =
+            override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
                 resolveFile(context, path).list()?.mapTo(mutableSetOf()) { name ->
                     Path("${path.path}/$name")
                 } ?: throw IllegalArgumentException("Invalid path to list: '$path'.")

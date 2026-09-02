@@ -20,13 +20,37 @@
 package org.eclipse.apoapsis.ortserver.config
 
 /**
- * A class representing a context for querying the application configuration.
+ * A class representing the requested config context. This context still needs to be resolved to a
+ * [ResolvedConfigContext] before it can be used to access the application config.
  *
- * When querying the configuration of ORT Server, clients have to provide a context, which uniquely defines the
- * configuration to be used. The exact meaning is specific to a concrete implementation of the service provider
- * interface, but in general, via the context a set of configuration properties can be selected if there are multiple
- * such sets. For instance, if the configuration is stored in a version control system, the context could be the
- * revision of the configuration to be checked out.
+ * The config context is used to access different versions of the configuration files provided by the
+ * [ConfigFileProvider]. The exact meaning depends on the implementation of the [ConfigFileProvider]. For example,
+ * if the provider reads the config files from a Git repository, the [RequestedConfigContext] could be a branch name,
+ * and the [ResolvedConfigContext] could be the corresponding commit hash.
  */
 @JvmInline
-value class Context(val name: String)
+value class RequestedConfigContext(val name: String) {
+    companion object {
+        /**
+         * An empty [RequestedConfigContext] that indicates that the user has not requested a specific context. The
+         * interpretation depends on the [ConfigFileProvider] implementation. For example, it could mean the default
+         * branch of a Git repository.
+         */
+        val EMPTY = RequestedConfigContext("")
+    }
+}
+
+/**
+ * A class representing the resolved config context. A resolved config context is required to read files from a
+ * [ConfigFileProvider]. Also see [RequestedConfigContext].
+ */
+@JvmInline
+value class ResolvedConfigContext(val name: String) {
+    companion object {
+        /**
+         * An empty [ResolvedConfigContext] that can be used when no specific context is required, for example, by
+         * providers that do not support different contexts.
+         */
+        val EMPTY = ResolvedConfigContext("")
+    }
+}

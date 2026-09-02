@@ -33,8 +33,8 @@ import java.io.ByteArrayInputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 
 private const val CONTENT = "Hello world"
 
@@ -51,7 +51,7 @@ class GitConfigFileProviderFactoryTest : WordSpec({
             )
 
             val manager = ConfigManager.create(createProviderConfig())
-            manager.getFile(Context(GIT_BRANCH_MAIN), Path("README.md")).bufferedReader(Charsets.UTF_8)
+            manager.getFile(ResolvedConfigContext(GIT_BRANCH_MAIN), Path("README.md")).bufferedReader(Charsets.UTF_8)
                 .use { it.readText() } shouldBe CONTENT
         }
     }

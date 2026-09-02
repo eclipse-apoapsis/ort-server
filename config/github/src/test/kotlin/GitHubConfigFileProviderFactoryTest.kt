@@ -33,8 +33,8 @@ import java.io.ByteArrayInputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 
 class GitHubConfigFileProviderFactoryTest : WordSpec({
     afterEach {
@@ -49,7 +49,7 @@ class GitHubConfigFileProviderFactoryTest : WordSpec({
             )
 
             val manager = ConfigManager.create(createProviderConfig())
-            manager.getFile(Context(REVISION), Path(CONFIG_PATH)).bufferedReader(Charsets.UTF_8)
+            manager.getFile(ResolvedConfigContext(REVISION), Path(CONFIG_PATH)).bufferedReader(Charsets.UTF_8)
                 .use { it.readText() } shouldBe CONTENT
         }
     }

@@ -26,9 +26,9 @@ import java.io.InputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
 
 /**
@@ -58,23 +58,23 @@ class LocalConfigFileProvider(
         }
     }
 
-    override fun resolveContext(context: Context) = ConfigManager.EMPTY_CONTEXT
+    override fun resolveContext(context: RequestedConfigContext) = ResolvedConfigContext.EMPTY
 
-    override fun getFile(context: Context, path: Path): InputStream =
+    override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
         runCatching {
             configDir.resolveSecurely(path).inputStream()
         }.getOrElse {
             throw ConfigException("Cannot read path '${path.path}'.", it)
         }
 
-    override fun contains(context: Context, path: Path): Boolean {
+    override fun contains(context: ResolvedConfigContext, path: Path): Boolean {
         val isDirectoryPath = path.path.endsWith("/")
         val p = configDir.resolveSecurely(path)
 
         return (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
     }
 
-    override fun listFiles(context: Context, path: Path): Set<Path> {
+    override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> {
         val requestedDir = configDir.resolve(path.path)
         val dir = configDir.resolveSecurely(path)
 

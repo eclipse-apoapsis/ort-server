@@ -26,8 +26,8 @@ import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 
 class CustomLicenseFactProviderTest : WordSpec({
     "getLicenseText" should {
@@ -75,7 +75,7 @@ private const val LICENSE_TEXT = "This is a custom license text."
 private val licenseDir = Path("path/to/custom/licenses")
 
 /** The current configuration context. */
-private val configContext = Context("theCurrentContext")
+private val configContext = ResolvedConfigContext("theCurrentContext")
 
 /**
  * Return a mock for the [ConfigManager] that is prepared to list the content of the directory with custom license

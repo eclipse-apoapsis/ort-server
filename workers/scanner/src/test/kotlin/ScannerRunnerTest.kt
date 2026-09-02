@@ -39,7 +39,7 @@ import io.mockk.verify
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ScannerConfig
-import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
@@ -252,7 +252,7 @@ private val testScannerConfig = ScannerConfig(
 )
 
 /** The resolved context reported by the ORT run. */
-private val testResolvedContext = Context("testResolvedContext")
+private val testResolvedContext = ResolvedConfigContext("testResolvedContext")
 
 /** The organization ID reported by the ORT run. */
 private const val ORGANIZATION_ID = 17L

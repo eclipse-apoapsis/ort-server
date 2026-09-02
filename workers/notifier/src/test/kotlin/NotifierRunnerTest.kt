@@ -38,8 +38,8 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.MailServerConfigura
 import org.eclipse.apoapsis.ortserver.components.adminconfig.NotifierConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -57,7 +57,7 @@ private const val NOTIFICATION_SET = "default"
 private const val RULE_SET = "testRuleSet"
 private const val RESOLUTION_FILE = "resolutions.yml"
 private const val ORGANIZATION_ID = 28L
-private val resolvedConfigContext = Context("resolvedContext")
+private val resolvedConfigContext = ResolvedConfigContext("resolvedContext")
 private val script = File("src/test/resources/example.notifications.kts")
 
 class NotifierRunnerTest : WordSpec({

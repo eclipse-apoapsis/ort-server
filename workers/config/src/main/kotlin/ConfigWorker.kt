@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.workers.config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -76,7 +76,8 @@ class ConfigWorker(
         logger.info("Running config worker for run '$ortRunId'.")
 
         contextFactory.withContext(ortRunId) { context ->
-            val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context) ?: ConfigManager.EMPTY_CONTEXT
+            val jobConfigContext = context.ortRun.jobConfigContext?.let(::RequestedConfigContext)
+                ?: RequestedConfigContext.EMPTY
             val resolvedJobConfigContext = context.configManager.resolveContext(jobConfigContext)
 
             logger.info(
@@ -135,7 +136,7 @@ class ConfigWorker(
     }.getOrElse { RunResult.Failed(it) }
 
     private fun validateAdminConfig(
-        resolvedJobConfigContext: Context,
+        resolvedJobConfigContext: ResolvedConfigContext,
         validationScriptResult: ConfigValidationResultSuccess
     ) = runCatching {
         logger.info("Validating admin config.")
@@ -164,7 +165,7 @@ class ConfigWorker(
 
     private suspend fun storeResult(
         ortRunId: Long,
-        resolvedJobConfigContext: Context,
+        resolvedJobConfigContext: ResolvedConfigContext,
         validationResult: ConfigValidationResult
     ) {
         val labels: OptionalValue<Map<String, String>>
@@ -203,7 +204,7 @@ class ConfigWorker(
      */
     private fun createValidationWorkerContext(
         context: WorkerContext,
-        resolvedJobConfigContext: Context,
+        resolvedJobConfigContext: ResolvedConfigContext,
         baseConfigs: JobConfigurations
     ): WorkerContext {
         val runWithConfigContext = context.ortRun.copy(

@@ -32,8 +32,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
@@ -130,7 +130,7 @@ internal class WorkerContextImpl(
     private val currentContext by lazy {
         checkNotNull(ortRun.resolvedJobConfigContext) {
             "Job config context of ORT run '${ortRun.id}' must be resolved."
-        }.let(::Context)
+        }.let(::ResolvedConfigContext)
     }
 
     override suspend fun resolveSecret(secret: Secret): String =
