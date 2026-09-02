@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import com.sksamuel.hoplite.ConfigAlias
 
-import org.eclipse.apoapsis.ortserver.model.Options
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginType
@@ -235,16 +234,9 @@ data class ReporterConfig(
          */
         private fun mergePluginConfigs(pluginConfig: PluginConfig, definitionConfig: PluginConfig): PluginConfig =
             PluginConfig(
-                options = mergeOptions(pluginConfig.options, definitionConfig.options),
-                secrets = mergeOptions(pluginConfig.secrets, definitionConfig.secrets)
+                options = pluginConfig.options + definitionConfig.options,
+                secrets = pluginConfig.secrets + definitionConfig.secrets
             )
-
-        /**
-         * Merge the given [pluginOptions] with the [definitionOptions] of a report definition, so that options from
-         * the definition override options from the plugin.
-         */
-        private fun mergeOptions(pluginOptions: Options, definitionOptions: Options): Options =
-            pluginOptions + definitionOptions
     }
 
     /**
