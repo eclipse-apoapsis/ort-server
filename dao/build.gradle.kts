@@ -37,6 +37,7 @@ dependencies {
     api(projects.model)
 
     implementation(projects.utils.config)
+    implementation(projects.utils.logging)
     implementation(projects.utils.system)
 
     api(libs.exposed.core)

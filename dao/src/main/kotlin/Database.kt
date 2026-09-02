@@ -27,7 +27,9 @@ import com.zaxxer.hikari.HikariDataSource
 import javax.sql.DataSource
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
@@ -44,6 +46,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
 
@@ -52,8 +55,14 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.slf4j.LoggerFactory
+import java.util.concurrent.Executors
 
 private val logger = LoggerFactory.getLogger(DataSource::class.java)
+
+/**
+ * A dispatcher for database queries that uses virtual threads to not block OS threads during blocking JDBC operations.
+ */
+private val queryDispatcher = Executors.newVirtualThreadPerTaskExecutor().asCoroutineDispatcher()
 
 /**
  * Connect the database.
@@ -65,6 +74,7 @@ fun DataSource.connect() = Database.connect(
 
 private fun getDatabaseConfig(): DatabaseConfig =
     DatabaseConfig {
+        dispatcher = queryDispatcher
         sqlLogger = SqlQueryTraceLogger
     }
 
@@ -129,29 +139,33 @@ fun databaseModule(startEager: Boolean = true): Module = module {
 
 /**
  * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly].
+ * The [JdbcTransaction] is executed with a special dispatcher that uses virtual threads to not block OS threads during
+ * blocking JDBC operations.
  *
- * Returns the actual result type. Throws an exception in case of a failure.
+ * Returns the result of [block]. Throws an exception in case of a failure.
  */
 suspend fun <T> Database.dbQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: JdbcTransaction.() -> T
+    block: suspend JdbcTransaction.() -> T
 ): T =
     dbQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
 /**
  * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly].
+ * The [JdbcTransaction] is executed with a special dispatcher that uses virtual threads to not block OS threads during
+ * blocking JDBC operations.
  *
- * Returns a wrapped [Result] object and delegates exceptions handling to the caller.
+ * Returns the result of [block] wrapped [Result] object and delegates exceptions handling to the caller.
  */
 suspend fun <T> Database.dbQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: JdbcTransaction.() -> T
+    block: suspend JdbcTransaction.() -> T
 ): Result<T> =
     runCatching {
-        withContext(Dispatchers.IO) {
-            transaction(this@runCatching, transactionIsolation, readOnly) { block() }
+        withContext(queryDispatcher) {
+            suspendTransaction(this@runCatching, transactionIsolation, readOnly) { block() }
         }
     }.mapExceptions()
 
@@ -163,7 +177,7 @@ suspend fun <T> Database.dbQueryCatching(
 fun <T> Database.blockingQuery(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
+    block: suspend JdbcTransaction.() -> T
 ): T =
     blockingQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
 
@@ -175,9 +189,9 @@ fun <T> Database.blockingQuery(
 fun <T> Database.blockingQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
+    block: suspend JdbcTransaction.() -> T
 ): Result<T> =
-    runCatching { transaction(this, transactionIsolation, readOnly) { block() } }.mapExceptions()
+    runBlocking { dbQueryCatching(transactionIsolation, readOnly, block) }
 
 /**
  * Return the encapsulated value in case of [success][Result.isSuccess]. In case of [failure][Result.isFailure] return
