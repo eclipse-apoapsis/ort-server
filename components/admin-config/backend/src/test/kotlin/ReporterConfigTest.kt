@@ -228,12 +228,18 @@ class ReporterConfigTest : WordSpec({
             }
         }
 
-        "return an issue if a report definition uses the name of an existing reporter plugin" {
+        "return an issue if a report definition uses the name of a different existing reporter plugin" {
             ReporterConfig(
-                reportDefinitionsMap = mapOf(PLUGIN_ID to ReportDefinitionTemplate(pluginId = PLUGIN_ID))
+                reportDefinitionsMap = mapOf(PLUGIN_ID to ReportDefinitionTemplate(pluginId = "WebApp"))
             ).validate().shouldBeSingleton {
                 it shouldContain PLUGIN_ID
             }
+        }
+
+        "not return an issue if a report definition uses the name of the plugin it references" {
+            ReporterConfig(
+                reportDefinitionsMap = mapOf(PLUGIN_ID to ReportDefinitionTemplate(pluginId = PLUGIN_ID))
+            ).validate() should beEmpty()
         }
 
         "return an issue if a report definition references a non-existing plugin" {
