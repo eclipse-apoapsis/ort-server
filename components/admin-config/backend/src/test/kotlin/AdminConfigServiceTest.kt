@@ -445,7 +445,7 @@ class AdminConfigServiceTest : WordSpec({
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
             reporterConfig shouldBe ReporterConfig()
-            reporterConfig.reportDefinitionNames should containAll("WebApp", "PdfTemplate")
+            reporterConfig.reportDefinitionNames should beEmpty()
         }
 
         "use default values for unspecified properties" {
@@ -459,7 +459,7 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
-            reporterConfig.reportDefinitionNames should containAll("WebApp", "PdfTemplate")
+            reporterConfig.reportDefinitionNames should beEmpty()
         }
 
         "parse simple properties from the reporter section of the config file" {
@@ -699,23 +699,6 @@ class AdminConfigServiceTest : WordSpec({
                 ReporterAsset("special/layout/foo"),
                 ReporterAsset("special/layout/bar")
             )
-        }
-
-        "generate default report definitions for unreferenced reporter plugins" {
-            val config = """
-                    reporter {
-                    }
-                """.trimIndent()
-            val service = createServiceWithConfig(config)
-
-            val reporterConfig = service.loadAdminConfig(context).reporterConfig
-
-            reporterConfig.getReportDefinition("HtmlTemplate") shouldNotBeNull {
-                pluginId shouldBe "HtmlTemplate"
-                assetFiles should beEmpty()
-                assetDirectories should beEmpty()
-                nameMapping should beNull()
-            }
         }
 
         "allow overriding a report definition for a reporter plugin even if the case does not match" {

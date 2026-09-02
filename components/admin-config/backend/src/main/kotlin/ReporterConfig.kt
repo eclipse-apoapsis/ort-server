@@ -208,27 +208,6 @@ data class ReporterConfig(
             .associateBy { it.lowercase() }
 
         /**
-         * Create dummy [ReportDefinition]s for all reporter plugins that are not referenced in the given
-         * [definitions]. This makes sure that there is always a definition for each existing reporter plugin.
-         */
-        internal fun addDefinitionsForUnreferencedPlugins(
-            definitions: Map<String, ReportDefinition>
-        ): Map<String, ReportDefinition> {
-            val allReporterPlugins = reporterPluginIds
-            val referencedPlugins = definitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
-
-            return definitions + (allReporterPlugins.keys - referencedPlugins).associate { pluginId ->
-                val originalPluginId = allReporterPlugins.getValue(pluginId)
-                originalPluginId to ReportDefinition(
-                    pluginId = originalPluginId,
-                    assetFiles = emptyList(),
-                    assetDirectories = emptyList(),
-                    nameMapping = null
-                )
-            }
-        }
-
-        /**
          * Merge the given [pluginConfig] with the [definitionConfig] of a report definition, so that options from
          * the definition override options from the plugin.
          */
@@ -257,9 +236,6 @@ data class ReporterConfig(
      * [file references][ReportDefinitionTemplate.assetFilesRefs] and
      * [directory references][ReportDefinitionTemplate.assetDirectoriesRefs] to concrete [ReporterAsset]s. If a
      * reference cannot be resolved, it is recorded in [unresolvedAssetFilesRefs] or [unresolvedAssetDirectoriesRefs].
-     *
-     * This map also contains report definitions for all reporter plugins that are not referenced in the given
-     * [reportDefinitionsMap]. This makes sure that there is always a definition for each existing reporter plugin.
      */
     private val resolvedReportDefinitions = reportDefinitionsMap.mapValues { (name, template) ->
         val resolvedAssetFilesRefs = template.assetFilesRefs.partition { it in globalAssets }
@@ -290,13 +266,24 @@ data class ReporterConfig(
             assetDirectories = assetDirectories + resolvedAssetDirectoriesRefs,
             nameMapping = template.nameMapping
         )
-    }.let { addDefinitionsForUnreferencedPlugins(it) }
+    }
 
     /**
      * A [Map] with the existing report definitions using lowercase names as keys. This is used to simplify
      * case-insensitive lookups of report definitions by name.
      */
     private val lowercaseReportDefinitions = resolvedReportDefinitions.mapKeys { it.key.lowercase() }
+
+    /**
+     * A set with the names of all valid report formats in lowercase. Because report definitions replace the reporter
+     * plugin they reference, this is defined as the set of all reporter plugin IDs minus all reporter plugin IDs
+     * referenced by report definitions, plus all report definition names.
+     */
+    val validFormats = buildSet {
+        addAll(reporterPluginIds.keys)
+        resolvedReportDefinitions.values.forEach { remove(it.pluginId.lowercase()) }
+        addAll(lowercaseReportDefinitions.keys)
+    }
 
     /** A set with the names of all existing report definitions. */
     val reportDefinitionNames: Set<String>

@@ -476,7 +476,7 @@ class ReporterRunnerTest : WordSpec({
 
             result.reports.keys should containExactly(generatedReport.name)
             with(result.issues.single()) {
-                message shouldContain "No reporter found"
+                message shouldContain "No reporter plugin found"
                 message shouldContain unsupportedReportFormat
                 source shouldBe "Reporter"
                 severity shouldBe Severity.ERROR
