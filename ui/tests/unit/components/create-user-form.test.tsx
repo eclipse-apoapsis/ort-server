@@ -90,13 +90,34 @@ describe('CreateUserForm', () => {
 
     await user.type(screen.getByLabelText('Username'), 'jdoe');
     await user.click(
-      screen.getByPlaceholderText('Start typing to find organizations...')
+      screen.getByPlaceholderText(
+        '(optional) Start typing to find organizations...'
+      )
     );
     await user.click(await screen.findByText('Test Organization'));
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(await screen.findByText('A password is required.')).toBeVisible();
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('submits the user without an organization', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<CreateUserForm isPending={false} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText('Username'), 'jdoe');
+    await user.type(screen.getByLabelText('Password'), 'initial password');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+    expect(onSubmit.mock.calls[0]?.[0]).toEqual({
+      organizations: [],
+      password: 'initial password',
+      temporary: true,
+      username: 'jdoe',
+    });
   });
 
   it('submits the user with the selected organization', async () => {
@@ -108,7 +129,9 @@ describe('CreateUserForm', () => {
     await user.type(screen.getByLabelText('Username'), 'jdoe');
     await user.type(screen.getByLabelText('Password'), 'initial password');
     await user.click(
-      screen.getByPlaceholderText('Start typing to find organizations...')
+      screen.getByPlaceholderText(
+        '(optional) Start typing to find organizations...'
+      )
     );
     await user.click(await screen.findByText('Test Organization'));
     await user.click(screen.getByRole('button', { name: 'Create' }));

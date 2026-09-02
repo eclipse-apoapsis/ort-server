@@ -119,6 +119,18 @@ describe('CreateUserPage', () => {
     expect(mocks.navigate).toHaveBeenCalledWith({ to: '/admin/users' });
   });
 
+  it('creates the user without assigning an organization role', async () => {
+    await getOnSubmit()({ ...values, organizations: [] });
+
+    expect(mocks.createUser).toHaveBeenCalledOnce();
+    expect(mocks.addUserToReaders).not.toHaveBeenCalled();
+    expect(mocks.toastInfo).toHaveBeenCalledWith('Create User', {
+      description: 'User "jdoe" was created.',
+    });
+    expect(mocks.navigate).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/admin/users' });
+  });
+
   it('reports failed role assignments and still navigates', async () => {
     const error = new Error('Could not assign the role.');
     mocks.addUserToReaders

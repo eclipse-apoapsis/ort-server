@@ -210,7 +210,7 @@ export const CreateUserForm = ({
                   <FormControl>
                     <MultipleSelector
                       {...field}
-                      placeholder='Start typing to find organizations...'
+                      placeholder='(optional) Start typing to find organizations...'
                       badgeClassName='bg-amber-200 text-black'
                       emptyIndicator={
                         <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400'>
@@ -237,8 +237,9 @@ export const CreateUserForm = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    At least one organization needs to be chosen to which the
-                    user is granted READERS access initially.
+                    Optionally grant the user the READER role for organizations.
+                    To give access only to a product or repository, assign the
+                    appropriate role in its "Users" section.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
