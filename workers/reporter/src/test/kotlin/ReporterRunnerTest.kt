@@ -1107,7 +1107,7 @@ class ReporterRunnerTest : WordSpec({
 
             with(provider.getProviders().single { it is CustomLicenseFactProvider } as CustomLicenseFactProvider) {
                 this.configManager shouldBe configManager
-                this.configurationContext?.name shouldBe testConfigContext
+                this.configurationContext.name shouldBe testConfigContext
                 licenseTextDir shouldBe Path(customLicenseTextDir)
             }
 

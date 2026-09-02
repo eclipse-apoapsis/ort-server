@@ -112,7 +112,7 @@ class ScannerWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -216,7 +216,7 @@ class ScannerWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -455,7 +455,7 @@ class ScannerWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -528,7 +528,7 @@ class ScannerWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -602,7 +602,7 @@ class ScannerWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -717,7 +717,7 @@ class ScannerWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }

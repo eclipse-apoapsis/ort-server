@@ -58,7 +58,7 @@ inline fun <reified T> ConfigManager.readConfigFileValueWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
-    context: Context?
+    context: Context
 ): T = getConfigFileWithDefault<T>(path, defaultPath, fallbackValue, context, ::readConfigFileValue)
 
 /**
@@ -73,7 +73,7 @@ fun ConfigManager.readConfigFileWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: String,
-    context: Context?
+    context: Context
 ): String = getConfigFileWithDefault(path, defaultPath, fallbackValue, context, ::readConfigFile)
 
 /**
@@ -90,8 +90,8 @@ internal inline fun <reified T> getConfigFileWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
-    context: Context?,
-    getConfigFile: (path: String, context: Context?, exceptionHandler: (ConfigException) -> T) -> T
+    context: Context,
+    getConfigFile: (path: String, context: Context, exceptionHandler: (ConfigException) -> T) -> T
 ): T = if (path != null && path != defaultPath) {
     getConfigFile(path, context) {
         logger.error("Could not get config file from path '$path'.")
@@ -111,7 +111,7 @@ internal inline fun <reified T> getConfigFileWithDefault(
  */
 inline fun <reified T> ConfigManager.readConfigFileValue(
     path: String,
-    context: Context?,
+    context: Context,
     exceptionHandler: (ConfigException) -> T = { throw it }
 ): T = getConfigFile(
     path,
@@ -127,7 +127,7 @@ inline fun <reified T> ConfigManager.readConfigFileValue(
  */
 fun ConfigManager.readConfigFile(
     path: String,
-    context: Context?,
+    context: Context,
     exceptionHandler: (ConfigException) -> String = { throw it }
 ): String = getConfigFile(path, context, { it.reader().readText() }, exceptionHandler)
 
@@ -138,7 +138,7 @@ fun ConfigManager.readConfigFile(
  */
 inline fun <reified T> ConfigManager.getConfigFile(
     path: String,
-    context: Context?,
+    context: Context,
     resultHandler: (InputStream) -> T,
     exceptionHandler: (ConfigException) -> T = { throw it }
 ): T = runCatching {
@@ -150,5 +150,7 @@ inline fun <reified T> ConfigManager.getConfigFile(
 /**
  * Return the resolved context for accessing configuration files from this [WorkerContext] if it is defined.
  */
-val WorkerContext.resolvedConfigurationContext: Context?
-    get() = ortRun.resolvedJobConfigContext?.let(::Context)
+val WorkerContext.resolvedConfigurationContext: Context
+    get() = checkNotNull(ortRun.resolvedJobConfigContext) {
+        "Job config context of ORT run '${ortRun.id}' must be resolved."
+    }.let(::Context)

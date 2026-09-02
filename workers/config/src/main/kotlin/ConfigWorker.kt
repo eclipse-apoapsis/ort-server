@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -75,7 +76,7 @@ class ConfigWorker(
         logger.info("Running config worker for run '$ortRunId'.")
 
         contextFactory.withContext(ortRunId) { context ->
-            val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context)
+            val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context) ?: ConfigManager.EMPTY_CONTEXT
             val resolvedJobConfigContext = context.configManager.resolveContext(jobConfigContext)
 
             logger.info(

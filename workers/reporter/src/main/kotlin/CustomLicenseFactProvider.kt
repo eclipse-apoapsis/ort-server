@@ -45,7 +45,7 @@ internal class CustomLicenseFactProvider(
     val configManager: ConfigManager,
 
     /** The current configuration context for this ORT run. */
-    val configurationContext: Context?,
+    val configurationContext: Context,
 
     /** The [Path] to the directory in the configuration containing custom license texts. */
     rawLicenseTextDir: Path
