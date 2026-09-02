@@ -219,7 +219,10 @@ fun Route.products() = route("products/{productId}") {
             val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
             val filters = call.vulnerabilityForRunsFilters()
 
-            val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+            val repositoryIds = productService.getRepositoryIdsForProductAndUser(
+                productId,
+                call.ortServerPrincipal.username
+            )
 
             val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
                 repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
@@ -238,7 +241,10 @@ fun Route.products() = route("products/{productId}") {
         route("advisors") {
             get(getProductVulnerabilityAdvisors, requirePermission(ProductPermission.READ)) {
                 val productId = call.requireIdParameter("productId")
-                val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+                val repositoryIds = productService.getRepositoryIdsForProductAndUser(
+                    productId,
+                    call.ortServerPrincipal.username
+                )
                 val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
                     repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
                 }
@@ -253,7 +259,10 @@ fun Route.products() = route("products/{productId}") {
             get(getProductRunStatistics, requirePermission(ProductPermission.READ)) {
                 val productId = call.requireIdParameter("productId")
 
-                val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+                val repositoryIds = productService.getRepositoryIdsForProductAndUser(
+                    productId,
+                    call.ortServerPrincipal.username
+                )
 
                 val latestRunsWithAnalyzerJobInFinalState = repositoryIds.mapNotNull {
                     repositoryService.getLatestOrtRunIdWithAnalyzerJobInFinalState(it)
