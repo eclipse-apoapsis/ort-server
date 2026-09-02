@@ -68,8 +68,8 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -116,7 +116,7 @@ import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 private const val RUN_ID = 20230522093727L
 private const val ORGANIZATION_ID = 20250707045021L
 private const val RULE_SET_NAME = "selectedRuleSet"
-private val configurationContext = Context("theConfigContext")
+private val configurationContext = ResolvedConfigContext("theConfigContext")
 
 private val ruleSet = RuleSetTemplate(
     copyrightGarbageFile = "testCopyrightGarbageFile",

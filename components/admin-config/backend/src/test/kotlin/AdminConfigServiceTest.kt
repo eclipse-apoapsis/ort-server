@@ -41,8 +41,8 @@ import io.mockk.spyk
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
@@ -962,7 +962,7 @@ class AdminConfigServiceTest : WordSpec({
 })
 
 /** The context used by tests when querying the admin configuration. */
-private val context = Context("testContext")
+private val context = ResolvedConfigContext("testContext")
 
 /** A path to the admin config used by tests per default. */
 private const val ADMIN_CONFIG_PATH = "test-ort-server.conf"

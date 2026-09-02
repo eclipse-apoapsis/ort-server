@@ -34,8 +34,9 @@ import kotlin.time.measureTime
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
 import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getServiceUrl
@@ -50,7 +51,7 @@ import org.slf4j.LoggerFactory
 /**
  * An implementation of [ConfigFileProvider] that reads config files from Git and stores them to a local directory. The
  * directory is temporary and only exists for the lifetime of a job. The provider is thread-safe and all function calls
- * are processed sequentially to avoid race conditions when using different [Context]s.
+ * are processed sequentially to avoid race conditions when using different config contexts.
  */
 class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
@@ -113,16 +114,16 @@ class GitConfigFileProvider internal constructor(
     internal val snapshotDir = createOrtTempDir()
 
     /**
-     * A cache mapping a requested [Context] name (like a branch name) to its most recently resolved revision together
-     * with the point in time when it expires. This is a bounded LRU map: it holds at most [MAX_REVISION_CACHE_SIZE]
-     * entries and evicts the least recently used one when that limit is exceeded, so that the cache cannot grow without
-     * bound in long-running processes.
+     * A cache mapping a [RequestedConfigContext] name (like a branch name) to its most recently resolved revision
+     * together with the point in time when it expires. This is a bounded LRU map: it holds at most
+     * [MAX_REVISION_CACHE_SIZE] entries and evicts the least recently used one when that limit is exceeded, so that the
+     * cache cannot grow without bound in long-running processes.
      */
     private val revisionCache = object : LinkedHashMap<String, CachedRevision>(16, 0.75f, true) {
         override fun removeEldestEntry(eldest: Map.Entry<String, CachedRevision>) = size > MAX_REVISION_CACHE_SIZE
     }
 
-    override fun resolveContext(context: Context): Context = synchronized(lock) {
+    override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext = synchronized(lock) {
         val requestedRevision = context.name
 
         val cached = revisionCache[requestedRevision]
@@ -137,14 +138,14 @@ class GitConfigFileProvider internal constructor(
             }
         }
 
-        Context(resolvedRevision)
+        ResolvedConfigContext(resolvedRevision)
     }
 
     /** Resolve the given [requestedRevision] to a concrete revision by updating the working tree. */
     internal fun resolveRevision(requestedRevision: String): String =
         synchronized(lock) { updateWorkingTree(requestedRevision) }
 
-    override fun getFile(context: Context, path: Path): InputStream =
+    override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
         synchronized(lock) {
             runCatching {
                 updateWorkingTree(context.name)
@@ -168,7 +169,7 @@ class GitConfigFileProvider internal constructor(
             }
         }
 
-    override fun contains(context: Context, path: Path): Boolean = synchronized(lock) {
+    override fun contains(context: ResolvedConfigContext, path: Path): Boolean = synchronized(lock) {
         updateWorkingTree(context.name)
         val p = configDir.resolveSecurely(path)
         val isDirectoryPath = path.path.endsWith("/")
@@ -176,7 +177,7 @@ class GitConfigFileProvider internal constructor(
         (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
     }
 
-    override fun listFiles(context: Context, path: Path): Set<Path> = synchronized(lock) {
+    override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> = synchronized(lock) {
         updateWorkingTree(context.name)
 
         val dir = configDir.resolveSecurely(path)

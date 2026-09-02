@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 import org.ossreviewtoolkit.plugins.licensefactproviders.api.LicenseFactProvider
@@ -45,7 +45,7 @@ internal class CustomLicenseFactProvider(
     val configManager: ConfigManager,
 
     /** The current configuration context for this ORT run. */
-    val configurationContext: Context,
+    val configurationContext: ResolvedConfigContext,
 
     /** The [Path] to the directory in the configuration containing custom license texts. */
     rawLicenseTextDir: Path

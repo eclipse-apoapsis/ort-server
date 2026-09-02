@@ -32,8 +32,8 @@ import java.io.IOException
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
@@ -109,7 +109,7 @@ class ExtensionsTest : WordSpec({
 
     "readConfigFileValueWithDefault" should {
         "deserialize the file at path if path is not null" {
-            val context = Context("resolvedContext")
+            val context = ResolvedConfigContext("resolvedContext")
 
             val configManager = mockk<ConfigManager> {
                 every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
@@ -125,7 +125,7 @@ class ExtensionsTest : WordSpec({
 
             shouldThrow<ConfigException> {
                 configManager
-                    .readConfigFileValueWithDefault(path, defaultPath, fallbackValue, ConfigManager.EMPTY_CONTEXT)
+                    .readConfigFileValueWithDefault(path, defaultPath, fallbackValue, ResolvedConfigContext.EMPTY)
             } shouldBe configException
         }
 
@@ -136,12 +136,12 @@ class ExtensionsTest : WordSpec({
 
             shouldThrow<IOException> {
                 configManager
-                    .readConfigFileValueWithDefault(path, defaultPath, fallbackValue, ConfigManager.EMPTY_CONTEXT)
+                    .readConfigFileValueWithDefault(path, defaultPath, fallbackValue, ResolvedConfigContext.EMPTY)
             }
         }
 
         "deserialize the file at the default path if path is null" {
-            val context = Context("theContext")
+            val context = ResolvedConfigContext("theContext")
 
             val configManager = mockk<ConfigManager> {
                 every { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
@@ -159,7 +159,7 @@ class ExtensionsTest : WordSpec({
                 null,
                 defaultPath,
                 fallbackValue,
-                ConfigManager.EMPTY_CONTEXT
+                ResolvedConfigContext.EMPTY
             ) shouldBe fallbackValue
         }
 
@@ -173,7 +173,7 @@ class ExtensionsTest : WordSpec({
                     null,
                     defaultPath,
                     fallbackValue,
-                    ConfigManager.EMPTY_CONTEXT
+                    ResolvedConfigContext.EMPTY
                 ) shouldBe fallbackValue
             }
         }
@@ -181,7 +181,7 @@ class ExtensionsTest : WordSpec({
 
     "readConfigFileValue" should {
         "deserialize the config file" {
-            val context = Context("myConfigContext")
+            val context = ResolvedConfigContext("myConfigContext")
 
             val configManager = mockk<ConfigManager> {
                 every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
@@ -196,7 +196,7 @@ class ExtensionsTest : WordSpec({
             }
 
             var capturedException: ConfigException? = null
-            configManager.readConfigFileValue("path", ConfigManager.EMPTY_CONTEXT) { capturedException = it }
+            configManager.readConfigFileValue("path", ResolvedConfigContext.EMPTY) { capturedException = it }
 
             capturedException shouldBe configException
         }
@@ -207,14 +207,14 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<IOException> {
-                configManager.readConfigFileValue<ConfigClass>("path", ConfigManager.EMPTY_CONTEXT) shouldBe configFile
+                configManager.readConfigFileValue<ConfigClass>("path", ResolvedConfigContext.EMPTY) shouldBe configFile
             }
         }
     }
 
     "readConfigFileWithDefault" should {
         "read the file at path if path is not null" {
-            val context = Context("resolvedContext")
+            val context = ResolvedConfigContext("resolvedContext")
 
             val configManager = mockk<ConfigManager> {
                 every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
@@ -234,12 +234,12 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<ConfigException> {
-                configManager.readConfigFileWithDefault(path, defaultPath, fallbackString, ConfigManager.EMPTY_CONTEXT)
+                configManager.readConfigFileWithDefault(path, defaultPath, fallbackString, ResolvedConfigContext.EMPTY)
             } shouldBe configException
         }
 
         "read the file at the default path if path is null" {
-            val context = Context("theContext")
+            val context = ResolvedConfigContext("theContext")
 
             val configManager = mockk<ConfigManager> {
                 every { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
@@ -262,14 +262,14 @@ class ExtensionsTest : WordSpec({
                 null,
                 defaultPath,
                 fallbackString,
-                ConfigManager.EMPTY_CONTEXT
+                ResolvedConfigContext.EMPTY
             ) shouldBe fallbackString
         }
     }
 
     "readConfigFile" should {
         "read the config file" {
-            val context = Context("myConfigContext")
+            val context = ResolvedConfigContext("myConfigContext")
 
             val configManager = mockk<ConfigManager> {
                 every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
@@ -284,7 +284,7 @@ class ExtensionsTest : WordSpec({
             }
 
             var capturedException: ConfigException? = null
-            configManager.readConfigFile("path", ConfigManager.EMPTY_CONTEXT) {
+            configManager.readConfigFile("path", ResolvedConfigContext.EMPTY) {
                 capturedException = it
                 ""
             }
@@ -317,7 +317,7 @@ class ExtensionsTest : WordSpec({
                 every { this@mockk.ortRun } returns ortRun
             }
 
-            workerContext.resolvedConfigurationContext shouldBe Context(resolvedContext)
+            workerContext.resolvedConfigurationContext shouldBe ResolvedConfigContext(resolvedContext)
         }
     }
 })

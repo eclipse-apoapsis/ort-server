@@ -32,9 +32,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
@@ -42,11 +42,11 @@ internal const val GIT_URL = "https://github.com/doubleopen-project/ort-config-t
 
 internal const val GIT_BRANCH_MAIN = "main"
 private const val GIT_REVISION_MAIN = "5c2d08c40dc558962a3941855cba876066f6b4b9"
-private val RESOLVED_CONTEXT_MAIN = Context(GIT_REVISION_MAIN)
+private val RESOLVED_CONTEXT_MAIN = ResolvedConfigContext(GIT_REVISION_MAIN)
 
 private const val GIT_BRANCH_DEV = "dev"
 private const val GIT_REVISION_DEV = "c7c011911baa064bef049c88807c4503fbe957c0"
-private val RESOLVED_CONTEXT_DEV = Context(GIT_REVISION_DEV)
+private val RESOLVED_CONTEXT_DEV = ResolvedConfigContext(GIT_REVISION_DEV)
 
 class GitConfigFileProviderTest : WordSpec({
     tags(Integration)
@@ -54,28 +54,28 @@ class GitConfigFileProviderTest : WordSpec({
     "resolveContext" should {
         "resolve an empty context successfully to HEAD of default branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(ConfigManager.EMPTY_CONTEXT)
+            val context = provider.resolveContext(RequestedConfigContext.EMPTY)
 
             context.name shouldBe GIT_REVISION_MAIN
         }
 
         "resolve an blank context successfully to HEAD of default branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(" "))
+            val context = provider.resolveContext(RequestedConfigContext(" "))
 
             context.name shouldBe GIT_REVISION_MAIN
         }
 
         "resolve a context successfully to HEAD of the `main` branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
+            val context = provider.resolveContext(RequestedConfigContext(GIT_BRANCH_MAIN))
 
             context.name shouldBe GIT_REVISION_MAIN
         }
 
         "resolve a context successfully to HEAD of the `dev` branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_DEV))
+            val context = provider.resolveContext(RequestedConfigContext(GIT_BRANCH_DEV))
 
             context.name shouldBe GIT_REVISION_DEV
         }
@@ -84,7 +84,7 @@ class GitConfigFileProviderTest : WordSpec({
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
 
             shouldThrow<IOException> {
-                provider.resolveContext(Context("non-existent-branch"))
+                provider.resolveContext(RequestedConfigContext("non-existent-branch"))
             }
         }
     }
@@ -259,7 +259,7 @@ class GitConfigFileProviderTest : WordSpec({
             // Obtain the stream for the `main` branch but do not read it yet.
             provider.getFile(RESOLVED_CONTEXT_MAIN, Path("README.md")).use { stream ->
                 // Change the shared working tree to a different revision before reading.
-                provider.resolveContext(RESOLVED_CONTEXT_DEV)
+                provider.resolveContext(RequestedConfigContext(GIT_BRANCH_DEV))
 
                 val fileContent = stream.bufferedReader(Charsets.UTF_8).readText()
 

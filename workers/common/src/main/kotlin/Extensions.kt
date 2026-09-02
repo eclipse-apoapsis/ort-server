@@ -23,8 +23,8 @@ import java.io.InputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -58,7 +58,7 @@ inline fun <reified T> ConfigManager.readConfigFileValueWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
-    context: Context
+    context: ResolvedConfigContext
 ): T = getConfigFileWithDefault<T>(path, defaultPath, fallbackValue, context, ::readConfigFileValue)
 
 /**
@@ -73,7 +73,7 @@ fun ConfigManager.readConfigFileWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: String,
-    context: Context
+    context: ResolvedConfigContext
 ): String = getConfigFileWithDefault(path, defaultPath, fallbackValue, context, ::readConfigFile)
 
 /**
@@ -90,8 +90,8 @@ internal inline fun <reified T> getConfigFileWithDefault(
     path: String?,
     defaultPath: String,
     fallbackValue: T,
-    context: Context,
-    getConfigFile: (path: String, context: Context, exceptionHandler: (ConfigException) -> T) -> T
+    context: ResolvedConfigContext,
+    getConfigFile: (path: String, context: ResolvedConfigContext, exceptionHandler: (ConfigException) -> T) -> T
 ): T = if (path != null && path != defaultPath) {
     getConfigFile(path, context) {
         logger.error("Could not get config file from path '$path'.")
@@ -111,7 +111,7 @@ internal inline fun <reified T> getConfigFileWithDefault(
  */
 inline fun <reified T> ConfigManager.readConfigFileValue(
     path: String,
-    context: Context,
+    context: ResolvedConfigContext,
     exceptionHandler: (ConfigException) -> T = { throw it }
 ): T = getConfigFile(
     path,
@@ -127,7 +127,7 @@ inline fun <reified T> ConfigManager.readConfigFileValue(
  */
 fun ConfigManager.readConfigFile(
     path: String,
-    context: Context,
+    context: ResolvedConfigContext,
     exceptionHandler: (ConfigException) -> String = { throw it }
 ): String = getConfigFile(path, context, { it.reader().readText() }, exceptionHandler)
 
@@ -138,7 +138,7 @@ fun ConfigManager.readConfigFile(
  */
 inline fun <reified T> ConfigManager.getConfigFile(
     path: String,
-    context: Context,
+    context: ResolvedConfigContext,
     resultHandler: (InputStream) -> T,
     exceptionHandler: (ConfigException) -> T = { throw it }
 ): T = runCatching {
@@ -150,7 +150,7 @@ inline fun <reified T> ConfigManager.getConfigFile(
 /**
  * Return the resolved context for accessing configuration files from this [WorkerContext] if it is defined.
  */
-val WorkerContext.resolvedConfigurationContext: Context
+val WorkerContext.resolvedConfigurationContext: ResolvedConfigContext
     get() = checkNotNull(ortRun.resolvedJobConfigContext) {
         "Job config context of ORT run '${ortRun.id}' must be resolved."
-    }.let(::Context)
+    }.let(::ResolvedConfigContext)

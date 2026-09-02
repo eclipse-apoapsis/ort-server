@@ -45,8 +45,8 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSet
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -83,7 +83,7 @@ private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
 private const val RULE_SET = "testRuleSet"
 private const val ORGANIZATION_ID = 20250617170411L
 
-private val resolvedConfigContext = Context("resolvedContext")
+private val resolvedConfigContext = ResolvedConfigContext("resolvedContext")
 
 private val testRuleSet = RuleSet(
     copyrightGarbageFile = ORT_COPYRIGHT_GARBAGE_FILENAME,

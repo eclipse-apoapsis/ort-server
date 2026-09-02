@@ -58,10 +58,10 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_CLEANUP_RATIO
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_DIRECTORY
 import org.eclipse.apoapsis.ortserver.config.github.GitHubConfigFileProvider.Companion.CACHE_MAX_AGE_DAYS
@@ -93,7 +93,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val resolvedContext = provider.resolveContext(Context(REVISION))
+            val resolvedContext = provider.resolveContext(RequestedConfigContext(REVISION))
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
 
@@ -102,7 +102,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val resolvedContext = provider.resolveContext(ConfigManager.EMPTY_CONTEXT)
+            val resolvedContext = provider.resolveContext(RequestedConfigContext.EMPTY)
 
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
@@ -112,7 +112,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val resolvedContext = provider.resolveContext(Context(" "))
+            val resolvedContext = provider.resolveContext(RequestedConfigContext(" "))
 
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
@@ -123,7 +123,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider(DEFAULT_BRANCH to "")
 
-            val resolvedContext = provider.resolveContext(ConfigManager.EMPTY_CONTEXT)
+            val resolvedContext = provider.resolveContext(RequestedConfigContext.EMPTY)
 
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
@@ -134,7 +134,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val exception = shouldThrow<NoSuchFieldException> {
-                provider.resolveContext(Context(REVISION + 1))
+                provider.resolveContext(RequestedConfigContext(REVISION + 1))
             }
 
             exception.message shouldContain "SHA-1"
@@ -149,7 +149,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val exception = shouldThrow<ConfigException> {
-                provider.resolveContext(Context(REVISION + NOT_FOUND))
+                provider.resolveContext(RequestedConfigContext(REVISION + NOT_FOUND))
             }
 
             exception.message shouldContain "404"
@@ -172,7 +172,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             }
 
             val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
-            provider.resolveContext(Context(REVISION))
+            provider.resolveContext(RequestedConfigContext(REVISION))
 
             oldRevisionDir shouldNot exist()
             currentRevisionDir shouldBe aDirectory()
@@ -191,7 +191,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             }
 
             val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
-            provider.resolveContext(Context(revision))
+            provider.resolveContext(RequestedConfigContext(revision))
 
             oldRevisionDir shouldBe aDirectory()
         }
@@ -203,7 +203,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val fileContent = provider.getFile(Context(REVISION), Path(CONFIG_PATH))
+            val fileContent = provider.getFile(ResolvedConfigContext(REVISION), Path(CONFIG_PATH))
                 .bufferedReader(Charsets.UTF_8)
                 .use { it.readText() }
 
@@ -215,9 +215,9 @@ class GitHubConfigFileProviderTest : WordSpec({
             val cacheDir = tempdir()
 
             val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
-            provider.getFile(Context(REVISION), Path(CONFIG_PATH)).close()
+            provider.getFile(ResolvedConfigContext(REVISION), Path(CONFIG_PATH)).close()
 
-            val fileContent = provider.getFile(Context(REVISION), Path(CONFIG_PATH))
+            val fileContent = provider.getFile(ResolvedConfigContext(REVISION), Path(CONFIG_PATH))
                 .bufferedReader(Charsets.UTF_8)
                 .use { it.readText() }
             fileContent shouldBe CONTENT
@@ -233,7 +233,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val exception = shouldThrow<ConfigException> {
-                provider.getFile(Context(REVISION), Path(CONFIG_PATH + 1))
+                provider.getFile(ResolvedConfigContext(REVISION), Path(CONFIG_PATH + 1))
             }
 
             exception.message shouldContain "content type"
@@ -246,7 +246,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val exception = shouldThrow<ConfigException> {
-                provider.getFile(Context(REVISION), Path(DIRECTORY_PATH))
+                provider.getFile(ResolvedConfigContext(REVISION), Path(DIRECTORY_PATH))
             }
 
             exception.message shouldContain DIRECTORY_PATH
@@ -267,7 +267,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val exception = shouldThrow<ConfigException> {
-                provider.getFile(Context(REVISION), Path(CONFIG_PATH + 1))
+                provider.getFile(ResolvedConfigContext(REVISION), Path(CONFIG_PATH + 1))
             }
 
             exception.message shouldContain "401"
@@ -280,7 +280,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            provider.contains(Context(REVISION + 1), Path(CONFIG_PATH)) shouldBe true
+            provider.contains(ResolvedConfigContext(REVISION + 1), Path(CONFIG_PATH)) shouldBe true
         }
 
         "return `false` if the path refers a directory" {
@@ -288,7 +288,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            provider.contains(Context(REVISION), Path(DIRECTORY_PATH)) shouldBe false
+            provider.contains(ResolvedConfigContext(REVISION), Path(DIRECTORY_PATH)) shouldBe false
         }
 
         "return `true` if the path ending with a slash refers a directory" {
@@ -296,7 +296,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            provider.contains(Context(REVISION), Path("$DIRECTORY_PATH/")) shouldBe true
+            provider.contains(ResolvedConfigContext(REVISION), Path("$DIRECTORY_PATH/")) shouldBe true
         }
 
         "return `false` if a `NotFound` response is received" {
@@ -304,7 +304,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            provider.contains(Context(REVISION), Path(CONFIG_PATH + NOT_FOUND)) shouldBe false
+            provider.contains(ResolvedConfigContext(REVISION), Path(CONFIG_PATH + NOT_FOUND)) shouldBe false
         }
     }
 
@@ -316,7 +316,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+            val listFiles = provider.listFiles(ResolvedConfigContext(REVISION), Path(DIRECTORY_PATH))
 
             listFiles shouldContainExactlyInAnyOrder expectedPaths
         }
@@ -328,7 +328,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val listFiles = provider.listFiles(Context(REVISION), Path("$DIRECTORY_PATH/"))
+            val listFiles = provider.listFiles(ResolvedConfigContext(REVISION), Path("$DIRECTORY_PATH/"))
 
             listFiles shouldContainExactlyInAnyOrder expectedPaths
         }
@@ -339,7 +339,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val exception = shouldThrow<ConfigException> {
-                provider.listFiles(Context(REVISION + 1), Path(CONFIG_PATH))
+                provider.listFiles(ResolvedConfigContext(REVISION + 1), Path(CONFIG_PATH))
             }
 
             exception.message shouldContain "`$CONFIG_PATH`"
@@ -354,9 +354,9 @@ class GitHubConfigFileProviderTest : WordSpec({
             val cacheDir = tempdir()
 
             val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
-            provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+            provider.listFiles(ResolvedConfigContext(REVISION), Path(DIRECTORY_PATH))
 
-            val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+            val listFiles = provider.listFiles(ResolvedConfigContext(REVISION), Path(DIRECTORY_PATH))
 
             listFiles shouldContainExactlyInAnyOrder expectedPaths
 
@@ -407,7 +407,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             val provider = getProvider()
 
-            val resolvedContext = provider.resolveContext(Context(REVISION))
+            val resolvedContext = provider.resolveContext(RequestedConfigContext(REVISION))
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
 
             val serveEvents = server.allServeEvents.sortedBy { it.request.loggedDate }

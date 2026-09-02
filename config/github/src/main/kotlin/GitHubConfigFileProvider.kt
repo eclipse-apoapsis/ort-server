@@ -52,8 +52,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
@@ -225,7 +226,7 @@ class GitHubConfigFileProvider(
         }
     }
 
-    override fun resolveContext(context: Context): Context {
+    override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext {
         val defaultBranch = configuredDefaultBranch?.takeUnless { it.isEmpty() }
             ?: getRemoteDefaultBranch()
             ?: DEFAULT_REPOSITORY_BRANCH
@@ -246,7 +247,7 @@ class GitHubConfigFileProvider(
             cache.cleanup(commitId)
         }
 
-        return Context(commitId)
+        return ResolvedConfigContext(commitId)
     }
 
     /**
@@ -255,11 +256,11 @@ class GitHubConfigFileProvider(
      * the case when the returned 'Content Type' header is neither a raw file nor JSON, or it is missing, a
      * [ConfigException] is thrown with the description of the cause.
      */
-    override fun getFile(context: Context, path: Path): InputStream = runBlocking {
+    override fun getFile(context: ResolvedConfigContext, path: Path): InputStream = runBlocking {
         cache.getOrPutFile(context.name, path.path) { downloadFile(context, path) }
     }
 
-    override fun contains(context: Context, path: Path): Boolean {
+    override fun contains(context: ResolvedConfigContext, path: Path): Boolean {
         val sanitizedPath = path.path.removeSuffix("/")
         val response = sendHttpRequest(
             "/contents/$sanitizedPath?ref=${context.name}",
@@ -275,7 +276,7 @@ class GitHubConfigFileProvider(
                 (!isDirectoryPath && !jsonBody.isDirectory() && jsonBody.isFile())
     }
 
-    override fun listFiles(context: Context, path: Path): Set<Path> = runBlocking {
+    override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> = runBlocking {
         val sanitizedPath = path.path.removeSuffix("/")
         cache.getOrPutFolderContent(context.name, sanitizedPath) {
             downloadFolderContent(context, Path(sanitizedPath))
@@ -332,7 +333,7 @@ class GitHubConfigFileProvider(
      * Download the file for the given [context] and [path] and return a channel to its content. Throw a
      * [ConfigException] if download fails.
      */
-    private suspend fun downloadFile(context: Context, path: Path): ByteReadChannel {
+    private suspend fun downloadFile(context: ResolvedConfigContext, path: Path): ByteReadChannel {
         val response = sendHttpRequest(
             "/contents/${path.path}?ref=${context.name}",
             RAW_CONTENT_TYPE_HEADER
@@ -357,7 +358,7 @@ class GitHubConfigFileProvider(
      * Query the GitHub REST API for the content of the folder at the given [path] at the revision specified by
      * [context]. Throw a [ConfigException] if the path does not exist or is not a directory.
      */
-    private fun downloadFolderContent(context: Context, path: Path): Set<String> {
+    private fun downloadFolderContent(context: ResolvedConfigContext, path: Path): Set<String> {
         val response = sendHttpRequest("/contents/${path.path}?ref=${context.name}")
 
         val jsonBody = getJsonBody(response)

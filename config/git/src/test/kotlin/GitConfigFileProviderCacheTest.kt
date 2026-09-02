@@ -33,7 +33,7 @@ import java.nio.file.Files
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 
-import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.git.GitConfigFileProvider.Companion.MAX_REVISION_CACHE_SIZE
 
 private const val TEST_GIT_URL = "https://example.org/config-repo.git"
@@ -72,10 +72,10 @@ class GitConfigFileProviderCacheTest : WordSpec({
             val provider = createProviderSpy(timeSource)
             every { provider.resolveRevision("main") } returns "sha-main"
 
-            provider.resolveContext(Context("main")).name shouldBe "sha-main"
+            provider.resolveContext(RequestedConfigContext("main")).name shouldBe "sha-main"
 
             timeSource += 59.seconds
-            provider.resolveContext(Context("main")).name shouldBe "sha-main"
+            provider.resolveContext(RequestedConfigContext("main")).name shouldBe "sha-main"
 
             verify(exactly = 1) { provider.resolveRevision("main") }
         }
@@ -85,10 +85,10 @@ class GitConfigFileProviderCacheTest : WordSpec({
             val provider = createProviderSpy(timeSource)
             every { provider.resolveRevision("main") } returnsMany listOf("sha-old", "sha-new")
 
-            provider.resolveContext(Context("main")).name shouldBe "sha-old"
+            provider.resolveContext(RequestedConfigContext("main")).name shouldBe "sha-old"
 
             timeSource += 61.seconds
-            provider.resolveContext(Context("main")).name shouldBe "sha-new"
+            provider.resolveContext(RequestedConfigContext("main")).name shouldBe "sha-new"
 
             verify(exactly = 2) { provider.resolveRevision("main") }
         }
@@ -99,9 +99,9 @@ class GitConfigFileProviderCacheTest : WordSpec({
             every { provider.resolveRevision("main") } returns "sha-main"
             every { provider.resolveRevision("dev") } returns "sha-dev"
 
-            provider.resolveContext(Context("main")).name shouldBe "sha-main"
-            provider.resolveContext(Context("dev")).name shouldBe "sha-dev"
-            provider.resolveContext(Context("main")).name shouldBe "sha-main"
+            provider.resolveContext(RequestedConfigContext("main")).name shouldBe "sha-main"
+            provider.resolveContext(RequestedConfigContext("dev")).name shouldBe "sha-dev"
+            provider.resolveContext(RequestedConfigContext("main")).name shouldBe "sha-main"
 
             verify(exactly = 1) { provider.resolveRevision("main") }
             verify(exactly = 1) { provider.resolveRevision("dev") }
@@ -113,14 +113,14 @@ class GitConfigFileProviderCacheTest : WordSpec({
             every { provider.resolveRevision(any()) } answers { "sha-${firstArg<String>()}" }
 
             // Fill the cache up to its maximum capacity. The first inserted entry is the least recently used.
-            repeat(MAX_REVISION_CACHE_SIZE) { provider.resolveContext(Context("branch-$it")) }
+            repeat(MAX_REVISION_CACHE_SIZE) { provider.resolveContext(RequestedConfigContext("branch-$it")) }
 
             // Insert one more entry, which must evict the least recently used entry ("branch-0").
-            provider.resolveContext(Context("branch-$MAX_REVISION_CACHE_SIZE"))
+            provider.resolveContext(RequestedConfigContext("branch-$MAX_REVISION_CACHE_SIZE"))
 
             // The evicted entry must be resolved anew, while a still-cached entry must not.
-            provider.resolveContext(Context("branch-0"))
-            provider.resolveContext(Context("branch-${MAX_REVISION_CACHE_SIZE - 1}"))
+            provider.resolveContext(RequestedConfigContext("branch-0"))
+            provider.resolveContext(RequestedConfigContext("branch-${MAX_REVISION_CACHE_SIZE - 1}"))
 
             verify(exactly = 2) { provider.resolveRevision("branch-0") }
             verify(exactly = 1) { provider.resolveRevision("branch-${MAX_REVISION_CACHE_SIZE - 1}") }

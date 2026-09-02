@@ -79,13 +79,6 @@ class ConfigManager(
          */
         const val SECRET_FROM_CONFIG_PROPERTY = "allowSecretsFromConfig"
 
-        /**
-         * Constant for an empty configuration context. This indicates that the user has not specified a specific
-         * context. The concrete meaning is up to a [ConfigFileProvider] implementation; it should fall back to some
-         * meaningful default.
-         */
-        val EMPTY_CONTEXT = Context("")
-
         /** The service loader for file provider factories. */
         private val FILE_PROVIDER_LOADER = ServiceLoader.load(ConfigFileProviderFactory::class.java)
 
@@ -160,21 +153,21 @@ class ConfigManager(
     /**
      * Ask the underlying [ConfigFileProvider] to resolve the given [context]. Throw a [ConfigException] if this fails.
      */
-    fun resolveContext(context: Context): Context =
+    fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
         wrapExceptions { configFileProvider.resolveContext(context) }
 
     /**
      * Return an [InputStream] for reading the content of the configuration file at the given [path] in the given
      * [context]. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFile(context: Context, path: Path): InputStream =
+    fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
         wrapExceptions { configFileProvider.getFile(context, path) }
 
     /**
      * Return the content of the configuration file under the given [path] in the given [context] as a string.
      * Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFileAsString(context: Context, path: Path): String {
+    fun getFileAsString(context: ResolvedConfigContext, path: Path): String {
         val configStream = getFile(context, path)
 
         return wrapExceptions {
@@ -192,7 +185,12 @@ class ConfigManager(
      * the downloaded configuration data. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an
      * exception or the file could not be written.
      */
-    fun downloadFile(context: Context, path: Path, directory: File = getTempDir(), targetName: String? = null): File {
+    fun downloadFile(
+        context: ResolvedConfigContext,
+        path: Path,
+        directory: File = getTempDir(),
+        targetName: String? = null
+    ): File {
         val targetFile = File(directory, targetName ?: path.nameComponent)
         val configStream = getFile(context, path)
 
@@ -210,7 +208,7 @@ class ConfigManager(
      * Check whether a configuration file exists at the given [path] in the given [context]. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun containsFile(context: Context, path: Path): Boolean =
+    fun containsFile(context: ResolvedConfigContext, path: Path): Boolean =
         wrapExceptions { configFileProvider.contains(context, path) }
 
     /**
@@ -218,7 +216,7 @@ class ConfigManager(
      * [context]. The provided [path] should point to a directory, so that it can contain files. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun listFiles(context: Context, path: Path): Set<Path> =
+    fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
         wrapExceptions { configFileProvider.listFiles(context, path) }
 
     /**

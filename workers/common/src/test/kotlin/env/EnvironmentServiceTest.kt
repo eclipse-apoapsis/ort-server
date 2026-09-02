@@ -47,7 +47,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
@@ -1103,7 +1103,7 @@ private fun mockConfigLoader(
  * Create a mock [AdminConfigService] that is prepared to return the [adminConfig] when loading the admin config.
  */
 private fun createMockAdminConfigService(): AdminConfigService = mockk<AdminConfigService> {
-    every { loadAdminConfig(Context(RESOLVED_JOB_CONFIG_CONTEXT)) } returns adminConfig
+    every { loadAdminConfig(ResolvedConfigContext(RESOLVED_JOB_CONFIG_CONTEXT)) } returns adminConfig
 }
 
 /**
