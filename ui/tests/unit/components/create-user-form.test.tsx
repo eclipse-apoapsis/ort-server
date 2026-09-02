@@ -54,13 +54,46 @@ describe('CreateUserForm', () => {
 
     expect(labels).toEqual([
       'Username',
+      'Password',
+      'Password change required on first login',
       'First name',
       'Last name',
       'Email address',
-      'Password',
-      'Password change required on first login',
       'Organizations',
     ]);
+
+    const passwordField = screen
+      .getByLabelText('Password')
+      .closest('[data-slot="form-item"]');
+    const passwordChangeField = screen
+      .getByRole('checkbox', {
+        name: 'Password change required on first login',
+      })
+      .closest('[data-slot="form-item"]');
+
+    expect(passwordField?.parentElement).toBe(
+      passwordChangeField?.parentElement
+    );
+    expect(passwordField?.parentElement).toHaveClass(
+      'grid',
+      'items-center',
+      'gap-4',
+      'md:grid-cols-[minmax(0,1fr)_auto]'
+    );
+
+    const firstNameField = screen
+      .getByLabelText('First name')
+      .closest('[data-slot="form-item"]');
+    const lastNameField = screen
+      .getByLabelText('Last name')
+      .closest('[data-slot="form-item"]');
+
+    expect(firstNameField?.parentElement).toBe(lastNameField?.parentElement);
+    expect(firstNameField?.parentElement).toHaveClass(
+      'grid',
+      'gap-4',
+      'md:grid-cols-2'
+    );
   });
 
   it('enables creating a user only when the form is valid', async () => {
