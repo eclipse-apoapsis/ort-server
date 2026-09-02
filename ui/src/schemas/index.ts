@@ -26,6 +26,23 @@ import {
   zSeverity,
   zVulnerabilityRating,
 } from '@/api/zod.gen';
+import { asOptionalField } from '@/components/form/as-optional-field';
+
+export const createUserFormSchema = z.object({
+  username: z.string().trim().min(1),
+  firstName: asOptionalField(z.string().min(1)),
+  lastName: asOptionalField(z.string().min(1)),
+  email: asOptionalField(z.email()),
+  password: asOptionalField(z.string().min(1)),
+  temporary: z.boolean(),
+  organizations: z
+    .array(z.object({ value: z.string(), label: z.string() }))
+    .min(1, {
+      error: 'The user must be part of at least one organization.',
+    }),
+});
+
+export type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
 
 export const repositoryFormSchema = zRepository
   .pick({

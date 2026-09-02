@@ -21,16 +21,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 import {
   getOrganizationsInfiniteOptions,
   postUserMutation,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
-import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
 import { Button } from '@/components/ui/button';
@@ -60,27 +58,17 @@ import { ApiError } from '@/lib/api-error';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
 import { toSearchFilter } from '@/lib/regex';
 import { toast, toastError } from '@/lib/toast';
+import { createUserFormSchema, type CreateUserFormValues } from '@/schemas';
 
-const formSchema = z.object({
-  username: z.string().trim().min(1),
-  firstName: asOptionalField(z.string().min(1)),
-  lastName: asOptionalField(z.string().min(1)),
-  email: asOptionalField(z.email()),
-  password: asOptionalField(z.string().min(1)),
-  temporary: z.boolean(),
-  organizations: z.array(z.string()).min(1, {
-    error: 'The user must be part of at least one organization.',
-  }),
-});
+interface CreateUserFormProps {
+  isPending: boolean;
+  onSubmit: (values: CreateUserFormValues) => Promise<void> | void;
+}
 
-const CreateUser = () => {
-  const navigate = useNavigate();
-
-  // The name of every organization that has been picked so far. A picked organization is not
-  // necessarily part of the page that is shown after the search term changes, and its badge still
-  // has to show its name.
-  const organizationNames = useRef(new Map<string, string>());
-
+export const CreateUserForm = ({
+  isPending,
+  onSubmit,
+}: CreateUserFormProps) => {
   // Nothing is loaded before the user has touched the field, so opening the form costs no request.
   const [isSelectorUsed, setIsSelectorUsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -101,72 +89,14 @@ const CreateUser = () => {
     })
   );
 
-  const { mutateAsync: createUser, isPending: isCreateUserPending } =
-    useMutation({
-      ...postUserMutation(),
-      onError(error: ApiError) {
-        toastError(error.message, error);
-      },
-    });
-
-  const {
-    mutateAsync: addUserToReaders,
-    isPending: isAddUserToReadersPending,
-  } = useMutation({
-    ...putOrganizationRoleToUserMutation(),
-    onSuccess(_, variables) {
-      const organizationName = organizationNames.current.get(
-        variables.path.organizationId.toString()
-      );
-
-      toast.info('Add Access Rights', {
-        description: `The "${variables.body?.username}" user was created and assigned the READER role for the "${organizationName}" organization.`,
-      });
-      navigate({
-        to: '/admin/users',
-      });
-    },
-    onError(error) {
-      toastError(error.message, error);
-    },
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CreateUserFormValues>({
+    resolver: zodResolver(createUserFormSchema),
     defaultValues: {
       username: '',
       temporary: true,
       organizations: [],
     },
   });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const username = values.username.toLowerCase();
-    await createUser({
-      body: {
-        username,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
-        password: values.password,
-        temporary: values.temporary,
-      },
-    });
-    toast.info('Create User', {
-      description: `User "${username}" created successfully.`,
-    });
-    // Add the READER role to the user for each selected organization.
-    await Promise.all(
-      values.organizations.map((orgId) =>
-        addUserToReaders({
-          path: { organizationId: Number.parseInt(orgId), role: 'READER' },
-          body: {
-            username,
-          },
-        })
-      )
-    );
-  }
 
   return (
     <Card className='col-span-2 w-full'>
@@ -286,12 +216,6 @@ const CreateUser = () => {
                           Loading...
                         </p>
                       }
-                      value={field.value.map((organizationId) => ({
-                        label:
-                          organizationNames.current.get(organizationId) ??
-                          organizationId,
-                        value: organizationId,
-                      }))}
                       options={organizationOptions}
                       loading={organizations.isPending}
                       hasMore={organizations.hasNextPage}
@@ -303,15 +227,6 @@ const CreateUser = () => {
                       inputProps={{
                         onValueChange: setSearchTerm,
                         onFocus: () => setIsSelectorUsed(true),
-                      }}
-                      onChange={(selected) => {
-                        selected.forEach((option) =>
-                          organizationNames.current.set(
-                            option.value,
-                            option.label
-                          )
-                        );
-                        field.onChange(selected.map((s) => s.value));
                       }}
                     />
                   </FormControl>
@@ -325,21 +240,10 @@ const CreateUser = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button
-              type='submit'
-              disabled={isCreateUserPending || isAddUserToReadersPending}
-              className='mt-4'
-            >
-              {isCreateUserPending ? (
+            <Button type='submit' disabled={isPending} className='mt-4'>
+              {isPending ? (
                 <>
                   <span className='sr-only'>Creating user...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              ) : isAddUserToReadersPending ? (
-                <>
-                  <span className='sr-only'>
-                    Adding user to organizations...
-                  </span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
@@ -353,6 +257,73 @@ const CreateUser = () => {
   );
 };
 
+export const CreateUserPage = () => {
+  const navigate = useNavigate();
+
+  const { mutateAsync: createUser, isPending: isCreateUserPending } =
+    useMutation({
+      ...postUserMutation(),
+      onError(error: ApiError) {
+        toastError(error.message, error);
+      },
+    });
+
+  const {
+    mutateAsync: addUserToReaders,
+    isPending: isAddUserToReadersPending,
+  } = useMutation({
+    ...putOrganizationRoleToUserMutation(),
+    onError(error) {
+      toastError(error.message, error);
+    },
+  });
+
+  async function onSubmit(values: CreateUserFormValues) {
+    const username = values.username.toLowerCase();
+    await createUser({
+      body: {
+        username,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        temporary: values.temporary,
+      },
+    });
+    toast.info('Create User', {
+      description: `User "${username}" created successfully.`,
+    });
+    // Add the READER role to the user for each selected organization.
+    await Promise.all(
+      values.organizations.map(async (organization) => {
+        await addUserToReaders({
+          path: {
+            organizationId: Number.parseInt(organization.value),
+            role: 'READER',
+          },
+          body: {
+            username,
+          },
+        });
+
+        toast.info('Add Access Rights', {
+          description: `The "${username}" user was created and assigned the READER role for the "${organization.label}" organization.`,
+        });
+        navigate({
+          to: '/admin/users',
+        });
+      })
+    );
+  }
+
+  return (
+    <CreateUserForm
+      isPending={isCreateUserPending || isAddUserToReadersPending}
+      onSubmit={onSubmit}
+    />
+  );
+};
+
 export const Route = createFileRoute('/admin/users/create-user/')({
-  component: CreateUser,
+  component: CreateUserPage,
 });
