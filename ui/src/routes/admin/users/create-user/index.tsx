@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -26,6 +26,7 @@ import { useForm } from 'react-hook-form';
 
 import {
   getOrganizationsInfiniteOptions,
+  getUsersQueryKey,
   postUserMutation,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
@@ -273,6 +274,7 @@ export const CreateUserForm = ({
 
 export const CreateUserPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { mutateAsync: createUser, isPending: isCreateUserPending } =
     useMutation({
@@ -353,6 +355,8 @@ export const CreateUserPage = () => {
             : `User "${username}" was created.`,
       });
     }
+
+    queryClient.invalidateQueries({ queryKey: getUsersQueryKey() });
 
     navigate({
       to: '/admin/users',

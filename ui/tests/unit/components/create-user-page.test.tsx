@@ -28,9 +28,11 @@ import type { CreateUserFormValues } from '@/schemas';
 const mocks = vi.hoisted(() => ({
   addUserToReaders: vi.fn(),
   createUser: vi.fn(),
+  invalidateQueries: vi.fn(),
   navigate: vi.fn(),
   toastError: vi.fn(),
   toastInfo: vi.fn(),
+  usersQueryKey: ['users'],
 }));
 
 vi.mock('@tanstack/react-query', () => ({
@@ -41,6 +43,7 @@ vi.mock('@tanstack/react-query', () => ({
         : mocks.addUserToReaders,
     isPending: false,
   }),
+  useQueryClient: () => ({ invalidateQueries: mocks.invalidateQueries }),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -50,6 +53,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('@/api/@tanstack/react-query.gen', () => ({
   getOrganizationsInfiniteOptions: vi.fn(),
+  getUsersQueryKey: () => mocks.usersQueryKey,
   postUserMutation: () => ({ mutationKey: ['create-user'] }),
   putOrganizationRoleToUserMutation: () => ({
     mutationKey: ['add-user-to-readers'],
@@ -115,8 +119,14 @@ describe('CreateUserPage', () => {
         '"First Organization", "Second Organization".',
     });
     expect(mocks.toastError).not.toHaveBeenCalled();
+    expect(mocks.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: mocks.usersQueryKey,
+    });
     expect(mocks.navigate).toHaveBeenCalledOnce();
     expect(mocks.navigate).toHaveBeenCalledWith({ to: '/admin/users' });
+    expect(mocks.invalidateQueries.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.navigate.mock.invocationCallOrder[0]!
+    );
   });
 
   it('creates the user without assigning an organization role', async () => {
@@ -156,6 +166,7 @@ describe('CreateUserPage', () => {
 
     expect(mocks.addUserToReaders).not.toHaveBeenCalled();
     expect(mocks.toastInfo).not.toHaveBeenCalled();
+    expect(mocks.invalidateQueries).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 });
