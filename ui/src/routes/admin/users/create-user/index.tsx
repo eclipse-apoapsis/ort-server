@@ -97,7 +97,10 @@ export const CreateUserForm = ({
       temporary: true,
       organizations: [],
     },
+    mode: 'onChange',
   });
+
+  const isSubmitting = isPending || form.formState.isSubmitting;
 
   return (
     <Card className='col-span-2 w-full'>
@@ -247,8 +250,12 @@ export const CreateUserForm = ({
             />
           </CardContent>
           <CardFooter>
-            <Button type='submit' disabled={isPending} className='mt-4'>
-              {isPending ? (
+            <Button
+              type='submit'
+              disabled={isSubmitting || !form.formState.isValid}
+              className='mt-4'
+            >
+              {isSubmitting ? (
                 <>
                   <span className='sr-only'>Creating user...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
