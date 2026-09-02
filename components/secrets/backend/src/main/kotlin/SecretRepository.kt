@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.components.secrets
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
@@ -65,9 +65,9 @@ internal class SecretRepository(private val db: Database) {
     /**
      * Get a secret by [id] and [name]. Returns null if the secret is not found.
      */
-    fun getByIdAndName(id: HierarchyId, name: String): Secret? = db.entityQuery {
+    fun getByIdAndName(id: HierarchyId, name: String): Secret? = db.blockingQueryCatching {
         SecretDao.find(byNameCondition(id, name)).firstOrNull()?.mapToModel()
-    }
+    }.getEntityOrNull()
 
     /**
      * List all secrets for an [id] according to the given [parameters].

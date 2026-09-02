@@ -22,7 +22,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
@@ -102,11 +103,12 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
         advisorRunDao.mapToModel()
     }
 
-    override fun get(id: Long): AdvisorRun? = db.entityQuery { AdvisorRunDao[id].mapToModel() }
+    override fun get(id: Long): AdvisorRun? =
+        db.blockingQueryCatching { AdvisorRunDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getByJobId(advisorJobId: Long): AdvisorRun? = db.entityQuery {
+    override fun getByJobId(advisorJobId: Long): AdvisorRun? = db.blockingQueryCatching {
         AdvisorRunDao.find { AdvisorRunsTable.advisorJobId eq advisorJobId }.firstOrNull()?.mapToModel()
-    }
+    }.getEntityOrNull()
 }
 
 private fun createAdvisorConfiguration(
