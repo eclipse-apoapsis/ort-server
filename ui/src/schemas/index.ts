@@ -33,7 +33,7 @@ export const createUserFormSchema = z.object({
   firstName: asOptionalField(z.string().min(1)),
   lastName: asOptionalField(z.string().min(1)),
   email: asOptionalField(z.email()),
-  password: asOptionalField(z.string().min(1)),
+  password: z.string().min(1, { error: 'A password is required.' }),
   temporary: z.boolean(),
   organizations: z
     .array(z.object({ value: z.string(), label: z.string() }))
