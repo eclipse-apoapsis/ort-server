@@ -27,8 +27,6 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRol
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -42,9 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.select
 
 /**
  * A service providing functions for working with [organizations][Organization].
@@ -187,15 +183,6 @@ class OrganizationService(
         return withContext(Dispatchers.IO) {
             repositoryRepository.list(ListQueryParameters.DEFAULT, null, hierarchyFilter).data.map { it.id }
         }
-    }
-
-    /** Get IDs for all repositories found in the products of the organization. */
-    suspend fun getRepositoryIdsForOrganization(organizationId: Long): List<Long> = db.dbQuery {
-        RepositoriesTable
-            .innerJoin(ProductsTable)
-            .select(RepositoriesTable.id)
-            .where { ProductsTable.organizationId eq organizationId }
-            .map { it[RepositoriesTable.id].value }
     }
 }
 

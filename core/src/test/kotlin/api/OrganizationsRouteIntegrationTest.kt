@@ -1197,6 +1197,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 )
 
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(OrganizationId(orgId), ProductId(prod1Id))
+                )
+
                 val response =
                     superuserClient.get(
                         "/api/v1/organizations/$orgId/vulnerabilities?sort=-rating,-repositoriesCount"
@@ -1257,6 +1263,69 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     VulnerabilityForRunsFilters()
                 )
+
+                val restrictedResponse = testUserClient.get(
+                    "/api/v1/organizations/$orgId/vulnerabilities?sort=-rating,-repositoriesCount"
+                )
+
+                restrictedResponse shouldHaveStatus HttpStatusCode.OK
+                restrictedResponse shouldHaveBody PagedSearchResponse(
+                    listOf(
+                        VulnerabilityWithStats(
+                            vulnerability = commonVulnerability1.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id, run3Id),
+                            repositoriesCount = 2
+                        ),
+                        VulnerabilityWithStats(
+                            vulnerability = commonVulnerability2.mapToApi(),
+                            identifier = identifier2.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run3Id),
+                            repositoriesCount = 1
+                        ),
+                        VulnerabilityWithStats(
+                            vulnerability = run1Vulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 3,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING),
+                            SortProperty("repositoriesCount", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters()
+                )
+            }
+        }
+
+        "return an empty response when the user can read only an empty product" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+                val productId = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(OrganizationId(orgId), ProductId(productId))
+                )
+
+                val response = testUserClient.get("/api/v1/organizations/$orgId/vulnerabilities")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities =
+                    response.body<PagedSearchResponse<VulnerabilityWithStats, VulnerabilityForRunsFilters>>()
+                vulnerabilities.data should beEmpty()
             }
         }
 
@@ -1703,18 +1772,36 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     status = JobStatus.FINISHED.asPresent2()
                 )
 
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(OrganizationId(orgId), ProductId(prod1Id))
+                )
+
                 val response = superuserClient.get("/api/v1/organizations/$orgId/vulnerabilities/advisors")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<String>>() should containExactly("NexusIQ", "OSV", "VulnerableCode")
+
+                val restrictedResponse =
+                    testUserClient.get("/api/v1/organizations/$orgId/vulnerabilities/advisors")
+
+                restrictedResponse shouldHaveStatus HttpStatusCode.OK
+                restrictedResponse.body<List<String>>() should containExactly("OSV", "VulnerableCode")
             }
         }
 
-        "return an empty list when no successful advisor jobs exist in the organization" {
+        "return an empty list when the user can read only an empty product" {
             integrationTestApplication {
                 val orgId = createOrganization().id
+                val productId = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(OrganizationId(orgId), ProductId(productId))
+                )
 
-                val response = superuserClient.get("/api/v1/organizations/$orgId/vulnerabilities/advisors")
+                val response = testUserClient.get("/api/v1/organizations/$orgId/vulnerabilities/advisors")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response.body<List<String>>() should beEmpty()
@@ -1907,6 +1994,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 )
 
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(OrganizationId(orgId), ProductId(prod1Id))
+                )
+
                 val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -1975,14 +2068,64 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     )
                 }
+
+                val restrictedResponse = testUserClient.get("/api/v1/organizations/$orgId/statistics/runs")
+
+                restrictedResponse shouldHaveStatus HttpStatusCode.OK
+                with(restrictedResponse.body<OrtRunStatistics>()) {
+                    issuesCount shouldBe 0
+                    issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                    issuesCountTotal shouldBe 0
+                    issuesCountTotalBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                    packagesCount shouldBe 1
+                    ecosystems?.shouldContainExactly(listOf(EcosystemStats("Maven", 1)))
+                    vulnerabilitiesCount should beNull()
+                    vulnerabilitiesCountByRating should beNull()
+                    vulnerabilitiesCountTotal should beNull()
+                    vulnerabilitiesCountTotalByRating should beNull()
+                    ruleViolationsCount shouldBe 0
+                    ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                    ruleViolationsCountTotal shouldBe 1
+                    ruleViolationsCountTotalBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 1,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                }
             }
         }
 
-        "return nulls for counts if no valid runs are found" {
+        "return nulls when the user can read only an empty product" {
             integrationTestApplication {
                 val orgId = createOrganization().id
+                val productId = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(OrganizationId(orgId), ProductId(productId))
+                )
 
-                val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
+                val response = testUserClient.get("/api/v1/organizations/$orgId/statistics/runs")
 
                 response shouldHaveStatus HttpStatusCode.OK
 
