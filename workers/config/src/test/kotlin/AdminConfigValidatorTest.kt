@@ -112,7 +112,7 @@ class AdminConfigValidatorTest : WordSpec({
             val jobConfigs = JobConfigurations(
                 ruleSet = "valid-rule-set",
                 reporter = ReporterJobConfiguration(
-                    formats = listOf("valid-format"),
+                    formats = listOf("WebApp", "valid-format"),
                     assetFilesGroups = listOf("valid-asset-group"),
                     assetDirectoriesGroups = listOf("valid-asset-group")
                 )

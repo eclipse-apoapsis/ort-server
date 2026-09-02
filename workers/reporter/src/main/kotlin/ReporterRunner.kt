@@ -241,12 +241,10 @@ class ReporterRunner(
                         measureTimedValue {
                             val reporterFactory = reporterConfig.getReporterFactory(format)
 
-                            val pluginConfig = reporterConfig.pluginOptionsForDefinition(
-                                format,
-                                transformedOptions
-                            )?.mapToOrt().orEmpty()
+                            val pluginConfig = reporterConfig.pluginOptionsForDefinition(format, transformedOptions)
+                                ?: transformedOptions[format]
 
-                            val reporter = reporterFactory.create(pluginConfig)
+                            val reporter = reporterFactory.create(pluginConfig?.mapToOrt().orEmpty())
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir)
 
                             val reportFiles = reportFileResults.mapNotNull { result ->
@@ -492,12 +490,12 @@ private fun ReporterConfig.getGlobalAssets(groupNames: Collection<String>): Muta
     }
 
 /**
- * Obtain the [ReporterFactory] for the given [format] using the definitions from this [ReporterConfig].
+ * Get the [ReporterFactory] for the given [format]. If this [ReporterConfig] contains a report definition with that
+ * name, the plugin ID of that definition is used, otherwise the format name itself is used as plugin ID. If no reporter
+ * factory can be found for the plugin ID, an exception is thrown.
  */
 private fun ReporterConfig.getReporterFactory(format: String): ReporterFactory {
-    val pluginId = requireNotNull(getReportDefinition(format)?.pluginId) {
-        "No reporter found for the configured format '$format'."
-    }
+    val pluginId = getReportDefinition(format)?.pluginId ?: format
 
     return requireNotNull(ReporterFactory.ALL[pluginId]) {
         "No reporter plugin found with the ID '$pluginId'."
