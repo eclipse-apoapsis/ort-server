@@ -73,10 +73,6 @@ internal class ReporterWorker(
             EndpointComponent.generateKeepAliveFile()
         }
 
-        /**
-         * The setup of environment is only needed by a reporter that creates source code bundles.
-         * TODO: Find a better solution which would allow to set up environment only for a specific reporter if needed.
-         */
         val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
         val startTime = Clock.System.now()
 
