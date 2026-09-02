@@ -124,7 +124,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: ui
-      run: pnpm install
+      run: pnpm ci
 
     - name: Build UI
       working-directory: ui
@@ -255,7 +255,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: ui
-      run: pnpm install
+      run: pnpm ci
 
     - name: Generate API client and routes
       working-directory: ui

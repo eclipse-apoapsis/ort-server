@@ -80,7 +80,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: ui
-      run: pnpm install --dev
+      run: pnpm ci --dev
 
     - name: Run ESLint
       working-directory: ui
@@ -103,7 +103,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: ui
-      run: pnpm install --dev
+      run: pnpm ci --dev
 
     - name: Run Prettier
       working-directory: ui
@@ -126,7 +126,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: website
-      run: pnpm install --dev
+      run: pnpm ci --dev
 
     - name: Run Prettier
       working-directory: website
