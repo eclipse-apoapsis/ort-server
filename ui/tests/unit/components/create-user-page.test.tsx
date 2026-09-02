@@ -67,6 +67,7 @@ type CreateUserPageElement = ReactElement<{
 
 const values: CreateUserFormValues = {
   username: 'JDOE',
+  password: 'initial password',
   temporary: true,
   organizations: [
     { value: '1', label: 'First Organization' },
@@ -93,7 +94,7 @@ describe('CreateUserPage', () => {
         email: undefined,
         firstName: undefined,
         lastName: undefined,
-        password: undefined,
+        password: 'initial password',
         temporary: true,
         username: 'jdoe',
       },

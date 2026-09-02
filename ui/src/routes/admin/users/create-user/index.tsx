@@ -93,6 +93,7 @@ export const CreateUserForm = ({
     resolver: zodResolver(createUserFormSchema),
     defaultValues: {
       username: '',
+      password: '',
       temporary: true,
       organizations: [],
     },
@@ -170,8 +171,13 @@ export const CreateUserForm = ({
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <PasswordInput {...field} placeholder='(optional)' />
+                    <PasswordInput {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Share this initial password with the user over a secure
+                    channel. If the option below is selected, the user must
+                    change the password on first login.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
