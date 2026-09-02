@@ -63,10 +63,33 @@ describe('CreateUserForm', () => {
     ]);
   });
 
-  it('enables creating a user while idle', () => {
+  it('enables creating a user only when the form is valid', async () => {
+    const user = userEvent.setup();
+
     render(<CreateUserForm isPending={false} onSubmit={vi.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
+    const createButton = screen.getByRole('button', { name: 'Create' });
+    const usernameInput = screen.getByLabelText('Username');
+    const passwordInput = screen.getByLabelText('Password');
+    const emailInput = screen.getByLabelText('Email address');
+
+    expect(createButton).toBeDisabled();
+
+    await user.type(usernameInput, 'jdoe');
+    expect(createButton).toBeDisabled();
+
+    await user.clear(usernameInput);
+    await user.type(passwordInput, 'initial password');
+    expect(createButton).toBeDisabled();
+
+    await user.type(usernameInput, 'jdoe');
+    await waitFor(() => expect(createButton).toBeEnabled());
+
+    await user.type(emailInput, 'invalid');
+    expect(createButton).toBeDisabled();
+
+    await user.clear(emailInput);
+    await waitFor(() => expect(createButton).toBeEnabled());
   });
 
   it('shows the creation progress while pending', () => {
@@ -75,6 +98,33 @@ describe('CreateUserForm', () => {
     expect(
       screen.getByRole('button', { name: 'Creating user...' })
     ).toBeDisabled();
+  });
+
+  it('shows the creation progress while submitting', async () => {
+    const user = userEvent.setup();
+    let resolveSubmit: (() => void) | undefined;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        })
+    );
+
+    render(<CreateUserForm isPending={false} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText('Username'), 'jdoe');
+    await user.type(screen.getByLabelText('Password'), 'initial password');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(
+      await screen.findByRole('button', { name: 'Creating user...' })
+    ).toBeDisabled();
+
+    resolveSubmit?.();
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled()
+    );
   });
 
   it('requires a password', async () => {
@@ -89,15 +139,11 @@ describe('CreateUserForm', () => {
     );
 
     await user.type(screen.getByLabelText('Username'), 'jdoe');
-    await user.click(
-      screen.getByPlaceholderText(
-        '(optional) Start typing to find organizations...'
-      )
-    );
-    await user.click(await screen.findByText('Test Organization'));
-    await user.click(screen.getByRole('button', { name: 'Create' }));
+    await user.type(screen.getByLabelText('Password'), 'x');
+    await user.clear(screen.getByLabelText('Password'));
 
     expect(await screen.findByText('A password is required.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
