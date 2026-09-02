@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -30,15 +32,18 @@ import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -49,12 +54,14 @@ class OrganizationServiceTest : WordSpec({
     lateinit var db: Database
     lateinit var organizationRepository: DaoOrganizationRepository
     lateinit var productRepository: DaoProductRepository
+    lateinit var repositoryRepository: DaoRepositoryRepository
     lateinit var fixtures: Fixtures
 
     beforeEach {
         db = dbExtension.db
         organizationRepository = dbExtension.fixtures.organizationRepository
         productRepository = dbExtension.fixtures.productRepository
+        repositoryRepository = dbExtension.fixtures.repositoryRepository
         fixtures = dbExtension.fixtures
     }
 
@@ -65,7 +72,13 @@ class OrganizationServiceTest : WordSpec({
             val authorizationService = mockk<AuthorizationService> {
                 coEvery { assignRole(any(), any(), any()) } returns Unit
             }
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
+            val service = OrganizationService(
+                db,
+                organizationRepository,
+                productRepository,
+                repositoryRepository,
+                authorizationService
+            )
 
             val product = service.createProduct(
                 name = "product",
@@ -86,7 +99,13 @@ class OrganizationServiceTest : WordSpec({
 
     "getRepositoryIdsForOrganization" should {
         "return IDs for all repositories found in the products of the organization" {
-            val service = OrganizationService(db, organizationRepository, productRepository, mockk())
+            val service = OrganizationService(
+                db,
+                organizationRepository,
+                productRepository,
+                repositoryRepository,
+                mockk()
+            )
 
             val orgId = fixtures.createOrganization().id
 
@@ -98,6 +117,70 @@ class OrganizationServiceTest : WordSpec({
             val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prod2Id).id
 
             service.getRepositoryIdsForOrganization(orgId) should containExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
+        }
+    }
+
+    "getRepositoryIdsForOrganizationAndUser" should {
+        "return only repository IDs allowed by the hierarchy filter" {
+            val userId = "test-user"
+            val organizationId = fixtures.organization.id
+            val readableRepository = fixtures.repository
+            fixtures.createRepository(url = "https://example.com/hidden.git")
+
+            val readableRepositoryId = CompoundHierarchyId.forRepository(
+                OrganizationId(organizationId),
+                ProductId(fixtures.product.id),
+                RepositoryId(readableRepository.id)
+            )
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, RepositoryRole.READER, OrganizationId(organizationId))
+                } returns HierarchyFilter(
+                    transitiveIncludes = mapOf(HierarchyLevel.REPOSITORY to listOf(readableRepositoryId)),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+            val service = OrganizationService(
+                db,
+                organizationRepository,
+                productRepository,
+                repositoryRepository,
+                authorizationService
+            )
+
+            service.getRepositoryIdsForOrganizationAndUser(organizationId, userId).shouldContainExactly(
+                readableRepository.id
+            )
+
+            coVerify {
+                authorizationService.filterHierarchyIds(
+                    userId,
+                    RepositoryRole.READER,
+                    OrganizationId(organizationId)
+                )
+            }
+        }
+
+        "return an empty list if the hierarchy filter has no transitive includes" {
+            val userId = "test-user"
+            val organizationId = fixtures.organization.id
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, RepositoryRole.READER, OrganizationId(organizationId))
+                } returns HierarchyFilter(
+                    transitiveIncludes = emptyMap(),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+            val service = OrganizationService(
+                db,
+                organizationRepository,
+                productRepository,
+                repositoryRepository,
+                authorizationService
+            )
+
+            service.getRepositoryIdsForOrganizationAndUser(organizationId, userId) should beEmpty()
         }
     }
 
@@ -121,7 +204,13 @@ class OrganizationServiceTest : WordSpec({
                 )
             }
 
-            val service = OrganizationService(db, organizationRepository, productRepository, authService)
+            val service = OrganizationService(
+                db,
+                organizationRepository,
+                productRepository,
+                repositoryRepository,
+                authService
+            )
             val organizations = service.listOrganizationsForUser(userId)
 
             organizations.totalCount shouldBe 2
@@ -156,7 +245,13 @@ class OrganizationServiceTest : WordSpec({
                 )
             }
 
-            val service = OrganizationService(db, organizationRepository, productRepository, authService)
+            val service = OrganizationService(
+                db,
+                organizationRepository,
+                productRepository,
+                repositoryRepository,
+                authService
+            )
             val products = service.listProductsForOrganizationAndUser(org1Id, userId)
 
             products.totalCount shouldBe 2

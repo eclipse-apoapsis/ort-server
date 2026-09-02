@@ -23,6 +23,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -205,6 +206,66 @@ class ProductServiceTest : WordSpec({
             val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prodId).id
 
             service.getRepositoryIdsForProduct(prodId) should containExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
+        }
+    }
+
+    "getRepositoryIdsForProductAndUser" should {
+        "return only repository IDs allowed by the hierarchy filter" {
+            val userId = "test-user"
+            val productId = fixtures.product.id
+            val readableRepository = fixtures.repository
+            fixtures.createRepository(url = "https://example.com/hidden.git")
+
+            val readableRepositoryId = CompoundHierarchyId.forRepository(
+                OrganizationId(fixtures.organization.id),
+                ProductId(productId),
+                RepositoryId(readableRepository.id)
+            )
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, RepositoryRole.READER, ProductId(productId))
+                } returns HierarchyFilter(
+                    transitiveIncludes = mapOf(HierarchyLevel.REPOSITORY to listOf(readableRepositoryId)),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+            val service = ProductService(
+                db,
+                productRepository,
+                repositoryRepository,
+                ortRunRepository,
+                authorizationService
+            )
+
+            service.getRepositoryIdsForProductAndUser(productId, userId).shouldContainExactly(
+                readableRepository.id
+            )
+
+            coVerify {
+                authorizationService.filterHierarchyIds(userId, RepositoryRole.READER, ProductId(productId))
+            }
+        }
+
+        "return an empty list if the hierarchy filter has no transitive includes" {
+            val userId = "test-user"
+            val productId = fixtures.product.id
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, RepositoryRole.READER, ProductId(productId))
+                } returns HierarchyFilter(
+                    transitiveIncludes = emptyMap(),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+            val service = ProductService(
+                db,
+                productRepository,
+                repositoryRepository,
+                ortRunRepository,
+                authorizationService
+            )
+
+            service.getRepositoryIdsForProductAndUser(productId, userId) should beEmpty()
         }
     }
 

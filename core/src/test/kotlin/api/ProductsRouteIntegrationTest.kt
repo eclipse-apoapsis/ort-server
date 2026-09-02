@@ -154,6 +154,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
+            dbExtension.fixtures.repositoryRepository,
             mockk()
         )
 
