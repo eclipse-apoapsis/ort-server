@@ -23,7 +23,8 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.queries.ortrun.GetIssuesForOrtRunQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
@@ -81,7 +82,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         scannerRunDao.mapToModel()
     }
 
-    override fun get(id: Long): ScannerRun? = db.entityQuery {
+    override fun get(id: Long): ScannerRun? = db.blockingQueryCatching {
         val scannerRunDao = ScannerRunDao[id]
 
         // Get the provenance resolution results for the scanned packages.
@@ -101,7 +102,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
             issues = getScannerRunIssues(scannerRunDao, provenanceResolutionResults),
             scanners = scanners
         )
-    }
+    }.getEntityOrNull()
 
     override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
         ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.let { get(it.id.value) }

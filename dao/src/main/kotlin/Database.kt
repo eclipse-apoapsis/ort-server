@@ -180,14 +180,10 @@ fun <T> Database.blockingQueryCatching(
     runCatching { transaction(this, transactionIsolation, readOnly) { block() } }.mapExceptions()
 
 /**
- * Execute the [block] in a [blockingQueryCatching], configured with the provided [transactionIsolation] and [readOnly].
- * Return the encapsulated value or null if an [EntityNotFoundException] is thrown. Otherwise, throw the exception.
+ * Return the encapsulated value in case of [success][Result.isSuccess]. In case of [failure][Result.isFailure] return
+ * `null` if an [EntityNotFoundException] was thrown, Otherwise re-throw the exception.
  */
-fun <T> Database.entityQuery(
-    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
-): T? = blockingQueryCatching(transactionIsolation, readOnly, block).getOrElse {
+fun <T> Result<T>.getEntityOrNull() = getOrElse {
     when (it) {
         is EntityNotFoundException -> null
         else -> throw it
