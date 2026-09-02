@@ -639,7 +639,7 @@ private fun mockOrtRun() = mockk<OrtRun> {
     every { labels } returns emptyMap()
     every { organizationId } returns ORGANIZATION_ID
     every { repositoryId } returns REPOSITORY_ID
-    every { resolvedJobConfigContext } returns null
+    every { resolvedJobConfigContext } returns ""
     every { resolvedJobConfigs } returns null
     every { revision } returns "main"
 }

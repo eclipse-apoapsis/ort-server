@@ -140,7 +140,7 @@ class ReporterWorkerTest : StringSpec({
             every { labels } returns mapOf("projectName" to "Test project")
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -261,7 +261,7 @@ class ReporterWorkerTest : StringSpec({
             every { labels } returns mapOf("projectName" to "Test project")
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -357,7 +357,7 @@ class ReporterWorkerTest : StringSpec({
             every { labels } returns mapOf("projectName" to "Test project")
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
@@ -452,7 +452,7 @@ class ReporterWorkerTest : StringSpec({
             every { labels } returns mapOf("projectName" to "Test project")
             every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
-            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigContext } returns ""
             every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }

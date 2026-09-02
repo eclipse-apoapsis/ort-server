@@ -146,15 +146,6 @@ class ConfigManagerTest : WordSpec({
             resolvedContext.name shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX + context
         }
 
-        "use the empty context" {
-            val manager = createConfigManager()
-
-            val resolvedContext = manager.resolveContext(null)
-
-            resolvedContext.name shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX +
-                    ConfigManager.EMPTY_CONTEXT.name
-        }
-
         "handle exceptions from the provider" {
             val manager = createConfigManager()
 
@@ -178,7 +169,7 @@ class ConfigManagerTest : WordSpec({
         "return a stream for a configuration from the default context" {
             val manager = createConfigManager()
 
-            val fileContent = manager.getFile(null, Path("test.txt")).use {
+            val fileContent = manager.getFile(ConfigManager.EMPTY_CONTEXT, Path("test.txt")).use {
                 String(it.readAllBytes()).trim()
             }
 
@@ -208,7 +199,7 @@ class ConfigManagerTest : WordSpec({
         "return the content of a configuration file from the default context as string" {
             val manager = createConfigManager()
 
-            val fileContent = manager.getFileAsString(null, Path("test.txt")).trim()
+            val fileContent = manager.getFileAsString(ConfigManager.EMPTY_CONTEXT, Path("test.txt")).trim()
 
             fileContent shouldBe "Test config file."
         }
@@ -241,7 +232,7 @@ class ConfigManagerTest : WordSpec({
         "download a configuration file from the default context to a temporary directory" {
             val manager = createConfigManager()
 
-            val file = manager.downloadFile(null, Path("test.txt"))
+            val file = manager.downloadFile(ConfigManager.EMPTY_CONTEXT, Path("test.txt"))
 
             try {
                 val fileContent = file.readText().trim()
@@ -316,7 +307,7 @@ class ConfigManagerTest : WordSpec({
         "return true for an existing configuration file in the default context" {
             val manager = createConfigManager()
 
-            manager.containsFile(null, Path("test.txt")) shouldBe true
+            manager.containsFile(ConfigManager.EMPTY_CONTEXT, Path("test.txt")) shouldBe true
         }
 
         "handle exceptions from the provider" {
@@ -340,7 +331,7 @@ class ConfigManagerTest : WordSpec({
         "return a set with Paths representing configuration files in the default context" {
             val manager = createConfigManager()
 
-            val paths = manager.listFiles(null, Path("."))
+            val paths = manager.listFiles(ConfigManager.EMPTY_CONTEXT, Path("."))
 
             paths should containExactlyInAnyOrder(Path("./test.txt"))
         }

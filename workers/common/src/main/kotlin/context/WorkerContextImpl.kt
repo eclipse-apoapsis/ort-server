@@ -127,7 +127,11 @@ internal class WorkerContextImpl(
         createOrtTempDir(ortRunId.toString()).also(tempDirectories::add)
 
     /** Stores the resolved configuration context. */
-    private val currentContext by lazy { ortRun.resolvedJobConfigContext?.let(::Context) }
+    private val currentContext by lazy {
+        checkNotNull(ortRun.resolvedJobConfigContext) {
+            "Job config context of ORT run '${ortRun.id}' must be resolved."
+        }.let(::Context)
+    }
 
     override suspend fun resolveSecret(secret: Secret): String =
         singleTransform(secret, secretsCache, ::resolveSecretValue) { it }

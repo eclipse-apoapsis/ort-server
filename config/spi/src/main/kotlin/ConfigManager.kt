@@ -146,11 +146,6 @@ class ConfigManager(
         }
 
         /**
-         * Either return [context] if it is not *null* or the [EMPTY_CONTEXT].
-         */
-        private fun safeContext(context: Context?): Context = context ?: EMPTY_CONTEXT
-
-        /**
          * Return the system's temporary directory.
          */
         private fun getTempDir(): File = File(System.getProperty("java.io.tmpdir"))
@@ -165,21 +160,21 @@ class ConfigManager(
     /**
      * Ask the underlying [ConfigFileProvider] to resolve the given [context]. Throw a [ConfigException] if this fails.
      */
-    fun resolveContext(context: Context?): Context =
-        wrapExceptions { configFileProvider.resolveContext(safeContext(context)) }
+    fun resolveContext(context: Context): Context =
+        wrapExceptions { configFileProvider.resolveContext(context) }
 
     /**
      * Return an [InputStream] for reading the content of the configuration file at the given [path] in the given
      * [context]. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFile(context: Context?, path: Path): InputStream =
-        wrapExceptions { configFileProvider.getFile(safeContext(context), path) }
+    fun getFile(context: Context, path: Path): InputStream =
+        wrapExceptions { configFileProvider.getFile(context, path) }
 
     /**
      * Return the content of the configuration file under the given [path] in the given [context] as a string.
      * Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFileAsString(context: Context?, path: Path): String {
+    fun getFileAsString(context: Context, path: Path): String {
         val configStream = getFile(context, path)
 
         return wrapExceptions {
@@ -197,7 +192,7 @@ class ConfigManager(
      * the downloaded configuration data. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an
      * exception or the file could not be written.
      */
-    fun downloadFile(context: Context?, path: Path, directory: File = getTempDir(), targetName: String? = null): File {
+    fun downloadFile(context: Context, path: Path, directory: File = getTempDir(), targetName: String? = null): File {
         val targetFile = File(directory, targetName ?: path.nameComponent)
         val configStream = getFile(context, path)
 
@@ -215,16 +210,16 @@ class ConfigManager(
      * Check whether a configuration file exists at the given [path] in the given [context]. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun containsFile(context: Context?, path: Path): Boolean =
-        wrapExceptions { configFileProvider.contains(safeContext(context), path) }
+    fun containsFile(context: Context, path: Path): Boolean =
+        wrapExceptions { configFileProvider.contains(context, path) }
 
     /**
      * Return a [Set] with the [Path]s to configuration files that are located under the given [path] in the given
      * [context]. The provided [path] should point to a directory, so that it can contain files. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun listFiles(context: Context?, path: Path): Set<Path> =
-        wrapExceptions { configFileProvider.listFiles(safeContext(context), path) }
+    fun listFiles(context: Context, path: Path): Set<Path> =
+        wrapExceptions { configFileProvider.listFiles(context, path) }
 
     /**
      * Return the value of the secret identified by the given [path]. Throw a [ConfigException] if the underlying

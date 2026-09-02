@@ -63,7 +63,7 @@ class AdminConfigService(
      * validated that all configured config files and reporter assets exist for the provided [context] of the
      * [configManager].
      */
-    fun loadAdminConfig(context: Context?, validateConfigFiles: Boolean = false): AdminConfig {
+    fun loadAdminConfig(context: Context, validateConfigFiles: Boolean = false): AdminConfig {
         val configPath = Path(configManager.getStringOrDefault(PATH_PROPERTY, DEFAULT_PATH))
         if (configPath.path == DEFAULT_PATH && !configManager.containsFile(context, configPath)) {
             logger.warn(
@@ -101,7 +101,7 @@ class AdminConfigService(
      * [context] by looking it up from the [configManager]. If config files or assets are not found, return error
      * messages that explain which files are missing.
      */
-    internal fun validateConfigFiles(context: Context?, config: AdminConfig): List<String> =
+    internal fun validateConfigFiles(context: Context, config: AdminConfig): List<String> =
         buildList {
             config.getNonDefaultConfigFiles().filterNot { file ->
                 configManager.containsFile(context, Path(file))

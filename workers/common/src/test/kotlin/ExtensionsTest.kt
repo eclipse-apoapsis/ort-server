@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.workers.common
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.maps.containExactly
-import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -125,7 +124,8 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<ConfigException> {
-                configManager.readConfigFileValueWithDefault(path, defaultPath, fallbackValue, null)
+                configManager
+                    .readConfigFileValueWithDefault(path, defaultPath, fallbackValue, ConfigManager.EMPTY_CONTEXT)
             } shouldBe configException
         }
 
@@ -135,7 +135,8 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<IOException> {
-                configManager.readConfigFileValueWithDefault(path, defaultPath, fallbackValue, null)
+                configManager
+                    .readConfigFileValueWithDefault(path, defaultPath, fallbackValue, ConfigManager.EMPTY_CONTEXT)
             }
         }
 
@@ -154,8 +155,12 @@ class ExtensionsTest : WordSpec({
                 every { getFile(any(), Path(defaultPath)) } throws configException
             }
 
-            configManager.readConfigFileValueWithDefault(null, defaultPath, fallbackValue, null) shouldBe
-                    fallbackValue
+            configManager.readConfigFileValueWithDefault(
+                null,
+                defaultPath,
+                fallbackValue,
+                ConfigManager.EMPTY_CONTEXT
+            ) shouldBe fallbackValue
         }
 
         "throw an exception if the file at default path cannot be deserialized" {
@@ -164,8 +169,12 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<IOException> {
-                configManager.readConfigFileValueWithDefault(null, defaultPath, fallbackValue, null) shouldBe
-                        fallbackValue
+                configManager.readConfigFileValueWithDefault(
+                    null,
+                    defaultPath,
+                    fallbackValue,
+                    ConfigManager.EMPTY_CONTEXT
+                ) shouldBe fallbackValue
             }
         }
     }
@@ -187,7 +196,7 @@ class ExtensionsTest : WordSpec({
             }
 
             var capturedException: ConfigException? = null
-            configManager.readConfigFileValue("path", null) { capturedException = it }
+            configManager.readConfigFileValue("path", ConfigManager.EMPTY_CONTEXT) { capturedException = it }
 
             capturedException shouldBe configException
         }
@@ -198,7 +207,7 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<IOException> {
-                configManager.readConfigFileValue<ConfigClass>("path", null) shouldBe configFile
+                configManager.readConfigFileValue<ConfigClass>("path", ConfigManager.EMPTY_CONTEXT) shouldBe configFile
             }
         }
     }
@@ -225,7 +234,7 @@ class ExtensionsTest : WordSpec({
             }
 
             shouldThrow<ConfigException> {
-                configManager.readConfigFileWithDefault(path, defaultPath, fallbackString, null)
+                configManager.readConfigFileWithDefault(path, defaultPath, fallbackString, ConfigManager.EMPTY_CONTEXT)
             } shouldBe configException
         }
 
@@ -253,7 +262,7 @@ class ExtensionsTest : WordSpec({
                 null,
                 defaultPath,
                 fallbackString,
-                null
+                ConfigManager.EMPTY_CONTEXT
             ) shouldBe fallbackString
         }
     }
@@ -275,7 +284,7 @@ class ExtensionsTest : WordSpec({
             }
 
             var capturedException: ConfigException? = null
-            configManager.readConfigFile("path", null) {
+            configManager.readConfigFile("path", ConfigManager.EMPTY_CONTEXT) {
                 capturedException = it
                 ""
             }
@@ -285,15 +294,18 @@ class ExtensionsTest : WordSpec({
     }
 
     "resolvedConfigurationContext" should {
-        "return null if no resolved context is available" {
+        "throw an exception if no resolved context is available" {
             val ortRun = mockk<OrtRun> {
+                every { id } returns 1L
                 every { resolvedJobConfigContext } returns null
             }
             val workerContext = mockk<WorkerContext> {
                 every { this@mockk.ortRun } returns ortRun
             }
 
-            workerContext.resolvedConfigurationContext should beNull()
+            shouldThrow<IllegalStateException> {
+                workerContext.resolvedConfigurationContext
+            }
         }
 
         "return the resolved context if it is available" {
