@@ -35,11 +35,7 @@ export const createUserFormSchema = z.object({
   email: asOptionalField(z.email()),
   password: z.string().min(1, { error: 'A password is required.' }),
   temporary: z.boolean(),
-  organizations: z
-    .array(z.object({ value: z.string(), label: z.string() }))
-    .min(1, {
-      error: 'The user must be part of at least one organization.',
-    }),
+  organizations: z.array(z.object({ value: z.string(), label: z.string() })),
 });
 
 export type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
