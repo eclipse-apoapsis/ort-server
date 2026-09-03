@@ -211,7 +211,7 @@ export const ProductRepositoryTable = () => {
         }),
         columnHelper.display({
           id: 'jobStatus',
-          header: 'Last Job Status',
+          header: 'Job Statuses',
           cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
           meta: {
             widthPercentage: 8,

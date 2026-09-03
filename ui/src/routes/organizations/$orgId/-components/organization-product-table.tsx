@@ -235,7 +235,7 @@ export const OrganizationProductTable = () => {
         }),
         columnHelper.display({
           id: 'jobStatus',
-          header: 'Last Job Status',
+          header: 'Job Statuses',
           cell: function CellComponent({ row }) {
             const { data, isPending, isError } = useQuery({
               ...getProductRepositoriesOptions({
