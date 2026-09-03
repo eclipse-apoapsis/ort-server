@@ -159,7 +159,7 @@ dependencyResolutionManagement {
         }
 
         create("ortLibs") {
-            from("org.ossreviewtoolkit:version-catalog:92.5.0")
+            from("org.ossreviewtoolkit:version-catalog:92.6.0")
         }
     }
 }
