@@ -47,6 +47,7 @@ const RUN_POLL_INTERVAL = env.VITE_RUN_POLL_INTERVAL;
 const oidcConfig = {
   authority: AUTHORITY,
   redirect_uri: UI_URL,
+  post_logout_redirect_uri: UI_URL,
   client_id: CLIENT_ID,
   automaticSilentRenew: true,
   loadUserInfo: false,
