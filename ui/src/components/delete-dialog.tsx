@@ -51,6 +51,12 @@ interface DeleteDialogProps {
   thingId?: string;
 
   /**
+   * An optional description explaining the consequences of the deletion. Replaces the generic
+   * default text.
+   */
+  description?: ReactNode;
+
+  /**
    * An optional item from which to delete. This is to generalise the delete dialog,
    * as sometimes, for example a user is only deleted from an organization, not
    * completely.
@@ -87,6 +93,7 @@ interface DeleteDialogProps {
 export const DeleteDialog = ({
   thingName,
   thingId,
+  description,
   itemName,
   uiComponent,
   onDelete,
@@ -141,8 +148,8 @@ export const DeleteDialog = ({
         </AlertDialogHeader>
         <div className='flex flex-col gap-2 overflow-auto wrap-break-word'>
           <AlertDialogDescription>
-            Note that deletion is irreversible and might have unwanted side
-            effects.
+            {description ??
+              'Note that deletion is irreversible and might have unwanted side effects.'}
           </AlertDialogDescription>
           {thingId && (
             <>
