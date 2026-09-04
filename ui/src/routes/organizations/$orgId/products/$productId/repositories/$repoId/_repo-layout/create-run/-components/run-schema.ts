@@ -36,6 +36,7 @@ import {
 export const createRunFormSchema = (
   advisorPlugins: PreconfiguredPluginDescriptor[],
   scannerPlugins: PreconfiguredPluginDescriptor[],
+  reporterPlugins: PreconfiguredPluginDescriptor[],
   packageCurationProviderPlugins: PreconfiguredPluginDescriptor[],
   packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[]
 ) => {
@@ -48,6 +49,11 @@ export const createRunFormSchema = (
   const scannerConfigSchema: Record<string, z.ZodTypeAny> = {};
   scannerPlugins.forEach((plugin) => {
     scannerConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
+  });
+
+  const reporterConfigSchema: Record<string, z.ZodTypeAny> = {};
+  reporterPlugins.forEach((plugin) => {
+    reporterConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
   });
 
   const packageCurationProviderConfigSchema: Record<string, z.ZodTypeAny> = {};
@@ -194,16 +200,30 @@ export const createRunFormSchema = (
             .object(packageConfigurationProviderConfigSchema)
             .optional(),
         }),
-        reporter: z.object({
-          enabled: z.boolean(),
-          formats: z.array(z.string()),
-          deduplicateDependencyTree: z.boolean().optional(),
-          keepAliveWorker: z.boolean(),
-          packageConfigurationProviders: z.array(z.string()),
-          packageConfigurationProviderConfig: z
-            .object(packageConfigurationProviderConfigSchema)
-            .optional(),
-        }),
+        reporter: z
+          .object({
+            enabled: z.boolean(),
+            formats: z.array(z.string()),
+            config: z.object(reporterConfigSchema).optional(),
+            keepAliveWorker: z.boolean(),
+            packageConfigurationProviders: z.array(z.string()),
+            packageConfigurationProviderConfig: z
+              .object(packageConfigurationProviderConfigSchema)
+              .optional(),
+          })
+          .superRefine((data, ctx) => {
+            validateRequiredPluginOptions(
+              reporterPlugins,
+              data.formats,
+              data.config as
+                | Record<
+                    string,
+                    Record<string, Record<string, unknown>> | undefined
+                  >
+                | undefined,
+              ctx
+            );
+          }),
         notifier: z.object({
           enabled: z.boolean(),
           recipientAddresses: z

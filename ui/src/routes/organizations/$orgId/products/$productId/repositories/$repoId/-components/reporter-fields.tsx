@@ -20,7 +20,6 @@
 import { UseFormReturn } from 'react-hook-form';
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
-import { MultiSelectField } from '@/components/form/multi-select-field';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
@@ -58,11 +57,6 @@ export const ReporterFields = ({
   secrets,
   isRerun,
 }: ReporterFieldsProps) => {
-  const reporterOptions = reporterPlugins.map((plugin) => ({
-    id: plugin.id,
-    label: plugin.displayName,
-    summary: plugin.summary,
-  }));
   const evaluatorEnabled = form.watch('jobConfigs.evaluator.enabled');
 
   return (
@@ -85,14 +79,17 @@ export const ReporterFields = ({
       <AccordionItem value={value} className='flex-1'>
         <AccordionTrigger onClick={onToggle}>Reporter</AccordionTrigger>
         <AccordionContent className='flex flex-col gap-6'>
-          <MultiSelectField
+          <PluginMultiSelectField
             form={form}
             name='jobConfigs.reporter.formats'
+            configName='jobConfigs.reporter.config'
             label='Report formats'
             description={
               <>Select the report formats to generate from the run.</>
             }
-            options={reporterOptions}
+            plugins={reporterPlugins}
+            secrets={secrets}
+            showSelectedPluginsFirst={isRerun}
           />
           {!evaluatorEnabled && (
             <PluginMultiSelectField
@@ -111,37 +108,6 @@ export const ReporterFields = ({
               secrets={secrets}
               enableReordering
               showSelectedPluginsFirst={isRerun}
-            />
-          )}
-          {form.watch('jobConfigs.reporter.formats').includes('WebApp') && (
-            <FormField
-              control={form.control}
-              name='jobConfigs.reporter.deduplicateDependencyTree'
-              render={({ field }) => (
-                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel>Deduplicate dependency tree</FormLabel>
-                    <FormDescription>
-                      A flag to control whether subtrees occurring multiple
-                      times in the dependency tree are stripped.
-                    </FormDescription>
-                    <FormDescription>
-                      This will significantly reduce memory consumption of the
-                      Reporter and might alleviate some out-of-memory issues.
-                    </FormDescription>
-                    <FormDescription>
-                      NOTE: This option is currently effective only for the
-                      WebApp report format.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
             />
           )}
           {isSuperuser && (

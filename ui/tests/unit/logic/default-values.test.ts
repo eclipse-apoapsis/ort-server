@@ -47,7 +47,7 @@ it('preserves multiple environment definitions from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], false, [], []);
+  const defaults = defaultValues(ortRun, [], [], [], false, [], []);
 
   expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
     ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
@@ -90,7 +90,7 @@ it('preserves package configuration provider config from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], false, [], []);
+  const defaults = defaultValues(ortRun, [], [], [], false, [], []);
 
   expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual([
     'OrtConfig',
@@ -145,7 +145,7 @@ it('preserves package curation provider config from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], false, [], []);
+  const defaults = defaultValues(ortRun, [], [], [], false, [], []);
 
   expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([
     'ClearlyDefined',
@@ -165,6 +165,7 @@ it('preserves package curation provider config from reruns', () => {
 it('uses package configuration provider plugin default values for fresh runs', () => {
   const defaults = defaultValues(
     null,
+    [],
     [],
     [],
     false,
@@ -221,6 +222,7 @@ it('uses package curation provider plugin default values for fresh runs', () => 
     null,
     [],
     [],
+    [],
     false,
     [
       createPluginDescriptor({
@@ -274,6 +276,7 @@ it('uses scanner plugin default values for fresh runs', () => {
         ],
       }),
     ],
+    [],
     false,
     [],
     []
@@ -289,7 +292,44 @@ it('uses scanner plugin default values for fresh runs', () => {
   });
 });
 
-it('applies fixed plugin option precedence for advisor and scanner reruns', () => {
+it('uses reporter plugin default values for fresh runs', () => {
+  const defaults = defaultValues(
+    null,
+    [],
+    [],
+    [
+      createPluginDescriptor({
+        id: 'WebApp',
+        type: 'REPORTER',
+        options: [
+          {
+            name: 'deduplicateDependencyTree',
+            description: 'Deduplicate the dependency tree.',
+            type: 'BOOLEAN',
+            defaultValue: 'true',
+            isFixed: true,
+            isNullable: false,
+            isRequired: false,
+          },
+        ],
+      }),
+    ],
+    false,
+    [],
+    []
+  );
+
+  expect(defaults.jobConfigs.reporter.config).toEqual({
+    WebApp: {
+      options: {
+        deduplicateDependencyTree: true,
+      },
+      secrets: {},
+    },
+  });
+});
+
+it('applies fixed plugin option precedence for advisor, scanner, and reporter reruns', () => {
   const ortRun = createOrtRun({
     jobConfigs: {
       advisor: {
@@ -318,6 +358,21 @@ it('applies fixed plugin option precedence for advisor and scanner reruns', () =
             },
             secrets: {
               fixedSecret: 'legacy-scanner-secret',
+            },
+          },
+        },
+      },
+      reporter: {
+        formats: ['WebApp'],
+        config: {
+          WebApp: {
+            options: {
+              url: 'https://rerun.example/reporter',
+              fixedNoDefault: 'legacy-reporter-fixed',
+              token: 'legacy-reporter-token',
+            },
+            secrets: {
+              fixedSecret: 'legacy-reporter-secret',
             },
           },
         },
@@ -411,10 +466,54 @@ it('applies fixed plugin option precedence for advisor and scanner reruns', () =
     }),
   ];
 
+  const reporterPlugins = [
+    createPluginDescriptor({
+      id: 'WebApp',
+      type: 'REPORTER',
+      options: [
+        {
+          name: 'url',
+          description: 'Base URL.',
+          type: 'STRING',
+          defaultValue: 'https://default.example/reporter',
+          isFixed: true,
+          isNullable: false,
+          isRequired: true,
+        },
+        {
+          name: 'fixedNoDefault',
+          description: 'Fixed without default.',
+          type: 'STRING',
+          isFixed: true,
+          isNullable: false,
+          isRequired: false,
+        },
+        {
+          name: 'fixedSecret',
+          description: 'Fixed secret option.',
+          type: 'SECRET',
+          isFixed: true,
+          isNullable: false,
+          isRequired: false,
+        },
+        {
+          name: 'token',
+          description: 'Editable token.',
+          type: 'STRING',
+          defaultValue: 'default-token',
+          isFixed: false,
+          isNullable: false,
+          isRequired: false,
+        },
+      ],
+    }),
+  ];
+
   const defaults = defaultValues(
     ortRun,
     advisorPlugins,
     scannerPlugins,
+    reporterPlugins,
     false,
     [],
     []
@@ -435,6 +534,16 @@ it('applies fixed plugin option precedence for advisor and scanner reruns', () =
       options: {
         url: 'https://default.example/scanner',
         token: 'legacy-scanner-token',
+      },
+      secrets: {},
+    },
+  });
+
+  expect(defaults.jobConfigs.reporter.config).toEqual({
+    WebApp: {
+      options: {
+        url: 'https://default.example/reporter',
+        token: 'legacy-reporter-token',
       },
       secrets: {},
     },

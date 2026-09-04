@@ -252,58 +252,14 @@ export function formValuesToPayload(
   // Reporter configuration
   //
 
-  const cycloneDxEnabled =
-    values.jobConfigs.reporter.formats.includes('CycloneDX');
-  const spdxDocumentEnabled =
-    values.jobConfigs.reporter.formats.includes('SpdxDocument');
-  const noticeFileEnabled =
-    values.jobConfigs.reporter.formats.includes('PlainTextTemplate');
-
-  const config: ReporterJobConfiguration['config'] = {};
-
-  if (spdxDocumentEnabled) {
-    config.SpdxDocument = {
-      options: {
-        outputFileFormats: 'YAML,JSON',
-      },
-      secrets: {},
-    };
-  }
-
-  if (cycloneDxEnabled) {
-    config.CycloneDX = {
-      options: {
-        outputFileFormats: 'XML,JSON',
-      },
-      secrets: {},
-    };
-  }
-
-  if (noticeFileEnabled) {
-    config.PlainTextTemplate = {
-      options: {
-        templateIds: 'NOTICE_DEFAULT,NOTICE_SUMMARY',
-      },
-      secrets: {},
-    };
-  }
-
-  // If WebApp and the deduplicateDependencyTree option are enabled, add the configuration.
-  const webAppEnabled = values.jobConfigs.reporter.formats.includes('WebApp');
-  if (webAppEnabled && values.jobConfigs.reporter.deduplicateDependencyTree) {
-    config.WebApp = {
-      options: {
-        deduplicateDependencyTree: 'true',
-      },
-      secrets: {},
-    };
-  }
-
   const reporterConfig: ReporterJobConfiguration | undefined = values.jobConfigs
     .reporter.enabled
     ? {
         formats: values.jobConfigs.reporter.formats,
-        config: Object.keys(config).length > 0 ? config : undefined,
+        config: createPluginPayload(
+          values.jobConfigs.reporter.config,
+          values.jobConfigs.reporter.formats
+        ),
         packageConfigurationProviders: evaluatorConfig
           ? undefined
           : createProviderPluginPayload(
