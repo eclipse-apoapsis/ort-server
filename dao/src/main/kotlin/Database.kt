@@ -198,18 +198,16 @@ fun <T> Database.entityQuery(
  * Map the generic database exceptions to more specific exceptions.
  */
 internal fun <T> Result<T>.mapExceptions(): Result<T> =
-    runCatching {
-        onFailure {
-            if (it is ExposedSQLException) {
-                when (it.sqlState) {
-                    PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
-                        throw UniqueConstraintException("Unique constraint violation: ${it.message}.", it)
-                    }
+    recoverCatching {
+        if (it is ExposedSQLException) {
+            when (it.sqlState) {
+                PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
+                    throw UniqueConstraintException("Unique constraint violation: ${it.message}.", it)
                 }
             }
+        }
 
-            throw it
-        }.getOrThrow()
+        throw it
     }
 
 /**
