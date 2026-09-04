@@ -17,13 +17,20 @@
  * License-Filename: LICENSE
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import { z } from 'zod';
 
 import type { PostRepositoryRun } from '@/api';
 import {
   getOrganizationOptions,
+  getPluginsForRepositoryOptions,
   getProductOptions,
   getRepositoryOptions,
   postRepositoryRunMutation,
@@ -45,10 +52,26 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const queryClient = useQueryClient();
-  const { ortRun, plugins, secrets } = Route.useLoaderData();
+  const { ortRun, plugins: loaderPlugins, secrets } = Route.useLoaderData();
   const { recordRecentRun } = useHomeRecentRunActions();
   const isSuperuser = useUser().isSuperuser || false;
   const permissions = Route.useRouteContext().permissions;
+
+  // The config context influences which plugins are available for the
+  // repository. It is initialized from the run being rerun (if any) and can be
+  // changed via the corresponding form field, which reloads the plugins.
+  const [configContext, setConfigContext] = useState(
+    ortRun?.data?.jobConfigContext ?? ''
+  );
+
+  const { data: plugins } = useQuery({
+    ...getPluginsForRepositoryOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+      query: configContext ? { configContext } : undefined,
+    }),
+    initialData: loaderPlugins.data ?? [],
+    placeholderData: keepPreviousData,
+  });
 
   const {
     data: organization,
@@ -136,9 +159,10 @@ const CreateRunPage = () => {
     <CreateRunForm
       isSubmitting={isPending}
       isSuperuser={isSuperuser}
+      onConfigContextChange={setConfigContext}
       onSubmit={submitRun}
       permissions={permissions}
-      plugins={plugins.data ?? []}
+      plugins={plugins}
       rerun={ortRun?.data ?? null}
       secrets={secrets.data ?? []}
     />
@@ -160,19 +184,26 @@ export const Route = createFileRoute(
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
   loader: async ({ params, deps: { rerunIndex } }) => {
-    const [ortRun, plugins, secrets] = await Promise.all([
+    const ortRun =
       rerunIndex !== undefined
-        ? getRepositoryRun({
+        ? await getRepositoryRun({
             path: {
               repositoryId: Number.parseInt(params.repoId),
               ortRunIndex: rerunIndex,
             },
           })
-        : Promise.resolve(null as null),
+        : null;
+
+    // The config context of the run being rerun determines which plugins are
+    // available, so use it for the initial plugin fetch.
+    const configContext = ortRun?.data?.jobConfigContext || undefined;
+
+    const [plugins, secrets] = await Promise.all([
       getPluginsForRepository({
         path: {
           repositoryId: Number.parseInt(params.repoId),
         },
+        query: configContext ? { configContext } : undefined,
       }),
       getAvailableRepositorySecrets({
         path: {
