@@ -36,6 +36,7 @@ export function defaultValues(
   ortRun: OrtRun | null,
   advisorPlugins: PreconfiguredPluginDescriptor[],
   scannerPlugins: PreconfiguredPluginDescriptor[],
+  reporterPlugins: PreconfiguredPluginDescriptor[],
   isSuperuser: boolean,
   packageCurationProviderPlugins: PreconfiguredPluginDescriptor[],
   packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[]
@@ -76,18 +77,9 @@ export function defaultValues(
     };
   };
 
-  // Find out if any of the reporters had their options.deduplicateDependencyTree set to true in the previous run.
-  // This is used to set the default value for the deduplicateDependencyTree toggle in the UI.
-  const deduplicateDependencyTreeEnabled = ortRun
-    ? ortRun.jobConfigs.reporter?.config &&
-      Object.keys(ortRun.jobConfigs.reporter.config ?? {}).some((key) => {
-        const config = ortRun.jobConfigs.reporter?.config?.[key];
-        return config?.options.deduplicateDependencyTree === 'true';
-      })
-    : false;
-
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
   const scannerPluginDefaultValues = getPluginDefaultValues(scannerPlugins);
+  const reporterPluginDefaultValues = getPluginDefaultValues(reporterPlugins);
   const packageCurationProviderPluginDefaultValues = getPluginDefaultValues(
     packageCurationProviderPlugins
   );
@@ -187,7 +179,7 @@ export function defaultValues(
       reporter: {
         enabled: true,
         formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
-        deduplicateDependencyTree: false,
+        config: reporterPluginDefaultValues,
         keepAliveWorker: false,
         packageConfigurationProviders: [],
         packageConfigurationProviderConfig:
@@ -329,8 +321,11 @@ export function defaultValues(
               ortRun.jobConfigs.reporter?.formats?.map((format) =>
                 format === 'CycloneDx' ? 'CycloneDX' : format
               ) || baseDefaults.jobConfigs.reporter.formats,
-            deduplicateDependencyTree:
-              deduplicateDependencyTreeEnabled || undefined,
+            config: mergePluginConfigs(
+              ortRun.jobConfigs.reporter?.config,
+              reporterPluginDefaultValues,
+              reporterPlugins
+            ),
             packageConfigurationProviders:
               reporterPackageConfigurationProviderFormValues.selectedPluginIds,
             packageConfigurationProviderConfig: mergePluginConfigs(

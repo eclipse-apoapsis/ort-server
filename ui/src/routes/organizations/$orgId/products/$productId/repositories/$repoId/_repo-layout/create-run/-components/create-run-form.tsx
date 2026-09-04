@@ -131,6 +131,7 @@ export const CreateRunForm = ({
   const formSchema = createRunFormSchema(
     advisorPlugins,
     scannerPlugins,
+    reporterPlugins,
     packageCurationProviderPlugins,
     packageConfigurationProviderPlugins
   );
@@ -141,6 +142,7 @@ export const CreateRunForm = ({
       rerun,
       advisorPlugins,
       scannerPlugins,
+      reporterPlugins,
       isSuperuser,
       packageCurationProviderPlugins,
       packageConfigurationProviderPlugins
