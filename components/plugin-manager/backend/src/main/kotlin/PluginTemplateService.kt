@@ -29,9 +29,11 @@ import com.github.michaelbull.result.toErrorIfNull
 import com.github.michaelbull.result.toResultOr
 import com.github.michaelbull.result.tryFold
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -53,7 +55,8 @@ class PluginTemplateService(
     private val eventStore: PluginTemplateEventStore,
     private val pluginService: PluginService,
     private val organizationRepository: OrganizationRepository,
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+    private val adminConfigService: AdminConfigService
 ) {
     /**
      * Assign the plugin template with the given [templateName], [pluginType], and [pluginId] to the organization with
@@ -210,10 +213,13 @@ class PluginTemplateService(
     }
 
     internal fun getPluginsForRepository(
-        repositoryId: RepositoryId
+        repositoryId: RepositoryId,
+        context: ResolvedConfigContext
     ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.blockingQuery {
         val organizationId = repositoryRepository.get(repositoryId.value)?.organizationId?.let { OrganizationId(it) }
             ?: return@blockingQuery TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+
+        val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
         pluginService.getPlugins().filter { it.availability != PluginAvailability.DISABLED }
             .tryFold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
@@ -257,6 +263,27 @@ class PluginTemplateService(
                         )
                     }
                 }
+            }.map { plugins ->
+                val replacedReporterPlugins = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
+
+                // Drop all plugins for which a report definition exists.
+                val filteredPlugins = plugins.filter {
+                    it.type != PluginType.REPORTER || it.id.lowercase() !in replacedReporterPlugins
+                }
+
+                // Create one plugin for each report definition
+                val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
+                    PreconfiguredPluginDescriptor(
+                        id = name,
+                        type = PluginType.REPORTER,
+                        displayName = name,
+                        summary = definition.description,
+                        description = null,
+                        options = emptyList()
+                    )
+                }
+
+                filteredPlugins + pluginsFromReportDefinitions
             }
     }
 

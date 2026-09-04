@@ -40,6 +40,7 @@ repositories {
 }
 
 dependencies {
+    api(projects.components.adminConfig.adminConfigBackend)
     api(projects.components.pluginManager.pluginManagerApiModel)
     api(projects.model)
 
@@ -62,6 +63,7 @@ dependencies {
     routesImplementation(ktorLibs.server.core)
     routesImplementation(libs.ktor.openApi)
 
+    testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 

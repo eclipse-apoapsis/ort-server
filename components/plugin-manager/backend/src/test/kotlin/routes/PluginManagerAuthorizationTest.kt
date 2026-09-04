@@ -19,12 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
+import com.typesafe.config.ConfigFactory
+
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -32,11 +35,15 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEve
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
 class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
+    lateinit var configManager: ConfigManager
     lateinit var pluginEventStore: PluginEventStore
     lateinit var pluginService: PluginService
     lateinit var pluginTemplateService: PluginTemplateService
@@ -46,6 +53,14 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     val templateName = "test-template"
 
     beforeEach {
+        val configMap = mapOf(
+            ConfigManager.CONFIG_MANAGER_SECTION to mapOf(
+                ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
+                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME
+            )
+        )
+
+        configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
         pluginEventStore = PluginEventStore(dbExtension.db)
         pluginService = PluginService(dbExtension.db)
         pluginTemplateService = PluginTemplateService(
@@ -53,14 +68,15 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
             PluginTemplateEventStore(dbExtension.db),
             pluginService,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.repositoryRepository
+            dbExtension.fixtures.repositoryRepository,
+            AdminConfigService(configManager)
         )
     }
 
     "AddTemplateToOrganization" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotFound
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/templates/$templateName/addToOrganization?organizationId=1")
@@ -71,7 +87,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "DeleteTemplate" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotFound
             ) {
                 delete("/admin/plugins/$pluginType/$pluginId/templates/$templateName")
@@ -82,7 +98,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "DisableGlobalTemplate" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotFound
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/templates/$templateName/disableGlobal")
@@ -93,7 +109,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "DisablePlugin" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.Accepted
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/disable")
@@ -104,7 +120,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "EnableGlobalTemplate" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotFound
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/templates/$templateName/enableGlobal")
@@ -115,7 +131,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "EnablePlugin" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotModified
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/enable")
@@ -126,7 +142,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "GetInstalledPlugins" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) }
             ) {
                 get("/admin/plugins")
             }
@@ -136,7 +152,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "GetTemplate" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotFound
             ) {
                 get("/admin/plugins/$pluginType/$pluginId/templates/$templateName")
@@ -147,7 +163,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "GetTemplates" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.OK
             ) {
                 get("/admin/plugins/$pluginType/$pluginId/templates")
@@ -158,7 +174,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "RemoveTemplateFromOrganization" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.NotFound
             ) {
                 post(
@@ -172,7 +188,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "RestrictPlugin" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.Accepted
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/restrict")
@@ -183,7 +199,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     "UpdateTemplateOptions" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) },
+                routes = { pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService) },
                 successStatus = HttpStatusCode.OK
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/templates/$templateName") {
