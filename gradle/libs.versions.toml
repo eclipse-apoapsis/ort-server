@@ -43,6 +43,7 @@ flyway = "13.5.0"
 hikari = "7.1.0"
 hoplite = "2.9.0"
 jsonSchemaValidator = "3.0.7"
+jgit = "7.8.0.202609011348-r"
 kaml = "0.104.0"
 keycloakTestcontainerVersion = "4.3.1"
 koin = "4.2.2"
@@ -102,6 +103,7 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-hocon = { module = "com.sksamuel.hoplite:hoplite-hocon", version.ref = "hoplite" }
 jsonSchemaValidator = { module = "com.networknt:json-schema-validator", version.ref = "jsonSchemaValidator" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }

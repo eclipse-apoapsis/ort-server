@@ -15,6 +15,10 @@ Note that
 - `resolveContext` is called only once per run (by the config worker), and the returned context is used for all workers in the run
 - in case `resolveContext` is called with empty input context, the head of the default branch of the repository is returned
 
+Fetched commits remain in the local Git repository for the lifetime of the provider. When requests alternate between
+previously fetched commits, the provider checks them out directly from the local object database without fetching from
+the remote repository again.
+
 The `listFiles` function can be used to get the list of all the objects of type `file` located in the given path.
 It takes in the context (as returned by the `resolveContext` function) and requires the provided path to refer to a directory, otherwise a `ConfigException` is thrown.
 

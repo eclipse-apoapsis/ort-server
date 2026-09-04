@@ -40,7 +40,12 @@ import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
 import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getServiceUrl
+import org.eclipse.jgit.api.Git as JGit
+import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.revwalk.RevWalk
 
+import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
@@ -57,7 +62,8 @@ class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
     private val configDir: File,
     internal val revisionCacheTtl: Duration = DEFAULT_REVISION_CACHE_TTL_SECONDS,
-    private val timeSource: TimeSource = TimeSource.Monotonic
+    private val timeSource: TimeSource = TimeSource.Monotonic,
+    private val git: VersionControlSystem = GitFactory.create(historyDepth = 1)
 ) : ConfigFileProvider {
     companion object {
         /**
@@ -94,8 +100,6 @@ class GitConfigFileProvider internal constructor(
             return GitConfigFileProvider(gitUrl, createOrtTempDir(), revisionCacheTtl)
         }
     }
-
-    private val git = GitFactory.create(historyDepth = 1)
 
     /**
      * A lock guarding all access to the working tree in [configDir]. A single provider instance can be accessed
@@ -148,7 +152,7 @@ class GitConfigFileProvider internal constructor(
     override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
         synchronized(lock) {
             runCatching {
-                updateWorkingTree(context.name)
+                updateWorkingTree(context.name, allowLocalCheckout = true)
 
                 // Copy the file to a temporary location while holding the lock, so that reading the returned stream is
                 // not affected by a concurrent update of the working tree.
@@ -170,7 +174,7 @@ class GitConfigFileProvider internal constructor(
         }
 
     override fun contains(context: ResolvedConfigContext, path: Path): Boolean = synchronized(lock) {
-        updateWorkingTree(context.name)
+        updateWorkingTree(context.name, allowLocalCheckout = true)
         val p = configDir.resolveSecurely(path)
         val isDirectoryPath = path.path.endsWith("/")
 
@@ -178,7 +182,7 @@ class GitConfigFileProvider internal constructor(
     }
 
     override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> = synchronized(lock) {
-        updateWorkingTree(context.name)
+        updateWorkingTree(context.name, allowLocalCheckout = true)
 
         val dir = configDir.resolveSecurely(path)
 
@@ -194,14 +198,23 @@ class GitConfigFileProvider internal constructor(
      * Update the working tree to the [requestedRevision]. If the [configDir] does not contain a ".git" subdirectory,
      * the working tree is initialized first. The resolved revision is returned.
      *
+     * If [allowLocalCheckout] is true, the function will first try to check out the requested revision from the local
+     * object database, which avoids accessing the remote repository.
+     *
      * This function must not be called concurrently, all callers must make sure to synchronize against [lock].
      */
-    private fun updateWorkingTree(requestedRevision: String): String {
+    private fun updateWorkingTree(requestedRevision: String, allowLocalCheckout: Boolean = false): String {
+        var accessedRemote = false
+
         try {
-            val revisionToCheckout = requestedRevision.ifBlank { git.getDefaultBranchName(gitUrl) }
+            val revisionToCheckout = requestedRevision.ifBlank {
+                accessedRemote = true
+                git.getDefaultBranchName(gitUrl)
+            }
             val workingTree = git.getWorkingTree(configDir)
 
             if (!workingTree.isValid()) {
+                accessedRemote = true
                 val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, revisionToCheckout)
 
                 measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
@@ -212,18 +225,46 @@ class GitConfigFileProvider internal constructor(
             // Check if the requested revision was already checked out.
             if (workingTree.getRevision() == revisionToCheckout) return revisionToCheckout
 
-            // Update the working tree to the requested revision.
             measureTime {
-                git.updateWorkingTree(workingTree, revisionToCheckout).getOrThrow()
+                val checkedOutLocally = allowLocalCheckout && checkoutRevisionLocally(revisionToCheckout)
+
+                if (!checkedOutLocally) {
+                    accessedRemote = true
+                    git.updateWorkingTree(workingTree, revisionToCheckout).getOrThrow()
+                }
             }.also {
                 logger.debug("Updated Git working tree to revision '$revisionToCheckout' in $it.")
             }
 
             return workingTree.getRevision()
         } finally {
-            clearHttpAuthCache()
+            if (accessedRemote) clearHttpAuthCache()
         }
     }
+
+    /**
+     * Check out [revision] from the local object database and return `true` if the checkout was successful, otherwise
+     * return `false`. Only full object IDs are accepted as [revision] to avoid resolving a stale local branch or tag.
+     */
+    internal fun checkoutRevisionLocally(revision: String): Boolean =
+        ObjectId.isId(revision) && runCatching {
+            JGit.open(configDir).use { jGit ->
+                val objectId = ObjectId.fromString(revision)
+
+                // Check if the object ID exists locally, otherwise parseCommit throws an exception.
+                RevWalk(jGit.repository).use { it.parseCommit(objectId) }
+
+                jGit.checkout().setName(objectId.name).setForced(true).call()
+
+                checkNotNull(jGit.repository.resolve(Constants.HEAD)).name.also {
+                    check(it.equals(revision, ignoreCase = true)) {
+                        "Local checkout resulted in revision '$it' instead of '$revision'."
+                    }
+                }
+            }
+        }.onFailure {
+            logger.debug("Could not check out revision '$revision' from the local Git repository.", it)
+        }.isSuccess
 
     /**
      * Clear the HTTP basic authentication cache used by HttpURLConnection.
