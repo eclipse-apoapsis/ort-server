@@ -237,7 +237,7 @@ data class ReporterConfig(
      * [directory references][ReportDefinitionTemplate.assetDirectoriesRefs] to concrete [ReporterAsset]s. If a
      * reference cannot be resolved, it is recorded in [unresolvedAssetFilesRefs] or [unresolvedAssetDirectoriesRefs].
      */
-    private val resolvedReportDefinitions = reportDefinitionsMap.mapValues { (name, template) ->
+    val resolvedReportDefinitions = reportDefinitionsMap.mapValues { (name, template) ->
         val resolvedAssetFilesRefs = template.assetFilesRefs.partition { it in globalAssets }
             .let { (validRefs, invalidRefs) ->
                 unresolvedAssetFilesRefs[name] = invalidRefs

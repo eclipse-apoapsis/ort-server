@@ -66,7 +66,7 @@ fun Application.configureRouting() {
                     infrastructureServicesRoutes(get())
                     licenseFindingRoutes(get(), get())
                     organizations()
-                    pluginManagerRoutes(get(), get(), get())
+                    pluginManagerRoutes(get(), get(), get(), get())
                     products()
                     repositories()
                     resolutionRoutes(get(), get(), get())
