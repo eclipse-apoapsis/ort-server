@@ -80,7 +80,7 @@ configurations.all {
 
         dependencySubstitution {
             substitute(module("org.slf4j:slf4j-api"))
-                .using(module("org.slf4j:slf4j-api:2.0.18"))
+                .using(module("org.slf4j:slf4j-api:2.0.19"))
                 .because("https://github.com/gradle/gradle/issues/37947")
         }
     }
