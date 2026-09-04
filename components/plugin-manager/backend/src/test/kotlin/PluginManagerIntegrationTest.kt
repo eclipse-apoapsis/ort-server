@@ -19,9 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import com.typesafe.config.ConfigFactory
+
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the plugin-manager routes. */
@@ -29,12 +35,23 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 abstract class PluginManagerIntegrationTest(
     body: PluginManagerIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {
+    lateinit var adminConfigService: AdminConfigService
+    lateinit var configManager: ConfigManager
     lateinit var eventStore: PluginEventStore
     lateinit var pluginService: PluginService
     lateinit var pluginTemplateService: PluginTemplateService
 
     init {
         beforeEach {
+            val configMap = mapOf(
+                ConfigManager.CONFIG_MANAGER_SECTION to mapOf(
+                    ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
+                    ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME
+                )
+            )
+
+            configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+            adminConfigService = AdminConfigService(configManager)
             eventStore = PluginEventStore(dbExtension.db)
             pluginService = PluginService(dbExtension.db)
             pluginTemplateService = PluginTemplateService(
@@ -42,7 +59,8 @@ abstract class PluginManagerIntegrationTest(
                 PluginTemplateEventStore(dbExtension.db),
                 pluginService,
                 dbExtension.fixtures.organizationRepository,
-                dbExtension.fixtures.repositoryRepository
+                dbExtension.fixtures.repositoryRepository,
+                adminConfigService
             )
         }
 
@@ -52,7 +70,7 @@ abstract class PluginManagerIntegrationTest(
     fun pluginManagerTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) },
+        routes = { pluginManagerRoutes(configManager, eventStore, pluginService, pluginTemplateService) },
         block = block
     )
 }

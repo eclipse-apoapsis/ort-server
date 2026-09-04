@@ -107,7 +107,8 @@ class ConfigWorkerIntegrationTest : WordSpec({
             eventStore = PluginTemplateEventStore(dbExtension.db),
             pluginService = pluginService,
             organizationRepository = fixtures.organizationRepository,
-            repositoryRepository = fixtures.repositoryRepository
+            repositoryRepository = fixtures.repositoryRepository,
+            adminConfigService = adminConfigService
         )
 
         configWorker = ConfigWorker(
