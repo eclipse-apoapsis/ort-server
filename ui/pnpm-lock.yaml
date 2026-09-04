@@ -114,7 +114,7 @@ importers:
         version: 0.5.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@hookform/resolvers':
         specifier: 5.9.1
-        version: 5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.86.0(react@19.2.8))(zod@4.4.3)
+        version: 5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.86.0(react@19.2.8))(zod@4.5.1)
       '@radix-ui/react-accordion':
         specifier: 1.2.20
         version: 1.2.20(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -171,7 +171,7 @@ importers:
         version: 1.2.16(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@t3-oss/env-core':
         specifier: 0.13.11
-        version: 0.13.11(typescript@6.0.3)(zod@4.4.3)
+        version: 0.13.11(typescript@6.0.3)(zod@4.5.1)
       '@tanstack/react-query':
         specifier: 5.102.2
         version: 5.102.2(react@19.2.8)
@@ -245,8 +245,8 @@ importers:
         specifier: 3.6.0
         version: 3.6.0
       zod:
-        specifier: 4.4.3
-        version: 4.4.3
+        specifier: 4.5.1
+        version: 4.5.1
       zustand:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.2.18)(immer@11.1.18)(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8))
@@ -3557,8 +3557,8 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+  zod@4.5.1:
+    resolution: {integrity: sha512-P3GqeAEOEDqKvafVGLezbg+39YW/ze4xrD4qdS0adOY8eoI3zfjv1PQM4UwQzgT8mZKXEbqtVt8K+ZKGqkMFKg==}
 
   zustand@5.0.15:
     resolution: {integrity: sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==}
@@ -3874,13 +3874,13 @@ snapshots:
 
   '@hey-api/types@0.1.4': {}
 
-  '@hookform/resolvers@5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.86.0(react@19.2.8))(zod@4.4.3)':
+  '@hookform/resolvers@5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.86.0(react@19.2.8))(zod@4.5.1)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.86.0(react@19.2.8)
     optionalDependencies:
       '@standard-schema/spec': 1.1.0
-      zod: 4.4.3
+      zod: 4.5.1
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -4524,10 +4524,10 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@t3-oss/env-core@0.13.11(typescript@6.0.3)(zod@4.4.3)':
+  '@t3-oss/env-core@0.13.11(typescript@6.0.3)(zod@4.5.1)':
     optionalDependencies:
       typescript: 6.0.3
-      zod: 4.4.3
+      zod: 4.5.1
 
   '@tailwindcss/node@4.3.3':
     dependencies:
@@ -4694,7 +4694,7 @@ snapshots:
       jiti: 2.7.0
       magic-string: 0.30.21
       prettier: 3.9.6
-      zod: 4.4.3
+      zod: 4.5.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4708,7 +4708,7 @@ snapshots:
       '@tanstack/router-utils': 1.162.2
       chokidar: 5.0.0
       unplugin: 3.3.0(rolldown@1.2.6)(vite@8.2.2(@types/node@24.13.3)(jiti@2.7.0))
-      zod: 4.4.3
+      zod: 4.5.1
     optionalDependencies:
       '@tanstack/react-router': 1.170.32(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       vite: 8.2.2(@types/node@24.13.3)(jiti@2.7.0)
@@ -5349,8 +5349,8 @@ snapshots:
       '@babel/parser': 7.29.8
       eslint: 10.9.1(jiti@2.7.0)
       hermes-parser: 0.25.1
-      zod: 4.4.3
-      zod-validation-error: 4.0.2(zod@4.4.3)
+      zod: 4.5.1
+      zod-validation-error: 4.0.2(zod@4.5.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -6681,11 +6681,11 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-validation-error@4.0.2(zod@4.4.3):
+  zod-validation-error@4.0.2(zod@4.5.1):
     dependencies:
-      zod: 4.4.3
+      zod: 4.5.1
 
-  zod@4.4.3: {}
+  zod@4.5.1: {}
 
   zustand@5.0.15(@types/react@19.2.18)(immer@11.1.18)(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8)):
     optionalDependencies:
