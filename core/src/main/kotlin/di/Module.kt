@@ -28,6 +28,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migration.RolesToDbMigration
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
@@ -187,6 +188,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
         )
     }
 
+    singleOf(::AdminConfigService)
     singleOf(::DependencyGraphService)
     singleOf(::InfrastructureServiceService)
     singleOf(::IssueService)

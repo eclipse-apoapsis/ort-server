@@ -157,7 +157,7 @@ dependencies {
     implementation(ortLibs.utils.common)
     implementation(ortLibs.utils.ort)
 
-    runtimeOnly(projects.config.secretFile)
+    runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.logaccess))
     runtimeOnly(platform(projects.secrets))
     runtimeOnly(platform(projects.storage))

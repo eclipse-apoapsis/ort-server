@@ -224,6 +224,8 @@ services:
       ORCHESTRATOR_SENDER_TRANSPORT_TYPE: rabbitMQ
       ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI: "amqp://rabbitmq:5672"
       ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME: orchestrator_queue
+      CONFIG_FILE_PROVIDER: local-config
+      CONFIG_LOCAL_CONFIG_DIR: /mnt/config
       SECRETS_PROVIDER_NAME: fileBased
       FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
       GRAPHITE_HOST: "graphite"

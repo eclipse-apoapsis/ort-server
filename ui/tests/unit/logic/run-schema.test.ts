@@ -43,6 +43,7 @@ function createValidFormData() {
     null,
     [],
     [],
+    [],
     false,
     [],
     [packageConfigurationProviderPlugin]
@@ -75,6 +76,7 @@ describe('createRunFormSchema', () => {
       [],
       [],
       [],
+      [],
       [packageConfigurationProviderPlugin]
     );
 
@@ -98,7 +100,7 @@ describe('createRunFormSchema', () => {
         },
       ],
     });
-    const schema = createRunFormSchema([], [scannerPlugin], [], []);
+    const schema = createRunFormSchema([], [scannerPlugin], [], [], []);
     const formData = createValidFormData();
     formData.jobConfigs.scanner.scanners = ['Scanner'];
     formData.jobConfigs.scanner.config = {
@@ -136,7 +138,7 @@ describe('createRunFormSchema', () => {
         },
       ],
     });
-    const schema = createRunFormSchema([], [scannerPlugin], [], []);
+    const schema = createRunFormSchema([], [scannerPlugin], [], [], []);
     const formData = createValidFormData();
     formData.jobConfigs.scanner.scanners = ['Scanner'];
     formData.jobConfigs.scanner.config = {
@@ -163,6 +165,7 @@ describe('createRunFormSchema', () => {
 
   it('validates reporter package configuration providers when evaluator is disabled', () => {
     const schema = createRunFormSchema(
+      [],
       [],
       [],
       [],

@@ -59,7 +59,7 @@ vi.mock('@/hooks/use-infrastructure-services', () => ({
   }),
 }));
 
-const baseDefaultValues = defaultValues(null, [], [], false, [], []);
+const baseDefaultValues = defaultValues(null, [], [], [], false, [], []);
 const conanDefaultEntry = ENVIRONMENT_DEFINITION_SCHEMAS.find(
   (schema) => schema.key === 'conan'
 )?.defaultEntries[0];

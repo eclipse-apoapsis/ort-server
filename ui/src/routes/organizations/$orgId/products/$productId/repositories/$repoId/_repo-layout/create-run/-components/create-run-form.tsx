@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -53,6 +53,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useDebounce } from '@/hooks/use-debounce';
 import type {
   OrganizationPermissions,
   ProductPermissions,
@@ -86,6 +87,7 @@ type CreateRunPermissions = {
 export type CreateRunFormProps = {
   isSubmitting: boolean;
   isSuperuser: boolean;
+  onConfigContextChange?: (configContext: string) => void;
   onSubmit: (payload: PostRepositoryRun) => Promise<void> | void;
   permissions: CreateRunPermissions;
   plugins: PreconfiguredPluginDescriptor[];
@@ -96,6 +98,7 @@ export type CreateRunFormProps = {
 export const CreateRunForm = ({
   isSubmitting,
   isSuperuser,
+  onConfigContextChange,
   onSubmit,
   permissions,
   plugins,
@@ -131,6 +134,7 @@ export const CreateRunForm = ({
   const formSchema = createRunFormSchema(
     advisorPlugins,
     scannerPlugins,
+    reporterPlugins,
     packageCurationProviderPlugins,
     packageConfigurationProviderPlugins
   );
@@ -141,6 +145,7 @@ export const CreateRunForm = ({
       rerun,
       advisorPlugins,
       scannerPlugins,
+      reporterPlugins,
       isSuperuser,
       packageCurationProviderPlugins,
       packageConfigurationProviderPlugins
@@ -148,6 +153,16 @@ export const CreateRunForm = ({
   });
 
   const watchedValues = form.watch();
+
+  // Reload the available plugins when the configuration context changes, as it
+  // may influence which plugins are available for the repository. The value is
+  // debounced so that the plugins are not reloaded on every keystroke.
+  const watchedConfigContext = form.watch('jobConfigContext') ?? '';
+  const debouncedConfigContext = useDebounce(watchedConfigContext);
+
+  useEffect(() => {
+    onConfigContextChange?.(debouncedConfigContext);
+  }, [debouncedConfigContext, onConfigContextChange]);
 
   const {
     fields: parametersFields,

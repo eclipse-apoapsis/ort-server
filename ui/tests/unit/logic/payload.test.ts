@@ -25,7 +25,7 @@ import type { CreateRunFormValues } from '@/routes/organizations/$orgId/products
 
 function createFormValues(): CreateRunFormValues {
   return {
-    ...defaultValues(null, [], [], false, [], []),
+    ...defaultValues(null, [], [], [], false, [], []),
     revision: 'main',
     path: '',
   };

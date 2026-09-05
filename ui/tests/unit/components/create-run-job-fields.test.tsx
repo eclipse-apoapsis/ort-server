@@ -74,6 +74,7 @@ const formDefaultValues = defaultValues(
   null,
   advisorPlugins,
   scannerPlugins,
+  reporterPlugins,
   true,
   [],
   packageConfigurationProviderPlugins
