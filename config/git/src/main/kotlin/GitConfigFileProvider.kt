@@ -214,7 +214,7 @@ class GitConfigFileProvider internal constructor(
 
             // Update the working tree to the requested revision.
             measureTime {
-                git.updateWorkingTree(workingTree, revisionToCheckout, recursive = true).getOrThrow()
+                git.updateWorkingTree(workingTree, revisionToCheckout).getOrThrow()
             }.also {
                 logger.debug("Updated Git working tree to revision '$revisionToCheckout' in $it.")
             }

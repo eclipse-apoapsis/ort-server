@@ -108,24 +108,6 @@ class GitConfigFileProviderTest : WordSpec({
             provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1/product1/copyright-garbage.yml")) shouldBe true
         }
 
-        "return `true`if a file from a submodule is present" {
-            val provider = GitConfigFileProvider(GIT_URL, tempdir())
-
-            provider.contains(
-                RESOLVED_CONTEXT_MAIN,
-                Path("ort-config-test-sm/license-classifications.yml")
-            ) shouldBe true
-        }
-
-        "return `true` if a file from a submodule, referred to by a symlink is present" {
-            val provider = GitConfigFileProvider(GIT_URL, tempdir())
-
-            provider.contains(
-                RESOLVED_CONTEXT_MAIN,
-                Path("customer1/product1/license-classifications.yml")
-            ) shouldBe true
-        }
-
         "return `false` if the path refers to a directory" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
 
@@ -158,8 +140,7 @@ class GitConfigFileProviderTest : WordSpec({
             val filesPath = "customer2/product2"
             val expectedFiles = listOf(
                 "customer2/product2/copyright-garbage.yml",
-                "customer2/product2/evaluator.rules.kts",
-                "customer2/product2/license-classifications.yml"
+                "customer2/product2/evaluator.rules.kts"
             )
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
 
@@ -172,8 +153,7 @@ class GitConfigFileProviderTest : WordSpec({
             val filesPath = "customer2/product2/"
             val expectedFiles = listOf(
                 "customer2/product2/copyright-garbage.yml",
-                "customer2/product2/evaluator.rules.kts",
-                "customer2/product2/license-classifications.yml"
+                "customer2/product2/evaluator.rules.kts"
             )
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
 
