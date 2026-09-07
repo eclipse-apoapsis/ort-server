@@ -194,6 +194,10 @@ tasks.register("buildAllImages") {
         it.mustRunAfter(buildAllWorkerImages)
     }
 
+    tinyJibDocker.zipWithNext().forEach { (a, b) ->
+        b.mustRunAfter(a)
+    }
+
     val uiDockerBuild = getTasksByName("buildUIImage", /* recursive = */ false).single()
 
     dependsOn(buildAllWorkerImages, tinyJibDocker, uiDockerBuild)
