@@ -1,7 +1,8 @@
 # Git config file provider
 
 This module provides an implementation of the `ConfigFileProvider` interface defined by the [Configuration abstraction](../README.md) that reads configuration files from a git repository.
-The provider is capable of resolving files, directories, symbolic links and submodules in the repository.
+The provider is capable of resolving files, directories, and symbolic links.
+Git submodules are not supported.
 
 ## Synopsis
 
