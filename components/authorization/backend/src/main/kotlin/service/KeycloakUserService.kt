@@ -64,9 +64,6 @@ class KeycloakUserService(
         keycloakClient.deleteUser(userId)
     }
 
-    override suspend fun getUsers(): Set<User> =
-        keycloakClient.getUsers().mapTo(mutableSetOf()) { it.toOrtUser() }
-
     override suspend fun listUsers(parameters: ListQueryParameters, search: String?): ListQueryResult<User> {
         val users = keycloakClient.getUsers().mapTo(mutableSetOf()) { it.toOrtUser() }
             .filter { user -> search.isNullOrBlank() || user.contains(search) }
