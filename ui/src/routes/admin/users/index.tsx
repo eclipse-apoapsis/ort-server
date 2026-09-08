@@ -23,7 +23,14 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ShieldCheck, ShieldMinus, ShieldPlus, UserPlus } from 'lucide-react';
+import {
+  ShieldCheck,
+  ShieldMinus,
+  ShieldPlus,
+  UserPlus,
+  XCircle,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
 
 import { UserWithSuperuserStatus } from '@/api';
 import {
@@ -46,11 +53,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  convertToBackendSorting,
+  EMPTY_SORTING_STATE,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import {
   createAppColumnHelper,
   selectNoTableState,
@@ -59,26 +72,51 @@ import {
 import { ApiError } from '@/lib/api-error';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
-import { paginationSearchParameterSchema } from '@/schemas';
+import {
+  adminUsersSearchParameterSchema,
+  type AdminUsersSearchParameters,
+} from '@/schemas';
 
 const defaultPageSize = 10;
+
+const getUsersOptionsForSearch = ({
+  page,
+  pageSize,
+  sortBy,
+  search,
+}: AdminUsersSearchParameters) => {
+  const requestPageSize = pageSize ?? defaultPageSize;
+
+  return getUsersOptions({
+    query: {
+      limit: requestPageSize,
+      offset: page ? (page - 1) * requestPageSize : 0,
+      sort: convertToBackendSorting(sortBy),
+      search: search || undefined,
+    },
+  });
+};
 
 const columnHelper = createAppColumnHelper<UserWithSuperuserStatus>();
 
 const columns = columnHelper.columns([
   columnHelper.accessor('user.username', {
+    id: 'username',
     header: 'Username',
     cell: ({ row }) => <TooltipIfTruncated text={row.original.user.username} />,
   }),
   columnHelper.accessor('user.firstName', {
+    id: 'firstName',
     header: 'First name',
     cell: ({ row }) => <>{row.original.user.firstName}</>,
   }),
   columnHelper.accessor('user.lastName', {
+    id: 'lastName',
     header: 'Last name',
     cell: ({ row }) => <>{row.original.user.lastName}</>,
   }),
   columnHelper.accessor('user.email', {
+    id: 'email',
     header: 'Email address',
     cell: ({ row }) => (
       <TooltipIfTruncated text={row.original.user.email ?? ''} />
@@ -86,6 +124,7 @@ const columns = columnHelper.columns([
   }),
   columnHelper.accessor('isSuperuser', {
     header: 'Superuser',
+    enableSorting: false,
     cell: ({ row }) => (
       <>
         {row.original.isSuperuser ? <ShieldCheck className='h-4 w-4' /> : null}
@@ -95,6 +134,7 @@ const columns = columnHelper.columns([
   columnHelper.display({
     id: 'actions',
     header: () => <div className='text-right'>Actions</div>,
+    enableSorting: false,
     size: 80,
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
@@ -200,28 +240,107 @@ const columns = columnHelper.columns([
   }),
 ]);
 
+const UserSearch = ({ search }: { search: AdminUsersSearchParameters }) => {
+  const committedSearch = search.search ?? '';
+  const navigate = Route.useNavigate();
+  const [searchInput, setSearchInput] = useState(committedSearch);
+  const lastAppliedSearch = useRef(committedSearch);
+
+  const applySearch = () => {
+    const normalizedSearch = searchInput.trim();
+
+    if (normalizedSearch === lastAppliedSearch.current) return;
+
+    lastAppliedSearch.current = normalizedSearch;
+    navigate({
+      search: {
+        ...search,
+        page: 1,
+        search: normalizedSearch || undefined,
+      },
+    });
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+
+    if (lastAppliedSearch.current === '') return;
+
+    lastAppliedSearch.current = '';
+    navigate({
+      search: {
+        ...search,
+        page: 1,
+        search: undefined,
+      },
+    });
+  };
+
+  return (
+    <form
+      className='mb-4 max-w-xl'
+      onSubmit={(event) => {
+        event.preventDefault();
+        applySearch();
+      }}
+    >
+      <label className='mb-2 block text-sm font-medium' htmlFor='user-search'>
+        Search users
+      </label>
+      <div className='flex gap-2'>
+        <Input
+          id='user-search'
+          type='search'
+          placeholder='Search by username, first name, last name, or email'
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          onBlur={applySearch}
+        />
+        <Button
+          type='button'
+          variant='ghost'
+          className='px-2'
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={clearSearch}
+        >
+          <XCircle
+            className={
+              searchInput.length === 0
+                ? 'h-fit text-gray-400 opacity-40'
+                : 'h-fit text-gray-400 opacity-100'
+            }
+          />
+          <span className='sr-only'>Clear search</span>
+        </Button>
+      </div>
+    </form>
+  );
+};
+
 const Users = () => {
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ?? defaultPageSize;
 
   const { data: users } = useSuspenseQuery({
-    ...getUsersOptions(),
+    ...getUsersOptionsForSearch(search),
     staleTime: routePrefetchStaleTime,
   });
 
   const table = useAppTable(
     {
-      data: users,
+      data: users.data,
       columns,
-
+      pageCount: Math.ceil(users.pagination.totalCount / pageSize),
       state: {
         pagination: {
           pageIndex,
           pageSize,
         },
+        sorting: search.sortBy ?? EMPTY_SORTING_STATE,
       },
-      manualPagination: false,
+      manualPagination: true,
+      manualSorting: true,
     },
     selectNoTableState
   );
@@ -250,33 +369,48 @@ const Users = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <CardContent>
-          <DataTable
-            table={table}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
-            }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: 1, pageSize: size },
-              };
-            }}
-          />
-        </CardContent>
+        <UserSearch key={search.search ?? ''} search={search} />
+        <DataTable
+          table={table}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: 1, pageSize: size },
+            };
+          }}
+          setSortingOptions={(sortBy) => {
+            return {
+              to: Route.to,
+              search: {
+                ...search,
+                page: 1,
+                sortBy: updateColumnSorting(search.sortBy, sortBy),
+              },
+            };
+          }}
+        />
       </CardContent>
     </Card>
   );
 };
 
 export const Route = createFileRoute('/admin/users/')({
-  validateSearch: paginationSearchParameterSchema,
-  loader: async ({ context: { queryClient } }) => {
+  validateSearch: adminUsersSearchParameterSchema,
+  loaderDeps: ({ search: { page, pageSize, sortBy, search: searchTerm } }) => ({
+    page,
+    pageSize,
+    sortBy,
+    search: searchTerm,
+  }),
+  loader: async ({ context: { queryClient }, deps }) => {
     await queryClient.ensureQueryData({
-      ...getUsersOptions(),
+      ...getUsersOptionsForSearch(deps),
       staleTime: routePrefetchStaleTime,
     });
   },

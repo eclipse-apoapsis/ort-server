@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
-import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -31,16 +32,19 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-
-import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class AdminRouteIntegrationTest : AbstractIntegrationTest({
@@ -54,30 +58,97 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     val testTemporary = true
 
     "GET /admin/users" should {
-        "return a list of users" {
+        val expectedRealmAdmin = UserWithSuperuserStatus(
+            user = User(
+                username = "realm-admin",
+                firstName = "Realm",
+                lastName = "Admin",
+                email = "realm.admin@example.org"
+            ),
+            isSuperuser = false
+        )
+        val expectedSuperuser = UserWithSuperuserStatus(
+            user = User(
+                username = SUPERUSER.username.value,
+                firstName = SUPERUSER.firstName,
+                lastName = SUPERUSER.lastName,
+                email = SUPERUSER.email
+            ),
+            isSuperuser = true
+        )
+        val expectedUser = UserWithSuperuserStatus(
+            user = User(
+                username = TEST_USER.username.value,
+                firstName = TEST_USER.firstName,
+                lastName = TEST_USER.lastName,
+                email = TEST_USER.email
+            ),
+            isSuperuser = false
+        )
+
+        "return a page of users in the default order" {
             integrationTestApplication {
                 val response = superuserClient.get("/api/v1/admin/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                val users = Json.decodeFromString<Set<UserWithSuperuserStatus>>(response.bodyAsText())
-                users shouldContain UserWithSuperuserStatus(
-                    user = User(
-                        username = SUPERUSER.username.value,
-                        firstName = SUPERUSER.firstName,
-                        lastName = SUPERUSER.lastName,
-                        email = SUPERUSER.email
-                    ),
-                    isSuperuser = true
+                val users = response.body<PagedResponse<UserWithSuperuserStatus>>()
+                users.data shouldContainExactly listOf(expectedRealmAdmin, expectedSuperuser, expectedUser)
+                users.pagination shouldBe PagingData(
+                    limit = ListQueryParameters.DEFAULT_LIMIT,
+                    offset = 0,
+                    totalCount = 3,
+                    sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
                 )
-                users shouldContain UserWithSuperuserStatus(
-                    user = User(
-                        username = TEST_USER.username.value,
-                        firstName = TEST_USER.firstName,
-                        lastName = TEST_USER.lastName,
-                        email = TEST_USER.email
-                    ),
-                    isSuperuser = false
+            }
+        }
+
+        "apply limit and offset while preserving the total count" {
+            integrationTestApplication {
+                val response = superuserClient.get("/api/v1/admin/users?limit=1&offset=1")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val users = response.body<PagedResponse<UserWithSuperuserStatus>>()
+                users.data shouldContainExactly listOf(expectedSuperuser)
+                users.pagination shouldBe PagingData(
+                    limit = 1,
+                    offset = 1,
+                    totalCount = 3,
+                    sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
                 )
+            }
+        }
+
+        "sort users and expose the requested sort property" {
+            integrationTestApplication {
+                val response = superuserClient.get("/api/v1/admin/users?sort=-username")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val users = response.body<PagedResponse<UserWithSuperuserStatus>>()
+                users.data shouldContainExactly listOf(expectedUser, expectedSuperuser, expectedRealmAdmin)
+                users.pagination.sortProperties shouldBe
+                        listOf(SortProperty("username", SortDirection.DESCENDING))
+            }
+        }
+
+        "search users before paging" {
+            integrationTestApplication {
+                val response = superuserClient.get("/api/v1/admin/users?search=SuPeR&limit=1")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val users = response.body<PagedResponse<UserWithSuperuserStatus>>()
+                users.data.shouldBeSingleton { it shouldBe expectedSuperuser }
+                users.pagination.totalCount shouldBe 1
+            }
+        }
+
+        "reject unsupported sort fields" {
+            integrationTestApplication {
+                val response = superuserClient.get("/api/v1/admin/users?sort=unknown")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                val error = response.body<ErrorResponse>()
+                error.message shouldBe "Invalid query parameters."
+                error.cause shouldBe "Unsupported sort field: 'unknown'."
             }
         }
 
@@ -190,7 +261,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
                 val usersResponse = superuserClient.get("/api/v1/admin/users")
                 usersResponse shouldHaveStatus HttpStatusCode.OK
-                usersResponse.body<List<UserWithSuperuserStatus>>()
+                usersResponse.body<PagedResponse<UserWithSuperuserStatus>>().data
                     .find { it.user.username == TEST_USER.username.value }
                     .shouldNotBeNull().isSuperuser shouldBe true
             }
@@ -223,7 +294,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
                 val usersResponse = superuserClient.get("/api/v1/admin/users")
                 usersResponse shouldHaveStatus HttpStatusCode.OK
-                usersResponse.body<List<UserWithSuperuserStatus>>()
+                usersResponse.body<PagedResponse<UserWithSuperuserStatus>>().data
                     .find { it.user.username == TEST_USER.username.value }
                     .shouldNotBeNull().isSuperuser shouldBe false
             }
@@ -245,7 +316,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
                 val usersResponse = superuserClient.get("/api/v1/admin/users")
                 usersResponse shouldHaveStatus HttpStatusCode.OK
-                usersResponse.body<List<UserWithSuperuserStatus>>()
+                usersResponse.body<PagedResponse<UserWithSuperuserStatus>>().data
                     .find { it.user.username == SUPERUSER.username.value }
                     .shouldNotBeNull().isSuperuser shouldBe true
             }

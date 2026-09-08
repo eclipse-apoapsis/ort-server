@@ -176,6 +176,30 @@ export const sortingSearchParameterSchema = z.object({
     .optional(),
 });
 
+export const adminUserSortFieldSchema = z.enum([
+  'username',
+  'firstName',
+  'lastName',
+  'email',
+]);
+
+export const adminUsersSearchParameterSchema = z.object({
+  ...paginationSearchParameterSchema.shape,
+  search: z.string().trim().optional(),
+  sortBy: z
+    .array(
+      z.object({
+        id: adminUserSortFieldSchema,
+        desc: z.boolean(),
+      })
+    )
+    .optional(),
+});
+
+export type AdminUsersSearchParameters = z.infer<
+  typeof adminUsersSearchParameterSchema
+>;
+
 export const packageSortingSearchParameterSchema = z.object({
   packageSortBy: z
     .array(
