@@ -24,6 +24,7 @@ import { LicenseFinding } from '@/api';
 import { getRunDetectedLicenseFindingsOptions } from '@/api/@tanstack/react-query.gen';
 import swhLogo from '@/assets/software-heritage-logo.svg';
 import { BreakableString } from '@/components/breakable-string';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
@@ -36,6 +37,7 @@ import {
   selectNoTableState,
   useAppTable,
 } from '@/hooks/use-app-table';
+import { createLicenseFindingCurationTemplate } from '@/lib/license-finding-curation';
 import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
 import { formatLineNumber } from '@/lib/utils';
@@ -95,9 +97,22 @@ export const DetectedLicenseFindingsTable = ({
             )
           : null;
 
+        const curationTemplate = createLicenseFindingCurationTemplate({
+          id: identifier,
+          path: row.original.path,
+          startLine: row.original.startLine,
+          endLine: row.original.endLine,
+          detectedLicense: license,
+        });
+
         return (
           <div className='flex items-start gap-2'>
             <BreakableString text={row.original.path} />
+            <CopyToClipboard
+              copyText={curationTemplate}
+              tooltipText='Copy license finding curation template to clipboard'
+              className='h-5 px-1 align-middle'
+            />
             {url && (
               <Tooltip>
                 <TooltipTrigger asChild>
