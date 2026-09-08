@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import org.eclipse.apoapsis.ortserver.model.User
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
 /**
  * A service interface to manage users for this server instance. The service
@@ -47,6 +49,15 @@ interface UserService {
      * Get all current users of the server.
      */
     suspend fun getUsers(): Set<User>
+
+    /**
+     * List current users according to the given [parameters]. If [search] is not blank, return only users whose
+     * username, first name, last name, or email address contains it, ignoring case.
+     */
+    suspend fun listUsers(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        search: String? = null
+    ): ListQueryResult<User>
 
     /**
      * Return the user with the given internal [id]. Throw an exception if the user does not exist.

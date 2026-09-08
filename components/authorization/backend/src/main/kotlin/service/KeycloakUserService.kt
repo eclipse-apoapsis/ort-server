@@ -26,7 +26,12 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User as KeycloakUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.User
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 /**
  * An implementation of the [UserService] interface that uses Keycloak as the backend user management system. As unique
@@ -62,6 +67,24 @@ class KeycloakUserService(
     override suspend fun getUsers(): Set<User> =
         keycloakClient.getUsers().mapTo(mutableSetOf()) { it.toOrtUser() }
 
+    override suspend fun listUsers(parameters: ListQueryParameters, search: String?): ListQueryResult<User> {
+        val users = keycloakClient.getUsers().mapTo(mutableSetOf()) { it.toOrtUser() }
+            .filter { user -> search.isNullOrBlank() || user.contains(search) }
+        val totalCount = users.size.toLong()
+        val sortedUsers = users.sortedWith(createUserComparator(parameters.sortFields))
+        val offset = parameters.offset ?: 0L
+        val limit = parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT
+        val page = if (offset >= sortedUsers.size.toLong()) {
+            emptyList()
+        } else {
+            sortedUsers.drop(offset.toInt()).take(limit)
+        }
+
+        val effectiveParameters = parameters.copy(limit = limit, offset = offset)
+
+        return ListQueryResult(page, effectiveParameters, totalCount)
+    }
+
     override suspend fun getUserById(id: String): User =
         keycloakClient.getUser(UserName(id)).toOrtUser()
 
@@ -73,6 +96,41 @@ class KeycloakUserService(
     override suspend fun userExists(id: String): Boolean =
         runCatching { getUserById(id) }.isSuccess
 }
+
+private fun User.contains(search: String): Boolean =
+    username.contains(search, ignoreCase = true) ||
+            firstName?.contains(search, ignoreCase = true) == true ||
+            lastName?.contains(search, ignoreCase = true) == true ||
+            email?.contains(search, ignoreCase = true) == true
+
+private fun createUserComparator(requestedSortFields: List<OrderField>): Comparator<User> {
+    val sortFields = requestedSortFields.let { fields ->
+        if (fields.any { it.name == "username" }) {
+            fields
+        } else {
+            fields + OrderField("username", OrderDirection.ASCENDING)
+        }
+    }
+
+    return sortFields.fold<_, Comparator<User>?>(null) { comparator, orderField ->
+        val nextComparator = when (orderField.name) {
+            "username" -> compareBy(User::username)
+            "firstName" -> compareBy(nullsFirst(), User::firstName)
+            "lastName" -> compareBy(nullsFirst(), User::lastName)
+            "email" -> compareBy(nullsFirst(), User::email)
+            "" -> throw QueryParametersException("Empty sort field.")
+            else -> throw QueryParametersException("Unsupported sort field: '${orderField.name}'.")
+        }.withDirection(orderField.direction)
+
+        comparator?.then(nextComparator) ?: nextComparator
+    } ?: compareBy(User::username)
+}
+
+private fun <T> Comparator<T>.withDirection(direction: OrderDirection): Comparator<T> =
+    when (direction) {
+        OrderDirection.ASCENDING -> this
+        OrderDirection.DESCENDING -> reversed()
+    }
 
 /**
  * Convert this [KeycloakUser] to a [User] in the ORT Server data model.
