@@ -92,14 +92,51 @@ describe('admin route loaders', () => {
     expect(totalCountRequest.query).toEqual({ limit: 1 });
   });
 
-  it('awaits the users query before resolving', async () => {
+  it('forwards the admin user list parameters to the awaited query', async () => {
     const loader = AdminUsersRoute.options.loader as unknown as (
       options: unknown
     ) => Promise<void>;
 
-    await expectLoaderToAwaitQuery(loader, 'ensureQueryData', {
+    const queryFn = await expectLoaderToAwaitQuery(loader, 'ensureQueryData', {
+      deps: {
+        page: 2,
+        pageSize: 25,
+        search: 'example',
+        sortBy: [
+          { id: 'lastName', desc: false },
+          { id: 'firstName', desc: true },
+        ],
+      },
+      params: {},
+    });
+
+    const request = getQueryKeyRequest(queryFn.mock.calls[0]![0]);
+    expect(request._id).toBe('getUsers');
+    expect(request.query).toEqual({
+      limit: 25,
+      offset: 25,
+      search: 'example',
+      sort: 'lastName,-firstName',
+    });
+  });
+
+  it('normalizes absent admin user list parameters', async () => {
+    const loader = AdminUsersRoute.options.loader as unknown as (
+      options: unknown
+    ) => Promise<void>;
+
+    const queryFn = await expectLoaderToAwaitQuery(loader, 'ensureQueryData', {
       deps: {},
       params: {},
+    });
+
+    const request = getQueryKeyRequest(queryFn.mock.calls[0]![0]);
+    expect(request._id).toBe('getUsers');
+    expect(request.query).toEqual({
+      limit: 10,
+      offset: 0,
+      search: undefined,
+      sort: undefined,
     });
   });
 

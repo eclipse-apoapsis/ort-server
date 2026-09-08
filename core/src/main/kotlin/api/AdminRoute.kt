@@ -43,6 +43,11 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putSuperuser
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
@@ -55,19 +60,21 @@ fun Route.admin() = route("admin") {
         val userService by inject<UserService>()
 
         get(getUsers, requireSuperuser()) {
+            val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
+            val users = userService.listUsers(pagingOptions.mapToModel(), call.parameters["search"])
             val superusers = authorizationService.listUsersWithRole(
                 OrganizationRole.ADMIN,
                 CompoundHierarchyId.WILDCARD
             )
 
-            val users = userService.getUsers().map { user ->
-                UserWithSuperuserStatus(
-                    user = user.mapToApi(),
-                    isSuperuser = user.username in superusers
-                )
-            }
-
-            call.respond(users)
+            call.respond(
+                users.mapToApi { user ->
+                    UserWithSuperuserStatus(
+                        user = user.mapToApi(),
+                        isSuperuser = user.username in superusers
+                    )
+                }
+            )
         }
 
         post(postUser, requireSuperuser()) {
