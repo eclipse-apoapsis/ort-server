@@ -46,11 +46,6 @@ interface UserService {
     suspend fun deleteUser(username: String)
 
     /**
-     * Get all current users of the server.
-     */
-    suspend fun getUsers(): Set<User>
-
-    /**
      * List current users according to the given [parameters]. If [search] is not blank, return only users whose
      * username, first name, last name, or email address contains it, ignoring case.
      */

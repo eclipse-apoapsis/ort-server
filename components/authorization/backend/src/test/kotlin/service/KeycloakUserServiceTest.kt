@@ -23,7 +23,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -95,24 +94,6 @@ class KeycloakUserServiceTest : WordSpec({
             coVerify {
                 client.deleteUser(keycloakUser.id)
             }
-        }
-    }
-
-    "getUsers" should {
-        "return a set of all users" {
-            val userCount = 16
-            val keycloakUsers = (1..userCount).mapTo(mutableSetOf(), ::createKeycloakUser)
-            val expectedUsers = (1..userCount).mapTo(mutableSetOf(), ::createUser)
-
-            val client = mockk<KeycloakClient> {
-                coEvery { getUsers() } returns keycloakUsers
-            }
-
-            val service = KeycloakUserService(client)
-            val users = service.getUsers()
-
-            users shouldContainExactlyInAnyOrder expectedUsers
-            coVerify(exactly = 1) { client.getUsers() }
         }
     }
 
