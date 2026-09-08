@@ -30,12 +30,14 @@ import {
 
 type CopyToClipboardProps = {
   copyText: string;
+  tooltipText?: string;
   tooltipContentClassName?: string;
   className?: string;
 };
 
 export const CopyToClipboard = ({
   copyText,
+  tooltipText = 'Copy to clipboard',
   tooltipContentClassName,
   className,
 }: CopyToClipboardProps) => {
@@ -73,7 +75,7 @@ export const CopyToClipboard = ({
           </Button>
         </TooltipTrigger>
         <TooltipContent className={tooltipContentClassName}>
-          {isCopied ? 'Copied!' : 'Copy to clipboard'}
+          {isCopied ? 'Copied!' : tooltipText}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
