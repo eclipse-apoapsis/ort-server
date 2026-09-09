@@ -24,6 +24,7 @@
 ARG ANDROID_CMD_VERSION=13114758
 ARG BAZELISK_VERSION=1.29.0
 ARG BOWER_VERSION=1.8.14
+ARG BUILDOZER_VERSION=f6a1982250030df9c2d24a675a04f150ff6aca6b # v8.5.1
 ARG BUN_VERSION=1.3.14
 ARG COCOAPODS_VERSION=1.16.2
 ARG COREPACK_VERSION=0.34.7
@@ -423,6 +424,7 @@ COPY --from=dotnetbuild /opt/dotnet /opt/dotnet
 FROM ort-base-image AS bazelbuild
 
 ARG BAZELISK_VERSION
+ARG BUILDOZER_VERSION
 
 ENV BAZEL_HOME=/opt/bazel
 ENV GOBIN=/opt/go/bin
@@ -437,7 +439,7 @@ RUN mkdir -p $BAZEL_HOME/bin \
 
 COPY --from=gobuild /opt/go /opt/go
 
-RUN $GOBIN/go install github.com/bazelbuild/buildtools/buildozer@latest && chmod a+x $GOBIN/buildozer
+RUN $GOBIN/go install github.com/bazelbuild/buildtools/buildozer@$BUILDOZER_VERSION && chmod a+x $GOBIN/buildozer
 
 FROM scratch AS bazel
 COPY --from=bazelbuild /opt/bazel /opt/bazel
