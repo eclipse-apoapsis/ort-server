@@ -26,7 +26,7 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentConfigGeneratorTest : StringSpec({

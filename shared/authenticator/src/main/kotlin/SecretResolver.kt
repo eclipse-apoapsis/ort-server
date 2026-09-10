@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.auth
+package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -29,20 +29,20 @@ import org.eclipse.apoapsis.ortserver.model.Secret
  * cannot be resolved. Note that the function cannot handle arbitrary secrets; it addresses secrets referenced by
  * infrastructure services that have been resolved when setting up the environment for a worker execution.
  */
-internal typealias SecretResolverFun = (Secret) -> String
+typealias SecretResolverFun = (Secret) -> String
 
 /**
  * Definition of a function that can resolve the value of an infrastructure-level secret from a given [Path].
  * The function takes a [Path] as input and returns its value or throws an [IllegalArgumentException] if the secret
  * cannot be resolved.
  */
-internal typealias InfraSecretResolverFun = (Path) -> String
+typealias InfraSecretResolverFun = (Path) -> String
 
 /**
  * A constant for a [SecretResolverFun] that always fails with an [IllegalArgumentException]. This can be used
  * if no authentication information is available yet.
  */
-internal val undefinedSecretResolver: SecretResolverFun = {
+val undefinedSecretResolver: SecretResolverFun = {
     throw IllegalArgumentException("Secret '${it.path}' cannot be resolved.")
 }
 
@@ -50,26 +50,26 @@ internal val undefinedSecretResolver: SecretResolverFun = {
  * A constant for an [InfraSecretResolverFun] that always fails with an [IllegalArgumentException]. This can be used
  * if no authentication information is available yet.
  */
-internal val undefinedInfraSecretResolver: InfraSecretResolverFun = {
+val undefinedInfraSecretResolver: InfraSecretResolverFun = {
     throw IllegalArgumentException("Secret '${it.path}' cannot be resolved.")
 }
 
 /**
  * Return a [SecretResolverFun] that can resolve secrets based on the data stored in the provided [authenticationInfo].
  */
-internal fun secretResolver(authenticationInfo: AuthenticationInfo): SecretResolverFun =
+fun secretResolver(authenticationInfo: AuthenticationInfo): SecretResolverFun =
     authenticationInfo::resolveSecret
 
 /**
  * Resolve all the given [secrets] using the provided [resolverFun] and return a [Map] that assigns the secrets to
  * their values. This is a convenience function that can handle multiple secrets at once.
  */
-internal fun resolveSecrets(resolverFun: SecretResolverFun, vararg secrets: Secret): Map<Secret, String> =
+fun resolveSecrets(resolverFun: SecretResolverFun, vararg secrets: Secret): Map<Secret, String> =
     secrets.associateWith(resolverFun)
 
 /**
  * Return an [InfraSecretResolverFun] that delegates to the given [configManager] to resolve secrets.
  */
-internal fun infraSecretResolverFromConfig(configManager: ConfigManager): InfraSecretResolverFun = { secret ->
+fun infraSecretResolverFromConfig(configManager: ConfigManager): InfraSecretResolverFun = { secret ->
     configManager.getSecret(secret)
 }

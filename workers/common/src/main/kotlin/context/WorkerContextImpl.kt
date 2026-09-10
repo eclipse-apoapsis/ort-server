@@ -44,14 +44,14 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
-import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
-import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFromConfig
-import org.eclipse.apoapsis.ortserver.workers.common.auth.secretResolver
-import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedSecretResolver
+import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationInfo
+import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.shared.authenticator.OrtServerAuthenticator
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
+import org.eclipse.apoapsis.ortserver.shared.authenticator.infraSecretResolverFromConfig
+import org.eclipse.apoapsis.ortserver.shared.authenticator.secretResolver
+import org.eclipse.apoapsis.ortserver.shared.authenticator.undefinedSecretResolver
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively

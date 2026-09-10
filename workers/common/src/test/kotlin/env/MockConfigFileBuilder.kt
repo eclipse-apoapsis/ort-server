@@ -32,10 +32,10 @@ import java.util.EnumSet
 import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.shared.authenticator.InfraSecretResolverFun
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
 
 /**
  * A helper class for testing concrete environment generator classes and the configuration files they produce.

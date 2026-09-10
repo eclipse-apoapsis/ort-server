@@ -29,9 +29,9 @@ import kotlin.random.Random
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveSecrets
+import org.eclipse.apoapsis.ortserver.shared.authenticator.InfraSecretResolverFun
+import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
+import org.eclipse.apoapsis.ortserver.shared.authenticator.resolveSecrets
 
 import org.ossreviewtoolkit.utils.common.Os
 import org.ossreviewtoolkit.utils.common.div

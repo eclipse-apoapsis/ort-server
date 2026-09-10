@@ -17,13 +17,26 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.env.definition
+plugins {
+    // Apply precompiled plugins.
+    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-publication-conventions")
+}
 
-import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
+group = "org.eclipse.apoapsis.ortserver.shared"
 
-/**
- * A specific [EnvironmentServiceDefinition] class for generating the _.bazel-credentials_ and _.bazelrc_ files.
- */
-class BazelDefinition(
-    service: ResolvedInfrastructureService
-) : EnvironmentServiceDefinition(service)
+dependencies {
+    api(projects.config.configSpi)
+    api(projects.model)
+
+    api(ortLibs.utils.authentication)
+
+    implementation(projects.utils.logging)
+
+    implementation(libs.commons.text)
+    implementation(ortLibs.utils.common)
+
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
+}

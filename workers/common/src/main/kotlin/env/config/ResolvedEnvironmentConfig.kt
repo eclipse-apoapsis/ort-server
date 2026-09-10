@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 

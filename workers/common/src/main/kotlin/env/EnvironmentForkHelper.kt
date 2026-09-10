@@ -32,11 +32,11 @@ import kotlinx.serialization.json.encodeToStream
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
-import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
-import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFromConfig
-import org.eclipse.apoapsis.ortserver.workers.common.auth.secretResolver
+import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationInfo
+import org.eclipse.apoapsis.ortserver.shared.authenticator.OrtServerAuthenticator
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.infraSecretResolverFromConfig
+import org.eclipse.apoapsis.ortserver.shared.authenticator.secretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 

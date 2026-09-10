@@ -79,11 +79,11 @@ import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
-import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
-import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
+import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationInfo
+import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.shared.authenticator.InfraSecretResolverFun
+import org.eclipse.apoapsis.ortserver.shared.authenticator.OrtServerAuthenticator
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 

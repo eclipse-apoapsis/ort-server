@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.auth
+package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -45,7 +45,6 @@ import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.common.Os

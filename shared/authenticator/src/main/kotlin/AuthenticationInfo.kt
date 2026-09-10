@@ -17,16 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.auth
+package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A data class holding all authentication information that is currently available. Based on this information,
  * configuration files can be generated or credentials for repositories can be obtained.
  */
-internal data class AuthenticationInfo(
+data class AuthenticationInfo(
     /**
      * A map with the currently known secrets. The map assigns the secret paths to their values.
      */
