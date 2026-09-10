@@ -59,6 +59,9 @@ configManager {
 ```
 The concrete secret values are then queried from the _secrets provider_.
 
+For this to work, the `OrtServerAuthenticator` must be installed and the URL with the secret references must be configured via an environment variable.
+The authenticator will read the secret references from the environment variable and return the resolved secrets when JGit asks for credentials for the given URL.
+
 ### Revision caching
 
 When a branch name (e.g. `main`) is used as the context, resolving it to a concrete revision via `resolveContext` requires network access to the Git repository.
