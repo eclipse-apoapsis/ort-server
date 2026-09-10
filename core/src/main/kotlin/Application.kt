@@ -34,6 +34,7 @@ fun Application.module() {
     MDC.put("component", "core")
 
     configureKoin()
+    configureAuthenticator()
     configureAuthentication(get(), get())
     configureLifecycle()
     configureRateLimit()

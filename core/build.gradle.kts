@@ -128,6 +128,7 @@ dependencies {
     implementation(projects.services.reportStorageService)
     implementation(projects.shared.apiMappings)
     implementation(projects.shared.apiModel)
+    implementation(projects.shared.authenticator)
     implementation(projects.shared.ktorUtils)
     implementation(projects.shared.reporters)
     implementation(projects.storage.storageSpi)
@@ -203,8 +204,10 @@ tinyJib {
         mainClass = "io.ktor.server.netty.EngineMain"
         creationTime = "USE_CURRENT_TIMESTAMP"
 
-        if (System.getProperty("idea.active").toBoolean()) {
-            jvmFlags = listOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5000")
+        jvmFlags = mutableListOf("--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED").apply {
+            if (System.getProperty("idea.active").toBoolean()) {
+                add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5000")
+            }
         }
     }
 }
