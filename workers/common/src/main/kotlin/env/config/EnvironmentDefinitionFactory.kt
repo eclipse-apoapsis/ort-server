@@ -24,7 +24,7 @@ import java.util.EnumSet
 import kotlin.enums.enumEntries
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.BazelDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition

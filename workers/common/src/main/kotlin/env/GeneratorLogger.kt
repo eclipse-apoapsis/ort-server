@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
 import org.slf4j.LoggerFactory
 

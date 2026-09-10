@@ -24,7 +24,7 @@ import java.io.PrintWriter
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveSecrets
+import org.eclipse.apoapsis.ortserver.shared.authenticator.resolveSecrets
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode

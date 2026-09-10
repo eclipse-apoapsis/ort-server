@@ -33,7 +33,7 @@ import io.mockk.mockk
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.NPM_REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.env.REMOTE_NAME
 import org.eclipse.apoapsis.ortserver.workers.common.env.REMOTE_URL

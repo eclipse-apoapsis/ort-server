@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.auth
+package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import java.net.Authenticator
 import java.net.PasswordAuthentication
@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicReference
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.authentication.UserInfoAuthenticator
@@ -59,7 +58,7 @@ private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
  * dynamically. Workers do not interact with this class directly, but use functionality provided by the
  * worker context interface instead.
  */
-internal class OrtServerAuthenticator(
+class OrtServerAuthenticator(
     /** The original authenticator that was active when this instance was installed. */
     original: Authenticator? = null
 ) : OrtAuthenticator(original) {

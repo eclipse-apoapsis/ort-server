@@ -35,8 +35,8 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition

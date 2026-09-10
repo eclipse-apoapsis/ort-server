@@ -39,6 +39,7 @@ dependencies {
     api(projects.components.secrets.secretsBackend)
     api(projects.config.configSpi)
     api(projects.model)
+    api(projects.shared.authenticator)
     api(projects.storage.storageSpi)
     api(projects.transport.transportSpi)
     api(projects.utils.logging)
@@ -51,7 +52,6 @@ dependencies {
     implementation(projects.services.ortRunService)
     implementation(projects.utils.config)
 
-    implementation(libs.commons.text)
     implementation(libs.kaml)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.kotlinx.serialization.json)

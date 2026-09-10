@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
 /**
  * Definition of a base class for an environment definition that references an [ResolvedInfrastructureService].

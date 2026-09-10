@@ -20,7 +20,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.net.URI
 
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
 /**
  * Return a string with the URL of this [ResolvedInfrastructureService] with the credentials embedded as needed

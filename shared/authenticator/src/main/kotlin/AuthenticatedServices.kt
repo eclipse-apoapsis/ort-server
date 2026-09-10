@@ -17,15 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.auth
+package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import java.net.URI
 import java.net.URL
 import java.util.Locale
 
 import org.apache.commons.text.similarity.FuzzyScore
-
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.slf4j.LoggerFactory
 

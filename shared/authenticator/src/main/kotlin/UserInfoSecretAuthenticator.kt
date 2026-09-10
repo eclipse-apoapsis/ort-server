@@ -17,12 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.auth
+package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import java.net.Authenticator.RequestorType
 
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.ossreviewtoolkit.utils.authentication.UserInfoAuthenticator
 import org.ossreviewtoolkit.utils.common.replaceCredentialsInUri

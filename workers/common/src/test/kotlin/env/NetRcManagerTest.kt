@@ -39,8 +39,8 @@ import io.mockk.unmockkAll
 import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
-import org.eclipse.apoapsis.ortserver.workers.common.auth.SecretResolverFun
+import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationEvent
+import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 

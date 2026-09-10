@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
 /**
  * A specific [EnvironmentServiceDefinition] class for generating the Gradle _init.gradle.kts_ file.
