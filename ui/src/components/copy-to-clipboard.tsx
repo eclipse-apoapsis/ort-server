@@ -64,6 +64,7 @@ export const CopyToClipboard = ({
             type='button'
             size='sm'
             className={className}
+            aria-label={tooltipText}
             onClick={handleCopyClick}
           >
             <span className='fg-slate-300'>
