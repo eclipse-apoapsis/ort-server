@@ -38,7 +38,7 @@ import {
   useAppTable,
 } from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
-import { formatLineNumber } from '@/lib/utils';
+import { formatLineRange } from '@/lib/utils';
 
 const snippetColumnHelper = createAppColumnHelper<SnippetSource>();
 const defaultPageSize = 10;
@@ -106,11 +106,14 @@ const SnippetSourceCard = ({ snippet }: { snippet: SnippetSource }) => {
       </div>
 
       <div className='flex items-start justify-between gap-4 text-sm'>
-        <div className='flex min-w-0 gap-2'>
-          <div className='text-muted-foreground shrink-0'>Location:</div>
-          <div className='wrap-break-word'>
-            {snippet.path} ({formatLineNumber(snippet.startLine)}-
-            {formatLineNumber(snippet.endLine)})
+        <div className='flex min-w-0 flex-col gap-2'>
+          <div className='flex min-w-0 gap-2'>
+            <div className='text-muted-foreground shrink-0'>Path:</div>
+            <div className='wrap-break-word'>{snippet.path}</div>
+          </div>
+          <div className='flex gap-2'>
+            <div className='text-muted-foreground shrink-0'>Line Range:</div>
+            <div>{formatLineRange(snippet.startLine, snippet.endLine)}</div>
           </div>
         </div>
         <div className='flex shrink-0 gap-2'>
