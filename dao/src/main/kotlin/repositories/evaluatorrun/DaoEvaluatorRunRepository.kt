@@ -22,7 +22,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
@@ -56,9 +57,10 @@ class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunReposito
         }.mapToModel()
     }
 
-    override fun get(id: Long): EvaluatorRun? = db.entityQuery { EvaluatorRunDao[id].mapToModel() }
+    override fun get(id: Long): EvaluatorRun? =
+        db.blockingQueryCatching { EvaluatorRunDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getByJobId(evaluatorJobId: Long): EvaluatorRun? = db.entityQuery {
+    override fun getByJobId(evaluatorJobId: Long): EvaluatorRun? = db.blockingQueryCatching {
         EvaluatorRunDao.find { EvaluatorRunsTable.evaluatorJobId eq evaluatorJobId }.firstOrNull()?.mapToModel()
-    }
+    }.getEntityOrNull()
 }
