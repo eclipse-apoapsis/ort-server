@@ -40,7 +40,7 @@ import {
   useAppTable,
 } from '@/hooks/use-app-table';
 import { toastError } from '@/lib/toast';
-import { formatLineNumber } from '@/lib/utils';
+import { formatLineRange } from '@/lib/utils';
 import { SnippetFindingSnippetsTable } from './snippet-finding-snippets-table';
 
 const findingColumnHelper = createAppColumnHelper<SnippetFinding>();
@@ -127,18 +127,10 @@ export const ProvenanceSnippetFindingsTable = ({
     }),
     findingColumnHelper.accessor('startLine', {
       id: 'startLine',
-      header: 'Start Line',
+      header: 'Line Range',
       enableSorting: false,
-      cell: ({ row }) => formatLineNumber(row.original.startLine),
-      meta: {
-        widthPercentage: 10,
-      },
-    }),
-    findingColumnHelper.accessor('endLine', {
-      id: 'endLine',
-      header: 'End Line',
-      enableSorting: false,
-      cell: ({ row }) => formatLineNumber(row.original.endLine),
+      cell: ({ row }) =>
+        formatLineRange(row.original.startLine, row.original.endLine),
       meta: {
         widthPercentage: 10,
       },
