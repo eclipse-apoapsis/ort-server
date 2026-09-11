@@ -43,3 +43,10 @@ export function formatTimestamp(
 export function formatLineNumber(line: number) {
   return line === -1 ? 'UNKNOWN' : line;
 }
+
+export function formatLineRange(startLine: number, endLine: number) {
+  if (startLine === -1 && endLine === -1) return 'UNKNOWN';
+  if (startLine === endLine) return `${formatLineNumber(startLine)}`;
+
+  return `${formatLineNumber(startLine)}-${formatLineNumber(endLine)}`;
+}

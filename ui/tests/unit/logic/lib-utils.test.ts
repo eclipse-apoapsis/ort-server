@@ -19,12 +19,24 @@
 
 import { expect, it } from 'vitest';
 
-import { formatLineNumber, formatTimestamp } from '@/lib/utils';
+import {
+  formatLineNumber,
+  formatLineRange,
+  formatTimestamp,
+} from '@/lib/utils';
 
 it('formatLineNumber', () => {
   expect(formatLineNumber(-1)).toBe('UNKNOWN');
   expect(formatLineNumber(0)).toBe(0);
   expect(formatLineNumber(1)).toBe(1);
+});
+
+it('formatLineRange', () => {
+  expect(formatLineRange(12, 18)).toBe('12-18');
+  expect(formatLineRange(-1, 18)).toBe('UNKNOWN-18');
+  expect(formatLineRange(12, -1)).toBe('12-UNKNOWN');
+  expect(formatLineRange(-1, -1)).toBe('UNKNOWN');
+  expect(formatLineRange(12, 12)).toBe('12');
 });
 
 it('formatTimestamp', () => {
