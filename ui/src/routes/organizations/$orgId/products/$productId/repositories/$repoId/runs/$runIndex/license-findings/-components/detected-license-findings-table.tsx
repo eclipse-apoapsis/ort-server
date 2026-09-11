@@ -40,7 +40,7 @@ import {
 import { createLicenseFindingCurationTemplate } from '@/lib/license-finding-curation';
 import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
-import { formatLineNumber } from '@/lib/utils';
+import { formatLineRange } from '@/lib/utils';
 
 const findingColumnHelper = createAppColumnHelper<LicenseFinding>();
 const defaultPageSize = 10;
@@ -141,16 +141,9 @@ export const DetectedLicenseFindingsTable = ({
     }),
     findingColumnHelper.accessor('startLine', {
       id: 'startLine',
-      header: 'Start Line',
-      cell: ({ row }) => formatLineNumber(row.original.startLine),
-      meta: {
-        widthPercentage: 10,
-      },
-    }),
-    findingColumnHelper.accessor('endLine', {
-      id: 'endLine',
-      header: 'End Line',
-      cell: ({ row }) => formatLineNumber(row.original.endLine),
+      header: 'Line Range',
+      cell: ({ row }) =>
+        formatLineRange(row.original.startLine, row.original.endLine),
       meta: {
         widthPercentage: 10,
       },
