@@ -177,7 +177,7 @@ const renderSubComponent = ({
                 expression={project.processedDeclaredLicense.spdxExpression}
               />
             ) : (
-              <div className='text-muted-foreground italic'>No value</div>
+              <div className='text-muted-foreground italic'>N/A</div>
             )}
           </div>
           <RenderProperty
@@ -192,7 +192,7 @@ const renderSubComponent = ({
                 licenses={project.processedDeclaredLicense.unmappedLicenses}
               />
             ) : (
-              <div className='text-muted-foreground italic'>No value</div>
+              <div className='text-muted-foreground italic'>N/A</div>
             )}
           </div>
         </div>
