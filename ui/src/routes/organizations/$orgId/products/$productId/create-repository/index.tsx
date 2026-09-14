@@ -211,11 +211,11 @@ export const CreateRepositoryForm = ({
             >
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating repository...</span>
+                  <span className='sr-only'>Adding repository...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Create'
+                'Add'
               )}
             </Button>
           </CardFooter>

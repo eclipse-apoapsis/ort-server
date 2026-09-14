@@ -91,7 +91,7 @@ const CreateOrganizationPage = () => {
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
-      <CardHeader>Create Organization</CardHeader>
+      <CardHeader>Add Organization</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
@@ -126,11 +126,11 @@ const CreateOrganizationPage = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating organization...</span>
+                  <span className='sr-only'>Adding organization...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Create'
+                'Add'
               )}
             </Button>
           </CardFooter>

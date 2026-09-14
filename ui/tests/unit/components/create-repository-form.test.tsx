@@ -35,7 +35,7 @@ describe('CreateRepositoryForm', () => {
     render(<CreateRepositoryForm isPending={false} onSubmit={vi.fn()} />);
 
     const urlInput = screen.getByLabelText('URL');
-    const createButton = screen.getByRole('button', { name: 'Create' });
+    const createButton = screen.getByRole('button', { name: 'Add' });
 
     expect(createButton).toBeDisabled();
 
@@ -104,7 +104,7 @@ describe('CreateRepositoryForm', () => {
 
     render(<CreateRepositoryForm isPending={false} onSubmit={vi.fn()} />);
 
-    const createButton = screen.getByRole('button', { name: 'Create' });
+    const createButton = screen.getByRole('button', { name: 'Add' });
     const usernameInput = screen.getByLabelText('Username');
     const passwordInput = screen.getByLabelText(passwordLabel);
 
@@ -135,7 +135,7 @@ describe('CreateRepositoryForm', () => {
     await user.type(screen.getByLabelText('URL'), repositoryUrl);
     await user.type(screen.getByLabelText(passwordLabel), 'token');
 
-    expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
     expect(
       await screen.findByText(
         'A username is required for the password or personal access token.'
@@ -168,7 +168,7 @@ describe('CreateRepositoryForm', () => {
     await user.type(screen.getByLabelText('URL'), repositoryUrl);
     await user.type(screen.getByLabelText('Username'), 'jdoe');
     await user.type(screen.getByLabelText(passwordLabel), 'token');
-    await user.click(screen.getByRole('button', { name: 'Create' }));
+    await user.click(screen.getByRole('button', { name: 'Add' }));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
     expect(onSubmit.mock.calls[0]?.[0]).toEqual({
