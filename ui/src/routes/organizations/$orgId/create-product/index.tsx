@@ -63,7 +63,7 @@ const CreateProductPage = () => {
   const { mutateAsync, isPending } = useMutation({
     ...postProductMutation(),
     onSuccess(data) {
-      // Refresh the user token and data to get the new roles after creating a new product.
+      // Refresh the user token and data to get the new roles after adding a new product.
       refreshUser();
 
       toast.info('Add Product', {
@@ -102,7 +102,7 @@ const CreateProductPage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create Product</CardTitle>
+        <CardTitle>Add Product</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
@@ -138,11 +138,11 @@ const CreateProductPage = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating product...</span>
+                  <span className='sr-only'>Adding product...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Create'
+                'Add'
               )}
             </Button>
           </CardFooter>
