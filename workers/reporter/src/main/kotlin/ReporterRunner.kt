@@ -265,7 +265,7 @@ class ReporterRunner(
 
                     result.getOrNull()?.let { (_, reportFiles) ->
                         val nameMapper = ReportNameMapper.create(
-                            requireNotNull(reporterConfig.getReportDefinition(format)).nameMapping
+                            reporterConfig.getReportDefinition(format)?.nameMapping
                         )
 
                         val namedReportFiles = nameMapper.mapReportNames(reportFiles)
