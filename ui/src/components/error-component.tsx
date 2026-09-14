@@ -40,6 +40,9 @@ export const ErrorComponent = ({
   className,
   showStackTrace = false,
 }: Props) => {
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error ? error.stack : undefined;
+
   return (
     <Card className={cn('flex h-full', className)}>
       <CardHeader>
@@ -47,10 +50,10 @@ export const ErrorComponent = ({
           <TriangleAlert className='text-traffic-light-red size-5' />
           <div>{title}</div>
         </CardTitle>
-        <CardDescription>{`Error: ${error.message}`}</CardDescription>
+        <CardDescription>{`Error: ${message}`}</CardDescription>
         {showStackTrace && (
           <CardDescription className='text-xs'>
-            {error.stack?.split('\n').map((line, index) => (
+            {stack?.split('\n').map((line, index) => (
               <div key={index}>{line}</div>
             ))}
           </CardDescription>
