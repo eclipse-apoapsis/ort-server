@@ -89,5 +89,6 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
         singleOf(::DaoRepositoryRepository).bind<RepositoryRepository>()
         singleOf(::PluginTemplateEventStore)
         singleOf(::PluginTemplateService)
+        singleOf(::PluginTemplateApplicator)
     }
 }

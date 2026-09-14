@@ -100,7 +100,7 @@ class PluginTemplateService(
      * Create a new plugin template with the given [templateName], [pluginType], and [pluginId] with the provided
      * [options].
      */
-    internal fun create(
+    fun create(
         templateName: String,
         pluginType: PluginType,
         pluginId: String,
@@ -181,7 +181,7 @@ class PluginTemplateService(
     }
 
     /** Enable the plugin template with the given [templateName], [pluginType], and [pluginId] globally. */
-    internal fun enableGlobal(
+    fun enableGlobal(
         templateName: String,
         pluginType: PluginType,
         pluginId: String,

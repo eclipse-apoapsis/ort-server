@@ -42,6 +42,9 @@ const val PARAMETER_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
 /** An [Issue.source] for errors that occur when validating the admin config file. */
 const val ADMIN_CONFIG_VALIDATION_SOURCE = "ADMIN_CONFIG_VALIDATION"
 
+/** An [Issue.source] for errors that occur when applying the plugin templates. */
+const val PLUGIN_TEMPLATE_SOURCE = "PLUGIN_TEMPLATE"
+
 /** Create a new [Issue] with the given [message] and [source] and other properties set to default values. */
 fun createIssue(message: String, source: String): Issue =
     Issue(
