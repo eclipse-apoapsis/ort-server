@@ -63,6 +63,17 @@ describe('RoleSelect', () => {
     expect(screen.getByRole('combobox')).toHaveTextContent('READER');
   });
 
+  it('lists the roles from least to most privileged', async () => {
+    const user = userEvent.setup();
+    render(<RoleSelectHarness role='READER' />);
+
+    await user.click(screen.getByRole('combobox'));
+
+    expect(
+      screen.getAllByRole('option').map((option) => option.textContent)
+    ).toEqual(['READER', 'WRITER', 'ADMIN']);
+  });
+
   it('updates the field when another role is selected', async () => {
     const user = userEvent.setup();
     render(<RoleSelectHarness role='READER' />);
