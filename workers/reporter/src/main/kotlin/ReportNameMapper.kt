@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
 
 /**
@@ -40,10 +39,10 @@ interface ReportNameMapper {
 
         /**
          * Return a [ReportNameMapper] instance to map the file names for the reporter described by the given
-         * [reportDefinition].
+         * [nameMapping].
          */
-        fun create(reportDefinition: ReportDefinition): ReportNameMapper =
-            reportDefinition.nameMapping?.let(::createWithMapping) ?: DEFAULT_MAPPER
+        fun create(nameMapping: ReportNameMapping?): ReportNameMapper =
+            nameMapping?.let(::createWithMapping) ?: DEFAULT_MAPPER
 
         /**
          * Return a [ReportNameMapper] implementation that applies the given [nameMapping].

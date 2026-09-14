@@ -24,15 +24,13 @@ import io.kotest.matchers.shouldBe
 
 import java.io.File
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportDefinition
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
 
 class ReportNameMapperTest : StringSpec({
-    "Default file names should be used if no configuration is defined" {
-        val definition = ReportDefinition("unConfiguredReporter")
+    "Default file names should be used if no name mapping is defined" {
         val reportFiles = listOf(File("report1.pdf"), File("parent", "sub.html"))
 
-        val mapper = ReportNameMapper.create(definition)
+        val mapper = ReportNameMapper.create(null)
         val mappedFiles = mapper.mapReportNames(reportFiles)
 
         mappedFiles shouldBe mapOf(
@@ -41,12 +39,11 @@ class ReportNameMapperTest : StringSpec({
         )
     }
 
-    "A mapping from the definition should be applied to file names" {
+    "A name prefix should be applied to file names" {
         val reportNameMapping = ReportNameMapping(namePrefix = "testReport")
-        val definition = ReportDefinition("testReporter", nameMapping = reportNameMapping)
         val reportFiles = listOf(File("report1.pdf"), File("parent", "sub.html"))
 
-        val mapper = ReportNameMapper.create(definition)
+        val mapper = ReportNameMapper.create(reportNameMapping)
         val mappedFiles = mapper.mapReportNames(reportFiles)
 
         mappedFiles shouldBe mapOf(
@@ -57,10 +54,9 @@ class ReportNameMapperTest : StringSpec({
 
     "The start index should be applied correctly" {
         val reportNameMapping = ReportNameMapping(namePrefix = "testReport", startIndex = 0)
-        val definition = ReportDefinition("testReporterZeroIndex", nameMapping = reportNameMapping)
         val reportFiles = listOf(File("report1.pdf"), File("parent", "sub.html"))
 
-        val mapper = ReportNameMapper.create(definition)
+        val mapper = ReportNameMapper.create(reportNameMapping)
         val mappedFiles = mapper.mapReportNames(reportFiles)
 
         mappedFiles shouldBe mapOf(
@@ -71,10 +67,9 @@ class ReportNameMapperTest : StringSpec({
 
     "A single result file should be mapped correctly if no index should be added" {
         val reportNameMapping = ReportNameMapping(namePrefix = "testReport")
-        val definition = ReportDefinition("testReporter", nameMapping = reportNameMapping)
         val reportFiles = listOf(File("single-result.pdf"))
 
-        val mapper = ReportNameMapper.create(definition)
+        val mapper = ReportNameMapper.create(reportNameMapping)
         val mappedFiles = mapper.mapReportNames(reportFiles)
 
         mappedFiles shouldBe mapOf(
@@ -84,10 +79,9 @@ class ReportNameMapperTest : StringSpec({
 
     "A single result file should be mapped correctly if always an index should be added" {
         val reportNameMapping = ReportNameMapping(namePrefix = "testReport", startIndex = 42, alwaysAppendIndex = true)
-        val config = ReportDefinition("testReporterWithIndex", nameMapping = reportNameMapping)
         val reportFiles = listOf(File("single-result.pdf"))
 
-        val mapper = ReportNameMapper.create(config)
+        val mapper = ReportNameMapper.create(reportNameMapping)
         val mappedFiles = mapper.mapReportNames(reportFiles)
 
         mappedFiles shouldBe mapOf(
