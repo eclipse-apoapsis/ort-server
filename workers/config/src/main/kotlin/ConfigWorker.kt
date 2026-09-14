@@ -20,8 +20,6 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
@@ -56,11 +54,8 @@ class ConfigWorker(
     /** The service to access the admin configuration. */
     private val adminConfigService: AdminConfigService,
 
-    /** The service for accessing plugin information. */
-    private val pluginService: PluginService,
-
-    /** The service for accessing plugin templates. */
-    private val pluginTemplateService: PluginTemplateService
+    /** The applicator for the plugin templates configured by administrators. */
+    private val pluginTemplateApplicator: PluginTemplateApplicator
 ) {
     companion object {
         /** Constant for the path to the script that validates and transforms parameters. */
@@ -86,43 +81,17 @@ class ConfigWorker(
                 resolvedJobConfigContext.name
             )
 
-            // Resolve the default package managers before the validation script runs so the script can see and
-            // potentially override them.
-            val baseConfigs = context.resolveDefaultPackageManagers(context.ortRun.jobConfigs)
-
-            // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it
-            //       configurable.
-            val validationScriptExists = context.configManager.containsFile(
-                resolvedJobConfigContext,
-                VALIDATION_SCRIPT_PATH
+            // Apply the plugin templates before the validation script runs so that the script can override any value
+            // an administrator has configured.
+            val validationResult = runCatching {
+                pluginTemplateApplicator.applyTemplates(
+                    context.ortRun.jobConfigs,
+                    OrganizationId(context.ortRun.organizationId)
+                )
+            }.fold(
+                onSuccess = { baseConfigs -> validateConfigs(context, resolvedJobConfigContext, baseConfigs) },
+                onFailure = ::createPluginTemplateFailure
             )
-
-            val validationScriptResult = if (validationScriptExists) {
-                logger.info("Running validation script.")
-
-                val validationScript = context.configManager.getFileAsString(
-                    resolvedJobConfigContext,
-                    VALIDATION_SCRIPT_PATH
-                )
-                val validationScriptRunner = ValidationScriptRunner(
-                    createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
-                )
-
-                validationScriptRunner.runScript(validationScript).also {
-                    logger.debug("Issues returned by validation script: {}.", it.issues)
-                }
-            } else {
-                logger.info("Skipping validation as no script exists.")
-
-                ConfigValidationResultSuccess(baseConfigs)
-            }
-
-            val validationResult = when (validationScriptResult) {
-                is ConfigValidationResultSuccess ->
-                    validateAdminConfig(resolvedJobConfigContext, validationScriptResult)
-
-                is ConfigValidationResultFailure -> validationScriptResult
-            }
 
             storeResult(ortRunId, resolvedJobConfigContext, validationResult)
 
@@ -134,6 +103,64 @@ class ConfigWorker(
             }
         }
     }.getOrElse { RunResult.Failed(it) }
+
+    /**
+     * Validate and transform the given [baseConfigs] by running the validation script found in the given
+     * [resolvedJobConfigContext] - if any - and afterwards checking the result against the admin configuration.
+     */
+    private fun validateConfigs(
+        context: WorkerContext,
+        resolvedJobConfigContext: ResolvedConfigContext,
+        baseConfigs: JobConfigurations
+    ): ConfigValidationResult {
+        // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it
+        //       configurable.
+        val validationScriptExists = context.configManager.containsFile(
+            resolvedJobConfigContext,
+            VALIDATION_SCRIPT_PATH
+        )
+
+        val validationScriptResult = if (validationScriptExists) {
+            logger.info("Running validation script.")
+
+            val validationScript = context.configManager.getFileAsString(
+                resolvedJobConfigContext,
+                VALIDATION_SCRIPT_PATH
+            )
+            val validationScriptRunner = ValidationScriptRunner(
+                createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
+            )
+
+            validationScriptRunner.runScript(validationScript).also {
+                logger.debug("Issues returned by validation script: {}.", it.issues)
+            }
+        } else {
+            logger.info("Skipping validation as no script exists.")
+
+            ConfigValidationResultSuccess(baseConfigs)
+        }
+
+        return when (validationScriptResult) {
+            is ConfigValidationResultSuccess -> validateAdminConfig(resolvedJobConfigContext, validationScriptResult)
+            is ConfigValidationResultFailure -> validationScriptResult
+        }
+    }
+
+    /**
+     * Create a [ConfigValidationResultFailure] with an issue for the given [exception] that was thrown while applying
+     * the plugin templates.
+     */
+    private fun createPluginTemplateFailure(exception: Throwable): ConfigValidationResultFailure {
+        logger.error("Error while applying the plugin templates.", exception)
+
+        val issue = createIssue(
+            message = "Could not apply the plugin templates: '${exception.message}'. This is a problem with the " +
+                    "configuration of ORT Server, please contact the administrator.",
+            source = PLUGIN_TEMPLATE_SOURCE
+        )
+
+        return ConfigValidationResultFailure(listOf(issue))
+    }
 
     private fun validateAdminConfig(
         resolvedJobConfigContext: ResolvedConfigContext,
@@ -199,8 +226,8 @@ class ConfigWorker(
      * [resolvedJobConfigContext] and [baseConfigs]. This is needed because the [WorkerContext.ortRun] object contained
      * in the original [WorkerContext] does not have the resolved configuration context yet; it is updated at the end
      * of the worker execution. However, the config validation script needs the right configuration context. The
-     * [baseConfigs] override ensures the script sees the pre-resolved job configurations, including the default
-     * package managers.
+     * [baseConfigs] override ensures the script sees the pre-resolved job configurations, including the values
+     * contributed by the plugin templates.
      */
     private fun createValidationWorkerContext(
         context: WorkerContext,
@@ -216,26 +243,5 @@ class ConfigWorker(
             override val ortRun: OrtRun
                 get() = runWithConfigContext
         }
-    }
-
-    /**
-     * Return a copy of the given [jobConfigs] with the default package managers filled in for the analyzer
-     * configuration if [AnalyzerJobConfiguration.enabledPackageManagers][org.eclipse.apoapsis.ortserver.model
-     * .AnalyzerJobConfiguration.enabledPackageManagers] is null or empty.
-     */
-    private fun WorkerContext.resolveDefaultPackageManagers(jobConfigs: JobConfigurations): JobConfigurations {
-        if (!jobConfigs.analyzer.enabledPackageManagers.isNullOrEmpty()) return jobConfigs
-
-        val defaults = getDefaultPackageManagers(
-            pluginService,
-            pluginTemplateService,
-            OrganizationId(ortRun.organizationId)
-        )
-
-        logger.info("Determined default package managers: $defaults")
-
-        return jobConfigs.copy(
-            analyzer = jobConfigs.analyzer.copy(enabledPackageManagers = defaults)
-        )
     }
 }
