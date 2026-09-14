@@ -41,7 +41,8 @@ type QueryBoundaryProps = {
 };
 
 export const QueryErrorFallback = ({ error, reset }: ErrorComponentProps) => {
-  const retryLabel = `Could not load data: ${error.message}. Click to retry.`;
+  const message = error instanceof Error ? error.message : String(error);
+  const retryLabel = `Could not load data: ${message}. Click to retry.`;
 
   return (
     <Tooltip>
