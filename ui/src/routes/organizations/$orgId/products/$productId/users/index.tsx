@@ -33,6 +33,7 @@ import {
   getProductUsersQueryKey,
   putProductRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { RoleSelect } from '@/components/role-select';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -51,14 +52,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { getRoleIcon } from '@/helpers/role-helpers.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { roleSchema } from '@/schemas';
@@ -173,26 +166,7 @@ const ManageUsers = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select a role' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {roleSchema.options.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            <div className='flex items-center gap-2'>
-                              {getRoleIcon(role)}
-                              {role}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <RoleSelect value={field.value} onChange={field.onChange} />
                     <FormMessage />
                   </FormItem>
                 )}
