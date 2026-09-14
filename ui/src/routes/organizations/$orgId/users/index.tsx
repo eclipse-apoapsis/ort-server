@@ -24,7 +24,7 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Eye, Loader2, Pen, Shield } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -120,29 +120,10 @@ const ManageUsers = () => {
     <Card>
       <CardHeader>
         <CardTitle>Manage Users</CardTitle>
-        <CardDescription className='flex flex-col gap-2'>
-          <span>
-            Assign or remove roles to users in the{' '}
-            <span className='font-semibold'>{organization.name}</span>{' '}
-            organization.
-          </span>
-          <div className='grid grid-cols-[auto_1fr] items-center gap-x-1 gap-y-1'>
-            <Eye size={16} />
-            <span>
-              READERS can view the organization and its projects and
-              repositories.
-            </span>
-            <Pen size={16} />
-            <span>
-              WRITERS can view and edit the organization and its projects and
-              repositories.
-            </span>
-            <Shield size={16} />
-            <span>
-              ADMINS can view, edit, and delete the organization and its
-              projects and repositories.
-            </span>
-          </div>
+        <CardDescription>
+          Assign or remove roles to users in the{' '}
+          <span className='font-semibold'>{organization.name}</span>{' '}
+          organization.
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
@@ -171,7 +152,11 @@ const ManageUsers = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <RoleSelect value={field.value} onChange={field.onChange} />
+                    <RoleSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      level='organization'
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

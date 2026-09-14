@@ -41,7 +41,11 @@ const RoleSelectHarness = ({ role }: { role: Role }) => {
         name='role'
         render={({ field }) => (
           <FormItem>
-            <RoleSelect value={field.value} onChange={field.onChange} />
+            <RoleSelect
+              value={field.value}
+              onChange={field.onChange}
+              level='product'
+            />
           </FormItem>
         )}
       />
@@ -69,9 +73,11 @@ describe('RoleSelect', () => {
 
     await user.click(screen.getByRole('combobox'));
 
-    expect(
-      screen.getAllByRole('option').map((option) => option.textContent)
-    ).toEqual(['READER', 'WRITER', 'ADMIN']);
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(3);
+    expect(options[0]).toHaveTextContent(/^READER/);
+    expect(options[1]).toHaveTextContent(/^WRITER/);
+    expect(options[2]).toHaveTextContent(/^ADMIN/);
   });
 
   it('updates the field when another role is selected', async () => {
@@ -79,8 +85,18 @@ describe('RoleSelect', () => {
     render(<RoleSelectHarness role='READER' />);
 
     await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: 'ADMIN' }));
+    await user.click(screen.getByRole('option', { name: /^ADMIN/ }));
 
     expect(screen.getByRole('combobox')).toHaveTextContent('ADMIN');
+  });
+
+  it('shows only the role name in the trigger', async () => {
+    const user = userEvent.setup();
+    render(<RoleSelectHarness role='READER' />);
+
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: /^WRITER/ }));
+
+    expect(screen.getByRole('combobox')).toHaveTextContent(/^WRITER$/);
   });
 });
