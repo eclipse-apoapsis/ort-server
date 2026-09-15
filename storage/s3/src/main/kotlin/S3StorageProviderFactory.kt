@@ -97,7 +97,10 @@ class S3StorageProviderFactory : StorageProviderFactory {
 
         return S3StorageProvider(
             s3Client = client,
-            bucketName = config.getStringOrNull(BUCKET_NAME_PROPERTY),
+            bucketName = config.getStringOrNull(BUCKET_NAME_PROPERTY)
+                ?: throw IllegalArgumentException(
+                    "Missing required configuration property '$BUCKET_NAME_PROPERTY' for the S3 storage provider."
+                ),
             keyPrefix = config.getStringOrNull(KEY_PREFIX_PROPERTY)
         )
     }
