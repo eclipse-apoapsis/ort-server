@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
@@ -51,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefa
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
@@ -166,15 +168,33 @@ class ReporterRunner(
             HowToFixTextProvider.NONE
         }
 
-        val (reportNames, issues) = generateReports(
+        val howToFixTexts = calculateHowToFixTexts(resolvedOrtResult, howToFixTextProvider)
+        val cachingHowToFixTextProvider = HowToFixTextProvider { issue ->
+            if (issue in howToFixTexts.texts) {
+                howToFixTexts.texts[issue]
+            } else {
+                howToFixTextProvider.getHowToFixText(issue)
+            }
+        }
+
+        val (reportNames, reportIssues) = generateReports(
             context,
             config,
             adminConfig.reporterConfig,
             resolvedOrtResult,
             copyrightGarbage,
             licenseClassifications,
-            howToFixTextProvider
+            cachingHowToFixTextProvider
         )
+
+        val issues = buildList {
+            howToFixTexts.failureIssue?.let(::add)
+            addAll(reportIssues)
+        }
+
+        val issuesWithHowToFix = howToFixTexts.texts.mapNotNull { (issue, howToFix) ->
+            howToFix?.let { issue.mapToModel().copy(howToFix = it) }
+        }
 
         // Only return the package configurations if not already resolved by the evaluator.
         // Resolved items are always null here; each worker resolves its own items.
@@ -182,8 +202,51 @@ class ReporterRunner(
             reportNames,
             resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
             null,
-            issues = issues
+            issues = issues,
+            issuesWithHowToFix = issuesWithHowToFix
         )
+    }
+
+    /** Calculate how-to-fix text once for every distinct issue in the given [ortResult]. */
+    private fun calculateHowToFixTexts(
+        ortResult: OrtResult,
+        provider: HowToFixTextProvider
+    ): HowToFixTexts {
+        if (provider === HowToFixTextProvider.NONE) {
+            return HowToFixTexts(emptyMap(), null)
+        }
+
+        val issues = buildSet {
+            ortResult.getIssues().values.forEach(::addAll)
+            addAll(ortResult.getAdvisorProviderIssues())
+        }
+
+        var firstFailure: Throwable? = null
+        var failureCount = 0
+        val texts = issues.associateWith { issue ->
+            runCatching { provider.getHowToFixText(issue) }.getOrElse { exception ->
+                logger.error(
+                    "Could not calculate how-to-fix text for issue from '{}': '{}'.",
+                    issue.source,
+                    issue.message,
+                    exception
+                )
+                failureCount++
+                if (firstFailure == null) firstFailure = exception
+                null
+            }
+        }
+
+        val failureIssue = firstFailure?.let { exception ->
+            Issue(
+                timestamp = Clock.System.now(),
+                source = "Reporter",
+                message = "Could not calculate how-to-fix text for $failureCount issue(s): '${exception.message}'",
+                severity = Severity.WARNING
+            )
+        }
+
+        return HowToFixTexts(texts, failureIssue)
     }
 
     /**
@@ -344,7 +407,13 @@ data class ReporterRunnerResult(
     val reports: Map<String, Long>,
     val resolvedPackageConfigurations: List<PackageConfiguration>?,
     val resolvedItems: ResolvedItemsResult?,
-    val issues: List<Issue> = emptyList()
+    val issues: List<Issue> = emptyList(),
+    val issuesWithHowToFix: List<Issue> = emptyList()
+)
+
+private data class HowToFixTexts(
+    val texts: Map<OrtIssue, String?>,
+    val failureIssue: Issue?
 )
 
 /** Regular expression to split multiple template paths. */
