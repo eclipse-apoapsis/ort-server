@@ -39,7 +39,9 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderField
  */
 class KeycloakUserService(
     /** The client for interacting with Keycloak. */
-    private val keycloakClient: KeycloakClient
+    private val keycloakClient: KeycloakClient,
+    /** The service managing the users' role assignments. */
+    private val authorizationService: AuthorizationService
 ) : UserService {
     override suspend fun createUser(
         username: String,
@@ -60,8 +62,12 @@ class KeycloakUserService(
     }
 
     override suspend fun deleteUser(username: String) {
-        val userId = keycloakClient.getUser(UserName(username)).id
-        keycloakClient.deleteUser(userId)
+        val user = keycloakClient.getUser(UserName(username))
+
+        // Commit role removal before deleting the user so a database failure cannot leave reusable permissions.
+        // If Keycloak deletion fails, keep the roles removed rather than restoring access.
+        authorizationService.removeUserAssignments(user.username.value)
+        keycloakClient.deleteUser(user.id)
     }
 
     override suspend fun listUsers(parameters: ListQueryParameters, search: String?): ListQueryResult<User> {
