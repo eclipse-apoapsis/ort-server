@@ -18,9 +18,18 @@
  */
 
 import type { Issue } from '@/api';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 
 export const IssueDetails = ({ issue }: { issue: Issue }) => (
-  <div className='text-muted-foreground break-all whitespace-pre-line italic'>
-    {issue.message || 'No details.'}
+  <div className='flex flex-col gap-4'>
+    <div className='text-muted-foreground break-all whitespace-pre-line italic'>
+      {issue.message || 'No details.'}
+    </div>
+    {issue.howToFix?.trim() && (
+      <>
+        <div className='font-semibold'>How to fix</div>
+        <MarkdownRenderer markdown={issue.howToFix} />
+      </>
+    )}
   </div>
 );
