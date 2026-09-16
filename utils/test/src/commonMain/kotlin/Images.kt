@@ -27,7 +27,7 @@ object Images {
     const val ARTEMIS = "apache/artemis:2.57.0"
     const val AZURITE = "mcr.microsoft.com/azure-storage/azurite:3.37.0"
     const val FLOCI = "floci/floci:2.1.0"
-    const val KEYCLOAK = "quay.io/keycloak/keycloak:26.7.3"
+    const val KEYCLOAK = "quay.io/keycloak/keycloak:26.7.4"
     const val POSTGRES = "postgres:18.6"
     const val RABBITMQ = "rabbitmq:4.3.6"
     const val VAULT = "hashicorp/vault:2.1.0"
