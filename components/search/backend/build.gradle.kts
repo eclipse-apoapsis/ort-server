@@ -41,6 +41,7 @@ dependencies {
     api(projects.model)
 
     implementation(projects.dao)
+    implementation(projects.shared.apiModel)
 
     implementation(libs.exposed.core)
 
@@ -52,7 +53,6 @@ dependencies {
     routesImplementation(libs.ktor.openApi)
 
     testImplementation(testFixtures(projects.dao))
-    testImplementation(projects.shared.apiModel)
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.serialization.kotlinx.json)

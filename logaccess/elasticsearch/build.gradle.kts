@@ -39,11 +39,11 @@ dependencies {
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.okhttp)
     implementation(libs.slf4j)
+    implementation(libs.typesafeConfig)
     implementation(ktorLibs.serialization.kotlinx.json)
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.typesafeConfig)
     testImplementation(libs.wiremock)
 }
