@@ -92,6 +92,7 @@ import {
   sortingSearchParameterSchema,
 } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
+import { IssueDetails } from './-components/issue-details';
 
 const defaultPageSize = 10;
 const supportedSortColumns = new Set([
@@ -416,9 +417,7 @@ const IssuesComponent = () => {
               Details
             </AccordionTrigger>
             <AccordionContent>
-              <div className='text-muted-foreground break-all whitespace-pre-line italic'>
-                {issue.message || 'No details.'}
-              </div>
+              <IssueDetails issue={issue} />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
