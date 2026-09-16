@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -37,8 +38,16 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
@@ -220,7 +229,56 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /admin/users" should {
-        "delete a user" {
+        "remove all roles and not restore them when the username is recreated" {
+            integrationTestApplication {
+                val client = superuserClient
+                val username = TEST_USER.username.value
+                val authorizationService = DbAuthorizationService(dbExtension.db)
+                val repositoryId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(dbExtension.fixtures.repository.id)
+                )
+                val assignments = listOf(
+                    CompoundHierarchyId.WILDCARD to OrganizationRole.ADMIN,
+                    repositoryId.parent!!.parent!! to OrganizationRole.WRITER,
+                    repositoryId.parent!! to ProductRole.WRITER,
+                    repositoryId to RepositoryRole.WRITER
+                )
+                assignments.forEach { (hierarchyId, role) ->
+                    authorizationService.assignRole(username, role, hierarchyId)
+                }
+
+                val response = client.delete("/api/v1/admin/users") {
+                    parameter("username", username)
+                }
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                val createResponse = client.post("/api/v1/admin/users") {
+                    setBody(
+                        PostUser(
+                            username = username,
+                            firstName = testFirstName,
+                            lastName = testLastName,
+                            email = testEmail,
+                            password = testPassword,
+                            temporary = testTemporary
+                        )
+                    )
+                }
+                createResponse shouldHaveStatus HttpStatusCode.Created
+                assignments.forEach { (hierarchyId, _) ->
+                    val effectiveRole = authorizationService.getEffectiveRole(username, hierarchyId)
+                    effectiveRole.isSuperuser shouldBe false
+                    effectiveRole.getOrganizationPermissions().shouldBeEmpty()
+                    effectiveRole.getProductPermissions().shouldBeEmpty()
+                    effectiveRole.getRepositoryPermissions().shouldBeEmpty()
+                }
+            }
+        }
+
+        "delete a user without role assignments" {
             integrationTestApplication {
                 val response = superuserClient.delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
