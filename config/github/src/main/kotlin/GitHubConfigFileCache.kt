@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.config.github
 
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.read
-import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readBuffer
 
 import java.io.File
 import java.io.FileInputStream
@@ -217,7 +217,7 @@ internal class GitHubConfigFileCache(
                             val readChannel = load()
 
                             while (!readChannel.isClosedForRead) {
-                                val packet = readChannel.readRemaining()
+                                val packet = readChannel.readBuffer()
                                 while (!packet.exhausted()) {
                                     packet.read { writeChannel.write(it) }
                                 }

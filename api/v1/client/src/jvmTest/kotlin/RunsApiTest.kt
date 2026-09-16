@@ -28,7 +28,7 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
-import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readBuffer
 import io.ktor.utils.io.readText
 
 import io.mockk.spyk
@@ -94,7 +94,7 @@ class RunsApiTest : StringSpec({
 
             val receivedContent = StringBuilder()
             runsApi.downloadLogs(1, null, emptyList()) { channel ->
-                receivedContent.append(channel.readRemaining().readText())
+                receivedContent.append(channel.readBuffer().readText())
             }
 
             receivedContent.toString() shouldBe mockResponseContent
@@ -171,7 +171,7 @@ class RunsApiTest : StringSpec({
 
             val receivedContent = StringBuilder()
             runsApi.downloadReport(1, "report.txt") { channel ->
-                receivedContent.append(channel.readRemaining().readText())
+                receivedContent.append(channel.readBuffer().readText())
             }
 
             receivedContent.toString() shouldBe mockResponseContent
