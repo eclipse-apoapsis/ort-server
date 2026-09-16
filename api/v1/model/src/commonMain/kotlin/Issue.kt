@@ -62,7 +62,10 @@ data class Issue(
     /**
      * The purl of the [Package] this issue is related to. Null if the issue originates from a [Project] or elsewhere.
      */
-    val purl: String? = null
+    val purl: String? = null,
+
+    /** Markdown describing how this issue can be fixed, or null if no text is available. */
+    val howToFix: String? = null
 )
 
 /** Filters to apply when querying for issues. */

@@ -289,7 +289,8 @@ fun Issue.mapToApi() =
         worker = worker,
         resolutions = resolutions.map { it.mapToApi() },
         unappliedResolutions = unappliedResolutions.map { it.mapToApi() },
-        purl = purl
+        purl = purl,
+        howToFix = howToFix
     )
 
 fun ApiIssue.mapToModel() =
@@ -302,7 +303,8 @@ fun ApiIssue.mapToModel() =
         identifier = identifier?.mapToModel(),
         worker = worker,
         resolutions = resolutions.map { it.mapToModel() },
-        unappliedResolutions = unappliedResolutions.map { it.mapToModel() }
+        unappliedResolutions = unappliedResolutions.map { it.mapToModel() },
+        howToFix = howToFix
     )
 
 fun ApiIssueFilter.mapToModel(): IssueFilter = IssueFilter(
