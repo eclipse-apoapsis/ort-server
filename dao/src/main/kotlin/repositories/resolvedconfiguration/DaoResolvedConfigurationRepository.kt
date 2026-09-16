@@ -48,8 +48,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
-import org.eclipse.apoapsis.ortserver.dao.utils.DigestFunction
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.ortRunIssueContentMatches
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
@@ -61,8 +60,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
-import org.jetbrains.exposed.v1.core.QueryParameter
-import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -295,16 +292,7 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
             .innerJoin(IssuesTable)
             .select(OrtRunsIssuesTable.id)
             .where {
-                (OrtRunsIssuesTable.ortRunId eq ortRunId) and
-                    (IssuesTable.issueSource eq issue.source) and
-                    (
-                        DigestFunction(IssuesTable.message) eq
-                            DigestFunction(QueryParameter(issue.message, TextColumnType()))
-                        ) and
-                    (IssuesTable.severity eq issue.severity) and
-                    (IssuesTable.affectedPath eq issue.affectedPath) and
-                    (OrtRunsIssuesTable.timestamp eq issue.timestamp.toDatabasePrecision()) and
-                        (OrtRunsIssuesTable.identifierId eq identifierId)
+                ortRunIssueContentMatches(ortRunId, issue) and (OrtRunsIssuesTable.identifierId eq identifierId)
             }
             .firstOrNull()?.get(OrtRunsIssuesTable.id)?.value
     }
