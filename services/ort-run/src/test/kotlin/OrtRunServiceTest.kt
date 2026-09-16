@@ -1586,6 +1586,26 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "updateIssueHowToFixTexts" should {
+        "store the text and return the number of updated occurrences" {
+            val ortRunId = fixtures.ortRun.id
+            val issue = Issue(
+                timestamp = Instant.parse("2026-01-01T12:00:00Z"),
+                source = "Analyzer",
+                message = "A test issue",
+                severity = Severity.WARNING
+            )
+            service.storeIssues(ortRunId, listOf(issue))
+            val updatedIssue = issue.copy(howToFix = "Upgrade to **2.0**.")
+
+            service.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue)) shouldBe 1
+
+            fixtures.ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe updatedIssue
+            }
+        }
+    }
+
     "updateRevision" should {
         "update the revision" {
             val ortRun = fixtures.ortRun
