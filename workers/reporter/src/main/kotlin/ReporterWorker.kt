@@ -149,6 +149,7 @@ internal class ReporterWorker(
                 reporterRunnerResult.issues.takeUnless { it.isEmpty() }?.let {
                     ortRunService.storeIssues(ortRun.id, it)
                 }
+                ortRunService.updateIssueHowToFixTexts(ortRun.id, reporterRunnerResult.issuesWithHowToFix)
                 ortRunService.storeResolvedItems(ortRun.id, resolvedReporterItems)
             }
 
