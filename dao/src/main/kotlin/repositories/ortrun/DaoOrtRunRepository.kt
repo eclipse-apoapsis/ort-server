@@ -29,7 +29,10 @@ import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.ortRunIssueContentMatches
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
@@ -39,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -62,10 +66,27 @@ import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.delete
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.update
 
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(DaoOrtRunRepository::class.java)
+
+private data class IssueMatchKey(
+    val timestamp: Instant,
+    val source: String,
+    val message: String,
+    val severity: Severity,
+    val affectedPath: String?
+)
+
+private fun Issue.matchKey() = IssueMatchKey(
+    timestamp = timestamp.toDatabasePrecision(),
+    source = source,
+    message = message,
+    severity = severity,
+    affectedPath = affectedPath
+)
 
 class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun create(
@@ -222,6 +243,44 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         }
 
         OrtRunDao[id].mapToModel()
+    }
+
+    override fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int {
+        if (issues.isEmpty()) return 0
+
+        val distinctIssues = issues.groupBy { it.matchKey() }.values.map { matchingIssues ->
+            val howToFixTexts = matchingIssues.mapTo(mutableSetOf()) { it.howToFix }
+            val issue = matchingIssues.first()
+
+            require(howToFixTexts.size == 1) {
+                val formattedTexts = howToFixTexts.joinToString { text ->
+                    if (text == null) "null" else "\"$text\""
+                }
+
+                "Issues with the same timestamp=${issue.timestamp}, source='${issue.source}', " +
+                    "message='${issue.message}', severity=${issue.severity}, affectedPath='${issue.affectedPath}' " +
+                    "have different how-to-fix texts: $formattedTexts."
+            }
+
+            issue
+        }
+
+        return db.blockingQuery {
+            distinctIssues.sumOf { issue ->
+                val updatedOccurrences = OrtRunsIssuesTable.innerJoin(IssuesTable)
+                    .update({ ortRunIssueContentMatches(ortRunId, issue) }) {
+                        it[OrtRunsIssuesTable.howToFix] = issue.howToFix
+                    }
+
+                if (updatedOccurrences == 0) {
+                    logger.debug(
+                        "No occurrence found in ORT run {} for issue {}: {}.", ortRunId, issue.source, issue.message
+                    )
+                }
+
+                updatedOccurrences
+            }
+        }
     }
 
     override fun delete(id: Long): Int = db.blockingQuery {

@@ -271,6 +271,7 @@ class IssueService(
                 OrtRunsIssuesTable.id,
                 OrtRunsIssuesTable.timestamp,
                 OrtRunsIssuesTable.worker,
+                OrtRunsIssuesTable.howToFix,
                 OrtRunsIssuesTable.identifierId,
                 IssuesTable.issueSource,
                 IssuesTable.message,
@@ -369,6 +370,7 @@ class IssueService(
                 affectedPath = row.getOrNull(IssuesTable.affectedPath),
                 identifier = identifier,
                 worker = row.getOrNull(OrtRunsIssuesTable.worker),
+                howToFix = row[OrtRunsIssuesTable.howToFix],
                 resolutions = resolutionsByOrtRunIssueId[ortRunIssueId].orEmpty().map { resolution ->
                     resolution.copy(
                         isDeleted = resolution.source == ResolutionSource.SERVER &&

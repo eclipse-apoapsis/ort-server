@@ -19,9 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.longs.shouldBeInRange
 import io.kotest.matchers.nulls.beNull
@@ -35,6 +37,7 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -813,6 +816,158 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
             assertCurrentTime(updateResult.finishedAt)
             ortRunRepository.get(ortRun.id) shouldBe updateResult
+        }
+    }
+
+    "updateIssueHowToFixTexts" should {
+        var ortRunId = -1L
+        val issue = Issue(
+            timestamp = Instant.parse("2026-01-01T12:00:00Z"),
+            source = "Analyzer",
+            message = "A test issue",
+            severity = Severity.WARNING,
+            affectedPath = "test/path",
+            identifier = Identifier("Maven", "org.example", "package1", "1.0"),
+            howToFix = "Upgrade to **2.0**."
+        )
+
+        beforeEach {
+            ortRunId = dbExtension.fixtures.ortRun.id
+            ortRunRepository.update(ortRunId, issues = listOf(issue).asPresent())
+        }
+
+        "reload how-to-fix text from the run association" {
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe issue
+            }
+        }
+
+        "deduplicate inputs by matched issue content" {
+            val updatedIssue = issue.copy(howToFix = "Use `version 3.0`.")
+            val sameIssueWithDifferentIdentifier = updatedIssue.copy(
+                timestamp = updatedIssue.timestamp + 123.nanoseconds,
+                identifier = updatedIssue.identifier!!.copy(name = "package2")
+            )
+
+            ortRunRepository.updateIssueHowToFixTexts(
+                ortRunId,
+                listOf(updatedIssue, sameIssueWithDifferentIdentifier)
+            ) shouldBe 1
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe updatedIssue
+            }
+        }
+
+        "reject conflicting texts for the same matched issue content" {
+            val updatedIssue = issue.copy(howToFix = "Use `version 3.0`.")
+            val conflictingIssue = updatedIssue.copy(
+                identifier = updatedIssue.identifier!!.copy(name = "package2"),
+                howToFix = "Remove the package."
+            )
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                ortRunRepository.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue, conflictingIssue))
+            }
+
+            exception.message shouldBe "Issues with the same timestamp=2026-01-01T12:00:00Z, source='Analyzer', " +
+                "message='A test issue', severity=WARNING, affectedPath='test/path' " +
+                "have different how-to-fix texts: \"Use `version 3.0`.\", \"Remove the package.\"."
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe issue
+            }
+        }
+
+        "update all identifiers sharing the same issue occurrence" {
+            val otherIssue = issue.copy(identifier = issue.identifier!!.copy(name = "package2"), howToFix = null)
+            ortRunRepository.update(ortRunId, issues = listOf(otherIssue).asPresent())
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues shouldContainExactlyInAnyOrder
+                listOf(issue, otherIssue)
+
+            val updatedIssue = issue.copy(identifier = null, howToFix = "Updated guidance")
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue)) shouldBe 2
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues shouldContainExactlyInAnyOrder listOf(
+                issue.copy(howToFix = updatedIssue.howToFix),
+                otherIssue.copy(howToFix = updatedIssue.howToFix)
+            )
+            dbExtension.db.dbQuery {
+                IssueDao.all().count() shouldBe 1L
+            }
+        }
+
+        "leave the same issue in another run unchanged" {
+            val otherRun = ortRunRepository.create(
+                repositoryId, "other", null, jobConfigurations, null, emptyMap(), null, null
+            )
+            ortRunRepository.update(otherRun.id, issues = listOf(issue).asPresent())
+
+            val updatedIssue = issue.copy(howToFix = "New guidance")
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue)) shouldBe 1
+
+            ortRunRepository.get(otherRun.id).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe issue
+            }
+        }
+
+        "leave occurrences with different timestamps unchanged" {
+            val laterIssue = issue.copy(timestamp = issue.timestamp + 1.seconds)
+            ortRunRepository.update(ortRunId, issues = listOf(laterIssue).asPresent())
+            val updatedIssue = issue.copy(howToFix = "New guidance")
+
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue)) shouldBe 1
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues shouldContainExactlyInAnyOrder
+                listOf(updatedIssue, laterIssue)
+        }
+
+        "normalize timestamps to database precision" {
+            val updatedIssue = issue.copy(timestamp = issue.timestamp + 123.nanoseconds, howToFix = "New guidance")
+
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue)) shouldBe 1
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe issue.copy(howToFix = updatedIssue.howToFix)
+            }
+        }
+
+        "clear previously stored text" {
+            val updatedIssue = issue.copy(howToFix = null)
+
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, listOf(updatedIssue)) shouldBe 1
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe updatedIssue
+            }
+        }
+
+        "not insert unknown issues or match different issue content" {
+            val unknownIssues = listOf(
+                issue.copy(source = "Scanner"),
+                issue.copy(message = "Another issue"),
+                issue.copy(severity = Severity.ERROR),
+                issue.copy(affectedPath = null)
+            )
+
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, unknownIssues) shouldBe 0
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe issue
+            }
+            dbExtension.db.dbQuery {
+                IssueDao.all().count() shouldBe 1L
+                OrtRunIssueDao.all().count() shouldBe 1L
+            }
+        }
+
+        "ignore an empty collection" {
+            ortRunRepository.updateIssueHowToFixTexts(ortRunId, emptyList()) shouldBe 0
+
+            ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
+                it shouldBe issue
+            }
         }
     }
 

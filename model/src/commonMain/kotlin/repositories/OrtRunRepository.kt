@@ -123,6 +123,12 @@ interface OrtRunRepository {
     ): OrtRun
 
     /**
+     * Set the how-to-fix text of all issue occurrences in the ORT run with [ortRunId] that match the content and
+     * timestamp of the given [issues], regardless of their identifier. Return the number of updated occurrences.
+     */
+    fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int
+
+    /**
      * Delete an ORT run by [id].
      */
     fun delete(id: Long): Int

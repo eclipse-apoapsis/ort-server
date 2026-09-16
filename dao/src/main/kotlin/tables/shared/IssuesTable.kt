@@ -95,14 +95,15 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     /**
      * Return a model representation of this [IssueDao] with the given additional properties.
      */
-    fun mapToModel(at: Instant, identifier: Identifier?, worker: String?) = Issue(
+    fun mapToModel(at: Instant, identifier: Identifier?, worker: String?, howToFix: String? = null) = Issue(
         timestamp = at,
         source = source,
         message = message,
         severity = severity,
         affectedPath = affectedPath,
         identifier = identifier,
-        worker = worker
+        worker = worker,
+        howToFix = howToFix
     )
 }
 

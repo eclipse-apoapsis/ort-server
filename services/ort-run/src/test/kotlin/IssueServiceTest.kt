@@ -132,6 +132,28 @@ class IssueServiceTest : WordSpec() {
         }
 
         "listForOrtRunId" should {
+            "return stored how-to-fix Markdown and null for issues without text" {
+                val issue = Issue(
+                    timestamp = Clock.System.now(),
+                    source = "Analyzer",
+                    message = "A test issue",
+                    severity = Severity.WARNING,
+                    howToFix = "## How to fix\n\nUpgrade to **2.0** using `npm update`."
+                )
+                val issueWithoutText = issue.copy(timestamp = issue.timestamp + 1.seconds, howToFix = null)
+                val ortRun = createOrtRunWithIssues(issues = listOf(issue, issueWithoutText))
+
+                val firstPage = service.listForOrtRunId(ortRun.id, ListQueryParameters(limit = 1))
+                val secondPage = service.listForOrtRunId(ortRun.id, ListQueryParameters(limit = 1, offset = 1))
+
+                firstPage.data.shouldBeSingleton {
+                    it.howToFix should beNull()
+                }
+                secondPage.data.shouldBeSingleton {
+                    it.howToFix shouldBe issue.howToFix
+                }
+            }
+
             "return issues for the given ORT run ID" {
                 val repositoryId = fixtures.createRepository().id
                 val issues = listOf(

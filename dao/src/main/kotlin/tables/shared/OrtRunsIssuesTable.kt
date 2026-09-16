@@ -47,6 +47,7 @@ object OrtRunsIssuesTable : LongIdTable("ort_runs_issues") {
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val worker = text("worker").nullable()
     val timestamp = timestamp("timestamp")
+    val howToFix = text("how_to_fix").nullable()
 }
 
 /**
@@ -76,6 +77,7 @@ class OrtRunIssueDao(id: EntityID<Long>) : LongEntity(id) {
                 this.identifierId = issue.identifier?.let { IdentifierDao.getOrPut(it) }?.id
                 this.worker = issue.worker
                 this.timestamp = issue.timestamp
+                this.howToFix = issue.howToFix
             }
     }
 
@@ -84,6 +86,12 @@ class OrtRunIssueDao(id: EntityID<Long>) : LongEntity(id) {
     var identifierId by OrtRunsIssuesTable.identifierId
     var worker by OrtRunsIssuesTable.worker
     var timestamp by OrtRunsIssuesTable.timestamp.transformToDatabasePrecision()
+    var howToFix by OrtRunsIssuesTable.howToFix
 
-    fun mapToModel() = issue.mapToModel(timestamp, identifierId?.let { IdentifierDao[it].mapToModel() }, worker)
+    fun mapToModel() = issue.mapToModel(
+        timestamp,
+        identifierId?.let { IdentifierDao[it].mapToModel() },
+        worker,
+        howToFix
+    )
 }
