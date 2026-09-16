@@ -34,7 +34,7 @@ describe('IssueDetails', () => {
   it('renders the existing message and styling unchanged', () => {
     const markup = renderToStaticMarkup(<IssueDetails issue={issue} />);
 
-    expect(markup).toBe(
+    expect(markup).toContain(
       `<div class="text-muted-foreground break-all whitespace-pre-line italic">${issue.message}</div>`
     );
   });
@@ -44,8 +44,60 @@ describe('IssueDetails', () => {
       <IssueDetails issue={{ ...issue, message: '' }} />
     );
 
-    expect(markup).toBe(
+    expect(markup).toContain(
       '<div class="text-muted-foreground break-all whitespace-pre-line italic">No details.</div>'
     );
+  });
+
+  it.each([undefined, null, '', ' \n\t '])(
+    'omits how-to-fix content for %j',
+    (howToFix) => {
+      const markup = renderToStaticMarkup(
+        <IssueDetails issue={{ ...issue, howToFix }} />
+      );
+
+      expect(markup).not.toContain('How to fix');
+      expect(markup).not.toContain('prose');
+      expect(markup).toContain(issue.message);
+    }
+  );
+
+  it.each([issue.message, ''])(
+    'renders Markdown guidance alongside the message %j',
+    (message) => {
+      const markup = renderToStaticMarkup(
+        <IssueDetails
+          issue={{
+            ...issue,
+            message,
+            howToFix:
+              '**Update** the dependency.\n\n[Documentation](https://example.com/fix)\n\n```sh\npnpm install\n```',
+          }}
+        />
+      );
+
+      expect(markup).toContain(message || 'No details.');
+      expect(markup).toContain('<div class="font-semibold">How to fix</div>');
+      expect(markup).toContain('<strong>Update</strong>');
+      expect(markup).toContain('href="https://example.com/fix"');
+      expect(markup).toContain('rel="noopener noreferrer"');
+      expect(markup).toContain('<pre');
+      expect(markup).toContain('<code class="p-1">pnpm install\n</code>');
+    }
+  );
+
+  it('does not render raw HTML in guidance as HTML', () => {
+    const markup = renderToStaticMarkup(
+      <IssueDetails
+        issue={{
+          ...issue,
+          howToFix: 'Use <strong>safe text</strong> instead.',
+        }}
+      />
+    );
+
+    expect(markup).toContain('How to fix');
+    expect(markup).toContain('&lt;strong&gt;safe text&lt;/strong&gt;');
+    expect(markup).not.toContain('<strong>safe text</strong>');
   });
 });
