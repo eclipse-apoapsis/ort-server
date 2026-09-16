@@ -185,6 +185,12 @@ class DbAuthorizationService(
         }
     }
 
+    override suspend fun removeUserAssignments(userId: String): Int = db.dbQuery {
+        RoleAssignmentsTable.deleteWhere {
+            RoleAssignmentsTable.userId eq userId
+        }
+    }
+
     override suspend fun listUsersWithRole(
         role: Role,
         compoundHierarchyId: CompoundHierarchyId

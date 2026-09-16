@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
  * obtained from the [EffectiveRole] returned by this service. If in doubt, use the functions taking a [HierarchyId],
  * which is then resolved to a consistent [CompoundHierarchyId] internally.
  */
+@Suppress("TooManyFunctions")
 interface AuthorizationService {
     /**
      * Check whether the user identified by [userId] has the permissions defined by the given [checker] on the element
@@ -102,6 +103,12 @@ interface AuthorizationService {
      * removed as well; otherwise, only direct matches are removed.
      */
     suspend fun removeAssignments(hierarchyId: HierarchyId, recursively: Boolean): Int
+
+    /**
+     * Remove all role assignments for [userId] at every hierarchy level, including wildcard assignments. Return the
+     * number of removed assignments, or zero if there are none. The user need not exist in the external user system.
+     */
+    suspend fun removeUserAssignments(userId: String): Int
 
     /**
      * Return a [Set] with the IDs of all users who are assigned the given [role] on the hierarchy element identified

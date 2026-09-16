@@ -51,8 +51,10 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 @Suppress("LargeClass")
 class DbAuthorizationServiceTest : WordSpec() {
@@ -661,6 +663,85 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
                 val otherEffectiveRole = service.getEffectiveRole(USER_ID, otherRepoCompoundId)
                 checkPermissions(otherEffectiveRole, RepositoryRole.ADMIN)
+            }
+        }
+
+        "removeUserAssignments" should {
+            "remove all assignments for only the given user and allow repeated removal" {
+                val service = createService()
+                val repositoryId = repositoryCompoundId()
+                val otherOrganization = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherProduct = dbExtension.fixtures.createProduct(organizationId = otherOrganization.id)
+                val otherRepository = dbExtension.fixtures.createRepository(productId = otherProduct.id)
+                val siblingRepository = dbExtension.fixtures.createRepository(url = "https://example.com/sibling.git")
+                val assignments = listOf(
+                    CompoundHierarchyId.WILDCARD to OrganizationRole.ADMIN,
+                    repositoryId.parent!!.parent!! to OrganizationRole.WRITER,
+                    repositoryId.parent!! to ProductRole.READER,
+                    repositoryId to RepositoryRole.WRITER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(dbExtension.fixtures.organization.id),
+                        ProductId(dbExtension.fixtures.product.id),
+                        RepositoryId(siblingRepository.id)
+                    ) to RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(otherOrganization.id),
+                        ProductId(otherProduct.id),
+                        RepositoryId(otherRepository.id)
+                    ) to RepositoryRole.ADMIN
+                )
+                val otherUserId = "$USER_ID-other"
+
+                assignments.forEach { (hierarchyId, role) ->
+                    service.assignRole(USER_ID, role, hierarchyId)
+                    service.assignRole(otherUserId, role, hierarchyId)
+                }
+                val otherUserAssignments = dbExtension.db.dbQuery {
+                    RoleAssignmentsTable.selectAll().where { RoleAssignmentsTable.userId eq otherUserId }
+                        .map { row -> RoleAssignmentsTable.columns.map { row[it] } }
+                }
+
+                service.removeUserAssignments(USER_ID) shouldBe assignments.size
+
+                val remainingAssignments = dbExtension.db.dbQuery {
+                    RoleAssignmentsTable.selectAll().map { row -> RoleAssignmentsTable.columns.map { row[it] } }
+                }
+                remainingAssignments should containExactlyInAnyOrder(otherUserAssignments)
+                assignments.forEach { (hierarchyId, role) ->
+                    service.listUsersWithRole(role, hierarchyId) should containExactly(otherUserId)
+                    checkPermissions(service.getEffectiveRole(USER_ID, hierarchyId))
+                    checkPermissions(
+                        service.getEffectiveRole(otherUserId, hierarchyId),
+                        when (hierarchyId.level) {
+                            HierarchyLevel.REPOSITORY -> RepositoryRole.ADMIN
+                            HierarchyLevel.PRODUCT -> ProductRole.ADMIN
+                            else -> OrganizationRole.ADMIN
+                        },
+                        expectedSuperuser = true
+                    )
+                }
+
+                service.removeUserAssignments(USER_ID) shouldBe 0
+                assertRoleAssignmentCount(assignments.size)
+            }
+
+            "return zero for a user without assignments without changing other users" {
+                val service = createService()
+                val repositoryId = repositoryCompoundId()
+                service.assignRole(USER_ID, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD)
+                service.assignRole(USER_ID, RepositoryRole.WRITER, repositoryId)
+
+                service.removeUserAssignments("unknown-user") shouldBe 0
+
+                assertRoleAssignmentCount(2)
+                service.listUsersWithRole(OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD) should
+                        containExactly(USER_ID)
+                service.listUsersWithRole(RepositoryRole.WRITER, repositoryId) should containExactly(USER_ID)
+                checkPermissions(
+                    service.getEffectiveRole(USER_ID, repositoryId),
+                    RepositoryRole.ADMIN,
+                    expectedSuperuser = true
+                )
             }
         }
 
