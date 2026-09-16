@@ -262,6 +262,7 @@ val getRunIssues: RouteConfig.() -> Unit = {
                                 severity = Severity.ERROR,
                                 source = "source",
                                 timestamp = CREATED_AT,
+                                howToFix = "Upgrade the affected dependency to version **2.0** or later.",
                                 resolutions = listOf(
                                     AppliedIssueResolution(
                                         message = "An issue",

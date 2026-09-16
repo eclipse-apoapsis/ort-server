@@ -48,6 +48,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
@@ -64,6 +65,11 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
@@ -334,7 +340,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             source = "Zulu",
             message = "resolved alpha issue",
             severity = Severity.ERROR,
-            identifier = resolvedPackage.identifier
+            identifier = resolvedPackage.identifier,
+            howToFix = "## How to fix\n\nUpgrade `alpha-lib` to **2.0**."
         )
         val unresolvedIssue = Issue(
             timestamp = now.plus(1.seconds).toDatabasePrecision(),
@@ -1617,6 +1624,41 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 // Applies a default sort order
                 pagedIssues.pagination.sortProperties.firstOrNull()?.name shouldBe "timestamp"
                 pagedIssues.pagination.sortProperties.firstOrNull()?.direction shouldBe SortDirection.DESCENDING
+            }
+        }
+
+        "return how-to-fix Markdown and omit missing values" {
+            integrationTestApplication {
+                val scenario = createIssueRouteScenario()
+                val path = "/api/v1/runs/${scenario.ortRun.id}/issues"
+
+                val response = superuserClient.get(path)
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val issues = response.body<PagedResponse<ApiIssue>>().data
+                val resolvedIssue = issues.single { it.message == scenario.resolvedIssue.message }
+                val unresolvedIssue = issues.single { it.message == scenario.unresolvedIssue.message }
+
+                resolvedIssue.howToFix shouldBe scenario.resolvedIssue.howToFix
+                resolvedIssue.message shouldBe scenario.resolvedIssue.message
+                resolvedIssue.resolutions.shouldBeSingleton()
+                unresolvedIssue.howToFix should beNull()
+                unresolvedIssue.message shouldBe scenario.unresolvedIssue.message
+                unresolvedIssue.resolutions should beEmpty()
+
+                val rawResponse = superuserClient.get(path)
+                val rawIssues = Json.parseToJsonElement(rawResponse.bodyAsText())
+                    .jsonObject.getValue("data").jsonArray
+                    .map { it.jsonObject }
+                val rawResolvedIssue = rawIssues.single {
+                    it.getValue("message").jsonPrimitive.content == scenario.resolvedIssue.message
+                }
+                val rawUnresolvedIssue = rawIssues.single {
+                    it.getValue("message").jsonPrimitive.content == scenario.unresolvedIssue.message
+                }
+
+                rawResolvedIssue.getValue("howToFix").jsonPrimitive.content shouldBe scenario.resolvedIssue.howToFix
+                rawUnresolvedIssue.containsKey("howToFix") shouldBe false
             }
         }
 
