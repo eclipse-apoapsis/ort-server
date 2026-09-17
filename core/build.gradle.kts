@@ -140,6 +140,7 @@ dependencies {
     implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.callLogging)
+    implementation(ktorLibs.server.compression)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.core)
     implementation(ktorLibs.server.cors)
