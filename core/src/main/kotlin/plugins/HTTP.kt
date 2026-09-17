@@ -19,11 +19,16 @@
 
 package org.eclipse.apoapsis.ortserver.core.plugins
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.plugins.compression.Compression
+import io.ktor.server.plugins.compression.CompressionConfig
+import io.ktor.server.plugins.compression.excludeContentType
+import io.ktor.server.plugins.compression.minimumSize
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 
@@ -34,6 +39,23 @@ import org.koin.ktor.ext.inject
 fun Application.configureHTTP() {
     val config: ApplicationConfig by inject()
     val allowedHosts = config.property("ktor.cors.allowedHosts").getString()
+
+    install(Compression) {
+        // Enable response compression without changing how request bodies are handled.
+        mode = CompressionConfig.Mode.CompressResponse
+
+        // Do not compress responses that already fit into a single TCP packet. As a global condition replaces Ktor's
+        // default conditions, the default content type exclusions have to be repeated here.
+        minimumSize(1024)
+        excludeContentType(
+            ContentType.Video.Any,
+            ContentType.Image.JPEG,
+            ContentType.Image.PNG,
+            ContentType.Audio.Any,
+            ContentType.MultiPart.Any,
+            ContentType.Text.EventStream
+        )
+    }
 
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
