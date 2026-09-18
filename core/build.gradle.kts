@@ -130,7 +130,6 @@ dependencies {
     implementation(projects.shared.apiModel)
     implementation(projects.shared.authenticator)
     implementation(projects.shared.ktorUtils)
-    implementation(projects.shared.reporters)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
@@ -163,14 +162,6 @@ dependencies {
     runtimeOnly(platform(projects.secrets))
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
-
-    // Dependencies on ORT plugins are required to provide information about them via the API.
-    runtimeOnly(platform(ortLibs.ortPlugins.advisors))
-    runtimeOnly(platform(ortLibs.ortPlugins.packageConfigurationProviders))
-    runtimeOnly(platform(ortLibs.ortPlugins.packageCurationProviders))
-    runtimeOnly(platform(ortLibs.ortPlugins.packageManagers))
-    runtimeOnly(platform(ortLibs.ortPlugins.reporters))
-    runtimeOnly(platform(ortLibs.ortPlugins.scanners))
 
     runtimeOnly(libs.logback)
 

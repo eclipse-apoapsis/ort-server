@@ -57,6 +57,15 @@ dependencies {
     implementation(ortLibs.reporter)
     implementation(ortLibs.scanner)
 
+    // Add all ORT plugins as runtime dependencies so that the plugin manager can discover them.
+    runtimeOnly(projects.shared.reporters)
+    runtimeOnly(platform(ortLibs.ortPlugins.advisors))
+    runtimeOnly(platform(ortLibs.ortPlugins.packageConfigurationProviders))
+    runtimeOnly(platform(ortLibs.ortPlugins.packageCurationProviders))
+    runtimeOnly(platform(ortLibs.ortPlugins.packageManagers))
+    runtimeOnly(platform(ortLibs.ortPlugins.reporters))
+    runtimeOnly(platform(ortLibs.ortPlugins.scanners))
+
     routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.ktorUtils)
 
