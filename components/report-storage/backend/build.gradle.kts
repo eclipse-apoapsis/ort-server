@@ -33,6 +33,8 @@ dependencies {
 
     runtimeOnly(libs.logback)
 
+    testImplementation(testFixtures(projects.storage.storageSpi))
+
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)

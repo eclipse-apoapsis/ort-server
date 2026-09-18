@@ -37,6 +37,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
+import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
@@ -88,7 +89,7 @@ private val logger = LoggerFactory.getLogger(ReporterRunner::class.java)
 
 class ReporterRunner(
     /** The object to store the generated report files. */
-    private val reportStorage: ReportStorage,
+    private val reportStorageService: ReportStorageService,
 
     /** The file archiver used for resolving license files. */
     private val fileArchiver: FileArchiver,
@@ -332,7 +333,7 @@ class ReporterRunner(
                         )
 
                         val namedReportFiles = nameMapper.mapReportNames(reportFiles)
-                        reportStorage.storeReportFiles(context.ortRun.id, namedReportFiles)
+                        reportStorageService.storeReports(context.ortRun.id, namedReportFiles)
 
                         namedReportFiles.mapValues { (_, file) -> file.length() }
                     }.also {
