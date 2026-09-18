@@ -32,11 +32,11 @@ import io.ktor.server.response.respond
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationException
 import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
+import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.OrganizationNotEmptyException
-import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 

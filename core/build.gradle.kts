@@ -88,6 +88,7 @@ dependencies {
             requireCapability("$group:routes:$version")
         }
     }
+    implementation(projects.components.reportStorage.reportStorageBackend)
     implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.components.resolutions.resolutionsBackend) {
         capabilities {
@@ -125,7 +126,6 @@ dependencies {
     implementation(projects.secrets.secretsSpi)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.ortRunService)
-    implementation(projects.services.reportStorageService)
     implementation(projects.shared.apiMappings)
     implementation(projects.shared.apiModel)
     implementation(projects.shared.authenticator)
