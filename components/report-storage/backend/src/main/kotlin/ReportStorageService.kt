@@ -119,7 +119,7 @@ class ReportNotFoundException(runId: Long, fileName: String) :
 /**
  * Generate the storage [Key] for the given combination of [runId] and [fileName].
  */
-private fun generateKey(runId: Long, fileName: String): Key = Key("$runId|$fileName")
+internal fun generateKey(runId: Long, fileName: String): Key = Key("$runId|$fileName")
 
 /** The default content type to be used if the detection fails. */
 private const val DEFAULT_CONTENT_TYPE = "application/octet-stream"
