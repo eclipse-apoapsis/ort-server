@@ -22,7 +22,7 @@
 # setting file permissions for the user, setting up certificates, etc. And, it defines the temurin base image.
 
 ARG CREDENTIAL_HELPER_VERSION=0.2.1
-ARG TEMURIN_VERSION=25.0.4_7-jdk-noble@sha256:ad7d1455c525828dfb44f88c220500c460a4c16f4b71929352755e80558b3dfa
+ARG TEMURIN_VERSION=25.0.4_7-jdk-noble@sha256:2feab631bffce6236d8bb5261a4abe19a8d6f85bad1c01166f74686c983d011f
 
 FROM alpine:3.24 AS credential-helper
 
