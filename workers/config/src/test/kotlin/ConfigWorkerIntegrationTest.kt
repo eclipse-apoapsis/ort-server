@@ -127,6 +127,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
             pluginTemplateApplicator = PluginTemplateApplicator(pluginService, pluginTemplateService)
         )
     }
+
     "run" should {
         "succeed if no admin config and validation script files exist" {
             val ortRunId = fixtures.ortRun.id
