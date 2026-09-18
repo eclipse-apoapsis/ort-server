@@ -34,9 +34,9 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.services.ortRunService)
 
+    implementation(projects.components.reportStorage.reportStorageBackend)
     implementation(projects.dao)
     implementation(projects.utils.logging)
-    implementation(projects.services.reportStorageService)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
 
