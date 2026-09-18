@@ -17,7 +17,7 @@
 
 [versions]
 # Gradle plugins
-buildConfigPlugin = "6.1.0"
+buildConfigPlugin = "6.1.1"
 detektPlugin = "2.0.0-alpha.6"
 gitSemverPlugin = "0.19.5"
 koinCompilerPlugin = "1.2.1"
