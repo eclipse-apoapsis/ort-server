@@ -70,7 +70,6 @@ dependencies {
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
-    runtimeOnly(platform(ortLibs.ortPlugins.packageManagers))
 
     testImplementation(projects.components.secrets.secretsBackend)
     testImplementation(testFixtures(projects.config.configSpi))
