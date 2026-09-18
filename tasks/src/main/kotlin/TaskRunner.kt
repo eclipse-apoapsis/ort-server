@@ -32,7 +32,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
-import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
+import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
@@ -204,10 +204,7 @@ internal fun configModule(): Module =
  */
 private fun tasksModule(): Module =
     module {
-        single {
-            val storage = Storage.create("reportStorage", get())
-            ReportStorageService(storage, get())
-        }
+        includes(reportStorageModule)
 
         single {
             val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
