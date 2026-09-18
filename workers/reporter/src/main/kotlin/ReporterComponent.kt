@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.days
 
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
-import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
+import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -143,14 +143,11 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         )
 
     private fun reporterModule(): Module = module {
+        includes(reportStorageModule)
+
         single {
             val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
-        }
-
-        single {
-            val storage = Storage.create("reportStorage", get())
-            ReportStorageService(storage, get())
         }
 
         single {

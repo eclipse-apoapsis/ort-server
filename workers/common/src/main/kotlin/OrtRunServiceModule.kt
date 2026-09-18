@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
-import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
+import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
@@ -69,6 +69,8 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
  * Return a module with bean definitions for the [OrtRunService] and the repositories it depends on.
  */
 fun ortRunServiceModule(): Module = module {
+    includes(reportStorageModule)
+
     single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
     single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
     single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
@@ -92,11 +94,6 @@ fun ortRunServiceModule(): Module = module {
             OrtServerFileListStorage(storage),
             DefaultProvenanceDownloader(DownloaderConfiguration(), DefaultWorkingTreeCache())
         )
-    }
-
-    single {
-        val storage = Storage.create("reportStorage", get())
-        ReportStorageService(storage, get())
     }
 
     singleOf(::OrtRunService)

@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
-import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
+import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionEventStore
@@ -126,6 +126,8 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
  * integration tests, the [database][db] from the testcontainer and an [authorizationService] can be provided directly.
  */
 fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationService: AuthorizationService?) = module {
+    includes(reportStorageModule)
+
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
     singleOf(ConfigManager::create)
@@ -221,11 +223,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
 
     single<UserService> {
         KeycloakUserService(get(), get())
-    }
-
-    single {
-        val storage = Storage.create("reportStorage", get())
-        ReportStorageService(storage, get())
     }
 
     singleOf(::PluginEventStore)

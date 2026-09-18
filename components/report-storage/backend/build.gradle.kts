@@ -30,6 +30,7 @@ dependencies {
     api(projects.model)
 
     api(ktorLibs.http)
+    api(libs.koin.core)
 
     runtimeOnly(libs.logback)
 
