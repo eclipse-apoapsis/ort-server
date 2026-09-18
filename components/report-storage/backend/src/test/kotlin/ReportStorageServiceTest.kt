@@ -42,7 +42,7 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 
 class ReportStorageServiceTest : WordSpec({
-    "fetchReport" should {
+    "fetchReport()" should {
         "return a ReportDownloadData object for an existing report" {
             val runId = 111L
             val fileName = "testReport.html"
@@ -105,7 +105,7 @@ class ReportStorageServiceTest : WordSpec({
         }
     }
 
-    "fetchReportByToken" should {
+    "fetchReportByToken()" should {
         "return a ReportDownloadData object for a valid token" {
             val runId = 207L
             val fileName = "testReport.html"
