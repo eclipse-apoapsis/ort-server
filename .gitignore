@@ -38,7 +38,7 @@ http-client.private.env.json
 .dolt/
 .github/chatmodes/
 .perles/
-docs/ai-plans/
+docs/ai-plans
 AGENTS.md
 CLAUDE.md
 
