@@ -22,7 +22,7 @@ env:
 jobs:
   build-base-image:
     name: Build Base Image
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       packages: write
     outputs:
@@ -104,7 +104,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.docker.jibImage || matrix.docker.image }} Docker Image
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build-base-image
     env:
       ORT_SERVER_VERSION: ${{ needs.build-base-image.outputs.ort-server-version }}
