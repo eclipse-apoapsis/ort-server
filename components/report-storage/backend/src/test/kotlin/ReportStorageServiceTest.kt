@@ -19,8 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.components.reportstorage
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempfile
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -32,14 +36,17 @@ import io.mockk.mockk
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 
 import kotlin.time.Instant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
+import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactoryForTesting
 
 class ReportStorageServiceTest : WordSpec({
     "fetchReport()" should {
@@ -153,4 +160,63 @@ class ReportStorageServiceTest : WordSpec({
             exception.message shouldContain runId.toString()
         }
     }
+
+    "guessContentType()" should {
+        "return a default content type in case of an exception" {
+            val file = File("nonExistingReportFile")
+
+            guessContentType(file) shouldBe "application/octet-stream"
+        }
+    }
+
+    "storeReports()" should {
+        "write the provided files to the storage" {
+            val reportData = listOf(
+                "Content of a report",
+                "Content of another report",
+                "A more complex content of a sophisticated report."
+            )
+            val reportFiles = reportData.mapIndexed { index, content ->
+                val file = tempfile()
+                file.writeText(content)
+                "report-$index.txt" to file
+            }.toMap()
+
+            val service = ReportStorageService(createStorage(), mockk())
+            service.storeReports(RUN_ID, reportFiles)
+
+            reportData.zip(reportFiles.entries).forAll { (data, file) ->
+                val key = Key("$RUN_ID|${file.key}")
+                val entry = StorageProviderFactoryForTesting.getEntry(key)
+                entry.data shouldBe data.toByteArray()
+                entry.length shouldBe data.length
+                entry.contentType shouldBe "application/octet-stream"
+            }
+        }
+
+        "detect the content type" {
+            val key = "testReport"
+            val reportFile = tempfile(suffix = ".json")
+            reportFile.writeText("""{ "test": true }""")
+
+            val reportStorage = ReportStorageService(createStorage(), mockk())
+            reportStorage.storeReports(RUN_ID, mapOf(key to reportFile))
+
+            val entry = StorageProviderFactoryForTesting.getEntry(Key("$RUN_ID|$key"))
+            entry.contentType shouldBe "application/json"
+        }
+    }
 })
+
+private const val RUN_ID = 20230522073118L
+
+/**
+ * Create the [Storage] to be used for tests. This is a test storage, so the stored data can be inspected.
+ */
+private fun createStorage(): Storage {
+    val storageType = "test"
+    val configMap = mapOf(storageType to mapOf("name" to StorageProviderFactoryForTesting.NAME))
+    val config = ConfigFactory.parseMap(configMap)
+
+    return Storage.create(storageType, ConfigManager.create(config))
+}

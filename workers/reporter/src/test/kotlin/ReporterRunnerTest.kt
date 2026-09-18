@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.RuleSetTemplate
+import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -196,15 +197,15 @@ class ReporterRunnerTest : WordSpec({
      * Create a [ReporterRunner] for testing that is initialized with the given [storage] and uses the given [config].
      */
     fun createRunner(
-        storage: ReportStorage = mockk(relaxed = true),
+        storage: ReportStorageService = mockk(relaxed = true),
         config: ReporterConfig = createReporterConfig()
     ): ReporterRunner =
         ReporterRunner(storage, mockk(), createAdminConfigService(config))
 
     "run" should {
         "return a result with report format and report names" {
-            val storage = mockk<ReportStorage>()
-            coEvery { storage.storeReportFiles(any(), any()) } just runs
+            val storage = mockk<ReportStorageService>()
+            coEvery { storage.storeReports(any(), any()) } just runs
 
             val reportType = "WebApp"
             val mapping = ReportNameMapping("testReport")
@@ -224,7 +225,7 @@ class ReporterRunnerTest : WordSpec({
 
             val slotReports = slot<Map<String, File>>()
             coVerify {
-                storage.storeReportFiles(RUN_ID, capture(slotReports))
+                storage.storeReports(RUN_ID, capture(slotReports))
             }
 
             val storedReports = slotReports.captured

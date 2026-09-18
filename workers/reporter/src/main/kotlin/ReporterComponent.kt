@@ -23,6 +23,7 @@ import kotlin.time.Duration.Companion.days
 
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -148,8 +149,8 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         }
 
         single {
-            val storage = Storage.create(ReportStorage.STORAGE_TYPE, get())
-            ReportStorage(storage)
+            val storage = Storage.create("reportStorage", get())
+            ReportStorageService(storage, get())
         }
 
         single {

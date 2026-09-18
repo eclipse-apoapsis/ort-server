@@ -21,7 +21,9 @@ package org.eclipse.apoapsis.ortserver.components.reportstorage
 
 import io.ktor.http.ContentType
 
+import java.io.File
 import java.io.OutputStream
+import java.nio.file.Files
 
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.storage.Key
@@ -29,10 +31,7 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.slf4j.LoggerFactory
 
-/**
- * A service providing functionality related to accessing report files from a storage, so that they can be downloaded
- * from clients.
- */
+/** A service to store and retrieve report files. */
 class ReportStorageService(
     /** The [Storage] that contains the report files. */
     private val reportStorage: Storage,
@@ -79,6 +78,21 @@ class ReportStorageService(
         val key = generateKey(runId, fileName)
         if (!reportStorage.delete(key)) throw ReportNotFoundException(runId, fileName)
     }
+
+    /**
+     * Store the given [reports] in the associated [Storage] for the given [ORT run ID][runId]. The map with files
+     * has the names to be used as keys and the corresponding report files as values.
+     */
+    suspend fun storeReports(runId: Long, reports: Map<String, File>) {
+        reports.forEach { (name, file) ->
+            val key = generateKey(runId, name)
+            logger.info("Storing '{}' under key '{}'.", file.name, key.key)
+
+            file.inputStream().use { stream ->
+                reportStorage.write(key, stream, file.length(), guessContentType(file))
+            }
+        }
+    }
 }
 
 /**
@@ -106,3 +120,10 @@ class ReportNotFoundException(runId: Long, fileName: String) :
  * Generate the storage [Key] for the given combination of [runId] and [fileName].
  */
 private fun generateKey(runId: Long, fileName: String): Key = Key("$runId|$fileName")
+
+/** The default content type to be used if the detection fails. */
+private const val DEFAULT_CONTENT_TYPE = "application/octet-stream"
+
+/** Try to determine the content type for the given [file]. */
+internal fun guessContentType(file: File): String =
+    runCatching { Files.probeContentType(file.toPath()) }.getOrNull() ?: DEFAULT_CONTENT_TYPE
