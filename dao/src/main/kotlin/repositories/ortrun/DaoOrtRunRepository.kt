@@ -24,7 +24,7 @@ import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
@@ -105,7 +105,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long): OrtRun? = db.entityQuery { OrtRunDao[id].mapToModel() }
+    override fun get(id: Long): OrtRun? = db.blockingQueryCatching { OrtRunDao[id].mapToModel() }.getEntityOrNull()
 
     override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.blockingQuery {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }

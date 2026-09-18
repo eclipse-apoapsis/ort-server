@@ -22,7 +22,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
@@ -58,9 +59,10 @@ class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository
         }.mapToModel()
     }
 
-    override fun get(id: Long): ReporterRun? = db.entityQuery { ReporterRunDao[id].mapToModel() }
+    override fun get(id: Long): ReporterRun? =
+        db.blockingQueryCatching { ReporterRunDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getByJobId(reporterJobId: Long): ReporterRun? = db.entityQuery {
+    override fun getByJobId(reporterJobId: Long): ReporterRun? = db.blockingQueryCatching {
         ReporterRunDao.find { ReporterRunsTable.reporterJobId eq reporterJobId }.firstOrNull()?.mapToModel()
-    }
+    }.getEntityOrNull()
 }

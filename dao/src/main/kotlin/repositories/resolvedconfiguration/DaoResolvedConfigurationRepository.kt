@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsVulnerabilitiesTable
@@ -71,7 +72,8 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedConfigurationRepository {
-    override fun get(id: Long): ResolvedConfiguration? = db.entityQuery { ResolvedConfigurationDao[id].mapToModel() }
+    override fun get(id: Long): ResolvedConfiguration? =
+        db.blockingQueryCatching { ResolvedConfigurationDao[id].mapToModel() }.getEntityOrNull()
 
     override fun getForOrtRun(ortRunId: Long): ResolvedConfiguration? = db.blockingQuery {
         ResolvedConfigurationDao.find { ResolvedConfigurationsTable.ortRunId eq ortRunId }.limit(1)

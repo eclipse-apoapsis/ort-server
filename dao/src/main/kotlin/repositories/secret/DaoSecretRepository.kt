@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -54,9 +54,9 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
         }.mapToModel()
     }
 
-    override fun getByIdAndName(id: HierarchyId, name: String) = db.entityQuery {
+    override fun getByIdAndName(id: HierarchyId, name: String) = db.blockingQueryCatching {
         SecretDao.find(byNameCondition(id, name)).firstOrNull()?.mapToModel()
-    }
+    }.getEntityOrNull()
 
     override fun listForId(id: HierarchyId, parameters: ListQueryParameters) = db.blockingQueryCatching {
         val query = when (id) {
