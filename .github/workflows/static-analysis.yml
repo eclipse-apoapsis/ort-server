@@ -12,7 +12,7 @@ on:
 
 jobs:
   commit-lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -24,7 +24,7 @@ jobs:
         configFile: .commitlintrc.yml
 
   completions:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -50,7 +50,7 @@ jobs:
           fi
 
   detekt-issues:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
@@ -64,7 +64,7 @@ jobs:
       run: ./gradlew --stacktrace detektAll
 
   eslint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -87,7 +87,7 @@ jobs:
       run: pnpm lint
 
   prettier-ui:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -110,7 +110,7 @@ jobs:
       run: pnpm format:check
 
   prettier-website:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -133,7 +133,7 @@ jobs:
       run: pnpm format:check
 
   build-health:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
@@ -147,7 +147,7 @@ jobs:
       run: ./gradlew --stacktrace buildHealth
 
   renovate-validation:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -156,7 +156,7 @@ jobs:
       run: npx -y --package renovate@latest -- renovate-config-validator renovate.json
 
   reuse-tool:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
