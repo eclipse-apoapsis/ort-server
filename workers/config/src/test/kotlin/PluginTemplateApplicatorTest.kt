@@ -116,16 +116,16 @@ class PluginTemplateApplicatorTest : WordSpec({
 
         "apply templates to project scanners" {
             val applicator = applicator(
-                pluginTemplate(PluginType.SCANNER, "Askalono", option("preferMl", "true", true))
+                pluginTemplate(PluginType.SCANNER, "ScanCode", option("preferFileLicense", "true", true))
             )
             val jobConfigs = JobConfigurations(
-                scanner = ScannerJobConfiguration(projectScanners = listOf("Askalono"))
+                scanner = ScannerJobConfiguration(projectScanners = listOf("ScanCode"))
             )
 
             val result = applicator.applyTemplates(jobConfigs, organizationId)
 
-            result.scanner?.config?.getValue("Askalono")?.options.shouldNotBeNull() shouldContainExactly
-                    mapOf("preferMl" to "true")
+            result.scanner?.config?.getValue("ScanCode")?.options.shouldNotBeNull() shouldContainExactly
+                    mapOf("preferFileLicense" to "true")
         }
 
         "not apply templates to disabled package managers" {
