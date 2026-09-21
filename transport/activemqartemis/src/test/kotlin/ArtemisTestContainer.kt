@@ -44,6 +44,8 @@ fun Spec.startArtemisContainer(consumerName: String, transportType: String): Con
             GenericContainer(Images.ARTEMIS).apply {
                 startupAttempts = 1
                 withExposedPorts(ARTEMIS_PORT)
+
+                @Suppress("ForbiddenMethodCall")
                 withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger("artemis")))
             }
         )
