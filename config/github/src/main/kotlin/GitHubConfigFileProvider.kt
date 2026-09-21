@@ -28,6 +28,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
@@ -296,7 +297,7 @@ class GitHubConfigFileProvider(
 
         if (checkSuccess && !response.status.isSuccess()) {
             logger.error("Error response from GitHub API request: ${response.status}.")
-            logger.info("Response body: ${response.body<String>()}")
+            logger.info("Response body: ${response.bodyAsText()}")
 
             throw ConfigException("Error response from GitHub API request: ${response.status}.")
         } else {
