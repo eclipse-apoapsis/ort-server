@@ -19,7 +19,7 @@
 
 import type { DependencyGraph } from '@/api';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import type { PackageIdType } from '@/schemas';
+import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
 export type AdjacencyMap = Map<number, number[]>;
 
@@ -45,7 +45,7 @@ export const formatDependencyGraphPackageLabel = (
   packageIdType: PackageIdType
 ): string => {
   const purl = graph.purls[packageIndex] as string | null | undefined;
-  if (packageIdType === 'PURL' && purl) return purl;
+  if (packageIdType === packageIdTypeSchema.enum.PURL && purl) return purl;
 
   return identifierToString(graph.packages[packageIndex]);
 };

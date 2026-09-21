@@ -25,6 +25,7 @@ import {
   identifierToPurl,
   identifierToString,
 } from '@/helpers/identifier-conversion';
+import { packageIdTypeSchema } from '@/schemas';
 
 const id = {
   type: 'Maven',
@@ -51,22 +52,22 @@ it('getPackageIdString returns the configured identifier type', () => {
     purl: 'pkg:maven/com.google.guava/listenablefuture@9999.0',
   };
 
-  expect(getPackageIdString(pkg, 'ORT_ID')).toBe(
+  expect(getPackageIdString(pkg, packageIdTypeSchema.enum.ORT_ID)).toBe(
     'Maven:com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
   );
-  expect(getPackageIdString(pkg, 'PURL')).toBe(
+  expect(getPackageIdString(pkg, packageIdTypeSchema.enum.PURL)).toBe(
     'pkg:maven/com.google.guava/listenablefuture@9999.0'
   );
 });
 
 it.each([
   [
-    'ORT_ID' as const,
+    packageIdTypeSchema.enum.ORT_ID,
     { packageId: { ...id, version: '2' }, purl: null },
     { packageId: { ...id, version: '10' }, purl: null },
   ],
   [
-    'PURL' as const,
+    packageIdTypeSchema.enum.PURL,
     { packageId: null, purl: 'pkg:maven/example/pkg@2' },
     { packageId: null, purl: 'pkg:maven/example/pkg@10' },
   ],

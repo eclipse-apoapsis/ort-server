@@ -22,6 +22,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DependencyGraph } from '@/api';
 import { DependencyTreeNode } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-node';
+import { packageIdTypeSchema } from '@/schemas';
 
 const graph: DependencyGraph = {
   edges: [
@@ -59,7 +60,7 @@ describe('DependencyTreeNode', () => {
         isLast={true}
         matchesNodeSubtree={() => true}
         nodeIndex={1}
-        packageIdType='ORT_ID'
+        packageIdType={packageIdTypeSchema.enum.ORT_ID}
         path={new Set<number>([0, 1])}
         searchTerm='library'
       />
@@ -79,7 +80,7 @@ describe('DependencyTreeNode', () => {
         isLast={true}
         matchesNodeSubtree={(nodeIndex) => nodeIndex === 1}
         nodeIndex={0}
-        packageIdType='ORT_ID'
+        packageIdType={packageIdTypeSchema.enum.ORT_ID}
         path={new Set<number>()}
         searchTerm='library'
       />
@@ -146,7 +147,7 @@ describe('DependencyTreeNode', () => {
         // The subtrees of the root and the match contain "library".
         matchesNodeSubtree={(nodeIndex) => nodeIndex === 0 || nodeIndex === 1}
         nodeIndex={0}
-        packageIdType='ORT_ID'
+        packageIdType={packageIdTypeSchema.enum.ORT_ID}
         path={new Set<number>()}
         searchTerm='library'
       />
@@ -172,7 +173,7 @@ describe('DependencyTreeNode', () => {
         isLast={true}
         matchesNodeSubtree={() => true}
         nodeIndex={0}
-        packageIdType='ORT_ID'
+        packageIdType={packageIdTypeSchema.enum.ORT_ID}
         path={new Set<number>()}
       />
     );
@@ -192,7 +193,7 @@ describe('DependencyTreeNode', () => {
         isLast={true}
         matchesNodeSubtree={() => true}
         nodeIndex={1}
-        packageIdType='PURL'
+        packageIdType={packageIdTypeSchema.enum.PURL}
         path={new Set<number>()}
       />
     );

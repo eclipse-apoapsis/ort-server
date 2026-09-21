@@ -20,7 +20,7 @@
 import { PackageURL } from 'packageurl-js';
 
 import { Identifier } from '@/api';
-import type { PackageIdType } from '@/schemas';
+import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
 export function identifierToPurl(pkg: Identifier | undefined | null): string {
   if (!pkg) {
@@ -48,7 +48,7 @@ export function getPackageIdString(
   pkg: PackageIdentifier,
   packageIdType: PackageIdType
 ): string {
-  return packageIdType === 'PURL'
+  return packageIdType === packageIdTypeSchema.enum.PURL
     ? (pkg.purl ?? '')
     : identifierToString(pkg.packageId);
 }

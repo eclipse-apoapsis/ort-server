@@ -84,6 +84,7 @@ import {
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   PackageIdType,
+  packageIdTypeSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -105,7 +106,7 @@ const LicenseList = ({ licenses }: { licenses: string[] }) => (
 const PackageCard = ({ pkg }: { pkg: Package }) => {
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
-    packageIdType === 'PURL' && pkg.purl
+    packageIdType === packageIdTypeSchema.enum.PURL && pkg.purl
       ? pkg.purl
       : identifierToString(pkg.identifier);
   const declaredLicenses = [
@@ -213,7 +214,8 @@ const renderSubComponent = ({
 
   // The card title shows one of the package identifiers, depending on the user
   // preference, so show the other one here.
-  const showsPurlInTitle = packageIdType === 'PURL' && !!pkg.purl;
+  const showsPurlInTitle =
+    packageIdType === packageIdTypeSchema.enum.PURL && !!pkg.purl;
   const alternativeIdLabel = showsPurlInTitle ? 'ORT ID' : 'PURL';
   const alternativeId = showsPurlInTitle
     ? identifierToString(pkg.identifier)
@@ -410,7 +412,7 @@ const PackagesComponent = () => {
         limit: pageSize,
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
-        ...(packageIdType === 'ORT_ID'
+        ...(packageIdType === packageIdTypeSchema.enum.ORT_ID
           ? { identifier: packageId }
           : { purl: packageId }),
         declaredLicense: declaredLicense?.join(','),
@@ -491,14 +493,14 @@ const PackagesComponent = () => {
     }),
     columnHelper.accessor(
       (pkg) => {
-        if (packageIdType === 'ORT_ID') {
+        if (packageIdType === packageIdTypeSchema.enum.ORT_ID) {
           return identifierToString(pkg.identifier);
         } else {
           return pkg.purl;
         }
       },
       {
-        id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
+        id: `${packageIdType === packageIdTypeSchema.enum.ORT_ID ? 'identifier' : 'purl'}`,
         header: 'Package ID',
         meta: {
           filter: {
@@ -554,7 +556,8 @@ const PackagesComponent = () => {
     ),
   ]);
 
-  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+  const columnId =
+    packageIdType === packageIdTypeSchema.enum.ORT_ID ? 'identifier' : 'purl';
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}

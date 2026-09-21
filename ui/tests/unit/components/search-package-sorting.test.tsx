@@ -24,6 +24,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RunWithPackage } from '@/api/types.gen';
 import { Route } from '@/routes/organizations/$orgId/search-package';
+import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
@@ -111,10 +112,12 @@ describe('search package sorting', () => {
   });
 
   afterEach(() => {
-    useUserSettingsStore.setState({ packageIdType: 'ORT_ID' });
+    useUserSettingsStore.setState({
+      packageIdType: packageIdTypeSchema.enum.ORT_ID,
+    });
   });
 
-  it.each(['ORT_ID', 'PURL'] as const)(
+  it.each(packageIdTypeSchema.options)(
     'sorts the displayed %s identifiers',
     async (packageIdType) => {
       useUserSettingsStore.setState({ packageIdType });

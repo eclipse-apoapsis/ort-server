@@ -44,7 +44,7 @@ import {
 import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
-import { PackageIdType } from '@/schemas';
+import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { DetectedLicenseFindingsTable } from './detected-license-findings-table';
 import {
@@ -66,7 +66,7 @@ const PackageIdCell = ({
   packageIdType: PackageIdType;
 }) => {
   const id =
-    packageIdType === 'PURL' && pkg.purl
+    packageIdType === packageIdTypeSchema.enum.PURL && pkg.purl
       ? pkg.purl
       : identifierToString(pkg.identifier);
 
@@ -94,7 +94,8 @@ export const DetectedLicensePackagesTable = ({
   const packagePageSize = search.packagePageSize || defaultPageSize;
   const packageIdFilter = search.packageId;
   const packageSortBy = search.packageSortBy;
-  const packageColumnId = packageIdType === 'PURL' ? 'purl' : 'identifier';
+  const packageColumnId =
+    packageIdType === packageIdTypeSchema.enum.PURL ? 'purl' : 'identifier';
   const preserveManualExpansion = useRef(false);
   const [packageExpanded, setPackageExpanded] = useState<ExpandedState>(
     getMarkerExpandedState(search.packageMarked)
@@ -161,12 +162,13 @@ export const DetectedLicensePackagesTable = ({
     }),
     packageColumnHelper.accessor(
       (pkg) =>
-        packageIdType === 'PURL' && pkg.purl
+        packageIdType === packageIdTypeSchema.enum.PURL && pkg.purl
           ? pkg.purl
           : identifierToString(pkg.identifier),
       {
         id: packageColumnId,
-        header: packageIdType === 'PURL' ? 'PURL' : 'ORT ID',
+        header:
+          packageIdType === packageIdTypeSchema.enum.PURL ? 'PURL' : 'ORT ID',
         cell: ({ row }) => (
           <PackageIdCell pkg={row.original} packageIdType={packageIdType} />
         ),
