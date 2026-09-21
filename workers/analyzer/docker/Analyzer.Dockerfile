@@ -67,7 +67,10 @@ RUN /etc/analyzer_scripts/set_apt_proxy.sh
 RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=tmpfs,target=/var/log \
-    sudo apt-get update \
+    sudo apt-get update -qq \
+    && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends extrepo \
+    && sudo extrepo enable mise \
+    && sudo apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     ca-certificates \
     coreutils \
@@ -89,6 +92,7 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     locales \
     lzma \
     make \
+    mise \
     netbase \
     openssh-client \
     openssl \
