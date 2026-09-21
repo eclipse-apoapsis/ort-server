@@ -102,8 +102,8 @@ abstract class EndpointComponent<T : Any>(
                 val file = getKeepAliveFile()
                 file.createNewFile().let {
                     logger.info("Keep-alive lock file ${file.absolutePath} created.")
+                }
             }
-        }
     }
 
     abstract val endpointHandler: EndpointHandler<T>
