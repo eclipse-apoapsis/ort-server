@@ -21,6 +21,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+ARG ABOM_VERSION=0.2.1
 ARG ANDROID_CMD_VERSION=13114758
 ARG BAZELISK_VERSION=1.29.0
 ARG BOWER_VERSION=1.8.14
@@ -487,6 +488,7 @@ COPY --from=gleambuild /opt/gleam /opt/gleam
 # Components container
 FROM ort-base-image AS components
 
+ARG ABOM_VERSION
 ARG COMPOSER_VERSION
 
 # Remove ort build scripts
@@ -500,6 +502,10 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
         php \
         subversion
+
+ENV ABOM_HOME=/opt/abom
+ENV PATH=$PATH:$ABOM_HOME
+RUN sudo mise install-into github:JulietSecurity/abom@$ABOM_VERSION $ABOM_HOME
 
 # Python
 ENV PYENV_ROOT=/opt/python
