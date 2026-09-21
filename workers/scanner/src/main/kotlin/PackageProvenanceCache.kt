@@ -22,14 +22,12 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 
 import org.ossreviewtoolkit.model.RepositoryProvenance
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(PackageProvenanceCache::class.java)
 
 /**
  * A class to store the package [RepositoryProvenance]s and their database IDs that were resolved by the ORT scanner.
@@ -63,7 +61,7 @@ class PackageProvenanceCache {
      * multiple results can be returned.
      */
     suspend fun get(provenance: RepositoryProvenance): List<Long> = mutex.withLock {
-        logger.debug("Querying provenance {}, result is {}.", provenance, packageProvenances[provenance])
+        logger.debug { "Querying provenance $provenance, result is ${packageProvenances[provenance]}" }
         return packageProvenances[provenance].orEmpty()
     }
 
@@ -73,7 +71,7 @@ class PackageProvenanceCache {
      * there is no nested provenance, return *null* instead.
      */
     suspend fun putAndGetNestedProvenance(provenance: RepositoryProvenance, id: Long): Long? = mutex.withLock {
-        logger.debug("Storing provenance {} for ID {}.", provenance, id)
+        logger.debug { "Storing provenance $provenance for ID $id." }
         packageProvenances.getOrPut(provenance) { mutableListOf() } += id
 
         if (!provenance.isRootProvenance()) {
@@ -94,12 +92,10 @@ class PackageProvenanceCache {
             "A nested provenance can only be assigned to the repository root."
         }
 
-        logger.debug(
-            "Storing nested provenance ID {} for {}. Pending assignments: {}",
-            id,
-            provenance,
-            pendingNestedAssignments[provenance]
-        )
+        logger.debug {
+            "Storing nested provenance ID $id for $provenance. Pending assignments:" +
+                    pendingNestedAssignments[provenance]
+        }
 
         nestedProvenances[provenance] = id
         pendingNestedAssignments.getOrDefault(provenance, emptyList())

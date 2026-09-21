@@ -43,6 +43,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
@@ -51,8 +53,6 @@ import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretData
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretResponse
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-
-import org.slf4j.LoggerFactory
 
 /** The header in which vault expects the authorization token. */
 private const val TOKEN_HEADER = "X-Vault-Token"
@@ -79,10 +79,6 @@ private const val LOGIN_PATH = "/v1/auth/approle/login"
 class VaultSecretsProvider(
     private val config: VaultConfiguration
 ) : SecretsProvider {
-    companion object {
-        private val logger = LoggerFactory.getLogger(VaultSecretsProvider::class.java)
-    }
-
     /** The client to interact with the Vault service. */
     private val vaultClient = createClient()
 
@@ -194,7 +190,7 @@ class VaultSecretsProvider(
      * [client] for this purpose.
      */
     private suspend fun fetchToken(client: HttpClient): String {
-        logger.info("Requesting new Vault token.")
+        logger.info { "Requesting new Vault token." }
         val loginResponse: VaultLoginResponse = client.post(LOGIN_PATH) {
             setBody(config.credentials)
         }.body()

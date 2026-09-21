@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -45,10 +47,6 @@ import org.ossreviewtoolkit.model.ProvenanceResolutionResult
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(ScannerWorker::class.java)
-
 class ScannerWorker(
     private val db: Database,
     private val runner: ScannerRunner,
@@ -68,8 +66,8 @@ class ScannerWorker(
 
             job = ortRunService.startScannerJob(job.id)
                 ?: throw IllegalArgumentException("The scanner job with id '$jobId' could not be started.")
-            logger.debug("Scanner job with id '{}' started at {}.", job.id, job.startedAt)
-            logger.info("Using ORT version {}.", ORT_VERSION)
+            logger.debug { "Scanner job with id '${job.id}' started at ${job.startedAt}." }
+            logger.info { "Using ORT version $ORT_VERSION." }
 
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
             val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
@@ -135,10 +133,10 @@ class ScannerWorker(
                 issues.filter { it.mapToModel(identifier) !in resolvedItems.issues.keys }
             }
 
-            logger.info(
+            logger.info {
                 "Scanner job $jobId finished with ${allIssues.size} total issues " +
                         "and ${unresolvedIssues.size} unresolved issues."
-            )
+            }
 
             if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
@@ -149,12 +147,12 @@ class ScannerWorker(
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
-                logger.warn("Not running the scanner because message '$traceId' got ignored: ${it.message}")
+                logger.warn { "Not running the scanner because message '$traceId' got ignored: ${it.message}" }
                 RunResult.Ignored
             }
 
             else -> {
-                logger.error("Error while running the scanner as instructed by message '$traceId': ${it.message}")
+                logger.error(it) { "Error while running the scanner as instructed by message '$traceId'." }
                 RunResult.Failed(it)
             }
         }

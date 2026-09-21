@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -28,20 +30,14 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
 import org.ossreviewtoolkit.plugins.advisors.api.AdviceProviderFactory
 
-import org.slf4j.LoggerFactory
-
 internal class AdvisorRunner {
-    companion object {
-        private val logger = LoggerFactory.getLogger(AdvisorRunner::class.java)
-    }
-
     suspend fun run(context: WorkerContext, ortResult: OrtResult, config: AdvisorJobConfiguration): OrtResult {
-        logger.info("Advisor run with these advisors: '{}'.", config.advisors)
+        logger.info { "Advisor run with these advisors: '${config.advisors}'." }
 
         val providerFactories = config.advisors.mapNotNull { AdviceProviderFactory.ALL[it] }
         if (providerFactories.size < config.advisors.size) {
             val invalidAdvisors = config.advisors.filter { it !in AdviceProviderFactory.ALL }
-            logger.error("The following advisors could not be resolved: {}.", invalidAdvisors)
+            logger.error { "The following advisors could not be resolved: $invalidAdvisors." }
         }
 
         val pluginConfigs = context.resolvePluginConfigSecrets(config.config)

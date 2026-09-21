@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.shared.plugininfo
 
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.kotlin.logger
 
 /**
  * An object providing information about the ORT plugins that are available in ORT Server.
@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory
 object PluginInfo {
     /** The name of the classpath resource that contains the plugin summary. */
     private const val PLUGIN_SUMMARY_RESOURCE = "/plugin_summary.csv"
-
-    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** A map storing information about all available ORT plugins. */
     private val pluginInfos = loadPluginInfo()
@@ -67,7 +65,7 @@ object PluginInfo {
                 )
             }
         }?.groupBy { it.type }?.also {
-            logger.info("Loaded plugin summary from resource '$PLUGIN_SUMMARY_RESOURCE': ${it.size} plugins found.")
-            logger.debug("The following plugin IDs were found: {}", it)
+            logger.info { "Loaded plugin summary from resource '$PLUGIN_SUMMARY_RESOURCE': ${it.size} plugins found." }
+            logger.debug { "The following plugin IDs were found: $it" }
         } ?: error("Could not load plugin summary from resource '$PLUGIN_SUMMARY_RESOURCE'.")
 }

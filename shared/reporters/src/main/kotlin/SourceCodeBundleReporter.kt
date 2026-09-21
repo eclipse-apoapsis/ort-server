@@ -26,6 +26,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.downloader.consolidateProjectPackagesByVcs
 import org.ossreviewtoolkit.model.OrtResult
@@ -52,8 +54,6 @@ import org.ossreviewtoolkit.utils.common.packZip
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.runBlocking
 import org.ossreviewtoolkit.utils.spdxexpression.SpdxLicenseChoice
-
-import org.slf4j.LoggerFactory
 
 const val SOURCE_BUNDLE_FILE_NAME = "source-bundle-archive.zip"
 const val SOURCE_BUNDLE_SUB_DIR = "source_code_bundle"
@@ -119,8 +119,6 @@ class SourceCodeBundleReporter(
         /** A file filter that simply includes all files. */
         private val includeAllFilter: (File) -> Boolean = { true }
 
-        private val log = LoggerFactory.getLogger(SourceCodeBundleReporter::class.java)
-
         /**
          * Return a file filter for the source of a specific package based on the given [provenance] that has been
          * downloaded to the given [outputDir]. If the package has been downloaded from a repository and has the
@@ -148,7 +146,7 @@ class SourceCodeBundleReporter(
     }
 
     override fun generateReport(input: ReporterInput, outputDir: File): List<Result<File>> {
-        log.info("Preparing a source code bundle for repository '${input.ortResult.repository.vcsProcessed.url}'")
+        logger.info { "Preparing a source code bundle for repository '${input.ortResult.repository.vcsProcessed.url}'" }
 
         val outputFile = runCatching {
             downloadSourceCode(
@@ -173,13 +171,13 @@ class SourceCodeBundleReporter(
         val allPackages = buildList {
             if (packageTypes.any { it.equals(PackageType.PROJECT.name, ignoreCase = true) }) {
                 val projects = consolidateProjectPackagesByVcs(ortResult.getProjects(true)).keys
-                log.info("Found ${projects.size} project(s) in the ORT result.")
+                logger.info { "Found ${projects.size} project(s) in the ORT result." }
                 addAll(projects)
             }
 
             if (packageTypes.any { it.equals(PackageType.PACKAGE.name, ignoreCase = true) }) {
                 val packages = ortResult.getPackages(true).map { it.metadata }
-                log.info("Found ${packages.size} packages(s) in the ORT result.")
+                logger.info { "Found ${packages.size} packages(s) in the ORT result." }
                 addAll(packages)
             }
         }
@@ -198,7 +196,7 @@ class SourceCodeBundleReporter(
         val bundleDownloadDir = provideCodeBundleDownloadDir(outputDir)
 
         try {
-            log.info("Downloading ${filteredPackages.size} project(s) / package(s) in total.")
+            logger.info { "Downloading ${filteredPackages.size} project(s) / package(s) in total." }
 
             val packageDownloadDirs =
                 filteredPackages.associateWith { bundleDownloadDir.resolve(it.id.toPath()) }
@@ -207,7 +205,7 @@ class SourceCodeBundleReporter(
 
             val sourceCodeZipFile = outputDir.resolve(SOURCE_BUNDLE_FILE_NAME)
 
-            log.info("Archiving directory '$bundleDownloadDir' to '$sourceCodeZipFile'.")
+            logger.info { "Archiving directory '$bundleDownloadDir' to '$sourceCodeZipFile'." }
             bundleDownloadDir.packZip(sourceCodeZipFile)
 
             return sourceCodeZipFile
@@ -215,7 +213,7 @@ class SourceCodeBundleReporter(
             bundleDownloadDir.safeDeleteRecursively(baseDirectory = bundleDownloadDir)
             bundleDownloadDir.delete()
 
-            log.debug("Temp code bundle packages download dir ${bundleDownloadDir.absolutePath} deleted.")
+            logger.debug { "Temp code bundle packages download dir ${bundleDownloadDir.absolutePath} deleted." }
         }
     }
 
@@ -225,11 +223,11 @@ class SourceCodeBundleReporter(
                 async {
                     val progress = "${index + 1} of ${packageDownloadDirs.size}"
 
-                    log.info("Starting download for '${pkg.id.toCoordinates()}' ($progress).")
+                    logger.info { "Starting download for '${pkg.id.toCoordinates()}' ($progress)." }
 
                     try {
                         downloadPackage(pkg, dir, outputDir).also {
-                            log.info("Finished download for ${pkg.id.toCoordinates()} ($progress).")
+                            logger.info { "Finished download for ${pkg.id.toCoordinates()} ($progress)." }
                         }
                     } finally {
                         dir.safeDeleteRecursively(baseDirectory = outputDir)
@@ -249,7 +247,7 @@ class SourceCodeBundleReporter(
         val filter = fileFilterForProvenance(provenance, dir)
         val zipFile = outputDir.resolve("${pkg.id.toPath("-")}.zip")
 
-        log.info("Archiving directory '$dir' to '$zipFile'.")
+        logger.info { "Archiving directory '$dir' to '$zipFile'." }
         dir.packZip(
             zipFile,
             "${pkg.id.name.encodeOrUnknown()}/${pkg.id.version.encodeOrUnknown()}/",
@@ -268,7 +266,7 @@ class SourceCodeBundleReporter(
             "Can't create writable code bundle output dir ${codeBundleDir.absolutePath}."
         }
 
-        log.debug("Temp dir ${codeBundleDir.absolutePath} for code bundle packages download created.")
+        logger.debug { "Temp dir ${codeBundleDir.absolutePath} for code bundle packages download created." }
 
         return codeBundleDir
     }

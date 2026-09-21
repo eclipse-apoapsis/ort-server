@@ -32,7 +32,6 @@ dependencies {
     api(ortLibs.downloader)
 
     implementation(libs.jgit)
-    implementation(libs.slf4j)
     implementation(ortLibs.ortPlugins.versionControlSystems.git)
     implementation(projects.utils.config)
 

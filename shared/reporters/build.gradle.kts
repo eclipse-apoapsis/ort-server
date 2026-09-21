@@ -32,7 +32,6 @@ dependencies {
     api(ortLibs.downloader)
     api(ortLibs.reporter)
 
-    implementation(libs.slf4j)
     implementation(ortLibs.utils.common)
 
     ksp(ortLibs.ortPlugins.compiler)

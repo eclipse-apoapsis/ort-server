@@ -32,6 +32,8 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -50,8 +52,6 @@ import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
-
-import org.slf4j.LoggerFactory
 
 /**
  * An implementation of [ConfigFileProvider] that reads config files from Git and stores them to a local directory. The
@@ -83,8 +83,6 @@ class GitConfigFileProvider internal constructor(
         /** The maximum number of entries kept in the [revisionCache]. */
         internal const val MAX_REVISION_CACHE_SIZE = 100
 
-        private val logger = LoggerFactory.getLogger(GitConfigFileProvider::class.java)
-
         /**
          * Create a new instance of [GitConfigFileProvider] that is initialized based on the given [config].
          */
@@ -95,7 +93,7 @@ class GitConfigFileProvider internal constructor(
                 DEFAULT_REVISION_CACHE_TTL_SECONDS.inWholeSeconds
             ).seconds
 
-            logger.info("Creating GitConfigFileProvider for repository '{}'.", gitUrl)
+            logger.info { "Creating GitConfigFileProvider for repository '$gitUrl'." }
 
             return GitConfigFileProvider(gitUrl, createOrtTempDir(), revisionCacheTtl)
         }
@@ -133,11 +131,11 @@ class GitConfigFileProvider internal constructor(
         val cached = revisionCache[requestedRevision]
 
         val resolvedRevision = if (cached != null && cached.expiresAt.hasNotPassedNow()) {
-            logger.debug("Using cached revision '{}' for context '{}'.", cached.revision, requestedRevision)
+            logger.debug { "Using cached revision '${cached.revision}' for context '$requestedRevision'." }
             cached.revision
         } else {
             resolveRevision(requestedRevision).also {
-                logger.debug("Resolved revision '{}' for context '{}'.", it, requestedRevision)
+                logger.debug { "Resolved revision '$it' for context '$requestedRevision'." }
                 revisionCache[requestedRevision] = CachedRevision(it, timeSource.markNow() + revisionCacheTtl)
             }
         }
@@ -218,7 +216,7 @@ class GitConfigFileProvider internal constructor(
                 val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, revisionToCheckout)
 
                 measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
-                    logger.debug("Initialized Git working tree in $it.")
+                    logger.debug { "Initialized Git working tree in $it." }
                 }
             }
 
@@ -233,7 +231,7 @@ class GitConfigFileProvider internal constructor(
                     git.updateWorkingTree(workingTree, revisionToCheckout).getOrThrow()
                 }
             }.also {
-                logger.debug("Updated Git working tree to revision '$revisionToCheckout' in $it.")
+                logger.debug { "Updated Git working tree to revision '$revisionToCheckout' in $it." }
             }
 
             return workingTree.getRevision()
@@ -263,7 +261,7 @@ class GitConfigFileProvider internal constructor(
                 }
             }
         }.onFailure {
-            logger.debug("Could not check out revision '$revision' from the local Git repository.", it)
+            logger.debug(it) { "Could not check out revision '$revision' from the local Git repository." }
         }.isSuccess
 
     /**
@@ -278,7 +276,7 @@ class GitConfigFileProvider internal constructor(
      * Requires JVM argument: --add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED
      */
     private fun clearHttpAuthCache() = runCatching {
-        logger.debug("Clearing JGit HTTP authentication cache.")
+        logger.debug { "Clearing JGit HTTP authentication cache." }
 
         val authCacheImplClass = Class.forName("sun.net.www.protocol.http.AuthCacheImpl")
         val getDefaultMethod = authCacheImplClass.getDeclaredMethod("getDefault")
@@ -288,13 +286,12 @@ class GitConfigFileProvider internal constructor(
         // Replace the cache map with an empty one.
         setMapMethod.invoke(defaultCache, HashMap<Any, Any>())
 
-        logger.debug("Successfully cleared JGit HTTP authentication cache.")
+        logger.debug { "Successfully cleared JGit HTTP authentication cache." }
     }.onFailure { e ->
-        logger.warn(
+        logger.warn(e) {
             "Failed to clear JGit HTTP authentication cache. This may lead to Git authentication issues. Consider " +
-                    "setting '--add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED' javaOpts.",
-            e
-        )
+                    "setting '--add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED' javaOpts."
+        }
     }
 }
 

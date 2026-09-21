@@ -50,6 +50,8 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
@@ -60,8 +62,6 @@ import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-
-import org.slf4j.LoggerFactory
 
 class GitHubConfigFileProvider(
     /** The HTTP client to be used for all requests. */
@@ -163,8 +163,6 @@ class GitHubConfigFileProvider(
          */
         private const val HEADER_RATE_LIMIT_RESET = "x-ratelimit-reset"
 
-        private val logger = LoggerFactory.getLogger(GitHubConfigFileProvider::class.java)
-
         /**
          * Create a new instance of [GitHubConfigFileProvider] that is initialized based on the given [config] and
          * [secretProvider].
@@ -175,11 +173,11 @@ class GitHubConfigFileProvider(
             val gitHubApiUrl = config.getStringOrDefault(GITHUB_API_URL, DEFAULT_GITHUB_API_URL)
             val defaultBranch = config.getStringOrNull(DEFAULT_BRANCH)
 
-            logger.info("Creating GitHubConfigFileProvider.")
-            logger.debug("GitHub URI: '{}'.", gitHubApiUrl)
-            logger.debug("GitHub repository: '{}'.", repository)
-            logger.debug("GitHub repository owner: '{}'.", owner)
-            logger.debug("GitHub default branch: '{}'.", defaultBranch)
+            logger.info { "Creating GitHubConfigFileProvider." }
+            logger.debug { "GitHub URI: '$gitHubApiUrl'." }
+            logger.debug { "GitHub repository: '$repository'." }
+            logger.debug { "GitHub repository owner: '$owner'." }
+            logger.debug { "GitHub default branch: '$defaultBranch'." }
 
             val baseUrl = "$gitHubApiUrl/repos/$owner/$repository"
             return GitHubConfigFileProvider(
@@ -205,7 +203,7 @@ class GitHubConfigFileProvider(
          */
         private fun createCache(config: Config): GitHubConfigCache =
             config.getStringOrNull(CACHE_DIRECTORY)?.let { cacheDir ->
-                logger.debug("Using file-based cache in directory '{}'.", cacheDir)
+                logger.debug { "Using file-based cache in directory '$cacheDir'." }
 
                 val lockCheckInterval = config.getInt(LOCK_CHECK_INTERVAL_SEC)
                 val maxAge = config.getInt(CACHE_MAX_AGE_DAYS)
@@ -296,8 +294,10 @@ class GitHubConfigFileProvider(
         val response = sendHttpRequestWithRetry(path, contentType)
 
         if (checkSuccess && !response.status.isSuccess()) {
-            logger.error("Error response from GitHub API request: ${response.status}.")
-            logger.info("Response body: ${response.bodyAsText()}")
+            logger.error { "Error response from GitHub API request: ${response.status}." }
+
+            val responseBody = response.bodyAsText()
+            logger.info { "Response body: $responseBody" }
 
             throw ConfigException("Error response from GitHub API request: ${response.status}.")
         } else {
@@ -311,7 +311,7 @@ class GitHubConfigFileProvider(
      */
     private tailrec suspend fun sendHttpRequestWithRetry(path: String, contentType: String): HttpResponse {
         val requestUrl = "$baseUrl$path"
-        logger.debug("GET '{}'", requestUrl)
+        logger.debug { "GET '$requestUrl'." }
 
         val response = httpClient.get(requestUrl) {
             header("Accept", contentType)
@@ -321,7 +321,7 @@ class GitHubConfigFileProvider(
         return if (rateLimitReset != null) {
             val resetAt = Instant.fromEpochSeconds(rateLimitReset)
             val delay = resetAt - Clock.System.now()
-            logger.warn("Rate limit exceeded. Retrying in {} seconds.", delay)
+            logger.warn { "Rate limit exceeded. Retrying in $delay seconds." }
 
             delay(delay)
             sendHttpRequestWithRetry(path, contentType)

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.notifier
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
@@ -49,18 +51,18 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
         withMdcContext(NotifierEndpoint.jobMdcKey(notifierJobId)) {
             val response = when (val result = notifierWorker.run(notifierJobId, message.header.traceId)) {
                 is RunResult.Success -> {
-                    logger.info("Notifier job '$notifierJobId' succeeded.")
+                    logger.info { "Notifier job '$notifierJobId' succeeded." }
                     Message(message.header, NotifierWorkerResult(notifierJobId))
                 }
 
                 // The notifier job does not return any issue, so this result will never occur.
                 is RunResult.FinishedWithIssues -> {
-                    logger.warn("Notifier job '$notifierJobId' finished with issues.")
+                    logger.warn { "Notifier job '$notifierJobId' finished with issues." }
                     Message(message.header, NotifierWorkerError(notifierJobId))
                 }
 
                 is RunResult.Failed -> {
-                    logger.error("Notifier job '$notifierJobId' failed.", result.error)
+                    logger.error(result.error) { "Notifier job '$notifierJobId' failed." }
                     Message(message.header, NotifierWorkerError(notifierJobId, result.error.message))
                 }
 

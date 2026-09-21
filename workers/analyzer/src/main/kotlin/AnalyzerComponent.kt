@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
@@ -87,17 +89,17 @@ class AnalyzerComponent(
 
             val response = when (result) {
                 is RunResult.Success -> {
-                    logger.info("Analyzer job '$jobId' succeeded.")
+                    logger.info { "Analyzer job '$jobId' succeeded." }
                     Message(message.header, AnalyzerWorkerResult(jobId))
                 }
 
                 is RunResult.FinishedWithIssues -> {
-                    logger.warn("Analyzer job '$jobId' finished with issues.")
+                    logger.warn { "Analyzer job '$jobId' finished with issues." }
                     Message(message.header, AnalyzerWorkerResult(jobId, true))
                 }
 
                 is RunResult.Failed -> {
-                    logger.error("Analyzer job '$jobId' failed.", result.error)
+                    logger.error(result.error) { "Analyzer job '$jobId' failed." }
                     Message(message.header, AnalyzerWorkerError(jobId, result.error.message))
                 }
 

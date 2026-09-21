@@ -28,6 +28,8 @@ import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefault
@@ -48,10 +50,6 @@ import org.ossreviewtoolkit.plugins.packagecurationproviders.api.SimplePackageCu
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.ORT_REPO_CONFIG_FILENAME
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AnalyzerRunner::class.java)
 
 class AnalyzerRunner(
     /**
@@ -108,7 +106,7 @@ class AnalyzerRunner(
          */
         @JvmStatic
         fun main(args: Array<String>) {
-            logger.info("Executing forked AnalyzerRunner with arguments: ${args.joinToString()}")
+            logger.info { "Executing forked AnalyzerRunner with arguments: ${args.joinToString()}" }
 
             val exchangeDir = File(args[0])
 
@@ -125,7 +123,7 @@ class AnalyzerRunner(
 
                 resultFile.writeValue(result)
             }.onFailure { exception ->
-                logger.error("Analyzer run failed.", exception)
+                logger.error(exception) { "Analyzer run failed." }
                 exchangeDir.resolve(ANALYZER_ERROR_FILE).writeText(exception.toString())
             }
         }
@@ -196,7 +194,7 @@ class AnalyzerRunner(
 
             val processBuilder = createProcessBuilder(exchangeDir, inputDir, environment)
 
-            logger.info("Starting forked AnalyzerRunner with command: ${processBuilder.command()}")
+            logger.info { "Starting forked AnalyzerRunner with command: ${processBuilder.command()}" }
             withContext(Dispatchers.IO) {
                 val process = processBuilder.start()
                 process.outputStream.use { pipe ->
@@ -205,7 +203,7 @@ class AnalyzerRunner(
 
                 val exitCode = process.waitFor()
 
-                logger.info("Forked AnalyzerRunner process finished with exit code $exitCode.")
+                logger.info { "Forked AnalyzerRunner process finished with exit code $exitCode." }
             }
 
             return exchangeDir.resolve(ANALYZER_RESULT_FILE).takeIf { it.isFile }?.readValue()
@@ -263,32 +261,32 @@ class AnalyzerRunner(
 
         val enabledPackageManagers = analyzerConfig.determineEnabledPackageManagers()
 
-        logger.info(
+        logger.info {
             "Searching for definitions files of the following enabled package manager(s): " +
                     enabledPackageManagers.joinToString { it.descriptor.id }.ifEmpty { "<None>" }
-        )
+        }
 
         val info = analyzer.findManagedFiles(inputDir, enabledPackageManagers, repositoryConfiguration)
         if (info.managedFiles.isEmpty()) {
-            logger.warn("No definition files found.")
+            logger.warn { "No definition files found." }
         } else {
             val filesPerManager = info.managedFiles.mapKeysTo(sortedMapOf()) { it.key.descriptor.displayName }
             var count = 0
 
             filesPerManager.forEach { (manager, files) ->
                 count += files.size
-                logger.info("Found ${files.size} $manager definition file(s) at:")
+                logger.info { "Found ${files.size} $manager definition file(s) at:" }
 
                 files.forEach { file ->
                     val relativePath = file.toRelativeString(inputDir).takeIf { it.isNotEmpty() } ?: "."
-                    logger.info("\t$relativePath")
+                    logger.info { "\t$relativePath" }
                 }
             }
 
-            logger.info("Found $count definition file(s) from ${filesPerManager.size} package manager(s) in total.")
+            logger.info { "Found $count definition file(s) from ${filesPerManager.size} package manager(s) in total." }
         }
 
-        logger.info("Creating package curation providers...")
+        logger.info { "Creating package curation providers..." }
 
         val packageCurationProviders = buildList {
             add(
@@ -301,18 +299,18 @@ class AnalyzerRunner(
             addAll(PackageCurationProviderFactory.create(packageCurationProviderConfigs))
         }
 
-        logger.info("Starting analysis of definition file(s)...")
+        logger.info { "Starting analysis of definition file(s)..." }
 
         val ortResult = analyzer.analyze(info, packageCurationProviders)
 
         val projectCount = ortResult.getProjects().size
         val packageCount = ortResult.getPackages().size
-        logger.info(
+        logger.info {
             "Found $projectCount project(s) and $packageCount package(s) in total (not counting excluded ones)."
-        )
+        }
 
         val curationCount = ortResult.getPackages().sumOf { it.curations.size }
-        logger.info("Applied $curationCount curation(s) from 1 provider.")
+        logger.info { "Applied $curationCount curation(s) from 1 provider." }
 
         checkNotNull(ortResult.analyzer?.result) {
             "There was an error creating the analyzer result."

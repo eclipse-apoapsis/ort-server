@@ -48,12 +48,12 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
-
-import org.slf4j.LoggerFactory
 
 /**
  * An implementation of the [LogFileProvider] interface that retrieves log data from Elasticsearch.
@@ -65,10 +65,6 @@ class ElasticsearchLogFileProvider(
     /** The configuration for this provider. */
     private val config: ElasticsearchConfig
 ) : LogFileProvider {
-    companion object {
-        private val logger = LoggerFactory.getLogger(ElasticsearchLogFileProvider::class.java)
-    }
-
     /** The HTTP client for sending requests to the Elasticsearch instance. */
     private val elasticsearchClient = createClient()
 
@@ -105,7 +101,7 @@ class ElasticsearchLogFileProvider(
                 hits.forEach { hit ->
                     val statement = hit.source.stringAtPath(messageField)
                     if (statement == null) {
-                        logger.warn("Skipping Elasticsearch hit '{}' because no message field is present.", hit.id)
+                        logger.warn { "Skipping Elasticsearch hit '${hit.id}' because no message field is present." }
                     } else {
                         hit.source.stringAtPath(timestampField)?.toLongOrNull()?.let { timestamp ->
                             out.write("${Instant.fromEpochMilliseconds(timestamp)} ")
@@ -138,7 +134,7 @@ class ElasticsearchLogFileProvider(
         searchAfter: List<JsonElement>?
     ): ElasticsearchResponse {
         val requestBody = createSearchRequest(ortRunId, source, levels, startTime, endTime, searchAfter)
-        logger.debug("Sending Elasticsearch log query: {}.", requestBody)
+        logger.debug { "Sending Elasticsearch log query: $requestBody." }
 
         return elasticsearchClient.post("${config.serverUrl.trimEnd('/')}/${config.index}/_search") {
             contentType(ContentType.Application.Json)

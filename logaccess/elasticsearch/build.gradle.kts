@@ -38,7 +38,6 @@ dependencies {
     implementation(ktorLibs.client.contentNegotiation)
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.okhttp)
-    implementation(libs.slf4j)
     implementation(libs.typesafeConfig)
     implementation(ktorLibs.serialization.kotlinx.json)
 

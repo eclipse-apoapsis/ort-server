@@ -23,6 +23,8 @@ import java.io.File
 
 import kotlin.io.path.createTempDirectory
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 
 import org.ossreviewtoolkit.downloader.VcsHost
@@ -30,10 +32,6 @@ import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.api.PluginConfig
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AnalyzerDownloader::class.java)
 
 class AnalyzerDownloader {
     companion object {
@@ -48,7 +46,7 @@ class AnalyzerDownloader {
 
                 root.listFiles { file -> file.isDirectory && dirName in file.name }.single()
             }.onFailure {
-                logger.warn("Could not find download directory for runId '$runId' under root '$root'.", it)
+                logger.warn(it) { "Could not find download directory for runId '$runId' under root '$root'." }
             }.getOrNull()
 
         /**
@@ -74,7 +72,7 @@ class AnalyzerDownloader {
         targetDir: File? = null,
         runId: Long? = null
     ): DownloadResult {
-        logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
+        logger.info { "Downloading repository '$repositoryUrl' revision '$revision'." }
 
         val outputDir = createTempDirectory(targetDir?.toPath(), downloadDirName(runId)).toFile()
 
@@ -97,10 +95,10 @@ class AnalyzerDownloader {
 
         val resolvedRevision = vcs.getWorkingTree(outputDir).getRevision()
 
-        logger.info(
+        logger.info {
             "Finished downloading '$repositoryUrl' revision '${vcsInfo.revision}' which was resolved to " +
                     "'$resolvedRevision'."
-        )
+        }
 
         return DownloadResult(outputDir, initRevision, resolvedRevision)
     }

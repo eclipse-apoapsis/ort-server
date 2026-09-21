@@ -23,6 +23,8 @@ import java.lang.Exception
 
 import kotlin.system.exitProcess
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -35,12 +37,8 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
-import org.slf4j.LoggerFactory
-
 class KubernetesMessageReceiverFactory : MessageReceiverFactory {
     companion object {
-        private val logger = LoggerFactory.getLogger(KubernetesMessageReceiverFactory::class.java)
-
         /**
          * Exit this process. This is necessary to make sure that the Java process terminates after the job has run.
          */
@@ -58,7 +56,7 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
     ) {
         val serializer = JsonSerializer.forClass(from.messageClass)
 
-        logger.info("Starting Kubernetes message receiver for endpoint '{}'.", from.configPrefix)
+        logger.info { "Starting Kubernetes message receiver for endpoint '${from.configPrefix}'." }
 
         val traceId = System.getenv(TRACE_PROPERTY)
         val runId = System.getenv(RUN_ID_PROPERTY).toLong()
@@ -74,7 +72,7 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
             try {
                 handler(msg)
             } catch (e: Exception) {
-                logger.error("Message processing caused an exception.", e)
+                logger.error(e) { "Message processing caused an exception." }
                 exit(1)
             } finally {
                 exit(0)

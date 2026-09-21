@@ -24,6 +24,8 @@ import com.charleskorn.kaml.decodeFromStream
 
 import java.io.File
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -44,8 +46,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariab
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
 import org.ossreviewtoolkit.utils.common.alsoIfNull
-
-import org.slf4j.LoggerFactory
 
 /**
  * A class for reading the environment configuration file from an analyzed repository. This configuration file
@@ -105,8 +105,6 @@ class EnvironmentConfigLoader(
     companion object {
         /** The default path to the environment configuration file relative to the root folder of the repository. */
         const val DEFAULT_CONFIG_FILE_PATH = ".ort.env.yml"
-
-        private val logger = LoggerFactory.getLogger(EnvironmentConfigLoader::class.java)
     }
 
     /**
@@ -128,13 +126,13 @@ class EnvironmentConfigLoader(
     internal fun resolveEnvironmentConfigFile(repositoryFolder: File, environmentConfigPath: String? = null): File? {
         val customEnvironmentConfigFile = environmentConfigPath?.let {
             repositoryFolder.resolve(it).takeIf { file -> file.isFile }.alsoIfNull {
-                logger.warn("Custom environment configuration file '$environmentConfigPath' not found.")
+                logger.warn { "Custom environment configuration file '$environmentConfigPath' not found." }
             }
         }
 
         val defaultEnvironmentConfigFile = if (customEnvironmentConfigFile == null) {
             repositoryFolder.resolve(DEFAULT_CONFIG_FILE_PATH).takeIf { it.isFile }.alsoIfNull {
-                logger.info("Default environment configuration file '$DEFAULT_CONFIG_FILE_PATH' not found.")
+                logger.info { "Default environment configuration file '$DEFAULT_CONFIG_FILE_PATH' not found." }
             }
         } else {
             null
@@ -148,7 +146,7 @@ class EnvironmentConfigLoader(
      * [ResolvedEnvironmentConfig].
      */
     internal fun parseEnvironmentConfigFile(environmentConfigFile: File): EnvironmentConfig {
-        logger.info("Parsing environment configuration file '{}'.", environmentConfigFile)
+        logger.info { "Parsing environment configuration file '$environmentConfigFile'." }
 
         return environmentConfigFile.inputStream().use { stream ->
             Yaml.default.decodeFromStream(stream)
@@ -219,7 +217,7 @@ class EnvironmentConfigLoader(
             if (config.strict) {
                 throw EnvironmentConfigException(message)
             } else {
-                logger.warn(message)
+                logger.warn { message }
             }
         }
 
@@ -272,7 +270,7 @@ class EnvironmentConfigLoader(
         if (config.strict) {
             throw EnvironmentConfigException(message)
         } else {
-            logger.warn(message)
+            logger.warn { message }
         }
     }
 
@@ -331,7 +329,7 @@ class EnvironmentConfigLoader(
         if (config.strict) {
             throw EnvironmentConfigException(message)
         } else {
-            logger.warn(message)
+            logger.warn { message }
         }
     }
 }

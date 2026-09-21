@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migration
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
@@ -45,10 +47,6 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(RolesToDbMigration::class.java)
 
 /**
  * A class implementing a migration that moves roles management to the database.
@@ -83,22 +81,21 @@ class RolesToDbMigration(
     suspend fun migrateRolesToDb(): Boolean {
         if (!canMigrate()) return false
 
-        logger.warn(
-            "Starting migration of Keycloak roles to database-based roles using group prefix '{}'.",
-            keycloakGroupPrefix
-        )
+        logger.warn {
+            "Starting migration of Keycloak roles to database-based roles using group prefix '$keycloakGroupPrefix'."
+        }
 
         val organizationIds = db.dbQuery {
             OrganizationsTable.select(OrganizationsTable.id)
                 .map { it[OrganizationsTable.id].value }
         }
 
-        logger.info("Migrating {} organizations.", organizationIds.size)
+        logger.info { "Migrating ${organizationIds.size} organizations." }
         organizationIds.forEach { organizationId ->
             migrateOrganizationRolesToDb(organizationId)
         }
 
-        logger.info("Migrating superusers")
+        logger.info { "Migrating superusers" }
         migrateUsersInGroupToDb(
             GroupName(keycloakGroupPrefix + Superuser.GROUP_NAME),
             DbOrganizationRole.ADMIN,
@@ -113,7 +110,7 @@ class RolesToDbMigration(
      * This includes the migration of all products and repositories belonging to the organization.
      */
     private suspend fun migrateOrganizationRolesToDb(organizationId: Long) {
-        logger.info("Migrating roles for organization '{}'.", organizationId)
+        logger.info { "Migrating roles for organization '$organizationId'." }
         val organizationHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(organizationId))
 
         migrateElementRolesToDb(
@@ -129,7 +126,7 @@ class RolesToDbMigration(
                 .map { it[ProductsTable.id].value }
         }
 
-        logger.info("Migrating {} products for organization '{}'.", productIds.size, organizationId)
+        logger.info { "Migrating ${productIds.size} products for organization '$organizationId'." }
         productIds.forEach { productId ->
             val productHierarchyId = CompoundHierarchyId.forProduct(
                 OrganizationId(organizationId),
@@ -145,7 +142,7 @@ class RolesToDbMigration(
      */
     private suspend fun migrateProductRolesToDb(productHierarchyId: CompoundHierarchyId) {
         val productId = requireNotNull(productHierarchyId.productId)
-        logger.info("Migrating roles for product '{}'.", productId)
+        logger.info { "Migrating roles for product '$productId'." }
 
         migrateElementRolesToDb(
             oldRoles = ProductRole.entries,
@@ -160,7 +157,7 @@ class RolesToDbMigration(
                 .map { it[RepositoriesTable.id].value }
         }
 
-        logger.info("Migrating {} repositories for product '{}'.", repositoryIds.size, productId)
+        logger.info { "Migrating ${repositoryIds.size} repositories for product '$productId'." }
         repositoryIds.forEach { repositoryId ->
             val repositoryHierarchyId = CompoundHierarchyId.forRepository(
                 requireNotNull(productHierarchyId.organizationId),
@@ -175,7 +172,7 @@ class RolesToDbMigration(
      * Migrate the access rights for the repository with the given [repositoryId] to the new database-based roles.
      */
     private suspend fun migrateRepositoryRolesToDb(repositoryId: CompoundHierarchyId) {
-        logger.info("Migrating roles for repository '{}'.", repositoryId.repositoryId)
+        logger.info { "Migrating roles for repository '${repositoryId.repositoryId}'." }
 
         migrateElementRolesToDb(
             oldRoles = RepositoryRole.entries,
@@ -232,7 +229,7 @@ class RolesToDbMigration(
                 )
             }
         }.onFailure { exception ->
-            logger.error("Failed to load users in group '${groupName.value}' during migration.", exception)
+            logger.error(exception) { "Failed to load users in group '${groupName.value}' during migration." }
         }
     }
 

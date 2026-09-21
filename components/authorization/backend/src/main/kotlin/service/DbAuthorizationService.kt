@@ -25,6 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
@@ -61,9 +63,7 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(DbAuthorizationService::class.java)
+private val logger = logger("DbAuthorizationService")
 
 /**
  * An implementation of [AuthorizationService] storing information about role assignments in the database.
@@ -137,12 +137,7 @@ class DbAuthorizationService(
         db.dbQuery {
             doRemoveAssignment(userId, compoundHierarchyId)
 
-            logger.info(
-                "Assigning role '{}' to user '{}' on hierarchy element {}.",
-                role,
-                userId,
-                compoundHierarchyId
-            )
+            logger.info { "Assigning role '$role' to user '$userId' on hierarchy element $compoundHierarchyId." }
 
             RoleAssignmentsTable.insert {
                 it[RoleAssignmentsTable.userId] = userId
@@ -204,7 +199,7 @@ class DbAuthorizationService(
     override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, RoleInfo> =
         withContext(Dispatchers.Default) {
             db.dbQuery {
-                logger.debug("Loading role assignments on element {}...", compoundHierarchyId)
+                logger.debug { "Loading role assignments on element $compoundHierarchyId" }
 
                 RoleAssignmentsTable.selectAll()
                     .where {
@@ -286,7 +281,7 @@ class DbAuthorizationService(
             }
         }.also {
             if (it.isInvalid()) {
-                logger.warn("Failed to resolve hierarchy ID $hierarchyId.")
+                logger.warn { "Failed to resolve hierarchy ID $hierarchyId." }
                 throw InvalidHierarchyIdException(hierarchyId)
             }
         }
@@ -331,7 +326,7 @@ class DbAuthorizationService(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId?
     ): List<Pair<CompoundHierarchyId, Role>> = db.dbQuery {
-        logger.debug("Loading role assignments for user '{}' on element {}...", userId, compoundHierarchyId)
+        logger.debug { "Loading role assignments for user '$userId' on element $compoundHierarchyId" }
 
         RoleAssignmentsTable.selectAll()
             .where {
@@ -357,11 +352,7 @@ class DbAuthorizationService(
             } == 1
             ).also {
             if (it) {
-                logger.info(
-                    "Removed role assignment for user '{}' on hierarchy element {}.",
-                    userId,
-                    compoundHierarchyId
-                )
+                logger.info { "Removed role assignment for user '$userId' on hierarchy element $compoundHierarchyId." }
             }
         }
 }
@@ -415,7 +406,7 @@ private fun ResultRow.extractRole(): Role? = runCatching {
         this[RoleAssignmentsTable.repositoryRole]?.let(RepositoryRole::valueOf)
     ).first()
 }.onFailure {
-    logger.error("Failed to extract role from database row: ${this[RoleAssignmentsTable.id]}", it)
+    logger.error(it) { "Failed to extract role from database row: ${this[RoleAssignmentsTable.id]}" }
 }.getOrNull()
 
 /**
@@ -449,7 +440,7 @@ private fun computeRoleForUser(
     hierarchyId: CompoundHierarchyId,
     assignments: List<Pair<CompoundHierarchyId, Role>>
 ): RoleInfo? {
-    logger.debug("Computing effective role for user '{}' on element {}...", user, hierarchyId)
+    logger.debug { "Computing effective role for user '$user' on element $hierarchyId." }
 
     return findHighestRole(assignments, hierarchyId)?.first
 }

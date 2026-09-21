@@ -28,8 +28,6 @@ group = "org.eclipse.apoapsis.ortserver.config"
 dependencies {
     api(projects.config.configSpi)
 
-    implementation(libs.slf4j)
-
     testImplementation(testFixtures(projects.config.configSpi))
 
     testImplementation(libs.kotest.assertions.core)

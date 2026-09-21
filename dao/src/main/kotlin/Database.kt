@@ -29,6 +29,8 @@ import javax.sql.DataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
@@ -51,9 +53,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(DataSource::class.java)
+private val logger = logger("Database")
 
 /**
  * Connect the database.
@@ -103,7 +103,7 @@ fun createDataSource(config: DataSourceConfig): DataSource {
         config.sslRootCert?.let { addDataSourceProperty("sslrootcert", it) }
 
         config.initSqlStatement?.let {
-            logger.info("Setting connection initialization statement to '{}'.", it)
+            logger.info { "Setting connection initialization statement to '$it'." }
             connectionInitSql = it
         }
     }
@@ -113,7 +113,7 @@ fun createDataSource(config: DataSourceConfig): DataSource {
     return runCatching {
         HikariDataSource(dataSourceConfig)
     }.onFailure {
-        logger.error("Failed to create data source.", it)
+        logger.error(it) { "Failed to create data source." }
     }.getOrThrow()
 }
 

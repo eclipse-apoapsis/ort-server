@@ -36,13 +36,13 @@ import io.ktor.http.HttpHeaders
 
 import kotlinx.serialization.json.Json
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.Credential
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.TokenInfo
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.UserRequest
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.generateAccessToken
 import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.refreshToken
-
-import org.slf4j.LoggerFactory
 
 /**
  * The default implementation of [KeycloakClient] which uses the provided [httpClient] to access the Keycloak instance
@@ -56,8 +56,6 @@ class DefaultKeycloakClient(
     private val apiUrl: String
 ) : KeycloakClient {
     companion object {
-        private val logger = LoggerFactory.getLogger(KeycloakClient::class.java)
-
         fun create(config: KeycloakClientConfiguration, json: Json): KeycloakClient {
             val httpClient = createHttpClient(config, json)
 
@@ -101,7 +99,7 @@ class DefaultKeycloakClient(
                             val tokenInfo: TokenInfo = runCatching {
                                 tokenClient.refreshToken(accessTokenUrl, clientId, oldTokens?.refreshToken.orEmpty())
                             }.getOrElse {
-                                logger.debug("Failed to refresh the access token.", it)
+                                logger.debug(it) { "Failed to refresh the access token." }
                                 tokenClient.generateAccessToken(accessTokenUrl, clientId, apiUser, apiSecret)
                             }.body()
 

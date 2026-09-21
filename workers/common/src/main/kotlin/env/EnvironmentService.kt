@@ -26,6 +26,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
@@ -43,10 +45,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfi
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(EnvironmentService::class.java)
 
 /**
  * A service class providing functionality for setting up the build environment when running a worker.
@@ -231,7 +229,7 @@ class EnvironmentService(
 
         return (secretRepositoryLevel ?: secretProductLevel ?: secretOrganizationLevel).also { resolvedSecret ->
             if (resolvedSecret == null) {
-                logger.error("Could not find secret '$secretName' for service '$serviceName'.")
+                logger.error { "Could not find secret '$secretName' for service '$serviceName'." }
             } else {
                 val message = buildString {
                     append("Found secret '$secretName' for service '$serviceName' at the following levels: ")
@@ -253,7 +251,7 @@ class EnvironmentService(
                     }
                 }
 
-                logger.info(message)
+                logger.info { message }
             }
         }
     }
@@ -306,9 +304,9 @@ internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConf
         .partition { service -> other.infrastructureServices.any { it.name == service.name } }
 
     if (overridden.isNotEmpty()) {
-        logger.info(
+        logger.info {
             "The following infrastructure services have been overridden: ${overridden.joinToString { it.name }}."
-        )
+        }
     }
 
     val mergedInfrastructureService = unreferenced + other.infrastructureServices

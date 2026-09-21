@@ -24,10 +24,9 @@ import java.net.URL
 import java.util.Locale
 
 import org.apache.commons.text.similarity.FuzzyScore
+import org.apache.logging.log4j.kotlin.logger
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AuthenticatedServices::class.java)
+private val logger = logger("AuthenticatedServices")
 
 /**
  * An internal helper class that manages a collection of resolved infrastructure services and offers functionality to
@@ -53,10 +52,9 @@ internal class AuthenticatedServices private constructor(
                 runCatching {
                     URI.create(service.url) to service
                 }.onFailure {
-                    logger.error(
-                        "Invalid URI for service '${service.name}': '${service.url}'. Ignoring service.",
-                        it
-                    )
+                    logger.error(it) {
+                        "Invalid URI for service '${service.name}': '${service.url}'. Ignoring service."
+                    }
                 }.getOrNull()
             }.groupBy { it.first.host }
                 .mapValues { e ->
@@ -83,7 +81,7 @@ internal class AuthenticatedServices private constructor(
         val services = servicesByHost[hostName].orEmpty()
 
         return services.singleOrNull()?.takeIf { url == null }?.also {
-            logger.debug("Using single service for host '{}'.", hostName)
+            logger.debug { "Using single service for host '$hostName'." }
         } ?: findBestMatchingService(services, url, enableFuzzyMatching)
     }
 }
@@ -106,11 +104,10 @@ private fun findBestMatchingService(
     url: URL?,
     enableFuzzyMatching: Boolean
 ): ResolvedInfrastructureService? {
-    logger.debug(
-        "Finding best matching service for '{}' from {}.",
-        url?.toString(),
-        services.joinToString { "${it.name} (${it.url})" }
-    )
+    logger.debug {
+        val serviceNames = services.joinToString { "${it.name} (${it.url})" }
+        "Finding best matching service for '${url?.toString()}' from $serviceNames."
+    }
 
     val matchingServices = url?.let { requestUrl ->
         val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
@@ -137,20 +134,18 @@ private fun findFuzzyMatchingService(
     if (services.isEmpty() || url == null) return null
 
     if (services.size < 2) {
-        logger.info(
-            "Found only a single service for '{}', but there is no prefix match. " +
-                    "Returning it, since fuzzy search is enabled.",
-            url.host
-        )
+        logger.info {
+            "Found only a single service for '${url.host}', but there is no prefix match. Returning it, since fuzzy " +
+                    "search is enabled."
+        }
         return services.first()
     }
 
     val strUrl = url.toString().removeSuffix("/")
-    logger.warn(
-        "No unique infrastructure service found to match '{}'. Trying to find the best match. " +
-                "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL.",
-        strUrl
-    )
+    logger.warn {
+        "No unique infrastructure service found to match '$strUrl'. Trying to find the best match. " +
+                "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL."
+    }
 
     val sortedServicesWithScores = services.map { service ->
         service to fuzzyScore.fuzzyScore(service.url.removeSuffix("/"), strUrl)
@@ -159,12 +154,11 @@ private fun findFuzzyMatchingService(
     return sortedServicesWithScores.first().takeUnless { sortedServicesWithScores[1].second == it.second }?.first
         .also { service ->
             if (service == null) {
-                logger.warn(
-                    "Found multiple services with the same matching score for '{}': {}.",
-                    strUrl,
-                    sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
-                        .joinToString { "${it.first.name} (${it.first.url})" }
-                )
+                logger.warn {
+                    "Found multiple services with the same matching score for '$strUrl': " +
+                            sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
+                                .joinToString { "${it.first.name} (${it.first.url})" }
+                }
             }
         }
 }

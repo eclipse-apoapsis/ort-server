@@ -26,14 +26,12 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicReference
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.authentication.UserInfoAuthenticator
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
 
 /**
  * Implementation of an [Authenticator] which is responsible for handling authentication within ORT Server. This class
@@ -83,10 +81,10 @@ class OrtServerAuthenticator(
             return active as? OrtServerAuthenticator
                 ?: OrtServerAuthenticator(active).also {
                     setDefault(it)
-                    logger.info("OrtServerAuthenticator was successfully installed.")
+                    logger.info { "OrtServerAuthenticator was successfully installed." }
 
                     if (loadEnvironmentServices) {
-                       logger.info("Loading infrastructure services from environment variables.")
+                       logger.info { "Loading infrastructure services from environment variables." }
                        it.serviceDataByType[ENVIRONMENT_SERVICES] = loadEnvironmentServices(secretResolverFun)
                     }
                 }
@@ -141,7 +139,7 @@ class OrtServerAuthenticator(
      * information that has been persisted earlier.
      */
     fun updateAuthenticationInfo(info: AuthenticationInfo, type: String = PROJECT_SERVICES) {
-        logger.info("Updating the list of authenticated services. Setting ${info.services.size} services.")
+        logger.info { "Updating the list of authenticated services. Setting ${info.services.size} services." }
 
         val authenticatedServices = AuthenticatedServices.create(
             info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes },
@@ -156,7 +154,7 @@ class OrtServerAuthenticator(
      * only a single listener is needed; therefore, there is no `add` method.
      */
     fun updateAuthenticationListener(listener: AuthenticationListener?) {
-        logger.info("Updating the authentication listener.")
+        logger.info { "Updating the authentication listener." }
         refListener.set(listener)
     }
 }
@@ -200,11 +198,11 @@ private class ServicesAuthenticator(
     override fun getPasswordAuthentication(): PasswordAuthentication? {
         if (requestorType != RequestorType.SERVER) return null
 
-        logger.info("Request for password authentication for '${requestingURL ?: requestingHost}'.")
+        logger.info { "Request for password authentication for '${requestingURL ?: requestingHost}'." }
 
         return with(servicesByType.getOrDefault(serviceType, emptyServiceData)) {
             getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
-                logger.info("Using credentials from service '${service.name}'.")
+                logger.info { "Using credentials from service '${service.name}'." }
 
                 authenticationListener.get()?.also { listener ->
                     listener.onAuthentication(AuthenticationEvent(service))

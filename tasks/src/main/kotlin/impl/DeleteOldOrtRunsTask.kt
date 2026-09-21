@@ -25,12 +25,12 @@ import kotlin.time.Instant
 
 import kotlinx.serialization.json.JsonPrimitive
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.tasks.Task
 import org.eclipse.apoapsis.ortserver.utils.logging.JobStatusLogging
-
-import org.slf4j.LoggerFactory
 
 /**
  * A task class that handles the deletion of old ORT runs according to the configured data retention policy. The task
@@ -51,8 +51,6 @@ class DeleteOldOrtRunsTask(
     companion object {
         const val TASK_NAME = "deleteOldOrtRunsTask"
 
-        private val logger = LoggerFactory.getLogger(DeleteOldOrtRunsTask::class.java)
-
         /**
          * Create a new instance of [DeleteOldOrtRunsTask] with the configuration obtained from the given
          * [configManager] that uses the given [ortRunService].
@@ -65,7 +63,7 @@ class DeleteOldOrtRunsTask(
 
     override suspend fun execute() {
         JobStatusLogging.runWithStatusLogging(TASK_NAME) { jsonBuilder ->
-            logger.info("Deleting ORT runs that finished before $ortRunMaxAgeThreshold.")
+            logger.info { "Deleting ORT runs that finished before $ortRunMaxAgeThreshold." }
 
             val result = ortRunService.deleteRunsCreatedBefore(ortRunMaxAgeThreshold)
 

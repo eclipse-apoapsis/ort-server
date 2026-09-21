@@ -30,6 +30,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.model.LogLevel
@@ -38,8 +40,6 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 import org.ossreviewtoolkit.utils.common.packZip
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
-
-import org.slf4j.LoggerFactory
 
 /**
  * A class allowing the download of log files via a managed [LogFileProvider].
@@ -67,8 +67,6 @@ class LogFileService private constructor(
         /** The service loader for loading log file providers dynamically. */
         private val PROVIDER_LOADER = ServiceLoader.load(LogFileProviderFactory::class.java)
 
-        private val logger = LoggerFactory.getLogger(LogFileService::class.java)
-
         /**
          * Return an initialized [LogFileService] instance based on the given [configManager]. Optionally, a
          * [directory for temporary file operations][tempDir] can be provided; if this is *null*, use the default
@@ -89,7 +87,7 @@ class LogFileService private constructor(
                     "Missing '$PROVIDER_TYPE_PROPERTY' property in '$LOG_FILE_SERVICE_SECTION' section.",
                     null
                 )
-            logger.info("Creating LogFileProvider of type '{}'.", providerType)
+            logger.info { "Creating LogFileProvider of type '$providerType'." }
 
             val providerFactory = PROVIDER_LOADER.find { it.name == providerType }
                 ?: throw LogFileServiceException("LogFileProvider '$providerType' cannot be resolved.", null)
@@ -160,19 +158,16 @@ class LogFileService private constructor(
         endTime: Instant,
         targetDir: File
     ) {
-        logger.info("Downloading log file for {} for ORT run {}.", source.name, ortRunId)
+        logger.info { "Downloading log file for ${source.name} for ORT run $ortRunId." }
 
         @Suppress("TooGenericExceptionCaught")
         try {
             val logFile =
                 provider.downloadLogFile(ortRunId, source, levels, startTime, endTime, targetDir, logFileName(source))
 
-            logger.debug(
-                "Log file for {} for ORT run {} was downloaded to {}.",
-                source.name,
-                ortRunId,
-                logFile.absolutePath
-            )
+            logger.debug {
+                "Log file for ${source.name} for ORT run $ortRunId was downloaded to ${logFile.absolutePath}."
+            }
         } catch (e: Exception) {
             throw LogFileServiceException("Download of log file for $source for ORT run $ortRunId failed.", e)
         }

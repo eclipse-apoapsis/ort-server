@@ -34,6 +34,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterAsset
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
@@ -83,9 +85,7 @@ import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.showStackTrace
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(ReporterRunner::class.java)
+private val logger = logger("ReporterRunner")
 
 class ReporterRunner(
     /** The object to store the generated report files. */
@@ -226,12 +226,10 @@ class ReporterRunner(
         var failureCount = 0
         val texts = issues.associateWith { issue ->
             runCatching { provider.getHowToFixText(issue) }.getOrElse { exception ->
-                logger.error(
-                    "Could not calculate how-to-fix text for issue from '{}': '{}'.",
-                    issue.source,
-                    issue.message,
-                    exception
-                )
+                logger.error(exception) {
+                    "Could not calculate how-to-fix text for issue from '${issue.source}': '${issue.message}'."
+                }
+
                 failureCount++
                 if (firstFailure == null) firstFailure = exception
                 null
@@ -298,7 +296,7 @@ class ReporterRunner(
 
             val success = config.formats.map { format ->
                 async {
-                    logger.info("Generating the '$format' report...")
+                    logger.info { "Generating the '$format' report..." }
                     activeReporters += format
 
                     val result = runCatching {
@@ -320,7 +318,7 @@ class ReporterRunner(
 
                             reportFiles.takeUnless { it.isEmpty() }?.let { reporter to reportFiles }
                         }.let {
-                            logger.info("Successfully created '$format' report in ${it.duration}.")
+                            logger.info { "Successfully created '$format' report in ${it.duration}." }
                             it.value
                         }
                     }.onFailure {
@@ -353,7 +351,7 @@ class ReporterRunner(
     private suspend fun logActiveReporters(activeReporters: Set<String>) {
         while (true) {
             delay(30.seconds)
-            logger.debug("Report generation in progress for the following reporters: {}.", activeReporters)
+            logger.debug { "Report generation in progress for the following reporters: $activeReporters." }
         }
     }
 
@@ -436,7 +434,7 @@ private suspend fun WorkerContext.downloadReporterTemplates(
     val allPaths = splitPaths.values.flatten()
         .filter { it.startsWith(ReporterComponent.TEMPLATE_REFERENCE) }
         .mapTo(mutableSetOf()) { it.toTemplatePath() }
-    logger.info("Downloading the following template files: {}.", allPaths)
+    logger.info { "Downloading the following template files: $allPaths." }
 
     val downloadedPaths = downloadConfigurationFiles(allPaths, directory)
 
@@ -455,7 +453,7 @@ private suspend fun WorkerContext.downloadAssetFiles(assets: Collection<Reporter
     assets.forEach { asset ->
         val targetDir = createAssetDirectory(asset, directory)
 
-        logger.info("Downloading asset file '{}' to '{}'.", asset.sourcePath, targetDir)
+        logger.info { "Downloading asset file '${asset.sourcePath}' to '$targetDir'." }
 
         downloadConfigurationFile(Path(asset.sourcePath), targetDir, asset.targetName)
     }
@@ -519,7 +517,7 @@ internal fun createLicenseFactProvider(
 private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
     e.showStackTrace()
 
-    logger.error("Could not create report for '$format' due to '${e.javaClass.name}'.")
+    logger.error(e) { "Could not create report for '$format' due to '${e.javaClass.name}'." }
 
     return Issue(
         timestamp = Clock.System.now(),

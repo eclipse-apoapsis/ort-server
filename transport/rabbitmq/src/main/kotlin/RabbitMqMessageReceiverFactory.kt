@@ -39,6 +39,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.cancellable
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -48,17 +50,12 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 /**
  * Implementation of the [MessageReceiverFactory] interface for RabbitMQ.
  */
 class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
-    companion object {
-        private val logger = LoggerFactory.getLogger(RabbitMqMessageReceiverFactory::class.java)
-    }
-
     override val name = RabbitMqConfig.TRANSPORT_NAME
 
     override suspend fun <T : Any> createReceiver(
@@ -84,8 +81,8 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         val serializer = JsonSerializer.forClass(from.messageClass)
         val rabbitMqConfig = RabbitMqConfig.createConfig(configManager)
 
-        logger.info("Starting RabbitMQ message receiver for endpoint '${from.configPrefix}'.")
-        rabbitMqConfig.log(logger)
+        logger.info { "Starting RabbitMQ message receiver for endpoint '${from.configPrefix}'." }
+        rabbitMqConfig.log()
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)
@@ -105,7 +102,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
             // basicConsume() immediately returns; incoming messages are passed to the consumer's callback.
             // Since the receiver factory is expected to not return until message processing is done, suspend the
             // current thread until the consumer is canceled.
-            awaitClose { logger.error("Message consumer was canceled.") }
+            awaitClose { logger.error { "Message consumer was canceled." } }
         }
     }
 
@@ -119,12 +116,12 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         serializer: JsonSerializer<T>
     ): Consumer = object : DefaultConsumer(channel) {
         override fun handleCancelOk(consumerTag: String?) {
-            logger.info("handleCancelOk() callback.")
+            logger.info { "handleCancelOk() callback." }
             cancel("handleCancelOk() callback was invoked.")
         }
 
         override fun handleCancel(consumerTag: String?) {
-            logger.info("handleCancel() callback.")
+            logger.info { "handleCancel() callback." }
             cancel("handleCancel() callback was invoked.")
         }
 
@@ -141,11 +138,9 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                 MDC.put("traceId", message.header.traceId)
                 MDC.put("ortRunId", message.header.ortRunId.toString())
 
-                if (logger.isDebugEnabled) {
-                    logger.debug(
-                        "Received message '${message.header.traceId}' with payload of type " +
-                                "'${message.payload.javaClass.name}'."
-                    )
+                logger.debug {
+                    "Received message '${message.header.traceId}' with payload of type " +
+                            "'${message.payload.javaClass.name}'."
                 }
 
                 // Inline kotlinx.coroutines.channels.trySendBlocking as the function calls runBlocking internally
@@ -156,7 +151,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
                     }
                 }
             }.onFailure {
-                logger.error("Error during message processing.", it)
+                logger.error(it) { "Error during message processing." }
             }
         }
     }

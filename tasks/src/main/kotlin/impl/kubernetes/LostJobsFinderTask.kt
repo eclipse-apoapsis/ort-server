@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kubernetes.client.openapi.models.V1Job
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -41,7 +43,6 @@ import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 /**
@@ -96,10 +97,6 @@ internal class LostJobsFinderTask(
     /** The object to determine the current time and the age of jobs. */
     private val timeHelper: TimeHelper
 ) : Task {
-    companion object {
-        private val logger = LoggerFactory.getLogger(LostJobsFinderTask::class.java)
-    }
-
     /** A map associating all worker endpoints with their job repository. */
     private val jobRepositories = mapOf(
         AnalyzerEndpoint to analyzerJobRepository,
@@ -111,7 +108,7 @@ internal class LostJobsFinderTask(
     )
 
     override suspend fun execute() {
-        logger.info("Checking for lost jobs and missing schedules.")
+        logger.info { "Checking for lost jobs and missing schedules." }
 
         // Keep track of runs for which active jobs exist. These runs are not subject to lost schedules.
         val ortRunsWithJobs = mutableSetOf<Long>()
@@ -140,12 +137,10 @@ internal class LostJobsFinderTask(
 
         val kubeJobs = jobHandler.findJobsForWorker(endpoint).associateBy { it.ortRunId }
 
-        logger.debug(
-            "Found {} active Kubernetes jobs for {}: {}",
-            kubeJobs.size,
-            endpoint.configPrefix,
-            kubeJobs.values.map { it.metadata?.name }
-        )
+        logger.debug {
+            "Found ${kubeJobs.size} active Kubernetes jobs for ${endpoint.configPrefix}: " +
+                    kubeJobs.values.map { it.metadata?.name }
+        }
 
         val lostJobs = jobRepository.listActive(currentTime - monitorConfig.lostJobsMinAge)
             .filterNot { it.ortRunId in kubeJobs }
@@ -161,8 +156,8 @@ internal class LostJobsFinderTask(
         lostJobs: List<WorkerJob>
     ) {
         if (lostJobs.isNotEmpty()) {
-            logger.warn("Found ${lostJobs.size} lost jobs for ${endpoint.configPrefix}.")
-            logger.debug("Lost jobs: {}", lostJobs)
+            logger.warn { "Found ${lostJobs.size} lost jobs for ${endpoint.configPrefix}." }
+            logger.debug { "Lost jobs: $lostJobs" }
 
             lostJobs.forEach {
                 val ortRun = ortRunRepository.get(it.ortRunId)
@@ -192,7 +187,7 @@ internal class LostJobsFinderTask(
             .filter { it.createdAt <= referenceTime && it.runId !in ortRunsWithConfigJobs }
 
         runsWithMissingSchedules.forEach { ortRun ->
-            logger.warn("Found ORT run {} with missing schedules.", ortRun)
+            logger.warn { "Found ORT run $ortRun with missing schedules." }
             notifier.sendLostScheduleNotification(ortRun)
         }
     }

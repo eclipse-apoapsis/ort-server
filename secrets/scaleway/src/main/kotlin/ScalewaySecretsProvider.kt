@@ -41,6 +41,8 @@ import java.net.URLEncoder
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
@@ -50,8 +52,6 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-
-import org.slf4j.LoggerFactory
 
 private const val PRODUCT_ENDPOINT = "secret-manager"
 private const val LATEST_REVISION = "latest"
@@ -66,10 +66,6 @@ private const val LATEST_REVISION = "latest"
 class ScalewaySecretsProvider(
     private val config: ScalewayConfiguration
 ) : SecretsProvider {
-    companion object {
-        private val logger = LoggerFactory.getLogger(ScalewaySecretsProvider::class.java)
-    }
-
     private val client by lazy {
         createHttpClient(SCALEWAY_HTTP_CLIENT_OVERRIDES_PATH) {
             defaultRequest {
@@ -106,7 +102,7 @@ class ScalewaySecretsProvider(
             // It is a confirmed bug that the current API returns "InternalServerError" when trying to read a
             // non-existing secret.
             response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.InternalServerError -> {
-                logger.debug("No secret to read at '$path'.")
+                logger.debug { "No secret to read at '$path'." }
 
                 null
             }
@@ -114,7 +110,7 @@ class ScalewaySecretsProvider(
             response.status.isSuccess() -> {
                 val secretResponse = response.body<SecretsAccessResponse>()
 
-                logger.debug("Read a secret at '$path'.")
+                logger.debug { "Read a secret at '$path'." }
 
                 SecretValue(String(Base64.decode(secretResponse.data)))
             }
@@ -129,19 +125,19 @@ class ScalewaySecretsProvider(
         val secretId = if (listResponse.totalCount < 1) {
             val createResponse = createSecret(path)
             createResponse.id.also { id ->
-                logger.debug("Created secret '$id' at '$path' as it did not exist before.")
+                logger.debug { "Created secret '$id' at '$path' as it did not exist before." }
             }
         } else {
             check(listResponse.totalCount == 1)
 
             listResponse.secrets.first().id.also { id ->
-                logger.debug("Secret '$id' at '$path' already exists and is not created again.")
+                logger.debug { "Secret '$id' at '$path' already exists and is not created again." }
             }
         }
 
         val createResponse = createVersion(secretId, secret.value)
 
-        logger.debug("Created version ${createResponse.revision} for secret at '$path'.")
+        logger.debug { "Created version ${createResponse.revision} for secret at '$path'." }
 
         check(createResponse.latest)
     }
@@ -192,7 +188,7 @@ class ScalewaySecretsProvider(
         val listResponse = listSecrets(path)
 
         if (listResponse.totalCount < 1) {
-            logger.debug("Skipping deletion of secret at '$path' as it does not exist.")
+            logger.debug { "Skipping deletion of secret at '$path' as it does not exist." }
             return@runBlocking
         }
 
@@ -205,7 +201,7 @@ class ScalewaySecretsProvider(
 
         if (response.status != HttpStatusCode.NoContent) throw ClientRequestException(response, response.body())
 
-        logger.debug("Deleted the secret at '$path'.")
+        logger.debug { "Deleted the secret at '$path'." }
     }
 
     override fun createPath(id: HierarchyId, secretName: String): Path {

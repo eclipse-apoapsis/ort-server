@@ -19,26 +19,22 @@
 
 package org.eclipse.apoapsis.ortserver.secrets.file
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
 import org.eclipse.apoapsis.ortserver.secrets.file.FileBasedSecretsProvider.Companion.NAME
-
-import org.slf4j.LoggerFactory
 
 /**
  * A simple implementation of the [SecretsProviderFactory] interface for local run purposes that uses a file storage
  * to manage secrets.
  */
 class FileBasedSecretsProviderFactory : SecretsProviderFactory {
-    companion object {
-        private val logger = LoggerFactory.getLogger(FileBasedSecretsProviderFactory::class.java)
-    }
-
     override val name: String = NAME
 
     override fun createProvider(configManager: ConfigManager): SecretsProvider {
-        logger.info("Creating FileBasedSecretsProvider.")
+        logger.info { "Creating FileBasedSecretsProvider." }
         return FileBasedSecretsProvider(configManager)
     }
 }

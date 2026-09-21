@@ -23,6 +23,8 @@ import java.sql.Connection
 
 import kotlin.time.Clock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -68,10 +70,6 @@ import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(Orchestrator::class.java)
-
 /**
  * The Orchestrator is the central component that breaks an ORT run into single steps and coordinates their execution.
  * It creates jobs for the single processing steps and passes them to the corresponding workers. It collects the results
@@ -101,7 +99,7 @@ class Orchestrator(
             val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
             context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
         }.scheduleNextJobs {
-            log.warn("Failed to handle 'CreateOrtRun' message.", it)
+            logger.warn(it) { "Failed to handle 'CreateOrtRun' message." }
         }
     }
 
@@ -114,7 +112,7 @@ class Orchestrator(
 
             nextJobsToSchedule(ConfigEndpoint, ortRun.id, header, jobs = emptyMap())
         }.scheduleNextJobs {
-            log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
+            logger.warn(it) { "Failed to handle 'ConfigWorkerResult' message." }
         }
     }
 
@@ -129,7 +127,7 @@ class Orchestrator(
                 issues = listOf(ConfigEndpoint.createErrorIssue(configWorkerError)).asPresent()
             )
         }.onFailure {
-            log.warn("Failed to handle 'ConfigWorkerError' message.", it)
+            logger.warn(it) { "Failed to handle 'ConfigWorkerError' message." }
         }
     }
 
@@ -239,7 +237,7 @@ class Orchestrator(
      */
     fun handleWorkerError(header: MessageHeader, workerError: WorkerError) {
         val ortRunId = header.ortRunId
-        log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
+        logger.info { "Handling a worker error of type '${workerError.endpointName}' for ORT run $ortRunId." }
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             workerJobRepositories[workerError.endpointName]?.let { repository ->
@@ -252,7 +250,7 @@ class Orchestrator(
                 }
             } ?: (createWorkerScheduleContext(getCurrentOrtRun(ortRunId), header, failed = true) to emptyList())
         }.scheduleNextJobs {
-            log.warn("Failed to handle 'WorkerError' message.", it)
+            logger.warn(it) { "Failed to handle 'WorkerError' message." }
         }
     }
 
@@ -261,7 +259,7 @@ class Orchestrator(
      * for the affected ORT run and schedule the next jobs if possible.
      */
     fun handleLostSchedule(header: MessageHeader, lostSchedule: LostSchedule) {
-        log.info("Handling a lost schedule for ORT run {}.", lostSchedule.ortRunId)
+        logger.info { "Handling a lost schedule for ORT run ${lostSchedule.ortRunId}." }
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val ortRun = getCurrentOrtRun(lostSchedule.ortRunId)
@@ -273,7 +271,7 @@ class Orchestrator(
                 context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
             }
         }.scheduleNextJobs {
-            log.warn("Failed to handle 'LostSchedule' message.", it)
+            logger.warn(it) { "Failed to handle 'LostSchedule' message." }
         }
     }
 
@@ -320,12 +318,9 @@ class Orchestrator(
         status: JobStatus,
         issues: List<Issue> = emptyList()
     ) {
-        log.info(
-            "Job {} for endpoint '{}' completed in status '{}'.",
-            message.jobId,
-            endpoint.configPrefix,
-            status.name
-        )
+        logger.info {
+            "Job ${message.jobId} for endpoint '${endpoint.configPrefix}' completed in status '${status.name}'."
+        }
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val job = workerJobRepositories.updateJobStatus(
@@ -339,7 +334,7 @@ class Orchestrator(
 
             nextJobsToSchedule(endpoint, job.ortRunId, header)
         }.scheduleNextJobs {
-            log.warn("Failed to handle '{}' message.", message::class.java.simpleName, it)
+            logger.warn(it) { "Failed to handle '${message::class.java.simpleName}' message." }
         }
     }
 
@@ -355,7 +350,7 @@ class Orchestrator(
         header: MessageHeader,
         jobs: Map<String, WorkerJob>? = null
     ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
-        log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
+        logger.info { "Handling a completed job for endpoint '${endpoint.configPrefix}' and ORT run $ortRunId." }
 
         val ortRun = getCurrentOrtRun(ortRunId)
         val scheduleContext = createWorkerScheduleContext(ortRun, header, workerJobs = jobs)
@@ -413,7 +408,7 @@ class Orchestrator(
                 else -> OrtRunStatus.FINISHED
             }
 
-            log.info("Setting the final status of ORT run {} to '{}'.", context.ortRun.id, ortRunStatus.name)
+            logger.info { "Setting the final status of ORT run ${context.ortRun.id} to '${ortRunStatus.name}'." }
 
             ortRunRepository.update(context.ortRun.id, ortRunStatus.asPresent())
         }

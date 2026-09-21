@@ -21,10 +21,10 @@ package org.eclipse.apoapsis.ortserver.transport
 
 import java.util.ServiceLoader
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
-
-import org.slf4j.LoggerFactory
 
 /**
  * Factory interface for creating [MessageSender] instances.
@@ -50,8 +50,6 @@ interface MessageSenderFactory {
         /** The service loader to load [MessageSenderFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageSenderFactory::class.java)
 
-        private val log = LoggerFactory.getLogger(MessageSenderFactory::class.java)
-
         /**
          * Create a [MessageSender] for sending messages to the given [endpoint][to] based on the given [configManager].
          * The concrete implementation of the [MessageSenderFactory] is determined from the
@@ -60,7 +58,7 @@ interface MessageSenderFactory {
         fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
             val senderConfig = configManager.subConfig(Path("${to.configPrefix}.$CONFIG_PREFIX"))
             val factoryName = senderConfig.getString(TYPE_PROPERTY)
-            log.info("Creating a MessageSender of type '{}' for endpoint '{}'.", factoryName, to.configPrefix)
+            logger.info { "Creating a MessageSender of type '$factoryName' for endpoint '${to.configPrefix}'." }
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageSenderFactory with name '$factoryName' found on classpath."

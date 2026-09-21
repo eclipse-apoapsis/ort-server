@@ -34,9 +34,7 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(RateLimitConfig::class.java)
+import org.apache.logging.log4j.kotlin.logger
 
 /**
  * An interface defining a strategy to compute the delay for the next retry when handling a failed HTTP response due to
@@ -181,19 +179,17 @@ fun HttpClient.withRateLimitHandling(config: RateLimitConfig): HttpClient {
                 config = config
             )
 
-            logger.warn(
+            logger.warn {
                 "Rate limit exceeded (HTTP 429). Waiting $delay before retry " +
                         "$retryCount/${config.maxRetries}."
-            )
+            }
 
             delay(delay)
             call = execute(request)
         }
 
         if (call.response.status == HttpStatusCode.TooManyRequests) {
-            logger.error(
-                "Rate limit still exceeded after ${config.maxRetries} retries. Giving up."
-            )
+            logger.error { "Rate limit still exceeded after ${config.maxRetries} retries. Giving up." }
         }
 
         call

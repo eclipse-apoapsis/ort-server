@@ -27,7 +27,7 @@ import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.kotlin.logger
 
 /**
  * An object providing functionality to log structured information about the status of job executions.
@@ -73,8 +73,6 @@ object JobStatusLogging {
     /** The value for the [STATUS_KEY] property in the job status log indicating a failed job execution. */
     const val STATUS_FAILURE = "failure"
 
-    private val logger = LoggerFactory.getLogger(JOB_STATUS_LOGGER_NAME)
-
     /**
      * Execute the given [block] with the logic of the job with the given [jobName] and log the status of the job
      * execution in a JSON format. Make sure that the given [mdcElements] are included in the MDC context during the
@@ -107,7 +105,7 @@ object JobStatusLogging {
                 properties[TIMESTAMP_KEY] = timestampField()
 
                 val jobStatus = JsonObject(properties)
-                logger.info(jobStatus.toString())
+                logger.info { jobStatus.toString() }
             }.onFailure { exception ->
                 val jobStatus = buildJsonObject {
                     put(EXECUTION_TIME_KEY, executionTimeField(startTime))
@@ -116,8 +114,8 @@ object JobStatusLogging {
                     put(ERROR_KEY, JsonPrimitive("${exception::class.simpleName}: ${exception.message}"))
                 }
 
-                logger.error("Execution of job '$jobName' failed.", exception)
-                logger.info(jobStatus.toString())
+                logger.error(exception) { "Execution of job '$jobName' failed." }
+                logger.info { jobStatus.toString() }
             }
         }.isSuccess
     }

@@ -19,9 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
-import org.eclipse.apoapsis.ortserver.tasks.Task
+import org.apache.logging.log4j.kotlin.logger
 
-import org.slf4j.LoggerFactory
+import org.eclipse.apoapsis.ortserver.tasks.Task
 
 /**
  * A task implementation that periodically checks for completed and failed jobs in Kubernetes.
@@ -39,17 +39,13 @@ internal class ReaperTask(
     /** The object for time calculations. */
     private val timeHelper: TimeHelper
 ) : Task {
-    companion object {
-        private val logger = LoggerFactory.getLogger(ReaperTask::class.java)
-    }
-
     override suspend fun execute() {
         val time = timeHelper.before(config.reaperMaxAge)
-        logger.info("Starting a Reaper run. Processing completed jobs before {}.", time)
+        logger.info { "Starting a Reaper run. Processing completed jobs before $time." }
 
         val completeJobs = jobHandler.findJobsCompletedBefore(time)
 
-        logger.debug("Found {} completed jobs.", completeJobs.size)
+        logger.debug { "Found ${completeJobs.size} completed jobs." }
 
         completeJobs.forEach { jobHandler.deleteAndNotifyIfFailed(it) }
     }

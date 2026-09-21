@@ -24,6 +24,8 @@ import java.net.URI
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.shared.authenticator.AuthenticationListener
@@ -32,8 +34,6 @@ import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.shared.authenticator.undefinedInfraSecretResolver
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
-
-import org.slf4j.LoggerFactory
 
 /**
  * An internal helper class to dynamically update the content of the `.netrc` file when there is a change in the
@@ -49,8 +49,6 @@ internal class NetRcManager(
     private val resolverFun: SecretResolverFun
 ) : AuthenticationListener {
     companion object {
-        private val logger = LoggerFactory.getLogger(NetRcManager::class.java)
-
         /**
          * Create a new instance of [NetRcManager] and initialize it with the given [resolverFun].
          */
@@ -68,7 +66,7 @@ internal class NetRcManager(
     private val mutex = Mutex()
 
     override fun onAuthentication(authenticationEvent: AuthenticationEvent) {
-        logger.info("Received authentication event for service '${authenticationEvent.service.name}'.")
+        logger.info { "Received authentication event for service '${authenticationEvent.service.name}'." }
 
         if (CredentialsType.NETRC_FILE in authenticationEvent.service.credentialsTypes) {
             runBlocking { updateNetRcServices(authenticationEvent.service) }
@@ -98,7 +96,7 @@ internal class NetRcManager(
 
         mutex.withLock {
             if (authenticatedServices[serviceHost]?.service != service) {
-                logger.info("Updating .netrc file. Adding service '${service.name}' for host '$serviceHost'.")
+                logger.info { "Updating .netrc file. Adding service '${service.name}' for host '$serviceHost'." }
 
                 authenticatedServices[serviceHost] = EnvironmentServiceDefinition(service, service.credentialsTypes)
                 generator.generate(builder, authenticatedServices.values)

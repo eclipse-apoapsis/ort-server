@@ -19,11 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.logaccess.loki
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactory
-
-import org.slf4j.LoggerFactory
 
 /**
  * Implementation of the [LogFileProviderFactory] interface for creating a [LogFileProvider] to retrieve log data
@@ -33,19 +33,19 @@ class LokiLogFileProviderFactory : LogFileProviderFactory {
     companion object {
         /** The name of this provider implementation. */
         const val NAME = "loki"
-
-        private val logger = LoggerFactory.getLogger(LokiLogFileProviderFactory::class.java)
     }
 
     override val name: String = NAME
 
     override fun createProvider(config: ConfigManager): LogFileProvider {
-        logger.info("Creating a LogFileProvider instance for Grafana Loki.")
+        logger.info { "Creating a LogFileProvider instance for Grafana Loki." }
 
         val lokiConfig = LokiConfig.create(config)
-        if (logger.isDebugEnabled) {
+
+        logger.debug {
             val maskedConfig = lokiConfig.password?.let { lokiConfig.copy(password = "***") } ?: lokiConfig
-            logger.debug("Configuration for Loki provider: {}.", maskedConfig)
+
+            "Configuration for Loki provider: $maskedConfig"
         }
 
         return LokiLogFileProvider(lokiConfig)

@@ -55,6 +55,7 @@ ktorOpenApi = "5.7.0"
 ktorRateLimit = "3.6.0"
 kubernetesClient = "27.0.0"
 log4j = "2.26.1"
+log4jApiKotlin = "1.5.0"
 logback = "1.6.3"
 micrometer = "1.17.1"
 mockk = "1.14.11"
@@ -127,6 +128,7 @@ ktor-swaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "
 ktor-rateLimit = { module = "io.ktor:ktor-server-rate-limit-jvm", version.ref = "ktorRateLimit" }
 kubernetes-client = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
 kubernetes-clientApiFluent = { module = "io.kubernetes:client-java-api-fluent", version.ref = "kubernetesClient" }
+log4j-api-kotlin = { module = "org.apache.logging.log4j:log4j-api-kotlin", version.ref = "log4jApiKotlin" }
 log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }

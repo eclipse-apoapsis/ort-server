@@ -19,20 +19,19 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfig
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ReporterConfig
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
-import org.slf4j.LoggerFactory
-
 /**
  * A class that validates an [AdminConfig] and if the [JobConfigurations] of a run are compatible with it, or if they
  * reference entities like rule sets or assets that are not defined by the [AdminConfig].
  */
 object AdminConfigValidator {
-    private val logger = LoggerFactory.getLogger(AdminConfigValidator::class.java)
 
     /**
      * Validate that the [adminConfig] and that the [jobConfigs] are compatible with it. Return a list of found issues.
@@ -54,10 +53,10 @@ object AdminConfigValidator {
         createIssue(message, PARAMETER_VALIDATION_SOURCE)
     }.also { issues ->
         if (issues.isNotEmpty()) {
-            logger.error(
+            logger.error {
                 "Found ${issues.size} issues during admin config validation:\n" +
                         issues.joinToString(separator = "\n")
-            )
+            }
         }
     }
 

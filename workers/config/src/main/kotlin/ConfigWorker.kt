@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
@@ -35,8 +37,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
 import org.jetbrains.exposed.v1.jdbc.Database
-
-import org.slf4j.LoggerFactory
 
 /**
  * A worker implementation that checks and transforms the configuration of an ORT run using a [ValidationScriptRunner].
@@ -60,26 +60,23 @@ class ConfigWorker(
     companion object {
         /** Constant for the path to the script that validates and transforms parameters. */
         val VALIDATION_SCRIPT_PATH = Path("ort-server.params.kts")
-
-        private val logger = LoggerFactory.getLogger(ConfigWorker::class.java)
     }
 
     /**
      * Execute the config validation on the ORT run with the given [ortRunId].
      */
     suspend fun run(ortRunId: Long): RunResult = runCatching {
-        logger.info("Running config worker for run '$ortRunId'.")
+        logger.info { "Running config worker for run '$ortRunId'." }
 
         contextFactory.withContext(ortRunId) { context ->
             val jobConfigContext = context.ortRun.jobConfigContext?.let(::RequestedConfigContext)
                 ?: RequestedConfigContext.EMPTY
             val resolvedJobConfigContext = context.configManager.resolveContext(jobConfigContext)
 
-            logger.info(
-                "Provided configuration context '{}' was resolved to '{}'.",
-                context.ortRun.jobConfigContext,
-                resolvedJobConfigContext.name
-            )
+            logger.info {
+                "Provided configuration context '${context.ortRun.jobConfigContext}' was resolved to " +
+                        "'${resolvedJobConfigContext.name}'."
+            }
 
             // Apply the plugin templates before the validation script runs so that the script can override any value
             // an administrator has configured.
@@ -121,7 +118,7 @@ class ConfigWorker(
         )
 
         val validationScriptResult = if (validationScriptExists) {
-            logger.info("Running validation script.")
+            logger.info { "Running validation script." }
 
             val validationScript = context.configManager.getFileAsString(
                 resolvedJobConfigContext,
@@ -132,10 +129,10 @@ class ConfigWorker(
             )
 
             validationScriptRunner.runScript(validationScript).also {
-                logger.debug("Issues returned by validation script: {}.", it.issues)
+                logger.debug { "Issues returned by validation script: ${it.issues}." }
             }
         } else {
-            logger.info("Skipping validation as no script exists.")
+            logger.info { "Skipping validation as no script exists." }
 
             ConfigValidationResultSuccess(baseConfigs)
         }
@@ -151,7 +148,7 @@ class ConfigWorker(
      * the plugin templates.
      */
     private fun createPluginTemplateFailure(exception: Throwable): ConfigValidationResultFailure {
-        logger.error("Error while applying the plugin templates.", exception)
+        logger.error(exception) { "Error while applying the plugin templates." }
 
         val issue = createIssue(
             message = "Could not apply the plugin templates: '${exception.message}'. This is a problem with the " +
@@ -166,7 +163,7 @@ class ConfigWorker(
         resolvedJobConfigContext: ResolvedConfigContext,
         validationScriptResult: ConfigValidationResultSuccess
     ) = runCatching {
-        logger.info("Validating admin config.")
+        logger.info { "Validating admin config." }
 
         val adminConfig = adminConfigService.loadAdminConfig(resolvedJobConfigContext, true)
 
@@ -179,7 +176,7 @@ class ConfigWorker(
             validationScriptResult
         }
     }.getOrElse { e ->
-        logger.error("Error during admin configuration validation.", e)
+        logger.error(e) { "Error during admin configuration validation." }
 
         val issue = createIssue(
             message = "Could not load admin config: '${e.message}'. This is a problem with the configuration of ORT " +

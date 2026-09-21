@@ -22,13 +22,13 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addStreamSource
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
-
-import org.slf4j.LoggerFactory
 
 /**
  * A service providing access to the ORT Server Admin configuration.
@@ -53,8 +53,6 @@ class AdminConfigService(
 
         /** The default path to the Admin configuration file. */
         const val DEFAULT_PATH = "ort-server.conf"
-
-        private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
     }
 
     /**
@@ -66,15 +64,14 @@ class AdminConfigService(
     fun loadAdminConfig(context: ResolvedConfigContext, validateConfigFiles: Boolean = false): AdminConfig {
         val configPath = Path(configManager.getStringOrDefault(PATH_PROPERTY, DEFAULT_PATH))
         if (configPath.path == DEFAULT_PATH && !configManager.containsFile(context, configPath)) {
-            logger.warn(
-                "No configuration path configured, and the default path '{}' does not exist. " +
-                        "Using the default admin configuration.",
-                DEFAULT_PATH
-            )
+            logger.warn {
+                "No configuration path configured, and the default path '$DEFAULT_PATH' does not exist. Using the " +
+                        "default admin configuration."
+            }
             return AdminConfig.DEFAULT
         }
 
-        logger.info("Loading admin configuration from path '{}'.", configPath.path)
+        logger.info { "Loading admin configuration from path '${configPath.path}'." }
         val adminConfig = configManager.getFile(context, configPath).use {
             ConfigLoaderBuilder.default()
                 .addStreamSource(it, "conf")

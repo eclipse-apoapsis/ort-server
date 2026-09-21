@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
@@ -67,10 +69,6 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.union
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrphanRemovalService::class.java)
-
 /**
  * Maintenance service to remove orphaned entities.
  *
@@ -94,23 +92,33 @@ class OrphanRemovalService(
      * Method uses heavy SQL queries, so it is not recommended to run it very often or under high DB loads.
      */
     suspend fun deleteRunsOrphanedEntities(config: ConfigManager) {
-        logger.info("Deleting orphaned children of ORT runs.")
+        logger.info { "Deleting orphaned children of ORT runs." }
 
-        logger.info("Deleted {} records from {}", deleteOrphanedPackages(), PackagesTable.tableName)
-        logger.info("Deleted {} records from {}", deleteOrphanedProjects(), ProjectsTable.tableName)
-        logger.info("Deleted {} records from {}", deleteOrphanedAuthors(), AuthorsTable.tableName)
-        logger.info("Deleted {} records from {}", deleteOrphanedDeclaredLicenses(), DeclaredLicensesTable.tableName)
-        logger.info(
-            "Deleted {} records from {}",
-            deleteOrphanedSnippetAssociations(),
-            SnippetFindingsSnippetsTable.tableName
-        )
+        deleteOrphanedPackages().also {
+            logger.info { "Deleted $it records from ${PackagesTable.tableName}" }
+        }
+
+        deleteOrphanedProjects().also {
+            logger.info { "Deleted $it records from ${ProjectsTable.tableName}" }
+        }
+
+        deleteOrphanedAuthors().also {
+            logger.info { "Deleted $it records from ${AuthorsTable.tableName}" }
+        }
+
+        deleteOrphanedDeclaredLicenses().also {
+            logger.info { "Deleted $it records from ${DeclaredLicensesTable.tableName}" }
+        }
+
+        deleteOrphanedSnippetAssociations().also {
+            logger.info { "Deleted $it records from ${SnippetFindingsSnippetsTable.tableName}" }
+        }
 
         OrphanEntityHandler.entries.forEach { handler ->
             handler.deleteOrphanedEntities(db, config)
         }
 
-        logger.info("Deleting orphaned children of ORT runs finished.")
+        logger.info { "Deleting orphaned children of ORT runs finished." }
     }
 
     /**
@@ -328,7 +336,7 @@ private enum class OrphanEntityHandler(
      * [config].
      */
     suspend fun deleteOrphanedEntities(db: Database, config: ConfigManager) {
-        logger.info("Deleting orphaned children of ${table.tableName}.")
+        logger.info { "Deleting orphaned children of ${table.tableName}." }
 
         val limit = config.getInt("$configPrefix.limit")
         val chunkSize = config.getInt("$configPrefix.chunkSize")
@@ -341,17 +349,17 @@ private enum class OrphanEntityHandler(
             orphansQuery.mapTo(mutableSetOf()) { it[table.id] }
         }
 
-        logger.info("Found ${orphanIds.size} orphaned entities in ${table.tableName}.")
+        logger.info { "Found ${orphanIds.size} orphaned entities in ${table.tableName}." }
 
         orphanIds.chunked(chunkSize).forEach { ids ->
-            logger.info("Deleting ${ids.size} orphaned entities from ${table.tableName}.")
+            logger.info { "Deleting ${ids.size} orphaned entities from ${table.tableName}." }
 
             runCatching {
                 db.dbQuery {
                     table.deleteWhere { table.id inList ids }
                 }
             }.onFailure {
-                logger.error("Failed to delete chunk of orphaned entities from ${table.tableName}.", it)
+                logger.error(it) { "Failed to delete chunk of orphaned entities from ${table.tableName}." }
             }
         }
     }

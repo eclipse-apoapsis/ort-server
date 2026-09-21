@@ -28,13 +28,13 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.serialization.json.Json
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.file.model.FileBasedSecretsStorage
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
-
-import org.slf4j.LoggerFactory
 
 /**
  * A simple implementation of the [SecretsProvider] interface for local run purposes that uses a local file storage
@@ -49,8 +49,6 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
          * The path to the encrypted file storing the secrets
          */
         const val PATH_PROPERTY = "fileBasedPath"
-
-        private val logger = LoggerFactory.getLogger(FileBasedSecretsProvider::class.java)
     }
 
     private val secretStorageFilePath = config.getStringOrDefault(PATH_PROPERTY, ".")
@@ -74,10 +72,11 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         val file = File(secretStorageFilePath)
 
         if (!file.isFile || file.length() == 0L) {
-            logger.info(
+            logger.info {
                 "No secrets storage content was found in file `$secretStorageFilePath`. " +
                         "Creating a file with empty secrets storage contents."
-            )
+            }
+
             writeSecrets(emptyMap())
         }
 

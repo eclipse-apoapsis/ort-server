@@ -27,6 +27,8 @@ import kotlin.coroutines.coroutineContext
 
 import kotlinx.coroutines.isActive
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -38,10 +40,6 @@ import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(SqsMessageReceiverFactory::class.java)
 
 internal val messageAttributeNames = listOf(TRACE_PROPERTY, RUN_ID_PROPERTY)
 
@@ -57,7 +55,7 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
         configManager: ConfigManager,
         handler: EndpointHandler<T>
     ) {
-        logger.info("Creating SQS receiver for endpoint '${from.configPrefix}'.")
+        logger.info { "Creating SQS receiver for endpoint '${from.configPrefix}'." }
 
         val serializer = JsonSerializer.forClass(from.messageClass)
         val config = SqsConfig.create(configManager)
@@ -116,7 +114,7 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
                 }.onSuccess {
                     if (it == EndpointHandlerResult.STOP) break@loop
                 }.onFailure {
-                    logger.error("Error during message body processing.", it)
+                    logger.error(it) { "Error during message body processing." }
                 }
             }
         }

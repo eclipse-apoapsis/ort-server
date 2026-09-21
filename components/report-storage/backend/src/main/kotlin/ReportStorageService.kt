@@ -25,11 +25,11 @@ import java.io.File
 import java.io.OutputStream
 import java.nio.file.Files
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
-
-import org.slf4j.LoggerFactory
 
 /** A service to store and retrieve report files. */
 class ReportStorageService(
@@ -39,10 +39,6 @@ class ReportStorageService(
     /** The repository for reporter jobs, which is used to resolve download tokens for reports. */
     private val reporterJobRepository: ReporterJobRepository
 ) {
-    companion object {
-        private val logger = LoggerFactory.getLogger(ReportStorageService::class.java)
-    }
-
     /**
      * Return a [ReportDownloadData] object for the report with the given [fileName] for the specified [runId]. Throw a
      * [ReportNotFoundException] if the report cannot be resolved.
@@ -65,7 +61,7 @@ class ReportStorageService(
      */
     suspend fun fetchReportByToken(runId: Long, token: String): ReportDownloadData =
         reporterJobRepository.getReportByToken(runId, token)?.let { report ->
-            logger.info("Resolved report '${report.filename}' for run $runId from token.")
+            logger.info { "Resolved report '${report.filename}' for run $runId from token." }
 
             fetchReport(runId, report.filename)
         } ?: throw ReportNotFoundException(runId, "<from token>")
@@ -86,7 +82,7 @@ class ReportStorageService(
     suspend fun storeReports(runId: Long, reports: Map<String, File>) {
         reports.forEach { (name, file) ->
             val key = generateKey(runId, name)
-            logger.info("Storing '{}' under key '{}'.", file.name, key.key)
+            logger.info { "Storing '${file.name}' under key '${key.key}'." }
 
             file.inputStream().use { stream ->
                 reportStorage.write(key, stream, file.length(), guessContentType(file))

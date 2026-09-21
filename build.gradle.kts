@@ -36,6 +36,7 @@ dependencyAnalysis {
                 severity("fail")
 
                 // Exclude modules which are automatically added by the "ort-server-kotlin-jvm-conventions".
+                exclude(libs.log4j.api.kotlin)
                 exclude(projects.utils.logging)
                 exclude(projects.utils.test)
             }

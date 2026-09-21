@@ -21,15 +21,15 @@ package org.eclipse.apoapsis.ortserver.shared.authenticator
 
 import java.net.Authenticator.RequestorType
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.Path
 
 import org.ossreviewtoolkit.utils.authentication.UserInfoAuthenticator
 import org.ossreviewtoolkit.utils.common.replaceCredentialsInUri
 import org.ossreviewtoolkit.utils.common.toUri
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger("UserInfoSecretAuthenticator")
+private val logger = logger("UserInfoSecretAuthenticator")
 
 /**
  * Retrieve authentication information for infrastructure components whose URLs and credentials are defined in the
@@ -99,11 +99,7 @@ private fun getResolvedService(
                 username,
                 password
             ).also {
-                logger.info(
-                    "Found variable '{}' defining credentials for service URL '{}'.",
-                    varName,
-                    it.first.url
-                )
+                logger.info { "Found variable '$varName' defining credentials for service URL '${it.first.url}'." }
             }
         }
     }.getOrNull()
@@ -121,5 +117,5 @@ private fun resolveSecret(
 ): String = runCatching {
     secretResolverFun(Path(name))
 }.onFailure {
-    logger.warn("Could not resolve {} secret in URL {}", type, url.replaceCredentialsInUri(), it)
+    logger.warn(it) { "Could not resolve $type secret in URL ${url.replaceCredentialsInUri()}" }
 }.getOrDefault(name)

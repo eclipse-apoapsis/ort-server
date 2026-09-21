@@ -21,15 +21,13 @@ package org.eclipse.apoapsis.ortserver.transport.sqs
 
 import aws.sdk.kotlin.services.sqs.model.GetQueueUrlRequest
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(SqsMessageSenderFactory::class.java)
 
 /**
  * A [MessageSenderFactory] implementation for AWS SQS.
@@ -39,7 +37,7 @@ class SqsMessageSenderFactory : MessageSenderFactory {
     override val name: String = SqsConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
-        logger.info("Creating SQS sender for endpoint '${to.configPrefix}'.")
+        logger.info { "Creating SQS sender for endpoint '${to.configPrefix}'." }
 
         val config = SqsConfig.create(configManager)
         val client = createSqsClient(config)

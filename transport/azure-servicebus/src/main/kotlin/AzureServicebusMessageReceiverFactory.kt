@@ -27,6 +27,8 @@ import com.azure.messaging.servicebus.models.ServiceBusReceiveMode
 
 import kotlinx.coroutines.CompletableDeferred
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -35,10 +37,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-
-private val logger = LoggerFactory.getLogger(AzureServicebusMessageReceiverFactory::class.java)
 
 /**
  * Implementation of the [MessageReceiverFactory] interface for Azure Servicebus.
@@ -60,13 +59,13 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
             MDC.put("traceId", message.header.traceId)
             MDC.put("ortRunId", message.header.ortRunId.toString())
 
-            logger.debug(
+            logger.debug {
                 "Received message '${message.header.traceId}' with payload of type '${message.payload.javaClass.name}'."
-            )
+            }
 
             runBlocking {
                 if (handler(message) == EndpointHandlerResult.STOP) {
-                    logger.info("Stopping message receiver for endpoint '${from.configPrefix}'.")
+                    logger.info { "Stopping message receiver for endpoint '${from.configPrefix}'." }
                     stopSignal.complete(Unit)
                 }
             }
@@ -74,7 +73,7 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
 
         fun processError(context: ServiceBusErrorContext) {
             val exception = context.exception
-            logger.warn("Error processing message: ${exception.message}", exception)
+            logger.warn(exception) { "Error processing message: ${exception.message}" }
         }
 
         val config = AzureServicebusConfig.createConfig(configManager)
