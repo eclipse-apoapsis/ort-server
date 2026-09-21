@@ -18,15 +18,20 @@
  */
 
 import { OrtRun, PreconfiguredPluginDescriptor } from '@/api';
-import { environmentDefinitionsSchema, PackageManagerId } from '@/lib/types';
+import { environmentDefinitionsSchema } from '@/lib/types';
 import { convertMapToArray } from './form-primitives';
 import {
   getPluginDefaultValues,
   mergePluginConfigs,
+  packageManagerConfigsToFormValues,
   providerPluginConfigsToFormValues,
   reconstructScannerSelection,
+  UNMANAGED_PACKAGE_MANAGER_ID,
 } from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
+
+/** The ID of the legacy Gradle package manager, which is not enabled by default. */
+const LEGACY_GRADLE_ID = 'Gradle';
 
 /**
  * Get the default values for the create run form. The form can be provided with a previously run
@@ -39,44 +44,9 @@ export function defaultValues(
   reporterPlugins: PreconfiguredPluginDescriptor[],
   isSuperuser: boolean,
   packageCurationProviderPlugins: PreconfiguredPluginDescriptor[],
-  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[]
+  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[],
+  packageManagerPlugins: PreconfiguredPluginDescriptor[]
 ): CreateRunFormValues {
-  /**
-   * Constructs the default options for a package manager, either as a blank set of options
-   * or from an earlier ORT run if rerun functionality is used.
-   *
-   * @param packageManagerId The ID of the package manager.
-   * @param enabledByDefault Whether the package manager should be enabled by default.
-   * @returns The default options.
-   */
-  const defaultPackageManagerOptions = (
-    packageManagerId: PackageManagerId,
-    enabledByDefault: boolean = true
-  ) => {
-    if (ortRun) {
-      return {
-        enabled:
-          ortRun.jobConfigs.analyzer?.enabledPackageManagers === undefined
-            ? enabledByDefault
-            : ortRun.jobConfigs.analyzer.enabledPackageManagers?.includes(
-                packageManagerId
-              ) || false,
-        mustRunAfter:
-          (ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
-            ?.mustRunAfter as PackageManagerId[] | undefined) || [],
-        options: convertMapToArray(
-          ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
-            ?.options || {}
-        ),
-      };
-    }
-    return {
-      enabled: enabledByDefault,
-      mustRunAfter: [],
-      options: [],
-    };
-  };
-
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
   const scannerPluginDefaultValues = getPluginDefaultValues(scannerPlugins);
   const reporterPluginDefaultValues = getPluginDefaultValues(reporterPlugins);
@@ -103,6 +73,18 @@ export function defaultValues(
     } as Record<string, 'both' | 'packages' | 'projects'>,
   };
 
+  const packageManagerPluginDefaultValues = getPluginDefaultValues(
+    packageManagerPlugins
+  );
+  // All available package managers are enabled by default, except the legacy Gradle
+  // package manager which is mutually exclusive with the current Gradle package manager.
+  const defaultPackageManagers = packageManagerPlugins
+    .map((plugin) => plugin.id)
+    .filter((pluginId) => pluginId !== LEGACY_GRADLE_ID);
+  const packageManagerFormValues = packageManagerConfigsToFormValues(
+    ortRun?.jobConfigs.analyzer?.packageManagerOptions
+  );
+
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults: CreateRunFormValues = {
     revision: '',
@@ -118,37 +100,9 @@ export function defaultValues(
         packageCurationProviders: [],
         packageCurationProviderConfig:
           packageCurationProviderPluginDefaultValues,
-        packageManagers: {
-          Bazel: defaultPackageManagerOptions('Bazel'),
-          Bower: defaultPackageManagerOptions('Bower'),
-          Bundler: defaultPackageManagerOptions('Bundler'),
-          Cargo: defaultPackageManagerOptions('Cargo'),
-          Carthage: defaultPackageManagerOptions('Carthage'),
-          CocoaPods: defaultPackageManagerOptions('CocoaPods'),
-          Composer: defaultPackageManagerOptions('Composer'),
-          Conan: defaultPackageManagerOptions('Conan'),
-          Gleam: defaultPackageManagerOptions('Gleam'),
-          GoMod: defaultPackageManagerOptions('GoMod'),
-          Gradle: defaultPackageManagerOptions('Gradle', false),
-          GradleInspector: defaultPackageManagerOptions('GradleInspector'),
-          Maven: defaultPackageManagerOptions('Maven'),
-          NPM: defaultPackageManagerOptions('NPM'),
-          NuGet: defaultPackageManagerOptions('NuGet'),
-          OrtProjectFile: defaultPackageManagerOptions('OrtProjectFile'),
-          PIP: defaultPackageManagerOptions('PIP'),
-          Pipenv: defaultPackageManagerOptions('Pipenv'),
-          PNPM: defaultPackageManagerOptions('PNPM'),
-          Poetry: defaultPackageManagerOptions('Poetry'),
-          Pub: defaultPackageManagerOptions('Pub'),
-          SBT: defaultPackageManagerOptions('SBT'),
-          SPDX: defaultPackageManagerOptions('SPDX'),
-          SpdxDocumentFile: defaultPackageManagerOptions('SpdxDocumentFile'),
-          Stack: defaultPackageManagerOptions('Stack'),
-          SwiftPM: defaultPackageManagerOptions('SwiftPM'),
-          Tycho: defaultPackageManagerOptions('Tycho'),
-          Yarn: defaultPackageManagerOptions('Yarn'),
-          Yarn2: defaultPackageManagerOptions('Yarn2'),
-        },
+        packageManagers: defaultPackageManagers,
+        packageManagerConfig: packageManagerPluginDefaultValues,
+        packageManagerMustRunAfter: {},
       },
       advisor: {
         enabled: true,
@@ -229,9 +183,23 @@ export function defaultValues(
             skipExcluded:
               ortRun.jobConfigs.analyzer?.skipExcluded ||
               baseDefaults.jobConfigs.analyzer.skipExcluded,
-            // defaultPackageManagerOptions gets the options from the previous run already in the
-            // baseDefaults object, so those values can be used here.
-            packageManagers: baseDefaults.jobConfigs.analyzer.packageManagers,
+            // The enabled package managers and their configuration are taken from the
+            // previous run, falling back to the defaults if they are not set.
+            packageManagers: ortRun.jobConfigs.analyzer?.enabledPackageManagers
+              ? ortRun.jobConfigs.analyzer.enabledPackageManagers.filter(
+                  (packageManagerId) =>
+                    packageManagerId !== UNMANAGED_PACKAGE_MANAGER_ID &&
+                    packageManagerPlugins.some(
+                      (plugin) => plugin.id === packageManagerId
+                    )
+                )
+              : baseDefaults.jobConfigs.analyzer.packageManagers,
+            packageManagerConfig: mergePluginConfigs(
+              packageManagerFormValues.config,
+              packageManagerPluginDefaultValues,
+              packageManagerPlugins
+            ),
+            packageManagerMustRunAfter: packageManagerFormValues.mustRunAfter,
             environmentDefinitions: hasEnvironmentDefinitions
               ? parsedEnvironmentDefinitions
               : undefined,

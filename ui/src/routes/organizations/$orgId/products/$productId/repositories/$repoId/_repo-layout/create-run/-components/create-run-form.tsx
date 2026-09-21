@@ -69,6 +69,7 @@ import {
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 import { defaultValues } from './default-values';
 import { formValuesToPayload } from './payload';
+import { UNMANAGED_PACKAGE_MANAGER_ID } from './plugin-utils';
 import {
   createRunFormSchema,
   flattenErrors,
@@ -120,6 +121,12 @@ export const CreateRunForm = ({
   const packageConfigurationProviderPlugins = plugins.filter(
     (plugin) => plugin.type === 'PACKAGE_CONFIGURATION_PROVIDER'
   );
+  // The 'Unmanaged' package manager is always enabled and therefore not offered for selection.
+  const packageManagerPlugins = plugins.filter(
+    (plugin) =>
+      plugin.type === 'PACKAGE_MANAGER' &&
+      plugin.id !== UNMANAGED_PACKAGE_MANAGER_ID
+  );
 
   // Manually toggle accordion open/close state
   const toggleAccordionOpen = (value: AccordionSection) => {
@@ -136,7 +143,8 @@ export const CreateRunForm = ({
     scannerPlugins,
     reporterPlugins,
     packageCurationProviderPlugins,
-    packageConfigurationProviderPlugins
+    packageConfigurationProviderPlugins,
+    packageManagerPlugins
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -148,7 +156,8 @@ export const CreateRunForm = ({
       reporterPlugins,
       isSuperuser,
       packageCurationProviderPlugins,
-      packageConfigurationProviderPlugins
+      packageConfigurationProviderPlugins,
+      packageManagerPlugins
     ),
   });
 
@@ -477,6 +486,7 @@ export const CreateRunForm = ({
                 onToggle={() => toggleAccordionOpen('analyzer')}
                 isSuperuser={isSuperuser}
                 packageCurationProviderPlugins={packageCurationProviderPlugins}
+                packageManagerPlugins={packageManagerPlugins}
                 pluginSecrets={secrets}
                 isRerun={isRerun}
                 permissions={permissions}

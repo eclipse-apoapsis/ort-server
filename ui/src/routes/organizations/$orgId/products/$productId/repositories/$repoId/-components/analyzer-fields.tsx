@@ -52,7 +52,6 @@ import {
 import { cn } from '@/lib/utils';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import { EnvironmentDefinitionsFields } from './environment-definitions';
-import { PackageManagerField } from './package-manager-field';
 
 type AnalyzerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
@@ -60,6 +59,7 @@ type AnalyzerFieldsProps = {
   onToggle: () => void;
   isSuperuser: boolean;
   packageCurationProviderPlugins: PreconfiguredPluginDescriptor[];
+  packageManagerPlugins: PreconfiguredPluginDescriptor[];
   pluginSecrets: Secret[];
   isRerun: boolean;
   permissions: {
@@ -75,6 +75,7 @@ export const AnalyzerFields = ({
   onToggle,
   isSuperuser,
   packageCurationProviderPlugins,
+  packageManagerPlugins,
   pluginSecrets,
   isRerun,
   permissions,
@@ -317,7 +318,21 @@ export const AnalyzerFields = ({
             </div>
           </div>
           <EnvironmentDefinitionsFields form={form} />
-          <PackageManagerField form={form} />
+          <PluginMultiSelectField
+            form={form}
+            name='jobConfigs.analyzer.packageManagers'
+            configName='jobConfigs.analyzer.packageManagerConfig'
+            mustRunAfterName='jobConfigs.analyzer.packageManagerMustRunAfter'
+            label='Enabled package managers'
+            description={
+              <>
+                Select the package managers enabled for this run. Note that the
+                'Unmanaged' package manager is always enabled.
+              </>
+            }
+            plugins={packageManagerPlugins}
+            secrets={[]}
+          />
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.analyzer.packageCurationProviders'

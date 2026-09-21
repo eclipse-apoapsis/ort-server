@@ -47,7 +47,7 @@ it('preserves multiple environment definitions from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], [], false, [], []);
+  const defaults = defaultValues(ortRun, [], [], [], false, [], [], []);
 
   expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
     ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
@@ -90,7 +90,7 @@ it('preserves package configuration provider config from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], [], false, [], []);
+  const defaults = defaultValues(ortRun, [], [], [], false, [], [], []);
 
   expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual([
     'OrtConfig',
@@ -145,7 +145,7 @@ it('preserves package curation provider config from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], [], false, [], []);
+  const defaults = defaultValues(ortRun, [], [], [], false, [], [], []);
 
   expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([
     'ClearlyDefined',
@@ -186,7 +186,8 @@ it('uses package configuration provider plugin default values for fresh runs', (
           },
         ],
       }),
-    ]
+    ],
+    []
   );
 
   expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual(
@@ -241,6 +242,7 @@ it('uses package curation provider plugin default values for fresh runs', () => 
         ],
       }),
     ],
+    [],
     []
   );
 
@@ -279,6 +281,7 @@ it('uses scanner plugin default values for fresh runs', () => {
     [],
     false,
     [],
+    [],
     []
   );
 
@@ -315,6 +318,7 @@ it('uses reporter plugin default values for fresh runs', () => {
       }),
     ],
     false,
+    [],
     [],
     []
   );
@@ -515,6 +519,7 @@ it('applies fixed plugin option precedence for advisor, scanner, and reporter re
     scannerPlugins,
     reporterPlugins,
     false,
+    [],
     [],
     []
   );

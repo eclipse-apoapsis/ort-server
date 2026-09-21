@@ -20,12 +20,19 @@
 import { z, ZodType } from 'zod';
 
 import {
+  PackageManagerConfiguration,
   PluginConfig,
   PluginOptionType,
   PreconfiguredPluginDescriptor,
   ProviderPluginConfiguration,
 } from '@/api';
 import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field-utils';
+
+/**
+ * The ID of the package manager which is always enabled and therefore neither selectable in the
+ * form nor part of the package manager plugins offered by it.
+ */
+export const UNMANAGED_PACKAGE_MANAGER_ID = 'Unmanaged';
 
 function isNonBlankString(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '';
@@ -438,4 +445,74 @@ export function createProviderPluginPayload(
         : {}),
     };
   });
+}
+
+type PackageManagerFormValues = {
+  config: Record<string, PluginConfig>;
+  mustRunAfter: Record<string, string[]>;
+};
+
+/**
+ * Convert the package manager configurations from a previous run to the form representation.
+ * Package managers cannot have options of type secret, so only the options are converted.
+ */
+export function packageManagerConfigsToFormValues(
+  packageManagerOptions:
+    { [key: string]: PackageManagerConfiguration } | null | undefined
+): PackageManagerFormValues {
+  const result: PackageManagerFormValues = {
+    config: {},
+    mustRunAfter: {},
+  };
+
+  Object.entries(packageManagerOptions ?? {}).forEach(
+    ([packageManagerId, packageManagerConfig]) => {
+      result.config[packageManagerId] = {
+        options: packageManagerConfig.options ?? {},
+        secrets: {},
+      };
+
+      if (packageManagerConfig.mustRunAfter?.length) {
+        result.mustRunAfter[packageManagerId] =
+          packageManagerConfig.mustRunAfter;
+      }
+    }
+  );
+
+  return result;
+}
+
+/**
+ * Convert the configuration of the enabled package managers from form values to the payload format expected by the
+ * back-end. Package managers without any options and without a `mustRunAfter` entry are omitted, as are package
+ * managers which are not enabled.
+ */
+export function createPackageManagerPayload(
+  config: Record<string, unknown> | undefined,
+  mustRunAfter: Record<string, string[] | undefined> | undefined,
+  enabledPackageManagers: string[]
+): { [key: string]: PackageManagerConfiguration } | undefined {
+  const pluginPayload = createPluginPayload(config, enabledPackageManagers);
+
+  const result = enabledPackageManagers.reduce<{
+    [key: string]: PackageManagerConfiguration;
+  }>((acc, packageManagerId) => {
+    const options = pluginPayload?.[packageManagerId]?.options;
+    const packageManagerMustRunAfter = mustRunAfter?.[packageManagerId];
+
+    const packageManagerConfig: PackageManagerConfiguration = {
+      ...(packageManagerMustRunAfter?.length
+        ? { mustRunAfter: packageManagerMustRunAfter }
+        : {}),
+      ...(options && Object.keys(options).length > 0 ? { options } : {}),
+    };
+
+    if (Object.keys(packageManagerConfig).length > 0) {
+      acc[packageManagerId] = packageManagerConfig;
+    }
+
+    return acc;
+  }, {});
+
+  return Object.keys(result).length > 0 ? result : undefined;
 }

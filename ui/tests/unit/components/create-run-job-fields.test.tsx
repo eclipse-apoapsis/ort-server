@@ -68,6 +68,18 @@ const packageConfigurationProviderPlugins = [
   }),
 ];
 const packageCurationProviderPlugins = createPackageCurationProviderPlugins();
+const packageManagerPlugins = [
+  createPluginDescriptor({
+    id: 'Maven',
+    type: 'PACKAGE_MANAGER',
+    displayName: 'Maven',
+  }),
+  createPluginDescriptor({
+    id: 'NPM',
+    type: 'PACKAGE_MANAGER',
+    displayName: 'NPM',
+  }),
+];
 const permissions = createPermissions();
 const secrets = createPluginSecrets();
 const formDefaultValues = defaultValues(
@@ -77,7 +89,8 @@ const formDefaultValues = defaultValues(
   reporterPlugins,
   true,
   [],
-  packageConfigurationProviderPlugins
+  packageConfigurationProviderPlugins,
+  packageManagerPlugins
 );
 const onToggle = () => {};
 
@@ -103,6 +116,7 @@ const AnalyzerFieldsHarness = () => {
           onToggle={onToggle}
           isSuperuser
           packageCurationProviderPlugins={packageCurationProviderPlugins}
+          packageManagerPlugins={packageManagerPlugins}
           pluginSecrets={secrets}
           isRerun={false}
           permissions={permissions}
@@ -241,5 +255,21 @@ describe('create run job fields', () => {
     });
 
     expectOpenJobFields(markup, 'Analyzer', 'Repository configuration path');
+  });
+
+  it('renders the generated package manager plugin fields', async () => {
+    const markup = await renderStaticWithRouter(<AnalyzerFieldsHarness />, {
+      path: '/organizations/1/products/2/repositories/3',
+      routes: [
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        },
+      ],
+    });
+
+    expect(markup).toContain('Enabled package managers');
+    expect(markup).toContain('Maven');
+    expect(markup).toContain('NPM');
+    expect(markup).toContain('Must run after');
   });
 });

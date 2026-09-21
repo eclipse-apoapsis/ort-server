@@ -21,7 +21,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ENVIRONMENT_DEFINITION_SCHEMAS } from '@/lib/environment-definition-fields';
 import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
-import { PackageManagerField } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 import { EnvironmentDefinitionsFields } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components/environment-definitions';
 import { renderWithForm } from '../fixtures/form-harness';
 
@@ -59,7 +58,7 @@ vi.mock('@/hooks/use-infrastructure-services', () => ({
   }),
 }));
 
-const baseDefaultValues = defaultValues(null, [], [], [], false, [], []);
+const baseDefaultValues = defaultValues(null, [], [], [], false, [], [], []);
 const conanDefaultEntry = ENVIRONMENT_DEFINITION_SCHEMAS.find(
   (schema) => schema.key === 'conan'
 )?.defaultEntries[0];
@@ -76,23 +75,6 @@ const populatedDefaultValues = {
       ...baseDefaultValues.jobConfigs.analyzer,
       environmentDefinitions: {
         conan: [conanDefaultEntry],
-      },
-    },
-  },
-};
-
-const packageManagerDefaultValues = {
-  ...baseDefaultValues,
-  jobConfigs: {
-    ...baseDefaultValues.jobConfigs,
-    analyzer: {
-      ...baseDefaultValues.jobConfigs.analyzer,
-      packageManagers: {
-        ...baseDefaultValues.jobConfigs.analyzer.packageManagers,
-        Conan: {
-          ...baseDefaultValues.jobConfigs.analyzer.packageManagers.Conan,
-          options: [{ key: 'remote', value: 'central' }],
-        },
       },
     },
   },
@@ -124,21 +106,5 @@ describe('EnvironmentDefinitionsFields', () => {
     );
     expect(markup).toMatch(new RegExp(`<button[^>]*id="${selectorId}"`));
     expect(markup).toContain('Remote name');
-  });
-});
-
-describe('PackageManagerField', () => {
-  it('renders controls inside an open package manager accordion', () => {
-    const markup = renderWithForm(
-      (form) => <PackageManagerField form={form} />,
-      { defaultValues: packageManagerDefaultValues }
-    );
-
-    expect(markup).toContain('Enabled package managers');
-    expect(markup).toContain('data-state="open"');
-    expect(markup).toContain('Options:');
-    expect(markup).toContain('>Key<');
-    expect(markup).toContain('>Value<');
-    expect(markup).toContain('Must run after');
   });
 });

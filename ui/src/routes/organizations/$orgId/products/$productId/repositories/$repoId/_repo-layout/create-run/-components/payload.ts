@@ -28,8 +28,10 @@ import {
 } from '@/api';
 import { convertArrayToMap } from './form-primitives';
 import {
+  createPackageManagerPayload,
   createPluginPayload,
   createProviderPluginPayload,
+  UNMANAGED_PACKAGE_MANAGER_ID,
 } from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
 
@@ -40,65 +42,6 @@ import type { CreateRunFormValues } from './run-schema';
 export function formValuesToPayload(
   values: CreateRunFormValues
 ): PostRepositoryRun {
-  /**
-   * A helper function to get the enabled package managers from the form values.
-   *
-   * @param packageManagers Package managers object from the form values.
-   * @returns Array of enabled package manager IDs.
-   */
-  const getEnabledPackageManagers = (
-    packageManagers: typeof values.jobConfigs.analyzer.packageManagers
-  ) => {
-    return Object.keys(packageManagers).filter(
-      (pm) =>
-        packageManagers[
-          // Ensure that TypeScript infers the correct type for the key.
-          // This is safe because the key is always a valid package manager ID.
-          pm as keyof typeof values.jobConfigs.analyzer.packageManagers
-        ].enabled
-    );
-  };
-
-  /**
-   * A helper function to get the package manager options for the enabled package managers.
-   * This is done by converting the packageManagers object into an array of key-value pairs,
-   * filtering out the disabled package managers, mapping the filtered array to an array of
-   * objects with the package manager ID as the key and the options as the value, and then
-   * reducing this array to a single object.
-   *
-   * @param packageManagers Package managers object from the form values.
-   * @returns Single object with package manager IDs as keys and options as values.
-   */
-  const getPackageManagerOptions = (
-    packageManagers: typeof values.jobConfigs.analyzer.packageManagers
-  ) => {
-    const options = Object.entries(packageManagers)
-      .filter(
-        // Skip package managers that are not enabled or have no extra options set.
-        ([, pm]) =>
-          pm.enabled &&
-          ((pm.options && pm.options.length > 0) ||
-            (pm.mustRunAfter && pm.mustRunAfter.length > 0))
-      )
-      .map(([pmId, pm]) => {
-        // Build the filtered options object, including only non-empty properties.
-        const filteredOptions = {
-          ...(pm.mustRunAfter?.length ? { mustRunAfter: pm.mustRunAfter } : {}),
-          ...(pm.options?.length
-            ? { options: convertArrayToMap(pm.options) }
-            : {}),
-        };
-        // Return the object only if it has valid options.
-        return Object.keys(filteredOptions).length > 0
-          ? { [pmId]: filteredOptions }
-          : {};
-      })
-      // Combine all package manager objects into a single result.
-      .reduce((acc, pm) => ({ ...acc, ...pm }), {});
-    // If no options are set, return undefined.
-    return Object.keys(options).length > 0 ? options : undefined;
-  };
-
   //
   // Analyzer configuration
   //
@@ -145,12 +88,14 @@ export function formValuesToPayload(
     // Determine the enabled package managers by filtering the packageManagers object
     // and finding those for which 'enabled' is true.
     enabledPackageManagers: [
-      ...getEnabledPackageManagers(values.jobConfigs.analyzer.packageManagers),
-      'Unmanaged',
+      ...values.jobConfigs.analyzer.packageManagers,
+      UNMANAGED_PACKAGE_MANAGER_ID,
     ],
     // Construct packageManagerOptions by including options for enabled package managers
     // that have options set in the form.
-    packageManagerOptions: getPackageManagerOptions(
+    packageManagerOptions: createPackageManagerPayload(
+      values.jobConfigs.analyzer.packageManagerConfig,
+      values.jobConfigs.analyzer.packageManagerMustRunAfter,
       values.jobConfigs.analyzer.packageManagers
     ),
     packageCurationProviders: createProviderPluginPayload(
