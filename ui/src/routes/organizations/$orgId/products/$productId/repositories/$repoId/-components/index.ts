@@ -22,7 +22,6 @@ export * from './analyzer-fields';
 export * from './evaluator-fields';
 export * from './move-repository';
 export * from './notifier-fields';
-export * from './package-manager-field';
 export * from './reporter-fields';
 export * from './run-item-counts';
 export * from './repository-runs-table';

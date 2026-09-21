@@ -53,6 +53,29 @@ const scannerPlugin = createPluginDescriptor({
   type: 'SCANNER',
   displayName: 'ScanCode',
 });
+const packageManagerPlugins = [
+  createPluginDescriptor({
+    id: 'Maven',
+    type: 'PACKAGE_MANAGER',
+    displayName: 'Maven',
+  }),
+  createPluginDescriptor({
+    id: 'NPM',
+    type: 'PACKAGE_MANAGER',
+    displayName: 'NPM',
+  }),
+  createPluginDescriptor({
+    id: 'Gradle',
+    type: 'PACKAGE_MANAGER',
+    displayName: 'Gradle Legacy',
+  }),
+  // The 'Unmanaged' package manager is always enabled and must not be selectable.
+  createPluginDescriptor({
+    id: 'Unmanaged',
+    type: 'PACKAGE_MANAGER',
+    displayName: 'Unmanaged',
+  }),
+];
 const permissions = createPermissions();
 const rerun = createOrtRun({ revision: '', path: '', jobConfigs: {} });
 const secrets = createPluginSecrets();
@@ -67,7 +90,7 @@ const renderCreateRunForm = (onSubmit = vi.fn()) => ({
       isSuperuser={false}
       onSubmit={onSubmit}
       permissions={permissions}
-      plugins={[advisorPlugin, scannerPlugin]}
+      plugins={[advisorPlugin, scannerPlugin, ...packageManagerPlugins]}
       rerun={rerun}
       secrets={secrets}
     />,
@@ -82,37 +105,7 @@ const renderCreateRunForm = (onSubmit = vi.fn()) => ({
   ),
 });
 
-const enabledPackageManagers = [
-  'Bazel',
-  'Bower',
-  'Bundler',
-  'Cargo',
-  'Carthage',
-  'CocoaPods',
-  'Composer',
-  'Conan',
-  'Gleam',
-  'GoMod',
-  'GradleInspector',
-  'Maven',
-  'NPM',
-  'NuGet',
-  'OrtProjectFile',
-  'PIP',
-  'Pipenv',
-  'PNPM',
-  'Poetry',
-  'Pub',
-  'SBT',
-  'SPDX',
-  'SpdxDocumentFile',
-  'Stack',
-  'SwiftPM',
-  'Tycho',
-  'Yarn',
-  'Yarn2',
-  'Unmanaged',
-];
+const enabledPackageManagers = ['Maven', 'NPM', 'Unmanaged'];
 
 const getJobSwitch = (job: string) => {
   const trigger = screen.getByRole('button', { name: job });
@@ -194,5 +187,18 @@ describe('CreateRunForm', () => {
       )
     ).toBeVisible();
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('does not offer the always enabled "Unmanaged" package manager for selection', async () => {
+    const { user } = renderCreateRunForm();
+
+    await user.click(await screen.findByRole('button', { name: 'Analyzer' }));
+
+    const packageManagers = screen
+      .getByText('Enabled package managers')
+      .closest<HTMLElement>('[data-slot="form-item"]')!;
+
+    expect(within(packageManagers).getByText('Maven')).toBeVisible();
+    expect(within(packageManagers).queryByText('Unmanaged')).toBeNull();
   });
 });

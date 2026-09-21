@@ -18,7 +18,6 @@
  */
 
 import { JobStatus, OrtRunStatus, Severity, VulnerabilityRating } from '@/api';
-import { PackageManagerId } from '@/lib/types';
 import { ItemResolved } from '@/schemas';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
@@ -168,9 +167,7 @@ export function getResolvedBackgroundColor(status: ItemResolved): string {
 //    with a total of 14 different groups.
 // 3. Package managers which belong to the same group are chosen from inside
 //    these 14 color palettes in a way that the colors are visually distinct.
-export function getEcosystemBackgroundColor(
-  ecosystem: PackageManagerId | string
-): string {
+export function getEcosystemBackgroundColor(ecosystem: string): string {
   switch (ecosystem) {
     case 'Bazel':
       return 'bg-stone-500';

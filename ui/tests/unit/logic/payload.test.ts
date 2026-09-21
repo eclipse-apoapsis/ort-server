@@ -25,7 +25,7 @@ import type { CreateRunFormValues } from '@/routes/organizations/$orgId/products
 
 function createFormValues(): CreateRunFormValues {
   return {
-    ...defaultValues(null, [], [], [], false, [], []),
+    ...defaultValues(null, [], [], [], false, [], [], []),
     revision: 'main',
     path: '',
   };
@@ -261,5 +261,48 @@ describe('formValuesToPayload', () => {
     expect(
       payload.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
     ).toEqual(values.jobConfigs.analyzer.environmentDefinitions);
+  });
+
+  it('builds package manager configurations from options and mustRunAfter', () => {
+    const values = createFormValues();
+    values.jobConfigs.analyzer.packageManagers = ['Maven', 'NPM'];
+    values.jobConfigs.analyzer.packageManagerConfig = {
+      Maven: {
+        options: { sbtVersion: '1.9.0' },
+        secrets: {},
+      },
+      NPM: {
+        options: {},
+        secrets: {},
+      },
+    };
+    values.jobConfigs.analyzer.packageManagerMustRunAfter = {
+      NPM: ['Maven'],
+    };
+
+    const payload = formValuesToPayload(values);
+
+    expect(payload.jobConfigs.analyzer?.enabledPackageManagers).toEqual([
+      'Maven',
+      'NPM',
+      'Unmanaged',
+    ]);
+    expect(payload.jobConfigs.analyzer?.packageManagerOptions).toEqual({
+      Maven: { options: { sbtVersion: '1.9.0' } },
+      NPM: { mustRunAfter: ['Maven'] },
+    });
+  });
+
+  it('omits package manager configurations without options or mustRunAfter', () => {
+    const values = createFormValues();
+    values.jobConfigs.analyzer.packageManagers = ['Maven'];
+    values.jobConfigs.analyzer.packageManagerConfig = {
+      Maven: { options: {}, secrets: {} },
+    };
+    values.jobConfigs.analyzer.packageManagerMustRunAfter = {};
+
+    const payload = formValuesToPayload(values);
+
+    expect(payload.jobConfigs.analyzer?.packageManagerOptions).toBeUndefined();
   });
 });

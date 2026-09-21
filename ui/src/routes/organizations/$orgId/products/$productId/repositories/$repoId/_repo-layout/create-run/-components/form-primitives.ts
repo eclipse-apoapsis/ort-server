@@ -19,22 +19,9 @@
 
 import { z } from 'zod';
 
-import { packageManagers } from '@/lib/types';
-
 export const keyValueSchema = z.object({
   key: z.string(),
   value: z.string(), // Allow empty values for now
-});
-
-export const packageManagerOptionsSchema = z.object({
-  enabled: z.boolean(),
-  // An optional array of package manager IDs (as enums) that must run after the current one.
-  mustRunAfter: z
-    .array(
-      z.enum(Object.fromEntries(packageManagers.map((pm) => [pm.id, pm.id])))
-    )
-    .optional(),
-  options: z.array(keyValueSchema).optional(),
 });
 
 // Ensure that when environment variables are used, the name and value

@@ -139,6 +139,12 @@ type PluginMultiSelectFieldProps<
    * projects, or both.
    */
   scannerScopeName?: TName;
+  /**
+   * Optional field path for a `Record<string, string[]>` value. When provided, a
+   * "Must run after" multi select is shown for each enabled plugin, offering the
+   * IDs of all other available plugins.
+   */
+  mustRunAfterName?: TName;
   label?: string;
   description?: React.ReactNode;
   plugins: readonly PreconfiguredPluginDescriptor[];
@@ -166,6 +172,7 @@ export const PluginMultiSelectField = <
   name,
   configName,
   scannerScopeName,
+  mustRunAfterName,
   label,
   description,
   plugins,
@@ -249,6 +256,15 @@ export const PluginMultiSelectField = <
                       if (scannerScopeName) {
                         form.setValue(
                           `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>,
+                          undefined as FieldPathValue<
+                            TFieldValues,
+                            Path<TFieldValues>
+                          >
+                        );
+                      }
+                      if (mustRunAfterName) {
+                        form.setValue(
+                          `${mustRunAfterName}.${plugin.id}` as Path<TFieldValues>,
                           undefined as FieldPathValue<
                             TFieldValues,
                             Path<TFieldValues>
@@ -497,6 +513,51 @@ export const PluginMultiSelectField = <
                       )}
                     />
                   ))}
+                {mustRunAfterName && isSelected && (
+                  <FormField
+                    control={form.control}
+                    name={
+                      `${mustRunAfterName}.${plugin.id}` as Path<TFieldValues>
+                    }
+                    render={({ field: mustRunAfterField }) => (
+                      <FormItem className='ml-4 flex flex-col pb-4'>
+                        <FormLabel>Must run after</FormLabel>
+                        <FormControl>
+                          <MultipleSelector
+                            className='min-w-[280px]'
+                            placeholder='Select values'
+                            hidePlaceholderWhenSelected
+                            value={parsePluginOptionList(
+                              mustRunAfterField.value
+                            ).map<MultipleSelectorOption>((entry) => ({
+                              value: entry,
+                              label: entry,
+                            }))}
+                            options={plugins
+                              .filter(
+                                (otherPlugin) => otherPlugin.id !== plugin.id
+                              )
+                              .map<MultipleSelectorOption>((otherPlugin) => ({
+                                value: otherPlugin.id,
+                                label: otherPlugin.id,
+                              }))}
+                            onChange={(selected) => {
+                              mustRunAfterField.onChange(
+                                selected.map((entry) => entry.value)
+                              );
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          A list of package manager names that this package
+                          manager must run after. For example, this can be used,
+                          if another package manager generates files that this
+                          package manager requires to run correctly.
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
             </>
           );
@@ -578,6 +639,17 @@ export const PluginMultiSelectField = <
                         );
                       });
                     }
+                  }
+                  if (mustRunAfterName && checked !== true) {
+                    plugins.forEach((plugin) => {
+                      form.setValue(
+                        `${mustRunAfterName}.${plugin.id}` as Path<TFieldValues>,
+                        undefined as FieldPathValue<
+                          TFieldValues,
+                          Path<TFieldValues>
+                        >
+                      );
+                    });
                   }
                 }}
               />

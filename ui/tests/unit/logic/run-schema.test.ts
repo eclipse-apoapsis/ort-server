@@ -46,7 +46,8 @@ function createValidFormData() {
     [],
     false,
     [],
-    [packageConfigurationProviderPlugin]
+    [packageConfigurationProviderPlugin],
+    []
   );
 
   formData.revision = 'main';
@@ -77,7 +78,8 @@ describe('createRunFormSchema', () => {
       [],
       [],
       [],
-      [packageConfigurationProviderPlugin]
+      [packageConfigurationProviderPlugin],
+      []
     );
 
     const result = schema.safeParse(createValidFormData());
@@ -100,7 +102,7 @@ describe('createRunFormSchema', () => {
         },
       ],
     });
-    const schema = createRunFormSchema([], [scannerPlugin], [], [], []);
+    const schema = createRunFormSchema([], [scannerPlugin], [], [], [], []);
     const formData = createValidFormData();
     formData.jobConfigs.scanner.scanners = ['Scanner'];
     formData.jobConfigs.scanner.config = {
@@ -138,7 +140,7 @@ describe('createRunFormSchema', () => {
         },
       ],
     });
-    const schema = createRunFormSchema([], [scannerPlugin], [], [], []);
+    const schema = createRunFormSchema([], [scannerPlugin], [], [], [], []);
     const formData = createValidFormData();
     formData.jobConfigs.scanner.scanners = ['Scanner'];
     formData.jobConfigs.scanner.config = {
@@ -169,7 +171,8 @@ describe('createRunFormSchema', () => {
       [],
       [],
       [],
-      [packageConfigurationProviderPlugin]
+      [packageConfigurationProviderPlugin],
+      []
     );
     const formData = createValidFormData();
     formData.jobConfigs.evaluator.enabled = false;
@@ -184,6 +187,80 @@ describe('createRunFormSchema', () => {
       'Dir',
       'options',
       'path',
+    ]);
+  });
+
+  it('rejects selecting both Gradle and GradleInspector', () => {
+    const gradlePlugins = [
+      createPluginDescriptor({ id: 'Gradle', type: 'PACKAGE_MANAGER' }),
+      createPluginDescriptor({
+        id: 'GradleInspector',
+        type: 'PACKAGE_MANAGER',
+      }),
+    ];
+    const schema = createRunFormSchema(
+      [],
+      [],
+      [],
+      [],
+      [packageConfigurationProviderPlugin],
+      gradlePlugins
+    );
+    const formData = createValidFormData();
+    formData.jobConfigs.analyzer.packageManagers = [
+      'Gradle',
+      'GradleInspector',
+    ];
+
+    const result = schema.safeParse(formData);
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map((issue) => issue.path)).toContainEqual([
+      'jobConfigs',
+      'analyzer',
+      'packageManagers',
+    ]);
+  });
+
+  it('validates required options of selected package managers', () => {
+    const packageManagerPlugin = createPluginDescriptor({
+      id: 'Maven',
+      type: 'PACKAGE_MANAGER',
+      options: [
+        {
+          name: 'sbtVersion',
+          description: 'The SBT version.',
+          type: 'STRING',
+          isFixed: false,
+          isNullable: false,
+          isRequired: true,
+        },
+      ],
+    });
+    const schema = createRunFormSchema(
+      [],
+      [],
+      [],
+      [],
+      [packageConfigurationProviderPlugin],
+      [packageManagerPlugin]
+    );
+    const formData = createValidFormData();
+    formData.jobConfigs.analyzer.packageManagers = ['Maven'];
+    formData.jobConfigs.analyzer.packageManagerConfig = {
+      Maven: { options: { sbtVersion: '' }, secrets: {} },
+    };
+
+    const result = schema.safeParse(formData);
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map((issue) => issue.path)).toContainEqual([
+      'jobConfigs',
+      'analyzer',
+      'packageManagerConfig',
+      'Maven',
+      'options',
+      'sbtVersion',
     ]);
   });
 });
