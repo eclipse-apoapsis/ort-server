@@ -56,6 +56,7 @@ import {
 import { toastError } from '@/lib/toast';
 import {
   packageIdentifierSearchParameterSchema,
+  packageIdTypeSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -210,7 +211,7 @@ function SearchPackageComponent() {
   } = useQuery({
     ...getRunsWithPackageOptions({
       query: {
-        ...(packageIdType === 'PURL'
+        ...(packageIdType === packageIdTypeSchema.enum.PURL
           ? { purl: identifier }
           : { identifier: identifier }),
         organizationId: Number.parseInt(params.orgId),

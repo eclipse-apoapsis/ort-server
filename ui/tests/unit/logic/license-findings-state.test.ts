@@ -26,6 +26,7 @@ import {
   getMarkerExpandedState,
   getPackageIdentifierQueryFilter,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/-components/license-findings-state';
+import { packageIdTypeSchema } from '@/schemas';
 
 describe('license findings deep-link state', () => {
   it('uses a marked license instead of the interactive filter', () => {
@@ -59,7 +60,11 @@ describe('license findings deep-link state', () => {
     const identifier = 'Maven:com.example:library:1.0';
 
     expect(
-      getPackageIdentifierQueryFilter(identifier, 'PURL', 'pkg:maven/example')
+      getPackageIdentifierQueryFilter(
+        identifier,
+        packageIdTypeSchema.enum.PURL,
+        'pkg:maven/example'
+      )
     ).toEqual({ identifier, identifierMatchType: 'exact' });
   });
 
@@ -67,7 +72,11 @@ describe('license findings deep-link state', () => {
     const identifier = 'Gradle:com.example:project:1.0';
 
     expect(
-      getPackageIdentifierQueryFilter(identifier, 'PURL', undefined)
+      getPackageIdentifierQueryFilter(
+        identifier,
+        packageIdTypeSchema.enum.PURL,
+        undefined
+      )
     ).toEqual({ identifier, identifierMatchType: 'exact' });
   });
 
@@ -111,10 +120,18 @@ describe('license findings deep-link state', () => {
 
   it('keeps normal identifier filters when no package is marked', () => {
     expect(
-      getPackageIdentifierQueryFilter(undefined, 'PURL', 'pkg:maven/example')
+      getPackageIdentifierQueryFilter(
+        undefined,
+        packageIdTypeSchema.enum.PURL,
+        'pkg:maven/example'
+      )
     ).toEqual({ purl: 'pkg:maven/example' });
     expect(
-      getPackageIdentifierQueryFilter(undefined, 'ORT_ID', 'Maven:example')
+      getPackageIdentifierQueryFilter(
+        undefined,
+        packageIdTypeSchema.enum.ORT_ID,
+        'Maven:example'
+      )
     ).toEqual({ identifier: 'Maven:example' });
   });
 });

@@ -79,6 +79,7 @@ import {
   externalIdSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
+  packageIdTypeSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
   vulnerabilityRatingSearchParameterSchema,
@@ -101,7 +102,7 @@ const VulnerabilityCard = ({
 }) => {
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
-    packageIdType === 'PURL' && vulnerability.purl
+    packageIdType === packageIdTypeSchema.enum.PURL && vulnerability.purl
       ? vulnerability.purl
       : identifierToString(vulnerability.identifier);
 
@@ -294,14 +295,17 @@ const ProductVulnerabilitiesComponent = () => {
         }),
         columnHelper.accessor(
           (vuln) => {
-            if (packageIdType === 'PURL') {
+            if (packageIdType === packageIdTypeSchema.enum.PURL) {
               return vuln.purl;
             } else {
               return identifierToString(vuln.identifier);
             }
           },
           {
-            id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
+            id:
+              packageIdType === packageIdTypeSchema.enum.ORT_ID
+                ? 'identifier'
+                : 'purl',
             header: 'Package ID',
             meta: {
               filter: {
@@ -424,7 +428,10 @@ const ProductVulnerabilitiesComponent = () => {
     const filters = [];
     if (packageIdentifier) {
       filters.push({
-        id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
+        id:
+          packageIdType === packageIdTypeSchema.enum.ORT_ID
+            ? 'identifier'
+            : 'purl',
         value: packageIdentifier,
       });
     }
@@ -471,7 +478,7 @@ const ProductVulnerabilitiesComponent = () => {
         sort: convertToBackendSorting(sortBy),
         rating: rating?.join(','),
         advisors: advisor?.join(','),
-        ...(packageIdType === 'ORT_ID'
+        ...(packageIdType === packageIdTypeSchema.enum.ORT_ID
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
         externalId: externalId,
@@ -483,7 +490,8 @@ const ProductVulnerabilitiesComponent = () => {
     search.marked ? { [search.marked]: true } : {}
   );
 
-  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+  const columnId =
+    packageIdType === packageIdTypeSchema.enum.ORT_ID ? 'identifier' : 'purl';
 
   const table = useAppTable(
     {

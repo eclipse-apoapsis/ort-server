@@ -25,6 +25,7 @@ import {
   createNodeSubtreeMatcher,
   formatDependencyGraphPackageLabel,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-graph-utils';
+import { packageIdTypeSchema } from '@/schemas';
 
 const graph: DependencyGraph = {
   edges: [
@@ -68,7 +69,7 @@ describe('dependency graph helpers', () => {
       cyclicGraph,
       buildAdjacencyMap(cyclicGraph),
       'library',
-      'ORT_ID'
+      packageIdTypeSchema.enum.ORT_ID
     );
 
     expect(matcher(0)).toBe(true);
@@ -76,18 +77,22 @@ describe('dependency graph helpers', () => {
   });
 
   it('formats dependency graph package labels from identifiers', () => {
-    expect(formatDependencyGraphPackageLabel(graph, 0, 'ORT_ID')).toBe(
-      'Maven:com.example:root:1.0'
-    );
+    expect(
+      formatDependencyGraphPackageLabel(
+        graph,
+        0,
+        packageIdTypeSchema.enum.ORT_ID
+      )
+    ).toBe('Maven:com.example:root:1.0');
   });
 
   it('formats dependency graph package labels from purls when preferred', () => {
-    expect(formatDependencyGraphPackageLabel(graph, 1, 'PURL')).toBe(
-      'pkg:maven/com.example/library@2.0'
-    );
-    expect(formatDependencyGraphPackageLabel(graph, 0, 'PURL')).toBe(
-      'Maven:com.example:root:1.0'
-    );
+    expect(
+      formatDependencyGraphPackageLabel(graph, 1, packageIdTypeSchema.enum.PURL)
+    ).toBe('pkg:maven/com.example/library@2.0');
+    expect(
+      formatDependencyGraphPackageLabel(graph, 0, packageIdTypeSchema.enum.PURL)
+    ).toBe('Maven:com.example:root:1.0');
   });
 
   it('matches a subtree when a descendant matches the search term', () => {
@@ -95,7 +100,7 @@ describe('dependency graph helpers', () => {
       graph,
       buildAdjacencyMap(graph),
       'leaf',
-      'ORT_ID'
+      packageIdTypeSchema.enum.ORT_ID
     );
 
     expect(matcher(0)).toBe(true);
@@ -110,7 +115,11 @@ describe('dependency graph helpers', () => {
     };
 
     expect(
-      formatDependencyGraphPackageLabel(graphWithMissingPackage, 0, 'ORT_ID')
+      formatDependencyGraphPackageLabel(
+        graphWithMissingPackage,
+        0,
+        packageIdTypeSchema.enum.ORT_ID
+      )
     ).toBe('');
   });
 });

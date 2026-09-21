@@ -25,7 +25,7 @@ import {
   identifierToString,
 } from '@/helpers/identifier-conversion.ts';
 import { cn } from '@/lib/utils';
-import { PackageIdType } from '@/schemas';
+import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
 type DependencyPathsProps = {
   pkg: Package;
@@ -75,7 +75,7 @@ const DependencyPath = ({
         <div className='flex flex-wrap gap-x-2 align-middle' key={index}>
           <MoveRight size={20} />
           <div>
-            {pkgIdType === 'ORT_ID'
+            {pkgIdType === packageIdTypeSchema.enum.ORT_ID
               ? identifierToString(path)
               : identifierToPurl(path)}
           </div>
@@ -84,7 +84,7 @@ const DependencyPath = ({
       <div className='flex flex-wrap gap-x-2 align-middle'>
         <MoveRight size={20} />
         <div>
-          {pkgIdType === 'ORT_ID'
+          {pkgIdType === packageIdTypeSchema.enum.ORT_ID
             ? identifierToString(pkg.identifier)
             : pkg.purl}
         </div>

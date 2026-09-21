@@ -98,13 +98,17 @@ const SettingsPage = () => {
                     >
                       <FormItem className='flex items-center space-y-0 space-x-3'>
                         <FormControl>
-                          <RadioGroupItem value='ORT_ID' />
+                          <RadioGroupItem
+                            value={packageIdTypeSchema.enum.ORT_ID}
+                          />
                         </FormControl>
                         <FormLabel className='font-normal'>ORT ID</FormLabel>
                       </FormItem>
                       <FormItem className='flex items-center space-y-0 space-x-3'>
                         <FormControl>
-                          <RadioGroupItem value='PURL' />
+                          <RadioGroupItem
+                            value={packageIdTypeSchema.enum.PURL}
+                          />
                         </FormControl>
                         <FormLabel className='font-normal'>
                           Package URL (PURL)

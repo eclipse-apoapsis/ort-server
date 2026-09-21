@@ -19,7 +19,7 @@
 
 import { ExpandedState } from '@tanstack/react-table';
 
-import { PackageIdType } from '@/schemas';
+import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
 export const getMarkerExpandedState = (marker?: string): ExpandedState =>
   marker ? { [marker]: true } : {};
@@ -41,7 +41,7 @@ export const getPackageIdentifierQueryFilter = (
     };
   }
 
-  return packageIdType === 'PURL'
+  return packageIdType === packageIdTypeSchema.enum.PURL
     ? { purl: packageId }
     : { identifier: packageId };
 };

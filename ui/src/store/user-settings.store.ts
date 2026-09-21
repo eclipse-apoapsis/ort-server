@@ -20,7 +20,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { PackageIdType } from '@/schemas';
+import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
 type State = {
   packageIdType: PackageIdType;
@@ -33,7 +33,7 @@ type Actions = {
 export const useUserSettingsStore = create<State & Actions>()(
   persist(
     (set) => ({
-      packageIdType: 'ORT_ID',
+      packageIdType: packageIdTypeSchema.enum.ORT_ID,
       setPackageIdType: (type) => set({ packageIdType: type }),
     }),
     {

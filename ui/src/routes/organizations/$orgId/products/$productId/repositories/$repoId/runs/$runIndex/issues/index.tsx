@@ -87,6 +87,7 @@ import {
   itemStatusSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
+  packageIdTypeSchema,
   paginationSearchParameterSchema,
   severitySearchParameterSchema,
   sortingSearchParameterSchema,
@@ -110,7 +111,7 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
   const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
-    packageIdType === 'PURL' && issue.purl
+    packageIdType === packageIdTypeSchema.enum.PURL && issue.purl
       ? issue.purl
       : identifierToString(issue.identifier);
 
@@ -251,14 +252,14 @@ const IssuesComponent = () => {
     columnHelper.accessor(
       (issue) => {
         // Return purl only if the issue has been reported for a package
-        if (packageIdType === 'PURL' && issue.purl) {
+        if (packageIdType === packageIdTypeSchema.enum.PURL && issue.purl) {
           return issue.purl;
         } else {
           return identifierToString(issue.identifier);
         }
       },
       {
-        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
+        id: `${packageIdType === packageIdTypeSchema.enum.PURL ? 'purl' : 'identifier'}`,
         header: 'Package ID',
         meta: {
           filter: {
@@ -336,7 +337,8 @@ const IssuesComponent = () => {
   const severity = search.severity;
   const itemStatus = search.itemResolved;
   const packageIdentifier = search.pkgId;
-  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+  const columnId =
+    packageIdType === packageIdTypeSchema.enum.ORT_ID ? 'identifier' : 'purl';
   const resolved =
     itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
   const sortBy =
@@ -383,7 +385,7 @@ const IssuesComponent = () => {
         sort: convertToBackendSorting(sortBy),
         resolved,
         severity: severity?.join(','),
-        ...(packageIdType === 'ORT_ID'
+        ...(packageIdType === packageIdTypeSchema.enum.ORT_ID
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
       },

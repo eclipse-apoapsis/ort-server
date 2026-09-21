@@ -87,6 +87,7 @@ import {
   itemStatusSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
+  packageIdTypeSchema,
   paginationSearchParameterSchema,
   ruleSearchParameterSchema,
   severitySearchParameterSchema,
@@ -114,7 +115,7 @@ const RuleViolationCard = ({
   const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
-    packageIdType === 'PURL' && ruleViolation.purl
+    packageIdType === packageIdTypeSchema.enum.PURL && ruleViolation.purl
       ? ruleViolation.purl
       : identifierToString(ruleViolation.id);
 
@@ -221,7 +222,8 @@ const RuleViolationsComponent = () => {
   const itemStatus = search.itemResolved;
   const packageIdentifier = search.pkgId;
   const selectedRules = search.rule;
-  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+  const columnId =
+    packageIdType === packageIdTypeSchema.enum.ORT_ID ? 'identifier' : 'purl';
   const resolved =
     itemStatus?.length === 1 ? itemStatus[0] === 'Resolved' : undefined;
   const sortBy =
@@ -272,7 +274,7 @@ const RuleViolationsComponent = () => {
         resolved,
         severity: severity?.join(','),
         rule: selectedRules?.join(','),
-        ...(packageIdType === 'ORT_ID'
+        ...(packageIdType === packageIdTypeSchema.enum.ORT_ID
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
       },
@@ -331,14 +333,17 @@ const RuleViolationsComponent = () => {
     columnHelper.accessor(
       (ruleViolation) => {
         // Return purl only if the rule violation has been reported for a package
-        if (packageIdType === 'PURL' && ruleViolation.purl) {
+        if (
+          packageIdType === packageIdTypeSchema.enum.PURL &&
+          ruleViolation.purl
+        ) {
           return ruleViolation.purl;
         } else {
           return identifierToString(ruleViolation.id);
         }
       },
       {
-        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
+        id: `${packageIdType === packageIdTypeSchema.enum.PURL ? 'purl' : 'identifier'}`,
         header: 'Package ID',
         meta: {
           filter: {
