@@ -23,7 +23,6 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
@@ -37,7 +36,7 @@ class SecretResolverServiceTest : WordSpec({
             val secret = mockk<Secret>()
             val secretValue = SecretValue("verySecretValue")
             val service = mockk<SecretService> {
-                every { getSecretValue(secret) } returns secretValue
+                coEvery { getSecretValue(secret) } returns secretValue
             }
 
             val resolverService = SecretResolverService.wrapSecretService(service)
