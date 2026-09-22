@@ -33,6 +33,7 @@ dependencies {
 
     api(libs.azure.security.keyvault.secrets)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.logging)
 
     implementation(ktorLibs.serialization.kotlinx.json)

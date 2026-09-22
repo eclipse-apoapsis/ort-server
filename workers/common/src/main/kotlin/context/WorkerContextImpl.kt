@@ -29,6 +29,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -114,9 +116,15 @@ internal class WorkerContextImpl(
         repositoryRepository.getHierarchy(ortRun.repositoryId)
     }
 
-    private val hierarchySecrets by lazy {
-        secretService.listForHierarchy(hierarchy).associateBy { it.name }
-    }
+    private val hierarchySecretsMutex = Mutex()
+    private var cachedHierarchySecrets: Map<String, Secret>? = null
+
+    private suspend fun getHierarchySecrets(): Map<String, Secret> =
+        cachedHierarchySecrets ?: hierarchySecretsMutex.withLock {
+            cachedHierarchySecrets ?: secretService.listForHierarchy(hierarchy).associateBy { it.name }.also {
+                cachedHierarchySecrets = it
+            }
+        }
 
     override val secretResolverFun: SecretResolverFun
         get() = { secret ->
@@ -148,7 +156,7 @@ internal class WorkerContextImpl(
             }
             val userSecrets = c.values.flatMap { pluginConfig ->
                 pluginConfig.secrets.values.filter { it.source == SecretSource.USER }.map {
-                    hierarchySecrets[it.name]
+                    getHierarchySecrets()[it.name]
                         ?: error("Could not find secret '${it.name}' in hierarchy '${hierarchy.compoundId}'.")
                 }
             }
@@ -170,7 +178,7 @@ internal class WorkerContextImpl(
             }
             val userSecrets = c.flatMap { providerPluginConfig ->
                 providerPluginConfig.secrets.values.filter { it.source == SecretSource.USER }.map {
-                    hierarchySecrets[it.name]
+                    getHierarchySecrets()[it.name]
                         ?: error("Could not find secret '${it.name}' in hierarchy '${hierarchy.compoundId}'.")
                 }
             }
@@ -253,7 +261,7 @@ internal class WorkerContextImpl(
     private suspend fun <T, K, V> singleTransform(
         data: T,
         cache: ConcurrentMap<K, Deferred<V>>,
-        transform: (K) -> V,
+        transform: suspend (K) -> V,
         keyExtract: (T) -> K
     ): V =
         transformAsync(data, cache, transform, keyExtract).await()
@@ -268,7 +276,7 @@ internal class WorkerContextImpl(
     private suspend fun <T, K, V> parallelTransform(
         data: Collection<T>,
         cache: ConcurrentMap<K, Deferred<V>>,
-        transform: (K) -> V,
+        transform: suspend (K) -> V,
         keyExtract: (T) -> K
     ): Map<T, V> {
         val results = data.map { transformAsync(it, cache, transform, keyExtract) }.awaitAll()
@@ -284,7 +292,7 @@ internal class WorkerContextImpl(
     private suspend fun <T, K, V> transformAsync(
         data: T,
         cache: ConcurrentMap<K, Deferred<V>>,
-        transform: (K) -> V,
+        transform: suspend (K) -> V,
         keyExtract: (T) -> K
     ): Deferred<V> =
         withContext(Dispatchers.IO) {
@@ -295,7 +303,7 @@ internal class WorkerContextImpl(
     /**
      * Resolve the value of the provided [secret] using the [secretService].
      */
-    private fun resolveSecretValue(secret: Secret): String =
+    private suspend fun resolveSecretValue(secret: Secret): String =
         secretService.getSecretValue(secret)?.value ?: error("Could not resolve secret at path '${secret.path}'")
 
     /**

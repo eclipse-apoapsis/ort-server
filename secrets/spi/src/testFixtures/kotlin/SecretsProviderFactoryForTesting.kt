@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.secrets
 
+import java.util.concurrent.ConcurrentHashMap
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
@@ -75,11 +77,13 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
         /**
          * Return a map to be used as internal secret store that is already populated with the test secrets.
          */
-        private fun createStorage(): MutableMap<Path, SecretValue> =
-            mutableMapOf(
-                PASSWORD_PATH to PASSWORD_SECRET,
-                TOKEN_PATH to TOKEN_SECRET,
-                SERVICE_PATH to SERVICE_SECRET
+        private fun createStorage(): ConcurrentHashMap<Path, SecretValue> =
+            ConcurrentHashMap(
+                mapOf(
+                    PASSWORD_PATH to PASSWORD_SECRET,
+                    TOKEN_PATH to TOKEN_SECRET,
+                    SERVICE_PATH to SERVICE_SECRET
+                )
             )
     }
 
@@ -95,13 +99,13 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
             path.takeUnless { it.path == errorPath } ?: throw IllegalArgumentException("Test exception")
 
         return object : SecretsProvider {
-            override fun readSecret(path: Path): SecretValue? = storage[checkPath(path)]
+            override suspend fun readSecret(path: Path): SecretValue? = storage[checkPath(path)]
 
-            override fun writeSecret(path: Path, secret: SecretValue) {
+            override suspend fun writeSecret(path: Path, secret: SecretValue) {
                 storage[checkPath(path)] = secret
             }
 
-            override fun removeSecret(path: Path) {
+            override suspend fun removeSecret(path: Path) {
                 storage -= checkPath(path)
             }
         }.also { latestInstance = it }

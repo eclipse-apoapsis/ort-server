@@ -23,7 +23,6 @@ import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 /**
  * Definition of a service interface that provides read access to secret values.
@@ -43,13 +42,13 @@ interface SecretResolverService {
     /**
      * Get the value of a [secret]. Return *null* if the value is not found.
      */
-    fun getSecretValue(secret: Secret): SecretValue?
+    suspend fun getSecretValue(secret: Secret): SecretValue?
 
     /**
      * List all secrets for the provided [hierarchy]. If there are secrets with the same name in different levels of the
      * hierarchy, only the one closest to the repository is returned.
      */
-    fun listForHierarchy(hierarchy: Hierarchy): List<Secret>
+    suspend fun listForHierarchy(hierarchy: Hierarchy): List<Secret>
 }
 
 /**
@@ -59,8 +58,8 @@ private class SecretResolverServiceImpl(
     /** The [SecretService] to delegate requests to. */
     private val secretService: SecretService
 ) : SecretResolverService {
-    override fun getSecretValue(secret: Secret): SecretValue? = secretService.getSecretValue(secret)
+    override suspend fun getSecretValue(secret: Secret): SecretValue? = secretService.getSecretValue(secret)
 
-    override fun listForHierarchy(hierarchy: Hierarchy): List<Secret> =
-        runBlocking { secretService.listForHierarchy(hierarchy) }
+    override suspend fun listForHierarchy(hierarchy: Hierarchy): List<Secret> =
+        secretService.listForHierarchy(hierarchy)
 }
