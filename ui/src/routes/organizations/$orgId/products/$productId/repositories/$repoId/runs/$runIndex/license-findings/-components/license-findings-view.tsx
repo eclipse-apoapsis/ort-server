@@ -335,6 +335,7 @@ export const LicenseFindingsView = () => {
               to: '.',
               search: (previous) => ({
                 ...previous,
+                page: 1,
                 sortBy: updateColumnSorting(previous.sortBy, sortBy),
               }),
             };
