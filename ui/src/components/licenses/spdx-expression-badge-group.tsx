@@ -20,12 +20,7 @@
 import * as React from 'react';
 
 import { LicenseBadge } from '@/components/licenses/license-badge';
-import {
-  parseLicenseExpression,
-  type SpdxConjunctionNode,
-  type SpdxExpressionNode,
-  type SpdxLicenseNode,
-} from '@/helpers/licenses/spdx-expression';
+import { parseLicenseExpression } from '@/helpers/licenses/spdx-expression';
 import { cn } from '@/lib/utils';
 
 type SpdxExpressionBadgeGroupProps = React.ComponentProps<'span'> & {
@@ -36,76 +31,46 @@ type SpdxExpressionBadgeGroupProps = React.ComponentProps<'span'> & {
 const expressionWrapperClassName =
   'inline-flex max-w-full flex-wrap items-center gap-1';
 
-function licenseNodeToString(node: SpdxLicenseNode): string {
-  if (node.kind === 'license-ref') {
-    return node.documentRef
-      ? `${node.documentRef}:${node.licenseRef}`
-      : node.licenseRef;
+type ExpressionToken =
+  | { type: 'license'; value: string }
+  | { type: 'operator'; value: string }
+  | { type: 'parenthesis'; value: string };
+
+/** Split an SPDX expression for display without changing its order or grouping. */
+function tokenizeExpressionForDisplay(expression: string): ExpressionToken[] {
+  const tokens: ExpressionToken[] = [];
+  const separatorPattern = /(\(|\)|\s+(?:AND|OR)\s+)/gi;
+  let start = 0;
+
+  for (const match of expression.matchAll(separatorPattern)) {
+    const index = match.index;
+    const license = expression.slice(start, index).trim();
+    if (license) tokens.push({ type: 'license', value: license });
+
+    const separator = match[0];
+    const value = separator.trim();
+    tokens.push({
+      type: value === '(' || value === ')' ? 'parenthesis' : 'operator',
+      value,
+    });
+
+    start = index + separator.length;
   }
 
-  return node.exception
-    ? `${node.license} WITH ${node.exception}`
-    : node.license;
+  const license = expression.slice(start).trim();
+  if (license) tokens.push({ type: 'license', value: license });
+
+  return tokens;
 }
 
-function needsParentheses(child: SpdxExpressionNode): boolean {
-  return child.kind === 'conjunction';
-}
-
-function renderExpressionNode(
-  node: SpdxExpressionNode,
-  expressionTitle: string,
-  parent?: SpdxConjunctionNode,
-  suffix?: React.ReactNode
-): React.ReactNode {
-  if (node.kind !== 'conjunction') {
-    const badge = (
-      <LicenseBadge
-        license={licenseNodeToString(node)}
-        title={expressionTitle}
-      />
-    );
-
-    return suffix ? (
-      <span className='inline-flex items-center'>
-        {badge}
-        {suffix}
-      </span>
-    ) : (
-      badge
-    );
-  }
-
-  const parenthesized = Boolean(parent) && needsParentheses(node);
-  const renderedGroup = (
-    <>
-      {renderExpressionNode(node.left, expressionTitle, node)}
-      <span className='text-muted-foreground text-xs font-medium uppercase'>
-        {node.conjunction}
-      </span>
-      {renderExpressionNode(
-        node.right,
-        expressionTitle,
-        node,
-        parenthesized ? undefined : suffix
-      )}
-    </>
+function renderToken(token: ExpressionToken, expressionTitle: string) {
+  return token.type === 'license' ? (
+    <LicenseBadge license={token.value} title={expressionTitle} />
+  ) : (
+    <span className='text-muted-foreground text-xs font-medium'>
+      {token.value}
+    </span>
   );
-
-  if (parenthesized) {
-    return (
-      <>
-        <span className='text-muted-foreground text-xs font-medium'>(</span>
-        {renderedGroup}
-        <span className='inline-flex items-center'>
-          <span className='text-muted-foreground text-xs font-medium'>)</span>
-          {suffix}
-        </span>
-      </>
-    );
-  }
-
-  return renderedGroup;
 }
 
 export function SpdxExpressionBadgeGroup({
@@ -132,13 +97,15 @@ export function SpdxExpressionBadgeGroup({
     );
   }
 
+  const rawExpression = parsedExpression.rawExpression.trim();
+
   if (parsedExpression.kind === 'atomic') {
     return (
       <span className={cn(expressionWrapperClassName, className)}>
         <span className='inline-flex items-center'>
           <LicenseBadge
-            license={licenseNodeToString(parsedExpression.node)}
-            title={title ?? parsedExpression.normalizedExpression}
+            license={rawExpression}
+            title={title ?? rawExpression}
             {...props}
           />
           {suffix}
@@ -147,14 +114,8 @@ export function SpdxExpressionBadgeGroup({
     );
   }
 
-  const normalizedParsedExpression = parseLicenseExpression(
-    parsedExpression.normalizedExpression
-  );
-  const expressionNode =
-    normalizedParsedExpression.kind === 'compound'
-      ? normalizedParsedExpression.node
-      : parsedExpression.node;
-  const expressionTitle = title ?? parsedExpression.normalizedExpression;
+  const expressionTitle = title ?? rawExpression;
+  const tokens = tokenizeExpressionForDisplay(rawExpression);
 
   return (
     <span
@@ -162,7 +123,18 @@ export function SpdxExpressionBadgeGroup({
       title={expressionTitle}
       {...props}
     >
-      {renderExpressionNode(expressionNode, expressionTitle, undefined, suffix)}
+      {tokens.map((token, index) => {
+        const renderedToken = renderToken(token, expressionTitle);
+
+        return index === tokens.length - 1 && suffix ? (
+          <span key={index} className='inline-flex items-center'>
+            {renderedToken}
+            {suffix}
+          </span>
+        ) : (
+          <React.Fragment key={index}>{renderedToken}</React.Fragment>
+        );
+      })}
     </span>
   );
 }

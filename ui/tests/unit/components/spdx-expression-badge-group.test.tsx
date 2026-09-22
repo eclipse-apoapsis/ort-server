@@ -50,7 +50,7 @@ describe('SpdxExpressionBadgeGroup', () => {
 
     expect(markup).toContain('MIT');
     expect(markup).toContain('Apache-2.0');
-    expect(markup).toContain('and');
+    expect(markup).toContain('AND');
     expect(markup.match(/data-slot="badge"/g)?.length).toBe(2);
   });
 
@@ -59,15 +59,16 @@ describe('SpdxExpressionBadgeGroup', () => {
       <SpdxExpressionBadgeGroup expression='MIT AND Apache-2.0' suffix=',' />
     );
 
-    expect(markup).toMatch(/MIT<\/span>,<\/span>/);
+    expect(markup).toMatch(/Apache-2.0<\/span>,<\/span>/);
   });
 
-  it('renders deprecated GPL plus syntax as its normalized atomic badge', () => {
+  it('renders deprecated GPL plus syntax unchanged', () => {
     const markup = renderToStaticMarkup(
       <SpdxExpressionBadgeGroup expression='GPL-2.0+' />
     );
 
-    expect(markup).toContain('GPL-2.0-or-later');
+    expect(markup).toContain('GPL-2.0+');
+    expect(markup).not.toContain('GPL-2.0-or-later');
     expect(markup.match(/data-slot="badge"/g)?.length).toBe(1);
   });
 
@@ -84,18 +85,30 @@ describe('SpdxExpressionBadgeGroup', () => {
     expect(markup.match(/data-slot="badge"/g)?.length).toBe(3);
   });
 
-  it('renders the same normalized order and grouping as the tooltip', () => {
+  it('preserves the original order and grouping in the badges and tooltip', () => {
+    const expression =
+      'EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR BSD-3-Clause';
     const markup = renderToStaticMarkup(
-      <SpdxExpressionBadgeGroup expression='EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR BSD-3-Clause' />
+      <SpdxExpressionBadgeGroup expression={expression} />
     );
-
-    const expressionTitle =
-      'title="EPL-2.0 OR (BSD-3-Clause OR GPL-2.0-only WITH Classpath-exception-2.0)"';
+    const expressionTitle = `title="${expression}"`;
 
     expect(markup.split(expressionTitle)).toHaveLength(5);
     expect(markup.replace(/<[^>]*>/g, '')).toBe(
-      'EPL-2.0or(BSD-3-ClauseorGPL-2.0-only WITH Classpath-exception-2.0)'
+      'EPL-2.0ORGPL-2.0-only WITH Classpath-exception-2.0ORBSD-3-Clause'
     );
+  });
+
+  it('keeps equivalent expressions visually distinct', () => {
+    const mitFirst = renderToStaticMarkup(
+      <SpdxExpressionBadgeGroup expression='MIT OR Apache-2.0' />
+    );
+    const apacheFirst = renderToStaticMarkup(
+      <SpdxExpressionBadgeGroup expression='Apache-2.0 OR MIT' />
+    );
+
+    expect(mitFirst.replace(/<[^>]*>/g, '')).toBe('MITORApache-2.0');
+    expect(apacheFirst.replace(/<[^>]*>/g, '')).toBe('Apache-2.0ORMIT');
   });
 
   it('renders WITH expressions as a single badge', () => {
