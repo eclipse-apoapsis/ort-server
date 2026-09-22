@@ -39,6 +39,7 @@ dependencies {
     api(projects.components.secrets.secretsBackend)
     api(projects.config.configSpi)
     api(projects.model)
+    api(projects.secrets.secretsSpi)
     api(projects.shared.authenticator)
     api(projects.storage.storageSpi)
     api(projects.transport.transportSpi)
@@ -48,7 +49,6 @@ dependencies {
     api(ortLibs.model)
 
     implementation(projects.dao)
-    implementation(projects.secrets.secretsSpi)
     implementation(projects.services.ortRunService)
     implementation(projects.utils.config)
 

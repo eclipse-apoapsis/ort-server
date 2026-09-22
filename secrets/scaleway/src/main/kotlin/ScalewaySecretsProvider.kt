@@ -49,7 +49,6 @@ import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 
@@ -90,7 +89,7 @@ class ScalewaySecretsProvider(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun readSecret(path: Path): SecretValue? = runBlocking {
+    override suspend fun readSecret(path: Path): SecretValue? {
         // See https://www.scaleway.com/en/developers/api/secret-manager/#path-secret-versions-access-a-secrets-version-using-the-secrets-name-and-path.
         val response = client.get("secrets-by-path/versions/$LATEST_REVISION/access") {
             parameter("project_id", config.projectId)
@@ -102,7 +101,7 @@ class ScalewaySecretsProvider(
             expectSuccess = false
         }
 
-        when {
+        return when {
             // It is a confirmed bug that the current API returns "InternalServerError" when trying to read a
             // non-existing secret.
             response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.InternalServerError -> {
@@ -123,7 +122,7 @@ class ScalewaySecretsProvider(
         }
     }
 
-    override fun writeSecret(path: Path, secret: SecretValue) = runBlocking {
+    override suspend fun writeSecret(path: Path, secret: SecretValue) {
         val listResponse = listSecrets(path)
 
         val secretId = if (listResponse.totalCount < 1) {
@@ -188,12 +187,12 @@ class ScalewaySecretsProvider(
         return response.body<VersionCreateResponse>()
     }
 
-    override fun removeSecret(path: Path) = runBlocking {
+    override suspend fun removeSecret(path: Path) {
         val listResponse = listSecrets(path)
 
         if (listResponse.totalCount < 1) {
             logger.debug("Skipping deletion of secret at '$path' as it does not exist.")
-            return@runBlocking
+            return
         }
 
         check(listResponse.totalCount == 1)
