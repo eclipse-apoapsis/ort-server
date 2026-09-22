@@ -19,6 +19,7 @@
 
 // @vitest-environment jsdom
 
+import { defaultParseSearch } from '@tanstack/react-router';
 import { screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -187,9 +188,14 @@ describe('LicensesAccordion', () => {
         identifier: 'Gradle::example-project:',
       },
     });
-    expect(getLinkUrls()[0]?.searchParams.get('packageMarked')).toBe(
-      'Gradle::example-project:'
-    );
+    expect(defaultParseSearch(getLinkUrls()[0]!.search)).toMatchObject({
+      licenseTables: {
+        MIT: {
+          packageMarked: 'Gradle::example-project:',
+          packages: { 'Gradle::example-project:': {} },
+        },
+      },
+    });
   });
 
   it('keeps multiple expressions in independent exact links', async () => {
@@ -199,21 +205,18 @@ describe('LicensesAccordion', () => {
     const links = getLinkUrls();
 
     expect(links).toHaveLength(2);
-    expect(Object.fromEntries(links[0]!.searchParams)).toEqual({
-      detectedLicense: '["MIT"]',
-      marked: 'MIT',
-      packageMarked: 'Maven:com.example:some library:1.0/rc%1',
-      page: '1',
-      packagePage: '1',
-      findingsPage: '1',
-    });
-    expect(Object.fromEntries(links[1]!.searchParams)).toEqual({
-      detectedLicense: '["MIT AND Apache-2.0"]',
-      marked: 'MIT AND Apache-2.0',
-      packageMarked: 'Maven:com.example:some library:1.0/rc%1',
-      page: '1',
-      packagePage: '1',
-      findingsPage: '1',
-    });
+    for (const [index, license] of mocks.queryState.data.entries()) {
+      expect(defaultParseSearch(links[index]!.search)).toEqual({
+        detectedLicense: [license],
+        marked: license,
+        page: 1,
+        licenseTables: {
+          [license]: {
+            packageMarked: 'Maven:com.example:some library:1.0/rc%1',
+            packages: { 'Maven:com.example:some library:1.0/rc%1': {} },
+          },
+        },
+      });
+    }
   });
 });
