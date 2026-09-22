@@ -35,8 +35,6 @@ dependencies {
 
     implementation(projects.utils.logging)
 
-    implementation(libs.slf4j)
-
     runtimeOnly(libs.logback)
 
     testImplementation(projects.model)

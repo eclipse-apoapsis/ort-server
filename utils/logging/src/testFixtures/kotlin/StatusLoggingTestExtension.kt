@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory
  * defines a [statusLog] function that can be used to retrieve the structured log output that was generated.
  */
 class StatusLoggingTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener {
+    @Suppress("ForbiddenMethodCall")
     private val logger = LoggerFactory.getLogger(JOB_STATUS_LOGGER_NAME) as Logger
 
     /** An appender to collect log events for the job status logger. */

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
@@ -62,17 +64,17 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
         withMdcContext(ScannerEndpoint.jobMdcKey(scannerJobId)) {
             val response = when (val result = scannerWorker.run(scannerJobId, message.header.traceId)) {
                 is RunResult.Success -> {
-                    logger.info("Scanner job '$scannerJobId' succeeded.")
+                    logger.info { "Scanner job '$scannerJobId' succeeded." }
                     Message(message.header, ScannerWorkerResult(scannerJobId))
                 }
 
                 is RunResult.FinishedWithIssues -> {
-                    logger.warn("Scanner job '$scannerJobId' finished with issues.")
+                    logger.warn { "Scanner job '$scannerJobId' finished with issues." }
                     Message(message.header, ScannerWorkerResult(scannerJobId, true))
                 }
 
                 is RunResult.Failed -> {
-                    logger.error("Scanner job '$scannerJobId' failed.", result.error)
+                    logger.error(result.error) { "Scanner job '$scannerJobId' failed." }
                     Message(message.header, ScannerWorkerError(scannerJobId, result.error.message))
                 }
 

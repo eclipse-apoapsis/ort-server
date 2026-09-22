@@ -19,35 +19,28 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
+import org.apache.logging.log4j.kotlin.logger
 
-import org.slf4j.LoggerFactory
+import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
 /**
  * Logger helper class for the environment configuration generators.
  * It helps log messages related to the generation of environment configuration files.
  */
 internal object GeneratorLogger {
-    private val logger = LoggerFactory.getLogger(GeneratorLogger::class.java)
-
     internal fun entryAdded(entry: String, targetFile: String, service: ResolvedInfrastructureService) {
-        logger.debug(
-            "Added entry '{}' to file '{}' for service '{}'.",
-            entry,
-            targetFile,
-            service.name
-        )
+        logger.debug { "Added entry '$entry' to file '$targetFile' for service '${service.name}'." }
     }
 
     internal fun entryAdded(entry: String, targetFile: String) {
-        logger.debug("Added entry '{}' to file '{}'.", entry, targetFile)
+        logger.debug { "Added entry '$entry' to file '$targetFile'." }
     }
 
     internal fun proxySettingAdded(entry: String, targetFile: String) {
-        logger.debug("Added proxy setting '{}' to file '{}'.", entry, targetFile)
+        logger.debug { "Added proxy setting '$entry' to file '$targetFile'." }
     }
 
     internal fun error(errorMsg: String, targetFile: String, exception: Throwable) {
-        logger.error("Error occurred while generating file '$targetFile': $errorMsg", exception)
+        logger.error(exception) { "Error occurred while generating file '$targetFile': $errorMsg" }
     }
 }

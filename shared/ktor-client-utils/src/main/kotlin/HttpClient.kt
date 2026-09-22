@@ -25,9 +25,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.kotlin.logger
 
-private val logger = LoggerFactory.getLogger(HttpClientConfig::class.java)
+private val logger = logger("HttpClient")
 
 /**
  * Create an [HttpClient] configured according to the given [config]. The [additionalConfig] block can be used to
@@ -37,7 +37,7 @@ fun createHttpClient(
     config: HttpClientConfig,
     additionalConfig: KtorHttpClientConfig<*>.() -> Unit = {}
 ): HttpClient {
-    logger.debug("Creating HttpClient with config: {}", config)
+    logger.debug { "Creating HttpClient with config: $config" }
 
     return HttpClient(OkHttp) {
         install(HttpTimeout) {

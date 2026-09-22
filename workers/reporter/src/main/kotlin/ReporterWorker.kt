@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlin.time.Clock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -43,10 +45,6 @@ import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(ReporterWorker::class.java)
-
 internal class ReporterWorker(
     private val contextFactory: WorkerContextFactory,
     private val db: Database,
@@ -66,8 +64,8 @@ internal class ReporterWorker(
 
         job = ortRunService.startReporterJob(job.id)
             ?: throw IllegalArgumentException("The reporter job with id '$jobId' could not be started.")
-        logger.debug("Reporter job with id '{}' started at {}.", job.id, job.startedAt)
-        logger.info("Using ORT version {}.", ORT_VERSION)
+        logger.debug { "Reporter job with id '${job.id}' started at ${job.startedAt}." }
+        logger.info { "Using ORT version $ORT_VERSION." }
 
         if (job.configuration.keepAliveWorker) {
             EndpointComponent.generateKeepAliveFile()
@@ -77,10 +75,10 @@ internal class ReporterWorker(
         val startTime = Clock.System.now()
 
         if (ortResult.repository == Repository.EMPTY) {
-            logger.warn(
+            logger.warn {
                 "No repository information found in ORT result for ORT run '${job.ortRunId}'. Most likely, the " +
                         "analyzer worker did not complete successfully."
-            )
+            }
 
             val reporterRun = ReporterRun(
                 id = -1L,
@@ -159,10 +157,10 @@ internal class ReporterWorker(
                 }
             }
 
-            logger.info(
+            logger.info {
                 "Reporter job ${job.id} finished with ${allIssues.size} total issues" +
                         " and ${unresolvedIssues.size} unresolved issues."
-            )
+            }
 
             if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
@@ -173,12 +171,12 @@ internal class ReporterWorker(
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
-                logger.warn("Not running the reporter because message '$traceId' got ignored: ${it.message}")
+                logger.warn { "Not running the reporter because message '$traceId' got ignored: ${it.message}" }
                 RunResult.Ignored
             }
 
             else -> {
-                logger.error("Error while running the reporter as instructed by message '$traceId': ${it.message}")
+                logger.error(it) { "Error while running the reporter as instructed by message '$traceId'." }
                 RunResult.Failed(it)
             }
         }

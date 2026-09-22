@@ -31,6 +31,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
@@ -56,10 +58,6 @@ import org.eclipse.apoapsis.ortserver.shared.authenticator.undefinedSecretResolv
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(WorkerContextImpl::class.java)
 
 /**
  * The internal default implementation of the [WorkerContext] interface.
@@ -217,8 +215,8 @@ internal class WorkerContextImpl(
     ): Map<ConfigPath, File> {
         val containedFiles = configManager.listFiles(currentContext, path)
 
-        logger.info("Downloading config directory '{}' to '{}'.", path.path, targetDirectory)
-        logger.debug("The directory contains these files: {}.", containedFiles)
+        logger.info { "Downloading config directory '${path.path}' to '$targetDirectory'." }
+        logger.debug { "The directory contains these files: $containedFiles." }
 
         return downloadConfigurationFiles(containedFiles, targetDirectory)
     }

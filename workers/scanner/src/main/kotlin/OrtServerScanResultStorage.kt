@@ -26,6 +26,8 @@ import kotlin.time.toKotlinInstant
 
 import kotlinx.serialization.json.Json
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
@@ -69,10 +71,6 @@ import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
 import org.ossreviewtoolkit.scanner.ScannerMatcher
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrtServerScanResultStorage::class.java)
 
 /**
  * A special [ProvenanceBasedScanStorage] implementation to integrate the ORT scanner with ORT Server.
@@ -338,6 +336,20 @@ class OrtServerScanResultStorage(
             )
         }
     }
+
+    /**
+     * Helper function to log the time taken for a given [action]. Execute the given [block], return its result, and log
+     * information about the execution time.
+     */
+    private fun <T> withLoggedTime(action: String, block: () -> T): T {
+        logger.info { "Start $action." }
+
+        val timedValue = measureTimedValue { block() }
+
+        logger.info { "Finished $action in ${timedValue.duration}." }
+
+        return timedValue.value
+    }
 }
 
 /**
@@ -376,20 +388,6 @@ private fun matchesBasicScanResultProperties(scanResult: ScanResult): Expression
                         )
                     )
             )
-
-/**
- * Helper function to log the time taken for a given [action]. Execute the given [block], return its result, and log
- * information about the execution time.
- */
-private fun <T> withLoggedTime(action: String, block: () -> T): T {
-    logger.info("Start {}.", action)
-
-    val timedValue = measureTimedValue { block() }
-
-    logger.info("Finished {} in {}.", action, timedValue.duration)
-
-    return timedValue.value
-}
 
 /**
  * Process the given collection of [scanResults] by removing all issues from their scan summaries. The issues are

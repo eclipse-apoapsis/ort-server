@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import kotlin.time.Clock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -33,10 +35,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(NotifierWorker::class.java)
 
 internal class NotifierWorker(
     private val db: Database,
@@ -52,8 +50,8 @@ internal class NotifierWorker(
 
             job = ortRunService.startNotifierJob(job.id)
                 ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
-            logger.debug("Notifier job with id '{}' started at {}.", jobId, job.startedAt)
-            logger.info("Using ORT version {}.", ORT_VERSION)
+            logger.debug { "Notifier job with id '$jobId' started at ${job.startedAt}." }
+            logger.info { "Using ORT version $ORT_VERSION." }
 
             if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
@@ -66,7 +64,7 @@ internal class NotifierWorker(
             runCatching {
                 runner.run(ortResult, ortRun.resolvedJobConfigs, context)
             }.onFailure {
-                logger.warn("Running ORT notifier failed for job with id '$jobId'.", it)
+                logger.warn(it) { "Running ORT notifier failed for job with id '$jobId'." }
             }
 
             val endTime = Clock.System.now()
@@ -87,12 +85,12 @@ internal class NotifierWorker(
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
-                logger.warn("Not running the notifier because message '$traceId' got ignored: ${it.message}")
+                logger.warn { "Not running the notifier because message '$traceId' got ignored: ${it.message}" }
                 RunResult.Ignored
             }
 
             else -> {
-                logger.error("Error while running the notifier as instructed by message '$traceId': ${it.message}")
+                logger.error(it) { "Error while running the notifier as instructed by message '$traceId'." }
                 RunResult.Failed(it)
             }
         }

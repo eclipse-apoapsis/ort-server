@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionEventStore
@@ -61,17 +63,17 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
         withMdcContext(EvaluatorEndpoint.jobMdcKey(evaluatorJobId)) {
             val response = when (val result = evaluatorWorker.run(evaluatorJobId, message.header.traceId)) {
                 is RunResult.Success -> {
-                    logger.info("Evaluator job '$evaluatorJobId' succeeded.")
+                    logger.info { "Evaluator job '$evaluatorJobId' succeeded." }
                     Message(message.header, EvaluatorWorkerResult(evaluatorJobId))
                 }
 
                 is RunResult.FinishedWithIssues -> {
-                    logger.warn("Evaluator job '$evaluatorJobId' finished with issues.")
+                    logger.warn { "Evaluator job '$evaluatorJobId' finished with issues." }
                     Message(message.header, EvaluatorWorkerResult(evaluatorJobId, true))
                 }
 
                 is RunResult.Failed -> {
-                    logger.error("Evaluator job '$evaluatorJobId' failed.", result.error)
+                    logger.error(result.error) { "Evaluator job '$evaluatorJobId' failed." }
                     Message(message.header, EvaluatorWorkerError(evaluatorJobId, result.error.message))
                 }
 

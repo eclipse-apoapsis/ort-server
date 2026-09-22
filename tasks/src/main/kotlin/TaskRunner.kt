@@ -32,6 +32,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -99,9 +101,7 @@ import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger("TaskRunner")
+private val logger = logger("TaskRunner")
 
 /** The name of the configuration section with properties for the task runner. */
 private const val TASK_RUNNER_SECTION = "taskRunner"
@@ -152,7 +152,7 @@ suspend fun main() {
  * executes them asynchronously.
  */
 internal suspend fun runTasks(modules: List<Module>) {
-    logger.info("Setting up Koin application.")
+    logger.info { "Setting up Koin application." }
     val app = startKoin {
         modules(modules)
     }
@@ -164,11 +164,11 @@ internal suspend fun runTasks(modules: List<Module>) {
         withContext(Dispatchers.IO) {
             tasksToRun.map { taskName ->
                 async {
-                    logger.info("Executing task '$taskName'.")
+                    logger.info { "Executing task '$taskName'." }
                     runCatching {
                         val task = app.koin.get<Task>(named(taskName))
                         task.execute()
-                        logger.info("Task '$taskName' executed successfully.")
+                        logger.info { "Task '$taskName' executed successfully." }
                     }.onFailure { e ->
                         logTaskExecutionError(taskName, e)
                     }
@@ -186,7 +186,7 @@ internal suspend fun runTasks(modules: List<Module>) {
  */
 internal fun endTaskRunner() {
     if (!System.getenv(KEEP_JVM_VARIABLE).toBoolean()) {
-        logger.info("Exiting JVM after task execution.")
+        logger.info { "Exiting JVM after task execution." }
         exitProcess(0)
     }
 }
@@ -273,7 +273,7 @@ private fun tasksModule(): Module =
  */
 private fun logTaskExecutionError(taskName: String, exception: Throwable) {
     when (exception) {
-        is NoDefinitionFoundException -> logger.error("Task '$taskName' does not exist.", exception)
-        else -> logger.error("Execution of task '$taskName' failed.", exception)
+        is NoDefinitionFoundException -> logger.error(exception) { "Task '$taskName' does not exist." }
+        else -> logger.error(exception) { "Execution of task '$taskName' failed." }
     }
 }

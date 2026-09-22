@@ -38,12 +38,12 @@ import kotlin.time.Instant
 
 import kotlinx.serialization.json.Json
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
-
-import org.slf4j.LoggerFactory
 
 /**
  * An implementation of the [LogFileProvider] interface that interacts with a Grafana Loki server.
@@ -62,8 +62,6 @@ class LokiLogFileProvider(
         /** The header to define the tenant ID in multi-tenant mode. */
         private const val TENANT_HEADER = "X-Scope-OrgID"
 
-        private val logger = LoggerFactory.getLogger(LokiLogFileProvider::class.java)
-
         /**
          * Extract the log statements from the given [response]. If the response contains multiple streams, the
          * statements need to be ordered manually. This typically indicates a wrong configuration of Loki, since
@@ -74,10 +72,10 @@ class LokiLogFileProvider(
             val statements = response.logStatements()
 
             return if (response.data.result.size > 1) {
-                logger.warn(
+                logger.warn {
                     "Received multiple streams in Loki response. Please check the configuration in Loki. " +
                             "The order of log entries may be incorrect over multiple chunks."
-                )
+                }
 
                 statements.sortedBy { it.timestamp }
             } else {
@@ -99,17 +97,14 @@ class LokiLogFileProvider(
         fileName: String
     ): File {
         val queryStr = constructQuery(ortRunId, source, levels)
-        logger.info("Sending log data query to Loki:\n{}", queryStr)
+        logger.info { "Sending log data query to Loki:\n$queryStr" }
 
         val logFile = directory.resolve(fileName)
         logFile.bufferedWriter().use { out ->
             tailrec suspend fun downloadChunk(from: String, lastChunk: List<LogStatement>) {
-                logger.debug(
-                    "Querying chunk of log data for run '{}' and source '{}' starting at '{}'.",
-                    ortRunId,
-                    source,
-                    from
-                )
+                logger.debug {
+                    "Querying chunk of log data for run '$ortRunId' and source '$source' starting at '$from'."
+                }
 
                 val httpResponse = lokiClient.get {
                     parameter("start", from)
@@ -135,12 +130,10 @@ class LokiLogFileProvider(
                     if (lastTimestamp != from) {
                         downloadChunk(lastTimestamp, deDuplicatedStatements)
                     } else {
-                        logger.error(
-                            "Possible loss of log data for run '{}' and source '{}' " +
-                            "due to number of identical timestamps exceeds chunk size limit.",
-                            ortRunId,
-                            source
-                        )
+                        logger.error {
+                            "Possible loss of log data for run '$ortRunId' and source '$source' due to number of " +
+                                    "identical timestamps exceeds chunk size limit."
+                        }
                     }
                 }
             }

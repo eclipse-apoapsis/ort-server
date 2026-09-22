@@ -30,6 +30,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.koin.core.component.KoinComponent
@@ -37,9 +39,6 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * An abstract base class providing functionality useful for components implementing endpoints in the ORT server.
@@ -67,7 +66,6 @@ abstract class EndpointComponent<T : Any>(
     companion object {
         private const val CHECK_INTERVAL_SECONDS = 60L
         private const val KEEP_ALIVE_FILE_NAME = "keep-alive.lock"
-        private val logger: Logger = LoggerFactory.getLogger(EndpointComponent::class.java)
 
         /**
          * Get the keep-alive file in the system's temporary directory.
@@ -85,10 +83,11 @@ abstract class EndpointComponent<T : Any>(
         suspend fun sleepWhileKeepAliveFileExists() {
             val file = getKeepAliveFile()
             while (file.isFile) {
-                logger.info(
+                logger.info {
                     "Delete keep-alive lock file ${file.absolutePath} to continue. " +
                         "Next check in $CHECK_INTERVAL_SECONDS seconds."
-                )
+                }
+
                 delay(CHECK_INTERVAL_SECONDS.seconds)
             }
         }
@@ -101,14 +100,12 @@ abstract class EndpointComponent<T : Any>(
             withContext(Dispatchers.IO) {
                 val file = getKeepAliveFile()
                 file.createNewFile().let {
-                    logger.info("Keep-alive lock file ${file.absolutePath} created.")
+                    logger.info { "Keep-alive lock file ${file.absolutePath} created." }
+                }
             }
-        }
     }
 
     abstract val endpointHandler: EndpointHandler<T>
-
-    protected val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Start this endpoint and perform the necessary initialization, so that incoming messages can be received and
@@ -120,7 +117,6 @@ abstract class EndpointComponent<T : Any>(
             modules(customModules())
         }
 
-        logger.logVersion()
         MessageReceiverFactory.createReceiver(endpoint, configManager, endpointHandler)
     }
 

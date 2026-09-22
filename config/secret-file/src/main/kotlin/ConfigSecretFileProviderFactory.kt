@@ -23,10 +23,10 @@ import com.typesafe.config.Config
 
 import java.io.File
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactory
-
-import org.slf4j.LoggerFactory
 
 /**
  * Factory implementation for [ConfigSecretFileProvider].
@@ -44,8 +44,6 @@ class ConfigSecretFileProviderFactory : ConfigSecretProviderFactory {
 
         /** Regular expression to split the property with the list of files. */
         private val splitFilesRegex = Regex("""\s*,\s*""")
-
-        private val logger = LoggerFactory.getLogger(ConfigSecretFileProviderFactory::class.java)
     }
 
     override val name: String = NAME
@@ -53,7 +51,7 @@ class ConfigSecretFileProviderFactory : ConfigSecretProviderFactory {
     override fun createProvider(config: Config): ConfigSecretProvider {
         val files = config.getString(FILES_PROPERTY).split(splitFilesRegex).map(::File)
 
-        logger.info("Creating ConfigSecretFileProvider, reading secrets from these files: {}.", files)
+        logger.info { "Creating ConfigSecretFileProvider, reading secrets from these files: $files." }
 
         return ConfigSecretFileProvider(files)
     }

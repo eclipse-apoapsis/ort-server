@@ -117,9 +117,11 @@ style:
     active: false
   ForbiddenMethodCall:
     active: true
-    # Use org.eclipse.apoapsis.ortserver.utils.logging.runBlocking to make sure the MDC context is preserved.
-    # An exception to that is code where the MDC context is not relevant, e.g., in tests.
-    methods: ['kotlinx.coroutines.runBlocking']
+    methods:
+      # Use org.eclipse.apoapsis.ortserver.utils.logging.runBlocking to make sure the MDC context is preserved.
+      # An exception to that is code where the MDC context is not relevant, e.g., in tests.
+      - 'kotlinx.coroutines.runBlocking'
+      - 'org.slf4j.LoggerFactory.getLogger'
     excludes: ['**/cli/**'] # The CLI does not have accees to the utils package, therefore, exclude it for this rule.
   LoopWithTooManyJumpStatements:
     active: false

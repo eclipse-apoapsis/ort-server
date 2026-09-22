@@ -19,12 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
-
-import org.slf4j.LoggerFactory
 
 /**
  * A specialized generator class to generate a Git configuration file.
@@ -53,8 +53,6 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
     companion object {
         private const val GIT_CONFIG_FILE_NAME = ".gitconfig"
 
-        private val logger = LoggerFactory.getLogger(GitConfigGenerator::class.java)
-
         private const val GIT_CONFIG_URL_INSTEAD_OF = "gitConfigUrlInsteadOf"
 
         /**
@@ -73,10 +71,11 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
             config.split(',')
                 .mapIndexedNotNull { index, baseInsteadOfPair ->
                     if ("=" !in baseInsteadOfPair) {
-                        logger.warn(
+                        logger.warn {
                             "Invalid format of base=insteadOf pair #${index + 1}: '$baseInsteadOfPair'. " +
                                 "Ignoring."
-                        )
+                        }
+
                         null
                     } else {
                         baseInsteadOfPair
@@ -113,7 +112,7 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
                     }
                 }
             } else {
-                logger.debug("Not generating {} file.", GIT_CONFIG_FILE_NAME)
+                logger.debug { "Not generating $GIT_CONFIG_FILE_NAME file." }
             }
         }
     }

@@ -25,6 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
@@ -35,10 +37,6 @@ import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCuration
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
 import org.ossreviewtoolkit.utils.common.encodeOr
 import org.ossreviewtoolkit.utils.ort.runBlocking
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(DirPackageCurationProvider::class.java)
 
 /**
  * A specialized [PackageCurationProvider] implementation that reads curation data from a folder structure that
@@ -82,7 +80,7 @@ class DirPackageCurationProvider(
      */
     private fun lookupCurations(pkg: Package): List<PackageCuration> {
         val curationFile = root.resolve(pkg.id.toCurationPath())
-        logger.debug("Looking up curation file '{}'.", curationFile.absolutePath)
+        logger.debug { "Looking up curation file '${curationFile.absolutePath}'." }
 
         return curationFile.takeIf { it.isFile }?.readValue<List<PackageCuration>>().orEmpty().filter {
             it.isApplicable(pkg.id)

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
@@ -37,10 +39,6 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(DaoSecretRepository::class.java)
 
 class DaoSecretRepository(private val db: Database) : SecretRepository {
     override fun create(path: String, name: String, description: String?, id: HierarchyId) = db.blockingQuery {
@@ -67,7 +65,7 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
 
         SecretDao.listQuery(parameters, SecretDao::mapToModel, query)
     }.getOrElse {
-        logger.error("Cannot list secrets for $id.", it)
+        logger.error(it) { "Cannot list secrets for $id." }
         throw it
     }
 

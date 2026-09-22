@@ -19,19 +19,17 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.ossreviewtoolkit.utils.common.Os
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(::main::class.java)
-
 suspend fun main() {
     withMdcContext(StandardMdcKeys.COMPONENT to "reporter-worker") {
-        logger.info("Starting ORT-Server Reporter endpoint.")
+        logger.info { "Starting ORT-Server Reporter endpoint." }
 
         enableOrtStackTraces()
         Os.fixupUserHomeProperty()

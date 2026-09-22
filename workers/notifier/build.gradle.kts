@@ -43,7 +43,7 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
-    implementation(libs.log4jToSlf4j)
+    implementation(libs.log4j.to.slf4j)
     implementation(ortLibs.notifier)
     implementation(ortLibs.utils.common)
 

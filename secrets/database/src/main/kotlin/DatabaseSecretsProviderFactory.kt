@@ -19,27 +19,23 @@
 
 package org.eclipse.apoapsis.ortserver.secrets.database
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
-
-import org.slf4j.LoggerFactory
 
 /**
  * An implementation of [SecretsProviderFactory] that creates [SecretsProvider] instances storing encrypted secrets in
  * the ORT Server database.
  */
 class DatabaseSecretsProviderFactory : SecretsProviderFactory {
-    companion object {
-        private val logger = LoggerFactory.getLogger(DatabaseSecretsProviderFactory::class.java)
-    }
-
     override val name = "database"
 
     override fun createProvider(configManager: ConfigManager): SecretsProvider {
         val config = DatabaseSecretsConfiguration.create(configManager)
 
-        logger.info("Creating DatabaseSecretsProvider.")
+        logger.info { "Creating DatabaseSecretsProvider." }
 
         val encryptor = SpringCryptoSecretEncryptor(
             password = config.masterPassword,

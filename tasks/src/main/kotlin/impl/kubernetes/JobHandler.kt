@@ -33,11 +33,11 @@ import kotlin.time.Instant
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
-
-import org.slf4j.LoggerFactory
 
 /**
  * An internal helper class providing functionality to deal with jobs.
@@ -56,8 +56,6 @@ internal class JobHandler(
     private val config: MonitorConfig
 ) {
     companion object {
-        private val logger = LoggerFactory.getLogger(JobHandler::class.java)
-
         /** Constant for a condition type that indicates that a job has failed. */
         private const val FAILED_CONDITION = "Failed"
 
@@ -168,13 +166,13 @@ internal class JobHandler(
             ) {
                 runCatching {
                     if (jobData.failed) {
-                        logger.info("Detected a failed job '{}'.", jobName)
-                        logger.debug("Details of the failed job: {}", job)
+                        logger.info { "Detected a failed job '$jobName'." }
+                        logger.debug { "Details of the failed job: $job" }
 
                         notifier.sendFailedJobNotification(job)
                     }
                 }.onFailure { exception ->
-                    logger.error("Failed to notify about failed job: '{}'.", jobName, exception)
+                    logger.error(exception) { "Failed to notify about failed job: '$jobName'." }
                 }.onSuccess {
                     deleteJob(jobName)
                 }
@@ -189,7 +187,7 @@ internal class JobHandler(
         runCatching {
             jobApi.deleteNamespacedJob(jobName, config.namespace).execute()
         }.onFailure { e ->
-            logger.error("Could not remove job '$jobName': $e.")
+            logger.error(e) { "Could not remove job '$jobName'." }
         }
 
         findPodsForJob(jobName).forEach(this::deletePod)
@@ -210,11 +208,11 @@ internal class JobHandler(
      */
     private fun deletePod(pod: V1Pod) {
         pod.metadata?.name?.let { podName ->
-            logger.info("Deleting pod $podName.")
+            logger.info { "Deleting pod $podName." }
             runCatching {
                 api.deleteNamespacedPod(podName, config.namespace).execute()
             }.onFailure { e ->
-                logger.error("Could not remove pod '$podName': $e.")
+                logger.error(e) { "Could not remove pod '$podName'." }
             }
         }
     }

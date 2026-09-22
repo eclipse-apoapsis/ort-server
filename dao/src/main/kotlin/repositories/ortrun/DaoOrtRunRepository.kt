@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
@@ -67,10 +69,6 @@ import org.jetbrains.exposed.v1.jdbc.delete
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(DaoOrtRunRepository::class.java)
 
 private data class IssueMatchKey(
     val timestamp: Instant,
@@ -158,7 +156,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         db.blockingQueryCatching {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) { OrtRunsTable.repositoryId eq repositoryId }
         }.getOrElse {
-            logger.error("Cannot list ORT runs for repository $repositoryId.", it)
+            logger.error(it) { "Cannot list ORT runs for repository $repositoryId." }
             ListQueryResult(emptyList(), parameters, 0L)
         }
 
@@ -169,7 +167,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         db.blockingQueryCatching {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToSummaryModel) { OrtRunsTable.repositoryId eq repositoryId }
         }.getOrElse {
-            logger.error("Cannot list ORT runs for repository $repositoryId.", it)
+            logger.error(it) { "Cannot list ORT runs for repository $repositoryId." }
             ListQueryResult(emptyList(), parameters, 0L)
         }
 
@@ -273,9 +271,9 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
                     }
 
                 if (updatedOccurrences == 0) {
-                    logger.debug(
-                        "No occurrence found in ORT run {} for issue {}: {}.", ortRunId, issue.source, issue.message
-                    )
+                    logger.debug {
+                        "No occurrence found in ORT run $ortRunId for issue ${issue.source}: ${issue.message}."
+                    }
                 }
 
                 updatedOccurrences

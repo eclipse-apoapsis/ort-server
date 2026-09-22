@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 
 import com.typesafe.config.ConfigFactory
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
@@ -69,13 +71,9 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger("org.eclipse.apoapsis.ortserver.orchestrator.EntrypointKt")
-
 suspend fun main() {
     withMdcContext(StandardMdcKeys.COMPONENT to "orchestrator") {
-        log.info("Starting ORT-Server Orchestrator.")
+        logger.info { "Starting ORT-Server Orchestrator." }
 
         OrchestratorComponent().start()
     }
@@ -83,7 +81,7 @@ suspend fun main() {
 
 class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(OrchestratorEndpoint) {
     override val endpointHandler: EndpointHandler<OrchestratorMessage> = { message ->
-        log.info("Received '${message.payload::class.simpleName}' message. TraceID: '${message.header.traceId}'.")
+        logger.info { "Received '${message.payload::class.simpleName}' message. TraceID: '${message.header.traceId}'." }
 
         val orchestrator by inject<Orchestrator>()
 

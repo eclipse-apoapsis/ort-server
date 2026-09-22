@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import kotlin.time.Duration.Companion.days
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
@@ -106,17 +108,17 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         withMdcContext(ReporterEndpoint.jobMdcKey(reporterJobId)) {
             val response = when (val result = reporterWorker.run(reporterJobId, message.header.traceId)) {
                 is RunResult.Success -> {
-                    logger.info("Reporter job '$reporterJobId' succeeded.")
+                    logger.info { "Reporter job '$reporterJobId' succeeded." }
                     Message(message.header, ReporterWorkerResult(reporterJobId))
                 }
 
                 is RunResult.FinishedWithIssues -> {
-                    logger.warn("Reporter job '$reporterJobId' finished with issues.")
+                    logger.warn { "Reporter job '$reporterJobId' finished with issues." }
                     Message(message.header, ReporterWorkerResult(reporterJobId, true))
                 }
 
                 is RunResult.Failed -> {
-                    logger.error("Reporter job '$reporterJobId' failed.", result.error)
+                    logger.error(result.error) { "Reporter job '$reporterJobId' failed." }
                     Message(message.header, ReporterWorkerError(reporterJobId, result.error.message))
                 }
 

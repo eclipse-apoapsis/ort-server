@@ -61,7 +61,7 @@ dependencies {
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
-    runtimeOnly(libs.log4jToSlf4j)
+    runtimeOnly(libs.log4j.to.slf4j)
     runtimeOnly(libs.logback)
     runtimeOnly(platform(ortLibs.ortPlugins.reporters))
 

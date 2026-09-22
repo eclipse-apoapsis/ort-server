@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.common
 
 import java.io.InputStream
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -31,10 +33,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.fromYaml
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-val logger: Logger = LoggerFactory.getLogger(ConfigManager::class.java)
+@PublishedApi
+internal val logger = logger("Extensions")
 
 /**
  * Map the entries of all [PluginConfig.options] in this map using the provided [transform] function.
@@ -94,12 +94,12 @@ internal inline fun <reified T> getConfigFileWithDefault(
     getConfigFile: (path: String, context: ResolvedConfigContext, exceptionHandler: (ConfigException) -> T) -> T
 ): T = if (path != null && path != defaultPath) {
     getConfigFile(path, context) {
-        logger.error("Could not get config file from path '$path'.")
+        logger.error { "Could not get config file from path '$path'." }
         throw it
     }
 } else {
     getConfigFile(defaultPath, context) {
-        logger.warn("Could not get config file from default path '$defaultPath', returning default value.")
+        logger.warn { "Could not get config file from default path '$defaultPath', returning default value." }
         fallbackValue
     }
 }

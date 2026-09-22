@@ -21,14 +21,14 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes
 
 import com.typesafe.config.Config
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
-
-import org.slf4j.LoggerFactory
 
 /**
  * A configuration class used by the sender part of the Kubernetes Transport implementation.
@@ -244,8 +244,6 @@ data class KubernetesSenderConfig(
         /** The separator character used in string lists. */
         private const val LIST_SEPARATOR = ','
 
-        private val logger = LoggerFactory.getLogger(KubernetesSenderConfig::class.java)
-
         /**
          * A regular expression to split the string with commands. Commands are split at whitespace, except the
          * whitespace is contained in quotes.
@@ -390,15 +388,18 @@ data class KubernetesSenderConfig(
             return labels.split(splitCommaListRegex).mapNotNull { label ->
                 val keyValue = label.split(splitKeyValueRegex, limit = 2)
                 if (keyValue.size != 2 || keyValue[0].isEmpty() || keyValue[1].isEmpty()) {
-                    logger.warn("Ignore invalid label declaration: '$label'. Labels must have the format 'key=value'.")
+                    logger.warn {
+                        "Ignore invalid label declaration: '$label'. Labels must have the format 'key=value'."
+                    }
                     return@mapNotNull null
                 }
 
                 if (keyValue[0] in reservedLabels || keyValue[0].startsWith("trace-id-")) {
-                    logger.warn(
+                    logger.warn {
                         "Ignore label with reserved key '${keyValue[0]}'. The keys 'ort-worker', 'run-id' and " +
                                 "'trace-id-*' are reserved and cannot be used in custom labels."
-                    )
+                    }
+
                     return@mapNotNull null
                 }
 
@@ -420,10 +421,10 @@ data class KubernetesSenderConfig(
 
             if (invalid.isNotEmpty()) {
                 val invalidNames = invalid.map { it.first }
-                logger.warn("Found invalid variables for annotations: $invalidNames")
-                logger.warn(
+                logger.warn { "Found invalid variables for annotations: $invalidNames" }
+                logger.warn {
                     "Make sure that these variables are defined and have the format 'key${KEY_VALUE_SEPARATOR}value'."
-                )
+                }
             }
 
             return annotations.associate {

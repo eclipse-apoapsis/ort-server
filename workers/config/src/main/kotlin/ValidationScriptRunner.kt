@@ -26,11 +26,11 @@ import kotlin.script.experimental.api.scriptsInstancesSharing
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.time.Clock
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.utils.script.ScriptRunner
-
-import org.slf4j.LoggerFactory
 
 /**
  * A class for validating and transforming the parameters of an ORT run using a validation script.
@@ -42,10 +42,6 @@ class ValidationScriptRunner(
     /** The current [WorkerContext]. */
     context: WorkerContext
 ) : ScriptRunner<ConfigValidationResult>() {
-    companion object {
-        private val logger = LoggerFactory.getLogger(ValidationScriptRunner::class.java)
-    }
-
     override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()
 
     override val evalConfig = ScriptEvaluationConfiguration {
@@ -66,8 +62,8 @@ class ValidationScriptRunner(
         )
 
         ConfigValidationResultFailure(issues = listOf(issue)).also {
-            logger.error("Error when executing validation script.", e)
-            logger.debug("Content of the script:\n{}", script)
+            logger.error(e) { "Error when executing validation script." }
+            logger.debug { "Content of the script:\n$script" }
         }
     }
 }

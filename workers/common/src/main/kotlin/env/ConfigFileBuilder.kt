@@ -27,6 +27,8 @@ import java.nio.charset.StandardCharsets
 
 import kotlin.random.Random
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.shared.authenticator.InfraSecretResolverFun
@@ -35,8 +37,6 @@ import org.eclipse.apoapsis.ortserver.shared.authenticator.resolveSecrets
 
 import org.ossreviewtoolkit.utils.common.Os
 import org.ossreviewtoolkit.utils.common.div
-
-import org.slf4j.LoggerFactory
 
 /**
  * Type alias for a function that allows encoding the value of a secret before it gets inserted into a generated
@@ -78,8 +78,6 @@ class ConfigFileBuilder(
     val userHomeDir: File? = null
 ) {
     companion object {
-        private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)
-
         /**
          * A predefined [SecretEncodingFun] that uses the value of the secret verbatim. This is used per default and
          * does not perform any changes on the secret value.
@@ -170,7 +168,7 @@ class ConfigFileBuilder(
      * given [block].
      */
     suspend fun build(file: File, block: suspend PrintWriter.() -> Unit) {
-        logger.info("Generating configuration file at '{}'.", file)
+        logger.info { "Generating configuration file at '$file'." }
 
         val writer = StringWriter()
         val printWriter = PrintWriter(writer)

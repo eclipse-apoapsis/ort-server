@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val javaLanguageVersion = project.property("javaLanguageVersion") as String
+val libsCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     // Apply precompiled plugins.
@@ -33,6 +34,8 @@ plugins {
 }
 
 dependencies {
+    implementation(libsCatalog.findLibrary("log4j-api-kotlin").get())
+
     testImplementation(project(":utils:logging"))
     testImplementation(project(":utils:test"))
 }

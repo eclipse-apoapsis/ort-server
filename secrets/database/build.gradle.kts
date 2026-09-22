@@ -33,7 +33,6 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.kotlinDatetime)
-    implementation(libs.slf4j)
     implementation(libs.spring.security.crypto)
 
     testImplementation(testFixtures(projects.dao))

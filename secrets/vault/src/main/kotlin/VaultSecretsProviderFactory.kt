@@ -19,32 +19,28 @@
 
 package org.eclipse.apoapsis.ortserver.secrets.vault
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
-
-import org.slf4j.LoggerFactory
 
 /**
  * An implementation of [SecretsProviderFactory] that creates [SecretsProvider] instances allowing access to secrets
  * managed by a HashiCorp Vault service.
  */
 class VaultSecretsProviderFactory : SecretsProviderFactory {
-    companion object {
-        private val logger = LoggerFactory.getLogger(VaultSecretsProviderFactory::class.java)
-    }
-
     override val name: String = "vault"
 
     override fun createProvider(configManager: ConfigManager): SecretsProvider {
         val vaultConfig = VaultConfiguration.create(configManager)
 
-        logger.info("Creating VaultSecretsProvider.")
-        logger.info("Vault URI: '${vaultConfig.vaultUri}'.")
-        logger.info("RoleId: '${vaultConfig.credentials.roleId}'.")
-        logger.info("Root path: '${vaultConfig.rootPath}'.")
-        logger.info("Prefix: '${vaultConfig.prefix}'.")
-        logger.info("Namespace: '${vaultConfig.namespace ?: "<undefined>"}'.")
+        logger.info { "Creating VaultSecretsProvider." }
+        logger.info { "Vault URI: '${vaultConfig.vaultUri}'." }
+        logger.info { "RoleId: '${vaultConfig.credentials.roleId}'." }
+        logger.info { "Root path: '${vaultConfig.rootPath}'." }
+        logger.info { "Prefix: '${vaultConfig.prefix}'." }
+        logger.info { "Namespace: '${vaultConfig.namespace ?: "<undefined>"}'." }
 
         return VaultSecretsProvider(vaultConfig)
     }

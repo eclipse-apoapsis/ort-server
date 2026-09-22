@@ -19,11 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.logaccess.elasticsearch
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactory
-
-import org.slf4j.LoggerFactory
 
 /**
  * Implementation of the [LogFileProviderFactory] interface for creating a [LogFileProvider] that retrieves log data
@@ -33,22 +33,22 @@ class ElasticsearchLogFileProviderFactory : LogFileProviderFactory {
     companion object {
         /** The name of this provider implementation. */
         const val NAME = "elasticsearch"
-
-        private val logger = LoggerFactory.getLogger(ElasticsearchLogFileProviderFactory::class.java)
     }
 
     override val name: String = NAME
 
     override fun createProvider(config: ConfigManager): LogFileProvider {
-        logger.info("Creating a LogFileProvider instance for Elasticsearch.")
+        logger.info { "Creating a LogFileProvider instance for Elasticsearch." }
 
         val elasticsearchConfig = ElasticsearchConfig.create(config)
-        if (logger.isDebugEnabled) {
+
+        logger.debug {
             val maskedConfig = elasticsearchConfig.copy(
                 password = elasticsearchConfig.password?.let { "***" },
                 apiKey = elasticsearchConfig.apiKey?.let { "***" }
             )
-            logger.debug("Configuration for Elasticsearch provider: {}.", maskedConfig)
+
+            "Configuration for Elasticsearch provider: $maskedConfig."
         }
 
         return ElasticsearchLogFileProvider(elasticsearchConfig)

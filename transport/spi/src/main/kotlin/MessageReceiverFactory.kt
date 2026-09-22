@@ -21,10 +21,10 @@ package org.eclipse.apoapsis.ortserver.transport
 
 import java.util.ServiceLoader
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
-
-import org.slf4j.LoggerFactory
 
 /**
  * Definition of a message handler function for an endpoint. The function is passed the message it should handle and
@@ -73,8 +73,6 @@ interface MessageReceiverFactory {
         /** The service loader to load [MessageReceiverFactory] implementations. */
         private val LOADER = ServiceLoader.load(MessageReceiverFactory::class.java)
 
-        private val log = LoggerFactory.getLogger(MessageReceiverFactory::class.java)
-
         /**
          * Set up infrastructure to process messages for the given [endpoint][from] with the given [handler] function
          * based on the provided [configManager]. The concrete implementation of the [MessageSenderFactory] is
@@ -87,7 +85,7 @@ interface MessageReceiverFactory {
         ) {
             val receiverConfig = configManager.subConfig(Path("${from.configPrefix}.$CONFIG_PREFIX"))
             val factoryName = receiverConfig.getString(TYPE_PROPERTY)
-            log.info("Setting up a MessageReceiver of type '{}' for endpoint '{}'.", factoryName, from.configPrefix)
+            logger.info { "Setting up a MessageReceiver of type '$factoryName' for endpoint '${from.configPrefix}'." }
 
             val factory = checkNotNull(LOADER.find { it.name == factoryName }) {
                 "No MessageReceiverFactory with name '$factoryName' found on classpath."

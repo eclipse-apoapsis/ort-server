@@ -21,13 +21,13 @@ package org.eclipse.apoapsis.ortserver.workers.common.context
 
 import com.typesafe.config.ConfigFactory
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 import org.ossreviewtoolkit.utils.common.EnvironmentVariableFilter
-
-import org.slf4j.LoggerFactory
 
 /**
  * A class that manages global ORT configuration settings that are independent of specific workers. It can be used to
@@ -61,8 +61,6 @@ class WorkerOrtConfig private constructor(
         /** The delimiter for splitting properties with multiple values. */
         private const val DELIMITER = ","
 
-        private val logger = LoggerFactory.getLogger(WorkerOrtConfig::class.java)
-
         /**
          * Create a new instance of [WorkerOrtConfig] that loads the configuration from the given [configManager].
          */
@@ -86,12 +84,12 @@ class WorkerOrtConfig private constructor(
      * can run in a controlled environment.
      */
     fun setUpOrtEnvironment() {
-        logger.info("Setting up ORT environment.")
+        logger.info { "Setting up ORT environment." }
 
         if (configManager.hasPath(ORT_CONFIG_SECTION)) {
             val ortConfig = configManager.subConfig(Path(ORT_CONFIG_SECTION))
 
-            logger.info("Configuring EnvironmentVariableFilter.")
+            logger.info { "Configuring EnvironmentVariableFilter." }
             val envAllowNames = splitProperty(
                 ortConfig.getStringOrNull(ENV_ALLOW_NAMES_PROPERTY)
             ) ?: EnvironmentVariableFilter.DEFAULT_ALLOW_NAMES

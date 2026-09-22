@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
@@ -58,17 +60,17 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
         val runId = message.payload.ortRunId
         val responsePayload = when (val result = configWorker.run(runId)) {
             is RunResult.Success -> {
-                logger.info("Config worker job succeeded for run '$runId'.")
+                logger.info { "Config worker job succeeded for run '$runId'." }
                 ConfigWorkerResult(runId)
             }
 
             is RunResult.Failed -> {
-                logger.error("Config worker job failed for run '$runId'.", result.error)
+                logger.error(result.error) { "Config worker job failed for run '$runId'." }
                 ConfigWorkerError(runId, result.error.message)
             }
 
             else -> {
-                logger.error("Unexpected result of Config worker for run '$runId': $result")
+                logger.error { "Unexpected result of Config worker for run '$runId': $result" }
                 ConfigWorkerError(runId)
             }
         }

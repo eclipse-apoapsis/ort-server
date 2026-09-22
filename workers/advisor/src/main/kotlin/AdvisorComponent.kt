@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
@@ -68,17 +70,17 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         withMdcContext(AdvisorEndpoint.jobMdcKey(advisorJobId)) {
             val response = when (val result = advisorWorker.run(advisorJobId, message.header.traceId)) {
                 is RunResult.Success -> {
-                    logger.info("Advisor job '$advisorJobId' succeeded.")
+                    logger.info { "Advisor job '$advisorJobId' succeeded." }
                     Message(message.header, AdvisorWorkerResult(advisorJobId))
                 }
 
                 is RunResult.FinishedWithIssues -> {
-                    logger.error("Advisor job '$advisorJobId' finished with issues.")
+                    logger.error { "Advisor job '$advisorJobId' finished with issues." }
                     Message(message.header, AdvisorWorkerResult(advisorJobId, true))
                 }
 
                 is RunResult.Failed -> {
-                    logger.error("Advisor job '$advisorJobId' failed.", result.error)
+                    logger.error(result.error) { "Advisor job '$advisorJobId' failed." }
                     Message(message.header, AdvisorWorkerError(advisorJobId, result.error.message))
                 }
 

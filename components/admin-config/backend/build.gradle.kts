@@ -35,7 +35,6 @@ dependencies {
     implementation(projects.utils.logging)
 
     implementation(libs.hoplite.hocon)
-    implementation(libs.slf4j)
     implementation(ortLibs.model)
     implementation(ortLibs.utils.ort)
 

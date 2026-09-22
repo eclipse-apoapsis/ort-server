@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
@@ -90,8 +92,6 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.scanner.utils.filterScanResultsByVcsPaths
 import org.ossreviewtoolkit.scanner.utils.getVcsPathsForProvenances
 
-import org.slf4j.LoggerFactory
-
 /**
  * A service to interact with ORT runs.
  */
@@ -121,8 +121,6 @@ class OrtRunService(
         private const val RUN_ID_LABEL = "runId"
     }
 
-    private val logger = LoggerFactory.getLogger(OrtRunService::class.java)
-
     suspend fun listOrtRuns(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: OrtRunFilters? = null
@@ -143,7 +141,7 @@ class OrtRunService(
                 reportStorageService.deleteReport(ortRunId, filename)
             }.onFailure { e ->
                 if (e is ReportNotFoundException) {
-                    logger.warn("Report $filename for ORT run $ortRunId not found in storage. Continuing.")
+                    logger.warn { "Report $filename for ORT run $ortRunId not found in storage. Continuing." }
                 } else {
                     throw e
                 }
@@ -163,7 +161,7 @@ class OrtRunService(
     suspend fun deleteRunsCreatedBefore(before: Instant): ProcessingResult {
         val runIds = ortRunRepository.findRunsBefore(before)
 
-        logger.info("Deleting ${runIds.size} ORT runs older than $before.")
+        logger.info { "Deleting ${runIds.size} ORT runs older than $before." }
 
         var failureCount = 0
         runIds.forEach { runId ->
@@ -172,9 +170,9 @@ class OrtRunService(
             }.onFailure { failureCount++ }
         }
 
-        logger.info("Deleted ${runIds.size - failureCount} old ORT runs successfully.")
+        logger.info { "Deleted ${runIds.size - failureCount} old ORT runs successfully." }
         if (failureCount > 0) {
-            logger.warn("Failed to delete $failureCount old ORT runs.")
+            logger.warn { "Failed to delete $failureCount old ORT runs." }
         }
 
         return ProcessingResult(runIds.size, failureCount)
@@ -649,7 +647,7 @@ class OrtRunService(
      */
     fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int {
         val updatedOccurrences = ortRunRepository.updateIssueHowToFixTexts(ortRunId, issues)
-        logger.debug("Updated how-to-fix text for {} issues in ORT run {}.", updatedOccurrences, ortRunId)
+        logger.debug { "Updated how-to-fix text for $updatedOccurrences issues in ORT run $ortRunId." }
         return updatedOccurrences
     }
 

@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import kotlin.time.Duration
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.tasks.Task
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.isTimeout
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
@@ -31,8 +33,6 @@ import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
-
-import org.slf4j.LoggerFactory
 
 /**
  * A task implementation that checks for jobs that are running longer than a configured timeout.
@@ -54,10 +54,6 @@ internal class LongRunningJobsFinderTask(
     /** The object for time calculations. */
     private val timeHelper: TimeHelper
 ) : Task {
-    companion object {
-        private val logger = LoggerFactory.getLogger(LongRunningJobsFinderTask::class.java)
-    }
-
     override suspend fun execute() {
         checkForLongRunningJobsForEndpoint(ConfigEndpoint, monitorConfig.timeoutConfig.configTimeout)
         checkForLongRunningJobsForEndpoint(AnalyzerEndpoint, monitorConfig.timeoutConfig.analyzerTimeout)
@@ -74,17 +70,15 @@ internal class LongRunningJobsFinderTask(
      */
     private fun checkForLongRunningJobsForEndpoint(endpoint: Endpoint<*>, timeout: Duration) {
         val threshold = timeHelper.before(timeout)
-        logger.info(
-            "Checking for long-running jobs for endpoint '{}' started before {}.",
-            endpoint.configPrefix,
-            threshold
-        )
+        logger.info {
+            "Checking for long-running jobs for endpoint '${endpoint.configPrefix}' started before $threshold."
+        }
 
         jobHandler.findJobsForWorker(endpoint)
             .filter { it.isTimeout(threshold) }
             .mapNotNull { it.metadata?.name }
             .forEach { job ->
-                logger.info("Deleting long-running job '{}'.", job)
+                logger.info { "Deleting long-running job '$job'." }
                 jobHandler.deleteJob(job)
             }
     }

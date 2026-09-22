@@ -19,15 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
 import org.ossreviewtoolkit.utils.common.Os
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
 
 /**
  * This is the entry point of the Advisor worker. It calls the Advisor from ORT programmatically by
@@ -35,7 +33,7 @@ private val logger = LoggerFactory.getLogger(AdvisorComponent::class.java)
  */
 suspend fun main() {
     withMdcContext(StandardMdcKeys.COMPONENT to "advisor-worker") {
-        logger.info("Starting ORT-Server Advisor endpoint.")
+        logger.info { "Starting ORT-Server Advisor endpoint." }
 
         enableOrtStackTraces()
         Os.fixupUserHomeProperty()

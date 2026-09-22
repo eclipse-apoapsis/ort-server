@@ -68,7 +68,7 @@ dependencies {
     runtimeOnly(platform(projects.secrets))
     runtimeOnly(platform(projects.transport))
 
-    runtimeOnly(libs.log4jToSlf4j)
+    runtimeOnly(libs.log4j.to.slf4j)
     runtimeOnly(libs.logback)
 
     testImplementation(projects.components.secrets.secretsBackend)

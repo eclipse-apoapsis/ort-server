@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kubernetes.client.openapi.models.V1Job
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
@@ -32,10 +34,6 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
-
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(FailedJobNotifier::class.java)
 
 /**
  * A helper class that sends a message to the Orchestrator about a failed job. The content of this message is extracted
@@ -86,11 +84,11 @@ internal class FailedJobNotifier(
      * Send the given [message] to the Orchestrator via the configured [MessageSender].
      */
     private fun sendToOrchestrator(message: Message<OrchestratorMessage>) {
-        log.info(
+        logger.info {
             "Sending '${message.payload::class.simpleName}' message " +
                     "to '${OrchestratorEndpoint::class.simpleName}'. " +
                     "TraceID: '${message.header.traceId}'."
-        )
+        }
 
         sender.send(message)
     }

@@ -19,10 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
-
-import org.slf4j.Logger
 
 /**
  * A class defining the configuration settings used by the RabbitMQ Transport implementation.
@@ -72,13 +72,11 @@ class RabbitMqConfig(
     }
 
     /**
-     * Log this configuration using the provided [logger].
+     * Log this configuration.
      */
-    fun log(logger: Logger) {
-        if (logger.isInfoEnabled) {
-            logger.info("RabbitMQ server URI: '$serverUri'")
-            logger.info("RabbitMQ user: '$username'")
-            logger.info("RabbitMQ queue: '$queueName'")
-        }
+    fun log() {
+        logger.info { "RabbitMQ server URI: '$serverUri'" }
+        logger.info { "RabbitMQ user: '$username'" }
+        logger.info { "RabbitMQ queue: '$queueName'" }
     }
 }

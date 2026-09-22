@@ -27,6 +27,8 @@ import java.sql.Connection
 
 import kotlin.io.path.outputStream
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.storage.TempFileInputStream
 
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
@@ -34,9 +36,7 @@ import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.postgresql.PGConnection
 import org.postgresql.largeobject.LargeObjectManager
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger("LargeObjects")
+private val logger = logger("LargeObjects")
 
 /**
  * Use proprietary API of PostgreSQL to create a large object and populate it with the given [data]. Return the ID of
@@ -85,14 +85,14 @@ internal fun getStreamForLargeObject(
     inMemoryLimit: Int
 ): InputStream = largeObjectManager.open(oid, LargeObjectManager.READ).use { largeObject ->
     if (size <= inMemoryLimit) {
-        logger.debug("Loading data of size {} into memory.", size)
+        logger.debug { "Loading data of size $size into memory." }
 
         val buffer = ByteArrayOutputStream(size.toInt())
         largeObject.inputStream.copyTo(buffer)
         ByteArrayInputStream(buffer.toByteArray())
     } else {
         val tempFile = Files.createTempFile("dbstorage", "tmp")
-        logger.debug("Storing data of size {} in temporary file '{}'.", size, tempFile)
+        logger.debug { "Storing data of size $size in temporary file '$tempFile'." }
 
         largeObject.inputStream.copyTo(tempFile.outputStream())
         TempFileInputStream(tempFile.toFile())

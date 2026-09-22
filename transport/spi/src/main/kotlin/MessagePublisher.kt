@@ -19,11 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.transport
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(MessagePublisher::class.java)
 
 /**
  * A helper class for sending messages to arbitrary supported endpoints.
@@ -67,11 +65,11 @@ class MessagePublisher(
      * Send the given [message] to the specified [endpoint][to].
      */
     fun <T : Any> publish(to: Endpoint<T>, message: Message<T>) {
-        log.info(
+        logger.info {
             "Sending '${message.payload::class.simpleName}' message " +
                     "to '${to::class.simpleName}'. " +
                     "TraceID: '${message.header.traceId}'."
-        )
+        }
 
         @Suppress("UNCHECKED_CAST")
         val sender = when (to) {

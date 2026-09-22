@@ -25,7 +25,7 @@ import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
 
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.kotlin.logger
 
 /** A prefix for generating names for secret volumes. */
 private const val SECRET_VOLUME_PREFIX = "secret-volume-"
@@ -45,7 +45,7 @@ private val mountEmptyDirDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+)""")
 /** A regular expression to parse an expression with an optional preceding name assignment. */
 private val namedDeclarationRegex = Regex("""((\S+)\s*=\s*)?(.+)""")
 
-private val logger = LoggerFactory.getLogger("VolumeMounts")
+private val logger = logger("VolumeMounts")
 
 /**
  * An interface describing a volume mount for a Kubernetes container.
@@ -204,7 +204,7 @@ private fun parseVolumeMount(
         val matchResult = regex.matchEntire(declaration)
 
         if (matchResult == null) {
-            logger.warn("Found invalid volume mount declaration: $mountDeclaration. This will be ignored.")
+            logger.warn { "Found invalid volume mount declaration: $mountDeclaration. This will be ignored." }
             null
         } else {
             parse(matchResult, name)

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
@@ -33,10 +35,6 @@ import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(EvaluatorWorker::class.java)
 
 internal class EvaluatorWorker(
     private val db: Database,
@@ -54,8 +52,8 @@ internal class EvaluatorWorker(
 
             job = ortRunService.startEvaluatorJob(job.id)
                 ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
-            logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
-            logger.info("Using ORT version {}.", ORT_VERSION)
+            logger.debug { "Evaluator job with id '${job.id}' started at ${job.startedAt}." }
+            logger.info { "Using ORT version $ORT_VERSION." }
 
             if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
@@ -78,10 +76,10 @@ internal class EvaluatorWorker(
                 ruleViolation.mapToModel() !in evaluatorRunnerResult.resolvedItems.ruleViolations.keys
             }
 
-            logger.info(
+            logger.info {
                 "Evaluator job ${job.id} finished with ${allRuleViolations.size} total violations" +
                         " and ${unresolvedRuleViolations.size} unresolved violations."
-            )
+            }
 
             if (unresolvedRuleViolations.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
@@ -92,12 +90,12 @@ internal class EvaluatorWorker(
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
-                logger.warn("Not running the evaluator because message '$traceId' got ignored: ${it.message}")
+                logger.warn { "Not running the evaluator because message '$traceId' got ignored: ${it.message}" }
                 RunResult.Ignored
             }
 
             else -> {
-                logger.error("Error while running the evaluator as instructed by message '$traceId': ${it.message}")
+                logger.error(it) { "Error while running the evaluator as instructed by message '$traceId'." }
                 RunResult.Failed(it)
             }
         }

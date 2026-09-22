@@ -29,6 +29,8 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationException
 import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
@@ -43,10 +45,6 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
 
 import org.ossreviewtoolkit.utils.common.collectMessages
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger("StatusPages")
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
@@ -99,7 +97,7 @@ fun Application.configureStatusPages() {
 
         // catch all handler
         exception<Throwable> { call, e ->
-            logger.error("Internal Server Error", e)
+            logger.error(e) { "Internal Server Error" }
             call.respondError(
                 HttpStatusCode.InternalServerError,
                 "Error when processing the request.",

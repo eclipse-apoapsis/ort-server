@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
@@ -39,10 +41,6 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AdvisorWorker::class.java)
 
 internal class AdvisorWorker(
     private val db: Database,
@@ -74,8 +72,8 @@ internal class AdvisorWorker(
 
             job = ortRunService.startAdvisorJob(job.id)
                 ?: throw IllegalArgumentException("The advisor job with id '$jobId' could not be started.")
-            logger.debug("Advisor job with id '{}' started at {}.", job.id, job.startedAt)
-            logger.info("Using ORT version {}.", ORT_VERSION)
+            logger.debug { "Advisor job with id '${job.id}' started at ${job.startedAt}." }
+            logger.info { "Using ORT version ${ORT_VERSION}." }
 
             val advisorRun = checkNotNull(
                 runner.run(
@@ -127,12 +125,12 @@ internal class AdvisorWorker(
                 vulnerability.mapToModel() !in resolvedItems.vulnerabilities.keys
             }
 
-            logger.info(
+            logger.info {
                 "Advisor job ${job.id} finished with ${allIssues.values.flatten().size} total issues " +
                         "and ${unresolvedIssues.size} unresolved issues, " +
                         "${allVulnerabilities.size} total vulnerabilities " +
                         "and ${unresolvedVulnerabilities.size} unresolved vulnerabilities."
-            )
+            }
 
             if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
@@ -143,12 +141,12 @@ internal class AdvisorWorker(
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
-                logger.warn("Not running the advisor because message '$traceId' got ignored: ${it.message}")
+                logger.warn { "Not running the advisor because message '$traceId' got ignored: ${it.message}" }
                 RunResult.Ignored
             }
 
             else -> {
-                logger.error("Error while running the advisor as instructed by message '$traceId': ${it.message}")
+                logger.error(it) { "Error while running the advisor as instructed by message '$traceId'." }
                 RunResult.Failed(it)
             }
         }

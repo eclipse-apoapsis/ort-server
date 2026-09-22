@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.RuleViolationResolutionService
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -48,10 +50,6 @@ import org.ossreviewtoolkit.utils.config.setPackageConfigurations
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(EvaluatorRunner::class.java)
-
 class EvaluatorRunner(
     /**
      * The file archiver is used to resolve license files which is optional input for the rules.
@@ -77,12 +75,11 @@ class EvaluatorRunner(
     ): EvaluatorRunnerResult {
         val ruleSetName = workerContext.ortRun.resolvedJobConfigs?.ruleSet
         if (ruleSetName == null) {
-            logger.info("Using default rule set for evaluation.")
+            logger.info { "Using default rule set for evaluation." }
         } else {
-            logger.info("Using rule set '{}' for evaluation.", ruleSetName)
+            logger.info { "Using rule set '$ruleSetName' for evaluation." }
         }
 
-        logger.info("")
         val ruleSet = adminConfigService.loadAdminConfig(workerContext.resolvedConfigurationContext)
             .getRuleSet(ruleSetName)
 

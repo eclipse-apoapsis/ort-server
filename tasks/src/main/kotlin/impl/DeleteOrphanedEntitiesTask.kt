@@ -19,12 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.tasks.Task
-
-import org.slf4j.LoggerFactory
 
 /**
  * A task class that handles the deletion of database entities orphaned after deletion of ORT run. The task delegates
@@ -39,8 +39,6 @@ class DeleteOrphanedEntitiesTask(
     private var orphanRemovalService: OrphanRemovalService
 ) : Task {
     companion object {
-        private val logger = LoggerFactory.getLogger(DeleteOrphanedEntitiesTask::class.java)
-
         /** The section containing configuration for orphaned entity deletion. */
         private val ORPHAN_SECTION = Path("orphanHandlers")
 
@@ -52,7 +50,7 @@ class DeleteOrphanedEntitiesTask(
     }
 
     override suspend fun execute() {
-        logger.info("Deleting orphaned ORT run entities.")
+        logger.info { "Deleting orphaned ORT run entities." }
         orphanRemovalService.deleteRunsOrphanedEntities(config.subConfig(ORPHAN_SECTION))
     }
 }

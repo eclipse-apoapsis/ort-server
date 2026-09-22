@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import java.io.File
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -51,10 +53,6 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
-
 internal class AnalyzerWorker(
     private val downloader: AnalyzerDownloader,
     private val runner: AnalyzerRunner
@@ -65,25 +63,22 @@ internal class AnalyzerWorker(
      * Handle occurring exceptions and return a [RunResult] with the outcome of the operation.
      */
     suspend fun run(jobId: Long, traceId: String, phase: AnalyzerPhase, args: Array<String>): RunResult = runCatching {
-        logger.info(
-            "Starting {} for job {} with arguments {}.",
-            phase.javaClass.simpleName,
-            jobId,
-            args.contentToString()
-        )
+        logger.info {
+            "Starting ${phase.javaClass.simpleName} for job $jobId with arguments ${args.contentToString()}."
+        }
 
         phase.run(this, jobId, args).also {
-            logger.info("{} for job {} completed.", phase.javaClass.simpleName, jobId)
+            logger.info { "${phase.javaClass.simpleName} for job $jobId completed." }
         }
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {
-                logger.warn("Not running the analyzer because message '$traceId' got ignored: ${it.message}")
+                logger.warn { "Not running the analyzer because message '$traceId' got ignored: ${it.message}" }
                 RunResult.Ignored
             }
 
             else -> {
-                logger.error("Error while running the analyzer as instructed by message '$traceId': ${it.message}")
+                logger.error(it) { "Error while running the analyzer as instructed by message '$traceId'." }
                 RunResult.Failed(it)
             }
         }
@@ -112,18 +107,17 @@ internal class AnalyzerWorker(
 
         val job = ortRunService.startAnalyzerJob(analyzerJob.id)
             ?: throw IllegalArgumentException("The analyzer job with id '${analyzerJob.id}' could not be started.")
-        logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
-        logger.info("Using ORT version {}.", ORT_VERSION)
+        logger.debug { "Analyzer job with id '${job.id}' started at ${job.startedAt}." }
+        logger.info { "Using ORT version $ORT_VERSION." }
 
         val envConfigFromJob = job.configuration.environmentConfig
         val repositoryServices =
             environmentService.findInfrastructureServicesForRepository(context, envConfigFromJob)
         if (repositoryServices.isNotEmpty()) {
-            logger.info(
-                "Generating a .netrc file with credentials from infrastructure services '{}' to download the " +
-                        "repository.",
-                repositoryServices.map(InfrastructureService::name)
-            )
+            logger.info {
+                "Generating a .netrc file with credentials from infrastructure services " +
+                        "'${repositoryServices.map(InfrastructureService::name)}' to download the repository."
+            }
 
             environmentService.setupAuthentication(context, repositoryServices)
         }
@@ -138,9 +132,10 @@ internal class AnalyzerWorker(
         )
 
         if (downloadResult.initRevision != ortRun.revision) {
-            logger.info(
+            logger.info {
                 "Updating revision of ORT run from '${ortRun.revision}' to '${downloadResult.initRevision}'."
-            )
+            }
+
             ortRunService.updateRevision(ortRun.id, downloadResult.initRevision)
         }
 
@@ -226,11 +221,11 @@ internal class AnalyzerWorker(
                 issues.filter { it.mapToModel(identifier) !in resolvedItems.issues.keys }
             }
 
-            logger.info(
+            logger.info {
                 "Analyzer job ${job.id} for repository ${ortResult.repository.vcsProcessed.url} with revision " +
                         "${ortRun.revision} finished with ${allIssues.values.flatten().size} total issues " +
                         "and ${unresolvedIssues.size} unresolved issues."
-            )
+            }
 
         val shortestPathsByIdentifier = mutableMapOf<Identifier, MutableList<ShortestDependencyPath>>()
 

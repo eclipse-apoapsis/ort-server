@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
 
 import org.jetbrains.exposed.v1.core.and
@@ -27,8 +29,6 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
-
-import org.slf4j.LoggerFactory
 
 /**
  * A table to represent a license finding curation, which is part of a
@@ -46,7 +46,6 @@ object LicenseFindingCurationsTable : LongIdTable("license_finding_curations") {
 
 class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<LicenseFindingCurationDao>(LicenseFindingCurationsTable) {
-        private val logger = LoggerFactory.getLogger(LicenseFindingCurationDao::class.java)
 
         fun findByLicenseFindingCuration(licenseFindingCuration: LicenseFindingCuration): LicenseFindingCurationDao? =
             find {
@@ -80,8 +79,9 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
             lines?.takeUnless { it.isEmpty() }?.split(',')?.mapNotNull { line ->
                 runCatching {
                     line.toInt()
-                }.onFailure { logger.error("Invalid content of 'startLines' column: '$lines'.", it) }
-                    .getOrNull()
+                }.onFailure {
+                    logger.error(it) { "Invalid content of 'startLines' column: '$lines'." }
+                }.getOrNull()
             }
     }
 

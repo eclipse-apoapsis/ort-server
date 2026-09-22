@@ -26,6 +26,8 @@ import java.util.EnumSet
 
 import kotlinx.serialization.Serializable
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -47,8 +49,6 @@ import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.writeValue
 import org.ossreviewtoolkit.utils.common.Os
 
-import org.slf4j.LoggerFactory
-
 /** The prefix of folder names created for the data exchange between different phases. */
 internal const val JOB_DIR_PREFIX = "analyzer-job-"
 
@@ -62,8 +62,6 @@ internal const val PREPARATION_EXCHANGE_FILE = "preparation-exchange.json"
 internal const val CONFIG_DIR = "conf"
 
 internal const val ORT_RESULT_FILE = "ort-result.json"
-
-private val logger = LoggerFactory.getLogger(AnalyzerPhase::class.java)
 
 /**
  * An interface representing a phase of the Analyzer execution.
@@ -110,11 +108,9 @@ internal sealed interface AnalyzerPhase {
         if (phaseName in phases) {
             EndpointComponent.generateKeepAliveFile()
         } else {
-            logger.info(
-                "Not generating a keep-alive file. Current phase is '{}', requested phases are {}.",
-                phaseName,
-                phases
-            )
+            logger.info {
+                "Not generating a keep-alive file. Current phase is '$phaseName', requested phases are $phases."
+            }
         }
     }
 }
@@ -193,7 +189,7 @@ internal class PreparationPhase(
             val prepareResult = worker.prepare(context, job, ortRunService, environmentService, exchangeDir, configDir)
 
             val authInfoFile = exchangeDir.resolve(AUTH_INFO_FILE)
-            logger.info("Writing auth info file '{}'.", authInfoFile)
+            logger.info { "Writing auth info file '$authInfoFile'." }
             EnvironmentForkHelper.persistAuthenticationInfo(authInfoFile)
 
             PreparationExchange(
@@ -273,7 +269,7 @@ internal class AnalysisPhase : AnalyzerPhase {
     private fun copyConfigFiles(exchangeDir: File) {
         val configDir = exchangeDir.resolve(CONFIG_DIR)
         val userHomeDir = Os.userHomeDirectory
-        logger.info("Copying configuration files from '{}' to '{}'.", configDir, userHomeDir)
+        logger.info { "Copying configuration files from '$configDir' to '$userHomeDir'." }
 
         configDir.copyRecursively(target = userHomeDir, overwrite = true)
     }
@@ -283,7 +279,7 @@ internal class AnalysisPhase : AnalyzerPhase {
      * [WorkerContext], some initialization steps have to be performed manually.
      */
     private fun setUpEnvironment() {
-        logger.info("Setting up the ORT environment for the analysis phase.")
+        logger.info { "Setting up the ORT environment for the analysis phase." }
         WorkerOrtConfig.create().setUpOrtEnvironment()
     }
 
@@ -294,7 +290,7 @@ internal class AnalysisPhase : AnalyzerPhase {
         if (args.size == 2) {
             val syncFile = File(args[1])
             syncFile.parentFile?.mkdirs()
-            logger.info("Writing sync file '{}'.", syncFile)
+            logger.info { "Writing sync file '$syncFile'." }
             syncFile.writeText("done")
         }
     }
@@ -406,7 +402,7 @@ private inline fun <reified T : Any> AnalyzerPhase.writeExchangeFile(
     data: T
 ) {
     val exchangeFile = exchangeDir.resolve(name)
-    logger.info("[{}]: Writing exchange file '{}'.", javaClass.simpleName, exchangeFile)
+    logger.info { "[${javaClass.simpleName}]: Writing exchange file '$exchangeFile'." }
 
     exchangeFile.writeValue(data)
 }
@@ -417,7 +413,7 @@ private inline fun <reified T : Any> AnalyzerPhase.writeExchangeFile(
  */
 private inline fun <reified T : Any> AnalyzerPhase.readExchangeFile(exchangeDir: File, name: String): T {
     val exchangeFile = exchangeDir.resolve(name)
-    logger.info("[{}]: Reading exchange file '{}'.", javaClass.simpleName, exchangeFile)
+    logger.info { "[${javaClass.simpleName}]: Reading exchange file '$exchangeFile'." }
 
     return exchangeFile.readValue()
 }

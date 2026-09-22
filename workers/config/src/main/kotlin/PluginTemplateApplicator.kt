@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import com.github.michaelbull.result.getOrElse
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
@@ -34,8 +36,6 @@ import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
-import org.slf4j.LoggerFactory
-
 /**
  * A class responsible for applying plugin templates to the job configurations of an ORT run.
  */
@@ -43,10 +43,6 @@ class PluginTemplateApplicator(
     private val pluginService: PluginService,
     private val pluginTemplateService: PluginTemplateService
 ) {
-    companion object {
-        private val logger = LoggerFactory.getLogger(PluginTemplateApplicator::class.java)
-    }
-
     /**
      * Resolve the default package managers and apply the plugin templates applicable to [organizationId] to
      * [jobConfigs], and return the updated [JobConfigurations]. Only plugins that are configured to run are considered,
@@ -67,7 +63,7 @@ class PluginTemplateApplicator(
 
         val defaults = getDefaultPackageManagers(pluginService, pluginTemplateService, organizationId)
 
-        logger.info("Enabling default package managers as none were configured for the run: {}.", defaults)
+        logger.info { "Enabling default package managers as none were configured for the run: $defaults." }
 
         return copy(analyzer = analyzer.copy(enabledPackageManagers = defaults))
     }
@@ -94,7 +90,7 @@ class PluginTemplateApplicator(
 
         return activePluginIds.mapValues { (pluginType, pluginIds) ->
             normalizePluginIds(installedPluginIds[pluginType].orEmpty(), pluginIds).associateWith { pluginId ->
-                logger.debug("Fetching template for plugin type '{}' and ID '{}'.", pluginType, pluginId)
+                logger.debug { "Fetching template for plugin type '$pluginType' and ID '$pluginId'." }
 
                 pluginTemplateService.getTemplateForOrganization(pluginType, pluginId, organizationId)
                     .getOrElse { error ->

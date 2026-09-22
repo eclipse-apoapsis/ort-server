@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.transport.artemis
 import jakarta.jms.MessageConsumer
 import jakarta.jms.TextMessage
 
+import org.apache.logging.log4j.kotlin.logger
 import org.apache.qpid.jms.JmsConnectionFactory
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -33,15 +34,11 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.utils.logging.StandardMdcKeys
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
-import org.slf4j.LoggerFactory
-
 /**
  * Implementation of the [MessageReceiverFactory] interface for Apache ActiveMQ Artemis.
  */
 class ArtemisMessageReceiverFactory : MessageReceiverFactory {
     companion object {
-        private val logger = LoggerFactory.getLogger(ArtemisMessageReceiverFactory::class.java)
-
         /**
          * Receive a [TextMessage] via this consumer and check for an [IllegalStateException], which indicates that
          * the consumer can no longer be used. (An unrecoverable error has happened.)
@@ -50,7 +47,7 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
             try {
                 receive() as TextMessage
             } catch (e: jakarta.jms.IllegalStateException) {
-                logger.warn("Error when receiving a message. Consumer was probably closed.", e)
+                logger.warn(e) { "Error when receiving a message. Consumer was probably closed." }
                 null
             }
     }
@@ -65,11 +62,10 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
         val serializer = JsonSerializer.forClass(from.messageClass)
         val artemisConfig = ArtemisConfig.createConfig(configManager)
 
-        logger.info(
-            "Starting Artemis message receiver for endpoint '{}' using queue '{}'.",
-            from.configPrefix,
-            artemisConfig.queueName
-        )
+        logger.info {
+            "Starting Artemis message receiver for endpoint '${from.configPrefix}' using queue " +
+                    "'${artemisConfig.queueName}'."
+        }
 
         val connectionFactory = JmsConnectionFactory(artemisConfig.serverUri)
         connectionFactory.createConnection().use { connection ->
@@ -90,11 +86,10 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
                             StandardMdcKeys.TRACE_ID to message.header.traceId,
                             StandardMdcKeys.ORT_RUN_ID to message.header.ortRunId.toString()
                         ) {
-                            logger.debug(
-                                "Received message '{}' with payload of type {}.",
-                                message.header.traceId,
-                                message.payload.javaClass.name
-                            )
+                            logger.debug {
+                                "Received message '${message.header.traceId}' with payload of type " +
+                                        "${message.payload.javaClass.name}."
+                            }
 
                             handler(message)
                         }
@@ -105,7 +100,7 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
 
                     if (result == EndpointHandlerResult.STOP) break@loop
                 }.onFailure { exception ->
-                    logger.error("Error during message processing.", exception)
+                    logger.error(exception) { "Error during message processing." }
                 }
             }
         }

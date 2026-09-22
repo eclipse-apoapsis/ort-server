@@ -40,13 +40,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(GitHubConfigFileCache::class.java)
 
 /**
  * The path under which files downloaded from GitHub are stored in the cache. This is a subdirectory of the folder for
@@ -113,7 +111,7 @@ internal class GitHubConfigFileCache(
         path: String,
         load: suspend () -> ByteReadChannel
     ): InputStream {
-        logger.info("Request for file '{}' at revision '{}'.", path, revision)
+        logger.info { "Request for file '$path' at revision '$revision'." }
 
         val dataFile = resolveFileInCache(FILES_PATH, revision, path)
         return getOrPutFileInCache(dataFile, load)
@@ -129,7 +127,7 @@ internal class GitHubConfigFileCache(
             return ByteReadChannel(content.joinToString(System.lineSeparator()).toByteArray())
         }
 
-        logger.info("Request for folder content '{}' at revision '{}'.", path, revision)
+        logger.info { "Request for folder content '$path' at revision '$revision'." }
 
         val dataFile = resolveFileInCache(FOLDERS_PATH, revision, path)
 
@@ -145,23 +143,20 @@ internal class GitHubConfigFileCache(
             val ageThresholdInstant = Clock.System.now() - cleanupMaxAge
             val ageThreshold = ageThresholdInstant.toEpochMilliseconds()
 
-            logger.info(
-                "Performing cleanup of cache directory '{}' on revisions older than {}.",
-                cacheDir,
-                ageThresholdInstant
-            )
+            logger.info {
+                "Performing cleanup of cache directory '$cacheDir' on revisions older than $ageThresholdInstant."
+            }
 
             cacheDir.listFiles().orEmpty()
                 .filterNot { it.name == currentRevision }
                 .filter { it.lastModified() < ageThreshold }
                 .forEach { revisionDir ->
-                    logger.info(
-                        "Removing outdated cache entry for revision '{}' from {}.",
-                        revisionDir.name,
-                        Instant.fromEpochMilliseconds(revisionDir.lastModified())
-                    )
+                    logger.info {
+                        "Removing outdated cache entry for revision '${revisionDir.name}' from " +
+                                "${Instant.fromEpochMilliseconds(revisionDir.lastModified())}."
+                    }
                     if (!revisionDir.deleteRecursively()) {
-                        logger.warn("Failed to remove outdated cache entry for revision '{}'.", revisionDir.name)
+                        logger.warn { "Failed to remove outdated cache entry for revision '${revisionDir.name}'." }
                     }
                 }
         }
@@ -175,7 +170,7 @@ internal class GitHubConfigFileCache(
     private suspend fun getOrPutFileInCache(dataFile: File, load: suspend () -> ByteReadChannel): InputStream =
         withContext(Dispatchers.IO) {
             val needRetry = if (!dataFile.isFile) {
-                logger.info("File '{}' not found in cache, downloading it now.", dataFile)
+                logger.info { "File '$dataFile' not found in cache, downloading it now." }
                 downloadFile(dataFile, load)
             } else {
                 false
@@ -223,7 +218,7 @@ internal class GitHubConfigFileCache(
                                 }
                             }
                         } else {
-                            logger.info("File '{}' already exists, skipping download.", dataFile)
+                            logger.info { "File '$dataFile' already exists, skipping download." }
                         }
                         false
                     } ?: true

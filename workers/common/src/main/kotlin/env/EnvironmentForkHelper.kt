@@ -29,6 +29,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -40,7 +42,6 @@ import org.eclipse.apoapsis.ortserver.shared.authenticator.secretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.enableOrtStackTraces
 
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 /**
@@ -57,14 +58,13 @@ import org.slf4j.MDC
  */
 @OptIn(ExperimentalSerializationApi::class)
 object EnvironmentForkHelper {
-    private val logger = LoggerFactory.getLogger(EnvironmentForkHelper.javaClass)
 
     /**
      * Prepare the data to be passed to a fork processed in order to make the worker execution environment usable.
      * Write the data to the given [stream][out]. The stream is expected to become the `stdin` of the forked process.
      */
     fun prepareFork(out: OutputStream) {
-        logger.info("Preparing forked process...")
+        logger.info { "Preparing forked process..." }
 
         val authInfo = fetchAuthenticationInfo()
         val mdcContext = MDC.getCopyOfContextMap().orEmpty()
@@ -76,11 +76,12 @@ object EnvironmentForkHelper {
 
         Json.encodeToStream(forkData, out)
 
-        logger.info(
-            "Wrote authentication information about {} services to forked process.",
-            authInfo.infosByType[OrtServerAuthenticator.PROJECT_SERVICES]?.services.orEmpty().size
-        )
-        logger.info("Wrote MDC context with {} entries to forked process.", mdcContext.size)
+        logger.info {
+            val numServices = authInfo.infosByType[OrtServerAuthenticator.PROJECT_SERVICES]?.services.orEmpty().size
+            "Wrote authentication information about $numServices services to forked process."
+        }
+
+        logger.info { "Wrote MDC context with ${mdcContext.size} entries to forked process." }
     }
 
     /**
@@ -99,21 +100,21 @@ object EnvironmentForkHelper {
      * all required actions to set up the environment for the worker execution.
      */
     fun setupFork(pipe: InputStream) {
-        logger.info("Setting up forked process...")
+        logger.info { "Setting up forked process..." }
 
         val forkData = Json.decodeFromStream<SerializableForkData>(pipe)
         val authInfos = forkData.authInfo
         val mdcContext = forkData.mdcContext
 
         restoreMdcContext(mdcContext)
-        logger.info("Read MDC context with {} entries from forked process.", mdcContext.size)
+        logger.info { "Read MDC context with ${mdcContext.size} entries from forked process." }
 
         val config = WorkerOrtConfig.create()
         config.setUpOrtEnvironment()
 
         restoreAuthentication(authInfos, config.configManager)
 
-        logger.info("Enabling ORT stack traces for the AnalyzerRunner forked process.")
+        logger.info { "Enabling ORT stack traces for the AnalyzerRunner forked process." }
         enableOrtStackTraces()
     }
 
@@ -155,17 +156,16 @@ object EnvironmentForkHelper {
 
         val projectAuthInfo = authInfos[OrtServerAuthenticator.PROJECT_SERVICES]
         if (projectAuthInfo != null) {
-            logger.info(
-                "Read authentication information about {} services from forked process.",
-                projectAuthInfo.services.size
-            )
+            logger.info {
+                "Read authentication information about ${projectAuthInfo.services.size} services from forked process."
+            }
 
             val netrcManager = NetRcManager.create(secretResolver(projectAuthInfo))
             authenticator.updateAuthenticationListener(netrcManager)
         }
 
         authInfos.entries.forEach { (type, authInfo) ->
-            logger.info("Restoring authentication information for service type '$type'.")
+            logger.info { "Restoring authentication information for service type '$type'." }
             authenticator.updateAuthenticationInfo(authInfo, type)
         }
     }

@@ -21,28 +21,24 @@ package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import com.rabbitmq.client.ConnectionFactory
 
+import org.apache.logging.log4j.kotlin.logger
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
-import org.slf4j.LoggerFactory
-
 /**
  * Implementation of the [MessageSenderFactory] interface for RabbitMQ.
  */
 class RabbitMqMessageSenderFactory : MessageSenderFactory {
-    companion object {
-        private val logger = LoggerFactory.getLogger(RabbitMqMessageSenderFactory::class.java)
-    }
-
     override val name: String = RabbitMqConfig.TRANSPORT_NAME
 
     override fun <T : Any> createSender(to: Endpoint<T>, configManager: ConfigManager): MessageSender<T> {
         val rabbitMqConfig = RabbitMqConfig.createConfig(configManager)
 
-        logger.info("Creating RabbitMQ sender for endpoint '${to.configPrefix}'.")
-        rabbitMqConfig.log(logger)
+        logger.info { "Creating RabbitMQ sender for endpoint '${to.configPrefix}'." }
+        rabbitMqConfig.log()
 
         val connectionFactory = ConnectionFactory().apply {
             setUri(rabbitMqConfig.serverUri)
