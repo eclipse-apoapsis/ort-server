@@ -19,9 +19,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { ExpandedState } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 import { DetectedLicense, PackageIdentifier } from '@/api';
 import { getRunPackagesWithDetectedLicenseOptions } from '@/api/@tanstack/react-query.gen';
@@ -44,17 +42,23 @@ import {
 import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
-import { PackageIdType, packageIdTypeSchema } from '@/schemas';
+import {
+  licensePackagesTableStateSchema,
+  packageIdTypeSchema,
+  type PackageIdType,
+} from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { DetectedLicenseFindingsTable } from './detected-license-findings-table';
 import {
-  clearPackageMarker,
-  getMarkerExpandedState,
-  getPackageIdentifierQueryFilter,
+  getLicensePackagesExpandedState,
+  getLicensePackagesQueryFilter,
+  getLicensePackagesTableState,
+  getLicenseTablePagination,
+  toggleLicensePackageTable,
+  updateLicensePackagesTable,
 } from './license-findings-state';
 
 const packageColumnHelper = createAppColumnHelper<PackageIdentifier>();
-const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
 
@@ -90,16 +94,14 @@ export const DetectedLicensePackagesTable = ({
   const search = useSearch({ from: licenseFindingsRoutePath });
   const navigate = useNavigate({ from: licenseFindingsRoutePath });
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
-  const packagePageIndex = search.packagePage ? search.packagePage - 1 : 0;
-  const packagePageSize = search.packagePageSize || defaultPageSize;
-  const packageIdFilter = search.packageId;
-  const packageSortBy = search.packageSortBy;
+  const license = row.original.license;
+  const tableState = getLicensePackagesTableState(search, license);
+  const { pageIndex: packagePageIndex, pageSize: packagePageSize } =
+    getLicenseTablePagination(tableState);
+  const packageIdFilter = tableState.packageId;
+  const packageSortBy = tableState.sortBy;
   const packageColumnId =
     packageIdType === packageIdTypeSchema.enum.PURL ? 'purl' : 'identifier';
-  const preserveManualExpansion = useRef(false);
-  const [packageExpanded, setPackageExpanded] = useState<ExpandedState>(
-    getMarkerExpandedState(search.packageMarked)
-  );
 
   const {
     data: packages,
@@ -116,11 +118,7 @@ export const DetectedLicensePackagesTable = ({
         limit: packagePageSize,
         offset: packagePageIndex * packagePageSize,
         sort: convertToBackendSorting(packageSortBy),
-        ...getPackageIdentifierQueryFilter(
-          search.packageMarked,
-          packageIdType,
-          packageIdFilter
-        ),
+        ...getLicensePackagesQueryFilter(tableState),
       },
     }),
   });
@@ -135,20 +133,12 @@ export const DetectedLicensePackagesTable = ({
           <Button
             variant='outline'
             size='sm'
-            aria-label={`License findings for ${packageRow.id} under ${row.original.license}`}
+            aria-label={`License findings for ${packageRow.id} under ${license}`}
             aria-expanded={packageRow.getIsExpanded()}
             onClick={() => {
-              const isOpening = !packageRow.getIsExpanded();
-
-              setPackageExpanded(isOpening ? { [packageRow.id]: true } : {});
-              preserveManualExpansion.current =
-                search.packageMarked !== undefined;
               navigate({
-                search: clearPackageMarker({
-                  ...search,
-                  findingsPage: 1,
-                }),
-                replace: true,
+                search: (previous) =>
+                  toggleLicensePackageTable(previous, license, packageRow.id),
               });
             }}
             style={{ cursor: 'pointer' }}
@@ -179,11 +169,11 @@ export const DetectedLicensePackagesTable = ({
             filterVariant: 'text',
             setFilterValue: (value: string | undefined) => {
               navigate({
-                search: clearPackageMarker({
-                  ...search,
-                  packagePage: 1,
-                  packageId: value,
-                }),
+                search: (previous) =>
+                  updateLicensePackagesTable(previous, license, {
+                    packageId: value,
+                    packageIdType,
+                  }),
               });
             },
           },
@@ -205,25 +195,15 @@ export const DetectedLicensePackagesTable = ({
           pageSize: packagePageSize,
         },
         sorting: packageSortBy ?? EMPTY_SORTING_STATE,
-        expanded: packageExpanded,
+        expanded: getLicensePackagesExpandedState(search, license),
         columnFilters: [{ id: packageColumnId, value: packageIdFilter }],
       },
-      onExpandedChange: setPackageExpanded,
       getRowCanExpand: () => true,
       getRowId: (row) => identifierToString(row.identifier),
       manualPagination: true,
     },
     selectNoTableState
   );
-
-  useEffect(() => {
-    if (preserveManualExpansion.current) {
-      preserveManualExpansion.current = false;
-      return;
-    }
-
-    setPackageExpanded(getMarkerExpandedState(search.packageMarked));
-  }, [search.packageMarked]);
 
   if (isPending) {
     return <LoadingIndicator />;
@@ -239,15 +219,21 @@ export const DetectedLicensePackagesTable = ({
   const matching = `, ${packages.pagination.totalCount} matching filters`;
 
   return (
-    <section
-      aria-label={`Packages for ${row.original.license}`}
-      className='space-y-4 p-2'
-    >
+    <section aria-label={`Packages for ${license}`} className='space-y-4 p-2'>
       <div className='text-muted-foreground text-sm'>
         Packages with this detected license ({row.original.packageCount} in
         total
         {filtersInUse && matching}).
       </div>
+      {packageIdFilter && tableState.packageIdType !== packageIdType && (
+        <div className='text-muted-foreground text-sm'>
+          Filtering by{' '}
+          {tableState.packageIdType === packageIdTypeSchema.enum.PURL
+            ? 'PURL'
+            : 'ORT ID'}
+          : {packageIdFilter}
+        </div>
+      )}
       <DataTable
         table={packageTable}
         className='[&_tbody_tr:first-child]:border-t'
@@ -262,29 +248,31 @@ export const DetectedLicensePackagesTable = ({
         setCurrentPageOptions={(currentPage) => {
           return {
             to: '.',
-            search: clearPackageMarker({
-              ...search,
-              packagePage: currentPage,
-            }),
+            search: (previous) =>
+              updateLicensePackagesTable(previous, license, {
+                page: currentPage,
+              }),
           };
         }}
         setPageSizeOptions={(size) => {
           return {
             to: '.',
-            search: clearPackageMarker({
-              ...search,
-              packagePage: 1,
-              packagePageSize: size,
-            }),
+            search: (previous) =>
+              updateLicensePackagesTable(previous, license, { pageSize: size }),
           };
         }}
         setSortingOptions={(sortBy) => {
           return {
             to: '.',
-            search: {
-              ...search,
-              packageSortBy: updateColumnSorting(search.packageSortBy, sortBy),
-            },
+            search: (previous) =>
+              updateLicensePackagesTable(previous, license, {
+                sortBy: licensePackagesTableStateSchema.shape.sortBy.parse(
+                  updateColumnSorting(
+                    getLicensePackagesTableState(previous, license).sortBy,
+                    sortBy
+                  )
+                ),
+              }),
           };
         }}
       />

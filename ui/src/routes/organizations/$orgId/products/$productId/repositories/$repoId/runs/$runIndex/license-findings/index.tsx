@@ -18,38 +18,15 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import z from 'zod';
 
 import { LoadingIndicator } from '@/components/loading-indicator';
-import {
-  detectedLicenseSearchParameterSchema,
-  findingsPaginationSearchParameterSchema,
-  markedSearchParameterSchema,
-  packageIdSearchParameterSchema,
-  packageMarkedSearchParameterSchema,
-  packagePaginationSearchParameterSchema,
-  packageSortingSearchParameterSchema,
-  paginationSearchParameterSchema,
-  sortingSearchParameterSchema,
-} from '@/schemas';
+import { licenseFindingsSearchParameterSchema } from '@/schemas';
 import { LicenseFindingsView } from './-components/license-findings-view';
-
-const licenseFindingsSearchSchema = z.object({
-  ...paginationSearchParameterSchema.shape,
-  ...sortingSearchParameterSchema.shape,
-  ...detectedLicenseSearchParameterSchema.shape,
-  ...packagePaginationSearchParameterSchema.shape,
-  ...findingsPaginationSearchParameterSchema.shape,
-  ...packageSortingSearchParameterSchema.shape,
-  ...packageIdSearchParameterSchema.shape,
-  ...markedSearchParameterSchema.shape,
-  ...packageMarkedSearchParameterSchema.shape,
-});
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/'
 )({
-  validateSearch: licenseFindingsSearchSchema,
+  validateSearch: licenseFindingsSearchParameterSchema,
   component: LicenseFindingsView,
   pendingComponent: LoadingIndicator,
 });
