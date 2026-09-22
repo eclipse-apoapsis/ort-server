@@ -20,6 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { DetectedLicense, PackageIdentifier } from '@/api';
 import { getRunPackagesWithDetectedLicenseOptions } from '@/api/@tanstack/react-query.gen';
@@ -41,6 +42,12 @@ import {
 } from '@/hooks/use-app-table';
 import type { AppRow } from '@/hooks/use-app-table';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
+import {
+  KEEP_SCROLL_POSITION,
+  markPanelOpened,
+  panelKey,
+  scrollOpenedPanelIntoView,
+} from '@/lib/scroll';
 import { toastError } from '@/lib/toast';
 import {
   licensePackagesTableStateSchema,
@@ -102,6 +109,7 @@ export const DetectedLicensePackagesTable = ({
   const packageSortBy = tableState.sortBy;
   const packageColumnId =
     packageIdType === packageIdTypeSchema.enum.PURL ? 'purl' : 'identifier';
+  const panel = useRef<HTMLElement>(null);
 
   const {
     data: packages,
@@ -136,9 +144,13 @@ export const DetectedLicensePackagesTable = ({
             aria-label={`License findings for ${packageRow.id} under ${license}`}
             aria-expanded={packageRow.getIsExpanded()}
             onClick={() => {
+              if (!packageRow.getIsExpanded()) {
+                markPanelOpened(panelKey(license, packageRow.id));
+              }
               navigate({
                 search: (previous) =>
                   toggleLicensePackageTable(previous, license, packageRow.id),
+                ...KEEP_SCROLL_POSITION,
               });
             }}
             style={{ cursor: 'pointer' }}
@@ -174,6 +186,7 @@ export const DetectedLicensePackagesTable = ({
                     packageId: value,
                     packageIdType,
                   }),
+                ...KEEP_SCROLL_POSITION,
               });
             },
           },
@@ -205,6 +218,10 @@ export const DetectedLicensePackagesTable = ({
     selectNoTableState
   );
 
+  useEffect(() => {
+    scrollOpenedPanelIntoView(panelKey(license), panel.current);
+  }, [license, packages]);
+
   if (isPending) {
     return <LoadingIndicator />;
   }
@@ -219,7 +236,11 @@ export const DetectedLicensePackagesTable = ({
   const matching = `, ${packages.pagination.totalCount} matching filters`;
 
   return (
-    <section aria-label={`Packages for ${license}`} className='space-y-4 p-2'>
+    <section
+      ref={panel}
+      aria-label={`Packages for ${license}`}
+      className='space-y-4 p-2'
+    >
       <div className='text-muted-foreground text-sm'>
         Packages with this detected license ({row.original.packageCount} in
         total
@@ -252,6 +273,7 @@ export const DetectedLicensePackagesTable = ({
               updateLicensePackagesTable(previous, license, {
                 page: currentPage,
               }),
+            ...KEEP_SCROLL_POSITION,
           };
         }}
         setPageSizeOptions={(size) => {
@@ -259,6 +281,7 @@ export const DetectedLicensePackagesTable = ({
             to: '.',
             search: (previous) =>
               updateLicensePackagesTable(previous, license, { pageSize: size }),
+            ...KEEP_SCROLL_POSITION,
           };
         }}
         setSortingOptions={(sortBy) => {
@@ -273,6 +296,7 @@ export const DetectedLicensePackagesTable = ({
                   )
                 ),
               }),
+            ...KEEP_SCROLL_POSITION,
           };
         }}
       />

@@ -19,6 +19,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
 
 import { LicenseFinding } from '@/api';
 import { getRunDetectedLicenseFindingsOptions } from '@/api/@tanstack/react-query.gen';
@@ -38,6 +39,11 @@ import {
   useAppTable,
 } from '@/hooks/use-app-table';
 import { createLicenseFindingCurationTemplate } from '@/lib/license-finding-curation';
+import {
+  KEEP_SCROLL_POSITION,
+  panelKey,
+  scrollOpenedPanelIntoView,
+} from '@/lib/scroll';
 import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
 import { formatLineRange } from '@/lib/utils';
@@ -65,6 +71,7 @@ export const DetectedLicenseFindingsTable = ({
   purl,
 }: DetectedLicenseFindingsTableProps) => {
   const search = useSearch({ from: licenseFindingsRoutePath });
+  const panel = useRef<HTMLElement>(null);
   const { pageIndex: findingsPageIndex, pageSize: findingsPageSize } =
     getLicenseTablePagination(
       getLicenseFindingsTableState(search, license, identifier)
@@ -189,6 +196,10 @@ export const DetectedLicenseFindingsTable = ({
     selectNoTableState
   );
 
+  useEffect(() => {
+    scrollOpenedPanelIntoView(panelKey(license, identifier), panel.current);
+  }, [license, identifier, findings]);
+
   if (isPending) {
     return <LoadingIndicator />;
   }
@@ -200,6 +211,7 @@ export const DetectedLicenseFindingsTable = ({
 
   return (
     <section
+      ref={panel}
       aria-label={`License findings for ${identifier} under ${license}`}
       className='space-y-2 p-2'
     >
@@ -216,6 +228,7 @@ export const DetectedLicenseFindingsTable = ({
               updateLicenseFindingsTable(previous, license, identifier, {
                 page: currentPage,
               }),
+            ...KEEP_SCROLL_POSITION,
           };
         }}
         setPageSizeOptions={(size) => {
@@ -225,6 +238,7 @@ export const DetectedLicenseFindingsTable = ({
               updateLicenseFindingsTable(previous, license, identifier, {
                 pageSize: size,
               }),
+            ...KEEP_SCROLL_POSITION,
           };
         }}
       />

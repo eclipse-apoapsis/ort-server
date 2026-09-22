@@ -439,6 +439,41 @@ describe('independent detected-license tables', () => {
     ]);
   });
 
+  it('scrolls a newly opened panel into view at both levels', async () => {
+    const scrollIntoView = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { user } = renderView();
+    const license = await screen.findByRole('button', {
+      name: 'Packages for MIT',
+    });
+    const licenseRow = license.closest('tr');
+    await user.click(license);
+    await screen.findByRole('region', { name: 'Packages for MIT' });
+
+    // The panel must already be on screen, or there is nothing to scroll to.
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(licenseRow);
+    expect(licenseRow).toHaveAttribute('style', 'scroll-margin-top: 4rem;');
+    expect(
+      (scrollIntoView.mock.contexts[0] as Element).nextElementSibling
+    ).toContainElement(
+      screen.getByRole('region', { name: 'Packages for MIT' })
+    );
+
+    const pkg = screen.getByRole('button', { name: findingsName('MIT') });
+    const packageRow = pkg.closest('tr');
+    await user.click(pkg);
+    await screen.findByRole('region', { name: findingsName('MIT') });
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    expect(scrollIntoView.mock.contexts[1]).toBe(packageRow);
+    expect(packageRow).toHaveAttribute('style', 'scroll-margin-top: 4rem;');
+
+    // Closing scrolls nowhere: the viewer stays where they are.
+    await user.click(pkg);
+    await user.click(license);
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+  });
+
   it('merges rapid sibling expansions against the latest URL state', async () => {
     const { router } = renderView();
     const mit = await screen.findByRole('button', { name: 'Packages for MIT' });

@@ -56,6 +56,7 @@ import type { AppRow } from '@/hooks/use-app-table';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
+import { KEEP_SCROLL_POSITION, markPanelOpened, panelKey } from '@/lib/scroll';
 import { toastError } from '@/lib/toast';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { DetectedLicensePackagesTable } from './detected-license-packages-table';
@@ -168,9 +169,13 @@ export const LicenseFindingsView = () => {
             aria-label={`Packages for ${row.original.license}`}
             aria-expanded={row.getIsExpanded()}
             onClick={() => {
+              if (!row.getIsExpanded()) {
+                markPanelOpened(panelKey(row.id));
+              }
               navigate({
                 search: (previous) =>
                   toggleLicenseTable(previous, row.id, packageIdType),
+                ...KEEP_SCROLL_POSITION,
               });
             }}
             style={{ cursor: 'pointer' }}
