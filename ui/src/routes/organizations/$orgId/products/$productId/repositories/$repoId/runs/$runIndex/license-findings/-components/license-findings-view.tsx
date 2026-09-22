@@ -159,6 +159,8 @@ export const LicenseFindingsView = () => {
           <Button
             variant='outline'
             size='sm'
+            aria-label={`Packages for ${row.original.license}`}
+            aria-expanded={row.getIsExpanded()}
             onClick={() => {
               const isOpening = !row.getIsExpanded();
 

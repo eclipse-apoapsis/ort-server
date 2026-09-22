@@ -135,6 +135,8 @@ export const DetectedLicensePackagesTable = ({
           <Button
             variant='outline'
             size='sm'
+            aria-label={`License findings for ${packageRow.id} under ${row.original.license}`}
+            aria-expanded={packageRow.getIsExpanded()}
             onClick={() => {
               const isOpening = !packageRow.getIsExpanded();
 
@@ -237,7 +239,10 @@ export const DetectedLicensePackagesTable = ({
   const matching = `, ${packages.pagination.totalCount} matching filters`;
 
   return (
-    <div className='space-y-4 p-2'>
+    <section
+      aria-label={`Packages for ${row.original.license}`}
+      className='space-y-4 p-2'
+    >
       <div className='text-muted-foreground text-sm'>
         Packages with this detected license ({row.original.packageCount} in
         total
@@ -283,6 +288,6 @@ export const DetectedLicensePackagesTable = ({
           };
         }}
       />
-    </div>
+    </section>
   );
 };

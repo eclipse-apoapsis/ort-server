@@ -116,3 +116,33 @@ it('copies a curation template before the Software Heritage link', async () => {
     );
   });
 });
+
+it('names its panel after the package and its license', async () => {
+  const identifier = 'Maven:com.example:some library:1.0/rc%1';
+  const license = 'MIT AND Apache-2.0';
+  renderInteractiveWithRouter(
+    <TooltipProvider>
+      <DetectedLicenseFindingsTable
+        runId={1}
+        identifier={identifier}
+        license={license}
+        purl={undefined}
+      />
+    </TooltipProvider>,
+    {
+      path: '/organizations/1/products/2/repositories/3/runs/4/license-findings',
+      routes: [
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/',
+        },
+      ],
+    }
+  );
+
+  // Two panels for the same package under different licenses stay distinguishable.
+  expect(
+    await screen.findByRole('region', {
+      name: `License findings for ${identifier} under ${license}`,
+    })
+  ).toBeVisible();
+});
