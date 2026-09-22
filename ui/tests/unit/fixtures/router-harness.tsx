@@ -36,6 +36,7 @@ import { afterEach } from 'vitest';
 export interface TestRouteDefinition {
   path: string;
   component?: RouteComponent;
+  validateSearch?: (search: Record<string, unknown>) => Record<string, unknown>;
   children?: ReadonlyArray<TestRouteDefinition>;
 }
 
@@ -63,6 +64,7 @@ export const createTestRouter = ({
         getParentRoute: () => parentRoute,
         path: definition.path,
         component: definition.component,
+        validateSearch: definition.validateSearch,
       });
 
       return definition.children

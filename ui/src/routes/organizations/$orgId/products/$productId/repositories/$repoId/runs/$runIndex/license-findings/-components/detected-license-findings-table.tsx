@@ -41,9 +41,13 @@ import { createLicenseFindingCurationTemplate } from '@/lib/license-finding-cura
 import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { toastError } from '@/lib/toast';
 import { formatLineRange } from '@/lib/utils';
+import {
+  getLicenseFindingsTableState,
+  getLicenseTablePagination,
+  updateLicenseFindingsTable,
+} from './license-findings-state';
 
 const findingColumnHelper = createAppColumnHelper<LicenseFinding>();
-const defaultPageSize = 10;
 const licenseFindingsRoutePath =
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/';
 
@@ -61,8 +65,10 @@ export const DetectedLicenseFindingsTable = ({
   purl,
 }: DetectedLicenseFindingsTableProps) => {
   const search = useSearch({ from: licenseFindingsRoutePath });
-  const findingsPageIndex = search.findingsPage ? search.findingsPage - 1 : 0;
-  const findingsPageSize = search.findingsPageSize || defaultPageSize;
+  const { pageIndex: findingsPageIndex, pageSize: findingsPageSize } =
+    getLicenseTablePagination(
+      getLicenseFindingsTableState(search, license, identifier)
+    );
 
   const {
     data: findings,
@@ -206,20 +212,19 @@ export const DetectedLicenseFindingsTable = ({
         setCurrentPageOptions={(currentPage) => {
           return {
             to: '.',
-            search: {
-              ...search,
-              findingsPage: currentPage,
-            },
+            search: (previous) =>
+              updateLicenseFindingsTable(previous, license, identifier, {
+                page: currentPage,
+              }),
           };
         }}
         setPageSizeOptions={(size) => {
           return {
             to: '.',
-            search: {
-              ...search,
-              findingsPage: 1,
-              findingsPageSize: size,
-            },
+            search: (previous) =>
+              updateLicenseFindingsTable(previous, license, identifier, {
+                pageSize: size,
+              }),
           };
         }}
       />

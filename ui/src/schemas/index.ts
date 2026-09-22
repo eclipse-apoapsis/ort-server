@@ -349,7 +349,6 @@ export const licenseTablesSearchParameterSchema = z.object({
   ).optional(),
 });
 
-// Not wired into the route until all nested tables consume scoped state.
 export const licenseFindingsSearchParameterSchema = z.object({
   ...paginationSearchParameterSchema.shape,
   ...sortingSearchParameterSchema.shape,
