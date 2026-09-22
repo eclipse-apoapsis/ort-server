@@ -193,7 +193,10 @@ export const DetectedLicenseFindingsTable = ({
   }
 
   return (
-    <div className='space-y-2 p-2'>
+    <section
+      aria-label={`License findings for ${identifier} under ${license}`}
+      className='space-y-2 p-2'
+    >
       <div className='text-muted-foreground text-sm'>
         License findings ({findings.pagination.totalCount} in total).
       </div>
@@ -220,6 +223,6 @@ export const DetectedLicenseFindingsTable = ({
           };
         }}
       />
-    </div>
+    </section>
   );
 };
