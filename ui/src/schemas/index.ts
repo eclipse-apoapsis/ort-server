@@ -296,6 +296,83 @@ export const packageMarkedSearchParameterSchema = z.object({
   packageMarked: z.string().optional(),
 });
 
+const licenseTablePageSchema = z
+  .number()
+  .int()
+  .positive()
+  .optional()
+  .catch(undefined);
+
+export const licenseFindingsTableStateSchema = z.object({
+  page: licenseTablePageSchema,
+  pageSize: licenseTablePageSchema,
+});
+
+// Validate entries separately so a malformed table does not discard its siblings.
+// Object.fromEntries also preserves arbitrary own keys such as "__proto__" safely.
+const licenseTableRecordSchema = <T extends z.ZodType>(entrySchema: T) =>
+  z.unknown().transform((value): Record<string, z.output<T>> | undefined => {
+    if (!value || typeof value !== 'object' || Array.isArray(value))
+      return undefined;
+
+    const entries = Object.entries(value).flatMap(([key, entry]) => {
+      const result = entrySchema.safeParse(entry);
+      return result.success ? [[key, result.data] as const] : [];
+    });
+    return entries.length ? Object.fromEntries(entries) : undefined;
+  });
+
+export const licensePackagesTableStateSchema =
+  licenseFindingsTableStateSchema.extend({
+    packageId: z.string().optional().catch(undefined),
+    packageIdType: packageIdTypeSchema.optional().catch(undefined),
+    packageMarked: z.string().optional().catch(undefined),
+    sortBy: z
+      .array(
+        z.object({
+          id: z.enum(['identifier', 'purl']),
+          desc: z.boolean(),
+        })
+      )
+      .optional()
+      .catch(undefined),
+    packages: licenseTableRecordSchema(
+      licenseFindingsTableStateSchema
+    ).optional(),
+    // Compatibility-only defaults, consumed by the first package opened in this license.
+    legacyFindings: licenseFindingsTableStateSchema.optional().catch(undefined),
+  });
+
+export const licenseTablesSearchParameterSchema = z.object({
+  licenseTables: licenseTableRecordSchema(
+    licensePackagesTableStateSchema
+  ).optional(),
+});
+
+// Not wired into the route until all nested tables consume scoped state.
+export const licenseFindingsSearchParameterSchema = z.object({
+  ...paginationSearchParameterSchema.shape,
+  ...sortingSearchParameterSchema.shape,
+  ...detectedLicenseSearchParameterSchema.shape,
+  ...packagePaginationSearchParameterSchema.shape,
+  ...findingsPaginationSearchParameterSchema.shape,
+  ...packageSortingSearchParameterSchema.shape,
+  ...packageIdSearchParameterSchema.shape,
+  ...markedSearchParameterSchema.shape,
+  ...packageMarkedSearchParameterSchema.shape,
+  ...licenseTablesSearchParameterSchema.shape,
+});
+
+export type LicenseFindingsTableState = z.infer<
+  typeof licenseFindingsTableStateSchema
+>;
+export type LicensePackagesTableState = z.infer<
+  typeof licensePackagesTableStateSchema
+>;
+export type LicenseFindingsSearchParameters = z.infer<
+  typeof licenseFindingsSearchParameterSchema
+>;
+
 // This schema is used to validate the filter parameter when filtering
 // organizations, products, or repositories with regexp.
 export const filterByNameSearchParameterSchema = z.object({
