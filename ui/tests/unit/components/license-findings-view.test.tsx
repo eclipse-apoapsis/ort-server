@@ -426,6 +426,19 @@ describe('independent detected-license tables', () => {
     ).toHaveAttribute('aria-expanded', 'true');
   });
 
+  it('returns to the first page when the license sorting changes', async () => {
+    const { user, router } = renderView({ page: 3 });
+    const header = await screen.findByRole('columnheader', {
+      name: 'Detected License',
+    });
+    await user.click(within(header).getByRole('link'));
+
+    await waitFor(() => expect(currentSearch(router).page).toBe(1));
+    expect(currentSearch(router).sortBy).toEqual([
+      { id: 'license', desc: false },
+    ]);
+  });
+
   it('merges rapid sibling expansions against the latest URL state', async () => {
     const { router } = renderView();
     const mit = await screen.findByRole('button', { name: 'Packages for MIT' });
