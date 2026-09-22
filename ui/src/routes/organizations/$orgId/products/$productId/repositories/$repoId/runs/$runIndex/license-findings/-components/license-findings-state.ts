@@ -30,9 +30,6 @@ import {
   type PackageIdType,
 } from '@/schemas';
 
-export const getMarkerExpandedState = (marker?: string): ExpandedState =>
-  marker ? { [marker]: true } : {};
-
 export const getDetectedLicenseQueryFilter = (
   marked: string | undefined,
   license: string | undefined
@@ -58,11 +55,6 @@ export const getPackageIdentifierQueryFilter = (
 export const clearDetectedLicenseMarkers = <T extends object>(search: T) => ({
   ...search,
   marked: undefined,
-  packageMarked: undefined,
-});
-
-export const clearPackageMarker = <T extends object>(search: T) => ({
-  ...search,
   packageMarked: undefined,
 });
 

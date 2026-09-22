@@ -26,7 +26,6 @@ import { describe, expect, it } from 'vitest';
 import {
   canonicalizeLicenseTables,
   clearDetectedLicenseMarkers,
-  clearPackageMarker,
   getDetectedLicenseQueryFilter,
   getLicenseFindingsTableState,
   getLicensePackagesExpandedState,
@@ -34,7 +33,6 @@ import {
   getLicensePackagesTableState,
   getLicenseTablePagination,
   getLicenseTablesExpandedState,
-  getMarkerExpandedState,
   getPackageIdentifierQueryFilter,
   normalizeLicenseFindingsSearch,
   resetLicensePackageIdentifierControls,
@@ -89,16 +87,6 @@ describe('license findings deep-link state', () => {
     expect(filter).not.toHaveProperty('licenseMatchType');
   });
 
-  it('uses stable marker values as expanded row IDs', () => {
-    expect(getMarkerExpandedState('MIT AND Apache-2.0')).toEqual({
-      'MIT AND Apache-2.0': true,
-    });
-
-    expect(getMarkerExpandedState('Maven:com.example:library:1.0')).toEqual({
-      'Maven:com.example:library:1.0': true,
-    });
-  });
-
   it('uses the exact ORT identifier in PURL mode', () => {
     const identifier = 'Maven:com.example:library:1.0';
 
@@ -123,14 +111,6 @@ describe('license findings deep-link state', () => {
     ).toEqual({ identifier, identifierMatchType: 'exact' });
   });
 
-  it('updates expansion when a marker changes and collapses without one', () => {
-    expect(getMarkerExpandedState('Apache-2.0')).toEqual({
-      'Apache-2.0': true,
-    });
-    expect(getMarkerExpandedState('MIT')).toEqual({ MIT: true });
-    expect(getMarkerExpandedState()).toEqual({});
-  });
-
   it('clears both markers for top-level interactions', () => {
     expect(
       clearDetectedLicenseMarkers({
@@ -144,20 +124,6 @@ describe('license findings deep-link state', () => {
       marked: undefined,
       packageMarked: undefined,
       page: 2,
-    });
-  });
-
-  it('clears only the package marker for nested interactions', () => {
-    expect(
-      clearPackageMarker({
-        marked: 'MIT',
-        packageMarked: 'Maven:com.example:library:1.0',
-        packagePage: 2,
-      })
-    ).toEqual({
-      marked: 'MIT',
-      packageMarked: undefined,
-      packagePage: 2,
     });
   });
 
