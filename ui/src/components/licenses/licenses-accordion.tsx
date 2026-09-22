@@ -94,10 +94,13 @@ export const LicensesAccordion = ({
                     search={{
                       detectedLicense: [license],
                       marked: license,
-                      packageMarked: identifierString,
                       page: 1,
-                      packagePage: 1,
-                      findingsPage: 1,
+                      licenseTables: {
+                        [license]: {
+                          packageMarked: identifierString,
+                          packages: { [identifierString]: {} },
+                        },
+                      },
                     }}
                   >
                     <SpdxExpressionBadgeGroup
