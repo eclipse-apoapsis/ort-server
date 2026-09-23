@@ -19,7 +19,10 @@
 
 // @vitest-environment jsdom
 
-import { defaultStringifySearch } from '@tanstack/react-router';
+import {
+  defaultParseSearch,
+  defaultStringifySearch,
+} from '@tanstack/react-router';
 import {
   act,
   fireEvent,
@@ -262,6 +265,26 @@ describe('independent detected-license tables', () => {
     expect(
       screen.queryByRole('region', { name: findingsName('MIT') })
     ).not.toBeInTheDocument();
+  });
+
+  it('links package IDs to their entries in the packages table', async () => {
+    const { user } = renderView();
+    await user.click(
+      await screen.findByRole('button', { name: 'Packages for MIT' })
+    );
+
+    const link = await within(packageRegion('MIT')).findByRole('link', {
+      name: firstId,
+    });
+    const target = new URL(link.getAttribute('href')!, 'http://localhost');
+
+    expect(target.pathname).toBe(
+      '/organizations/1/products/2/repositories/3/runs/4/packages'
+    );
+    expect(defaultParseSearch(target.search)).toEqual({
+      pkgId: firstId,
+      marked: '0',
+    });
   });
 
   it('paginates findings independently, including the same package under two licenses', async () => {

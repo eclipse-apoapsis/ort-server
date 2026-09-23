@@ -18,7 +18,12 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearch,
+} from '@tanstack/react-router';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
@@ -29,6 +34,11 @@ import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   convertToBackendSorting,
   EMPTY_SORTING_STATE,
@@ -76,6 +86,7 @@ const PackageIdCell = ({
   pkg: PackageIdentifier;
   packageIdType: PackageIdType;
 }) => {
+  const params = useParams({ from: licenseFindingsRoutePath });
   const id =
     packageIdType === packageIdTypeSchema.enum.PURL && pkg.purl
       ? pkg.purl
@@ -83,7 +94,21 @@ const PackageIdCell = ({
 
   return (
     <div className='flex items-center'>
-      <BreakableString text={id} className='font-semibold' />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            className='text-left font-semibold text-blue-400 hover:underline'
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+            params={params}
+            search={{ pkgId: id, marked: '0' }}
+          >
+            <BreakableString text={id} />
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          Inspect the package details in packages table
+        </TooltipContent>
+      </Tooltip>
       <CopyToClipboard copyText={id} />
     </div>
   );
