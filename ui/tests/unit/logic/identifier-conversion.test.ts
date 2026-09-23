@@ -21,6 +21,7 @@ import { expect, it } from 'vitest';
 
 import {
   comparePackageIds,
+  getPackageIdFilter,
   getPackageIdString,
   identifierToPurl,
   identifierToString,
@@ -58,6 +59,21 @@ it('getPackageIdString returns the configured identifier type', () => {
   expect(getPackageIdString(pkg, packageIdTypeSchema.enum.PURL)).toBe(
     'pkg:maven/com.google.guava/listenablefuture@9999.0'
   );
+});
+
+it('getPackageIdFilter returns a filter for the specified identifier type', () => {
+  expect(
+    getPackageIdFilter(
+      'Maven:com.example:library:1.0',
+      packageIdTypeSchema.enum.ORT_ID
+    )
+  ).toEqual({ identifier: 'Maven:com.example:library:1.0' });
+  expect(
+    getPackageIdFilter(
+      'pkg:maven/com.example/library@1.0',
+      packageIdTypeSchema.enum.PURL
+    )
+  ).toEqual({ purl: 'pkg:maven/com.example/library@1.0' });
 });
 
 it.each([
