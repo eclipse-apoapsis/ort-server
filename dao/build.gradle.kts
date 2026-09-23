@@ -36,6 +36,7 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.config)
     implementation(projects.utils.system)
 
