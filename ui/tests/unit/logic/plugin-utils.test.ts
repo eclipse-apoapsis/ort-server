@@ -214,6 +214,65 @@ it('reconstructScannerSelection rebuilds scanner scopes for rerun values', () =>
   });
 });
 
+it('mergePluginConfigs converts rerun options to form value types', () => {
+  const plugins = [
+    createPluginDescriptor({
+      id: 'Bazel',
+      type: 'PACKAGE_MANAGER',
+      options: [
+        {
+          name: 'useConan2',
+          description: 'Use Conan 2.',
+          type: 'BOOLEAN',
+          defaultValue: 'true',
+          isFixed: false,
+          isNullable: false,
+          isRequired: false,
+        },
+        {
+          name: 'bazelDependenciesOnly',
+          description: 'Only scan Bazel dependencies.',
+          type: 'BOOLEAN',
+          defaultValue: 'false',
+          isFixed: false,
+          isNullable: false,
+          isRequired: false,
+        },
+        {
+          name: 'enabledFeatures',
+          description: 'Enabled Bazel features.',
+          type: 'STRING_LIST',
+          defaultValue: '',
+          isFixed: false,
+          isNullable: false,
+          isRequired: false,
+        },
+      ],
+    }),
+  ];
+
+  const merged = mergePluginConfigs(
+    {
+      Bazel: {
+        options: {
+          useConan2: 'false',
+          bazelDependenciesOnly: 'true',
+          enabledFeatures: 'feature-a, feature-b',
+        },
+        secrets: {},
+      },
+    },
+    getPluginDefaultValues(plugins),
+    plugins
+  );
+
+  expect(merged.Bazel?.options).toEqual({
+    useConan2: false,
+    bazelDependenciesOnly: true,
+    enabledFeatures: ['feature-a', 'feature-b'],
+  });
+});
+
 it('mergePluginConfigs enforces fixed option precedence and clears missing fixed defaults', () => {
   const plugins = [
     createPluginDescriptor({
