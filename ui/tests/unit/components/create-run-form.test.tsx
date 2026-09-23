@@ -158,12 +158,7 @@ describe('CreateRunForm', () => {
           keepAliveWorker: undefined,
           scanners: ['ScanCode'],
           projectScanners: undefined,
-          config: {
-            ScanCode: {
-              options: {},
-              secrets: {},
-            },
-          },
+          config: undefined,
         },
         evaluator: undefined,
         reporter: undefined,

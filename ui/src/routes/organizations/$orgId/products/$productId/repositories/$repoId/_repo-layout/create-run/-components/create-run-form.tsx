@@ -192,7 +192,7 @@ export const CreateRunForm = ({
   });
 
   async function submitForm(values: CreateRunFormValues) {
-    await onSubmit(formValuesToPayload(values));
+    await onSubmit(formValuesToPayload(values, plugins));
   }
 
   const onValidationFailed = (errors: typeof form.formState.errors) => {
@@ -585,7 +585,7 @@ export const CreateRunForm = ({
                     className='h-96 pr-12 font-mono'
                     readOnly
                     value={JSON.stringify(
-                      formValuesToPayload(watchedValues),
+                      formValuesToPayload(watchedValues, plugins),
                       null,
                       2
                     )}
@@ -593,7 +593,7 @@ export const CreateRunForm = ({
                   <div className='absolute top-2 right-2 z-10'>
                     <CopyToClipboard
                       copyText={JSON.stringify(
-                        formValuesToPayload(watchedValues),
+                        formValuesToPayload(watchedValues, plugins),
                         null,
                         2
                       )}

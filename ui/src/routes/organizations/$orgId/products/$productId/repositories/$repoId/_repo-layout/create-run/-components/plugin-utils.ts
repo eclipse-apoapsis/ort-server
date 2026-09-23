@@ -23,6 +23,7 @@ import {
   PackageManagerConfiguration,
   PluginConfig,
   PluginOptionType,
+  PluginType,
   PreconfiguredPluginDescriptor,
   ProviderPluginConfiguration,
 } from '@/api';
@@ -387,20 +388,30 @@ export function providerPluginConfigsToFormValues(
 
 /**
  * Convert the plugin config from form values to the payload format expected by the back-end. Configuration for plugins
- * which are not enabled is not included in the payload.
+ * which are not enabled is not included in the payload. Options matching their plugin defaults are omitted.
  */
 export function createPluginPayload(
   config: Record<string, unknown> | undefined,
-  enabledPlugins: string[]
+  enabledPlugins: string[],
+  plugins: PreconfiguredPluginDescriptor[],
+  pluginType: PluginType
 ): { [key: string]: PluginConfig } | undefined {
   if (!config) return undefined;
 
+  const pluginById = new Map(
+    plugins
+      .filter((plugin) => plugin.type === pluginType)
+      .map((plugin) => [plugin.id, plugin])
+  );
   const filtered = Object.fromEntries(
     Object.entries(config)
       .filter(([key]) => enabledPlugins.includes(key))
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
         if (value && typeof value === 'object') {
           const pluginConfig = value as Record<string, unknown>;
+          const optionByName = new Map(
+            pluginById.get(key)?.options.map((option) => [option.name, option])
+          );
           const convertedConfig: PluginConfig = {
             options: {},
             secrets: {},
@@ -412,9 +423,27 @@ export function createPluginPayload(
           ) {
             convertedConfig.options = Object.fromEntries(
               Object.entries(pluginConfig.options as Record<string, unknown>)
-                .filter(
-                  ([, optValue]) => optValue !== undefined && optValue !== null
-                )
+                .filter(([, optValue]) => optValue != null)
+                .filter(([optKey, optValue]) => {
+                  const option = optionByName.get(optKey);
+                  if (option?.defaultValue == null) return true;
+
+                  const value = pluginOptionValueToFormValue(
+                    optValue,
+                    option.type
+                  );
+                  const defaultValue = pluginOptionValueToFormValue(
+                    option.defaultValue,
+                    option.type
+                  );
+
+                  return Array.isArray(value) && Array.isArray(defaultValue)
+                    ? value.length !== defaultValue.length ||
+                        value.some(
+                          (entry, index) => entry !== defaultValue[index]
+                        )
+                    : value !== defaultValue;
+                })
                 .map(([optKey, optValue]) => [optKey, String(optValue)])
             );
           }
@@ -434,9 +463,12 @@ export function createPluginPayload(
             ) as { [key: string]: string };
           }
 
-          return [key, convertedConfig];
+          return Object.keys(convertedConfig.options).length > 0 ||
+            Object.keys(convertedConfig.secrets).length > 0
+            ? [[key, convertedConfig]]
+            : [];
         }
-        return [key, value];
+        return [];
       })
   );
 
@@ -450,11 +482,18 @@ export function createPluginPayload(
  */
 export function createProviderPluginPayload(
   config: Record<string, unknown> | undefined,
-  enabledPlugins: string[]
+  enabledPlugins: string[],
+  plugins: PreconfiguredPluginDescriptor[],
+  pluginType: PluginType
 ): ProviderPluginConfiguration[] | undefined {
   if (enabledPlugins.length === 0) return undefined;
 
-  const pluginPayload = createPluginPayload(config, enabledPlugins);
+  const pluginPayload = createPluginPayload(
+    config,
+    enabledPlugins,
+    plugins,
+    pluginType
+  );
 
   return enabledPlugins.map((pluginId) => {
     const pluginConfig = pluginPayload?.[pluginId];
@@ -516,9 +555,15 @@ export function packageManagerConfigsToFormValues(
 export function createPackageManagerPayload(
   config: Record<string, unknown> | undefined,
   mustRunAfter: Record<string, string[] | undefined> | undefined,
-  enabledPackageManagers: string[]
+  enabledPackageManagers: string[],
+  plugins: PreconfiguredPluginDescriptor[]
 ): { [key: string]: PackageManagerConfiguration } | undefined {
-  const pluginPayload = createPluginPayload(config, enabledPackageManagers);
+  const pluginPayload = createPluginPayload(
+    config,
+    enabledPackageManagers,
+    plugins,
+    'PACKAGE_MANAGER'
+  );
 
   const result = enabledPackageManagers.reduce<{
     [key: string]: PackageManagerConfiguration;
