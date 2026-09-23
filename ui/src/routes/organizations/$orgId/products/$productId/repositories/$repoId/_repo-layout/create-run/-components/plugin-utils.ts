@@ -38,6 +38,29 @@ function isNonBlankString(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '';
 }
 
+/** Convert a serialized plugin option value from the API to its form representation. */
+function pluginOptionValueToFormValue(
+  value: unknown,
+  type: PluginOptionType
+): string | boolean | string[] {
+  switch (type) {
+    case 'BOOLEAN':
+      return typeof value === 'boolean' ? value : value === 'true';
+    case 'ENUM_LIST':
+    case 'STRING_LIST':
+      if (Array.isArray(value)) return value as string[];
+
+      return typeof value === 'string'
+        ? value
+            .split(',')
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+        : [];
+    default:
+      return String(value);
+  }
+}
+
 function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
@@ -183,11 +206,24 @@ export function mergePluginConfigs(
     const defaultPlugin = defaultConfig[pluginId];
     const ortPlugin = lastRunConfig?.[pluginId];
     const pluginDescriptor = pluginById.get(pluginId);
+    const optionByName = new Map(
+      pluginDescriptor?.options.map((option) => [option.name, option])
+    );
+    const lastRunOptions = Object.fromEntries(
+      Object.entries(ortPlugin?.options ?? {}).map(([name, value]) => {
+        const option = optionByName.get(name);
+
+        return [
+          name,
+          option ? pluginOptionValueToFormValue(value, option.type) : value,
+        ];
+      })
+    ) as PluginConfig['options'];
 
     const mergedPlugin: PluginConfig = {
       options: {
         ...(defaultPlugin?.options ?? {}),
-        ...(ortPlugin?.options ?? {}),
+        ...lastRunOptions,
       },
       secrets: {
         ...(defaultPlugin?.secrets ?? {}),
@@ -296,27 +332,17 @@ export function getPluginDefaultValues(
               secrets[option.name] = ADMIN_SECRET_VALUE;
             }
             return;
-          } else if (option.type === 'BOOLEAN') {
-            options[option.name] = option.defaultValue === 'true';
-          } else if (
-            option.type === 'ENUM_LIST' ||
-            option.type === 'STRING_LIST'
-          ) {
-            options[option.name] =
-              typeof option.defaultValue === 'string'
-                ? option.defaultValue
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter(Boolean)
-                : [];
           } else {
-            options[option.name] = String(option.defaultValue);
+            options[option.name] = pluginOptionValueToFormValue(
+              option.defaultValue,
+              option.type
+            );
           }
         }
       });
 
-      // Cast to PluginConfig: the API type uses string maps, but the form
-      // schema and Zod preprocessing handle boolean/array values correctly.
+      // Cast to PluginConfig: the API type uses string maps, while the form representation
+      // uses booleans and arrays for the corresponding option types.
       acc[plugin.id] = {
         options: options as { [key: string]: string },
         secrets: secrets,
