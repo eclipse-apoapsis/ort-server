@@ -23,6 +23,7 @@ import {
   EvaluatorJobConfiguration,
   NotifierJobConfiguration,
   PostRepositoryRun,
+  PreconfiguredPluginDescriptor,
   ReporterJobConfiguration,
   ScannerJobConfiguration,
 } from '@/api';
@@ -40,7 +41,8 @@ import type { CreateRunFormValues } from './run-schema';
  * to the API. This function converts form values to correct payload to create an ORT run.
  */
 export function formValuesToPayload(
-  values: CreateRunFormValues
+  values: CreateRunFormValues,
+  plugins: PreconfiguredPluginDescriptor[]
 ): PostRepositoryRun {
   //
   // Analyzer configuration
@@ -96,11 +98,14 @@ export function formValuesToPayload(
     packageManagerOptions: createPackageManagerPayload(
       values.jobConfigs.analyzer.packageManagerConfig,
       values.jobConfigs.analyzer.packageManagerMustRunAfter,
-      values.jobConfigs.analyzer.packageManagers
+      values.jobConfigs.analyzer.packageManagers,
+      plugins
     ),
     packageCurationProviders: createProviderPluginPayload(
       values.jobConfigs.analyzer.packageCurationProviderConfig,
-      values.jobConfigs.analyzer.packageCurationProviders
+      values.jobConfigs.analyzer.packageCurationProviders,
+      plugins,
+      'PACKAGE_CURATION_PROVIDER'
     ),
     keepAliveWorker: values.jobConfigs.analyzer.keepAliveWorker || undefined,
     keepAlivePhases:
@@ -121,7 +126,9 @@ export function formValuesToPayload(
         advisors: values.jobConfigs.advisor.advisors,
         config: createPluginPayload(
           values.jobConfigs.advisor.config,
-          values.jobConfigs.advisor.advisors
+          values.jobConfigs.advisor.advisors,
+          plugins,
+          'ADVISOR'
         ),
         keepAliveWorker: values.jobConfigs.advisor.keepAliveWorker || undefined,
       }
@@ -171,7 +178,9 @@ export function formValuesToPayload(
           projectScanners,
           config: createPluginPayload(
             values.jobConfigs.scanner.config,
-            allScanners
+            allScanners,
+            plugins,
+            'SCANNER'
           ),
         };
       })()
@@ -186,7 +195,9 @@ export function formValuesToPayload(
     ? {
         packageConfigurationProviders: createProviderPluginPayload(
           values.jobConfigs.evaluator.packageConfigurationProviderConfig,
-          values.jobConfigs.evaluator.packageConfigurationProviders
+          values.jobConfigs.evaluator.packageConfigurationProviders,
+          plugins,
+          'PACKAGE_CONFIGURATION_PROVIDER'
         ),
         keepAliveWorker:
           values.jobConfigs.evaluator.keepAliveWorker || undefined,
@@ -203,13 +214,17 @@ export function formValuesToPayload(
         formats: values.jobConfigs.reporter.formats,
         config: createPluginPayload(
           values.jobConfigs.reporter.config,
-          values.jobConfigs.reporter.formats
+          values.jobConfigs.reporter.formats,
+          plugins,
+          'REPORTER'
         ),
         packageConfigurationProviders: evaluatorConfig
           ? undefined
           : createProviderPluginPayload(
               values.jobConfigs.reporter.packageConfigurationProviderConfig,
-              values.jobConfigs.reporter.packageConfigurationProviders
+              values.jobConfigs.reporter.packageConfigurationProviders,
+              plugins,
+              'PACKAGE_CONFIGURATION_PROVIDER'
             ),
         keepAliveWorker:
           values.jobConfigs.reporter.keepAliveWorker || undefined,
