@@ -131,10 +131,14 @@ const VulnerabilityCard = ({
 }) => {
   const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
-  const id =
+  const purl =
     packageIdType === packageIdTypeSchema.enum.PURL && vulnerability.purl
       ? vulnerability.purl
-      : identifierToString(vulnerability.identifier);
+      : undefined;
+  const id = purl ?? identifierToString(vulnerability.identifier);
+  const idType = purl
+    ? packageIdTypeSchema.enum.PURL
+    : packageIdTypeSchema.enum.ORT_ID;
 
   return (
     <div className='flex flex-col gap-1'>
@@ -151,7 +155,7 @@ const VulnerabilityCard = ({
                   repoId: params.repoId,
                   runIndex: params.runIndex,
                 }}
-                search={{ pkgId: id, marked: '0' }}
+                search={{ pkgId: id, pkgIdType: idType, marked: '0' }}
               >
                 <BreakableString text={id} />
               </Link>

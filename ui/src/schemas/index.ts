@@ -229,6 +229,7 @@ export const itemFixSearchParameterSchema = z.object({
 
 export const packageIdentifierSearchParameterSchema = z.object({
   pkgId: z.string().optional(),
+  pkgIdType: packageIdTypeSchema.optional(),
 });
 
 export const packageIdSearchParameterSchema = z.object({

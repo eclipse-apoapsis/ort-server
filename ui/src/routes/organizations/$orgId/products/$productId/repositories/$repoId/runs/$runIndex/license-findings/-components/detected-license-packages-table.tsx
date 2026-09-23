@@ -87,10 +87,14 @@ const PackageIdCell = ({
   packageIdType: PackageIdType;
 }) => {
   const params = useParams({ from: licenseFindingsRoutePath });
-  const id =
+  const purl =
     packageIdType === packageIdTypeSchema.enum.PURL && pkg.purl
       ? pkg.purl
-      : identifierToString(pkg.identifier);
+      : undefined;
+  const id = purl ?? identifierToString(pkg.identifier);
+  const idType = purl
+    ? packageIdTypeSchema.enum.PURL
+    : packageIdTypeSchema.enum.ORT_ID;
 
   return (
     <div className='flex items-center'>
@@ -100,7 +104,7 @@ const PackageIdCell = ({
             className='text-left font-semibold text-blue-400 hover:underline'
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
             params={params}
-            search={{ pkgId: id, marked: '0' }}
+            search={{ pkgId: id, pkgIdType: idType, marked: '0' }}
           >
             <BreakableString text={id} />
           </Link>
