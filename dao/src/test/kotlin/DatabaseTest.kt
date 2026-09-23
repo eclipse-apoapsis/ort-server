@@ -22,14 +22,23 @@ package org.eclipse.apoapsis.ortserver.dao
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.koin.KoinExtension
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import io.kotest.matchers.types.shouldNotBeSameInstanceAs
+
+import kotlin.coroutines.cancellation.CancellationException
+
+import kotlinx.coroutines.Dispatchers
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.TEST_DB_SCHEMA
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -46,6 +55,7 @@ val testModule = module {
     single { ConfigManager.create(get()) }
 }
 
+@Suppress("TooGenericExceptionThrown")
 class DatabaseTest : KoinTest, WordSpec() {
     init {
         tags(Integration)
@@ -94,6 +104,204 @@ class DatabaseTest : KoinTest, WordSpec() {
                             it[name] = "name"
                             it[description] = "description"
                         }
+                    }
+                }
+            }
+        }
+
+        "blockingQuery" should {
+            "execute a block of code in a transaction" {
+                shouldNotThrowAny {
+                    dbExtension.db.blockingQuery {
+                        OrganizationsTable.insert {
+                            it[name] = "name"
+                            it[description] = "description"
+                        }
+                    }
+                }
+            }
+
+            "run a nested blockingQuery in the same transaction" {
+                dbExtension.db.blockingQuery {
+                    val outerTransaction = this
+                    val outerThread = Thread.currentThread()
+
+                    dbExtension.db.blockingQuery {
+                        this shouldBeSameInstanceAs outerTransaction
+                        Thread.currentThread() shouldBeSameInstanceAs outerThread
+                    }
+                }
+            }
+
+            "not run a nested dbQuery in the same transaction" {
+                dbExtension.db.blockingQuery {
+                    val outerTransaction = this
+                    val outerThread = Thread.currentThread()
+
+                    runBlocking(Dispatchers.IO) {
+                        dbExtension.db.dbQuery {
+                            this shouldNotBeSameInstanceAs outerTransaction
+                            Thread.currentThread() shouldNotBeSameInstanceAs outerThread
+                        }
+                    }
+                }
+            }
+
+            "not run a nested suspending transaction in the same transaction" {
+                dbExtension.db.blockingQuery {
+                    val outerTransaction = this
+
+                    runBlocking(Dispatchers.IO) {
+                        dbExtension.db.transaction {
+                            this shouldNotBeSameInstanceAs outerTransaction
+                        }
+                    }
+                }
+            }
+        }
+
+        "dbQuery" should {
+            "execute a block of code in a transaction" {
+                shouldNotThrowAny {
+                    dbExtension.db.dbQuery {
+                        OrganizationsTable.insert {
+                            it[name] = "name"
+                            it[description] = "description"
+                        }
+                    }
+                }
+            }
+
+            "not run a nested dbQuery in the same transaction" {
+                dbExtension.db.dbQuery {
+                    val outerTransaction = this
+
+                    runBlocking {
+                        dbExtension.db.dbQuery {
+                            this shouldNotBeSameInstanceAs outerTransaction
+                        }
+                    }
+                }
+            }
+
+            "run a nested blockingQuery in the same transaction" {
+                dbExtension.db.dbQuery {
+                    val outerTransaction = this
+                    val outerThread = Thread.currentThread()
+
+                    dbExtension.db.blockingQuery {
+                        this shouldBeSameInstanceAs outerTransaction
+                        Thread.currentThread() shouldBeSameInstanceAs outerThread
+                    }
+                }
+            }
+
+            "not run a nested blockingQuery in the same transaction when switching to a different thread" {
+                dbExtension.db.dbQuery {
+                    val outerTransaction = this
+                    val outerThread = Thread.currentThread()
+
+                    runBlocking(Dispatchers.Default) {
+                        dbExtension.db.blockingQuery {
+                            this shouldNotBeSameInstanceAs outerTransaction
+                            Thread.currentThread() shouldNotBeSameInstanceAs outerThread
+                        }
+                    }
+                }
+            }
+
+            "not run a nested suspending transaction in the same transaction" {
+                dbExtension.db.dbQuery {
+                    val outerTransaction = this
+
+                    runBlocking {
+                        dbExtension.db.transaction {
+                            this shouldNotBeSameInstanceAs outerTransaction
+                        }
+                    }
+                }
+            }
+        }
+
+        "transaction" should {
+            "execute a block of code in a transaction" {
+                shouldNotThrowAny {
+                    dbExtension.db.transaction {
+                        OrganizationsTable.insert {
+                            it[name] = "name"
+                            it[description] = "description"
+                        }
+                    }
+                }
+            }
+
+            "run a nested transaction in the same transaction" {
+                dbExtension.db.transaction {
+                    val outerTransaction = this
+
+                    dbExtension.db.transaction {
+                        this shouldBeSameInstanceAs outerTransaction
+                    }
+                }
+            }
+
+            "run a nested dbQuery in the same transaction" {
+                dbExtension.db.transaction {
+                    val outerTransaction = this
+                    val outerThread = Thread.currentThread()
+
+                    dbExtension.db.dbQuery {
+                        this shouldBeSameInstanceAs outerTransaction
+                        Thread.currentThread() shouldNotBeSameInstanceAs outerThread
+                    }
+                }
+            }
+
+            "run a nested blockingQuery in the same transaction" {
+                dbExtension.db.transaction {
+                    val outerTransaction = this
+                    val outerThread = Thread.currentThread()
+
+                    dbExtension.db.blockingQuery {
+                        this shouldBeSameInstanceAs outerTransaction
+                        Thread.currentThread() shouldBeSameInstanceAs outerThread
+                    }
+                }
+            }
+        }
+
+        "transactionCatching" should {
+            "execute a block of code in a transaction and return a Result" {
+                val result = dbExtension.db.transactionCatching {
+                    OrganizationsTable.insert {
+                        it[name] = "name"
+                        it[description] = "description"
+                    }
+                }
+
+                result.isSuccess shouldBe true
+            }
+
+            "return a failure Result if an exception is thrown" {
+                val result = dbExtension.db.transactionCatching {
+                    throw RuntimeException("Test exception")
+                }
+
+                result.isFailure shouldBe true
+            }
+
+            "propagate CancellationException" {
+                shouldThrow<CancellationException> {
+                    dbExtension.db.transactionCatching {
+                        throw CancellationException("Test cancellation")
+                    }
+                }
+            }
+
+            "propagate Error" {
+                shouldThrow<Error> {
+                    dbExtension.db.transactionCatching {
+                        throw Error("Test error")
                     }
                 }
             }
