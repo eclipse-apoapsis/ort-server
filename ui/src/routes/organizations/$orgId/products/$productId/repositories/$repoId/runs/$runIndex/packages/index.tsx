@@ -68,7 +68,10 @@ import {
   EMPTY_SORTING_STATE,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  getPackageIdFilter,
+  identifierToString,
+} from '@/helpers/identifier-conversion';
 import {
   createAppColumnHelper,
   selectNoTableState,
@@ -376,6 +379,7 @@ const PackagesComponent = () => {
       ? undefined
       : search.isDirectDependency === 'true';
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const packageIdFilterType = search.pkgIdType ?? packageIdType;
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -412,9 +416,7 @@ const PackagesComponent = () => {
         limit: pageSize,
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
-        ...(packageIdType === packageIdTypeSchema.enum.ORT_ID
-          ? { identifier: packageId }
-          : { purl: packageId }),
+        ...getPackageIdFilter(packageId, packageIdFilterType),
         declaredLicense: declaredLicense?.join(','),
         isDirectDependency,
       },
@@ -507,7 +509,12 @@ const PackagesComponent = () => {
             filterVariant: 'text',
             setFilterValue: (value: string | undefined) => {
               navigate({
-                search: { ...search, page: 1, pkgId: value },
+                search: {
+                  ...search,
+                  page: 1,
+                  pkgId: value,
+                  pkgIdType: packageIdType,
+                },
               });
             },
           },
