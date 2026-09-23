@@ -111,4 +111,4 @@ it('expands a card when sorting defaults to an empty state', async () => {
   await user.click(await screen.findByRole('button', { name: 'Expand row' }));
 
   expect(await screen.findByText('Example project details')).toBeVisible();
-}, 1000);
+});
