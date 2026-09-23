@@ -53,6 +53,16 @@ export function getPackageIdString(
     : identifierToString(pkg.packageId);
 }
 
+/** Return an API query filter for a package identifier of the given type. */
+export function getPackageIdFilter(
+  packageId: string | undefined,
+  packageIdType: PackageIdType
+): { identifier?: string; purl?: string } {
+  return packageIdType === packageIdTypeSchema.enum.ORT_ID
+    ? { identifier: packageId }
+    : { purl: packageId };
+}
+
 /** Compare packages by the identifiers displayed in package columns. */
 export function comparePackageIds(
   pkgA: PackageIdentifier,
