@@ -114,10 +114,14 @@ const RuleViolationCard = ({
 }) => {
   const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
-  const id =
+  const purl =
     packageIdType === packageIdTypeSchema.enum.PURL && ruleViolation.purl
       ? ruleViolation.purl
-      : identifierToString(ruleViolation.id);
+      : undefined;
+  const id = purl ?? identifierToString(ruleViolation.id);
+  const idType = purl
+    ? packageIdTypeSchema.enum.PURL
+    : packageIdTypeSchema.enum.ORT_ID;
 
   return (
     <div className='flex flex-col gap-1'>
@@ -125,7 +129,7 @@ const RuleViolationCard = ({
         <div className='min-w-0 flex-1'>
           <Tooltip>
             <TooltipTrigger asChild>
-              {ruleViolation.purl ? (
+              {ruleViolation.purl != null ? (
                 <Link
                   className='text-left font-semibold text-blue-400 hover:underline'
                   to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
@@ -135,7 +139,7 @@ const RuleViolationCard = ({
                     repoId: params.repoId,
                     runIndex: params.runIndex,
                   }}
-                  search={{ pkgId: id, marked: '0' }}
+                  search={{ pkgId: id, pkgIdType: idType, marked: '0' }}
                 >
                   <BreakableString text={id} />
                 </Link>
@@ -156,7 +160,7 @@ const RuleViolationCard = ({
               )}
             </TooltipTrigger>
             <TooltipContent>
-              {ruleViolation.purl
+              {ruleViolation.purl != null
                 ? 'Inspect the package details in packages table'
                 : 'Inspect the project details in projects table'}
             </TooltipContent>
