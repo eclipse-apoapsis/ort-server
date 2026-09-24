@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerP
 import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
 import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingKey
 import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingsTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -83,7 +84,7 @@ internal fun Route.getServerSettingByKey(db: Database) = get("settings/server/{k
         return@get
     }
 
-    val serverSetting = transaction(db) { ServerSettingsTable.get(key) }
+    val serverSetting = db.transaction { ServerSettingsTable.get(key) }
 
     call.respond(HttpStatusCode.OK, serverSetting)
 }

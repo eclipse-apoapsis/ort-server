@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSup
 import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSetting
 import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingKey
 import org.eclipse.apoapsis.ortserver.components.serversettings.ServerSettingsTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -84,7 +85,7 @@ internal fun Route.setServerSettingByKey(db: Database) = post("settings/server/{
 
     val serverSetting = call.receive<ServerSetting>()
 
-    transaction(db) {
+    db.transaction {
         ServerSettingsTable.insertOrUpdate(
             key = key,
             value = serverSetting.value,
