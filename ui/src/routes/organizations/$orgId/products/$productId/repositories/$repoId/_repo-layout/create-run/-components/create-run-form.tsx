@@ -92,6 +92,7 @@ export type CreateRunFormProps = {
   onSubmit: (payload: PostRepositoryRun) => Promise<void> | void;
   permissions: CreateRunPermissions;
   plugins: PreconfiguredPluginDescriptor[];
+  pluginsLoading?: boolean;
   rerun: OrtRun | null;
   secrets: Secret[];
 };
@@ -103,6 +104,7 @@ export const CreateRunForm = ({
   onSubmit,
   permissions,
   plugins,
+  pluginsLoading = false,
   rerun,
   secrets,
 }: CreateRunFormProps) => {
@@ -320,6 +322,7 @@ export const CreateRunForm = ({
   });
 
   async function submitForm(values: CreateRunFormValues) {
+    if (pluginsLoading) return;
     await onSubmit(formValuesToPayload(values, plugins));
   }
 
@@ -601,70 +604,79 @@ export const CreateRunForm = ({
             <div className='text-sm text-gray-500'>
               Configure the jobs to be included in the run.
             </div>
-            <Accordion
-              type='multiple'
-              value={openAccordions}
-              onValueChange={(value) =>
-                setOpenAccordions(value as AccordionSection[])
-              }
-            >
-              <AnalyzerFields
-                form={form}
-                value='analyzer'
-                onToggle={() => toggleAccordionOpen('analyzer')}
-                isSuperuser={isSuperuser}
-                packageCurationProviderPlugins={packageCurationProviderPlugins}
-                packageManagerPlugins={packageManagerPlugins}
-                pluginSecrets={secrets}
-                isRerun={isRerun}
-                permissions={permissions}
-              />
-              <AdvisorFields
-                form={form}
-                value='advisor'
-                onToggle={() => toggleAccordionOpen('advisor')}
-                advisorPlugins={advisorPlugins}
-                secrets={secrets}
-                isSuperuser={isSuperuser}
-              />
-              <ScannerFields
-                form={form}
-                value='scanner'
-                onToggle={() => toggleAccordionOpen('scanner')}
-                scannerPlugins={scannerPlugins}
-                secrets={secrets}
-                isSuperuser={isSuperuser}
-              />
-              <EvaluatorFields
-                form={form}
-                value='evaluator'
-                onToggle={() => toggleAccordionOpen('evaluator')}
-                isSuperuser={isSuperuser}
-                packageConfigurationProviderPlugins={
-                  packageConfigurationProviderPlugins
+            {pluginsLoading ? (
+              <div className='text-muted-foreground flex items-center gap-2 text-sm'>
+                <Loader2 size={16} className='animate-spin' />
+                Loading available plugins...
+              </div>
+            ) : (
+              <Accordion
+                type='multiple'
+                value={openAccordions}
+                onValueChange={(value) =>
+                  setOpenAccordions(value as AccordionSection[])
                 }
-                secrets={secrets}
-                isRerun={isRerun}
-              />
-              <ReporterFields
-                form={form}
-                value='reporter'
-                onToggle={() => toggleAccordionOpen('reporter')}
-                reporterPlugins={reporterPlugins}
-                isSuperuser={isSuperuser}
-                packageConfigurationProviderPlugins={
-                  packageConfigurationProviderPlugins
-                }
-                secrets={secrets}
-                isRerun={isRerun}
-              />
-              <NotifierFields
-                form={form}
-                value='notifier'
-                onToggle={() => toggleAccordionOpen('notifier')}
-                isSuperuser={isSuperuser}
-              />
-            </Accordion>
+              >
+                <AnalyzerFields
+                  form={form}
+                  value='analyzer'
+                  onToggle={() => toggleAccordionOpen('analyzer')}
+                  isSuperuser={isSuperuser}
+                  packageCurationProviderPlugins={
+                    packageCurationProviderPlugins
+                  }
+                  packageManagerPlugins={packageManagerPlugins}
+                  pluginSecrets={secrets}
+                  isRerun={isRerun}
+                  permissions={permissions}
+                />
+                <AdvisorFields
+                  form={form}
+                  value='advisor'
+                  onToggle={() => toggleAccordionOpen('advisor')}
+                  advisorPlugins={advisorPlugins}
+                  secrets={secrets}
+                  isSuperuser={isSuperuser}
+                />
+                <ScannerFields
+                  form={form}
+                  value='scanner'
+                  onToggle={() => toggleAccordionOpen('scanner')}
+                  scannerPlugins={scannerPlugins}
+                  secrets={secrets}
+                  isSuperuser={isSuperuser}
+                />
+                <EvaluatorFields
+                  form={form}
+                  value='evaluator'
+                  onToggle={() => toggleAccordionOpen('evaluator')}
+                  isSuperuser={isSuperuser}
+                  packageConfigurationProviderPlugins={
+                    packageConfigurationProviderPlugins
+                  }
+                  secrets={secrets}
+                  isRerun={isRerun}
+                />
+                <ReporterFields
+                  form={form}
+                  value='reporter'
+                  onToggle={() => toggleAccordionOpen('reporter')}
+                  reporterPlugins={reporterPlugins}
+                  isSuperuser={isSuperuser}
+                  packageConfigurationProviderPlugins={
+                    packageConfigurationProviderPlugins
+                  }
+                  secrets={secrets}
+                  isRerun={isRerun}
+                />
+                <NotifierFields
+                  form={form}
+                  value='notifier'
+                  onToggle={() => toggleAccordionOpen('notifier')}
+                  isSuperuser={isSuperuser}
+                />
+              </Accordion>
+            )}
           </CardContent>
           <CardFooter className='flex flex-col items-start gap-4'>
             {Object.keys(form.formState.errors).length > 0 && (
@@ -679,8 +691,10 @@ export const CreateRunForm = ({
               </div>
             )}
             <div className='flex w-full items-center justify-between'>
-              <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type='submit' disabled={isSubmitting || pluginsLoading}>
+                {pluginsLoading ? (
+                  'Plugins loading...'
+                ) : isSubmitting ? (
                   <>
                     <span className='sr-only'>Creating run...</span>
                     <Loader2 size={16} className='mx-3 animate-spin' />
@@ -693,6 +707,7 @@ export const CreateRunForm = ({
                 <Switch
                   id='test-form'
                   checked={isTest}
+                  disabled={pluginsLoading}
                   onCheckedChange={setIsTest}
                 />
                 <Label className='text-muted-foreground' htmlFor='test-form'>
@@ -700,7 +715,7 @@ export const CreateRunForm = ({
                 </Label>
               </div>
             </div>
-            {isTest && (
+            {isTest && !pluginsLoading && (
               <>
                 <h3 className='mt-4'>Form payload</h3>
                 <Label htmlFor='payload' className='text-muted-foreground'>
