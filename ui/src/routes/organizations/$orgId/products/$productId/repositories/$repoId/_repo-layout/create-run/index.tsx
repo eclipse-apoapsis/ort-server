@@ -19,7 +19,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 
 import type { PostRepositoryRun } from '@/api';
@@ -58,10 +58,14 @@ const CreateRunPage = () => {
     ortRun?.data?.jobConfigContext ?? ''
   );
 
-  const { plugins, pluginsLoading } = useCreateRunPlugins(
+  const { plugins, pluginsLoading, pluginsError } = useCreateRunPlugins(
     Number.parseInt(params.repoId),
     configContext
   );
+
+  useEffect(() => {
+    if (pluginsError) toastError('Unable to load plugins', pluginsError);
+  }, [pluginsError]);
 
   const {
     data: organization,
@@ -154,6 +158,7 @@ const CreateRunPage = () => {
       permissions={permissions}
       plugins={plugins}
       pluginsLoading={pluginsLoading}
+      pluginsLoadFailed={pluginsError !== null}
       rerun={ortRun?.data ?? null}
       secrets={secrets.data ?? []}
     />

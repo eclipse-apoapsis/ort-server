@@ -125,4 +125,21 @@ describe('useCreateRunPlugins', () => {
       })
     );
   });
+
+  it('reports an error if the plugins cannot be loaded', async () => {
+    const error = new Error('Config repository unavailable');
+    vi.mocked(getPluginsForRepository).mockRejectedValue(error);
+
+    const { result } = renderHook(() => useCreateRunPlugins(3, ''), {
+      wrapper,
+    });
+
+    await waitFor(() =>
+      expect(result.current).toMatchObject({
+        plugins: [],
+        pluginsLoading: false,
+        pluginsError: error,
+      })
+    );
+  });
 });
