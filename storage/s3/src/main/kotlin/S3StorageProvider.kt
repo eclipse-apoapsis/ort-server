@@ -33,7 +33,6 @@ import java.io.InputStream
 import java.security.MessageDigest
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
@@ -139,6 +138,5 @@ private const val CHECKSUM_ALGORITHM = "SHA-256"
 /**
  * Calculate a SHA256 checksum for the given [data] file. This is used to verify the integrity of uploaded data.
  */
-@OptIn(ExperimentalEncodingApi::class)
 private fun calculateSha256Checksum(data: File): String =
     Base64.encode(calculateHash(data, MessageDigest.getInstance(CHECKSUM_ALGORITHM)))

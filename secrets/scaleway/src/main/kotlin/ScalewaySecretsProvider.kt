@@ -39,7 +39,6 @@ import io.ktor.serialization.kotlinx.json.json
 import java.net.URLEncoder
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -92,7 +91,6 @@ class ScalewaySecretsProvider(
         }
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
     override suspend fun readSecret(path: Path): SecretValue? = withContext(Dispatchers.Virtual) {
         // See https://www.scaleway.com/en/developers/api/secret-manager/#path-secret-versions-access-a-secrets-version-using-the-secrets-name-and-path.
         val response = client.get("secrets-by-path/versions/$LATEST_REVISION/access") {
@@ -179,7 +177,6 @@ class ScalewaySecretsProvider(
         return response.body<ScalewaySecret>()
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
     private suspend fun createVersion(secretId: String, value: String): VersionCreateResponse {
         // See https://www.scaleway.com/en/developers/api/secret-manager/#path-secret-versions-create-a-version.
         val response = client.post("secrets/$secretId/versions") {

@@ -24,7 +24,6 @@ import com.typesafe.config.Config
 import java.io.File
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -65,7 +64,6 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     /**
      * Return a map representing all secrets stored in file-based secret storage.
      */
-    @OptIn(ExperimentalEncodingApi::class)
     private suspend fun readSecrets(): Map<Path, SecretValue> =
         withContext(Dispatchers.Virtual) {
             val file = getOrCreateStorageFile()
@@ -95,7 +93,6 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     /**
      * Return a map representing all secrets stored in file-based secret storage.
      */
-    @OptIn(ExperimentalEncodingApi::class)
     private suspend fun writeSecrets(secrets: Map<Path, SecretValue>) {
         withContext(Dispatchers.Virtual) {
             val secretsJson = Json.encodeToString<FileBasedSecretsStorage>(
