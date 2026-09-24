@@ -38,4 +38,5 @@ dependencies {
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
 }

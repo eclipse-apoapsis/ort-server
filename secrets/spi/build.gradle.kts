@@ -32,6 +32,8 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
+    api(libs.exposed.jdbc)
+
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)

@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * A simple implementation of the [SecretsProviderFactory] interface for testing purposes that uses an in-memory
  * storage to manage its secrets. A newly created provider instance is already populated with a number of secrets.
@@ -89,7 +91,7 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(configManager: ConfigManager): SecretsProvider =
+    override fun createProvider(configManager: ConfigManager, db: Database): SecretsProvider =
         createProvider(configManager.getStringOrDefault(ERROR_PATH_PROPERTY, "."))
 
     fun createProvider(errorPath: String = "."): SecretsProvider {
