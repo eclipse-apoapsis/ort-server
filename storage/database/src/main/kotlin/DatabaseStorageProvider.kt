@@ -23,15 +23,16 @@ import java.io.InputStream
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
-import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by a database table using PostgreSQL's large
@@ -42,9 +43,12 @@ class DatabaseStorageProvider(
     private val namespace: String,
 
     /** The maximum size of a storage entry that can be loaded into memory. */
-    private val inMemoryLimit: Int
+    private val inMemoryLimit: Int,
+
+    /** The database to use for storing secrets. */
+    private val db: Database
 ) : StorageProvider {
-    override suspend fun read(key: Key): StorageEntry = suspendTransaction {
+    override suspend fun read(key: Key): StorageEntry = db.transaction {
         val entry = findByKey(key).single()
 
         val inputStream = readLargeObject(entry.data, entry.size, inMemoryLimit)
@@ -52,7 +56,7 @@ class DatabaseStorageProvider(
     }
 
     override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
-        suspendTransaction {
+        db.transaction {
             // In case of an override, delete the key first. This may not be the cleanest solution (it has the
             // side effect that the createdAt date is changed), but it is very easy to implement.
             deleteKey(key)
@@ -68,11 +72,11 @@ class DatabaseStorageProvider(
         }
     }
 
-    override suspend fun contains(key: Key): Boolean = suspendTransaction {
+    override suspend fun contains(key: Key): Boolean = db.transaction {
         !findByKey(key).empty()
     }
 
-    override suspend fun delete(key: Key): Boolean = suspendTransaction {
+    override suspend fun delete(key: Key): Boolean = db.transaction {
         deleteKey(key)
     }
 

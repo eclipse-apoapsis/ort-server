@@ -167,7 +167,7 @@ suspend fun <T> Database.transaction(
  * switch the thread using `withContext(Dispatchers.IO)`, this keeps the coroutine context intact and copying the
  * current transaction from the [kotlinx.coroutines.ThreadContextElement] to the thread-local still works.
  */
-@Suppress("TooGenericExceptionCaught")
+@Suppress("ForbiddenMethodCall", "TooGenericExceptionCaught")
 suspend fun <T> Database.transactionCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
@@ -213,6 +213,7 @@ suspend fun <T> Database.dbQuery(
  * Exposed's [suspendTransaction] expects the current transaction to be stored in the coroutine context, while the
  * blocking [transaction] stores it in a thread-local.
  */
+@Suppress("ForbiddenMethodCall")
 suspend fun <T> Database.dbQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,
@@ -254,6 +255,7 @@ fun <T> Database.blockingQuery(
  * Exposed's [suspendTransaction] expects the current transaction to be stored in the coroutine context, while the
  * blocking [transaction] stores it in a thread-local.
  */
+@Suppress("ForbiddenMethodCall")
 fun <T> Database.blockingQueryCatching(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
     readOnly: Boolean = transactionManager.defaultReadOnly,

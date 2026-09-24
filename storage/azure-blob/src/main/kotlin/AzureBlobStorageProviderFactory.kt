@@ -27,6 +27,8 @@ import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactory
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 class AzureBlobStorageProviderFactory : StorageProviderFactory {
     companion object {
         const val CONTAINER_NAME_PROPERTY = "azureBlobContainerName"
@@ -36,7 +38,7 @@ class AzureBlobStorageProviderFactory : StorageProviderFactory {
 
     override val name = "azure-blob"
 
-    override fun createProvider(config: ConfigManager): StorageProvider {
+    override fun createProvider(config: ConfigManager, db: Database): StorageProvider {
         val defaultCredential = DefaultAzureCredentialBuilder().build()
 
         val endpointUrl = config.getStringOrNull(ENDPOINT_URL_PROPERTY)

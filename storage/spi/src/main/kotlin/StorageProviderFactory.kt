@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.storage
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * Definition of a factory interface for creating a concrete [StorageProvider] instance.
  *
@@ -33,7 +35,7 @@ interface StorageProviderFactory {
     val name: String
 
     /**
-     * Return an initialized [StorageProvider] using the given [config].
+     * Return an initialized [StorageProvider] using the given [config] and [database][db].
      */
-    fun createProvider(config: ConfigManager): StorageProvider
+    fun createProvider(config: ConfigManager, db: Database): StorageProvider
 }

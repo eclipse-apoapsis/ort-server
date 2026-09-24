@@ -89,7 +89,7 @@ fun ortRunServiceModule(): Module = module {
     single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
 
     single {
-        val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
+        val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get(), get())
         FileListResolver(
             OrtServerFileListStorage(storage),
             DefaultProvenanceDownloader(DownloaderConfiguration(), DefaultWorkingTreeCache())

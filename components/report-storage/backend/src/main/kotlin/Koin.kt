@@ -25,7 +25,7 @@ import org.koin.dsl.module
 
 val reportStorageModule = module {
     single {
-        val storage = Storage.create("reportStorage", get())
+        val storage = Storage.create("reportStorage", get(), get())
         ReportStorageService(storage, get())
     }
 }

@@ -99,12 +99,12 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
 
     private fun scannerModule(): Module = module {
         single {
-            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
+            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get(), get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
         }
 
         single {
-            val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
+            val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get(), get())
             OrtServerFileListStorage(storage)
         }
 
