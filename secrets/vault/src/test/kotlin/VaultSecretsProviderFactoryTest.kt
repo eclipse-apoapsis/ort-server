@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.secrets.vault
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
@@ -33,7 +35,7 @@ class VaultSecretsProviderFactoryTest : StringSpec() {
         "A SecretStorage accessing a Vault service can be created" {
             val config = vault.createApplicationConfig()
 
-            val storage = SecretStorage.createStorage(config)
+            val storage = SecretStorage.createStorage(config, mockk())
 
             storage.getSecret(Path("password")) shouldBe SecretValue("tiger")
         }

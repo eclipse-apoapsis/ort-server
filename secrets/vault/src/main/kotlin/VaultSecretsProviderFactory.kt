@@ -23,6 +23,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 import org.slf4j.LoggerFactory
 
 /**
@@ -36,7 +38,7 @@ class VaultSecretsProviderFactory : SecretsProviderFactory {
 
     override val name: String = "vault"
 
-    override fun createProvider(configManager: ConfigManager): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager, db: Database): SecretsProvider {
         val vaultConfig = VaultConfiguration.create(configManager)
 
         logger.info("Creating VaultSecretsProvider.")

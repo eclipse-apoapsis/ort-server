@@ -44,7 +44,7 @@ fun workerContextModule(): Module = module {
 
     single<SecretRepository> { DaoSecretRepository(get()) }
     single {
-        val secretStorage = SecretStorage.createStorage(get())
+        val secretStorage = SecretStorage.createStorage(get(), get())
         SecretService(get(), get(), secretStorage)
     }
     single { SecretResolverService.wrapSecretService(get()) }
