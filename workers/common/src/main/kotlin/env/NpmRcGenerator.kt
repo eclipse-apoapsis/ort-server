@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import java.io.PrintWriter
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 import org.eclipse.apoapsis.ortserver.shared.authenticator.resolveSecrets
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
@@ -52,7 +51,6 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         /**
          * Return the value of this string base64 encoded.
          */
-        @OptIn(ExperimentalEncodingApi::class)
         private fun String.base64(): String =
             Base64.encode(toByteArray())
 

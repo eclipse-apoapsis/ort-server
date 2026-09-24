@@ -28,13 +28,11 @@ import io.mockk.every
 import io.mockk.mockk
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
-@OptIn(ExperimentalEncodingApi::class)
 class ReportDownloadLinkGeneratorTest : WordSpec({
     "generateLink" should {
         "generate unique links" {
