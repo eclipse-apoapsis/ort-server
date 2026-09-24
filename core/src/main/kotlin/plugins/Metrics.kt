@@ -35,10 +35,14 @@ import io.micrometer.graphite.GraphiteMeterRegistry
 
 import org.eclipse.apoapsis.ortserver.core.utils.JobMetrics
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 import org.koin.ktor.ext.inject
 
 fun Application.configureMetrics() {
     val config: ApplicationConfig by inject()
+    val db: Database by inject()
+
     val metricsPrefix = config.property("micrometer.graphite.tagsAsPrefix").getString()
 
     // Create and configure the Graphite registry
@@ -54,7 +58,7 @@ fun Application.configureMetrics() {
             JvmGcMetrics(),
             JvmThreadMetrics(),
             ProcessorMetrics(),
-            JobMetrics(this@configureMetrics)
+            JobMetrics(this@configureMetrics, db)
         )
         registry = graphiteRegistry
     }
