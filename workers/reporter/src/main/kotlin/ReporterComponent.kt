@@ -146,7 +146,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         includes(reportStorageModule)
 
         single {
-            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
+            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get(), get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
         }
 

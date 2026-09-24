@@ -25,6 +25,8 @@ import java.io.InputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * A simple implementation of the [StorageProviderFactory] interface for testing purposes that stores data in memory.
  */
@@ -84,7 +86,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(config: ConfigManager): StorageProvider {
+    override fun createProvider(config: ConfigManager, db: Database): StorageProvider {
         val storage = mutableMapOf<Key, Entry>()
         val errorKey = if (config.hasPath(ERROR_KEY_PROPERTY)) config.getString(ERROR_KEY_PROPERTY) else "<undefined>"
 

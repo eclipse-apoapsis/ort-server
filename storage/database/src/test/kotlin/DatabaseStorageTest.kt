@@ -42,13 +42,14 @@ import org.eclipse.apoapsis.ortserver.storage.StorageException
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 import org.postgresql.PGConnection
 
 class DatabaseStorageTest : WordSpec({
-    extension(DatabaseTestExtension())
+    val dbExtension = extension(DatabaseTestExtension())
 
     "write" should {
         "add an entry into the database" {
@@ -56,7 +57,7 @@ class DatabaseStorageTest : WordSpec({
             val data = "This is the data to be added."
             val contentType = "text/plain"
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, data, contentType)
 
             transaction {
@@ -75,7 +76,7 @@ class DatabaseStorageTest : WordSpec({
             val data = "This is the updated data of the test entry."
             val contentType = "test/content"
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, "originalData", "text/original")
 
             storage.write(key, data, contentType)
@@ -93,7 +94,7 @@ class DatabaseStorageTest : WordSpec({
             val data = "The data from the storage."
             val contentType = "application/octet-stream"
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, data, contentType)
 
             storage.read(key).use { entry ->
@@ -106,7 +107,7 @@ class DatabaseStorageTest : WordSpec({
             val key = Key("largeEntry")
             val data = ByteArray(256) { it.toByte() }
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, data)
 
             storage.read(key).use { entry ->
@@ -115,7 +116,7 @@ class DatabaseStorageTest : WordSpec({
         }
 
         "throw an exception if the key cannot be resolved" {
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
 
             shouldThrow<StorageException> {
                 storage.read(Key("This_cannot_be_found"))
@@ -125,7 +126,7 @@ class DatabaseStorageTest : WordSpec({
 
     "contains" should {
         "return false for a non existing entry" {
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
 
             storage.containsKey(Key("nonExistingKey")) shouldBe false
         }
@@ -133,7 +134,7 @@ class DatabaseStorageTest : WordSpec({
         "return true for an existing entry" {
             val key = Key("theKey")
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, "someData")
 
             storage.containsKey(key) shouldBe true
@@ -143,10 +144,10 @@ class DatabaseStorageTest : WordSpec({
             val key = Key("namespaceEntry")
             val data = "The data from the storage in another namespace."
 
-            val otherStorage = createStorage(namespace = "otherNamespace")
+            val otherStorage = createStorage(dbExtension.db, namespace = "otherNamespace")
             otherStorage.write(key, data)
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.containsKey(key) shouldBe false
         }
     }
@@ -155,7 +156,7 @@ class DatabaseStorageTest : WordSpec({
         "delete an entry from the database" {
             val key = Key("toBeDeleted")
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, "Data to be deleted...")
 
             storage.delete(key) shouldBe true
@@ -165,7 +166,7 @@ class DatabaseStorageTest : WordSpec({
         "return false for a non-existing entry" {
             val key = Key("nonExisting")
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
 
             storage.delete(key) shouldBe false
         }
@@ -173,7 +174,7 @@ class DatabaseStorageTest : WordSpec({
         "delete the large object associated with the key" {
             val key = Key("toBeFullyDeleted")
 
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             storage.write(key, "This is data to be stored in a large object and will then be deleted.")
 
             val oid = transaction {
@@ -202,12 +203,12 @@ private const val NAMESPACE = "test-storage"
 /**
  * Create a [Storage] that is configured to use the [DatabaseStorageProvider] implementation for the given [namespace].
  */
-private fun createStorage(namespace: String = NAMESPACE): Storage {
+private fun createStorage(db: Database, namespace: String = NAMESPACE): Storage {
     val config = ConfigFactory.parseMap(
         mapOf(
             namespace to mapOf("name" to "database", "namespace" to namespace, "inMemoryLimit" to 32)
         )
     )
 
-    return Storage.create(namespace, ConfigManager.create(config))
+    return Storage.create(namespace, ConfigManager.create(config), db)
 }

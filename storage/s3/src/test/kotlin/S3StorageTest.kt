@@ -42,6 +42,8 @@ import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
@@ -300,5 +302,5 @@ private fun FlociContainer.createStorage(
         )
     )
 
-    return Storage.create(bucket, ConfigManager.create(config))
+    return Storage.create(bucket, ConfigManager.create(config), mockk())
 }

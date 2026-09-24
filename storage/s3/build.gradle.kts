@@ -41,6 +41,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.extensions.testcontainers)
     testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
     testImplementation(libs.testContainers.floci)
 
     testFixturesRuntimeOnly(libs.testContainers)
