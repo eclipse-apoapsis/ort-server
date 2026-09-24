@@ -28,9 +28,11 @@ group = "org.eclipse.apoapsis.ortserver.storage"
 dependencies {
     api(projects.storage.storageSpi)
 
-    api(libs.exposed.dao)
+    implementation(projects.dao)
 
-    implementation(libs.exposed.jdbc)
+    api(libs.exposed.dao)
+    api(libs.exposed.jdbc)
+
     implementation(libs.exposed.kotlinDatetime)
     implementation(libs.postgres)
 

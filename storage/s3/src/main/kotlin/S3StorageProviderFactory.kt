@@ -31,6 +31,8 @@ import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactory
 import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * The implementation of the [StorageProviderFactory] interface for the AWS S3 storage. This factory creates a
  * [S3StorageProvider] to interact with the AWS S3 storage.
@@ -82,7 +84,7 @@ class S3StorageProviderFactory : StorageProviderFactory {
     /**
      * Create an instance of the [S3StorageProvider] using the provided [configuration][config].
      */
-    override fun createProvider(config: ConfigManager): StorageProvider {
+    override fun createProvider(config: ConfigManager, db: Database): StorageProvider {
         val client = S3Client {
             region = config.getStringOrNull(REGION_PROPERTY)
             endpointUrl = Url.parse(config.getString(ENDPOINT_URL_PROPERTY))

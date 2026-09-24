@@ -27,6 +27,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.mockk
+
 import java.io.ByteArrayInputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -118,5 +120,5 @@ private fun createStorage(): Storage {
     val configMap = mapOf(storageType to mapOf("name" to StorageProviderFactoryForTesting.NAME))
     val config = ConfigFactory.parseMap(configMap)
 
-    return Storage.create(storageType, ConfigManager.create(config))
+    return Storage.create(storageType, ConfigManager.create(config), mockk())
 }
