@@ -280,10 +280,10 @@ importers:
         version: 3.10.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(csso@5.0.5)(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(supports-color@8.1.1)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: 4.7.1
-        version: 4.7.1(prettier@3.9.7)(supports-color@8.1.1)
+        version: 4.7.1(prettier@3.9.8)(supports-color@8.1.1)
       prettier:
-        specifier: 3.9.7
-        version: 3.9.7
+        specifier: 3.9.8
+        version: 3.9.8
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -5396,8 +5396,8 @@ packages:
     resolution: {integrity: sha512-EOgUMBazo7JNP4TDrd64TsooCiWzzo4143Ws8E8WYGEpn2PKpq+S4XRTDhuRTYHm3VKOpUZs7ZYZq7zSDuesqA==}
     engines: {node: '>=10'}
 
-  prettier@3.9.7:
-    resolution: {integrity: sha512-T3mF5P7HFzZVLDQuCUNtJj6WK1pcpLMweMNUVwGb01bLNkH9AkKxtZvmInw8K6bnn2O3d6/5RHl6zSHiBAD0Og==}
+  prettier@3.9.8:
+    resolution: {integrity: sha512-WRFq3Wn3WId7LLROfMLdH7xaFr2jR62wU8nLO6rQUOLOxNZUviyJQs1M0iIhLexSFy+L+w0ch66wtoO2jRjG0A==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -8902,13 +8902,13 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
       react-hook-form: 7.87.0(react@19.3.0)
 
-  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.9.7)(supports-color@8.1.1)':
+  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.9.8)(supports-color@8.1.1)':
     dependencies:
       '@babel/generator': 7.29.8
       '@babel/parser': 7.29.8
       '@babel/traverse': 7.29.8(supports-color@8.1.1)
       '@babel/types': 7.29.8
-      prettier: 3.9.7
+      prettier: 3.9.8
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
@@ -13429,7 +13429,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  prettier@3.9.7: {}
+  prettier@3.9.8: {}
 
   pretty-error@4.0.0:
     dependencies:
