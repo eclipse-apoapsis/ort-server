@@ -117,10 +117,17 @@ style:
     active: false
   ForbiddenMethodCall:
     active: true
-    # Use org.eclipse.apoapsis.ortserver.utils.logging.runBlocking to make sure the MDC context is preserved.
-    # An exception to that is code where the MDC context is not relevant, e.g., in tests.
-    methods: ['kotlinx.coroutines.runBlocking']
-    excludes: ['**/cli/**'] # The CLI does not have accees to the utils package, therefore, exclude it for this rule.
+    methods:
+      # Use org.eclipse.apoapsis.ortserver.utils.logging.runBlocking to make sure the MDC context is preserved.
+      - 'kotlinx.coroutines.runBlocking'
+      # Use the helpers from org.eclipse.apoapsis.ortserver.dao instead.
+      - 'org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction'
+      - 'org.jetbrains.exposed.v1.jdbc.transactions.transaction'
+    excludes:
+      - '**/cli/**' # The CLI does not have access to the utils package that contains the alternative runBlocking.
+      - '**/src/test/**'
+      - '**/src/testFixtures/**'
+      - '**/src/*Test/**'
   LoopWithTooManyJumpStatements:
     active: false
   MagicNumber:
