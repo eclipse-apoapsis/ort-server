@@ -17,12 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -30,17 +25,16 @@ import { z } from 'zod';
 import type { PostRepositoryRun } from '@/api';
 import {
   getOrganizationOptions,
-  getPluginsForRepositoryOptions,
   getProductOptions,
   getRepositoryOptions,
   postRepositoryRunMutation,
 } from '@/api/@tanstack/react-query.gen';
-import {
-  getAvailableRepositorySecrets,
-  getPluginsForRepository,
-  getRepositoryRun,
-} from '@/api/sdk.gen';
+import { getAvailableRepositorySecrets, getRepositoryRun } from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import {
+  createRunPluginsOptions,
+  useCreateRunPlugins,
+} from '@/hooks/use-create-run-plugins';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
 import { runCreated } from '@/lib/entity-cache';
@@ -52,7 +46,7 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const queryClient = useQueryClient();
-  const { ortRun, plugins: loaderPlugins, secrets } = Route.useLoaderData();
+  const { ortRun, secrets } = Route.useLoaderData();
   const { recordRecentRun } = useHomeRecentRunActions();
   const isSuperuser = useUser().isSuperuser || false;
   const permissions = Route.useRouteContext().permissions;
@@ -64,14 +58,10 @@ const CreateRunPage = () => {
     ortRun?.data?.jobConfigContext ?? ''
   );
 
-  const { data: plugins } = useQuery({
-    ...getPluginsForRepositoryOptions({
-      path: { repositoryId: Number.parseInt(params.repoId) },
-      query: configContext ? { configContext } : undefined,
-    }),
-    initialData: loaderPlugins.data ?? [],
-    placeholderData: keepPreviousData,
-  });
+  const { plugins, pluginsLoading } = useCreateRunPlugins(
+    Number.parseInt(params.repoId),
+    configContext
+  );
 
   const {
     data: organization,
@@ -163,6 +153,7 @@ const CreateRunPage = () => {
       onSubmit={submitRun}
       permissions={permissions}
       plugins={plugins}
+      pluginsLoading={pluginsLoading}
       rerun={ortRun?.data ?? null}
       secrets={secrets.data ?? []}
     />
@@ -183,7 +174,7 @@ export const Route = createFileRoute(
   // It is important to notice that if no rerunIndex is provided to this route,
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
-  loader: async ({ params, deps: { rerunIndex } }) => {
+  loader: async ({ params, deps: { rerunIndex }, context }) => {
     const ortRun =
       rerunIndex !== undefined
         ? await getRepositoryRun({
@@ -194,29 +185,18 @@ export const Route = createFileRoute(
           })
         : null;
 
-    // The config context of the run being rerun determines which plugins are
-    // available, so use it for the initial plugin fetch.
+    // Start loading the plugins without blocking the page. For reruns, use the
+    // original run's config context for the initial fetch.
     const configContext = ortRun?.data?.jobConfigContext || undefined;
+    void context.queryClient.prefetchQuery(
+      createRunPluginsOptions(Number.parseInt(params.repoId), configContext)
+    );
 
-    const [plugins, secrets] = await Promise.all([
-      getPluginsForRepository({
-        path: {
-          repositoryId: Number.parseInt(params.repoId),
-        },
-        query: configContext ? { configContext } : undefined,
-      }),
-      getAvailableRepositorySecrets({
-        path: {
-          repositoryId: Number.parseInt(params.repoId),
-        },
-      }),
-    ]);
+    const secrets = await getAvailableRepositorySecrets({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+    });
 
-    return {
-      ortRun,
-      plugins,
-      secrets,
-    };
+    return { ortRun, secrets };
   },
   component: CreateRunPage,
   validateSearch: rerunIndexSchema,

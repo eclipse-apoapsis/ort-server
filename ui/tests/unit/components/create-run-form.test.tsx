@@ -111,14 +111,23 @@ const renderSwappableForm = (
   initial: PreconfiguredPluginDescriptor[],
   next: PreconfiguredPluginDescriptor[],
   onSubmit = vi.fn(),
-  run = rerun
+  run = rerun,
+  initiallyLoading = false
 ) => {
   const Harness = () => {
     const [plugins, setPlugins] = useState(initial);
+    const [loading, setLoading] = useState(initiallyLoading);
     const [tick, setTick] = useState(0);
     return (
       <>
-        <button onClick={() => setPlugins(next)}>Swap plugins</button>
+        <button
+          onClick={() => {
+            setPlugins(next);
+            setLoading(false);
+          }}
+        >
+          Swap plugins
+        </button>
         <button onClick={() => setTick(tick + 1)}>Unrelated render</button>
         <CreateRunForm
           isSubmitting={false}
@@ -126,6 +135,7 @@ const renderSwappableForm = (
           onSubmit={onSubmit}
           permissions={permissions}
           plugins={plugins}
+          pluginsLoading={loading}
           rerun={run}
           secrets={secrets}
         />
@@ -155,6 +165,46 @@ const getJobSwitch = (job: string) => {
 };
 
 describe('CreateRunForm', () => {
+  it('keeps basic inputs editable and blocks creation while plugins load', async () => {
+    const loadedAdvisor = createPluginDescriptor({
+      ...advisorPlugin,
+      options: [
+        { ...advisorPlugin.options[0], defaultValue: 'https://osv.dev' },
+      ],
+    });
+    const { user, onSubmit } = renderSwappableForm(
+      [],
+      [loadedAdvisor, scannerPlugin, ...packageManagerPlugins],
+      vi.fn(),
+      rerun,
+      true
+    );
+    const button = await screen.findByRole('button', {
+      name: 'Plugins loading...',
+    });
+    expect(button).toBeDisabled();
+    expect(within(button).queryByText('Creating run...')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Create' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Advisor' })).toBeNull();
+    expect(screen.getByText('Loading available plugins...')).toBeVisible();
+    expect(screen.getByRole('switch', { name: 'Show payload' })).toBeDisabled();
+
+    await user.type(screen.getByLabelText('Revision'), 'feature');
+    await user.click(screen.getByRole('button', { name: 'Swap plugins' }));
+    expect(screen.getByLabelText('Revision')).toHaveValue('feature');
+    expect(screen.queryByText('Loading available plugins...')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        revision: 'feature',
+        jobConfigs: expect.objectContaining({
+          analyzer: expect.objectContaining({ enabledPackageManagers }),
+        }),
+      })
+    );
+  });
+
   it('submits the payload produced from entered form values', async () => {
     const { onSubmit, user } = renderCreateRunForm();
 
