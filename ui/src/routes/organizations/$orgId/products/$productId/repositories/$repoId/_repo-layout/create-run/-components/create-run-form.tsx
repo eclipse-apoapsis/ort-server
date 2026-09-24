@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -110,23 +110,32 @@ export const CreateRunForm = ({
   const isRerun = rerun !== null;
   const [openAccordions, setOpenAccordions] = useState<AccordionSection[]>([]);
 
-  const advisorPlugins = plugins.filter((plugin) => plugin.type === 'ADVISOR');
-  const reporterPlugins = plugins.filter(
-    (plugin) => plugin.type === 'REPORTER'
-  );
-  const scannerPlugins = plugins.filter((plugin) => plugin.type === 'SCANNER');
-  const packageCurationProviderPlugins = plugins.filter(
-    (plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER'
-  );
-  const packageConfigurationProviderPlugins = plugins.filter(
-    (plugin) => plugin.type === 'PACKAGE_CONFIGURATION_PROVIDER'
-  );
-  // The 'Unmanaged' package manager is always enabled and therefore not offered for selection.
-  const packageManagerPlugins = plugins.filter(
-    (plugin) =>
-      plugin.type === 'PACKAGE_MANAGER' &&
-      plugin.id !== UNMANAGED_PACKAGE_MANAGER_ID
-  );
+  // Memoize the grouping so that its identity only changes with the plugins.
+  const pluginGroups = useMemo(() => {
+    const byType = (type: PreconfiguredPluginDescriptor['type']) =>
+      plugins.filter((plugin) => plugin.type === type);
+    return {
+      advisorPlugins: byType('ADVISOR'),
+      reporterPlugins: byType('REPORTER'),
+      scannerPlugins: byType('SCANNER'),
+      packageCurationProviderPlugins: byType('PACKAGE_CURATION_PROVIDER'),
+      packageConfigurationProviderPlugins: byType(
+        'PACKAGE_CONFIGURATION_PROVIDER'
+      ),
+      // The 'Unmanaged' package manager is always enabled and therefore not offered for selection.
+      packageManagerPlugins: byType('PACKAGE_MANAGER').filter(
+        (plugin) => plugin.id !== UNMANAGED_PACKAGE_MANAGER_ID
+      ),
+    };
+  }, [plugins]);
+  const {
+    advisorPlugins,
+    reporterPlugins,
+    scannerPlugins,
+    packageCurationProviderPlugins,
+    packageConfigurationProviderPlugins,
+    packageManagerPlugins,
+  } = pluginGroups;
 
   // Manually toggle accordion open/close state
   const toggleAccordionOpen = (value: AccordionSection) => {
@@ -147,19 +156,138 @@ export const CreateRunForm = ({
     packageManagerPlugins
   );
 
+  // `values` lets React Hook Form update untouched fields when the plugins change.
+  // Memoize them so unrelated form renders do not trigger a reset.
+  const pluginDefaults = useMemo(
+    () =>
+      defaultValues(
+        rerun,
+        pluginGroups.advisorPlugins,
+        pluginGroups.scannerPlugins,
+        pluginGroups.reporterPlugins,
+        isSuperuser,
+        pluginGroups.packageCurationProviderPlugins,
+        pluginGroups.packageConfigurationProviderPlugins,
+        pluginGroups.packageManagerPlugins
+      ),
+    [pluginGroups, rerun, isSuperuser]
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues(
-      rerun,
-      advisorPlugins,
-      scannerPlugins,
-      reporterPlugins,
-      isSuperuser,
-      packageCurationProviderPlugins,
-      packageConfigurationProviderPlugins,
-      packageManagerPlugins
-    ),
+    values: pluginDefaults,
+    resetOptions: { keepDirtyValues: true, keepTouched: true },
   });
+
+  // Dirty values kept by React Hook Form can still refer to removed plugins.
+  const appliedPluginGroups = useRef(pluginGroups);
+  useEffect(() => {
+    if (appliedPluginGroups.current === pluginGroups) return;
+    appliedPluginGroups.current = pluginGroups;
+
+    // Prune these references even when their accordion is collapsed / unmounted.
+    const ids = (descriptors: PreconfiguredPluginDescriptor[]) =>
+      new Set(descriptors.map((plugin) => plugin.id));
+    const pruneSelection = (
+      path:
+        | 'jobConfigs.analyzer.packageManagers'
+        | 'jobConfigs.analyzer.packageCurationProviders'
+        | 'jobConfigs.advisor.advisors'
+        | 'jobConfigs.scanner.scanners'
+        | 'jobConfigs.evaluator.packageConfigurationProviders'
+        | 'jobConfigs.reporter.packageConfigurationProviders'
+        | 'jobConfigs.reporter.formats',
+      available: Set<string>
+    ) => {
+      const selected = form.getValues(path);
+      const retained = selected.filter((id) => available.has(id));
+      if (retained.length !== selected.length) form.setValue(path, retained);
+    };
+    const pruneMap = (
+      path:
+        | 'jobConfigs.analyzer.packageManagerConfig'
+        | 'jobConfigs.analyzer.packageCurationProviderConfig'
+        | 'jobConfigs.advisor.config'
+        | 'jobConfigs.scanner.config'
+        | 'jobConfigs.scanner.scannerScopes'
+        | 'jobConfigs.evaluator.packageConfigurationProviderConfig'
+        | 'jobConfigs.reporter.packageConfigurationProviderConfig'
+        | 'jobConfigs.reporter.config',
+      available: Set<string>
+    ) => {
+      const current = form.getValues(path);
+      if (!current) return;
+      const retained = Object.fromEntries(
+        Object.entries(current).filter(([id]) => available.has(id))
+      );
+      if (Object.keys(retained).length !== Object.keys(current).length) {
+        form.setValue(path, retained);
+      }
+    };
+
+    const managerIds = ids(pluginGroups.packageManagerPlugins);
+    const advisorIds = ids(pluginGroups.advisorPlugins);
+    const scannerIds = ids(pluginGroups.scannerPlugins);
+    const reporterIds = ids(pluginGroups.reporterPlugins);
+    const curationIds = ids(pluginGroups.packageCurationProviderPlugins);
+    const configurationIds = ids(
+      pluginGroups.packageConfigurationProviderPlugins
+    );
+
+    pruneSelection('jobConfigs.analyzer.packageManagers', managerIds);
+    pruneSelection('jobConfigs.analyzer.packageCurationProviders', curationIds);
+    pruneSelection('jobConfigs.advisor.advisors', advisorIds);
+    pruneSelection('jobConfigs.scanner.scanners', scannerIds);
+    pruneSelection(
+      'jobConfigs.evaluator.packageConfigurationProviders',
+      configurationIds
+    );
+    pruneSelection(
+      'jobConfigs.reporter.packageConfigurationProviders',
+      configurationIds
+    );
+    pruneSelection('jobConfigs.reporter.formats', reporterIds);
+
+    pruneMap('jobConfigs.analyzer.packageManagerConfig', managerIds);
+    pruneMap('jobConfigs.analyzer.packageCurationProviderConfig', curationIds);
+    pruneMap('jobConfigs.advisor.config', advisorIds);
+    pruneMap('jobConfigs.scanner.config', scannerIds);
+    pruneMap('jobConfigs.scanner.scannerScopes', scannerIds);
+    pruneMap(
+      'jobConfigs.evaluator.packageConfigurationProviderConfig',
+      configurationIds
+    );
+    pruneMap(
+      'jobConfigs.reporter.packageConfigurationProviderConfig',
+      configurationIds
+    );
+    pruneMap('jobConfigs.reporter.config', reporterIds);
+
+    const mustRunAfter = form.getValues(
+      'jobConfigs.analyzer.packageManagerMustRunAfter'
+    );
+    const retainedMustRunAfter = Object.fromEntries(
+      Object.entries(mustRunAfter)
+        .filter(([id]) => managerIds.has(id))
+        .map(([id, dependencies]) => [
+          id,
+          dependencies?.filter((dependency) => managerIds.has(dependency)),
+        ])
+    );
+    const mustRunAfterChanged =
+      Object.keys(retainedMustRunAfter).length !==
+        Object.keys(mustRunAfter).length ||
+      Object.entries(mustRunAfter).some(
+        ([id, dependencies]) =>
+          retainedMustRunAfter[id]?.length !== dependencies?.length
+      );
+    if (mustRunAfterChanged) {
+      form.setValue(
+        'jobConfigs.analyzer.packageManagerMustRunAfter',
+        retainedMustRunAfter
+      );
+    }
+  }, [pluginGroups, form]);
 
   const watchedValues = form.watch();
 
