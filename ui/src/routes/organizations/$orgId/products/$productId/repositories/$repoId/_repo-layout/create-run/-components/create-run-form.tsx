@@ -93,6 +93,7 @@ export type CreateRunFormProps = {
   permissions: CreateRunPermissions;
   plugins: PreconfiguredPluginDescriptor[];
   pluginsLoading?: boolean;
+  pluginsLoadFailed?: boolean;
   rerun: OrtRun | null;
   secrets: Secret[];
 };
@@ -105,12 +106,15 @@ export const CreateRunForm = ({
   permissions,
   plugins,
   pluginsLoading = false,
+  pluginsLoadFailed = false,
   rerun,
   secrets,
 }: CreateRunFormProps) => {
   const [isTest, setIsTest] = useState(false);
   const isRerun = rerun !== null;
   const [openAccordions, setOpenAccordions] = useState<AccordionSection[]>([]);
+  // A run must not be created without knowing which plugins are available.
+  const pluginsUnavailable = pluginsLoading || pluginsLoadFailed;
 
   // Memoize the grouping so that its identity only changes with the plugins.
   const pluginGroups = useMemo(() => {
@@ -322,7 +326,7 @@ export const CreateRunForm = ({
   });
 
   async function submitForm(values: CreateRunFormValues) {
-    if (pluginsLoading) return;
+    if (pluginsUnavailable) return;
     await onSubmit(formValuesToPayload(values, plugins));
   }
 
@@ -609,6 +613,10 @@ export const CreateRunForm = ({
                 <Loader2 size={16} className='animate-spin' />
                 Loading available plugins...
               </div>
+            ) : pluginsLoadFailed ? (
+              <div className='text-destructive text-sm'>
+                The available plugins could not be loaded.
+              </div>
             ) : (
               <Accordion
                 type='multiple'
@@ -691,7 +699,10 @@ export const CreateRunForm = ({
               </div>
             )}
             <div className='flex w-full items-center justify-between'>
-              <Button type='submit' disabled={isSubmitting || pluginsLoading}>
+              <Button
+                type='submit'
+                disabled={isSubmitting || pluginsUnavailable}
+              >
                 {pluginsLoading ? (
                   'Plugins loading...'
                 ) : isSubmitting ? (
@@ -707,7 +718,7 @@ export const CreateRunForm = ({
                 <Switch
                   id='test-form'
                   checked={isTest}
-                  disabled={pluginsLoading}
+                  disabled={pluginsUnavailable}
                   onCheckedChange={setIsTest}
                 />
                 <Label className='text-muted-foreground' htmlFor='test-form'>
@@ -715,7 +726,7 @@ export const CreateRunForm = ({
                 </Label>
               </div>
             </div>
-            {isTest && !pluginsLoading && (
+            {isTest && !pluginsUnavailable && (
               <>
                 <h3 className='mt-4'>Form payload</h3>
                 <Label htmlFor='payload' className='text-muted-foreground'>

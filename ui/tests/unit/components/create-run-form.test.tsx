@@ -205,6 +205,42 @@ describe('CreateRunForm', () => {
     );
   });
 
+  it('blocks creation if the plugins could not be loaded', async () => {
+    const onSubmit = vi.fn();
+    const { user } = renderInteractiveWithRouter(
+      <CreateRunForm
+        isSubmitting={false}
+        isSuperuser={false}
+        onSubmit={onSubmit}
+        permissions={permissions}
+        plugins={[]}
+        pluginsLoadFailed
+        rerun={rerun}
+        secrets={secrets}
+      />,
+      {
+        path: createRunPath,
+        routes: [
+          {
+            path: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
+          },
+        ],
+      }
+    );
+
+    expect(
+      await screen.findByText('The available plugins could not be loaded.')
+    ).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Advisor' })).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Show payload' })).toBeDisabled();
+    const button = screen.getByRole('button', { name: 'Create' });
+    expect(button).toBeDisabled();
+
+    await user.type(screen.getByLabelText('Revision'), 'feature');
+    await user.click(button);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('submits the payload produced from entered form values', async () => {
     const { onSubmit, user } = renderCreateRunForm();
 

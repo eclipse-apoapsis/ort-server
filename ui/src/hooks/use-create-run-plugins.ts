@@ -46,7 +46,7 @@ export const useCreateRunPlugins = (
   repositoryId: number,
   configContext: string
 ) => {
-  const { data, isPending, isPlaceholderData } = useQuery({
+  const { data, error, isPending, isPlaceholderData } = useQuery({
     ...createRunPluginsOptions(repositoryId, configContext),
     placeholderData: keepPreviousData,
   });
@@ -54,5 +54,6 @@ export const useCreateRunPlugins = (
   return {
     plugins: data ?? NO_PLUGINS,
     pluginsLoading: isPending || isPlaceholderData,
+    pluginsError: error,
   };
 };
