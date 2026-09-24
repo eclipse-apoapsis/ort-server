@@ -27,6 +27,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * A class providing convenient access to secrets based on a [SecretsProvider].
  *
@@ -55,13 +57,13 @@ class SecretStorage(
         private val LOADER = ServiceLoader.load(SecretsProviderFactory::class.java)
 
         /**
-         * Return an initialized [SecretStorage] implementation based on the given [configManager]. This function
-         * obtains the sub configuration defined by [CONFIG_PREFIX] from the given [configManager]. There it looks up
-         * the name of the desired [SecretsProviderFactory] via the [NAME_PROPERTY] property. It then tries to find a
-         * factory with this name via the service loader mechanism and uses this to create a [SecretsProvider]. A
-         * [SecretStorage] instance wrapping this [SecretsProvider] is returned.
+         * Return an initialized [SecretStorage] implementation based on the given [configManager] and [database][db].
+         * This function obtains the sub configuration defined by [CONFIG_PREFIX] from the given [configManager]. There
+         * it looks up the name of the desired [SecretsProviderFactory] via the [NAME_PROPERTY] property. It then tries
+         * to find a factory with this name via the service loader mechanism and uses this to create a
+         * [SecretsProvider]. A [SecretStorage] instance wrapping this [SecretsProvider] is returned.
          */
-        fun createStorage(configManager: ConfigManager): SecretStorage {
+        fun createStorage(configManager: ConfigManager, db: Database): SecretStorage {
             if (!configManager.hasPath("$CONFIG_PREFIX.$NAME_PROPERTY")) {
                 throw SecretStorageException(
                     """
@@ -76,7 +78,7 @@ class SecretStorage(
             val factory = LOADER.find { it.name == factoryName }
                 ?: throw SecretStorageException("SecretsProviderFactory '$factoryName' not found on classpath.")
 
-            val provider = factory.createProvider(providerConfig)
+            val provider = factory.createProvider(providerConfig, db)
             return SecretStorage(provider)
         }
     }

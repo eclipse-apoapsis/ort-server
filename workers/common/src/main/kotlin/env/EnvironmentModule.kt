@@ -70,7 +70,7 @@ fun buildEnvironmentModule(includePackageManagerGenerators: Boolean = false): Mo
     singleOf(::InfrastructureServiceService)
 
     single {
-        val secretStorage = SecretStorage.createStorage(get())
+        val secretStorage = SecretStorage.createStorage(get(), get())
         SecretService(get(), get(), secretStorage)
     }
 }

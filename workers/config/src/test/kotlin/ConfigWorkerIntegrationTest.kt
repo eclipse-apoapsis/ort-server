@@ -87,7 +87,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
 
         val configManager = ConfigManager.create(ConfigFactory.parseMap(config))
 
-        val secretStorage = SecretStorage.createStorage(configManager)
+        val secretStorage = SecretStorage.createStorage(configManager, dbExtension.db)
 
         val secretService = SecretService(
             db = dbExtension.db,

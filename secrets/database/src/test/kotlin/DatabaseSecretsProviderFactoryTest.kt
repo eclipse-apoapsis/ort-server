@@ -29,11 +29,11 @@ import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 
 class DatabaseSecretsProviderFactoryTest : WordSpec({
-    extension(DatabaseTestExtension())
+    val dbExtension = extension(DatabaseTestExtension())
 
     "SecretStorage.createStorage" should {
         "create a SecretStorage accessing the database provider" {
-            val storage = createStorage()
+            val storage = createStorage(dbExtension.db)
             val path = Path("organization_1_token")
 
             storage.writeSecret(path, SecretValue("secret"))
@@ -44,6 +44,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
         "reject a master password with leading or trailing whitespace" {
             val exception = shouldThrow<ConfigException> {
                 createStorage(
+                    dbExtension.db,
                     secretsProviderConfig(
                         masterPassword = "  thisIsAStrongPassword  "
                     )
@@ -56,7 +57,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a blank master password" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(masterPassword = ""))
+                createStorage(dbExtension.db, secretsProviderConfig(masterPassword = ""))
             }
 
             exception.message shouldBe "The database secrets master password must not be blank."
@@ -64,7 +65,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a master password that is too short" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(masterPassword = "too-short"))
+                createStorage(dbExtension.db, secretsProviderConfig(masterPassword = "too-short"))
             }
 
             exception.message shouldBe "The database secrets master password must be at least 16 characters long."
@@ -73,6 +74,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
         "reject a salt with leading or trailing whitespace" {
             val exception = shouldThrow<ConfigException> {
                 createStorage(
+                    dbExtension.db,
                     secretsProviderConfig(
                         salt = " deadbeefcafebabedeadbeefcafebabe "
                     )
@@ -84,7 +86,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a blank salt" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(salt = ""))
+                createStorage(dbExtension.db, secretsProviderConfig(salt = ""))
             }
 
             exception.message shouldBe "The database secrets salt must not be blank."
@@ -92,7 +94,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a salt that is not hex-encoded" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(salt = "deadbeefcafebabedeadbeefcafebabeg"))
+                createStorage(dbExtension.db, secretsProviderConfig(salt = "deadbeefcafebabedeadbeefcafebabeg"))
             }
 
             exception.message shouldBe "The database secrets salt must be a hex-encoded string."
@@ -100,7 +102,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a salt with an odd number of hex characters" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(salt = "deadbeefcafebabedeadbeefcafebab"))
+                createStorage(dbExtension.db, secretsProviderConfig(salt = "deadbeefcafebabedeadbeefcafebab"))
             }
 
             exception.message shouldBe "The database secrets salt must contain an even number of hex characters."
@@ -108,7 +110,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a salt that is too short" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(salt = "deadbeefcafebabe"))
+                createStorage(dbExtension.db, secretsProviderConfig(salt = "deadbeefcafebabe"))
             }
 
             exception.message shouldBe "The database secrets salt must be at least 16 bytes (32 hex characters) long."
@@ -116,7 +118,7 @@ class DatabaseSecretsProviderFactoryTest : WordSpec({
 
         "reject a non-positive key version" {
             val exception = shouldThrow<ConfigException> {
-                createStorage(secretsProviderConfig(keyVersion = "0"))
+                createStorage(dbExtension.db, secretsProviderConfig(keyVersion = "0"))
             }
 
             exception.message shouldBe "The database secrets key version must be a positive integer."

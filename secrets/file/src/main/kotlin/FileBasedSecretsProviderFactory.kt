@@ -24,6 +24,8 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
 import org.eclipse.apoapsis.ortserver.secrets.file.FileBasedSecretsProvider.Companion.NAME
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 import org.slf4j.LoggerFactory
 
 /**
@@ -37,7 +39,7 @@ class FileBasedSecretsProviderFactory : SecretsProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(configManager: ConfigManager): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager, db: Database): SecretsProvider {
         logger.info("Creating FileBasedSecretsProvider.")
         return FileBasedSecretsProvider(configManager)
     }

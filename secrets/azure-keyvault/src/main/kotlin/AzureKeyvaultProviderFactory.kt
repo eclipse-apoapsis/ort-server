@@ -26,6 +26,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 class AzureKeyvaultProviderFactory : SecretsProviderFactory {
     companion object {
         const val KEY_VAULT_NAME_PROPERTY = "azureKeyVaultName"
@@ -33,7 +35,7 @@ class AzureKeyvaultProviderFactory : SecretsProviderFactory {
 
     override val name = "azure-keyvault"
 
-    override fun createProvider(configManager: ConfigManager): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager, db: Database): SecretsProvider {
         val defaultCredential = DefaultAzureCredentialBuilder().build()
 
         val secretClient = SecretClientBuilder()
