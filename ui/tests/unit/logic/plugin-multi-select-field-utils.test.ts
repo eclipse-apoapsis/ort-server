@@ -24,7 +24,9 @@ import {
   getSecretSelectDisplayValue,
   mapSecretSelectValue,
   moveItem,
+  optionFieldPath,
   parsePluginOptionList,
+  toSelectorOptions,
   UNDEFINED_SECRET_VALUE,
 } from '@/components/form/plugin-multi-select-field/utils';
 
@@ -120,5 +122,34 @@ describe('parsePluginOptionList', () => {
     expect(parsePluginOptionList(undefined)).toEqual([]);
     expect(parsePluginOptionList(null)).toEqual([]);
     expect(parsePluginOptionList(42)).toEqual([]);
+  });
+});
+
+describe('optionFieldPath', () => {
+  it('stores secret options under secrets', () => {
+    expect(
+      optionFieldPath('config', 'VulnerableCode', {
+        name: 'apiKey',
+        type: 'SECRET',
+      })
+    ).toBe('config.VulnerableCode.secrets.apiKey');
+  });
+
+  it('stores all other options under options', () => {
+    expect(
+      optionFieldPath('config', 'VulnerableCode', {
+        name: 'serverUrl',
+        type: 'STRING',
+      })
+    ).toBe('config.VulnerableCode.options.serverUrl');
+  });
+});
+
+describe('toSelectorOptions', () => {
+  it('uses each value as both value and label', () => {
+    expect(toSelectorOptions(['Maven', 'NPM'])).toEqual([
+      { value: 'Maven', label: 'Maven' },
+      { value: 'NPM', label: 'NPM' },
+    ]);
   });
 });
