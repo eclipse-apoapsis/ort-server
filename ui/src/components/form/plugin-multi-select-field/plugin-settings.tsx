@@ -39,7 +39,7 @@ type PluginSettingsProps<TFieldValues extends FieldValues> = {
   mustRunAfterName?: string;
 };
 
-/** The settings of one enabled plugin: its scanner scope, its options, and must-run-after. */
+/** The settings of one plugin: its scanner scope, its options, and must-run-after. */
 export const PluginSettings = <TFieldValues extends FieldValues>({
   control,
   plugin,

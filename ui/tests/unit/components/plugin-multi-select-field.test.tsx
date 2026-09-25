@@ -21,7 +21,13 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
+import {
+  FormProvider,
+  useForm,
+  type FieldErrors,
+  type Resolver,
+  type UseFormReturn,
+} from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
 import type { PreconfiguredPluginDescriptor } from '@/api';
@@ -103,6 +109,7 @@ type FieldOptions = {
   withMustRunAfter?: boolean;
   enableReordering?: boolean;
   showSelectedPluginsFirst?: boolean;
+  resolver?: Resolver<FieldFormValues>;
 };
 
 /** Render a single plugin field and return a function that reads the form values. */
@@ -113,6 +120,7 @@ const renderField = ({
   withMustRunAfter = false,
   enableReordering = false,
   showSelectedPluginsFirst = false,
+  resolver,
 }: FieldOptions = {}) => {
   let form: UseFormReturn<FieldFormValues> | undefined;
 
@@ -125,22 +133,26 @@ const renderField = ({
         mustRunAfter: {},
         ...defaultValues,
       },
+      resolver,
     });
 
     return (
       <FormProvider {...form}>
-        <PluginMultiSelectField
-          form={form}
-          name='plugins'
-          configName='config'
-          scannerScopeName={withScannerScope ? 'scopes' : undefined}
-          mustRunAfterName={withMustRunAfter ? 'mustRunAfter' : undefined}
-          label='Plugins'
-          plugins={plugins}
-          secrets={[]}
-          enableReordering={enableReordering}
-          showSelectedPluginsFirst={showSelectedPluginsFirst}
-        />
+        <form onSubmit={form.handleSubmit(() => {})}>
+          <PluginMultiSelectField
+            form={form}
+            name='plugins'
+            configName='config'
+            scannerScopeName={withScannerScope ? 'scopes' : undefined}
+            mustRunAfterName={withMustRunAfter ? 'mustRunAfter' : undefined}
+            label='Plugins'
+            plugins={plugins}
+            secrets={[]}
+            enableReordering={enableReordering}
+            showSelectedPluginsFirst={showSelectedPluginsFirst}
+          />
+          <button type='submit'>Submit</button>
+        </form>
       </FormProvider>
     );
   };
@@ -151,7 +163,7 @@ const renderField = ({
 };
 
 const pluginCheckbox = (displayName: string) =>
-  screen.getByRole('checkbox', { name: displayName });
+  screen.getByRole('checkbox', { name: `Enable ${displayName}` });
 
 const selectAllCheckbox = () =>
   screen.getByRole('checkbox', { name: 'Enable/disable all' });
@@ -189,15 +201,6 @@ describe('PluginMultiSelectField', () => {
 
     await user.click(pluginCheckbox('Plugin B'));
     expect(getValues().plugins).toEqual([]);
-  });
-
-  it('toggles a plugin when its name is clicked', async () => {
-    const user = userEvent.setup();
-    const getValues = renderField();
-
-    await user.click(screen.getByText('Plugin A'));
-
-    expect(getValues().plugins).toEqual(['A']);
   });
 
   it('stores the selection in click order without reordering', async () => {
@@ -243,7 +246,7 @@ describe('PluginMultiSelectField', () => {
       expect(getValues().scopes).toEqual({ A: 'packages' });
     });
 
-    it('clears the scope when a plugin is disabled', async () => {
+    it('keeps the scope when a plugin is disabled', async () => {
       const user = userEvent.setup();
       const getValues = renderField({
         withScannerScope: true,
@@ -252,23 +255,20 @@ describe('PluginMultiSelectField', () => {
 
       await user.click(pluginCheckbox('Plugin A'));
 
-      expect(getValues().scopes.A).toBeUndefined();
+      expect(getValues().scopes.A).toBe('projects');
     });
   });
 
-  it('clears the must-run-after entry when a plugin is disabled', async () => {
+  it('keeps the must-run-after entry when a plugin is disabled', async () => {
     const user = userEvent.setup();
     const getValues = renderField({
       withMustRunAfter: true,
       defaultValues: { plugins: ['A'], mustRunAfter: { A: ['B'] } },
     });
 
-    expect(screen.getByText('Must run after')).toBeInTheDocument();
-
     await user.click(pluginCheckbox('Plugin A'));
 
-    expect(getValues().mustRunAfter.A).toBeUndefined();
-    expect(screen.queryByText('Must run after')).not.toBeInTheDocument();
+    expect(getValues().mustRunAfter.A).toEqual(['B']);
   });
 
   describe('select-all checkbox', () => {
@@ -314,7 +314,7 @@ describe('PluginMultiSelectField', () => {
       expect(getValues().plugins).toEqual(['C', 'A', 'B']);
     });
 
-    it('disables all plugins and clears scopes and must-run-after entries', async () => {
+    it('disables all plugins and keeps scopes and must-run-after entries', async () => {
       const user = userEvent.setup();
       const getValues = renderField({
         withScannerScope: true,
@@ -330,11 +330,11 @@ describe('PluginMultiSelectField', () => {
 
       expect(getValues().plugins).toEqual([]);
       expect(getValues().scopes).toEqual({
-        A: undefined,
-        B: undefined,
-        C: undefined,
+        A: 'both',
+        B: 'packages',
+        C: 'projects',
       });
-      expect(getValues().mustRunAfter.A).toBeUndefined();
+      expect(getValues().mustRunAfter.A).toEqual(['B']);
     });
   });
 
@@ -406,18 +406,8 @@ describe('PluginMultiSelectField', () => {
       ],
     });
 
-    it('renders option fields only for enabled plugins', async () => {
+    it('disables a fixed option and shows the administrator notice', async () => {
       const user = userEvent.setup();
-      renderField({ plugins: [pluginWithOptions] });
-
-      expect(screen.queryByText('The URL to use.')).not.toBeInTheDocument();
-
-      await user.click(pluginCheckbox('Plugin with options'));
-
-      expect(screen.getByText('The URL to use.')).toBeInTheDocument();
-    });
-
-    it('disables a fixed option and shows the administrator notice', () => {
       renderField({
         plugins: [pluginWithOptions],
         defaultValues: {
@@ -428,6 +418,10 @@ describe('PluginMultiSelectField', () => {
         },
       });
 
+      await user.click(
+        screen.getByRole('button', { name: /^Plugin with options/ })
+      );
+
       expect(screen.getByDisplayValue('secret-token')).toBeDisabled();
       expect(
         screen.getByText(
@@ -435,6 +429,286 @@ describe('PluginMultiSelectField', () => {
         )
       ).toBeInTheDocument();
       expect(screen.getByPlaceholderText('(optional)')).toBeEnabled();
+    });
+  });
+
+  describe('collapsing options', () => {
+    const requiredOption = {
+      name: 'url',
+      type: 'STRING' as const,
+      description: 'The URL to use.',
+      isFixed: false,
+      isNullable: false,
+      isRequired: true,
+    };
+    const flagOption = {
+      name: 'flag',
+      type: 'BOOLEAN' as const,
+      description: 'A flag.',
+      defaultValue: 'false',
+      isFixed: false,
+      isNullable: false,
+      isRequired: false,
+    };
+    const fixedOption = {
+      name: 'token',
+      type: 'STRING' as const,
+      description: 'The fixed token.',
+      defaultValue: 'secret-token',
+      isFixed: true,
+      isNullable: false,
+      isRequired: false,
+    };
+    const requiredPlugin = createPluginDescriptor({
+      id: 'Required',
+      displayName: 'Required Plugin',
+      options: [requiredOption],
+    });
+    const flagPlugin = createPluginDescriptor({
+      id: 'Flag',
+      displayName: 'Flag Plugin',
+      options: [flagOption],
+    });
+    const fixedPlugin = createPluginDescriptor({
+      id: 'Fixed',
+      displayName: 'Fixed Plugin',
+      options: [fixedOption],
+    });
+    const plainPlugin = createPluginDescriptor({
+      id: 'Plain',
+      displayName: 'Plain Plugin',
+    });
+
+    const enableCheckbox = (displayName: string) =>
+      screen.getByRole('checkbox', { name: `Enable ${displayName}` });
+
+    const trigger = (displayName: string) =>
+      screen.getByRole('button', { name: new RegExp(`^${displayName}`) });
+
+    const expandAllButton = () =>
+      screen.getByRole('button', { name: /^(Expand|Collapse) all$/ });
+
+    it('renders a collapsed trigger only for plugins with options', () => {
+      renderField({
+        plugins: [flagPlugin, plainPlugin],
+      });
+
+      expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByText('A flag.')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /^Plain Plugin/ })
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Plain Plugin')).toBeInTheDocument();
+    });
+
+    it('expands and collapses the options without enabling the plugin', async () => {
+      const user = userEvent.setup();
+      const values = renderField({
+        plugins: [flagPlugin],
+      });
+
+      await user.click(trigger('Flag Plugin'));
+
+      expect(screen.getByText('A flag.')).toBeInTheDocument();
+      expect(values().plugins).toEqual([]);
+
+      await user.click(trigger('Flag Plugin'));
+
+      expect(screen.queryByText('A flag.')).not.toBeInTheDocument();
+    });
+
+    it('expands a plugin when it is enabled and collapses it when disabled', async () => {
+      const user = userEvent.setup();
+      const values = renderField({
+        plugins: [flagPlugin],
+      });
+
+      await user.click(enableCheckbox('Flag Plugin'));
+
+      expect(values().plugins).toEqual(['Flag']);
+      expect(screen.getByText('A flag.')).toBeInTheDocument();
+
+      await user.click(enableCheckbox('Flag Plugin'));
+
+      expect(values().plugins).toEqual([]);
+      expect(screen.queryByText('A flag.')).not.toBeInTheDocument();
+    });
+
+    it('expands no plugin when all are enabled, but collapses all when all are disabled', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [flagPlugin, fixedPlugin],
+      });
+
+      await user.click(selectAllCheckbox());
+
+      expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'false');
+
+      await user.click(trigger('Flag Plugin'));
+      await user.click(selectAllCheckbox());
+
+      expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('shows the scope and must-run-after of a plugin that is not enabled', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [flagPlugin, plainPlugin],
+        withScannerScope: true,
+        withMustRunAfter: true,
+      });
+
+      await user.click(trigger('Flag Plugin'));
+
+      expect(screen.getByText('A flag.')).toBeInTheDocument();
+      expect(screen.getByText('Must run after')).toBeInTheDocument();
+      expect(
+        screen.getByRole('radio', { name: 'Packages only' })
+      ).toBeInTheDocument();
+    });
+
+    it('makes a plugin without options collapsible for its must-run-after list', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [plainPlugin, flagPlugin],
+        withMustRunAfter: true,
+      });
+
+      expect(trigger('Plain Plugin')).toHaveAttribute('aria-expanded', 'false');
+
+      await user.click(enableCheckbox('Plain Plugin'));
+
+      expect(trigger('Plain Plugin')).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByText('Must run after')).toBeInTheDocument();
+
+      await user.click(trigger('Plain Plugin'));
+
+      expect(screen.queryByText('Must run after')).not.toBeInTheDocument();
+    });
+
+    it('lets the options of a plugin that is not enabled be edited', async () => {
+      const user = userEvent.setup();
+      const values = renderField({
+        plugins: [requiredPlugin],
+      });
+
+      await user.click(trigger('Required Plugin'));
+      await user.type(screen.getByRole('textbox'), 'https://example.org');
+
+      expect(values().config).toEqual({
+        Required: { options: { url: 'https://example.org' } },
+      });
+      expect(values().plugins).toEqual([]);
+    });
+
+    it('expands an enabled plugin with a missing required option', () => {
+      renderField({
+        plugins: [requiredPlugin],
+        defaultValues: { plugins: ['Required'] },
+      });
+
+      expect(trigger('Required Plugin')).toHaveAttribute(
+        'aria-expanded',
+        'true'
+      );
+    });
+
+    it('expands an enabled plugin whose options differ from the defaults', () => {
+      renderField({
+        plugins: [flagPlugin, fixedPlugin],
+        defaultValues: {
+          plugins: ['Flag', 'Fixed'],
+          config: {
+            Flag: { options: { flag: true } },
+            Fixed: { options: { token: 'secret-token' } },
+          },
+        },
+      });
+
+      expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'true');
+      expect(trigger('Fixed Plugin')).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('expands and collapses all plugins with options', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [flagPlugin, fixedPlugin, plainPlugin],
+      });
+
+      expect(expandAllButton()).toHaveTextContent('Expand all');
+
+      await user.click(expandAllButton());
+
+      expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'true');
+      expect(trigger('Fixed Plugin')).toHaveAttribute('aria-expanded', 'true');
+      expect(expandAllButton()).toHaveTextContent('Collapse all');
+
+      await user.click(expandAllButton());
+
+      expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger('Fixed Plugin')).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('expands a collapsed plugin with errors on submit', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [requiredPlugin],
+        defaultValues: { plugins: ['Required'] },
+        // The form types the configuration loosely, so its errors need a cast.
+        resolver: async () => ({
+          values: {},
+          errors: {
+            config: {
+              Required: {
+                options: {
+                  url: { type: 'required', message: 'The URL is missing.' },
+                },
+              },
+            },
+          } as unknown as FieldErrors<FieldFormValues>,
+        }),
+      });
+
+      // The plugin starts expanded because its required option is missing.
+      await user.click(trigger('Required Plugin'));
+      expect(screen.queryByText('The URL to use.')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+      expect(trigger('Required Plugin')).toHaveAttribute(
+        'aria-expanded',
+        'true'
+      );
+      expect(screen.getByText('The URL to use.')).toBeInTheDocument();
+    });
+
+    it('keeps an option value after collapsing and expanding again', async () => {
+      const user = userEvent.setup();
+      renderField({ plugins: [requiredPlugin] });
+
+      await user.click(trigger('Required Plugin'));
+      await user.type(screen.getByRole('textbox'), 'https://example.org');
+      await user.click(trigger('Required Plugin'));
+      await user.click(trigger('Required Plugin'));
+
+      expect(screen.getByRole('textbox')).toHaveValue('https://example.org');
+    });
+
+    it('keeps the drag handles and the stored order with reordering', async () => {
+      const user = userEvent.setup();
+      const values = renderField({
+        plugins: [flagPlugin, requiredPlugin],
+        enableReordering: true,
+      });
+
+      expect(
+        screen.getByRole('button', { name: 'Reorder Flag' })
+      ).toBeInTheDocument();
+
+      await user.click(enableCheckbox('Required Plugin'));
+      await user.click(enableCheckbox('Flag Plugin'));
+
+      expect(values().plugins).toEqual(['Flag', 'Required']);
     });
   });
 });

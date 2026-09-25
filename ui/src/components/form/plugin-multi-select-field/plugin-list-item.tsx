@@ -21,8 +21,13 @@ import type { ReactNode } from 'react';
 
 import type { PreconfiguredPluginDescriptor } from '@/api';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import {
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormControl, FormItem, FormLabel } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 
 type PluginListItemProps = {
   plugin: PreconfiguredPluginDescriptor;
@@ -30,36 +35,72 @@ type PluginListItemProps = {
   onSelectedChange: (selected: boolean) => void;
   /** The handle for dragging the plugin to another position, if the list is sortable. */
   dragHandle?: ReactNode;
-  /** The plugin's settings, shown below its summary. */
+  /**
+   * The plugin's settings, shown in a section that the plugin's name expands. The item must
+   * be rendered inside an `Accordion`.
+   */
   settings?: ReactNode;
 };
 
-/**
- * One plugin in a plugin list: its enable checkbox, name and summary, followed by its
- * settings. The name is the label of the checkbox.
- */
 export const PluginListItem = ({
   plugin,
   selected,
   onSelectedChange,
   dragHandle,
   settings,
-}: PluginListItemProps) => (
-  <FormItem className='flex flex-row items-start space-y-0 space-x-3'>
-    {dragHandle}
-    <FormControl>
-      <Checkbox
-        checked={selected}
-        onCheckedChange={(checked) => onSelectedChange(checked === true)}
-      />
-    </FormControl>
-    <div className='flex flex-col'>
-      <FormLabel className='font-normal'>{plugin.displayName}</FormLabel>
-      <MarkdownRenderer
-        markdown={plugin.summary}
-        className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
-      />
-      {settings}
-    </div>
-  </FormItem>
-);
+}: PluginListItemProps) => {
+  // The name is not the checkbox's label, because clicking it expands the settings.
+  const checkbox = (
+    <Checkbox
+      aria-label={`Enable ${plugin.displayName}`}
+      checked={selected}
+      onCheckedChange={(checked) => onSelectedChange(checked === true)}
+    />
+  );
+  const summary = (
+    <MarkdownRenderer
+      markdown={plugin.summary}
+      className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
+    />
+  );
+
+  // Without settings there is nothing to expand, so the name is plain text.
+  if (!settings) {
+    return (
+      <div className='flex flex-row items-start space-x-3'>
+        {dragHandle}
+        {checkbox}
+        <div className='flex flex-col'>
+          <span className='text-sm leading-none'>{plugin.displayName}</span>
+          {summary}
+        </div>
+      </div>
+    );
+  }
+
+  // The drag handle and the checkbox sit beside the trigger, never inside it, and so does
+  // the summary, which can contain links.
+  return (
+    <AccordionItem
+      value={plugin.id}
+      className={cn(
+        'flex flex-row items-start space-x-3 border-b-0',
+        // The content clips its children for the collapse animation, which would also cut off
+        // the drop-down list of a multi-select near its bottom. So an open section does not
+        // clip, and it opens without animation, which would otherwise draw the content over
+        // the plugins below while the section grows.
+        '[&_[data-slot=accordion-content][data-state=open]]:animate-none [&_[data-slot=accordion-content][data-state=open]]:overflow-visible'
+      )}
+    >
+      {dragHandle}
+      {checkbox}
+      <div className='flex flex-1 flex-col'>
+        <AccordionTrigger className='items-center py-0 font-normal hover:no-underline'>
+          <span className='leading-none'>{plugin.displayName}</span>
+        </AccordionTrigger>
+        {summary}
+        <AccordionContent className='pb-0'>{settings}</AccordionContent>
+      </div>
+    </AccordionItem>
+  );
+};

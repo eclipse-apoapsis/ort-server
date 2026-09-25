@@ -45,8 +45,6 @@ type UsePluginSelectionArgs<
   plugins: readonly PreconfiguredPluginDescriptor[];
   /** The field holding the scanner scope of each plugin, if the plugins have scopes. */
   scannerScopeName?: TName;
-  /** The field holding the must-run-after list of each plugin, if the plugins have them. */
-  mustRunAfterName?: TName;
   /** Store the selection in display order instead of the order in which it was made. */
   enableReordering: boolean;
   /** Show selected plugins first, in selection order, until the user reorders the list. */
@@ -56,7 +54,8 @@ type UsePluginSelectionArgs<
 /**
  * Manage the selection of a plugin multi-select field. This is the only place that changes
  * the selection and the values that depend on it: enabling a plugin defaults its scanner
- * scope to "both", and disabling it clears its scanner scope and must-run-after list.
+ * scope to "both". Disabling a plugin keeps its settings, which can be edited while it is
+ * disabled.
  */
 export function usePluginSelection<
   TFieldValues extends FieldValues,
@@ -66,7 +65,6 @@ export function usePluginSelection<
   field,
   plugins,
   scannerScopeName,
-  mustRunAfterName,
   enableReordering,
   showSelectedPluginsFirst,
 }: UsePluginSelectionArgs<TFieldValues, TName>) {
@@ -104,12 +102,6 @@ export function usePluginSelection<
     }
   };
 
-  // Clear the values that only apply to an enabled plugin.
-  const applyDisabled = (pluginId: string) => {
-    if (scannerScopeName) setPluginValue(scannerScopeName, pluginId, undefined);
-    if (mustRunAfterName) setPluginValue(mustRunAfterName, pluginId, undefined);
-  };
-
   // Enable or disable one plugin, keeping the selection in list order when reordering.
   const setSelected = (pluginId: string, selected: boolean) => {
     const nextSelectedPluginIds = selected
@@ -122,11 +114,7 @@ export function usePluginSelection<
         : nextSelectedPluginIds
     );
 
-    if (selected) {
-      applyEnabled(pluginId);
-    } else {
-      applyDisabled(pluginId);
-    }
+    if (selected) applyEnabled(pluginId);
   };
 
   // Enable or disable all plugins at once.
@@ -143,13 +131,7 @@ export function usePluginSelection<
       nextSelectedPluginIds as FieldPathValue<TFieldValues, TName>
     );
 
-    plugins.forEach((plugin) => {
-      if (selected) {
-        applyEnabled(plugin.id);
-      } else {
-        applyDisabled(plugin.id);
-      }
-    });
+    if (selected) plugins.forEach((plugin) => applyEnabled(plugin.id));
   };
 
   // Move a plugin within the sortable list and store the selection in the new order.

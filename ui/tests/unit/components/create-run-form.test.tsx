@@ -345,10 +345,14 @@ describe('CreateRunForm', () => {
     await user.click(getJobSwitch('Advisor'));
     await user.click(screen.getByRole('button', { name: 'Swap plugins' }));
     await user.click(screen.getByRole('button', { name: 'Advisor' }));
+    // OSV has its default options, so they start collapsed.
+    await user.click(screen.getByRole('button', { name: /^OSV/ }));
     expect(screen.getByLabelText(/serverUrl/)).toHaveValue(
       'https://new.example'
     );
-    await user.click(screen.getByText('New Advisor'));
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Enable New Advisor' })
+    );
     await user.click(screen.getByRole('button', { name: 'Create' }));
     expect(onSubmit).toHaveBeenCalledOnce();
     expect(onSubmit).toHaveBeenCalledWith(
