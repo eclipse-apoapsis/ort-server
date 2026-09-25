@@ -17,14 +17,18 @@
  * License-Filename: LICENSE
  */
 
-import type { ControllerRenderProps } from 'react-hook-form';
+import { CheckedState } from '@radix-ui/react-checkbox';
 
-import type { PreconfiguredPluginOption } from '@/api';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormControl } from '@/components/ui/form';
+import type { OptionInputProps } from '../types';
 
-export type ScannerScope = 'both' | 'packages' | 'projects';
-
-/** The props shared by the inputs that edit the value of one plugin option. */
-export type OptionInputProps = {
-  field: ControllerRenderProps;
-  option: PreconfiguredPluginOption;
-};
+export const BooleanOptionInput = ({ field, option }: OptionInputProps) => (
+  <FormControl>
+    <Checkbox
+      checked={field.value as CheckedState}
+      onCheckedChange={field.onChange}
+      disabled={option.isFixed}
+    />
+  </FormControl>
+);

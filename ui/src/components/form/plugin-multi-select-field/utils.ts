@@ -17,6 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import type { PreconfiguredPluginOption } from '@/api';
+import type { Option as MultipleSelectorOption } from '@/components/ui/multiple-selector';
+
 /** A placeholder used to select a secret value provided by an administrator via a plugin template. */
 export const ADMIN_SECRET_VALUE = '__admin_secret__';
 export const UNDEFINED_ENUM_VALUE = '__undefined_enum__';
@@ -112,4 +115,24 @@ export function parsePluginOptionList(value: unknown): string[] {
   }
 
   return [];
+}
+
+/**
+ * Get the path of an option's value below the plugin configuration field. Secret options are
+ * stored under `secrets`, all other options under `options`.
+ */
+export function optionFieldPath(
+  configName: string,
+  pluginId: string,
+  option: Pick<PreconfiguredPluginOption, 'name' | 'type'>
+): string {
+  const section = option.type === 'SECRET' ? 'secrets' : 'options';
+
+  return `${configName}.${pluginId}.${section}.${option.name}`;
+}
+
+export function toSelectorOptions(
+  values: readonly string[]
+): MultipleSelectorOption[] {
+  return values.map((value) => ({ value, label: value }));
 }

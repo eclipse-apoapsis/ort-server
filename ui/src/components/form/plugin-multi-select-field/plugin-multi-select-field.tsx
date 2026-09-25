@@ -19,7 +19,6 @@
 
 import { DragDropProvider } from '@dnd-kit/react';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
-import { CheckedState } from '@radix-ui/react-checkbox';
 import { GripVerticalIcon } from 'lucide-react';
 import React from 'react';
 import {
@@ -31,9 +30,7 @@ import {
 } from 'react-hook-form';
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
-import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { Badge } from '@/components/ui/badge.tsx';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   FormControl,
@@ -43,34 +40,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input.tsx';
 import { Label } from '@/components/ui/label';
-import MultipleSelector, {
-  Option as MultipleSelectorOption,
-} from '@/components/ui/multiple-selector';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select.tsx';
 import { Separator } from '@/components/ui/separator';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group.tsx';
 import { cn } from '@/lib/utils';
-import type { ScannerScope } from './types';
-import {
-  ADMIN_SECRET_VALUE,
-  getEnumSelectDisplayValue,
-  getPluginsInDisplayOrder,
-  getSecretSelectDisplayValue,
-  mapEnumSelectValue,
-  mapSecretSelectValue,
-  moveItem,
-  parsePluginOptionList,
-  UNDEFINED_ENUM_VALUE,
-  UNDEFINED_SECRET_VALUE,
-} from './utils';
+import { PluginSettings } from './plugin-settings';
+import { getPluginsInDisplayOrder, moveItem } from './utils';
 
 type SortablePluginListItemProps = {
   id: string;
@@ -271,279 +245,15 @@ export const PluginMultiSelectField = <
                   markdown={plugin.summary}
                   className='text-muted-foreground max-w-none pb-1 [&_p]:my-0'
                 />
-                {scannerScopeName && isSelected && (
-                  <FormField
+                {isSelected && (
+                  <PluginSettings
                     control={form.control}
-                    name={
-                      `${scannerScopeName}.${plugin.id}` as Path<TFieldValues>
-                    }
-                    render={({ field: scopeField }) => (
-                      <FormItem className='mb-2 flex flex-col space-y-1'>
-                        <FormControl>
-                          <ToggleGroup
-                            type='single'
-                            variant='outline'
-                            value={
-                              (scopeField.value as ScannerScope | undefined) ??
-                              'both'
-                            }
-                            onValueChange={(value) => {
-                              if (value)
-                                scopeField.onChange(value as ScannerScope);
-                            }}
-                            className='gap-0 self-start'
-                          >
-                            <ToggleGroupItem
-                              value='both'
-                              className='rounded-r-none text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white'
-                            >
-                              Both
-                            </ToggleGroupItem>
-                            <ToggleGroupItem
-                              value='packages'
-                              className='-ml-px rounded-none text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white'
-                            >
-                              Packages only
-                            </ToggleGroupItem>
-                            <ToggleGroupItem
-                              value='projects'
-                              className='-ml-px rounded-l-none text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white'
-                            >
-                              Projects only
-                            </ToggleGroupItem>
-                          </ToggleGroup>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                )}
-                {isSelected &&
-                  plugin.options.map((option) => (
-                    <FormField
-                      control={form.control}
-                      key={option.name}
-                      name={
-                        `${configName}.${plugin.id}.${option.type === 'SECRET' ? 'secrets' : 'options'}.${option.name}` as Path<TFieldValues>
-                      }
-                      render={({ field }) => (
-                        <FormItem className='ml-4 flex flex-col pb-4'>
-                          <FormLabel>
-                            {option.name}
-                            <Badge
-                              variant='small'
-                              className='bg-blue-200 text-black'
-                            >
-                              {option.type}
-                            </Badge>
-                          </FormLabel>
-                          <FormControl>
-                            {option.type === 'BOOLEAN' ? (
-                              <Checkbox
-                                checked={field.value as CheckedState}
-                                onCheckedChange={field.onChange}
-                                disabled={option.isFixed}
-                              />
-                            ) : option.type == 'SECRET' ? (
-                              secrets.length === 0 &&
-                              option.defaultValue == null ? (
-                                <FormMessage className='font-semibold text-red-600'>
-                                  No secrets available. Create a new secret to
-                                  be able to use this option.
-                                </FormMessage>
-                              ) : (
-                                <Select
-                                  onValueChange={(value) => {
-                                    field.onChange(mapSecretSelectValue(value));
-                                  }}
-                                  defaultValue={undefined}
-                                  value={getSecretSelectDisplayValue(
-                                    field.value,
-                                    option.isRequired
-                                  )}
-                                  disabled={option.isFixed}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder='Select a secret' />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {option.defaultValue != null && (
-                                      <SelectItem value={ADMIN_SECRET_VALUE}>
-                                        Use admin-provided secret
-                                      </SelectItem>
-                                    )}
-                                    {!option.isRequired &&
-                                      option.defaultValue == null && (
-                                        <SelectItem
-                                          value={UNDEFINED_SECRET_VALUE}
-                                        >
-                                          Not defined
-                                        </SelectItem>
-                                      )}
-                                    {secrets.map((secret) => (
-                                      <SelectItem
-                                        key={secret.name}
-                                        value={secret.name}
-                                      >
-                                        {secret.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                  {field.value &&
-                                    field.value !== ADMIN_SECRET_VALUE &&
-                                    !secrets.some(
-                                      (secret) => secret.name === field.value
-                                    ) && (
-                                      <FormMessage className='font-semibold text-red-600'>
-                                        The selected secret '{field.value}' does
-                                        not exist. The value could come from a
-                                        previous run or could be a default value
-                                        set by an administrator. Select a valid
-                                        secret or create a new secret with this
-                                        name.
-                                      </FormMessage>
-                                    )}
-                                </Select>
-                              )
-                            ) : option.type === 'ENUM' &&
-                              option.enumEntries &&
-                              option.enumEntries.length > 0 ? (
-                              <Select
-                                onValueChange={(value) => {
-                                  field.onChange(mapEnumSelectValue(value));
-                                }}
-                                value={getEnumSelectDisplayValue(
-                                  typeof field.value === 'string'
-                                    ? field.value
-                                    : undefined,
-                                  option.isRequired
-                                )}
-                                disabled={option.isFixed}
-                              >
-                                <SelectTrigger className='w-[280px]'>
-                                  <SelectValue placeholder='Select a value' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {!option.isRequired && (
-                                    <SelectItem value={UNDEFINED_ENUM_VALUE}>
-                                      {option.defaultValue != null &&
-                                      option.defaultValue !== ''
-                                        ? 'Reset to default'
-                                        : 'Not defined'}
-                                    </SelectItem>
-                                  )}
-                                  {option.enumEntries.map((entry) => (
-                                    <SelectItem key={entry} value={entry}>
-                                      {entry}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : option.type === 'ENUM_LIST' ? (
-                              <MultipleSelector
-                                className='min-w-[280px]'
-                                placeholder='Select values'
-                                hidePlaceholderWhenSelected
-                                value={parsePluginOptionList(
-                                  field.value
-                                ).map<MultipleSelectorOption>((entry) => ({
-                                  value: entry,
-                                  label: entry,
-                                }))}
-                                options={(
-                                  option.enumEntries ?? []
-                                ).map<MultipleSelectorOption>((entry) => ({
-                                  value: entry,
-                                  label: entry,
-                                }))}
-                                onChange={(selected) => {
-                                  field.onChange(
-                                    selected.map((entry) => entry.value)
-                                  );
-                                }}
-                                disabled={option.isFixed}
-                              />
-                            ) : option.isRequired ? (
-                              <Input
-                                {...field}
-                                type={
-                                  option.type === 'INTEGER' ||
-                                  option.type === 'LONG'
-                                    ? 'number'
-                                    : 'text'
-                                }
-                                value={field.value}
-                                disabled={option.isFixed}
-                              />
-                            ) : (
-                              <OptionalInput
-                                {...field}
-                                type={
-                                  option.type === 'INTEGER' ||
-                                  option.type === 'LONG'
-                                    ? 'number'
-                                    : 'text'
-                                }
-                                value={field.value}
-                                disabled={option.isFixed}
-                              />
-                            )}
-                          </FormControl>
-                          <FormDescription>
-                            {option.description}
-                          </FormDescription>
-                          {option.isFixed && (
-                            <FormDescription className='font-semibold text-yellow-700'>
-                              This option is set by an administrator and cannot
-                              be changed.
-                            </FormDescription>
-                          )}
-                        </FormItem>
-                      )}
-                    />
-                  ))}
-                {mustRunAfterName && isSelected && (
-                  <FormField
-                    control={form.control}
-                    name={
-                      `${mustRunAfterName}.${plugin.id}` as Path<TFieldValues>
-                    }
-                    render={({ field: mustRunAfterField }) => (
-                      <FormItem className='ml-4 flex flex-col pb-4'>
-                        <FormLabel>Must run after</FormLabel>
-                        <FormControl>
-                          <MultipleSelector
-                            className='min-w-[280px]'
-                            placeholder='Select values'
-                            hidePlaceholderWhenSelected
-                            value={parsePluginOptionList(
-                              mustRunAfterField.value
-                            ).map<MultipleSelectorOption>((entry) => ({
-                              value: entry,
-                              label: entry,
-                            }))}
-                            options={plugins
-                              .filter(
-                                (otherPlugin) => otherPlugin.id !== plugin.id
-                              )
-                              .map<MultipleSelectorOption>((otherPlugin) => ({
-                                value: otherPlugin.id,
-                                label: otherPlugin.id,
-                              }))}
-                            onChange={(selected) => {
-                              mustRunAfterField.onChange(
-                                selected.map((entry) => entry.value)
-                              );
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          A list of package manager names that this package
-                          manager must run after. For example, this can be used,
-                          if another package manager generates files that this
-                          package manager requires to run correctly.
-                        </FormDescription>
-                      </FormItem>
-                    )}
+                    plugin={plugin}
+                    pluginIds={plugins.map((otherPlugin) => otherPlugin.id)}
+                    secrets={secrets}
+                    configName={configName}
+                    scannerScopeName={scannerScopeName}
+                    mustRunAfterName={mustRunAfterName}
                   />
                 )}
               </div>

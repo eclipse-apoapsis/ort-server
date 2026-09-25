@@ -17,14 +17,23 @@
  * License-Filename: LICENSE
  */
 
-import type { ControllerRenderProps } from 'react-hook-form';
+import { FormControl } from '@/components/ui/form';
+import MultipleSelector from '@/components/ui/multiple-selector';
+import type { OptionInputProps } from '../types';
+import { parsePluginOptionList, toSelectorOptions } from '../utils';
 
-import type { PreconfiguredPluginOption } from '@/api';
-
-export type ScannerScope = 'both' | 'packages' | 'projects';
-
-/** The props shared by the inputs that edit the value of one plugin option. */
-export type OptionInputProps = {
-  field: ControllerRenderProps;
-  option: PreconfiguredPluginOption;
-};
+export const EnumListOptionInput = ({ field, option }: OptionInputProps) => (
+  <FormControl>
+    <MultipleSelector
+      className='min-w-[280px]'
+      placeholder='Select values'
+      hidePlaceholderWhenSelected
+      value={toSelectorOptions(parsePluginOptionList(field.value))}
+      options={toSelectorOptions(option.enumEntries ?? [])}
+      onChange={(selected) => {
+        field.onChange(selected.map((entry) => entry.value));
+      }}
+      disabled={option.isFixed}
+    />
+  </FormControl>
+);
