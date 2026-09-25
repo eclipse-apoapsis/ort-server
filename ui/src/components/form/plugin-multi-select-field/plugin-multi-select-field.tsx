@@ -32,17 +32,6 @@ import {
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
-import {
-  ADMIN_SECRET_VALUE,
-  getEnumSelectDisplayValue,
-  getPluginsInDisplayOrder,
-  getSecretSelectDisplayValue,
-  mapEnumSelectValue,
-  mapSecretSelectValue,
-  moveItem,
-  UNDEFINED_ENUM_VALUE,
-  UNDEFINED_SECRET_VALUE,
-} from '@/components/form/plugin-multi-select-field-utils';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -69,21 +58,19 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group.tsx';
 import { cn } from '@/lib/utils';
-
-export type ScannerScope = 'both' | 'packages' | 'projects';
-
-function parsePluginOptionList(value: unknown): string[] {
-  if (Array.isArray(value)) return value as string[];
-
-  if (typeof value === 'string') {
-    return value
-      .split(',')
-      .map((entry) => entry.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
+import type { ScannerScope } from './types';
+import {
+  ADMIN_SECRET_VALUE,
+  getEnumSelectDisplayValue,
+  getPluginsInDisplayOrder,
+  getSecretSelectDisplayValue,
+  mapEnumSelectValue,
+  mapSecretSelectValue,
+  moveItem,
+  parsePluginOptionList,
+  UNDEFINED_ENUM_VALUE,
+  UNDEFINED_SECRET_VALUE,
+} from './utils';
 
 type SortablePluginListItemProps = {
   id: string;

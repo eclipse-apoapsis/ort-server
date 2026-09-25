@@ -24,8 +24,9 @@ import {
   getSecretSelectDisplayValue,
   mapSecretSelectValue,
   moveItem,
+  parsePluginOptionList,
   UNDEFINED_SECRET_VALUE,
-} from '@/components/form/plugin-multi-select-field-utils';
+} from '@/components/form/plugin-multi-select-field/utils';
 
 describe('getPluginsInDisplayOrder', () => {
   const plugins = [
@@ -103,5 +104,21 @@ describe('moveItem', () => {
       'OrtConfig',
       'File',
     ]);
+  });
+});
+
+describe('parsePluginOptionList', () => {
+  it('keeps an array unchanged', () => {
+    expect(parsePluginOptionList(['Maven', 'NPM'])).toEqual(['Maven', 'NPM']);
+  });
+
+  it('splits a comma-separated string and drops blank entries', () => {
+    expect(parsePluginOptionList(' Maven, ,NPM ,')).toEqual(['Maven', 'NPM']);
+  });
+
+  it('returns an empty list for other values', () => {
+    expect(parsePluginOptionList(undefined)).toEqual([]);
+    expect(parsePluginOptionList(null)).toEqual([]);
+    expect(parsePluginOptionList(42)).toEqual([]);
   });
 });

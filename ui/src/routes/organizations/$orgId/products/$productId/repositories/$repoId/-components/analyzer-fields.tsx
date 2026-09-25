@@ -24,7 +24,7 @@ import { useFieldArray, UseFormReturn } from 'react-hook-form';
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { zAnalyzerPhase } from '@/api/zod.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
-import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field';
 import { SecretSelect } from '@/components/secret-select';
 import { InlineCode } from '@/components/typography.tsx';
 import {
