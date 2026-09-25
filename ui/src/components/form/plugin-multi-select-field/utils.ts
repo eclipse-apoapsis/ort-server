@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import type { FieldValues, Path } from 'react-hook-form';
+
 import type { PreconfiguredPluginOption } from '@/api';
 import type { Option as MultipleSelectorOption } from '@/components/ui/multiple-selector';
 
@@ -115,6 +117,17 @@ export function parsePluginOptionList(value: unknown): string[] {
   }
 
   return [];
+}
+
+/**
+ * Get the path of a plugin's entry in a field that holds one value per plugin, such as the
+ * scanner scopes or the must-run-after lists.
+ */
+export function fieldPath<TFieldValues extends FieldValues>(
+  base: string,
+  pluginId: string
+): Path<TFieldValues> {
+  return `${base}.${pluginId}` as Path<TFieldValues>;
 }
 
 /**
