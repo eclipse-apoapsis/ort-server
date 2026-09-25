@@ -182,6 +182,7 @@ export const PluginMultiSelectField = <
   className,
 }: PluginMultiSelectFieldProps<TFieldValues, TName>) => {
   const [pluginOrder, setPluginOrder] = React.useState<string[]>();
+  const selectAllId = React.useId();
 
   return (
     <FormField
@@ -585,7 +586,7 @@ export const PluginMultiSelectField = <
             <FormDescription className='pb-4'>{description}</FormDescription>
             <div className='flex items-center space-x-3'>
               <Checkbox
-                id='check-all-items'
+                id={selectAllId}
                 checked={
                   plugins.every((plugin) =>
                     form.getValues(name).includes(plugin.id)
@@ -653,7 +654,7 @@ export const PluginMultiSelectField = <
                   }
                 }}
               />
-              <Label htmlFor='check-all-items' className='font-bold'>
+              <Label htmlFor={selectAllId} className='font-bold'>
                 Enable/disable all
               </Label>
             </div>
