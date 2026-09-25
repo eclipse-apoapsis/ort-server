@@ -39,7 +39,6 @@ const plugins = ['A', 'B', 'C'].map((id) =>
 type Options = {
   defaultValues?: Partial<FormValues>;
   withScannerScope?: boolean;
-  withMustRunAfter?: boolean;
   enableReordering?: boolean;
   showSelectedPluginsFirst?: boolean;
 };
@@ -47,7 +46,6 @@ type Options = {
 const renderSelection = ({
   defaultValues = {},
   withScannerScope = false,
-  withMustRunAfter = false,
   enableReordering = false,
   showSelectedPluginsFirst = false,
 }: Options = {}) => {
@@ -69,7 +67,6 @@ const renderSelection = ({
       field,
       plugins,
       scannerScopeName: withScannerScope ? 'scopes' : undefined,
-      mustRunAfterName: withMustRunAfter ? 'mustRunAfter' : undefined,
       enableReordering,
       showSelectedPluginsFirst,
     });
@@ -129,10 +126,9 @@ describe('usePluginSelection', () => {
       expect(values().scopes).toEqual({ A: 'both', B: 'packages' });
     });
 
-    it('clears the scanner scope and must-run-after list when disabling', () => {
+    it('keeps the scanner scope and must-run-after list when disabling', () => {
       const { selection, values } = renderSelection({
         withScannerScope: true,
-        withMustRunAfter: true,
         defaultValues: {
           plugins: ['A', 'B'],
           scopes: { A: 'projects', B: 'both' },
@@ -142,8 +138,8 @@ describe('usePluginSelection', () => {
 
       act(() => selection().setSelected('A', false));
 
-      expect(values().scopes).toEqual({ A: undefined, B: 'both' });
-      expect(values().mustRunAfter).toEqual({ A: undefined });
+      expect(values().scopes).toEqual({ A: 'projects', B: 'both' });
+      expect(values().mustRunAfter).toEqual({ A: ['B'] });
     });
   });
 
@@ -173,10 +169,9 @@ describe('usePluginSelection', () => {
       expect(values().plugins).toEqual(['C', 'A', 'B']);
     });
 
-    it('disables all plugins and clears their scopes and must-run-after lists', () => {
+    it('disables all plugins and keeps their scopes and must-run-after lists', () => {
       const { selection, values } = renderSelection({
         withScannerScope: true,
-        withMustRunAfter: true,
         defaultValues: {
           plugins: ['A', 'B', 'C'],
           scopes: { A: 'both', B: 'packages', C: 'projects' },
@@ -188,15 +183,11 @@ describe('usePluginSelection', () => {
 
       expect(values().plugins).toEqual([]);
       expect(values().scopes).toEqual({
-        A: undefined,
-        B: undefined,
-        C: undefined,
+        A: 'both',
+        B: 'packages',
+        C: 'projects',
       });
-      expect(values().mustRunAfter).toEqual({
-        A: undefined,
-        B: undefined,
-        C: undefined,
-      });
+      expect(values().mustRunAfter).toEqual({ A: ['B'], C: ['A'] });
     });
   });
 

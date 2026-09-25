@@ -270,6 +270,8 @@ describe('create run job fields', () => {
     expect(markup).toContain('Enabled package managers');
     expect(markup).toContain('Maven');
     expect(markup).toContain('NPM');
-    expect(markup).toContain('Must run after');
+    // The package managers start collapsed, so their settings are not rendered.
+    expect(markup).toContain('Expand all');
+    expect(markup).not.toContain('Must run after');
   });
 });
