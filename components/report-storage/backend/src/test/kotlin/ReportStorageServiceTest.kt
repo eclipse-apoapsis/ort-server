@@ -190,5 +190,5 @@ private fun createStorage(): Storage {
     val configMap = mapOf(storageType to mapOf("name" to StorageProviderFactoryForTesting.NAME))
     val config = ConfigFactory.parseMap(configMap)
 
-    return Storage.create(storageType, ConfigManager.create(config))
+    return Storage.create(storageType, ConfigManager.create(config), mockk())
 }

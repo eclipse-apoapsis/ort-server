@@ -39,7 +39,9 @@ import io.ktor.serialization.kotlinx.json.json
 import java.net.URLEncoder
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -48,8 +50,8 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 
@@ -89,8 +91,7 @@ class ScalewaySecretsProvider(
         }
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
-    override fun readSecret(path: Path): SecretValue? = runBlocking {
+    override suspend fun readSecret(path: Path): SecretValue? = withContext(Dispatchers.Virtual) {
         // See https://www.scaleway.com/en/developers/api/secret-manager/#path-secret-versions-access-a-secrets-version-using-the-secrets-name-and-path.
         val response = client.get("secrets-by-path/versions/$LATEST_REVISION/access") {
             parameter("project_id", config.projectId)
@@ -123,7 +124,7 @@ class ScalewaySecretsProvider(
         }
     }
 
-    override fun writeSecret(path: Path, secret: SecretValue) = runBlocking {
+    override suspend fun writeSecret(path: Path, secret: SecretValue) = withContext(Dispatchers.Virtual) {
         val listResponse = listSecrets(path)
 
         val secretId = if (listResponse.totalCount < 1) {
@@ -176,7 +177,6 @@ class ScalewaySecretsProvider(
         return response.body<ScalewaySecret>()
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
     private suspend fun createVersion(secretId: String, value: String): VersionCreateResponse {
         // See https://www.scaleway.com/en/developers/api/secret-manager/#path-secret-versions-create-a-version.
         val response = client.post("secrets/$secretId/versions") {
@@ -188,12 +188,12 @@ class ScalewaySecretsProvider(
         return response.body<VersionCreateResponse>()
     }
 
-    override fun removeSecret(path: Path) = runBlocking {
+    override suspend fun removeSecret(path: Path) = withContext(Dispatchers.Virtual) {
         val listResponse = listSecrets(path)
 
         if (listResponse.totalCount < 1) {
             logger.debug("Skipping deletion of secret at '$path' as it does not exist.")
-            return@runBlocking
+            return@withContext
         }
 
         check(listResponse.totalCount == 1)
@@ -208,7 +208,7 @@ class ScalewaySecretsProvider(
         logger.debug("Deleted the secret at '$path'.")
     }
 
-    override fun createPath(id: HierarchyId, secretName: String): Path {
+    override suspend fun createPath(id: HierarchyId, secretName: String): Path {
         val secretType = when (id) {
             is OrganizationId -> "organization_${id.value}"
             is ProductId -> "product_${id.value}"

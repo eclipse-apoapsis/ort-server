@@ -99,7 +99,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
 
     private fun evaluatorModule(): Module = module {
         single {
-            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
+            val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get(), get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
         }
 

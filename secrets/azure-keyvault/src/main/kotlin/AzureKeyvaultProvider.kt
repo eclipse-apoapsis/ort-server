@@ -21,6 +21,9 @@ package org.eclipse.apoapsis.ortserver.secrets.azurekeyvault
 
 import com.azure.security.keyvault.secrets.SecretClient
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
@@ -28,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 // Regex for allowed object names in Azure Key Vault, see:
 // https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#object-identifiers
@@ -35,20 +39,26 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 private val PATH_REGEX = Regex("^[0-9a-zA-Z\\-]{1,100}\$")
 
 class AzureKeyvaultProvider(private val secretClient: SecretClient) : SecretsProvider {
-    override fun readSecret(path: Path): SecretValue? =
-        runCatching {
-            secretClient.getSecret(path.path).value?.let { SecretValue(it) }
-        }.getOrNull()
+    override suspend fun readSecret(path: Path): SecretValue? =
+        withContext(Dispatchers.Virtual) {
+            runCatching {
+                secretClient.getSecret(path.path).value?.let { SecretValue(it) }
+            }.getOrNull()
+        }
 
-    override fun writeSecret(path: Path, secret: SecretValue) {
-        secretClient.setSecret(path.path, secret.value)
+    override suspend fun writeSecret(path: Path, secret: SecretValue) {
+        withContext(Dispatchers.Virtual) {
+            secretClient.setSecret(path.path, secret.value)
+        }
     }
 
-    override fun removeSecret(path: Path) {
-        secretClient.beginDeleteSecret(path.path)
+    override suspend fun removeSecret(path: Path) {
+        withContext(Dispatchers.Virtual) {
+            secretClient.beginDeleteSecret(path.path)
+        }
     }
 
-    override fun createPath(id: HierarchyId, secretName: String): Path {
+    override suspend fun createPath(id: HierarchyId, secretName: String): Path {
         check(secretName.matches(PATH_REGEX)) {
             "The secret name '$secretName' does not match the allowed pattern '$PATH_REGEX'."
         }

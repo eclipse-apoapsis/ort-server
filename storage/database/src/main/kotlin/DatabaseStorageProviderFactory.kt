@@ -23,6 +23,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactory
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * [StorageProviderFactory] implementation for the database storage implementation. This factory creates a
  * [StorageProvider] that uses a database table with a column referencing a PostgreSQL large object for storing
@@ -61,6 +63,6 @@ class DatabaseStorageProviderFactory : StorageProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(config: ConfigManager): StorageProvider =
-        DatabaseStorageProvider(config.getString(NAMESPACE_PROPERTY), config.getInt(MEMORY_LIMIT_PROPERTY))
+    override fun createProvider(config: ConfigManager, db: Database): StorageProvider =
+        DatabaseStorageProvider(config.getString(NAMESPACE_PROPERTY), config.getInt(MEMORY_LIMIT_PROPERTY), db)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,10 @@ plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
-
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
 }
 
-group = "org.eclipse.apoapsis.ortserver.secrets"
+group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
-    api(projects.secrets.secretsSpi)
-
-    implementation(projects.shared.coroutines)
-    implementation(projects.utils.config)
-
-    implementation(ktorLibs.serialization.kotlinx.json)
-
-    testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.kotest.runner.junit5)
-    testImplementation(libs.mockk)
+    api(libs.kotlinx.coroutines)
 }

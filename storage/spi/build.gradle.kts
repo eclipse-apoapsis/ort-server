@@ -32,6 +32,9 @@ dependencies {
     api(projects.config.configSpi)
 
     implementation(projects.utils.config)
+
+    api(libs.exposed.jdbc)
+
     implementation(libs.kotlinx.coroutines)
 
     testImplementation(libs.kotest.assertions.core)

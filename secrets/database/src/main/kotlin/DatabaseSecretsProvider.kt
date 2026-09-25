@@ -21,21 +21,23 @@ package org.eclipse.apoapsis.ortserver.secrets.database
 
 import kotlin.time.Clock
 
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 /** A [SecretsProvider] implementation that stores encrypted secrets in the database. */
 internal class DatabaseSecretsProvider(
+    private val db: Database,
     private val encryptor: SecretEncryptor
 ) : SecretsProvider {
-    override fun readSecret(path: Path): SecretValue? = transaction {
+    override suspend fun readSecret(path: Path): SecretValue? = db.transaction {
         DatabaseSecretsTable.select(
             DatabaseSecretsTable.encryptedValue,
             DatabaseSecretsTable.encryptionScheme,
@@ -55,10 +57,10 @@ internal class DatabaseSecretsProvider(
         }
     }
 
-    override fun writeSecret(path: Path, secret: SecretValue) {
+    override suspend fun writeSecret(path: Path, secret: SecretValue) {
         val encryptedSecret = encryptor.encrypt(secret.value)
 
-        transaction {
+        db.transaction {
             DatabaseSecretsTable.upsert(DatabaseSecretsTable.path) {
                 it[DatabaseSecretsTable.path] = path.path
                 it[encryptedValue] = encryptedSecret.encryptedValue
@@ -69,8 +71,8 @@ internal class DatabaseSecretsProvider(
         }
     }
 
-    override fun removeSecret(path: Path) {
-        transaction {
+    override suspend fun removeSecret(path: Path) {
+        db.transaction {
             DatabaseSecretsTable.deleteWhere { DatabaseSecretsTable.path eq path.path }
         }
     }

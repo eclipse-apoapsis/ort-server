@@ -27,10 +27,11 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.mockk
+
 import java.io.File
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.serialization.json.Json
 
@@ -144,10 +145,9 @@ private fun getStorage(storageFile: File): SecretStorage {
         "$CONFIG_PREFIX.$NAME_PROPERTY" to FileBasedSecretsProvider.NAME,
         "$CONFIG_PREFIX.$PATH_PROPERTY" to storageFile.canonicalPath
     )
-    return SecretStorage.createStorage(ConfigManager.create(ConfigFactory.parseMap(properties)))
+    return SecretStorage.createStorage(ConfigManager.create(ConfigFactory.parseMap(properties)), mockk())
 }
 
-@OptIn(ExperimentalEncodingApi::class)
 private fun initStorage(storageFile: File) {
     val json = Json {
         allowStructuredMapKeys = true

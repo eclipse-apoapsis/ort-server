@@ -28,10 +28,12 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.secrets.secretsSpi)
 
+    implementation(projects.dao)
     implementation(projects.utils.config)
 
+    api(libs.exposed.jdbc)
+
     implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
     implementation(libs.exposed.kotlinDatetime)
     implementation(libs.slf4j)
     implementation(libs.spring.security.crypto)

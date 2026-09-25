@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.dao.utils
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Op
@@ -38,7 +37,6 @@ class ArrayAggColumnEquals(
     private val column: Column<String>,
     private val value: Set<String>
 ) : Op<Boolean>() {
-    @OptIn(ExperimentalEncodingApi::class)
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         if (value.isEmpty()) {
             append("ARRAY_AGG(DISTINCT ")
@@ -73,7 +71,6 @@ class ArrayAggTwoColumnsEquals(
     private val column2: Column<String>,
     private val values: Map<String, String>
 ) : Op<Boolean>() {
-    @OptIn(ExperimentalEncodingApi::class)
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         val joinedValues = if (values.isEmpty()) {
             "':'"

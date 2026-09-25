@@ -24,14 +24,18 @@ import com.typesafe.config.Config
 import java.io.File
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.file.model.FileBasedSecretsStorage
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
 import org.slf4j.LoggerFactory
@@ -53,24 +57,26 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         private val logger = LoggerFactory.getLogger(FileBasedSecretsProvider::class.java)
     }
 
+    private val mutex = Mutex()
+
     private val secretStorageFilePath = config.getStringOrDefault(PATH_PROPERTY, ".")
 
     /**
      * Return a map representing all secrets stored in file-based secret storage.
      */
-    @OptIn(ExperimentalEncodingApi::class)
-    private fun readSecrets(): Map<Path, SecretValue> {
-        val file = getOrCreateStorageFile()
-        val bytes = file.readBytes()
-        if (bytes.isEmpty()) return emptyMap()
+    private suspend fun readSecrets(): Map<Path, SecretValue> =
+        withContext(Dispatchers.Virtual) {
+            val file = getOrCreateStorageFile()
+            val bytes = file.readBytes()
+            if (bytes.isEmpty()) return@withContext emptyMap()
 
-        val decodedSecrets = Base64.decode(bytes)
+            val decodedSecrets = Base64.decode(bytes)
 
-        return Json.decodeFromString<FileBasedSecretsStorage>(String(decodedSecrets)).secrets.entries
-            .associate { (key, value) -> Path(key) to SecretValue(value) }
-    }
+            return@withContext Json.decodeFromString<FileBasedSecretsStorage>(String(decodedSecrets)).secrets.entries
+                .associate { (key, value) -> Path(key) to SecretValue(value) }
+        }
 
-    private fun getOrCreateStorageFile(): File {
+    private suspend fun getOrCreateStorageFile(): File {
         val file = File(secretStorageFilePath)
 
         if (!file.isFile || file.length() == 0L) {
@@ -87,31 +93,33 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     /**
      * Return a map representing all secrets stored in file-based secret storage.
      */
-    @OptIn(ExperimentalEncodingApi::class)
-    private fun writeSecrets(secrets: Map<Path, SecretValue>) {
-        val secretsJson = Json.encodeToString<FileBasedSecretsStorage>(
-            FileBasedSecretsStorage(secrets.entries.associate { (key, value) -> key.path to value.value })
-        )
+    private suspend fun writeSecrets(secrets: Map<Path, SecretValue>) {
+        withContext(Dispatchers.Virtual) {
+            val secretsJson = Json.encodeToString<FileBasedSecretsStorage>(
+                FileBasedSecretsStorage(secrets.entries.associate { (key, value) -> key.path to value.value })
+            )
 
-        val encryptedSecrets = Base64.encode(secretsJson.toByteArray())
+            val encryptedSecrets = Base64.encode(secretsJson.toByteArray())
 
-        File(secretStorageFilePath).apply { parentFile.mkdirs() }.writeText(encryptedSecrets)
+            File(secretStorageFilePath).apply { parentFile.mkdirs() }.writeText(encryptedSecrets)
+        }
     }
 
-    @Synchronized
-    override fun readSecret(path: Path): SecretValue? = readSecrets()[path]
+    override suspend fun readSecret(path: Path): SecretValue? = mutex.withLock { readSecrets()[path] }
 
-    @Synchronized
-    override fun writeSecret(path: Path, secret: SecretValue) {
-        val secrets = readSecrets().toMutableMap()
-        secrets[path] = secret
-        writeSecrets(secrets)
+    override suspend fun writeSecret(path: Path, secret: SecretValue) {
+        mutex.withLock {
+            val secrets = readSecrets().toMutableMap()
+            secrets[path] = secret
+            writeSecrets(secrets)
+        }
     }
 
-    @Synchronized
-    override fun removeSecret(path: Path) {
-        val secrets = readSecrets().toMutableMap()
-        secrets -= path
-        writeSecrets(secrets)
+    override suspend fun removeSecret(path: Path) {
+        mutex.withLock {
+            val secrets = readSecrets().toMutableMap()
+            secrets -= path
+            writeSecrets(secrets)
+        }
     }
 }

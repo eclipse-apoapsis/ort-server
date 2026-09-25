@@ -48,6 +48,7 @@ dependencyAnalysis {
             onRuntimeOnly { severity("ignore") }
             onUnusedAnnotationProcessors { severity("fail") }
             onRedundantPlugins { severity("fail") }
+            onDuplicateClassWarnings { severity("ignore") }
         }
 
         project(projects.api.v1.apiV1Client) {

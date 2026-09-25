@@ -54,7 +54,6 @@ import io.mockk.every
 import io.mockk.mockk
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
@@ -606,7 +605,6 @@ private fun WireMockServer.stubUnexpectedJsonContentType() {
 /**
  * A stub for successfully getting file information in JSON format.
  */
-@OptIn(ExperimentalEncodingApi::class)
 private fun WireMockServer.stubJsonFileContentType() {
     stubFor(
         authorizedGet(

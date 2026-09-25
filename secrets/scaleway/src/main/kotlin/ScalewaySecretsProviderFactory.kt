@@ -23,10 +23,12 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactory
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 class ScalewaySecretsProviderFactory : SecretsProviderFactory {
     override val name: String = "scaleway"
 
-    override fun createProvider(configManager: ConfigManager): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager, db: Database): SecretsProvider {
         val config = ScalewayConfiguration.create(configManager)
         return ScalewaySecretsProvider(config)
     }

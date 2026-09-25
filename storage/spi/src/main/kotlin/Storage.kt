@@ -29,6 +29,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
+import org.jetbrains.exposed.v1.jdbc.Database
+
 /**
  * A class allowing convenient access to a concrete [StorageProvider] implementation.
  *
@@ -52,9 +54,10 @@ class Storage(
         /**
          * Return a [Storage] instance that can be used to interact with a concrete storage implementation. Obtain
          * the underlying [StorageProvider] by looking up the factory that has been configured in the given [config]
-         * for the given [storageType].
+         * for the given [storageType]. The [database][db] is provided in case the storage implementation needs access
+         * to it.
          */
-        fun create(storageType: String, config: ConfigManager): Storage {
+        fun create(storageType: String, config: ConfigManager, db: Database): Storage {
             val storageConfig = runCatching {
                 config.subConfig(Path(storageType))
             }.getOrElse { e ->
@@ -67,7 +70,7 @@ class Storage(
             val factory = LOADER.find { it.name == factoryName }
                 ?: throw StorageException("StorageProviderFactory '$factoryName' not found on classpath.")
 
-            return Storage(factory.createProvider(storageConfig))
+            return Storage(factory.createProvider(storageConfig, db))
         }
 
         /**

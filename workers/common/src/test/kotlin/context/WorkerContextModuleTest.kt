@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.context
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.mockkClass
 
@@ -52,7 +52,7 @@ class WorkerContextModuleTest : KoinTest, StringSpec() {
 
             runModuleTest {
                 declareMock<SecretService> {
-                    every { getSecretValue(secret) } returns secretValue
+                    coEvery { getSecretValue(secret) } returns secretValue
                 }
 
                 val secretResolverService = get<SecretResolverService>()

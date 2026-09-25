@@ -31,6 +31,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beInstanceOf
 
+import io.mockk.mockk
+
 import kotlin.IllegalArgumentException
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -46,7 +48,7 @@ class SecretStorageTest : WordSpec({
             val configManager = ConfigManager.create(ConfigFactory.empty())
 
             val exception = shouldThrow<SecretStorageException> {
-                SecretStorage.createStorage(configManager)
+                SecretStorage.createStorage(configManager, mockk())
             }
 
             exception.message shouldContain (SecretStorage.NAME_PROPERTY)
@@ -61,7 +63,7 @@ class SecretStorageTest : WordSpec({
             )
 
             val exception = shouldThrow<SecretStorageException> {
-                SecretStorage.createStorage(configManager)
+                SecretStorage.createStorage(configManager, mockk())
             }
 
             exception.message shouldContain providerName
@@ -259,5 +261,5 @@ private fun createStorage(): SecretStorage {
     )
     val configManager = ConfigManager.create(ConfigFactory.parseMap(properties))
 
-    return SecretStorage.createStorage(configManager)
+    return SecretStorage.createStorage(configManager, mockk())
 }
