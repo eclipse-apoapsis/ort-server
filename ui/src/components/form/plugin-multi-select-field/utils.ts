@@ -100,3 +100,16 @@ export function moveItem<T>(
 
   return newItems;
 }
+
+export function parsePluginOptionList(value: unknown): string[] {
+  if (Array.isArray(value)) return value as string[];
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}

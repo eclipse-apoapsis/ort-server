@@ -27,7 +27,7 @@ import {
   PreconfiguredPluginDescriptor,
   ProviderPluginConfiguration,
 } from '@/api';
-import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field-utils';
+import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field';
 
 /**
  * The ID of the package manager which is always enabled and therefore neither selectable in the

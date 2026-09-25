@@ -19,7 +19,7 @@
 
 import { expect, it } from 'vitest';
 
-import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field-utils';
+import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field';
 import {
   createPluginPayload,
   createProviderPluginPayload,
