@@ -23,6 +23,7 @@ import type { PreconfiguredPluginOption } from '@/api';
 import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field';
 import {
   differsFromDefaults,
+  getInitiallyExpandedPluginIds,
   getMissingRequiredOptions,
   isOptionValueMissing,
   optionValueDiffersFromDefault,
@@ -193,5 +194,50 @@ describe('differsFromDefaults', () => {
     expect(
       differsFromDefaults(plugin, { secrets: { token: ADMIN_SECRET_VALUE } })
     ).toBe(false);
+  });
+});
+
+describe('getInitiallyExpandedPluginIds', () => {
+  const requiredPlugin = createPluginDescriptor({
+    id: 'Required',
+    options: [createOption({ name: 'url', isRequired: true })],
+  });
+  const defaultPlugin = createPluginDescriptor({
+    id: 'Default',
+    options: [
+      createOption({ name: 'flag', type: 'BOOLEAN', defaultValue: 'false' }),
+    ],
+  });
+  const plainPlugin = createPluginDescriptor({ id: 'Plain', options: [] });
+  const plugins = [requiredPlugin, defaultPlugin, plainPlugin];
+
+  it('includes an enabled plugin with a missing required option', () => {
+    expect(getInitiallyExpandedPluginIds(plugins, ['Required'], {})).toEqual([
+      'Required',
+    ]);
+  });
+
+  it('includes an enabled plugin whose options differ from the defaults', () => {
+    expect(
+      getInitiallyExpandedPluginIds(plugins, ['Default'], {
+        Default: { options: { flag: true } },
+      })
+    ).toEqual(['Default']);
+  });
+
+  it('excludes an enabled plugin with default options', () => {
+    expect(
+      getInitiallyExpandedPluginIds(plugins, ['Default'], {
+        Default: { options: { flag: false } },
+      })
+    ).toEqual([]);
+  });
+
+  it('excludes a plugin that is not enabled, even with a missing required option', () => {
+    expect(getInitiallyExpandedPluginIds(plugins, [], {})).toEqual([]);
+  });
+
+  it('excludes a plugin without options', () => {
+    expect(getInitiallyExpandedPluginIds(plugins, ['Plain'], {})).toEqual([]);
   });
 });

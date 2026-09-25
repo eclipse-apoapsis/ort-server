@@ -141,3 +141,24 @@ export function differsFromDefaults(
     );
   });
 }
+
+/**
+ * Get the ids of the plugins whose options should be expanded when the plugin field is first
+ * shown: enabled plugins with options that have required options without a value, or options
+ * which differ from their defaults, for example on a rerun.
+ */
+export function getInitiallyExpandedPluginIds(
+  plugins: readonly PreconfiguredPluginDescriptor[],
+  selectedIds: readonly string[],
+  config: Record<string, PluginConfigValues | undefined> | undefined
+): string[] {
+  return plugins
+    .filter(
+      (plugin) =>
+        plugin.options.length > 0 &&
+        selectedIds.includes(plugin.id) &&
+        (getMissingRequiredOptions(plugin, config?.[plugin.id]).length > 0 ||
+          differsFromDefaults(plugin, config?.[plugin.id]))
+    )
+    .map((plugin) => plugin.id);
+}
