@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
@@ -80,9 +81,8 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
         }.mapToModel()
     }
 
-    override fun get(id: Long): RepositoryConfiguration? = db.entityQuery {
-        RepositoryConfigurationDao[id].mapToModel()
-    }
+    override fun get(id: Long): RepositoryConfiguration? =
+        db.blockingQueryCatching { RepositoryConfigurationDao[id].mapToModel() }.getEntityOrNull()
 }
 
 private fun createPackageCuration(packageCuration: PackageCuration): PackageCurationDao =
