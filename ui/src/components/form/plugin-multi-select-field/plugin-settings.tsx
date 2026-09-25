@@ -23,7 +23,7 @@ import type { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { MustRunAfterField } from './must-run-after-field';
 import { PluginOptionField } from './plugin-option-field';
 import { ScannerScopeToggle } from './scanner-scope-toggle';
-import { optionFieldPath } from './utils';
+import { fieldPath, optionFieldPath } from './utils';
 
 type PluginSettingsProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -53,7 +53,7 @@ export const PluginSettings = <TFieldValues extends FieldValues>({
     {scannerScopeName && (
       <ScannerScopeToggle
         control={control}
-        name={`${scannerScopeName}.${plugin.id}` as Path<TFieldValues>}
+        name={fieldPath<TFieldValues>(scannerScopeName, plugin.id)}
       />
     )}
     {plugin.options.map((option) => (
@@ -70,7 +70,7 @@ export const PluginSettings = <TFieldValues extends FieldValues>({
     {mustRunAfterName && (
       <MustRunAfterField
         control={control}
-        name={`${mustRunAfterName}.${plugin.id}` as Path<TFieldValues>}
+        name={fieldPath<TFieldValues>(mustRunAfterName, plugin.id)}
         candidateIds={pluginIds.filter((pluginId) => pluginId !== plugin.id)}
       />
     )}
