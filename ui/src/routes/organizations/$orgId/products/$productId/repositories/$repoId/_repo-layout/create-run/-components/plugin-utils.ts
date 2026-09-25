@@ -28,6 +28,11 @@ import {
   ProviderPluginConfiguration,
 } from '@/api';
 import { ADMIN_SECRET_VALUE } from '@/components/form/plugin-multi-select-field';
+import {
+  getMissingRequiredOptions,
+  optionValueDiffersFromDefault,
+  pluginOptionValueToFormValue,
+} from '@/helpers/plugin-options';
 
 /**
  * The ID of the package manager which is always enabled and therefore neither selectable in the
@@ -37,29 +42,6 @@ export const UNMANAGED_PACKAGE_MANAGER_ID = 'Unmanaged';
 
 function isNonBlankString(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '';
-}
-
-/** Convert a serialized plugin option value from the API to its form representation. */
-function pluginOptionValueToFormValue(
-  value: unknown,
-  type: PluginOptionType
-): string | boolean | string[] {
-  switch (type) {
-    case 'BOOLEAN':
-      return typeof value === 'boolean' ? value : value === 'true';
-    case 'ENUM_LIST':
-    case 'STRING_LIST':
-      if (Array.isArray(value)) return value as string[];
-
-      return typeof value === 'string'
-        ? value
-            .split(',')
-            .map((entry) => entry.trim())
-            .filter(Boolean)
-        : [];
-    default:
-      return String(value);
-  }
 }
 
 function optionTypeToZodType(type: PluginOptionType): ZodType {
@@ -130,33 +112,24 @@ export function validateRequiredPluginOptions(
   for (const plugin of plugins) {
     if (!selectedPluginIds.includes(plugin.id)) continue;
 
-    const pluginConfig = config?.[plugin.id];
-
-    for (const option of plugin.options) {
-      if (!option.isRequired) continue;
-
+    for (const option of getMissingRequiredOptions(
+      plugin,
+      config?.[plugin.id]
+    )) {
       const section = option.type === 'SECRET' ? 'secrets' : 'options';
-      const value = pluginConfig?.[section]?.[option.name];
 
-      if (
-        value === undefined ||
-        value === null ||
-        value === '' ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        ctx.addIssue({
-          code: 'invalid_type',
-          expected: 'string',
-          received: 'undefined',
-          path: [
-            ...(Array.isArray(configPath) ? configPath : [configPath]),
-            plugin.id,
-            section,
-            option.name,
-          ],
-          message: `Required option "${option.name}" is missing for "${plugin.displayName}".`,
-        });
-      }
+      ctx.addIssue({
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'undefined',
+        path: [
+          ...(Array.isArray(configPath) ? configPath : [configPath]),
+          plugin.id,
+          section,
+          option.name,
+        ],
+        message: `Required option "${option.name}" is missing for "${plugin.displayName}".`,
+      });
     }
   }
 }
@@ -426,23 +399,11 @@ export function createPluginPayload(
                 .filter(([, optValue]) => optValue != null)
                 .filter(([optKey, optValue]) => {
                   const option = optionByName.get(optKey);
-                  if (option?.defaultValue == null) return true;
 
-                  const value = pluginOptionValueToFormValue(
-                    optValue,
-                    option.type
+                  return (
+                    option?.defaultValue == null ||
+                    optionValueDiffersFromDefault(option, optValue)
                   );
-                  const defaultValue = pluginOptionValueToFormValue(
-                    option.defaultValue,
-                    option.type
-                  );
-
-                  return Array.isArray(value) && Array.isArray(defaultValue)
-                    ? value.length !== defaultValue.length ||
-                        value.some(
-                          (entry, index) => entry !== defaultValue[index]
-                        )
-                    : value !== defaultValue;
                 })
                 .map(([optKey, optValue]) => [optKey, String(optValue)])
             );
