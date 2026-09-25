@@ -30,7 +30,6 @@ import io.kotest.matchers.shouldBe
 import java.io.File
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 import kotlinx.serialization.json.Json
 
@@ -147,7 +146,6 @@ private fun getStorage(storageFile: File): SecretStorage {
     return SecretStorage.createStorage(ConfigManager.create(ConfigFactory.parseMap(properties)))
 }
 
-@OptIn(ExperimentalEncodingApi::class)
 private fun initStorage(storageFile: File) {
     val json = Json {
         allowStructuredMapKeys = true

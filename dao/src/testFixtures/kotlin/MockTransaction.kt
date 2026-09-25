@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.test
 
+import io.mockk.coEvery
+import io.mockk.coInvoke
 import io.mockk.every
 import io.mockk.invoke
 import io.mockk.mockk
@@ -31,6 +33,7 @@ import io.mockk.unmockkStatic
 import org.jetbrains.exposed.v1.core.vendors.currentDialect
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 private const val DATABASE_DIALECT_CLASS = "org.jetbrains.exposed.v1.core.vendors.DatabaseDialectKt"
@@ -42,6 +45,7 @@ private const val TRANSACTIONS_CLASS = "org.jetbrains.exposed.v1.jdbc.transactio
  */
 fun mockkTransaction() {
     val slot = slot<JdbcTransaction.() -> Any>()
+    val coSlot = slot<suspend JdbcTransaction.() -> Any>()
 
     mockkObject(TransactionManager.Companion)
     every { TransactionManager.managerFor(any()) } returns mockk {
@@ -55,6 +59,7 @@ fun mockkTransaction() {
 
     mockkStatic(TRANSACTIONS_CLASS)
     every { transaction(any(), any(), any(), capture(slot)) } answers { slot.invoke(mockk()) }
+    coEvery { suspendTransaction(any(), any(), any(), capture(coSlot)) } coAnswers { coSlot.coInvoke(mockk()) }
 }
 
 /**

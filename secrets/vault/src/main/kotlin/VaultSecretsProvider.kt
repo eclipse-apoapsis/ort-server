@@ -39,8 +39,10 @@ import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
@@ -49,8 +51,8 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultLoginResponse
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretData
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretResponse
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 
@@ -86,8 +88,8 @@ class VaultSecretsProvider(
     /** The client to interact with the Vault service. */
     private val vaultClient = createClient()
 
-    override fun readSecret(path: Path): SecretValue? = vaultRequest {
-        val response = get(path.toUri()) {
+    override suspend fun readSecret(path: Path): SecretValue? = withContext(Dispatchers.Virtual) {
+        val response = vaultClient.get(path.toUri()) {
             // Override this flag here to handle 404 responses manually.
             expectSuccess = false
         }
@@ -104,18 +106,18 @@ class VaultSecretsProvider(
         }
     }
 
-    override fun writeSecret(path: Path, secret: SecretValue) {
+    override suspend fun writeSecret(path: Path, secret: SecretValue) {
         val data = VaultSecretData.withValue(secret.value)
-        vaultRequest {
-            post(path.toUri()) {
+        withContext(Dispatchers.Virtual) {
+            vaultClient.post(path.toUri()) {
                 setBody(data)
             }
         }
     }
 
-    override fun removeSecret(path: Path) {
-        vaultRequest {
-            delete(path.toUri(SECRET_DELETE_PREFIX))
+    override suspend fun removeSecret(path: Path) {
+        withContext(Dispatchers.Virtual) {
+            vaultClient.delete(path.toUri(SECRET_DELETE_PREFIX))
         }
     }
 
@@ -200,14 +202,6 @@ class VaultSecretsProvider(
         }.body()
 
         return loginResponse.auth.clientToken
-    }
-
-    /**
-     * Execute a request defined by the given [block] using the configured HTTP client. This is a convenience
-     * function that bridges between the blocking API of [SecretsProvider] and the non-blocking API of the client.
-     */
-    private fun <T> vaultRequest(block: suspend HttpClient.() -> T): T = runBlocking {
-        vaultClient.block()
     }
 
     /**

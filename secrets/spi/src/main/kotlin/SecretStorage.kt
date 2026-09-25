@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.secrets
 
 import java.util.ServiceLoader
 
+import kotlin.coroutines.cancellation.CancellationException
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
@@ -82,13 +84,13 @@ class SecretStorage(
     /**
      * Return the [SecretValue] at the given [path] or `null` if the path cannot be resolved.
      */
-    fun readSecret(path: Path): SecretValue? = wrapExceptions { provider.readSecret(path) }
+    suspend fun readSecret(path: Path): SecretValue? = wrapExceptions { provider.readSecret(path) }
 
     /**
      * Return the [SecretValue] at the given [path] or fail with a [SecretStorageException] if the path cannot be
      * resolved.
      */
-    fun getSecret(path: Path): SecretValue =
+    suspend fun getSecret(path: Path): SecretValue =
         readSecret(path) ?: throw SecretStorageException("No secret found at path '$path'.")
 
     /**
@@ -96,20 +98,20 @@ class SecretStorage(
      * but wraps an occurring exception inside a [Result]. Exceptions from the underlying [SecretsProvider] are
      * wrapped in a [SecretStorageException].
      */
-    fun readSecretCatching(path: Path): Result<SecretValue?> = runCatching { readSecret(path) }
+    suspend fun readSecretCatching(path: Path): Result<SecretValue?> = runCatching { readSecret(path) }
 
     /**
      * Return a [Result] with the [SecretValue] found at the given [path]. This function works like [getSecret], but
      * wraps an occurring exception inside a [Result]. Exceptions from the underlying [SecretsProvider] are wrapped
      * in a [SecretStorageException]. If the given [path] cannot be resolved, a failed [Result] is returned as well.
      */
-    fun getSecretCatching(path: Path): Result<SecretValue> = runCatching { getSecret(path) }
+    suspend fun getSecretCatching(path: Path): Result<SecretValue> = runCatching { getSecret(path) }
 
     /**
      * Store the given [secret] under the given [path] in the underlying [SecretsProvider]. Throw a
      * [SecretStorageException] if this fails.
      */
-    fun writeSecret(path: Path, secret: SecretValue) {
+    suspend fun writeSecret(path: Path, secret: SecretValue) {
         wrapExceptions { provider.writeSecret(path, secret) }
     }
 
@@ -118,12 +120,13 @@ class SecretStorage(
      * the outcome of the operation. Exceptions thrown by the [SecretsProvider] are wrapped in a
      * [SecretStorageException] and returned in the [Result].
      */
-    fun writeSecretCatching(path: Path, secret: SecretValue): Result<Unit> = runCatching { writeSecret(path, secret) }
+    suspend fun writeSecretCatching(path: Path, secret: SecretValue): Result<Unit> =
+        runCatching { writeSecret(path, secret) }
 
     /**
      * Remove the [SecretValue] under the given [path]. Throw a [SecretStorageException] if this fails.
      */
-    fun removeSecret(path: Path) {
+    suspend fun removeSecret(path: Path) {
         wrapExceptions { provider.removeSecret(path) }
     }
 
@@ -132,12 +135,12 @@ class SecretStorage(
      * Exceptions thrown by the [SecretsProvider] are wrapped in a [SecretStorageException] and returned in the
      * [Result].
      */
-    fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
+    suspend fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
 
     /**
      * Generate a [Path] in the hierarchy identified by [id] that is named [secretName].
      */
-    fun createPath(id: HierarchyId, secretName: String) =
+    suspend fun createPath(id: HierarchyId, secretName: String) =
         wrapExceptions { provider.createPath(id, secretName) }
 }
 
@@ -148,13 +151,15 @@ class SecretStorage(
 class SecretStorageException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
- * Execute the given [block] and catch all exceptions it might throw. A caught exception is then wrapped in a
- * [SecretStorageException] which is rethrown.
+ * Execute the given [block] and catch all exceptions it might throw except [CancellationException]. A caught exception
+ * is then wrapped in a [SecretStorageException] which is rethrown.
  */
 @Suppress("TooGenericExceptionCaught")
-private fun <T> wrapExceptions(block: () -> T): T =
+private suspend fun <T> wrapExceptions(block: suspend () -> T): T =
     try {
         block()
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         throw SecretStorageException("Exception from SecretsProvider", e)
     }

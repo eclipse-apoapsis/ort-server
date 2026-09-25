@@ -95,13 +95,13 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
             path.takeUnless { it.path == errorPath } ?: throw IllegalArgumentException("Test exception")
 
         return object : SecretsProvider {
-            override fun readSecret(path: Path): SecretValue? = storage[checkPath(path)]
+            override suspend fun readSecret(path: Path): SecretValue? = storage[checkPath(path)]
 
-            override fun writeSecret(path: Path, secret: SecretValue) {
+            override suspend fun writeSecret(path: Path, secret: SecretValue) {
                 storage[checkPath(path)] = secret
             }
 
-            override fun removeSecret(path: Path) {
+            override suspend fun removeSecret(path: Path) {
                 storage -= checkPath(path)
             }
         }.also { latestInstance = it }
