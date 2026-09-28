@@ -601,7 +601,8 @@ describe('PluginMultiSelectField', () => {
       expect(values().plugins).toEqual([]);
     });
 
-    it('expands an enabled plugin with a missing required option', () => {
+    it('expands an enabled plugin with a missing required option and marks it', async () => {
+      const user = userEvent.setup();
       renderField({
         plugins: [requiredPlugin],
         defaultValues: { plugins: ['Required'] },
@@ -611,6 +612,20 @@ describe('PluginMultiSelectField', () => {
         'aria-expanded',
         'true'
       );
+      expect(screen.getByText('1 required')).toHaveAttribute(
+        'title',
+        'Required options that have no value.'
+      );
+
+      await user.type(screen.getByRole('textbox'), 'https://example.org');
+
+      expect(trigger('Required Plugin')).not.toHaveTextContent(/\d+ required/);
+    });
+
+    it('does not mark a missing required option of a plugin that is not enabled', () => {
+      renderField({ plugins: [requiredPlugin] });
+
+      expect(trigger('Required Plugin')).not.toHaveTextContent(/\d+ required/);
     });
 
     it('expands an enabled plugin whose options differ from the defaults', () => {
@@ -627,6 +642,68 @@ describe('PluginMultiSelectField', () => {
 
       expect(trigger('Flag Plugin')).toHaveAttribute('aria-expanded', 'true');
       expect(trigger('Fixed Plugin')).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('marks the number of options that differ from the defaults', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [flagPlugin],
+        defaultValues: {
+          plugins: ['Flag'],
+          config: { Flag: { options: { flag: true } } },
+        },
+      });
+
+      expect(screen.getByText('1 modified')).toHaveAttribute(
+        'title',
+        'Options whose values differ from their defaults.'
+      );
+
+      await user.click(screen.getByRole('checkbox', { name: /^flag/ }));
+
+      expect(trigger('Flag Plugin')).not.toHaveTextContent('modified');
+    });
+
+    it('does not mark modified options of a plugin that is not enabled', () => {
+      renderField({
+        plugins: [flagPlugin],
+        defaultValues: { config: { Flag: { options: { flag: true } } } },
+      });
+
+      expect(trigger('Flag Plugin')).not.toHaveTextContent('modified');
+    });
+
+    it('counts only the options that can be changed', () => {
+      renderField({
+        plugins: [flagPlugin, fixedPlugin],
+      });
+
+      expect(trigger('Flag Plugin')).toHaveTextContent('1 option');
+      expect(trigger('Fixed Plugin')).not.toHaveTextContent('option');
+    });
+
+    it('counts the must-run-after list as an option, whether the plugin is enabled or not', async () => {
+      const user = userEvent.setup();
+      renderField({
+        plugins: [flagPlugin, plainPlugin],
+        withMustRunAfter: true,
+      });
+
+      expect(trigger('Flag Plugin')).toHaveTextContent('2 options');
+      expect(trigger('Plain Plugin')).toHaveTextContent('1 option');
+
+      await user.click(enableCheckbox('Flag Plugin'));
+
+      expect(trigger('Flag Plugin')).toHaveTextContent('2 options');
+    });
+
+    it('counts the scanner scope as an option', () => {
+      renderField({
+        plugins: [flagPlugin],
+        withScannerScope: true,
+      });
+
+      expect(trigger('Flag Plugin')).toHaveTextContent('2 options');
     });
 
     it('expands and collapses all plugins with options', async () => {

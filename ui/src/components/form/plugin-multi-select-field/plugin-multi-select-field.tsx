@@ -40,8 +40,10 @@ import { ExpandAllButton } from './expand-all-button';
 import { PluginFieldFrame } from './plugin-field-frame';
 import { PluginList } from './plugin-list';
 import { PluginListItem } from './plugin-list-item';
+import { PluginOptionMarkers } from './plugin-option-markers';
 import { PluginSettings } from './plugin-settings';
 import { SelectAllCheckbox } from './select-all-checkbox';
+import { fieldPath } from './utils';
 
 type PluginMultiSelectFieldProps<
   TFieldValues extends FieldValues,
@@ -196,6 +198,18 @@ const PluginMultiSelectFieldContent = <
         selected={selected}
         onSelectedChange={(checked) => setSelected(plugin, checked)}
         dragHandle={dragHandle}
+        markers={
+          <PluginOptionMarkers
+            control={form.control}
+            name={fieldPath<TFieldValues>(configName, plugin.id)}
+            plugin={plugin}
+            enabled={selected}
+            additionalSettingCount={
+              Number(Boolean(scannerScopeName)) +
+              Number(Boolean(mustRunAfterName))
+            }
+          />
+        }
         settings={
           hasSettings(plugin) && (
             <PluginSettings
@@ -206,6 +220,7 @@ const PluginMultiSelectFieldContent = <
               configName={configName}
               scannerScopeName={scannerScopeName}
               mustRunAfterName={mustRunAfterName}
+              enabled={selected}
             />
           )
         }

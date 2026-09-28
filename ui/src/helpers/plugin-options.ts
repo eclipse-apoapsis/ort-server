@@ -110,36 +110,49 @@ export function getMissingRequiredOptions(
 }
 
 /**
- * Check whether any option of the plugin which is not fixed has a value other than its default.
- * Only an option without a value, `undefined` or `null`, counts as unchanged; an empty string or
- * list is sent as a value, so it differs from a default that is not empty. A secret option
- * differs if it names a secret, and not the placeholder for a secret provided by an
- * administrator.
+ * Check whether an option which is not fixed has a value other than its default. Only an option
+ * without a value, `undefined` or `null`, counts as unchanged; an empty string or list is sent
+ * as a value, so it differs from a default that is not empty. An option without a default
+ * differs if it has any value. A secret option differs if it names a secret, and not the
+ * placeholder for a secret provided by an administrator.
  */
+export function optionDiffersFromDefault(
+  option: PreconfiguredPluginOption,
+  value: unknown
+): boolean {
+  if (option.isFixed) return false;
+
+  if (option.type === 'SECRET') {
+    return (
+      typeof value === 'string' &&
+      value.trim() !== '' &&
+      value !== ADMIN_SECRET_VALUE
+    );
+  }
+
+  if (value == null) return false;
+
+  return (
+    option.defaultValue == null || optionValueDiffersFromDefault(option, value)
+  );
+}
+
+/** Get the options of a plugin whose values differ from their defaults. */
+export function getOptionsDifferingFromDefaults(
+  plugin: PreconfiguredPluginDescriptor,
+  pluginConfig: PluginConfigValues | undefined
+): PreconfiguredPluginOption[] {
+  return plugin.options.filter((option) =>
+    optionDiffersFromDefault(option, getOptionValue(option, pluginConfig))
+  );
+}
+
+/** Check whether any option of the plugin has a value other than its default. */
 export function differsFromDefaults(
   plugin: PreconfiguredPluginDescriptor,
   pluginConfig: PluginConfigValues | undefined
 ): boolean {
-  return plugin.options.some((option) => {
-    if (option.isFixed) return false;
-
-    const value = getOptionValue(option, pluginConfig);
-
-    if (option.type === 'SECRET') {
-      return (
-        typeof value === 'string' &&
-        value.trim() !== '' &&
-        value !== ADMIN_SECRET_VALUE
-      );
-    }
-
-    if (value == null) return false;
-
-    return (
-      option.defaultValue == null ||
-      optionValueDiffersFromDefault(option, value)
-    );
-  });
+  return getOptionsDifferingFromDefaults(plugin, pluginConfig).length > 0;
 }
 
 /**

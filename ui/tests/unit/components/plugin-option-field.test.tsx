@@ -44,7 +44,11 @@ const createOption = (
 /** Render one option field and return a function that reads its value. */
 const renderOptionField = (
   option: PreconfiguredPluginOption,
-  { value, secrets = [] }: { value?: unknown; secrets?: Secret[] } = {}
+  {
+    value,
+    secrets = [],
+    enabled = true,
+  }: { value?: unknown; secrets?: Secret[]; enabled?: boolean } = {}
 ) => {
   let form: UseFormReturn<FormValues> | undefined;
 
@@ -58,6 +62,7 @@ const renderOptionField = (
           name='value'
           option={option}
           secrets={secrets}
+          enabled={enabled}
         />
       </FormProvider>
     );
@@ -82,6 +87,87 @@ describe('PluginOptionField', () => {
     expect(screen.getByText('setting')).toBeInTheDocument();
     expect(screen.getByText('STRING')).toBeInTheDocument();
     expect(screen.getByText('The setting description.')).toBeInTheDocument();
+  });
+
+  describe('required marker', () => {
+    it('marks a required option without a value until it is filled', async () => {
+      const user = userEvent.setup();
+      renderOptionField(createOption({ isRequired: true }));
+
+      expect(screen.getByText('REQUIRED')).toHaveAttribute(
+        'title',
+        'The option is required, but has no value.'
+      );
+
+      await user.type(screen.getByRole('textbox'), 'value');
+
+      expect(screen.queryByText('REQUIRED')).not.toBeInTheDocument();
+    });
+
+    it('does not mark a required option with a value', () => {
+      renderOptionField(createOption({ isRequired: true }), {
+        value: 'value',
+      });
+
+      expect(screen.queryByText('REQUIRED')).not.toBeInTheDocument();
+    });
+
+    it('does not mark a required option of a plugin that is not enabled', () => {
+      renderOptionField(createOption({ isRequired: true }), {
+        enabled: false,
+      });
+
+      expect(screen.queryByText('REQUIRED')).not.toBeInTheDocument();
+    });
+
+    it('does not mark an optional option', () => {
+      renderOptionField(createOption({ isRequired: false }));
+
+      expect(screen.queryByText('REQUIRED')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('modified marker', () => {
+    it('marks a value that differs from the default until it is reset', async () => {
+      const user = userEvent.setup();
+      renderOptionField(createOption({ defaultValue: 'default' }), {
+        value: 'default',
+      });
+
+      expect(screen.queryByText('MODIFIED')).not.toBeInTheDocument();
+
+      await user.type(screen.getByRole('textbox'), '-changed');
+
+      expect(screen.getByText('MODIFIED')).toBeInTheDocument();
+
+      await user.clear(screen.getByRole('textbox'));
+      await user.type(screen.getByRole('textbox'), 'default');
+
+      expect(screen.queryByText('MODIFIED')).not.toBeInTheDocument();
+    });
+
+    it('marks a set option without default', () => {
+      renderOptionField(createOption(), { value: 'value' });
+
+      expect(screen.getByText('MODIFIED')).toBeInTheDocument();
+    });
+
+    it('does not mark a fixed option', () => {
+      renderOptionField(createOption({ defaultValue: 'a', isFixed: true }), {
+        value: 'b',
+      });
+
+      expect(screen.queryByText('MODIFIED')).not.toBeInTheDocument();
+    });
+
+    it('does not mark an option of a plugin that is not enabled', () => {
+      renderOptionField(createOption({ defaultValue: 'a' }), {
+        value: 'b',
+        enabled: false,
+      });
+
+      expect(screen.queryByText('MODIFIED')).not.toBeInTheDocument();
+    });
   });
 
   it('renders a checkbox for a BOOLEAN option', async () => {

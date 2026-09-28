@@ -32,6 +32,10 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import {
+  isOptionValueMissing,
+  optionDiffersFromDefault,
+} from '@/helpers/plugin-options';
 import { BooleanOptionInput } from './option-inputs/boolean-option-input';
 import { EnumListOptionInput } from './option-inputs/enum-list-option-input';
 import { EnumOptionInput } from './option-inputs/enum-option-input';
@@ -44,6 +48,11 @@ type PluginOptionFieldProps<TFieldValues extends FieldValues> = {
   name: Path<TFieldValues>;
   option: PreconfiguredPluginOption;
   secrets: readonly Secret[];
+  /**
+   * Whether the plugin is enabled. A missing required value and a value that differs from the
+   * default are only marked for enabled plugins.
+   */
+  enabled: boolean;
 };
 
 /** Choose the input for an option based on its type. */
@@ -92,6 +101,7 @@ export const PluginOptionField = <TFieldValues extends FieldValues>({
   name,
   option,
   secrets,
+  enabled,
 }: PluginOptionFieldProps<TFieldValues>) => (
   <FormField
     control={control}
@@ -103,6 +113,26 @@ export const PluginOptionField = <TFieldValues extends FieldValues>({
           <Badge variant='small' className='bg-blue-200 text-black'>
             {option.type}
           </Badge>
+          {enabled &&
+            option.isRequired &&
+            isOptionValueMissing(field.value) && (
+              <Badge
+                variant='small'
+                className='bg-destructive dark:bg-destructive/60 text-white'
+                title='The option is required, but has no value.'
+              >
+                REQUIRED
+              </Badge>
+            )}
+          {enabled && optionDiffersFromDefault(option, field.value) && (
+            <Badge
+              variant='small'
+              className='bg-amber-200 text-black'
+              title='The value differs from the default.'
+            >
+              MODIFIED
+            </Badge>
+          )}
         </FormLabel>
         {/* The inputs do not depend on the form's value types, so drop them here. */}
         {renderOptionInput(field as ControllerRenderProps, option, secrets)}

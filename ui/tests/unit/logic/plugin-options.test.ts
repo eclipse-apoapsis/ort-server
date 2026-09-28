@@ -25,7 +25,9 @@ import {
   differsFromDefaults,
   getInitiallyExpandedPluginIds,
   getMissingRequiredOptions,
+  getOptionsDifferingFromDefaults,
   isOptionValueMissing,
+  optionDiffersFromDefault,
   optionValueDiffersFromDefault,
 } from '@/helpers/plugin-options';
 import { getPluginDefaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/plugin-utils';
@@ -194,6 +196,64 @@ describe('differsFromDefaults', () => {
     expect(
       differsFromDefaults(plugin, { secrets: { token: ADMIN_SECRET_VALUE } })
     ).toBe(false);
+  });
+});
+
+describe('optionDiffersFromDefault', () => {
+  it('is false for a fixed option', () => {
+    const option = createOption({ defaultValue: 'admin', isFixed: true });
+
+    expect(optionDiffersFromDefault(option, 'other')).toBe(false);
+  });
+
+  it('is true for a value other than the default', () => {
+    const option = createOption({ type: 'INTEGER', defaultValue: '1' });
+
+    expect(optionDiffersFromDefault(option, '2')).toBe(true);
+    expect(optionDiffersFromDefault(option, '1')).toBe(false);
+  });
+
+  it('is false for an option without a value', () => {
+    const option = createOption({ defaultValue: 'value' });
+
+    expect(optionDiffersFromDefault(option, undefined)).toBe(false);
+    expect(optionDiffersFromDefault(option, null)).toBe(false);
+  });
+
+  it('is true for a value cleared from a default that is not empty', () => {
+    expect(
+      optionDiffersFromDefault(createOption({ defaultValue: 'value' }), '')
+    ).toBe(true);
+    expect(
+      optionDiffersFromDefault(
+        createOption({ type: 'STRING_LIST', defaultValue: 'a,b' }),
+        []
+      )
+    ).toBe(true);
+  });
+});
+
+describe('getOptionsDifferingFromDefaults', () => {
+  it('returns only the options that differ from their defaults', () => {
+    const plugin = createPluginDescriptor({
+      options: [
+        createOption({ name: 'flag', type: 'BOOLEAN', defaultValue: 'false' }),
+        createOption({ name: 'free' }),
+        createOption({ name: 'unchanged', defaultValue: 'value' }),
+        createOption({ name: 'token', type: 'SECRET' }),
+      ],
+    });
+
+    const options = getOptionsDifferingFromDefaults(plugin, {
+      options: { flag: true, free: 'value', unchanged: 'value' },
+      secrets: { token: 'my-secret' },
+    });
+
+    expect(options.map((option) => option.name)).toEqual([
+      'flag',
+      'free',
+      'token',
+    ]);
   });
 });
 

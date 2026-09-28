@@ -37,6 +37,11 @@ type PluginSettingsProps<TFieldValues extends FieldValues> = {
   scannerScopeName?: string;
   /** The path of the field holding the must-run-after lists, if the field has them. */
   mustRunAfterName?: string;
+  /**
+   * Whether the plugin is enabled. Missing and modified options are only marked for enabled
+   * plugins.
+   */
+  enabled: boolean;
 };
 
 /** The settings of one plugin: its scanner scope, its options, and must-run-after. */
@@ -48,6 +53,7 @@ export const PluginSettings = <TFieldValues extends FieldValues>({
   configName,
   scannerScopeName,
   mustRunAfterName,
+  enabled,
 }: PluginSettingsProps<TFieldValues>) => (
   <>
     {scannerScopeName && (
@@ -65,6 +71,7 @@ export const PluginSettings = <TFieldValues extends FieldValues>({
         }
         option={option}
         secrets={secrets}
+        enabled={enabled}
       />
     ))}
     {mustRunAfterName && (
