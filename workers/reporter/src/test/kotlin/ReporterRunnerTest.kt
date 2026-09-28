@@ -301,6 +301,29 @@ class ReporterRunnerTest : WordSpec({
             slotTemplatePluginConfiguration.captured.options shouldBe expectedTemplateOptions
         }
 
+        "look up plugin options case-insensitively for a format without a report definition" {
+            val format = "PlainFormat"
+            val reporter = reporterFactoryMock(format)
+
+            mockReporterFactoryAll(format to reporter)
+
+            val options = mapOf("pretty" to "true")
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format),
+                config = mapOf(format.lowercase() to ResolvablePluginConfig(options, emptyMap()))
+            )
+
+            val runner = createRunner(config = createReporterConfig())
+            runner.run(OrtResult.EMPTY, jobConfig, null, mockContext())
+
+            val slotPluginConfiguration = slot<OrtPluginConfig>()
+            verify {
+                reporter.create(capture(slotPluginConfiguration))
+            }
+
+            slotPluginConfiguration.captured.options shouldBe options
+        }
+
         "handle template file references and other references" {
             val fileReference = "reporter/my-template.ftl"
             val otherReference1 = "foo.ftl"
