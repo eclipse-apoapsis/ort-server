@@ -72,12 +72,12 @@ export const AdvisorFields = ({
       />
       <AccordionItem value={value} className='flex-1'>
         <AccordionTrigger onClick={onToggle}>Advisor</AccordionTrigger>
-        <AccordionContent>
+        <AccordionContent className='flex flex-col gap-6'>
           <FormField
             control={form.control}
             name='jobConfigs.advisor.skipExcluded'
             render={({ field }) => (
-              <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                 <div className='space-y-2'>
                   <FormLabel>Skip excluded</FormLabel>
                   <FormDescription>
