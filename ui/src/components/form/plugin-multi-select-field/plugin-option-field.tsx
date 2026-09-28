@@ -36,6 +36,7 @@ import {
   isOptionValueMissing,
   optionDiffersFromDefault,
 } from '@/helpers/plugin-options';
+import { cn } from '@/lib/utils';
 import { BooleanOptionInput } from './option-inputs/boolean-option-input';
 import { EnumListOptionInput } from './option-inputs/enum-list-option-input';
 import { EnumOptionInput } from './option-inputs/enum-option-input';
@@ -106,8 +107,8 @@ export const PluginOptionField = <TFieldValues extends FieldValues>({
   <FormField
     control={control}
     name={name}
-    render={({ field }) => (
-      <FormItem className='ml-4 flex flex-col pb-4'>
+    render={({ field }) => {
+      const label = (
         <FormLabel>
           {option.name}
           <Badge variant='small' className='bg-blue-200 text-black'>
@@ -134,15 +135,45 @@ export const PluginOptionField = <TFieldValues extends FieldValues>({
             </Badge>
           )}
         </FormLabel>
-        {/* The inputs do not depend on the form's value types, so drop them here. */}
-        {renderOptionInput(field as ControllerRenderProps, option, secrets)}
-        <FormDescription>{option.description}</FormDescription>
-        {option.isFixed && (
-          <FormDescription className='font-semibold text-yellow-700'>
-            This option is set by an administrator and cannot be changed.
+      );
+      // The inputs do not depend on the form's value types, so drop them here.
+      const input = renderOptionInput(
+        field as ControllerRenderProps,
+        option,
+        secrets
+      );
+      // A checkbox sits before its label, and the texts below are indented to line up with
+      // the label.
+      const isBoolean = option.type === 'BOOLEAN';
+
+      return (
+        <FormItem className='ml-4 flex flex-col pb-4'>
+          {isBoolean ? (
+            <div className='flex items-center gap-2'>
+              {input}
+              {label}
+            </div>
+          ) : (
+            <>
+              {label}
+              {input}
+            </>
+          )}
+          <FormDescription className={cn(isBoolean && 'pl-6')}>
+            {option.description}
           </FormDescription>
-        )}
-      </FormItem>
-    )}
+          {option.isFixed && (
+            <FormDescription
+              className={cn(
+                'font-semibold text-yellow-700',
+                isBoolean && 'pl-6'
+              )}
+            >
+              This option is set by an administrator and cannot be changed.
+            </FormDescription>
+          )}
+        </FormItem>
+      );
+    }}
   />
 );
