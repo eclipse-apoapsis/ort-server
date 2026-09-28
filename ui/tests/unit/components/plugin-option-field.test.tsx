@@ -170,6 +170,17 @@ describe('PluginOptionField', () => {
     });
   });
 
+  it('renders the checkbox of a BOOLEAN option before its label', () => {
+    renderOptionField(createOption({ type: 'BOOLEAN' }), { value: false });
+
+    const checkbox = screen.getByRole('checkbox', { name: /setting/ });
+    const label = screen.getByText('setting');
+
+    expect(
+      checkbox.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
   it('renders a checkbox for a BOOLEAN option', async () => {
     const user = userEvent.setup();
     const getValue = renderOptionField(createOption({ type: 'BOOLEAN' }), {
