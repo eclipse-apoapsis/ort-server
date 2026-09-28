@@ -94,20 +94,6 @@ class SecretStorage(
         readSecret(path) ?: throw SecretStorageException("No secret found at path '$path'.")
 
     /**
-     * Return a [Result] with a nullable [SecretValue] found at the given [path]. This function works like [readSecret],
-     * but wraps an occurring exception inside a [Result]. Exceptions from the underlying [SecretsProvider] are
-     * wrapped in a [SecretStorageException].
-     */
-    suspend fun readSecretCatching(path: Path): Result<SecretValue?> = runCatching { readSecret(path) }
-
-    /**
-     * Return a [Result] with the [SecretValue] found at the given [path]. This function works like [getSecret], but
-     * wraps an occurring exception inside a [Result]. Exceptions from the underlying [SecretsProvider] are wrapped
-     * in a [SecretStorageException]. If the given [path] cannot be resolved, a failed [Result] is returned as well.
-     */
-    suspend fun getSecretCatching(path: Path): Result<SecretValue> = runCatching { getSecret(path) }
-
-    /**
      * Store the given [secret] under the given [path] in the underlying [SecretsProvider]. Throw a
      * [SecretStorageException] if this fails.
      */
@@ -116,26 +102,11 @@ class SecretStorage(
     }
 
     /**
-     * Store the given [secret] under the given [path] in the underlying [SecretsProvider] and return a [Result] for
-     * the outcome of the operation. Exceptions thrown by the [SecretsProvider] are wrapped in a
-     * [SecretStorageException] and returned in the [Result].
-     */
-    suspend fun writeSecretCatching(path: Path, secret: SecretValue): Result<Unit> =
-        runCatching { writeSecret(path, secret) }
-
-    /**
      * Remove the [SecretValue] under the given [path]. Throw a [SecretStorageException] if this fails.
      */
     suspend fun removeSecret(path: Path) {
         wrapExceptions { provider.removeSecret(path) }
     }
-
-    /**
-     * Remove the [SecretValue] under the given [path] and return a [Result] for the outcome of the operation.
-     * Exceptions thrown by the [SecretsProvider] are wrapped in a [SecretStorageException] and returned in the
-     * [Result].
-     */
-    suspend fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
 
     /**
      * Generate a [Path] in the hierarchy identified by [id] that is named [secretName].
