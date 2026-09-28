@@ -76,54 +76,56 @@ export const NotifierFields = ({
       />
       <AccordionItem value={value} className='flex-1'>
         <AccordionTrigger onClick={onToggle}>Notifier</AccordionTrigger>
-        <AccordionContent>
+        <AccordionContent className='flex flex-col gap-6'>
           <div>
-            <Label className='font-semibold'>Recipient addresses</Label>
-          </div>
-          {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className='my-2 flex flex-row items-end space-x-2'
-            >
-              <div className='flex-auto'>
-                <FormField
-                  control={form.control}
-                  name={`jobConfigs.notifier.recipientAddresses.${index}.email`}
-                  render={({ field }) => (
-                    <FormItem>
-                      {index === 0 && <FormLabel>E-mail address</FormLabel>}
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => {
-                  remove(index);
-                }}
-              >
-                <TrashIcon className='h-4 w-4' />
-              </Button>
+            <div>
+              <Label className='font-semibold'>Recipient addresses</Label>
             </div>
-          ))}
-          <Button
-            size='sm'
-            className='mt-2'
-            variant='outline'
-            type='button'
-            onClick={() => {
-              append({ email: '' });
-            }}
-          >
-            Add recipient address
-            <PlusIcon className='ml-1 h-4 w-4' />
-          </Button>
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className='my-2 flex flex-row items-end space-x-2'
+              >
+                <div className='flex-auto'>
+                  <FormField
+                    control={form.control}
+                    name={`jobConfigs.notifier.recipientAddresses.${index}.email`}
+                    render={({ field }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>E-mail address</FormLabel>}
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    remove(index);
+                  }}
+                >
+                  <TrashIcon className='h-4 w-4' />
+                </Button>
+              </div>
+            ))}
+            <Button
+              size='sm'
+              className='mt-2'
+              variant='outline'
+              type='button'
+              onClick={() => {
+                append({ email: '' });
+              }}
+            >
+              Add recipient address
+              <PlusIcon className='ml-1 h-4 w-4' />
+            </Button>
+          </div>
           {isSuperuser && (
             <FormField
               control={form.control}
