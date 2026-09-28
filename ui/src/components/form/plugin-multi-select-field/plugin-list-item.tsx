@@ -40,6 +40,8 @@ type PluginListItemProps = {
    * be rendered inside an `Accordion`.
    */
   settings?: ReactNode;
+  /** Markers shown next to the plugin's name. */
+  markers?: ReactNode;
 };
 
 export const PluginListItem = ({
@@ -48,6 +50,7 @@ export const PluginListItem = ({
   onSelectedChange,
   dragHandle,
   settings,
+  markers,
 }: PluginListItemProps) => {
   // The name is not the checkbox's label, because clicking it expands the settings.
   const checkbox = (
@@ -56,6 +59,14 @@ export const PluginListItem = ({
       checked={selected}
       onCheckedChange={(checked) => onSelectedChange(checked === true)}
     />
+  );
+  // The name's row is as high as the markers, whether there are any or not, and the drag handle
+  // and the checkbox are centered on it.
+  const controls = (
+    <div className='flex h-5.5 items-center space-x-3'>
+      {dragHandle}
+      {checkbox}
+    </div>
   );
   const summary = (
     <MarkdownRenderer
@@ -68,10 +79,11 @@ export const PluginListItem = ({
   if (!settings) {
     return (
       <div className='flex flex-row items-start space-x-3'>
-        {dragHandle}
-        {checkbox}
+        {controls}
         <div className='flex flex-col'>
-          <span className='text-sm leading-none'>{plugin.displayName}</span>
+          <span className='flex h-5.5 items-center text-sm leading-none'>
+            {plugin.displayName}
+          </span>
           {summary}
         </div>
       </div>
@@ -92,11 +104,13 @@ export const PluginListItem = ({
         '[&_[data-slot=accordion-content][data-state=open]]:animate-none [&_[data-slot=accordion-content][data-state=open]]:overflow-visible'
       )}
     >
-      {dragHandle}
-      {checkbox}
+      {controls}
       <div className='flex flex-1 flex-col'>
         <AccordionTrigger className='items-center py-0 font-normal hover:no-underline'>
-          <span className='leading-none'>{plugin.displayName}</span>
+          <span className='flex min-h-5.5 flex-wrap items-center gap-2 leading-none'>
+            {plugin.displayName}
+            {markers}
+          </span>
         </AccordionTrigger>
         {summary}
         <AccordionContent className='pb-0'>{settings}</AccordionContent>
