@@ -306,7 +306,7 @@ class ReporterRunner(
                             val reporterFactory = reporterConfig.getReporterFactory(format)
 
                             val pluginConfig = reporterConfig.pluginOptionsForDefinition(format, transformedOptions)
-                                ?: transformedOptions[format]
+                                ?: transformedOptions.entries.find { it.key.equals(format, ignoreCase = true) }?.value
 
                             val reporter = reporterFactory.create(pluginConfig?.mapToOrt().orEmpty())
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir)
