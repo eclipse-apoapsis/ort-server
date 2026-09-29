@@ -20,7 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import type {
@@ -295,12 +295,19 @@ export const CreateRunForm = ({
     }
   }, [pluginGroups, form]);
 
-  const watchedValues = form.watch();
+  // `values` supplies a complete form, including on plugin refresh. Deriving the
+  // full value keeps the preview typed without treating useWatch's partial return
+  // as a complete payload; it also follows setValue when selections are pruned.
+  const watchedValues = useWatch({
+    control: form.control,
+    compute: (values) => values,
+  });
 
   // Reload the available plugins when the configuration context changes, as it
   // may influence which plugins are available for the repository. The value is
   // debounced so that the plugins are not reloaded on every keystroke.
-  const watchedConfigContext = form.watch('jobConfigContext') ?? '';
+  const watchedConfigContext =
+    useWatch({ control: form.control, name: 'jobConfigContext' }) ?? '';
   const debouncedConfigContext = useDebounce(watchedConfigContext);
 
   useEffect(() => {

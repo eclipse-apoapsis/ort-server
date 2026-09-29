@@ -19,11 +19,11 @@
 
 // @vitest-environment jsdom
 
-import { screen, within } from '@testing-library/react';
+import { cleanup, screen, waitFor, within } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { PreconfiguredPluginDescriptor } from '@/api';
+import type { OrtRun, PreconfiguredPluginDescriptor } from '@/api';
 import { CreateRunForm } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/create-run-form';
 import {
   createOrtRun,
@@ -111,8 +111,9 @@ const renderSwappableForm = (
   initial: PreconfiguredPluginDescriptor[],
   next: PreconfiguredPluginDescriptor[],
   onSubmit = vi.fn(),
-  run = rerun,
-  initiallyLoading = false
+  run: OrtRun | null = rerun,
+  initiallyLoading = false,
+  onConfigContextChange?: (context: string) => void
 ) => {
   const Harness = () => {
     const [plugins, setPlugins] = useState(initial);
@@ -133,6 +134,7 @@ const renderSwappableForm = (
           isSubmitting={false}
           isSuperuser={false}
           onSubmit={onSubmit}
+          onConfigContextChange={onConfigContextChange}
           permissions={permissions}
           plugins={plugins}
           pluginsLoading={loading}
@@ -157,6 +159,17 @@ const renderSwappableForm = (
 
 const enabledPackageManagers = ['Maven', 'NPM', 'Unmanaged'];
 
+const showPayload = async (
+  user: ReturnType<typeof renderCreateRunForm>['user']
+) => {
+  await user.click(await screen.findByRole('switch', { name: 'Show payload' }));
+  return screen.getByLabelText(
+    'You can copy this payload to use it when triggering runs via the API or CLI.'
+  ) as HTMLTextAreaElement;
+};
+
+const preview = (textarea: HTMLTextAreaElement) => JSON.parse(textarea.value);
+
 const getJobSwitch = (job: string) => {
   const trigger = screen.getByRole('button', { name: job });
   const row = trigger.closest('[data-slot="accordion-item"]')!.parentElement!;
@@ -165,6 +178,146 @@ const getJobSwitch = (job: string) => {
 };
 
 describe('CreateRunForm', () => {
+  it('previews the complete defaults for new runs and reruns', async () => {
+    const { user: newRunUser } = renderSwappableForm(
+      [advisorPlugin, scannerPlugin, ...packageManagerPlugins],
+      [],
+      vi.fn(),
+      null
+    );
+    const newRunPayload = await showPayload(newRunUser);
+    expect(preview(newRunPayload)).toMatchObject({
+      revision: '',
+      path: '',
+      jobConfigContext: '',
+      jobConfigs: {
+        analyzer: { enabledPackageManagers },
+      },
+    });
+
+    cleanup();
+    // Render a rerun with distinct defaults in the same harness.
+    const run = createOrtRun({
+      revision: 'release',
+      path: 'module',
+      jobConfigContext: 'config-ref',
+    });
+    const { user: rerunUser } = renderSwappableForm(
+      [advisorPlugin, scannerPlugin, ...packageManagerPlugins],
+      [],
+      vi.fn(),
+      run
+    );
+    const rerunPayload = await showPayload(rerunUser);
+    expect(preview(rerunPayload)).toMatchObject({
+      revision: 'release',
+      path: 'module',
+      jobConfigContext: 'config-ref',
+      jobConfigs: { analyzer: { enabledPackageManagers } },
+    });
+  });
+
+  it('updates the preview and clipboard for edited fields and nested values', async () => {
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText');
+    const { user } = renderCreateRunForm();
+    const payload = await showPayload(user);
+
+    await user.type(screen.getByLabelText('Revision'), 'feature');
+    await user.click(getJobSwitch('Advisor'));
+    await user.click(screen.getByRole('button', { name: 'Advisor' }));
+    await user.type(screen.getByLabelText(/serverUrl/), 'https://osv.dev');
+    await user.click(screen.getByRole('button', { name: 'Add parameter' }));
+    await user.type(screen.getAllByLabelText('Key').at(-1)!, 'branch');
+    await user.type(screen.getAllByLabelText('Value').at(-1)!, 'feature');
+    await user.click(screen.getByRole('button', { name: 'Add label' }));
+    await user.type(screen.getAllByLabelText('Key').at(-1)!, 'team');
+    await user.type(screen.getAllByLabelText('Value').at(-1)!, 'ort');
+
+    expect(preview(payload)).toMatchObject({
+      revision: 'feature',
+      labels: { team: 'ort' },
+      jobConfigs: {
+        parameters: { branch: 'feature' },
+        advisor: {
+          config: { OSV: { options: { serverUrl: 'https://osv.dev' } } },
+        },
+      },
+    });
+    await user.click(screen.getByRole('button', { name: 'Copy to clipboard' }));
+    expect(writeText).toHaveBeenCalledWith(payload.value);
+  }, 10_000);
+
+  it('previews refreshed plugin defaults while preserving edits and pruning removed plugins', async () => {
+    const changedOsv = createPluginDescriptor({
+      ...advisorPlugin,
+      options: [
+        { ...advisorPlugin.options[0], defaultValue: 'https://new.example' },
+      ],
+    });
+    const { user } = renderSwappableForm(
+      [advisorPlugin, scannerPlugin, packageManagerPlugins[0]!],
+      [changedOsv, ...packageManagerPlugins]
+    );
+    const payload = await showPayload(user);
+    await user.type(screen.getByLabelText('Revision'), 'feature');
+    await user.click(getJobSwitch('Advisor'));
+    await user.click(getJobSwitch('Scanner'));
+    expect(preview(payload).jobConfigs.scanner.scanners).toEqual(['ScanCode']);
+
+    await user.click(screen.getByRole('button', { name: 'Swap plugins' }));
+    await waitFor(() => {
+      expect(preview(payload)).toMatchObject({
+        revision: 'feature',
+        jobConfigs: {
+          analyzer: { enabledPackageManagers },
+          advisor: { advisors: ['OSV'] },
+          scanner: { skipConcluded: true },
+        },
+      });
+    });
+    expect(preview(payload).jobConfigs.scanner).not.toHaveProperty('scanners');
+    expect(preview(payload).jobConfigs.advisor).not.toHaveProperty('config');
+    await user.click(screen.getByRole('button', { name: 'Advisor' }));
+    await user.click(screen.getByRole('button', { name: /^OSV/ }));
+    expect(screen.getByLabelText(/serverUrl/)).toHaveValue(
+      'https://new.example'
+    );
+  });
+
+  it('debounces configuration context changes, including after plugins reload', async () => {
+    const onContextChange = vi.fn();
+    const { user } = renderSwappableForm(
+      [advisorPlugin, scannerPlugin],
+      [advisorPlugin, scannerPlugin, ...packageManagerPlugins],
+      vi.fn(),
+      rerun,
+      false,
+      onContextChange
+    );
+    await waitFor(() => expect(onContextChange).toHaveBeenCalledWith(''));
+    onContextChange.mockClear();
+
+    await user.type(screen.getByLabelText('Configuration context'), 'first');
+    await user.clear(screen.getByLabelText('Configuration context'));
+    await user.type(screen.getByLabelText('Configuration context'), 'latest');
+    expect(onContextChange).not.toHaveBeenCalled();
+    await waitFor(() => expect(onContextChange).toHaveBeenCalledWith('latest'));
+    expect(onContextChange).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole('button', { name: 'Swap plugins' }));
+    onContextChange.mockClear();
+    await user.clear(screen.getByLabelText('Configuration context'));
+    await user.type(
+      screen.getByLabelText('Configuration context'),
+      'after-reload'
+    );
+    expect(onContextChange).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(onContextChange).toHaveBeenCalledWith('after-reload')
+    );
+    expect(onContextChange).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps basic inputs editable and blocks creation while plugins load', async () => {
     const loadedAdvisor = createPluginDescriptor({
       ...advisorPlugin,
