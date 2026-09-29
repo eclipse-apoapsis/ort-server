@@ -357,7 +357,8 @@ fun OrtPackage.mapToModel() =
         vcsProcessed = vcsProcessed.mapToModel(),
         isMetadataOnly = isMetadataOnly,
         isModified = isModified,
-        sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToModel() }
+        sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToModel() },
+        publishedAt = publishedAt?.toKotlinInstant()
     )
 
 fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(
