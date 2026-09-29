@@ -42,6 +42,7 @@ import {
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { PackageCuration } from '@/components/package-curation';
 import { RenderProperty } from '@/components/render-property';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import {
   Accordion,
   AccordionContent,
@@ -122,27 +123,37 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-start justify-between gap-4'>
-        <div className='min-w-0 basis-2/3 text-left font-semibold'>
+        <div className='min-w-0 text-left font-semibold'>
           <BreakableString text={id} />
           <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
         </div>
+        {pkg.publishedAt && (
+          <div className='flex shrink-0 flex-wrap justify-end gap-x-2 text-sm'>
+            <div className='text-muted-foreground'>Published:</div>
+            <TimestampWithUTC timestamp={pkg.publishedAt} />
+          </div>
+        )}
+      </div>
+      <div className='flex items-start justify-between gap-4'>
+        {declaredLicenses.length > 0 ? (
+          <div className='flex min-w-0 gap-2 text-sm'>
+            <div className='text-muted-foreground'>Declared License:</div>
+            <LicenseList licenses={declaredLicenses} />
+          </div>
+        ) : (
+          <div className='text-muted-foreground italic'>
+            No declared license
+          </div>
+        )}
         <a
           href={pkg.homepageUrl}
           target='_blank'
           rel='noopener noreferrer'
-          className='min-w-0 basis-1/3 wrap-break-word text-blue-400 hover:underline'
+          className='max-w-1/2 min-w-0 text-right wrap-break-word text-blue-400 hover:underline'
         >
           {pkg.homepageUrl}
         </a>
       </div>
-      {declaredLicenses.length > 0 ? (
-        <div className='flex gap-2 text-sm'>
-          <div className='text-muted-foreground'>Declared License:</div>
-          <LicenseList licenses={declaredLicenses} />
-        </div>
-      ) : (
-        <div className='text-muted-foreground italic'>No declared license</div>
-      )}
 
       <div className='flex gap-2'>
         {pkg.curations.length > 0 && (
@@ -561,6 +572,11 @@ const PackagesComponent = () => {
         },
       }
     ),
+    columnHelper.accessor((pkg) => pkg.publishedAt, {
+      id: 'publishedAt',
+      header: 'Published',
+      enableColumnFilter: false,
+    }),
   ]);
 
   const columnId =
@@ -592,6 +608,7 @@ const PackagesComponent = () => {
           isDirectDependency: false,
           [columnId]: false,
           processedDeclaredLicense: false,
+          publishedAt: false,
         },
       },
       onExpandedChange: setExpanded,
@@ -644,6 +661,7 @@ const PackagesComponent = () => {
               to: Route.to,
               search: {
                 ...search,
+                page: 1,
                 sortBy: updateColumnSorting(search.sortBy, sortBy),
               },
             };
