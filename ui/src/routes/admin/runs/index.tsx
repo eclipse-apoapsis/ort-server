@@ -112,7 +112,7 @@ const RunsComponent = () => {
         return (
           <div>
             <Link
-              className='block font-semibold text-blue-400 hover:underline'
+              className='block font-semibold wrap-anywhere text-blue-400 hover:underline'
               to={
                 '/organizations/$orgId/products/$productId/repositories/$repoId'
               }
@@ -124,7 +124,7 @@ const RunsComponent = () => {
             >
               {repo?.url}
             </Link>
-            <div className='text-xs text-slate-500 italic'>
+            <div className='text-xs wrap-anywhere text-slate-500 italic'>
               in{' '}
               <Link
                 className='hover:underline'
