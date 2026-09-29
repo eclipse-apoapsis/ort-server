@@ -354,8 +354,13 @@ const MultipleSelector = React.forwardRef<
       };
 
       void exec();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus]);
+    }, [
+      debouncedSearchTerm,
+      groupBy,
+      onSearchSync,
+      open,
+      triggerSearchOnFocus,
+    ]);
 
     useEffect(() => {
       /** async search */
@@ -380,8 +385,7 @@ const MultipleSelector = React.forwardRef<
       };
 
       void exec();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus]);
+    }, [debouncedSearchTerm, groupBy, onSearch, open, triggerSearchOnFocus]);
 
     const CreatableItem = () => {
       if (!creatable) return undefined;
