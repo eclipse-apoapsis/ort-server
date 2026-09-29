@@ -278,6 +278,7 @@ private fun insertPackage(
         this.homepageUrl = pkg.homepageUrl
         this.isMetadataOnly = pkg.isMetadataOnly
         this.isModified = pkg.isModified
+        this.publishedAt = pkg.publishedAt
     }
 
     pkg.authors.forEach { author ->

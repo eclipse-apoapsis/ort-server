@@ -149,7 +149,8 @@ class GetPackagesForAnalyzerRunQuery(
                 vcs = vcs,
                 vcsProcessed = vcsProcessed,
                 isMetadataOnly = resultRow[PackagesTable.isMetadataOnly],
-                isModified = resultRow[PackagesTable.isModified]
+                isModified = resultRow[PackagesTable.isModified],
+                publishedAt = resultRow[PackagesTable.publishedAt]
             )
         }
     }

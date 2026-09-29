@@ -33,6 +33,8 @@ import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggColumnEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggTwoColumnsEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 
@@ -41,6 +43,7 @@ import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
+import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.andHaving
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
@@ -62,6 +65,7 @@ object PackagesTable : SortableTable("packages") {
     val isMetadataOnly = bool("is_metadata_only").default(false)
     val isModified = bool("is_modified").default(false)
     val sourceCodeOrigins = text("source_code_origins").nullable()
+    val publishedAt = timestamp("published_at").nullable()
 }
 
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {
@@ -103,6 +107,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                 .andWhere { PackagesTable.homepageUrl eq pkg.homepageUrl }
                 .andWhere { PackagesTable.isMetadataOnly eq pkg.isMetadataOnly }
                 .andWhere { PackagesTable.isModified eq pkg.isModified }
+                .andWhere { PackagesTable.publishedAt eq pkg.publishedAt?.toDatabasePrecision() }
                 .andWhere { IdentifiersTable.type eq pkg.identifier.type }
                 .andWhere { IdentifiersTable.namespace eq pkg.identifier.namespace }
                 .andWhere { IdentifiersTable.name eq pkg.identifier.name }
@@ -176,6 +181,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     var homepageUrl by PackagesTable.homepageUrl
     var isMetadataOnly by PackagesTable.isMetadataOnly
     var isModified by PackagesTable.isModified
+    var publishedAt by PackagesTable.publishedAt.transformToDatabasePrecision()
 
     var authors by AuthorDao via PackagesAuthorsTable
     var declaredLicenses by DeclaredLicenseDao via PackagesDeclaredLicensesTable
@@ -206,6 +212,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
             ?.split(',')
             ?.filterNot { it.isEmpty() }
             ?.map { SourceCodeOrigin.valueOf(it) },
-        labels = labels.associate { it.key to it.value }
+        labels = labels.associate { it.key to it.value },
+        publishedAt = publishedAt
     )
 }

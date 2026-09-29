@@ -21,12 +21,15 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.microseconds
+import kotlin.time.Instant
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -111,6 +114,54 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
 
         dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 1
+    }
+
+    "create should persist known and unknown publication dates of packages" {
+        val pkgWithDate = createPackage(1).copy(publishedAt = publishedAt)
+        val pkgWithoutDate = createPackage(2)
+
+        val createdAnalyzerRun = analyzerRunRepository.create(
+            analyzerJobId,
+            analyzerRun.copy(packages = setOf(pkgWithDate, pkgWithoutDate))
+        )
+
+        val expectedDates = listOf(pkgWithDate.identifier to publishedAt, pkgWithoutDate.identifier to null)
+
+        analyzerRunRepository.get(createdAnalyzerRun.id)?.packages.orEmpty()
+            .map { it.identifier to it.publishedAt } should containExactlyInAnyOrder(expectedDates)
+
+        dbExtension.db.dbQuery {
+            PackageDao.all().map { it.mapToModel() }.map { it.identifier to it.publishedAt }
+        } should containExactlyInAnyOrder(expectedDates)
+    }
+
+    "create should deduplicate packages with a publication date beyond database precision" {
+        val publishedAtWithNanos = Instant.parse("2024-05-06T07:08:09.123456789Z")
+        val runWithDatedPackage = analyzerRun.copy(packages = setOf(pkg.copy(publishedAt = publishedAtWithNanos)))
+
+        analyzerRunRepository.create(analyzerJobId, runWithDatedPackage)
+        analyzerRunRepository.create(analyzerJobId, runWithDatedPackage)
+
+        dbExtension.db.dbQuery {
+            PackagesTable.selectAll().map { it[PackagesTable.publishedAt] }
+        }.shouldBeSingleton { it shouldBe Instant.parse("2024-05-06T07:08:09.123456Z") }
+    }
+
+    "create should not deduplicate packages with different publication dates" {
+        val publicationDates = listOf(publishedAt, publishedAt + 1.microseconds, null)
+
+        val createdRunIds = publicationDates.map { date ->
+            analyzerRunRepository.create(
+                analyzerJobId,
+                analyzerRun.copy(packages = setOf(pkg.copy(publishedAt = date)))
+            ).id
+        }
+
+        dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 3
+
+        createdRunIds.map { id ->
+            analyzerRunRepository.get(id)?.packages?.single()?.publishedAt
+        } shouldBe publicationDates
     }
 
     "create should deduplicate projects with empty metadata" {
@@ -296,6 +347,8 @@ private val project = Project(
 )
 
 private val pkg = createPackage(1)
+
+private val publishedAt = Instant.parse("2024-05-06T07:08:09.123456Z")
 
 private fun createPackage(index: Int) = Package(
     identifier = Identifier(
