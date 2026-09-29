@@ -838,7 +838,8 @@ fun Package.mapToApi(
     shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
     curations = curations,
     sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
-    labels = labels
+    labels = labels,
+    publishedAt = publishedAt
 )
 
 fun PackageCurationData.mapToApi() = ApiPackageCurationData(

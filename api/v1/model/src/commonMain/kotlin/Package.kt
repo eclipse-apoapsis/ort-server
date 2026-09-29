@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
+import kotlin.time.Instant
+
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
@@ -42,7 +44,10 @@ data class Package(
     val shortestDependencyPaths: List<ShortestDependencyPath>,
     val curations: List<PackageCuration>,
     val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
-    val labels: Map<String, String> = emptyMap()
+    val labels: Map<String, String> = emptyMap(),
+
+    /** The time when the package was published, or null if it is unknown. */
+    val publishedAt: Instant? = null
 )
 
 /**

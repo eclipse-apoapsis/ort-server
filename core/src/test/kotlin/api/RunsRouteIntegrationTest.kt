@@ -219,6 +219,22 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     val reportData = "Data of the report to download".toByteArray()
 
     /** Create an [OrtRun] containing the given [projects]. */
+    fun createRunWithPackages(packages: Set<Package>): OrtRun {
+        val ortRun = dbExtension.fixtures.createOrtRun(
+            repositoryId = repositoryId,
+            revision = "revision",
+            jobConfigurations = JobConfigurations()
+        )
+        val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+            ortRunId = ortRun.id,
+            configuration = AnalyzerJobConfiguration()
+        )
+
+        dbExtension.fixtures.createAnalyzerRun(analyzerJob.id, packages = packages)
+
+        return ortRun
+    }
+
     fun createRunWithProjects(projects: Set<Project>): OrtRun {
         val ortRun = dbExtension.fixtures.createOrtRun(
             repositoryId = repositoryId,
@@ -2173,6 +2189,56 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     }
                     last().identifier.name shouldBe "example2"
                 }
+            }
+        }
+
+        "return known publication dates of packages and leave out unknown ones" {
+            integrationTestApplication {
+                val publishedAt = Instant.parse("2024-05-06T07:08:09.123456Z")
+                val ortRun = createRunWithPackages(
+                    setOf(
+                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "dated", "1.0"))
+                            .copy(publishedAt = publishedAt),
+                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "undated", "1.0"))
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val rawPackages = Json.parseToJsonElement(response.bodyAsText())
+                    .jsonObject.getValue("data").jsonArray
+                    .map { it.jsonObject }
+                    .associateBy { it.getValue("identifier").jsonObject.getValue("name").jsonPrimitive.content }
+
+                rawPackages.getValue("dated").getValue("publishedAt").jsonPrimitive.content shouldBe
+                        "2024-05-06T07:08:09.123456Z"
+                rawPackages.getValue("undated").containsKey("publishedAt") shouldBe false
+            }
+        }
+
+        "sort packages by publication date in both directions across pages" {
+            integrationTestApplication {
+                val ortRun = createRunWithPackages(
+                    setOf(
+                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "unknown", "1.0")),
+                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "march", "1.0"))
+                            .copy(publishedAt = Instant.parse("2024-03-01T00:00:00Z")),
+                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "january", "1.0"))
+                            .copy(publishedAt = Instant.parse("2024-01-01T00:00:00Z"))
+                    )
+                )
+
+                suspend fun sortedNames(sort: String) = listOf(0, 2).flatMap { offset ->
+                    val response = superuserClient.get(
+                        "/api/v1/runs/${ortRun.id}/packages?sort=$sort&limit=2&offset=$offset"
+                    )
+                    response shouldHaveStatus HttpStatusCode.OK
+                    response.body<PagedSearchResponse<ApiPackage, PackageFilters>>().data.map { it.identifier.name }
+                }
+
+                sortedNames("publishedAt") shouldBe listOf("january", "march", "unknown")
+                sortedNames("-publishedAt") shouldBe listOf("march", "january", "unknown")
             }
         }
 
