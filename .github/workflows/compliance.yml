@@ -1,0 +1,90 @@
+on:
+  schedule:
+    - cron: '0 23 * * 0'
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: 'Git revision to scan. Leave empty to use the current branch.'
+        required: false
+        type: string
+
+jobs:
+  compliance:
+    runs-on: ubuntu-26.04
+    steps:
+    - name: Setup OSC
+      uses: eclipse-apoapsis/actions/setup-osc@main
+      with:
+        url: https://ort-server.occtet.eu
+        token: ${{ secrets.ORT_SERVER_TOKEN }}
+
+    - name: Start Compliance Check
+      env:
+        OSC_REPOSITORY_ID: 2164
+        OSC_RUNS_START_WAIT: true
+      run: |
+        osc runs start --parameters '{
+          "revision": "${{ inputs.revision || github.head_ref || github.ref_name }}",
+          "path": "",
+          "jobConfigs": {
+            "analyzer": {
+              "allowDynamicVersions": true,
+              "skipExcluded": true,
+              "packageCurationProviders": [
+                {
+                  "type": "ClearlyDefined"
+                },
+                {
+                  "type": "ORTConfig"
+                },
+                {
+                  "type": "Spring"
+                },
+                {
+                  "type": "OpenSourceInsightsCurationProvider"
+                }
+              ]
+            },
+            "advisor": {
+              "skipExcluded": true,
+              "advisors": [
+                "OSV",
+                "VulnerableCode"
+              ]
+            },
+            "scanner": {
+              "skipConcluded": true,
+              "skipExcluded": true,
+              "scanners": [
+                "Provenant"
+              ]
+            },
+            "evaluator": {
+              "packageConfigurationProviders": [
+                {
+                  "type": "ORTConfig"
+                }
+              ]
+            },
+            "reporter": {
+              "formats": [
+                "CycloneDX",
+                "SpdxDocument",
+                "WebApp"
+              ]
+            }
+          }
+        }'
+
+    - name: Download Reports
+      run: |
+        osc runs download reports
+      env:
+        OSC_DOWNLOAD_REPORTS_OUTPUT_DIR: './reports'
+
+    - name: Upload reports
+      id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: reports
+        path: reports/
