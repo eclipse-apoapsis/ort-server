@@ -24,6 +24,7 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 import io.ktor.http.HttpStatusCode
 
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
@@ -607,6 +608,9 @@ val getRunRuleViolationRules: RouteConfig.() -> Unit = {
 val getRunPackages: RouteConfig.() -> Unit = {
     operationId = "getRunPackages"
     summary = "Get the packages found in an ORT run"
+    description = "Supported sort fields are 'identifier', 'purl', 'processedDeclaredLicense', and 'publishedAt'. " +
+            "By default, packages are sorted by purl in ascending order. When sorting by 'publishedAt', packages " +
+            "with an unknown publication date come last in both directions."
     tags = listOf("Runs")
 
     request {
@@ -667,6 +671,7 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                 isModified = false,
                                 sourceCodeOrigins = null,
                                 labels = emptyMap(),
+                                publishedAt = Instant.parse("2024-05-06T07:08:09Z"),
                                 shortestDependencyPaths = listOf(
                                     ShortestDependencyPath(
                                         scope = "productionRuntimeClasspath",
