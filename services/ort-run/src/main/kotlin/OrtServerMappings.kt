@@ -416,7 +416,8 @@ fun Package.mapToOrt() =
         isMetadataOnly = isMetadataOnly,
         isModified = isModified,
         sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToOrt() },
-        labels = labels
+        labels = labels,
+        publishedAt = publishedAt?.toJavaInstant()
     )
 
 fun PackageConfiguration.mapToOrt() =

@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
@@ -32,6 +33,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
+
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
@@ -262,6 +265,68 @@ class PackageServiceTest : WordSpec() {
                 results.data[0].processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
                 results.data[1].processedDeclaredLicense.spdxExpression shouldBe "EPL-1.0 OR LGPL-2.1-or-later"
                 results.data[2].processedDeclaredLicense.spdxExpression shouldBe "MIT"
+            }
+
+            "allow sorting by publication date in both directions with unknown dates last" {
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        createPackageWithPublicationDate("march", "2024-03-01T00:00:00Z"),
+                        createPackageWithPublicationDate("unknown", null),
+                        createPackageWithPublicationDate("january", "2024-01-01T00:00:00Z"),
+                        createPackageWithPublicationDate("february", "2024-02-01T00:00:00Z")
+                    )
+                ).id
+
+                fun sortedNames(direction: OrderDirection) = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("publishedAt", direction)))
+                ).data.map { it.identifier.name }
+
+                sortedNames(OrderDirection.ASCENDING) should
+                        containExactly("january", "february", "march", "unknown")
+                sortedNames(OrderDirection.DESCENDING) should
+                        containExactly("march", "february", "january", "unknown")
+            }
+
+            "keep the precedence of sort fields following the publication date" {
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        createPackageWithPublicationDate("a", "2024-01-01T00:00:00Z"),
+                        createPackageWithPublicationDate("b", "2024-01-01T00:00:00Z"),
+                        createPackageWithPublicationDate("c", "2023-01-01T00:00:00Z")
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(
+                        listOf(
+                            OrderField("publishedAt", OrderDirection.DESCENDING),
+                            OrderField("identifier", OrderDirection.DESCENDING)
+                        )
+                    )
+                )
+
+                results.data.map { it.identifier.name } should containExactly("b", "a", "c")
+            }
+
+            "page through equal publication dates in a stable order" {
+                val names = (1..5).map { "package$it" }
+                val ortRunId = createAnalyzerRunWithPackages(
+                    names.mapIndexedTo(mutableSetOf()) { index, name ->
+                        createPackageWithPublicationDate(name, "2024-01-01T00:00:00Z".takeIf { index < 4 })
+                    }
+                ).id
+
+                fun page(direction: OrderDirection, offset: Long) = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("publishedAt", direction)), limit = 2, offset = offset)
+                ).data.map { it.identifier.name }
+
+                // Equal dates are ordered by the package ID, which follows the insertion order, in both directions.
+                OrderDirection.entries.forAll { direction ->
+                    listOf(0L, 2L, 4L).flatMap { page(direction, it) } should containExactly(names)
+                }
             }
 
             "return an empty list if no packages were found in an ORT run" {
@@ -1010,6 +1075,10 @@ class PackageServiceTest : WordSpec() {
             mapOf(identifier to listOf(AppliedPackageCurationRef(providerName = "test", curationRank = 0)))
         )
     }
+
+    private fun createPackageWithPublicationDate(name: String, publishedAt: String?) =
+        fixtures.generatePackage(Identifier("Maven", "com.example", name, "1.0"))
+            .copy(publishedAt = publishedAt?.let(Instant::parse))
 
     private fun createAnalyzerRunWithPackages(
         packages: Set<Package>,

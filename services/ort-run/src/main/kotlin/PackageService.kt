@@ -210,8 +210,23 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                     "processedDeclaredLicense" ->
                         query.orderBy(ProcessedDeclaredLicensesTable.spdxExpression to sortOrder)
 
+                    "publishedAt" -> {
+                        val nullsLastSortOrder = when (orderField.direction) {
+                            OrderDirection.ASCENDING -> SortOrder.ASC_NULLS_LAST
+                            OrderDirection.DESCENDING -> SortOrder.DESC_NULLS_LAST
+                        }
+
+                        query.orderBy(PackagesTable.publishedAt to nullsLastSortOrder)
+                    }
+
                     else -> throw QueryParametersException("Unsupported field for sorting: '${orderField.name}'.")
                 }
+            }
+
+            // Many packages can have the same publication date or none at all, and the database may return those in
+            // any order. Sort them by the package ID as well, so that each package appears on exactly one page.
+            if (parameters.sortFields.any { it.name == "publishedAt" }) {
+                query.orderBy(PackagesTable.id to SortOrder.ASC)
             }
 
             val limit = parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT
