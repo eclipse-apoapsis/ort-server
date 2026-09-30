@@ -130,19 +130,21 @@ class GitConfigFileProvider internal constructor(
     override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext = synchronized(lock) {
         val requestedRevision = context.name
 
-        val cached = revisionCache[requestedRevision]
+        synchronized(lock) {
+            val cached = revisionCache[requestedRevision]
 
-        val resolvedRevision = if (cached != null && cached.expiresAt.hasNotPassedNow()) {
-            logger.debug("Using cached revision '{}' for context '{}'.", cached.revision, requestedRevision)
-            cached.revision
-        } else {
-            resolveRevision(requestedRevision).also {
-                logger.debug("Resolved revision '{}' for context '{}'.", it, requestedRevision)
-                revisionCache[requestedRevision] = CachedRevision(it, timeSource.markNow() + revisionCacheTtl)
+            val resolvedRevision = if (cached != null && cached.expiresAt.hasNotPassedNow()) {
+                logger.debug("Using cached revision '{}' for context '{}'.", cached.revision, requestedRevision)
+                cached.revision
+            } else {
+                resolveRevision(requestedRevision).also {
+                    logger.debug("Resolved revision '{}' for context '{}'.", it, requestedRevision)
+                    revisionCache[requestedRevision] = CachedRevision(it, timeSource.markNow() + revisionCacheTtl)
+                }
             }
-        }
 
-        ResolvedConfigContext(resolvedRevision)
+            ResolvedConfigContext(resolvedRevision)
+        }
     }
 
     /** Resolve the given [requestedRevision] to a concrete revision by updating the working tree. */
