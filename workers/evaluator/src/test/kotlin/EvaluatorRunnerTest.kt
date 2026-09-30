@@ -97,7 +97,7 @@ class EvaluatorRunnerTest : WordSpec({
 
     val adminConfigService = mockk<AdminConfigService>()
     val ruleViolationResolutionService = mockk<RuleViolationResolutionService> {
-        every { getResolutionsForRepository(any()) } returns com.github.michaelbull.result.Ok(emptyList())
+        coEvery { getResolutionsForRepository(any()) } returns com.github.michaelbull.result.Ok(emptyList())
     }
     val runner = EvaluatorRunner(mockk(), adminConfigService, ruleViolationResolutionService)
 
@@ -342,7 +342,7 @@ class EvaluatorRunnerTest : WordSpec({
             adminConfigService.initRuleSet(testRuleSet)
 
             val message = "This is an example RuleViolation for test cases."
-            every { ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(1)) } returns
+            coEvery { ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(1)) } returns
                     com.github.michaelbull.result.Ok(
                         listOf(
                             ServerRuleViolationResolution(

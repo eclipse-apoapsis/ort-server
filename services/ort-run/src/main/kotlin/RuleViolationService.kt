@@ -53,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.Count
@@ -134,7 +135,7 @@ class RuleViolationService(
 
             val ruleViolationRows = fetchRuleViolationRows(ruleViolationIds)
             val resolutionsByRuleViolationId = fetchResolutionsByRuleViolationId(ortRunId, ruleViolationIds)
-            val serverResolutions = getServerResolutions(ortRun.repositoryId)
+            val serverResolutions = runBlocking { getServerResolutions(ortRun.repositoryId) }
             val unappliedResolutions = getUnappliedResolutions(serverResolutions, resolutionsByRuleViolationId)
 
             val identifierIds = ruleViolationRows
@@ -349,7 +350,7 @@ class RuleViolationService(
                 }
             )
 
-    private fun getServerResolutions(repositoryId: Long): List<RuleViolationResolution> =
+    private suspend fun getServerResolutions(repositoryId: Long): List<RuleViolationResolution> =
         ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
             .getOr(emptyList())
 

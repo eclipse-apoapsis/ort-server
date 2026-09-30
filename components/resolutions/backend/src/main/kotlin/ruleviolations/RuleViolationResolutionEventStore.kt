@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
@@ -40,16 +40,18 @@ import org.jetbrains.exposed.v1.jdbc.update
 
 /** A store for [RuleViolationResolutionEvent]s. */
 class RuleViolationResolutionEventStore(private val db: Database) {
-    private fun loadEvents(repositoryId: RepositoryId, messageHash: String): List<RuleViolationResolutionEvent> =
-        db.blockingQuery {
-            RuleViolationResolutionEvents.selectAll()
-                .where { RuleViolationResolutionEvents.repositoryId eq repositoryId }
-                .andWhere { RuleViolationResolutionEvents.messageHash eq messageHash }
-                .orderBy(RuleViolationResolutionEvents.version)
-                .map { it.toRuleViolationResolutionEvent() }
-        }
+    private suspend fun loadEvents(
+        repositoryId: RepositoryId,
+        messageHash: String
+    ): List<RuleViolationResolutionEvent> = db.transaction {
+        RuleViolationResolutionEvents.selectAll()
+            .where { RuleViolationResolutionEvents.repositoryId eq repositoryId }
+            .andWhere { RuleViolationResolutionEvents.messageHash eq messageHash }
+            .orderBy(RuleViolationResolutionEvents.version)
+            .map { it.toRuleViolationResolutionEvent() }
+    }
 
-    internal fun appendEvent(event: RuleViolationResolutionEvent): Unit = db.blockingQuery {
+    internal suspend fun appendEvent(event: RuleViolationResolutionEvent): Unit = db.transaction {
         RuleViolationResolutionEvents.insert {
             it[repositoryId] = event.repositoryId
             it[messageHash] = event.messageHash
@@ -62,7 +64,7 @@ class RuleViolationResolutionEventStore(private val db: Database) {
         updateReadModel(event)
     }
 
-    internal fun getRuleViolationResolution(repositoryId: RepositoryId, messageHash: String) =
+    internal suspend fun getRuleViolationResolution(repositoryId: RepositoryId, messageHash: String) =
         loadEvents(repositoryId, messageHash).takeIf { it.isNotEmpty() }?.let { events ->
             RuleViolationResolutionState(
                 repositoryId = repositoryId,
@@ -70,9 +72,9 @@ class RuleViolationResolutionEventStore(private val db: Database) {
             ).applyAll(events)
         }
 
-    internal fun getResolutionsForRepository(
+    internal suspend fun getResolutionsForRepository(
         repositoryId: RepositoryId
-    ): List<RuleViolationResolution> = db.blockingQuery {
+    ): List<RuleViolationResolution> = db.transaction {
         RuleViolationResolutionsReadModel
             .selectAll()
             .where { RuleViolationResolutionsReadModel.repositoryId eq repositoryId }

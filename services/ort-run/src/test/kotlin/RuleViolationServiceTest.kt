@@ -34,7 +34,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 
 import kotlin.time.Clock
@@ -108,7 +108,7 @@ class RuleViolationServiceTest : WordSpec() {
             )
 
             ruleViolationResolutionService = mockk {
-                every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+                coEvery { getResolutionsForRepository(any()) } returns Ok(emptyList())
             }
 
             service = RuleViolationService(db, ortRunService, ruleViolationResolutionService)
@@ -471,7 +471,7 @@ class RuleViolationServiceTest : WordSpec() {
                     )
                 )
 
-                every {
+                coEvery {
                     ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
                 } returns Ok(
                     listOf(
@@ -542,7 +542,7 @@ class RuleViolationServiceTest : WordSpec() {
                     )
                 )
 
-                every {
+                coEvery {
                     ruleViolationResolutionService.getResolutionsForRepository(RepositoryId(repositoryId))
                 } returns Ok(emptyList())
 

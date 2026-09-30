@@ -618,5 +618,5 @@ private fun mockConfigManager() = mockk<ConfigManager> {
 }
 
 private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
-    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+    coEvery { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }

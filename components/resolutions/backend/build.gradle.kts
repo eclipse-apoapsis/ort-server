@@ -39,6 +39,7 @@ dependencies {
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.kotlinDatetime)
+    implementation(libs.kotlinResult.coroutines)
     implementation(libs.kotlinx.serialization.json)
 
     routesImplementation(projects.components.authorization.authorizationBackend)

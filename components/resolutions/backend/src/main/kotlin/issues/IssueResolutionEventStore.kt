@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.resolutions.issues
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
@@ -40,8 +40,8 @@ import org.jetbrains.exposed.v1.jdbc.update
 
 /** A store for [IssueResolutionEvent]s. */
 class IssueResolutionEventStore(private val db: Database) {
-    private fun loadEvents(repositoryId: RepositoryId, messageHash: String): List<IssueResolutionEvent> =
-        db.blockingQuery {
+    private suspend fun loadEvents(repositoryId: RepositoryId, messageHash: String): List<IssueResolutionEvent> =
+        db.transaction {
             IssueResolutionEvents.selectAll()
                 .where { IssueResolutionEvents.repositoryId eq repositoryId }
                 .andWhere { IssueResolutionEvents.messageHash eq messageHash }
@@ -49,7 +49,7 @@ class IssueResolutionEventStore(private val db: Database) {
                 .map { it.toIssueResolutionEvent() }
         }
 
-    internal fun appendEvent(event: IssueResolutionEvent): Unit = db.blockingQuery {
+    internal suspend fun appendEvent(event: IssueResolutionEvent): Unit = db.transaction {
         IssueResolutionEvents.insert {
             it[repositoryId] = event.repositoryId
             it[messageHash] = event.messageHash
@@ -62,7 +62,7 @@ class IssueResolutionEventStore(private val db: Database) {
         updateReadModel(event)
     }
 
-    internal fun getIssueResolution(repositoryId: RepositoryId, messageHash: String) =
+    internal suspend fun getIssueResolution(repositoryId: RepositoryId, messageHash: String) =
         loadEvents(repositoryId, messageHash).takeIf { it.isNotEmpty() }?.let { events ->
             IssueResolutionState(
                 repositoryId = repositoryId,
@@ -70,12 +70,13 @@ class IssueResolutionEventStore(private val db: Database) {
             ).applyAll(events)
         }
 
-    internal fun getResolutionsForRepository(repositoryId: RepositoryId): List<IssueResolution> = db.blockingQuery {
-        IssueResolutionsReadModel
-            .selectAll()
-            .where { IssueResolutionsReadModel.repositoryId eq repositoryId }
-            .map { it.toIssueResolution() }
-    }
+    internal suspend fun getResolutionsForRepository(repositoryId: RepositoryId): List<IssueResolution> =
+        db.transaction {
+            IssueResolutionsReadModel
+                .selectAll()
+                .where { IssueResolutionsReadModel.repositoryId eq repositoryId }
+                .map { it.toIssueResolution() }
+        }
 
     private fun updateReadModel(issueResolutionEvent: IssueResolutionEvent) {
         when (issueResolutionEvent.payload) {
