@@ -610,7 +610,11 @@ val getRunPackages: RouteConfig.() -> Unit = {
     summary = "Get the packages found in an ORT run"
     description = "Supported sort fields are 'identifier', 'purl', 'processedDeclaredLicense', and 'publishedAt'. " +
             "By default, packages are sorted by purl in ascending order. When sorting by 'publishedAt', packages " +
-            "with an unknown publication date come last in both directions."
+            "with an unknown publication date come last in both directions. A package's 'publishedAt' is the date " +
+            "from its applied curation with the highest priority that has one, or else the package's own date. " +
+            "Publication dates are provided by package curation providers such as 'ClearlyDefined' or " +
+            "'OpenSourceInsights', which must be enabled in the analyzer job configuration of the run. Dates are " +
+            "not known for every package."
     tags = listOf("Runs")
 
     request {
@@ -686,7 +690,7 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                     PackageCuration(
                                         providerName = "Example",
                                         data = PackageCurationData(
-                                            comment = "Fix the homepage URL.",
+                                            comment = "Fix the homepage URL and add the publication date.",
                                             purl = null,
                                             cpe = null,
                                             authors = null,
@@ -700,7 +704,8 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                             isModified = null,
                                             declaredLicenseMapping = emptyMap(),
                                             sourceCodeOrigins = null,
-                                            labels = emptyMap()
+                                            labels = emptyMap(),
+                                            publishedAt = Instant.parse("2024-05-06T07:08:09Z")
                                         )
                                     )
                                 )

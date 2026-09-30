@@ -857,7 +857,8 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
     isModified = isModified,
     declaredLicenseMapping = declaredLicenseMapping,
     sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
-    labels = labels
+    labels = labels,
+    publishedAt = publishedAt
 )
 
 fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
