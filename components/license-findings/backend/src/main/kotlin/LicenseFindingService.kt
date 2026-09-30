@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.components.licensefindings
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.queries.licensefindings.buildLicenseFindingsJoin
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
@@ -31,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.toSortOrder
@@ -65,12 +65,12 @@ class LicenseFindingService(private val db: Database) {
      * license. [licenseFilter] selects exact license expressions, while [licenseSearch] applies a case-insensitive
      * substring search. The result is paged and sorted according to [parameters].
      */
-    fun getDetectedLicensesForRun(
+    suspend fun getDetectedLicensesForRun(
         ortRunId: Long,
         parameters: ListQueryParameters,
         licenseFilter: FilterOperatorAndValue<Set<String>>?,
         licenseSearch: String?
-    ): ListQueryResult<DetectedLicense> = db.blockingQuery {
+    ): ListQueryResult<DetectedLicense> = db.transaction {
         val licenseFindingsJoin = buildLicenseFindingsJoin()
         val packageCount = Count(IdentifiersTable.id, distinct = true)
         // Window function gives the total group count in the same query, avoiding running the query twice.
@@ -117,13 +117,13 @@ class LicenseFindingService(private val db: Database) {
      *
      * The result can be filtered by [identifierFilter] and [purlFilter], and paged and sorted according to [parameters].
      */
-    fun getPackagesWithDetectedLicenseForRun(
+    suspend fun getPackagesWithDetectedLicenseForRun(
         ortRunId: Long,
         license: String,
         parameters: ListQueryParameters,
         identifierFilter: FilterOperatorAndValue<String>?,
         purlFilter: String?
-    ): ListQueryResult<PackageIdentifier> = db.blockingQuery {
+    ): ListQueryResult<PackageIdentifier> = db.transaction {
         val licenseFindingsJoin = buildLicenseFindingsJoin()
 
         // Lateral subquery: fetch one purl per identifier for the current ORT run. Each ORT run has at most one
@@ -206,7 +206,7 @@ class LicenseFindingService(private val db: Database) {
      * Return the distinct detected license expressions for the given [identifier] in the ORT run with the given
      * [ortRunId], sorted by their raw string values.
      */
-    fun getDetectedLicensesForIdentifier(ortRunId: Long, identifier: String): List<String> = db.blockingQuery {
+    suspend fun getDetectedLicensesForIdentifier(ortRunId: Long, identifier: String): List<String> = db.transaction {
         buildLicenseFindingsJoin()
             .select(LicenseFindingsTable.license)
             .where {
@@ -223,12 +223,12 @@ class LicenseFindingService(private val db: Database) {
      *
      * The result is paged and sorted according to [parameters].
      */
-    fun getLicenseFindingsForRun(
+    suspend fun getLicenseFindingsForRun(
         ortRunId: Long,
         license: String,
         identifier: String,
         parameters: ListQueryParameters
-    ): ListQueryResult<LicenseFinding> = db.blockingQuery {
+    ): ListQueryResult<LicenseFinding> = db.transaction {
         val licenseFindingsJoin = buildLicenseFindingsJoin()
         val totalCount = Count(LicenseFindingsTable.path).over()
 
