@@ -65,6 +65,11 @@ import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
+import org.ossreviewtoolkit.model.AnalyzerResult as OrtAnalyzerResult
+import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
+import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.ResolvedConfiguration as OrtResolvedConfiguration
+
 @Suppress("LargeClass")
 class PackageServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
@@ -786,7 +791,7 @@ class PackageServiceTest : WordSpec() {
                 )
             }
 
-            "apply curations and include applied curations" {
+            "apply curations lowest priority first and include them highest priority first" {
                 val pkg1 = fixtures.generatePackage(
                     Identifier("Maven", "com.example", "example1", "1.0")
                 )
@@ -802,6 +807,7 @@ class PackageServiceTest : WordSpec() {
                     id = pkg1.identifier,
                     data = PackageCurationData(
                         comment = "comment1",
+                        homepageUrl = "https://high.example.org",
                         authors = setOf("author1", "author2"),
                         concludedLicense = "LicenseRef-concluded1"
                     )
@@ -816,17 +822,24 @@ class PackageServiceTest : WordSpec() {
                     )
                 )
 
-                val resolvedPackageCurations = ResolvedPackageCurations(
-                    provider = PackageCurationProviderConfig("test"),
-                    curations = listOf(curation1, curation2)
+                val lowPriorityCuration = PackageCuration(
+                    pkg1.identifier,
+                    PackageCurationData(homepageUrl = "https://low.example.org")
                 )
 
-                fixtures.resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(resolvedPackageCurations))
+                // The analyzer stores the providers in priority order, highest first.
+                val resolvedPackageCurations = listOf(
+                    ResolvedPackageCurations(PackageCurationProviderConfig("test"), listOf(curation1, curation2)),
+                    ResolvedPackageCurations(PackageCurationProviderConfig("low"), listOf(lowPriorityCuration))
+                )
+
+                fixtures.resolvedConfigurationRepository.addPackageCurations(ortRunId, resolvedPackageCurations)
 
                 fixtures.resolvedConfigurationRepository.addPackageCurationAssociations(
                     ortRunId,
                     mapOf(
                         pkg1.identifier to listOf(
+                            AppliedPackageCurationRef(providerName = "low", curationRank = 0),
                             AppliedPackageCurationRef(providerName = "test", curationRank = 0)
                         ),
                         pkg2.identifier to listOf(
@@ -835,15 +848,28 @@ class PackageServiceTest : WordSpec() {
                     )
                 )
 
+                val ortResult = OrtResult.EMPTY.copy(
+                    analyzer = OrtAnalyzerRun.EMPTY.copy(
+                        result = OrtAnalyzerResult.EMPTY.copy(packages = setOf(pkg1.mapToOrt()))
+                    ),
+                    resolvedConfiguration = OrtResolvedConfiguration(
+                        packageCurations = resolvedPackageCurations.map { it.mapToOrt() }
+                    )
+                )
+
+                val ortHomepageUrl = ortResult.getPackages().single().metadata.homepageUrl
+                ortHomepageUrl shouldBe "https://high.example.org"
+
                 val packages = service.listForOrtRunId(ortRunId)
                 packages.data shouldHaveSize 2
 
                 with(packages.data.single { it.identifier == pkg1.identifier.mapToApi() }) {
                     authors should containExactly(curation1.data.authors.orEmpty())
-                    curations.shouldBeSingleton {
-                        it.providerName shouldBe "test"
-                        it.data shouldBe curation1.data.mapToApi()
-                    }
+                    homepageUrl shouldBe ortHomepageUrl
+                    curations.map { it.providerName to it.data } should containExactly(
+                        "test" to curation1.data.mapToApi(),
+                        "low" to lowPriorityCuration.data.mapToApi()
+                    )
                 }
 
                 with(packages.data.single { it.identifier == pkg2.identifier.mapToApi() }) {

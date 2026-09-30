@@ -382,10 +382,14 @@ private fun getCuratedDeclaredLicenses(
 
 private fun ModelPackage.applyCurations(
     curationsByIdentifier: Map<Identifier, List<Pair<String, PackageCuration>>>
-): OrtCuratedPackage =
-    curationsByIdentifier[identifier].orEmpty().fold(OrtCuratedPackage(mapToOrt())) { curatedPackage, (_, curation) ->
+): OrtCuratedPackage {
+    // Like ORT, apply the curations with the lowest priority first, so that those with the highest priority win.
+    val curations = curationsByIdentifier[identifier].orEmpty().asReversed()
+
+    return curations.fold(OrtCuratedPackage(mapToOrt())) { curatedPackage, (_, curation) ->
         curation.mapToOrt().apply(curatedPackage)
     }
+}
 
 private fun PackagesTable.joinAnalyzerTables() =
     innerJoin(PackagesAnalyzerRunsTable)
