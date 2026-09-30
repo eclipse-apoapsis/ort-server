@@ -121,7 +121,10 @@ import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -141,6 +144,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
@@ -2192,14 +2197,43 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "return known publication dates of packages and leave out unknown ones" {
+        "return known publication dates of packages and their curations and leave out unknown ones" {
             integrationTestApplication {
-                val publishedAt = Instant.parse("2024-05-06T07:08:09.123456Z")
+                val curated = dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "curated", "1.0"))
                 val ortRun = createRunWithPackages(
                     setOf(
                         dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "dated", "1.0"))
-                            .copy(publishedAt = publishedAt),
-                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "undated", "1.0"))
+                            .copy(publishedAt = Instant.parse("2024-05-06T07:08:09.123456Z")),
+                        dbExtension.fixtures.generatePackage(Identifier("Maven", "com.example", "undated", "1.0")),
+                        curated
+                    )
+                )
+
+                dbExtension.fixtures.resolvedConfigurationRepository.addPackageCurations(
+                    ortRun.id,
+                    listOf(
+                        ResolvedPackageCurations(
+                            PackageCurationProviderConfig("provider"),
+                            listOf(
+                                PackageCuration(
+                                    curated.identifier,
+                                    PackageCurationData(
+                                        comment = "dated",
+                                        publishedAt = Instant.parse("2024-06-07T08:09:10.123456Z")
+                                    )
+                                ),
+                                PackageCuration(curated.identifier, PackageCurationData(comment = "undated"))
+                            )
+                        )
+                    )
+                )
+                dbExtension.fixtures.resolvedConfigurationRepository.addPackageCurationAssociations(
+                    ortRun.id,
+                    mapOf(
+                        curated.identifier to listOf(
+                            AppliedPackageCurationRef(providerName = "provider", curationRank = 0),
+                            AppliedPackageCurationRef(providerName = "provider", curationRank = 1)
+                        )
                     )
                 )
 
@@ -2214,6 +2248,14 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 rawPackages.getValue("dated").getValue("publishedAt").jsonPrimitive.content shouldBe
                         "2024-05-06T07:08:09.123456Z"
                 rawPackages.getValue("undated").containsKey("publishedAt") shouldBe false
+
+                val rawCurationData = rawPackages.getValue("curated").getValue("curations").jsonArray
+                    .map { it.jsonObject.getValue("data").jsonObject }
+                    .associateBy { it.getValue("comment").jsonPrimitive.content }
+
+                rawCurationData.getValue("dated").getValue("publishedAt").jsonPrimitive.content shouldBe
+                        "2024-06-07T08:09:10.123456Z"
+                rawCurationData.getValue("undated").containsKey("publishedAt") shouldBe false
             }
         }
 
