@@ -389,7 +389,8 @@ fun OrtPackageCurationData.mapToModel() = PackageCurationData(
     isModified = isModified,
     declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toString() },
     sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToModel() },
-    labels = labels
+    labels = labels,
+    publishedAt = publishedAt?.toKotlinInstant()
 )
 
 fun OrtPackageCurationProvider.mapToModel() = PackageCurationProviderConfig(name = id)

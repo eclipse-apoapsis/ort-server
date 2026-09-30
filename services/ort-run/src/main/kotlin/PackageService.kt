@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
+import kotlin.time.Instant
+
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration as ApiPackageCuration
@@ -34,7 +36,11 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDecl
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.CuratedPackagesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
@@ -58,10 +64,12 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.core.notInList
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.stringLiteral
+import org.jetbrains.exposed.v1.core.wrapAsExpression
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
@@ -216,7 +224,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                             OrderDirection.DESCENDING -> SortOrder.DESC_NULLS_LAST
                         }
 
-                        query.orderBy(PackagesTable.publishedAt to nullsLastSortOrder)
+                        query.orderBy(createEffectivePublishedAtExpression(ortRunId) to nullsLastSortOrder)
                     }
 
                     else -> throw QueryParametersException("Unsupported field for sorting: '${orderField.name}'.")
@@ -378,6 +386,35 @@ private fun getCuratedDeclaredLicenses(
 
         dao.id to curatedModelPackage.processedDeclaredLicense
     }
+}
+
+/**
+ * Create an expression for the publication date of a package as shown after applying the curations of the ORT run
+ * with the given [ortRunId]: `COALESCE(curated_date, published_at)`. Like ORT, the curated date comes from the applied
+ * curation with the highest priority that has a date, i.e. the lowest provider rank and then the lowest curation rank.
+ */
+private fun createEffectivePublishedAtExpression(ortRunId: Long): CustomFunction<Instant?> {
+    val curatedPublishedAtSubquery = CuratedPackagesTable
+        .innerJoin(ResolvedPackageCurationsTable)
+        .innerJoin(ResolvedPackageCurationProvidersTable)
+        .innerJoin(PackageCurationsTable)
+        .innerJoin(PackageCurationDataTable)
+        .select(PackageCurationDataTable.publishedAt)
+        .where {
+            (CuratedPackagesTable.ortRunId eq ortRunId) and
+                    (CuratedPackagesTable.packageId eq PackagesTable.id) and
+                    PackageCurationDataTable.publishedAt.isNotNull()
+        }
+        .orderBy(ResolvedPackageCurationProvidersTable.rank)
+        .orderBy(ResolvedPackageCurationsTable.rank)
+        .limit(1)
+
+    return CustomFunction(
+        "COALESCE",
+        PackagesTable.publishedAt.columnType,
+        wrapAsExpression<Instant>(curatedPublishedAtSubquery),
+        PackagesTable.publishedAt
+    )
 }
 
 private fun ModelPackage.applyCurations(
