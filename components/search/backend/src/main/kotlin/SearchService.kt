@@ -23,7 +23,6 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Repository
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithVulnerability
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsVulnerabilitiesTable
@@ -44,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Res
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
@@ -97,7 +97,7 @@ class SearchService(
             containedIn = scope
         )
 
-        return db.blockingQuery {
+        return db.transaction {
             val query = OrtRunsTable
                 .innerJoin(AnalyzerJobsTable, { OrtRunsTable.id }, { ortRunId })
                 .innerJoin(AnalyzerRunsTable, { AnalyzerJobsTable.id }, { analyzerJobId })
@@ -135,7 +135,7 @@ class SearchService(
             containedIn = scope
         )
 
-        return db.blockingQuery {
+        return db.transaction {
             val query = createVulnerabilityBaseQuery()
 
             if (returnPurl) {
