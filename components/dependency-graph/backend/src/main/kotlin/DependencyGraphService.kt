@@ -25,7 +25,6 @@ import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraph
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphProjectGroup
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphScope
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.DependencyGraphs
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
@@ -37,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Res
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph as ModelDependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier as ModelIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Project as ModelProject
@@ -59,15 +59,15 @@ class DependencyGraphService(private val db: Database) {
     /**
      * Return the dependency graphs for the ORT run with the given [ortRunId], applying the provided [sortFields].
      */
-    fun getDependencyGraphs(
+    suspend fun getDependencyGraphs(
         ortRunId: Long,
         sortFields: List<OrderField> = DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS
-    ): DependencyGraphs = db.blockingQuery {
+    ): DependencyGraphs = db.transaction {
         val analyzerRun = AnalyzerRunDao.find {
             AnalyzerRunsTable.analyzerJobId inSubQuery AnalyzerJobsTable
                 .select(AnalyzerJobsTable.id)
                 .where { AnalyzerJobsTable.ortRunId eq ortRunId }
-        }.firstOrNull() ?: return@blockingQuery DependencyGraphs(emptyMap())
+        }.firstOrNull() ?: return@transaction DependencyGraphs(emptyMap())
 
         val purlByIdentifier = getPurlByIdentifierForOrtRun(ortRunId)
 
