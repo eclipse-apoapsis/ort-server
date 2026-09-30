@@ -1114,7 +1114,7 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
     }
 
     "getForOrtRunId" should {
-        "return curations grouped by package identifier" {
+        "return curations grouped by package identifier and sorted by priority" {
             val package1 = fixtures.generatePackage(identifier1)
             val package2 = fixtures.generatePackage(identifier2)
             fixtures.createAnalyzerRun(
@@ -1122,15 +1122,21 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
                 packages = setOf(package1, package2)
             )
 
-            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(packageCurations1, packageCurations2))
+            val additionalCuration = PackageCuration(identifier1, PackageCurationData(comment = "additional"))
+            val provider1Curations = packageCurations1.copy(
+                curations = listOf(packageCurations1.curations[0], additionalCuration, packageCurations1.curations[1])
+            )
+            resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(provider1Curations, packageCurations2))
 
+            // Store the associations out of rank order to verify both provider and curation ordering.
             val associations = mapOf(
                 identifier1 to listOf(
-                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 0),
-                    AppliedPackageCurationRef(providerName = "provider2", curationRank = 0)
+                    AppliedPackageCurationRef(providerName = "provider2", curationRank = 0),
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 1),
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 0)
                 ),
                 identifier2 to listOf(
-                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 1)
+                    AppliedPackageCurationRef(providerName = "provider1", curationRank = 2)
                 )
             )
 
@@ -1142,15 +1148,15 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
             result.keys should containExactlyInAnyOrder(identifier1, identifier2)
 
-            val id1Curations = result.getValue(identifier1)
-            id1Curations.map { it.first } should containExactlyInAnyOrder("provider1", "provider2")
-            id1Curations.first { it.first == "provider1" }.second shouldBe packageCurations1.curations[0]
-            id1Curations.first { it.first == "provider2" }.second shouldBe packageCurations2.curations[0]
+            result.getValue(identifier1) should containExactly(
+                "provider1" to provider1Curations.curations[0],
+                "provider1" to additionalCuration,
+                "provider2" to packageCurations2.curations[0]
+            )
 
-            val id2Curations = result.getValue(identifier2)
-            id2Curations.shouldBeSingleton { }
-            id2Curations[0].first shouldBe "provider1"
-            id2Curations[0].second shouldBe packageCurations1.curations[1]
+            result.getValue(identifier2).shouldBeSingleton {
+                it shouldBe ("provider1" to provider1Curations.curations[2])
+            }
         }
 
         "return empty map when no curations exist" {

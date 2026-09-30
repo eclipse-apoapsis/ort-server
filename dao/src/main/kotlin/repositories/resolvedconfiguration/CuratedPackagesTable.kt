@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -43,7 +44,10 @@ object CuratedPackagesTable : LongIdTable("curated_packages") {
 
     /**
      * Get the [PackageCuration]s for the given [ortRunId], grouped by the package [Identifier] they apply to. Each
-     * curation is paired with the name of the provider that supplied it.
+     * curation is paired with the name of the provider that supplied it. The curations of a package are ordered by
+     * descending priority, i.e. by the rank of their provider and then by their rank within the provider, which is the
+     * order of the resolved configuration. Like ORT, callers must apply them in reverse order so that the curation
+     * with the highest priority takes precedence.
      */
     fun getForOrtRunId(ortRunId: Long): Map<Identifier, List<Pair<String, PackageCuration>>> {
         val rows = innerJoin(PackagesTable)
@@ -53,6 +57,10 @@ object CuratedPackagesTable : LongIdTable("curated_packages") {
             .join(IdentifiersTable, JoinType.INNER, PackagesTable.identifierId, IdentifiersTable.id)
             .selectAll()
             .where { CuratedPackagesTable.ortRunId eq ortRunId }
+            .orderBy(
+                ResolvedPackageCurationProvidersTable.rank to SortOrder.ASC,
+                ResolvedPackageCurationsTable.rank to SortOrder.ASC
+            )
             .map { row ->
                 Triple(
                     Identifier(
