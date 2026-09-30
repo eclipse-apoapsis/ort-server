@@ -146,10 +146,26 @@ describe('packages view', () => {
         date.compareDocumentPosition(homepage) &
           Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
-      expect(screen.getAllByText('Published:')).toHaveLength(1);
+      expect(
+        screen.getAllByText(formatTimestamp('2024-05-06T07:08:09Z'))
+      ).toHaveLength(1);
       expect(screen.queryByText('Unknown')).not.toBeInTheDocument();
     }
   );
+
+  it('labels the publication date in its tooltip', async () => {
+    mocks.packages = [createPackage('dated', '2024-05-06T07:08:09Z')];
+
+    const { user } = renderPackages();
+
+    await user.hover(
+      await screen.findByText(formatTimestamp('2024-05-06T07:08:09Z'))
+    );
+
+    expect(
+      (await screen.findAllByText('Publishing timestamp')).length
+    ).toBeGreaterThan(0);
+  });
 
   it('sorts by publication date in both directions after the other sort fields, starting from the first page', async () => {
     mocks.packages = [createPackage('example', '2024-05-06T07:08:09Z')];
