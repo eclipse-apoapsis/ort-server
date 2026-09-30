@@ -425,7 +425,8 @@ class OrtServerMappingsTest : WordSpec({
                         "LicenseRef-toBeMapped2" to "LicenseRef-mapped2"
                     ),
                     sourceCodeOrigins = listOf(SourceCodeOrigin.VCS),
-                    labels = mapOf("key1" to "val1")
+                    labels = mapOf("key1" to "val1"),
+                    publishedAt = Instant.parse("2024-05-06T00:00:00Z")
                 )
             )
 
