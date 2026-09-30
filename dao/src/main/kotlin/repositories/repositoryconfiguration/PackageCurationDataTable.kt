@@ -23,6 +23,8 @@ import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 
@@ -32,6 +34,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 /**
  * A table to represent a package configuration data, which is part of a [PackageCuration][PackageCurationsTable].
@@ -51,6 +54,7 @@ object PackageCurationDataTable : LongIdTable("package_curation_data") {
     val isModified = bool("is_modified").nullable()
     val hasAuthors = bool("has_authors")
     val sourceCodeOrigins = text("source_code_origins").nullable()
+    val publishedAt = timestamp("published_at").nullable()
 }
 
 class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
@@ -65,7 +69,8 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                             (this.description eq data.description) and
                             (this.homepageUrl eq data.homepageUrl) and
                             (this.isMetadataOnly eq data.isMetadataOnly) and
-                            (this.isModified eq data.isModified)
+                            (this.isModified eq data.isModified) and
+                            (this.publishedAt eq data.publishedAt?.toDatabasePrecision())
                 }
             }.firstOrNull {
                 it.binaryArtifact?.mapToModel() == data.binaryArtifact &&
@@ -101,6 +106,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                     DeclaredLicenseMappingDao.getOrPut(it.key, it.value)
                 }
                 this.sourceCodeOrigins = data.sourceCodeOrigins?.joinToString(",") { it.name }
+                this.publishedAt = data.publishedAt
             }.also {
                 data.labels.forEach { (key, value) ->
                     PackageCurationDataLabelDao.new {
@@ -130,6 +136,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var hasAuthors by PackageCurationDataTable.hasAuthors
     var declaredLicenseMappings by DeclaredLicenseMappingDao via PackageCurationDataDeclaredLicenseMappingsTable
     var sourceCodeOrigins by PackageCurationDataTable.sourceCodeOrigins
+    var publishedAt by PackageCurationDataTable.publishedAt.transformToDatabasePrecision()
     val labels by PackageCurationDataLabelDao referrersOn PackageCurationDataLabelsTable.packageCurationDataId
 
     fun mapToModel() = PackageCurationData(
@@ -150,6 +157,7 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
             ?.split(',')
             ?.filterNot { it.isEmpty() }
             ?.map { SourceCodeOrigin.valueOf(it) },
-        labels = labels.associate { it.key to it.value }
+        labels = labels.associate { it.key to it.value },
+        publishedAt = publishedAt
     )
 }
