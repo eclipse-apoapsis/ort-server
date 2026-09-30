@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets
 
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.ResolvedVulnerabilitiesTable
@@ -45,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsT
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.ResolvedRuleViolationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
@@ -171,6 +173,40 @@ class DaoResolvedConfigurationRepositoryTest : WordSpec({
 
             val resolvedConfiguration = resolvedConfigurationRepository.getForOrtRun(ortRunId).shouldNotBeNull()
             resolvedConfiguration.packageCurations should containExactly(packageCurations1, packageCurations2)
+        }
+
+        "deduplicate curation data by publication date at database precision" {
+            fun curation(publishedAt: String?) = PackageCuration(
+                id = identifier1,
+                data = PackageCurationData(comment = "dated", publishedAt = publishedAt?.let(Instant::parse))
+            )
+
+            resolvedConfigurationRepository.addPackageCurations(
+                ortRunId,
+                listOf(
+                    ResolvedPackageCurations(
+                        PackageCurationProviderConfig("provider"),
+                        listOf(
+                            curation("2024-05-06T07:08:09.123456789Z"),
+                            curation("2024-05-06T07:08:09.123456Z"),
+                            curation("2024-05-07T00:00:00Z"),
+                            curation(null)
+                        )
+                    )
+                )
+            )
+
+            val publicationDates = dbExtension.db.dbQuery {
+                PackageCurationDataTable.select(PackageCurationDataTable.publishedAt)
+                    .where { PackageCurationDataTable.comment eq "dated" }
+                    .map { it[PackageCurationDataTable.publishedAt] }
+            }
+
+            publicationDates should containExactlyInAnyOrder(
+                Instant.parse("2024-05-06T07:08:09.123456Z"),
+                Instant.parse("2024-05-07T00:00:00Z"),
+                null
+            )
         }
     }
 
@@ -1231,7 +1267,8 @@ private val packageCurations1 = ResolvedPackageCurations(
             data = PackageCurationData(
                 comment = "comment1",
                 labels = mapOf("key1" to "value1", "key2" to "value2"),
-                sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+                sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS),
+                publishedAt = Instant.parse("2024-05-06T07:08:09.123456Z")
             )
         ),
         PackageCuration(

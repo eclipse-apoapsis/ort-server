@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
+import kotlin.time.Instant
+
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 
@@ -37,5 +39,6 @@ data class PackageCurationData(
     val isModified: Boolean? = null,
     val declaredLicenseMapping: Map<String, String> = emptyMap(),
     val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
-    val labels: Map<String, String> = emptyMap()
+    val labels: Map<String, String> = emptyMap(),
+    val publishedAt: Instant? = null
 )
