@@ -40,7 +40,6 @@ import io.mockk.Runs
 import io.mockk.andThenJust
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
@@ -1129,7 +1128,7 @@ class OrtRunServiceTest : WordSpec({
                 db,
                 service,
                 mockk<IssueResolutionService> {
-                    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+                    coEvery { getResolutionsForRepository(any()) } returns Ok(emptyList())
                 }
             )
             issuesService.listForOrtRunId(fixtures.ortRun.id).data should containExactlyInAnyOrder(

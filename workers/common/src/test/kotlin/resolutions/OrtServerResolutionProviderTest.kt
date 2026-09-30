@@ -29,6 +29,7 @@ import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
@@ -132,7 +133,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             // Prepare managed resolutions.
             val repositoryId = RepositoryId(1)
             val issueResolutionService = mockk<IssueResolutionService> {
-                every { getResolutionsForRepository(repositoryId) } returns
+                coEvery { getResolutionsForRepository(repositoryId) } returns
                         Ok(
                             listOf(
                                 ServerIssueResolution(
@@ -146,7 +147,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                         )
             }
             val ruleViolationResolutionService = mockk<RuleViolationResolutionService> {
-                every { getResolutionsForRepository(repositoryId) } returns
+                coEvery { getResolutionsForRepository(repositoryId) } returns
                         Ok(
                             listOf(
                                 ServerRuleViolationResolution(
@@ -160,7 +161,7 @@ class OrtServerResolutionProviderTest : WordSpec({
                         )
             }
             val vulnerabilityResolutionService = mockk<VulnerabilityResolutionService> {
-                every { getResolutionsForRepository(repositoryId) } returns
+                coEvery { getResolutionsForRepository(repositoryId) } returns
                         Ok(
                             listOf(
                                 ServerVulnerabilityResolution(
@@ -280,7 +281,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             val repositoryId = RepositoryId(1)
             val literalMessage = "BuildOperationRunner\$1.execute(ClassReader.java:199)"
             val issueResolutionService = mockk<IssueResolutionService> {
-                every { getResolutionsForRepository(repositoryId) } returns
+                coEvery { getResolutionsForRepository(repositoryId) } returns
                         Ok(
                             listOf(
                                 ServerIssueResolution(
@@ -331,7 +332,7 @@ class OrtServerResolutionProviderTest : WordSpec({
             val repositoryId = RepositoryId(1)
             val literalMessage = "BuildOperationRunner\$1.execute(ClassReader.java:199)"
             val ruleViolationResolutionService = mockk<RuleViolationResolutionService> {
-                every { getResolutionsForRepository(repositoryId) } returns
+                coEvery { getResolutionsForRepository(repositoryId) } returns
                         Ok(
                             listOf(
                                 ServerRuleViolationResolution(

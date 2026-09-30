@@ -30,6 +30,7 @@ dependencies {
     api(projects.components.reportStorage.reportStorageBackend)
     api(projects.components.resolutions.resolutionsBackend)
     api(projects.model)
+    api(projects.shared.apiModel)
 
     api(ortLibs.model)
     api(ortLibs.scanner)
@@ -38,7 +39,6 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.services.hierarchyService)
     implementation(projects.shared.apiMappings)
-    implementation(projects.shared.apiModel)
     implementation(projects.utils.logging)
 
     implementation(ortLibs.utils.common)

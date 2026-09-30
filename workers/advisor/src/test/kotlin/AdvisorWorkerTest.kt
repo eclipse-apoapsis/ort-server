@@ -652,9 +652,9 @@ private fun mockConfigManager() = mockk<ConfigManager> {
 private fun mockVulnerabilityResolutionService(
     resolutions: List<ModelVulnerabilityResolution> = emptyList()
 ) = mockk<VulnerabilityResolutionService> {
-    every { getResolutionsForRepository(any()) } returns Ok(resolutions)
+    coEvery { getResolutionsForRepository(any()) } returns Ok(resolutions)
 }
 
 private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
-    every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+    coEvery { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }

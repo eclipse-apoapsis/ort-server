@@ -85,7 +85,7 @@ class OrtServerResolutionProvider(
          * does not add issues to the run. The [ruleViolationResolutionService] is optional because only the evaluator
          * worker adds rule violations to the run.
          */
-        fun create(
+        suspend fun create(
             context: WorkerContext,
             adminConfigService: AdminConfigService,
             repositoryConfigurationResolutions: Resolutions,

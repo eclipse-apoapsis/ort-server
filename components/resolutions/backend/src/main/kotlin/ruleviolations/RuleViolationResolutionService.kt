@@ -20,17 +20,16 @@
 package org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations
 
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.binding
+import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.toResultOr
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -39,14 +38,14 @@ class RuleViolationResolutionService(
     private val eventStore: RuleViolationResolutionEventStore,
     private val repositoryService: RepositoryService
 ) {
-    fun createResolution(
+    suspend fun createResolution(
         repositoryId: RepositoryId,
         message: String,
         reason: RuleViolationResolutionReason,
         comment: String,
         createdBy: String
-    ): Result<Unit, RuleViolationResolutionError> = db.blockingQuery {
-        binding {
+    ): Result<Unit, RuleViolationResolutionError> = db.transaction {
+        coroutineBinding {
             validateRepositoryExists(repositoryId).bind()
             val messageHash = calculateResolutionMessageHash(message)
             val state = getRuleViolationResolutionStateOrEmpty(repositoryId, messageHash)
@@ -68,19 +67,19 @@ class RuleViolationResolutionService(
         }
     }
 
-    fun updateResolutionByHash(
+    suspend fun updateResolutionByHash(
         repositoryId: RepositoryId,
         messageHash: String,
         reason: RuleViolationResolutionReason?,
         comment: String?,
         updatedBy: String
-    ): Result<Unit, RuleViolationResolutionError> = db.blockingQuery {
-        binding {
+    ): Result<Unit, RuleViolationResolutionError> = db.transaction {
+        coroutineBinding {
             validateRepositoryExists(repositoryId).bind()
             val state = getRuleViolationResolutionStateByHash(repositoryId, messageHash).bind()
             validateNotDeleted(state).bind()
 
-            if (reason == null && comment == null) return@binding Unit
+            if (reason == null && comment == null) return@coroutineBinding Unit
 
             val event = RuleViolationResolutionEvent(
                 repositoryId = repositoryId,
@@ -97,12 +96,12 @@ class RuleViolationResolutionService(
         }
     }
 
-    fun deleteResolutionByHash(
+    suspend fun deleteResolutionByHash(
         repositoryId: RepositoryId,
         messageHash: String,
         deletedBy: String
-    ): Result<Unit, RuleViolationResolutionError> = db.blockingQuery {
-        binding {
+    ): Result<Unit, RuleViolationResolutionError> = db.transaction {
+        coroutineBinding {
             validateRepositoryExists(repositoryId).bind()
             val state = getRuleViolationResolutionStateByHash(repositoryId, messageHash).bind()
             validateNotDeleted(state).bind()
@@ -119,17 +118,17 @@ class RuleViolationResolutionService(
         }
     }
 
-    fun getResolutionsForRepository(
+    suspend fun getResolutionsForRepository(
         repositoryId: RepositoryId
-    ): Result<List<RuleViolationResolution>, RuleViolationResolutionError> = db.blockingQuery {
-        binding {
+    ): Result<List<RuleViolationResolution>, RuleViolationResolutionError> = db.transaction {
+        coroutineBinding {
             validateRepositoryExists(repositoryId).bind()
 
             eventStore.getResolutionsForRepository(repositoryId)
         }
     }
 
-    private fun getRuleViolationResolutionStateByHash(
+    private suspend fun getRuleViolationResolutionStateByHash(
         repositoryId: RepositoryId,
         messageHash: String
     ): Result<RuleViolationResolutionState, RuleViolationResolutionError> =
@@ -137,7 +136,7 @@ class RuleViolationResolutionService(
             RuleViolationResolutionError.ResolutionNotFound(messageHash)
         }
 
-    private fun getRuleViolationResolutionStateOrEmpty(
+    private suspend fun getRuleViolationResolutionStateOrEmpty(
         repositoryId: RepositoryId,
         messageHash: String
     ): RuleViolationResolutionState =
@@ -160,12 +159,12 @@ class RuleViolationResolutionService(
             RuleViolationResolutionError.ResolutionNotFound(state.message)
         }
 
-    private fun validateRepositoryExists(repositoryId: RepositoryId): Result<Unit, RuleViolationResolutionError> =
-        runBlocking {
-            repositoryService.getRepository(repositoryId.value).toResultOr {
-                RuleViolationResolutionError.RepositoryNotFound(repositoryId)
-            }.map { /* Unit */ }
-        }
+    private suspend fun validateRepositoryExists(
+        repositoryId: RepositoryId
+    ): Result<Unit, RuleViolationResolutionError> =
+        repositoryService.getRepository(repositoryId.value).toResultOr {
+            RuleViolationResolutionError.RepositoryNotFound(repositoryId)
+        }.map { /* Unit */ }
 }
 
 sealed class RuleViolationResolutionError(val message: String) {

@@ -29,7 +29,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
@@ -102,7 +102,7 @@ class MatchResolutionsIdentifierRegressionTest : WordSpec({
         // No resolutions managed by the server are used in these tests, so the resolution service can just return
         // an empty list.
         val issueResolutionService = mockk<IssueResolutionService> {
-            every { getResolutionsForRepository(any()) } returns Ok(emptyList())
+            coEvery { getResolutionsForRepository(any()) } returns Ok(emptyList())
         }
         issueService = IssueService(db, ortRunService, issueResolutionService)
     }
