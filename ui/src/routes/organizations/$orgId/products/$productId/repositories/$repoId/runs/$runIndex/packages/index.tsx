@@ -128,10 +128,11 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
           <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
         </div>
         {pkg.publishedAt && (
-          <div className='flex shrink-0 flex-wrap justify-end gap-x-2 text-sm'>
-            <div className='text-muted-foreground'>Published:</div>
-            <TimestampWithUTC timestamp={pkg.publishedAt} />
-          </div>
+          <TimestampWithUTC
+            timestamp={pkg.publishedAt}
+            label='Publishing timestamp'
+            className='shrink-0 text-sm'
+          />
         )}
       </div>
       <div className='flex items-start justify-between gap-4'>

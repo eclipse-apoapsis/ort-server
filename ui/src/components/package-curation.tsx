@@ -19,6 +19,7 @@
 
 import { PackageCuration as Curation } from '@/api';
 import { RenderProperty } from '@/components/render-property';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -88,6 +89,12 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
               type='url'
               showIfEmpty={false}
             />
+            {curation.data.publishedAt && (
+              <div className='flex gap-2'>
+                <div className='font-semibold'>Published:</div>
+                <TimestampWithUTC timestamp={curation.data.publishedAt} />
+              </div>
+            )}
             <RenderProperty
               label='CPE'
               value={curation.data.cpe}

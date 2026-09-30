@@ -29,6 +29,8 @@ type TimestampWithUTCProps = {
   timeZone?: string | undefined;
   locales?: Intl.LocalesArgument | undefined;
   className?: string;
+  /** An optional label shown in the tooltip above the UTC timestamp. */
+  label?: string;
 };
 
 export const TimestampWithUTC = ({
@@ -36,13 +38,17 @@ export const TimestampWithUTC = ({
   timeZone,
   locales,
   className,
+  label,
 }: TimestampWithUTCProps) => {
   return (
     <Tooltip>
       <TooltipTrigger className={className}>
         {formatTimestamp(timestamp, timeZone, locales)}
       </TooltipTrigger>
-      <TooltipContent>{new Date(timestamp).toUTCString()}</TooltipContent>
+      <TooltipContent>
+        {label && <div>{label}</div>}
+        <div>{new Date(timestamp).toUTCString()}</div>
+      </TooltipContent>
     </Tooltip>
   );
 };
