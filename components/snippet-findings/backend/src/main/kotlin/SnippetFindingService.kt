@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.components.snippetfindings
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
@@ -37,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.toSortOrder
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -63,10 +63,10 @@ class SnippetFindingService(private val db: Database) {
      * Each entry carries the package identifier, provenance details (artifact or VCS), and the number of snippet
      * findings. The result is paged and sorted according to [parameters].
      */
-    fun getProvenancesForRun(
+    suspend fun getProvenancesForRun(
         ortRunId: Long,
         parameters: ListQueryParameters
-    ): ListQueryResult<SnippetFindingProvenance> = db.blockingQuery {
+    ): ListQueryResult<SnippetFindingProvenance> = db.transaction {
         val provenances = buildProvenancesQuery(ortRunId).alias("provenances")
 
         val provenanceId = provenances[provenanceIdAlias]
@@ -161,11 +161,11 @@ class SnippetFindingService(private val db: Database) {
      * The result contains one entry per snippet finding together with the number of matching upstream snippets. The
      * result is paged and sorted according to [parameters].
      */
-    fun getSnippetFindingsForRun(
+    suspend fun getSnippetFindingsForRun(
         ortRunId: Long,
         provenanceId: Long,
         parameters: ListQueryParameters
-    ): ListQueryResult<SnippetFinding> = db.blockingQuery {
+    ): ListQueryResult<SnippetFinding> = db.transaction {
         val snippetCount = Count(SnippetFindingsSnippetsTable.snippetId)
         val totalCount = Count(SnippetFindingsTable.id).over()
 
@@ -230,11 +230,11 @@ class SnippetFindingService(private val db: Database) {
      *
      * The result is paged and sorted according to [parameters].
      */
-    fun getSnippetsForSnippetFinding(
+    suspend fun getSnippetsForSnippetFinding(
         ortRunId: Long,
         snippetFindingId: Long,
         parameters: ListQueryParameters
-    ): ListQueryResult<SnippetSource> = db.blockingQuery {
+    ): ListQueryResult<SnippetSource> = db.transaction {
         val totalCount = Count(SnippetsTable.id).over()
 
         val query = SnippetFindingsSnippetsTable
@@ -306,7 +306,7 @@ class SnippetFindingService(private val db: Database) {
      * Return whether the package provenance with the given [provenanceId] belongs to the ORT run with the given
      * [ortRunId].
      */
-    fun hasProvenanceForRun(ortRunId: Long, provenanceId: Long): Boolean = db.blockingQuery {
+    suspend fun hasProvenanceForRun(ortRunId: Long, provenanceId: Long): Boolean = db.transaction {
         val condition = { (ScannerJobsTable.ortRunId eq ortRunId) and (ScanResultsTable.id eq provenanceId) }
         buildDirectProvenancesJoin().select(ScanResultsTable.id).where(condition).limit(1).toList().isNotEmpty() ||
                 buildNestedProvenancesJoin().select(ScanResultsTable.id).where(condition).limit(1).toList().isNotEmpty()
@@ -316,7 +316,7 @@ class SnippetFindingService(private val db: Database) {
      * Return whether the snippet finding with the given [snippetFindingId] exists in the ORT run with the given
      * [ortRunId].
      */
-    fun hasSnippetFindingForRun(ortRunId: Long, snippetFindingId: Long): Boolean = db.blockingQuery {
+    suspend fun hasSnippetFindingForRun(ortRunId: Long, snippetFindingId: Long): Boolean = db.transaction {
         buildQueryContext()
             .select(SnippetFindingsTable.id)
             .where {
