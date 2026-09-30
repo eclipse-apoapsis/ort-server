@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
     - name: Setup OSC
-      uses: eclipse-apoapsis/actions/setup-osc@main
+      uses: eclipse-apoapsis/actions/setup-osc@03efc4c4d01629acf27a046016c1ca3fd78719e5 # main
       with:
         url: https://ort-server.occtet.eu
         token: ${{ secrets.ORT_SERVER_TOKEN }}
