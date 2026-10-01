@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
@@ -116,6 +117,22 @@ class AdminConfigServiceTest : WordSpec({
             }
 
             exception.message shouldContain "'sourceCodeOrigins'"
+        }
+
+        "not fail due to unrelated system properties containing '\${...}' placeholders" {
+            // This reproduces a scenario where an unrelated environment variable / system property (e.g. the
+            // analyzer worker's ANALYZER_FORK_COMMANDS, which contains "${CLASSPATH}"/"${LAUNCH}" placeholders
+            // that are resolved by the Analyzer worker itself) is present in the process environment. Loading the
+            // admin configuration must not be affected by such unrelated properties.
+            withEnvironment(
+                mapOf(
+                    "ANALYZER_FORK_COMMANDS" to "/bin/sh|-c|exec java \$JAVA_OPTS -cp \${CLASSPATH} \${LAUNCH}"
+                )
+            ) {
+                val service = createServiceWithConfig("")
+
+                service.loadAdminConfig(context) shouldBe AdminConfig.DEFAULT
+            }
         }
 
         "only validate the configuration if requested" {
