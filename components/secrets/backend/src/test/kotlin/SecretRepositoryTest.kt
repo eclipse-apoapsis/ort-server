@@ -35,10 +35,10 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
-class DaoSecretRepositoryTest : StringSpec() {
+class SecretRepositoryTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
-    private lateinit var secretRepository: DaoSecretRepository
+    private lateinit var secretRepository: SecretRepository
     private lateinit var fixtures: Fixtures
 
     private var organizationId = OrganizationId(-1L)
@@ -50,7 +50,7 @@ class DaoSecretRepositoryTest : StringSpec() {
 
     init {
         beforeEach {
-            secretRepository = DaoSecretRepository(dbExtension.db)
+            secretRepository = SecretRepository(dbExtension.db)
             fixtures = dbExtension.fixtures
 
             organizationId = OrganizationId(fixtures.organization.id)

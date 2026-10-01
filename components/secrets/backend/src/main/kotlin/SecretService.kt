@@ -42,7 +42,7 @@ class SecretService(
     private val db: Database,
     private val secretStorage: SecretStorage
 ) {
-    private val secretRepository: SecretRepository = DaoSecretRepository(db)
+    private val secretRepository = SecretRepository(db)
 
     /**
      * Create a secret for [id] with the given metadata [name] and [description], and the provided [value].

@@ -50,7 +50,7 @@ class SecretServiceTest : WordSpec({
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
-        secretRepository = DaoSecretRepository(dbExtension.db)
+        secretRepository = SecretRepository(dbExtension.db)
         secretService = SecretService(
             db,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
