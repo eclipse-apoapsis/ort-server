@@ -49,6 +49,8 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.Rule
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
+import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -77,7 +79,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.D
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.DaoResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
@@ -97,7 +98,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService

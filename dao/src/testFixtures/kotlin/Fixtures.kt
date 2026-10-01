@@ -40,7 +40,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.D
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.DaoResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -95,7 +94,6 @@ class Fixtures(private val db: Database) {
     val resolvedConfigurationRepository = DaoResolvedConfigurationRepository(db)
     val scannerJobRepository = DaoScannerJobRepository(db)
     val scannerRunRepository = DaoScannerRunRepository(db)
-    val secretRepository = DaoSecretRepository(db)
 
     val organization by lazy { createOrganization() }
     val product by lazy { createProduct() }

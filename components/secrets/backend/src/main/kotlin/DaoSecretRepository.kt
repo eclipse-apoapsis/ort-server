@@ -17,19 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.secret
+package org.eclipse.apoapsis.ortserver.components.secrets
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
+import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
