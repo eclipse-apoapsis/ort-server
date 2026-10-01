@@ -28,19 +28,23 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-export const HomeOrganizationsSection = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Organizations</CardTitle>
-      <CardDescription>
-        Browse all organizations you can access, including their products,
-        repositories, and runs.
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Button asChild>
-        <Link to='/organizations'>Browse organizations</Link>
-      </Button>
-    </CardContent>
-  </Card>
-);
+export const HomeOrganizationsSection = () => {
+  'use memo';
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Organizations</CardTitle>
+        <CardDescription>
+          Browse all organizations you can access, including their products,
+          repositories, and runs.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button asChild>
+          <Link to='/organizations'>Browse organizations</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};

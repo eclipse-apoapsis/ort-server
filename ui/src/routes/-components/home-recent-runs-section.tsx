@@ -230,29 +230,33 @@ export const HomeRecentRunsSection = ({
   recentRuns,
 }: {
   recentRuns: RecentRunItem[];
-}) => (
-  <Card>
-    <CardHeader>
-      <CardTitle className='flex items-center gap-2'>
-        <PlayCircle className='text-foreground h-5 w-5 dark:text-white' />
-        Recently started runs
-      </CardTitle>
-      <CardDescription>
-        Runs started recently (max. 10) are shown here.
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      {recentRuns.length > 0 ? (
-        <ul className='space-y-2'>
-          {recentRuns.map((recentRun) => (
-            <RecentRunListItem key={recentRun.id} recentRun={recentRun} />
-          ))}
-        </ul>
-      ) : (
-        <HomeEmptyState>
-          Runs you start from the UI in this browser will appear here.
-        </HomeEmptyState>
-      )}
-    </CardContent>
-  </Card>
-);
+}) => {
+  'use memo';
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2'>
+          <PlayCircle className='text-foreground h-5 w-5 dark:text-white' />
+          Recently started runs
+        </CardTitle>
+        <CardDescription>
+          Runs started recently (max. 10) are shown here.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {recentRuns.length > 0 ? (
+          <ul className='space-y-2'>
+            {recentRuns.map((recentRun) => (
+              <RecentRunListItem key={recentRun.id} recentRun={recentRun} />
+            ))}
+          </ul>
+        ) : (
+          <HomeEmptyState>
+            Runs you start from the UI in this browser will appear here.
+          </HomeEmptyState>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
