@@ -58,7 +58,7 @@ fun createIssue(message: String, source: String): Issue =
  * Returns the IDs of the package managers that are enabled by default. This includes package managers which are enabled
  * by default in ORT and which are enabled in the [pluginService].
  */
-fun getDefaultPackageManagers(
+suspend fun getDefaultPackageManagers(
     pluginService: PluginService,
     pluginTemplateService: PluginTemplateService,
     organizationId: OrganizationId
@@ -67,7 +67,7 @@ fun getDefaultPackageManagers(
 
     return pluginService.getPlugins()
         .filter {
-            val isPluginEnabled by lazy {
+            suspend fun isPluginEnabled() =
                 when (it.availability) {
                     PluginAvailability.ENABLED -> true
 
@@ -79,9 +79,8 @@ fun getDefaultPackageManagers(
                             .getOrElse { null } != null
                     }
                 }
-            }
 
-            it.type == PluginType.PACKAGE_MANAGER && it.id in ortDefaultPackageManagers && isPluginEnabled
+            it.type == PluginType.PACKAGE_MANAGER && it.id in ortDefaultPackageManagers && isPluginEnabled()
         }
         .map { it.id }
 }

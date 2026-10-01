@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
@@ -34,14 +34,14 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 class PluginEventStore(private val db: Database) {
-    private fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.blockingQuery {
+    private suspend fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.transaction {
         PluginEvents.selectAll()
             .where { PluginEvents.pluginType eq pluginType and (PluginEvents.pluginId eq pluginId) }
             .orderBy(PluginEvents.version)
             .map { it.toPluginEvent() }
     }
 
-    internal fun appendEvent(pluginEvent: PluginEvent): Unit = db.blockingQuery {
+    internal suspend fun appendEvent(pluginEvent: PluginEvent): Unit = db.transaction {
         PluginEvents.insert {
             it[pluginType] = pluginEvent.pluginType
             it[pluginId] = pluginEvent.pluginId
@@ -57,10 +57,10 @@ class PluginEventStore(private val db: Database) {
     /**
      * Get the current state of the plugin with the given [pluginType] and [pluginId].
      */
-    internal fun getPlugin(pluginType: PluginType, pluginId: String) =
+    internal suspend fun getPlugin(pluginType: PluginType, pluginId: String) =
         Plugin().applyAll(loadEvents(pluginType, pluginId))
 
-    private fun updateReadModel(pluginEvent: PluginEvent): Unit = db.blockingQuery {
+    private suspend fun updateReadModel(pluginEvent: PluginEvent): Unit = db.transaction {
         when (pluginEvent.payload) {
             is PluginDisabled -> {
                 PluginsReadModel.upsert {

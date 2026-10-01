@@ -34,6 +34,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
@@ -207,7 +208,7 @@ class PluginTemplateApplicatorTest : WordSpec({
 
         "throw if a template cannot be fetched" {
             val templateService = mockk<PluginTemplateService> {
-                every { getTemplateForOrganization(any(), any(), any()) } returns
+                coEvery { getTemplateForOrganization(any(), any(), any()) } returns
                         Err(TemplateError.NotFound("Template not found."))
             }
             val pluginService = pluginService(PluginType.ADVISOR to "OSV")
@@ -528,7 +529,7 @@ private fun applicator(vararg templates: PluginTemplate): PluginTemplateApplicat
     val templatesByPlugin = templates.associateBy { it.pluginType to it.pluginId }
 
     val pluginTemplateService = mockk<PluginTemplateService> {
-        every { getTemplateForOrganization(any(), any(), any()) } answers {
+        coEvery { getTemplateForOrganization(any(), any(), any()) } answers {
             val plugin = firstArg<PluginType>() to secondArg<String>()
 
             templatesByPlugin[plugin]?.let { template -> Ok(template) }

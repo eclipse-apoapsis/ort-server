@@ -365,7 +365,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
 private const val OSV_SERVER_URL = "https://osv.example.org"
 
 /** Create a global plugin template for the OSV advisor that sets the [OSV_SERVER_URL]. */
-private fun PluginTemplateService.createGlobalOsvTemplate() {
+private suspend fun PluginTemplateService.createGlobalOsvTemplate() {
     val templateName = "osv-template"
 
     create(
