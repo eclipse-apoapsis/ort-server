@@ -33,6 +33,7 @@ import io.kotest.matchers.string.shouldInclude
 
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -154,7 +155,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
     beforeEach {
         secretService = SecretService(
             dbExtension.db,
-            dbExtension.fixtures.secretRepository,
+            DaoSecretRepository(dbExtension.db),
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
 

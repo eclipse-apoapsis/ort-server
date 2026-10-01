@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.secret
+package org.eclipse.apoapsis.ortserver.components.secrets
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.beEmpty
@@ -50,7 +50,7 @@ class DaoSecretRepositoryTest : StringSpec() {
 
     init {
         beforeEach {
-            secretRepository = dbExtension.fixtures.secretRepository
+            secretRepository = DaoSecretRepository(dbExtension.db)
             fixtures = dbExtension.fixtures
 
             organizationId = OrganizationId(fixtures.organization.id)

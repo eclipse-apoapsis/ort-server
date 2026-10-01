@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Organizati
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -63,7 +64,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
 
         secretService = SecretService(
             dbExtension.db,
-            dbExtension.fixtures.secretRepository,
+            DaoSecretRepository(dbExtension.db),
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
         infrastructureServiceService = InfrastructureServiceService(

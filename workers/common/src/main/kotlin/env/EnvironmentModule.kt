@@ -20,9 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory

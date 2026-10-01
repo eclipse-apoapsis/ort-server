@@ -19,10 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 
 fun SecretRepository.createOrganizationSecret(
     orgId: Long,
