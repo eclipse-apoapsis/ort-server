@@ -49,8 +49,6 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.ruleviolations.Rule
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
-import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -178,7 +176,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
     single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
     single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
-    single<SecretRepository> { DaoSecretRepository(get()) }
 
     singleOf(SecretStorage::createStorage)
 
