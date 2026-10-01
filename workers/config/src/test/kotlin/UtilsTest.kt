@@ -25,6 +25,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
@@ -85,7 +86,7 @@ class UtilsTest : WordSpec({
             }
 
             val pluginTemplateService = mockk<PluginTemplateService> {
-                every { getTemplateForOrganization(any(), any(), any()) } answers {
+                coEvery { getTemplateForOrganization(any(), any(), any()) } answers {
                     // Return a template for NPM but not for Yarn2 to validate that only restricted plugins with a
                     // template are added to the defaults.
                     if (secondArg<String>() == "NPM") {

@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -41,8 +41,8 @@ import org.jetbrains.exposed.v1.jdbc.upsert
 
 /** A store for [PluginTemplateEvent]s. */
 class PluginTemplateEventStore(private val db: Database) {
-    private fun loadEvents(name: String, pluginType: PluginType, pluginId: String): List<PluginTemplateEvent> =
-        db.blockingQuery {
+    private suspend fun loadEvents(name: String, pluginType: PluginType, pluginId: String): List<PluginTemplateEvent> =
+        db.transaction {
             PluginTemplateEvents.selectAll()
                 .where { PluginTemplateEvents.name eq name }
                 .andWhere { PluginTemplateEvents.pluginType eq pluginType }
@@ -51,7 +51,7 @@ class PluginTemplateEventStore(private val db: Database) {
                 .map { it.toPluginTemplateEvent() }
         }
 
-    internal fun appendEvent(pluginTemplateEvent: PluginTemplateEvent): Unit = db.blockingQuery {
+    internal suspend fun appendEvent(pluginTemplateEvent: PluginTemplateEvent): Unit = db.transaction {
         PluginTemplateEvents.insert {
             it[name] = pluginTemplateEvent.name
             it[pluginType] = pluginTemplateEvent.pluginType
@@ -99,7 +99,7 @@ class PluginTemplateEventStore(private val db: Database) {
      * Get the current state of the plugin with the given [pluginType] and [pluginId]. Returns `null` if no such plugin
      * exists.
      */
-    internal fun getPluginTemplate(name: String, pluginType: PluginType, pluginId: String) =
+    internal suspend fun getPluginTemplate(name: String, pluginType: PluginType, pluginId: String) =
         loadEvents(name, pluginType, pluginId).takeIf { it.isNotEmpty() }?.let {
             PluginTemplateState(name, pluginType, pluginId).applyAll(it)
         }

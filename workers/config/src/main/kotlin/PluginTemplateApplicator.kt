@@ -52,7 +52,7 @@ class PluginTemplateApplicator(
      * [jobConfigs], and return the updated [JobConfigurations]. Only plugins that are configured to run are considered,
      * plugins that are not installed are ignored. Throws an [IllegalStateException] if a template lookup fails.
      */
-    fun applyTemplates(jobConfigs: JobConfigurations, organizationId: OrganizationId): JobConfigurations {
+    suspend fun applyTemplates(jobConfigs: JobConfigurations, organizationId: OrganizationId): JobConfigurations {
         val configs = jobConfigs.withDefaultPackageManagers(organizationId)
 
         return applyTemplatesToConfigs(configs, fetchTemplates(configs, organizationId))
@@ -62,7 +62,9 @@ class PluginTemplateApplicator(
      * Return a copy of these [JobConfigurations] with the package managers that are enabled by default for
      * [organizationId] filled in if none are enabled explicitly.
      */
-    private fun JobConfigurations.withDefaultPackageManagers(organizationId: OrganizationId): JobConfigurations {
+    private suspend fun JobConfigurations.withDefaultPackageManagers(
+        organizationId: OrganizationId
+    ): JobConfigurations {
         if (!analyzer.enabledPackageManagers.isNullOrEmpty()) return this
 
         val defaults = getDefaultPackageManagers(pluginService, pluginTemplateService, organizationId)
@@ -77,7 +79,7 @@ class PluginTemplateApplicator(
      * are normalized to the IDs of the installed plugins, therefore the returned IDs can differ in case from those in
      * [jobConfigs].
      */
-    private fun fetchTemplates(
+    private suspend fun fetchTemplates(
         jobConfigs: JobConfigurations,
         organizationId: OrganizationId
     ): Map<PluginType, Map<String, PluginTemplate?>> {

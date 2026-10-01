@@ -46,10 +46,11 @@ dependencies {
 
     implementation(projects.dao)
 
+    api(libs.kotlinResult)
+
     implementation(libs.exposed.core)
     implementation(libs.exposed.json)
     implementation(libs.exposed.kotlinDatetime)
-    implementation(libs.kotlinResult)
     implementation(ortLibs.analyzer)
     implementation(ortLibs.ortPlugins.advisors.api)
     implementation(ortLibs.ortPlugins.packageConfigurationProviders.api)
