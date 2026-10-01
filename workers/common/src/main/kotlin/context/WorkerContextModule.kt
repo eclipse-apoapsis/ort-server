@@ -22,12 +22,11 @@ package org.eclipse.apoapsis.ortserver.workers.common.context
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
+import org.eclipse.apoapsis.ortserver.components.secrets.secretServiceModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -39,14 +38,12 @@ import org.koin.dsl.module
  * factory via injection.
  */
 fun workerContextModule(): Module = module {
+    includes(secretServiceModule)
+
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
 
     single<SecretRepository> { DaoSecretRepository(get()) }
-    single {
-        val secretStorage = SecretStorage.createStorage(get(), get())
-        SecretService(get(), get(), secretStorage)
-    }
     single { SecretResolverService.wrapSecretService(get()) }
 
     singleOf(::WorkerContextFactory)
