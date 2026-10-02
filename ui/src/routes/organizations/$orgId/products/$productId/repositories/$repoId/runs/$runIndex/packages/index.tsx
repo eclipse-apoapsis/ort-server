@@ -362,8 +362,9 @@ const renderSubComponent = ({
             </AccordionTrigger>
             <AccordionContent>
               <div className='mb-4'>
-                The curations appear in the order in which they were applied to
-                the original metadata, resulting in the metadata as shown above.
+                Curations are shown from highest to lowest priority, where
+                higher-priority values take precedence over lower-priority
+                values.
               </div>
               {pkg.curations.map((curation, idx) => (
                 <div key={idx} className=''>
