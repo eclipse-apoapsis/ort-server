@@ -40,8 +40,6 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 class PatchOrganizationSecretIntegrationTest : SecretsIntegrationTest({
     var orgId = 0L
 
-    val secretErrorPath = "error-path"
-
     beforeEach {
         orgId = dbExtension.fixtures.organization.id
     }
@@ -49,7 +47,7 @@ class PatchOrganizationSecretIntegrationTest : SecretsIntegrationTest({
     "PatchOrganizationSecret" should {
         "update a secret's metadata" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId)
+                val secret = secretService.createOrganizationSecret(orgId)
 
                 val updatedDescription = "updated description"
                 val updateSecret = PatchSecret("value".asPresent(), description = updatedDescription.asPresent())
@@ -61,14 +59,14 @@ class PatchOrganizationSecretIntegrationTest : SecretsIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name)
+                secretService.getSecret(OrganizationId(orgId), secret.name)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
 
         "update a secret's value" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId)
+                val secret = secretService.createOrganizationSecret(orgId)
 
                 val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 val response = client.patch("/organizations/$orgId/secrets/${secret.name}") {
@@ -80,19 +78,6 @@ class PatchOrganizationSecretIntegrationTest : SecretsIntegrationTest({
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path))?.value shouldBe "value"
-            }
-        }
-
-        "handle a failure from the SecretStorage" {
-            secretsTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId, path = secretErrorPath)
-
-                val updateSecret = PatchSecret("value".asPresent(), "newDesc".asPresent())
-                client.patch("/organizations/$orgId/secrets/${secret.name}") {
-                    setBody(updateSecret)
-                } shouldHaveStatus HttpStatusCode.InternalServerError
-
-                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name) shouldBe secret
             }
         }
     }

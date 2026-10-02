@@ -39,7 +39,7 @@ class GetRepositorySecretIntegrationTest : SecretsIntegrationTest({
     "GetRepositorySecret" should {
         "return a single secret" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId)
+                val secret = secretService.createRepositorySecret(repoId)
 
                 val response = client.get("/repositories/$repoId/secrets/${secret.name}")
 

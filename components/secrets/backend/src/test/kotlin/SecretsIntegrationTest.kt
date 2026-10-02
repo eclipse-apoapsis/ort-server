@@ -33,10 +33,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 @Suppress("AbstractClassCanBeConcreteClass")
 abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
     lateinit var repositoryService: RepositoryService
-    lateinit var secretRepository: SecretRepository
     lateinit var secretService: SecretService
-
-    val secretErrorPath = "error-path"
 
     init {
         beforeEach {
@@ -52,11 +49,9 @@ abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) :
                 dbExtension.fixtures.notifierJobRepository,
                 mockk()
             )
-            secretRepository = DaoSecretRepository(dbExtension.db)
             secretService = SecretService(
                 dbExtension.db,
-                secretRepository,
-                SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
+                SecretStorage(SecretsProviderFactoryForTesting().createProvider())
             )
         }
 

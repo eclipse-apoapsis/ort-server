@@ -62,7 +62,7 @@ class PostOrganizationSecretIntegrationTest : SecretsIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name)?.mapToApi() shouldBe
+                secretService.getSecret(OrganizationId(orgId), secret.name)?.mapToApi() shouldBe
                         Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -120,7 +120,7 @@ class PostOrganizationSecretIntegrationTest : SecretsIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for PostSecret"
 
-                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name)?.mapToApi().shouldBeNull()
+                secretService.getSecret(OrganizationId(orgId), secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("organization_${orgId}_${secret.name}"))?.value.shouldBeNull()

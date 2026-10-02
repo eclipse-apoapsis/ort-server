@@ -44,8 +44,8 @@ class GetOrganizationSecretsIntegrationTest : SecretsIntegrationTest({
     "GetOrganizationSecrets" should {
         "return all secrets for this organization" {
             secretsTestApplication { client ->
-                val secret1 = secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
-                val secret2 = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
+                val secret1 = secretService.createOrganizationSecret(orgId, "name1", "description1")
+                val secret2 = secretService.createOrganizationSecret(orgId, "name2", "description2")
 
                 val response = client.get("/organizations/$orgId/secrets")
 
@@ -64,8 +64,8 @@ class GetOrganizationSecretsIntegrationTest : SecretsIntegrationTest({
 
         "support query parameters" {
             secretsTestApplication { client ->
-                secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
-                val secret = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
+                secretService.createOrganizationSecret(orgId, "name1", "description1")
+                val secret = secretService.createOrganizationSecret(orgId, "name2", "description2")
 
                 val response = client.get("/organizations/$orgId/secrets?sort=-name&limit=1")
 

@@ -43,8 +43,8 @@ class GetProductSecretsIntegrationTest : SecretsIntegrationTest({
     "GetProductSecrets" should {
         "return all secrets for this product" {
             secretsTestApplication { client ->
-                val secret1 = secretRepository.createProductSecret(prodId, "path1", "name1", "description1")
-                val secret2 = secretRepository.createProductSecret(prodId, "path2", "name2", "description2")
+                val secret1 = secretService.createProductSecret(prodId, "name1", "description1")
+                val secret2 = secretService.createProductSecret(prodId, "name2", "description2")
 
                 val response = client.get("/products/$prodId/secrets")
 
@@ -63,8 +63,8 @@ class GetProductSecretsIntegrationTest : SecretsIntegrationTest({
 
         "support query parameters" {
             secretsTestApplication { client ->
-                secretRepository.createProductSecret(prodId, "path1", "name1", "description1")
-                val secret = secretRepository.createProductSecret(prodId, "path2", "name2", "description2")
+                secretService.createProductSecret(prodId, "name1", "description1")
+                val secret = secretService.createProductSecret(prodId, "name2", "description2")
 
                 val response = client.get("/products/$prodId/secrets?sort=-name&limit=1")
 

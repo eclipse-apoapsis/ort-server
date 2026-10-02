@@ -44,8 +44,8 @@ class GetRepositorySecretsIntegrationTest : SecretsIntegrationTest({
     "GetRepositorySecrets" should {
         "return all secrets for this repository" {
             secretsTestApplication { client ->
-                val secret1 = secretRepository.createRepositorySecret(repoId, "path1", "name1", "description1")
-                val secret2 = secretRepository.createRepositorySecret(repoId, "path2", "name2", "description2")
+                val secret1 = secretService.createRepositorySecret(repoId, "name1", "description1")
+                val secret2 = secretService.createRepositorySecret(repoId, "name2", "description2")
 
                 val response = client.get("/repositories/$repoId/secrets")
 
@@ -64,8 +64,8 @@ class GetRepositorySecretsIntegrationTest : SecretsIntegrationTest({
 
         "support query parameters" {
             secretsTestApplication { client ->
-                secretRepository.createRepositorySecret(repoId, "path1", "name1", "description1")
-                val secret = secretRepository.createRepositorySecret(repoId, "path2", "name2", "description2")
+                secretService.createRepositorySecret(repoId, "name1", "description1")
+                val secret = secretService.createRepositorySecret(repoId, "name2", "description2")
 
                 val response = client.get("/repositories/$repoId/secrets?sort=-name&limit=1")
 

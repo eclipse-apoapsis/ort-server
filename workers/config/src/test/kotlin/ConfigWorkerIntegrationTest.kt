@@ -43,7 +43,6 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -90,11 +89,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
 
         val secretStorage = SecretStorage.createStorage(configManager, dbExtension.db)
 
-        val secretService = SecretService(
-            db = dbExtension.db,
-            secretRepository = DaoSecretRepository(dbExtension.db),
-            secretStorage = secretStorage
-        )
+        val secretService = SecretService(db = dbExtension.db, secretStorage = secretStorage)
 
         val secretResolverService = SecretResolverService.wrapSecretService(secretService)
 

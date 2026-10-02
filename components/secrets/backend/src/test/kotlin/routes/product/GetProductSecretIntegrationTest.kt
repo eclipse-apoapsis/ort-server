@@ -39,7 +39,7 @@ class GetProductSecretIntegrationTest : SecretsIntegrationTest({
     "GetProductSecret" should {
         "return a single secret" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId)
+                val secret = secretService.createProductSecret(prodId)
 
                 val response = client.get("/products/$prodId/secrets/${secret.name}")
 

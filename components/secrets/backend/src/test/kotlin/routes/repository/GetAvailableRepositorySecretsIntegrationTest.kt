@@ -49,9 +49,9 @@ class GetAvailableRepositorySecretsIntegrationTest : SecretsIntegrationTest({
         "return all secrets from the hierarchy" {
             secretsTestApplication { client ->
                 val secret1 =
-                    secretRepository.createOrganizationSecret(organizationId, "path1", "name1", "description1")
-                val secret2 = secretRepository.createProductSecret(productId, "path2", "name2", "description2")
-                val secret3 = secretRepository.createRepositorySecret(repoId, "path3", "name3", "description3")
+                    secretService.createOrganizationSecret(organizationId, "name1", "description1")
+                val secret2 = secretService.createProductSecret(productId, "name2", "description2")
+                val secret3 = secretService.createRepositorySecret(repoId, "name3", "description3")
 
                 val response = client.get("/repositories/$repoId/availableSecrets")
 

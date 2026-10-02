@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(DaoSecretRepository::class.java)
 
-class DaoSecretRepository(private val db: Database) : SecretRepository {
+internal class DaoSecretRepository(private val db: Database) : SecretRepository {
     override fun create(path: String, name: String, description: String?, id: HierarchyId) = db.blockingQuery {
         SecretDao.new {
             this.path = path

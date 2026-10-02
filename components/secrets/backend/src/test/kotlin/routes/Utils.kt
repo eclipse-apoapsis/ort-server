@@ -19,28 +19,25 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes
 
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
-fun SecretRepository.createOrganizationSecret(
+suspend fun SecretService.createOrganizationSecret(
     orgId: Long,
-    path: String = "path",
     name: String = "name",
     description: String = "description"
-) = create(path, name, description, OrganizationId(orgId))
+) = createSecret(name, "value", description, OrganizationId(orgId))
 
-fun SecretRepository.createProductSecret(
+suspend fun SecretService.createProductSecret(
     prodId: Long,
-    path: String = "path",
     name: String = "name",
     description: String = "description"
-) = create(path, name, description, ProductId(prodId))
+) = createSecret(name, "value", description, ProductId(prodId))
 
-fun SecretRepository.createRepositorySecret(
+suspend fun SecretService.createRepositorySecret(
     repoId: Long,
-    path: String = "path",
     name: String = "name",
     description: String = "description"
-) = create(path, name, description, RepositoryId(repoId))
+) = createSecret(name, "value", description, RepositoryId(repoId))
