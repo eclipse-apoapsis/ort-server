@@ -153,7 +153,9 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Validate Repository Renovate Config
-      run: npx -y --package renovate@latest -- renovate-config-validator renovate.json
+      # Pinned as later versions fail to install with npm, see
+      # https://github.com/eclipse-apoapsis/ort-server/issues/6124.
+      run: npx -y --package renovate@44.131.0 -- renovate-config-validator renovate.json
 
   reuse-tool:
     runs-on: ubuntu-26.04
