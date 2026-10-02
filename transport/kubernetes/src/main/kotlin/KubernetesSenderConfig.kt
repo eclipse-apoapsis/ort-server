@@ -228,9 +228,13 @@ data class KubernetesSenderConfig(
          * property name in upper snake case, for instance, `CONTROLLER_IMAGE_NAME` or `CONTROLLER_CPU_REQUEST` for a
          * container named _CONTROLLER_. The additional containers inherit a number of properties from the main
          * container unless they are overridden by the corresponding variables. There are some exceptions like
-         * resources and volume mounts which need to be explicitly defined for each container.
+         * resources and volume mounts which need to be explicitly defined for each container. Environment allowlists
+         * are also independent for each container.
          */
         private const val ADDITIONAL_CONTAINERS_PROPERTY = "additionalContainers"
+
+        /** The optional list of inherited environment variable names to pass to a container. */
+        private const val ENVIRONMENT_ALLOWLIST_PROPERTY = "environmentAllowlist"
 
         /** The default value for the user id. */
         private const val DEFAULT_USER_ID = 1000L
@@ -304,6 +308,7 @@ data class KubernetesSenderConfig(
                 imagePullPolicy = config.getStringOrDefault(IMAGE_PULL_POLICY_PROPERTY, DEFAULT_IMAGE_PULL_POLICY),
                 commands = config.getStringOrDefault(COMMANDS_PROPERTY, "").splitAtWhitespace(),
                 args = config.getStringOrDefault(ARGS_PROPERTY, "").splitAtWhitespace(),
+                environmentAllowlist = config.getStringOrNull(ENVIRONMENT_ALLOWLIST_PROPERTY).toEnvironmentAllowlist(),
                 cpuLimit = config.getStringOrNull(CPU_LIMIT_PROPERTY),
                 cpuRequest = config.getStringOrNull(CPU_REQUEST_PROPERTY),
                 memoryLimit = config.getStringOrNull(MEMORY_LIMIT_PROPERTY),
@@ -313,8 +318,8 @@ data class KubernetesSenderConfig(
 
         /**
          * Create a [Container] object for the additional container with the given [name]. Look for environment
-         * variables starting with a prefix derived from the container name. User properties from the given
-         * [mainContainer] as default values.
+         * variables starting with a prefix derived from the container name. Use properties from the given
+         * [mainContainer] as default values, except for resources, volume mounts, and the environment allowlist.
          */
         private fun createAdditionalContainer(name: String, mainContainer: Container): Container {
             val prefix = name.uppercase() + "_"
@@ -325,6 +330,7 @@ data class KubernetesSenderConfig(
                 imagePullPolicy = System.getenv("${prefix}IMAGE_PULL_POLICY") ?: mainContainer.imagePullPolicy,
                 commands = System.getenv("${prefix}COMMANDS")?.splitAtWhitespace() ?: mainContainer.commands,
                 args = System.getenv("${prefix}ARGS")?.splitAtWhitespace() ?: mainContainer.args,
+                environmentAllowlist = System.getenv("${prefix}ENVIRONMENT_ALLOWLIST").toEnvironmentAllowlist(),
                 cpuLimit = System.getenv("${prefix}CPU_LIMIT"),
                 cpuRequest = System.getenv("${prefix}CPU_REQUEST"),
                 memoryLimit = System.getenv("${prefix}MEMORY_LIMIT"),
@@ -333,6 +339,10 @@ data class KubernetesSenderConfig(
                 isInitContainer = System.getenv("${prefix}INIT_CONTAINER")?.toBoolean() ?: false
             )
         }
+
+        /** Parse an optional list of exact environment variable names, preserving an explicitly empty list. */
+        private fun String?.toEnvironmentAllowlist(): Set<String>? =
+            this?.split(splitCommaListRegex)?.map { it.trim() }?.filterNot { it.isEmpty() }?.toSet()
 
         /**
          * Return a [Regex] that can be used to split a string at the given [separator] and that handles whitespace

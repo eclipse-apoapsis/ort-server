@@ -49,6 +49,9 @@ data class Container(
     /** A list with arguments for the container command. */
     val args: List<String> = emptyList(),
 
+    /** Names of inherited environment variables to pass to this container, or null to pass all variables. */
+    val environmentAllowlist: Set<String>? = null,
+
     /** An optional limit for the CPU resource. This may contain variables. */
     val cpuLimit: String?,
 
