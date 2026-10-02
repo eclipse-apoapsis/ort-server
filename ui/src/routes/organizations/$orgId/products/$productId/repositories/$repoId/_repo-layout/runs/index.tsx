@@ -48,10 +48,10 @@ import { RepositoryRunsTable } from '@/routes/organizations/$orgId/products/$pro
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-const defaultPageSize = useTablePrefsStore.getState().repoPageSize;
+const defaultPageSize = useTablePrefsStore.getState().runPageSize;
 
 const RepositoryRunsComponent = () => {
-  const runPageSize = useTablePrefsStore.getState().runPageSize;
+  const runPageSize = useTablePrefsStore((state) => state.runPageSize);
   const params = Route.useParams();
   const search = Route.useSearch();
   const { isAllowed: canTriggerRun } = useRepositoryPermission(
