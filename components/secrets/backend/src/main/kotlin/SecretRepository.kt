@@ -19,12 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.findSingle
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -51,7 +51,7 @@ internal class SecretRepository(private val db: Database) {
     /**
      * Create a secret for the given hierarchy [id].
      */
-    fun create(path: String, name: String, description: String?, id: HierarchyId): Secret = db.blockingQuery {
+    suspend fun create(path: String, name: String, description: String?, id: HierarchyId): Secret = db.transaction {
         SecretDao.new {
             this.path = path
             this.name = name
@@ -65,17 +65,17 @@ internal class SecretRepository(private val db: Database) {
     /**
      * Get a secret by [id] and [name]. Returns null if the secret is not found.
      */
-    fun getByIdAndName(id: HierarchyId, name: String): Secret? = db.blockingQueryCatching {
+    suspend fun getByIdAndName(id: HierarchyId, name: String): Secret? = db.transactionCatching {
         SecretDao.find(byNameCondition(id, name)).firstOrNull()?.mapToModel()
     }.getEntityOrNull()
 
     /**
      * List all secrets for an [id] according to the given [parameters].
      */
-    fun listForId(
+    suspend fun listForId(
         id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<Secret> = db.blockingQueryCatching {
+    ): ListQueryResult<Secret> = db.transactionCatching {
         val query = when (id) {
             is OrganizationId -> SecretsTable.organizationId eq id.value
             is ProductId -> SecretsTable.productId eq id.value
@@ -91,8 +91,8 @@ internal class SecretRepository(private val db: Database) {
     /**
      * Update a secret by [id] and [name] with the [present][OptionalValue.Present] values.
      */
-    fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret =
-        db.blockingQuery {
+    suspend fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret =
+        db.transaction {
             val secret = SecretDao.findSingle(byNameCondition(id, name))
             description.ifPresent { secret.description = it }
             secret.mapToModel()
@@ -101,7 +101,7 @@ internal class SecretRepository(private val db: Database) {
     /**
      * Delete a secret by [id] and [name].
      */
-    fun deleteForIdAndName(id: HierarchyId, name: String) = db.blockingQuery {
+    suspend fun deleteForIdAndName(id: HierarchyId, name: String) = db.transaction {
         SecretDao.findSingle(byNameCondition(id, name)).delete()
     }
 }
