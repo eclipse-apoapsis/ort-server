@@ -457,6 +457,8 @@ export const RepositoryRunsTable = ({
   pageSize,
   search,
 }: RepositoryTableProps) => {
+  'use memo';
+
   const setRunPageSize = useTablePrefsStore((state) => state.setRunPageSize);
   const repositoryId = Number.parseInt(repoId);
   const [comparisonSelection, setComparisonSelection] = useState(
