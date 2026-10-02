@@ -102,14 +102,17 @@ class KubernetesMessageSenderTest : StringSpec({
                 readOnly shouldBe false
                 name shouldBe "pvc-volume-4"
                 mountPath shouldBe "/mnt/data"
+                subPath shouldBe "sub-data"
             }
             with(mounts[4]) {
                 name shouldBe "dir1"
                 mountPath shouldBe "/mnt/dir1"
+                subPath should beNull()
             }
             with(mounts[5]) {
                 name shouldBe "dir2"
                 mountPath shouldBe "/mnt/dir2"
+                subPath shouldBe "sub-dir2"
             }
         }
 
@@ -412,8 +415,8 @@ private fun createConfig(
         "backoffLimit" to 11,
         "imagePullSecret" to "image_pull_secret",
         "mountSecrets" to "secretService->/mnt/secret topSecret->/mnt/top/secret|sub-secret",
-        "mountPvcs" to "pvc1->/mnt/readOnly,R pvc2->/mnt/data,W",
-        "mountEmptyDirs" to "dir1->/mnt/dir1 dir2->/mnt/dir2",
+        "mountPvcs" to "pvc1->/mnt/readOnly,R pvc2->/mnt/data|sub-data,W",
+        "mountEmptyDirs" to "dir1->/mnt/dir1 dir2->/mnt/dir2|sub-dir2",
         "labels" to "label1=value1,label2=value2,ort-worker=invalid,run-id=invalid,trace-id-0=invalid",
         "annotationVariables" to "v1,v2",
         "serviceAccountName" to "test_service_account"
