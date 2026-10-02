@@ -157,6 +157,16 @@ jobs:
       # https://github.com/eclipse-apoapsis/ort-server/issues/6124.
       run: npx -y --package renovate@44.131.0 -- renovate-config-validator renovate.json
 
+    - name: Upload npm debug logs
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: npm-debug-logs
+        path: ~/.npm/_logs/*.log
+        include-hidden-files: true
+        retention-days: 7
+        if-no-files-found: warn
+
   reuse-tool:
     runs-on: ubuntu-26.04
     steps:
