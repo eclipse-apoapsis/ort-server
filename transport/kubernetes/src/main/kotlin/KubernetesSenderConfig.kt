@@ -147,10 +147,12 @@ data class KubernetesSenderConfig(
          * The name of the configuration property that defines volume mounts based on persistent volume claims. Via
          * this mechanism, pods can be assigned volumes with shared data. The value of the property consists of a
          * number of mount declarations separated by whitespace. (If a mount declaration contains whitespace itself, it
-         * must be surrounded by quotes.) A single mount declaration has the form _pvcName->path,access_, where
-         * _pvcName_ is the name of the referenced persistent volume claim, _path_ is the path in the filesystem of
-         * the pod where the content of the volume is to be mounted, and _access_ is a flag determining whether the
-         * volume is read-only ('R') or writeable ('W').
+         * must be surrounded by quotes.) A single mount declaration has the form _pvcName->path|subPath,access_,
+         * where _pvcName_ is the name of the referenced persistent volume claim, _path_ is the path in the
+         * filesystem of the pod where the content of the volume is to be mounted, _subPath_ is an optional sub path
+         * of the volume to be mounted, and _access_ is a flag determining whether the volume is read-only ('R') or
+         * writeable ('W'). The _subPath_ component is optional; it defaults to an empty string (corresponding to the
+         * volume root).
          */
         private const val MOUNT_PVCS_PROPERTY = "mountPvcs"
 
@@ -159,8 +161,12 @@ data class KubernetesSenderConfig(
          * useful to mount writeable directories in environments that enforce read-only root filesystems. The value of
          * the property consists of a number of mount declarations separated by whitespace. If a mount declaration
          * contains whitespace itself, it must be surrounded by quotes. A single mount declaration has the form
-         * _name->path_, where _name_ is the name of the empty dir volume and _path_ is the path in the filesystem of
-         * the pod where the volume will be mounted.
+         * _name->path|subPath_, where _name_ is the name of the empty dir volume, _path_ is the path in the
+         * filesystem of the pod where the volume will be mounted, and _subPath_ is an optional sub path of the
+         * volume to be mounted. The _subPath_ component is optional; it defaults to an empty string (corresponding
+         * to the volume root). Declaring the same _name_ in multiple mount declarations causes the underlying
+         * emptyDir volume to be shared between them, while the _subPath_ component can be used to expose only a
+         * specific subdirectory of this shared volume to each individual mount.
          */
         private const val MOUNT_EMPTYDIRS_PROPERTY = "mountEmptyDirs"
 
