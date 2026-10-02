@@ -32,7 +32,7 @@ import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -53,12 +53,12 @@ class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
     "DeleteOrganizationSecret" should {
         "delete a secret" {
             secretsRoutesTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId)
+                val secret = secretService.createOrganizationSecret(orgId)
 
                 client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForId(OrganizationId(orgId)).data should beEmpty()
+                secretService.listForId(OrganizationId(orgId)).data should beEmpty()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -67,8 +67,8 @@ class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
 
         "respond with Conflict when secret is in use" {
             secretsRoutesTestApplication { client ->
-                val userSecret = secretRepository.createOrganizationSecret(orgId, path = "user", name = "user").name
-                val passSecret = secretRepository.createOrganizationSecret(orgId, path = "pass", name = "pass").name
+                val userSecret = secretService.createOrganizationSecret(orgId, name = "user").name
+                val passSecret = secretService.createOrganizationSecret(orgId, name = "pass").name
 
                 val service = infrastructureServiceService.createForId(
                     OrganizationId(orgId),
@@ -89,26 +89,11 @@ class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
             }
         }
 
-        "handle a failure from the SecretStorage" {
-            secretsRoutesTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId, path = secretErrorPath)
-
-                client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
-                        HttpStatusCode.InternalServerError
-
-                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name) shouldBe secret
-            }
-        }
-
         "not block deletion when a same-named secret exists at a different level" {
             secretsRoutesTestApplication { client ->
                 val secretName = "sharedName"
-                val orgSecret = secretRepository.createOrganizationSecret(
-                    orgId,
-                    path = "org-path",
-                    name = secretName
-                )
-                secretRepository.createProductSecret(prodId, path = "product-path", name = secretName)
+                val orgSecret = secretService.createOrganizationSecret(orgId, name = secretName)
+                secretService.createProductSecret(prodId, name = secretName)
 
                 infrastructureServiceService.createForId(
                     ProductId(prodId),
@@ -123,7 +108,7 @@ class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
                 client.delete("/organizations/$orgId/secrets/$secretName") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.getByIdAndName(OrganizationId(orgId), secretName) shouldBe null
+                secretService.getSecret(OrganizationId(orgId), secretName) shouldBe null
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(orgSecret.path)) should beNull()
@@ -132,9 +117,8 @@ class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
     }
 })
 
-fun SecretRepository.createOrganizationSecret(
+suspend fun SecretService.createOrganizationSecret(
     orgId: Long,
-    path: String = "path",
     name: String = "name",
     description: String = "description"
-) = create(path, name, description, OrganizationId(orgId))
+) = createSecret(name, "value", description, OrganizationId(orgId))

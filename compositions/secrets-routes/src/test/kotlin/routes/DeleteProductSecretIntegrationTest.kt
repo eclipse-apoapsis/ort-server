@@ -32,7 +32,7 @@ import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretRepository
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -53,12 +53,12 @@ class DeleteProductSecretIntegrationTest : SecretsRoutesIntegrationTest({
     "DeleteProductSecret" should {
         "delete a secret" {
             secretsRoutesTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId)
+                val secret = secretService.createProductSecret(prodId)
 
                 client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForId(ProductId(prodId)).data should beEmpty()
+                secretService.listForId(ProductId(prodId)).data should beEmpty()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -67,8 +67,8 @@ class DeleteProductSecretIntegrationTest : SecretsRoutesIntegrationTest({
 
         "respond with Conflict when secret is in use" {
             secretsRoutesTestApplication { client ->
-                val userSecret = secretRepository.createProductSecret(prodId, path = "user", name = "user").name
-                val passSecret = secretRepository.createProductSecret(prodId, path = "pass", name = "pass").name
+                val userSecret = secretService.createProductSecret(prodId, name = "user").name
+                val passSecret = secretService.createProductSecret(prodId, name = "pass").name
 
                 val service = infrastructureServiceService.createForId(
                     ProductId(prodId),
@@ -89,26 +89,11 @@ class DeleteProductSecretIntegrationTest : SecretsRoutesIntegrationTest({
             }
         }
 
-        "handle a failure from the SecretStorage" {
-            secretsRoutesTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
-
-                client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
-                        HttpStatusCode.InternalServerError
-
-                secretRepository.getByIdAndName(ProductId(prodId), secret.name) shouldBe secret
-            }
-        }
-
         "not block deletion when a same-named secret exists at a different level" {
             secretsRoutesTestApplication { client ->
                 val secretName = "sharedName"
-                val productSecret = secretRepository.createProductSecret(
-                    prodId,
-                    path = "product-path",
-                    name = secretName
-                )
-                secretRepository.createOrganizationSecret(orgId, path = "org-path", name = secretName)
+                val productSecret = secretService.createProductSecret(prodId, name = secretName)
+                secretService.createOrganizationSecret(orgId, name = secretName)
 
                 infrastructureServiceService.createForId(
                     OrganizationId(orgId),
@@ -123,7 +108,7 @@ class DeleteProductSecretIntegrationTest : SecretsRoutesIntegrationTest({
                 client.delete("/products/$prodId/secrets/$secretName") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.getByIdAndName(ProductId(prodId), secretName) shouldBe null
+                secretService.getSecret(ProductId(prodId), secretName) shouldBe null
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(productSecret.path)) should beNull()
@@ -132,9 +117,8 @@ class DeleteProductSecretIntegrationTest : SecretsRoutesIntegrationTest({
     }
 })
 
-fun SecretRepository.createProductSecret(
+suspend fun SecretService.createProductSecret(
     prodId: Long,
-    path: String = "path",
     name: String = "name",
     description: String = "description"
-) = create(path, name, description, ProductId(prodId))
+) = createSecret(name, "value", description, ProductId(prodId))
