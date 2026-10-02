@@ -26,8 +26,8 @@ endpoint {
         backoffLimit = 5
         commands = "/bin/sh"
         args = "-c java my.pkg.MyClass"
-        mountSecrets = "secretVolume=server-secrets->/mnt/secrets server-certificates->/mnt/certificates"
-        mountPvcs = "my-pvc->/mnt/data,W"
+        mountSecrets = "secretVolume=server-secrets->/mnt/secrets server-certificates->/mnt/certificates|ca.crt"
+        mountPvcs = "my-pvc->/mnt/data|data,W"
         mountEmptyDirs = "shared->/mnt/shared"
         labels = "label1=value1,label2=value2"
         annotationVariables = "ANNOTATION_VAR1, ANNOTATION_VAR2"
@@ -237,8 +237,9 @@ The value can contain variables that are resolved based on message properties.
 
 With this property, it is possible to mount [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volumes into the resulting pod.
 The string is interpreted as a sequence of mount declarations separated by whitespace.
-Each mount declaration has the form `name->mountPath`, where `name` is the name of the empty dir volume and `mountPath` is the path in the container where the volume should be mounted.
+Each mount declaration has the form `name->mountPath|subPath`, where `name` is the name of the empty dir volume, `mountPath` is the path in the container where the volume should be mounted, and `subPath` is an optional sub path within the volume to mount instead of its root.
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
+Declaring multiple mount declarations with the same `name` causes the same underlying emptyDir volume to be shared between them; this can be combined with different `subPath` values to expose different subdirectories of this shared volume to different mounts (e.g., in different containers).
 
 #### `mountPvcs`
 
@@ -246,8 +247,9 @@ To achieve this, the Kubernetes Transport implementation generates corresponding
 
 With this property, it is possible to mount [PersistentVolumeClaims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) into the resulting pod.
 The string is interpreted as a sequence of mount declarations separated by whitespace.
-Each mount declaration has the form `pvcName->mountPath,access`, where `pvcName` is the name of the persistent volume claim, `mountPath` is the path in the container where the volume should be mounted, and `access` is either `R` (read-only) or `W` (writable).
+Each mount declaration has the form `pvcName->mountPath|subPath,access`, where `pvcName` is the name of the persistent volume claim, `mountPath` is the path in the container where the volume should be mounted, `subPath` is an optional sub path within the volume to mount instead of its root, and `access` is either `R` (read-only) or `W` (writable).
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
+Declaring multiple mount declarations with the same `pvcName` causes the same underlying persistent volume claim to be shared between them; this can be combined with different `subPath` and `access` values to expose different subdirectories of this shared volume - read-only in one mount and writable in another, for instance - to different mounts (e.g., in different containers).
 
 #### `mountSecrets`
 
@@ -255,9 +257,10 @@ To achieve this, the Kubernetes Transport implementation generates corresponding
 
 With this property, it is possible to mount the contents of Kubernetes [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) as files into the resulting pod.
 The string is interpreted as a sequence of mount declarations separated by whitespace.
-Each mount declaration has the form `secret→mountPath`, where `secret` is the name of a secret, and `mountPath` is a path in the container where the content of the secret should be made available.
-On this path, for each key of the secret a file is created whose content is the value of the key.
+Each mount declaration has the form `secret->mountPath|subPath`, where `secret` is the name of a secret, `mountPath` is a path in the container where the content of the secret should be made available, and `subPath` is an optional sub path within the secret's volume to mount instead of its root.
+On this path, for each key of the secret a file is created whose content is the value of the key; if `subPath` is specified, only the file corresponding to that key is mounted.
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
+Declaring multiple mount declarations with the same `secret` causes the same underlying secret volume to be shared between them; this can be combined with different `subPath` values to expose different keys of this shared volume to different mounts (e.g., in different containers).
 This mechanism is useful not only for secrets but also for other kinds of external data that should be accessible from a pod, for instance, custom certificates.
 
 :::note

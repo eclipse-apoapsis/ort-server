@@ -47,8 +47,9 @@ private const val COMMANDS = "foo bar \"hello world\" baz"
 private const val ARGS = "run \"all tests\" fast"
 private const val SECRET_MOUNTS =
     "secret1->/mnt/sec1|sub1 \"secret2->/path/with/white space\" \"secret3 -> /mnt/other | sub2\""
-private const val PVC_MOUNTS = "pvc1->/mnt/pvc1,R \"pvc2->/path/with/white space,W\" \"pvc3 -> /mnt/other,r\""
-private const val EMPTY_DIR_MOUNTS = "dir1->/mnt/dir1 \"dir2->/path/with/white space\" \"dir3 -> /mnt/other\""
+private const val PVC_MOUNTS = "pvc1->/mnt/pvc1,R \"pvc2->/path/with/white space|sub2,W\" \"pvc3 -> /mnt/other,r\""
+private const val EMPTY_DIR_MOUNTS =
+    "dir1->/mnt/dir1|subdir1 \"dir2->/path/with/white space\" \"dir3 -> /mnt/other\""
 private const val LABELS = "label1=value1 , label2 = value2"
 private const val SERVICE_ACCOUNT = "test_service_account"
 
@@ -106,9 +107,9 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
                 SecretVolumeMount("secret2", "/path/with/white space"),
                 SecretVolumeMount("secret3", "/mnt/other", "sub2"),
                 PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
-                PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
+                PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false, subPath = "sub2"),
                 PvcVolumeMount("pvc3", "/mnt/other", readOnly = true),
-                EmptyDirVolumeMount("dir1", "/mnt/dir1"),
+                EmptyDirVolumeMount("dir1", "/mnt/dir1", subPath = "subdir1"),
                 EmptyDirVolumeMount("dir2", "/path/with/white space"),
                 EmptyDirVolumeMount("dir3", "/mnt/other")
             )
@@ -196,7 +197,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
 
         sender.config.volumeMounts should containsInOrder(
             PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
-            PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
+            PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false, subPath = "sub2"),
             PvcVolumeMount("pvc3", "/mnt/other", readOnly = true)
         )
     }
@@ -216,7 +217,7 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
         sender.shouldBeTypeOf<KubernetesMessageSender<AnalyzerEndpoint>>()
 
         sender.config.volumeMounts should containsInOrder(
-            EmptyDirVolumeMount("dir1", "/mnt/dir1"),
+            EmptyDirVolumeMount("dir1", "/mnt/dir1", subPath = "subdir1"),
             EmptyDirVolumeMount("dir2", "/path/with/white space"),
             EmptyDirVolumeMount("dir3", "/mnt/other")
         )
@@ -245,9 +246,9 @@ class KubernetesMessageSenderFactoryTest : StringSpec({
             SecretVolumeMount("secret2", "/path/with/white space"),
             SecretVolumeMount("secret3", "/mnt/other", "sub2"),
             PvcVolumeMount("pvc1", "/mnt/pvc1", readOnly = true),
-            PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false),
+            PvcVolumeMount("pvc2", "/path/with/white space", readOnly = false, subPath = "sub2"),
             PvcVolumeMount("pvc3", "/mnt/other", readOnly = true, "myPvcMount"),
-            EmptyDirVolumeMount("dir1", "/mnt/dir1", "myEmptyMount"),
+            EmptyDirVolumeMount("dir1", "/mnt/dir1", "myEmptyMount", "subdir1"),
             EmptyDirVolumeMount("dir2", "/path/with/white space"),
             EmptyDirVolumeMount("dir3", "/mnt/other")
         )
