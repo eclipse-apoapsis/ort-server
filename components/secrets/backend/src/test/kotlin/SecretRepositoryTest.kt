@@ -198,6 +198,6 @@ class SecretRepositoryTest : StringSpec() {
         }
     }
 
-    private fun createSecret(name: String, id: HierarchyId) =
+    private suspend fun createSecret(name: String, id: HierarchyId) =
         secretRepository.create("$path$name", name, description, id)
 }
