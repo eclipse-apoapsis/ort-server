@@ -58,6 +58,7 @@ Declaring additional containers is done by providing a comma-separated list of c
 
 - Resource requests and limits are not copied from the main container. They should be set explicitly for each additional container if needed.
 - Volume mounts are undefined as well if they are not set explicitly.
+- Environment allowlists are independent. An additional container without its own allowlist inherits all available environment variables, even if the main container has an allowlist.
 
 The variable `<CONTAINER_NAME>_INIT_CONTAINER=TRUE` can be used to declare a container as init container. If this variable is not set or has a different value, the container is treated as a regular container.
 
@@ -178,6 +179,19 @@ The value can contain variables that are resolved based on message properties.
 Allows setting the request for the CPU resource.
 The value can contain variables that are resolved based on message properties.
 
+#### `environmentAllowlist`
+
+**Default: `null`**
+
+Limits which environment variables the main container inherits from the sender process.
+The value is a comma-separated list of exact, case-sensitive variable names; whitespace around names is ignored.
+An additional container can have its own list through `<CONTAINER_NAME>_ENVIRONMENT_ALLOWLIST`, where the prefix is derived from its name in `additionalContainers`.
+Each list is independent: an additional container does not inherit the main container's allowlist.
+
+If a container's setting is absent, it inherits variables as before.
+If the setting is present but empty, it inherits none.
+Generated message variables are always added to the container's environment, regardless of the allowlist settings.
+
 #### `imageName`
 
 **Default: `none`**
@@ -271,6 +285,8 @@ The receiver part does not need any specific configuration settings except for t
 
 Per default, when creating a new job, the `KubernetesMessageSender` passes all environment variables defined for the current pod to the specification of the new job.
 That way, common variables like service credentials can be shared between pods.
+
+The `environmentAllowlist` property can limit this inheritance for each container.
 
 A problem can arise though if there are name clashes with environment variables, e.g., if the new job requires a different value in a variable than the current pod.
 To address such problems, the Kubernetes transport protocol supports a simple mapping mechanism for variable names that start with a prefix derived from the target endpoint:

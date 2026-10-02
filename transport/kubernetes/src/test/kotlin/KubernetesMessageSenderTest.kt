@@ -64,6 +64,7 @@ class KubernetesMessageSenderTest : StringSpec({
         expectedEnvVars[RUN_ID_PROPERTY] = message.header.ortRunId.toString()
         expectedEnvVars -= "ANALYZER_SPECIFIC_PROPERTY"
         val senderConfig = createConfig()
+        senderConfig.mainContainer.environmentAllowlist should beNull()
 
         val job = createJob(senderConfig)
 
@@ -387,6 +388,140 @@ class KubernetesMessageSenderTest : StringSpec({
         with(mounts[3]) {
             readOnly shouldBe false
         }
+    }
+
+    "Without allowlists, all containers inherit the original environment" {
+        val config = createConfig(
+            mapOf("additionalContainers" to "INIT, SIDECAR"),
+            mapOf("INIT_INIT_CONTAINER" to "true")
+        )
+        config.mainContainer.environmentAllowlist should beNull()
+        config.additionalContainers.forEach { it.environmentAllowlist should beNull() }
+
+        val job = createJob(config)
+        val pod = job.spec?.template?.spec
+        val containers = pod?.containers.orEmpty() + pod?.initContainers.orEmpty()
+
+        containers shouldHaveSize 3
+        containers.forAll { container ->
+            val environment = container.env.orEmpty().associate { it.name to it.value }
+            environment shouldContainAll mapOf(
+                "SPECIFIC_PROPERTY" to "foo",
+                "SHELL" to "/bin/bash",
+                TRACE_PROPERTY to header.traceId,
+                RUN_ID_PROPERTY to header.ortRunId.toString(),
+                "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+            )
+        }
+    }
+
+    "An empty allowlist passes only message variables to the container" {
+        val config = createConfig(mapOf("environmentAllowlist" to ""))
+        config.mainContainer.environmentAllowlist shouldBe emptySet()
+
+        val job = createJob(config)
+        val mainEnvironment = job.spec?.template?.spec?.containers.orEmpty().single()
+            .env.orEmpty().associate { it.name to it.value }
+
+        mainEnvironment shouldBe mapOf(
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
+    }
+
+    "A container receives allowlisted inherited variables after endpoint mapping" {
+        val config = createConfig(mapOf("environmentAllowlist" to " ALLOWED, SPECIFIC_PROPERTY, ALLOWED, , "))
+        config.mainContainer.environmentAllowlist shouldBe setOf("ALLOWED", "SPECIFIC_PROPERTY")
+
+        val inheritedEnvironment = envVars + mapOf(
+            "ANALYZER_ALLOWED" to "allowed-value",
+            "ANALYZER_DB_PASSWORD" to "mapped-secret",
+            "DB_PASSWORD" to "database-secret",
+            "CONFIG_FORCE_orchestrator_sender_rabbitMqPassword" to "rabbit-secret"
+        )
+        val job = createJob(config, environment = inheritedEnvironment)
+        val mainEnvironment = job.spec?.template?.spec?.containers.orEmpty().single()
+            .env.orEmpty().associate { it.name to it.value }
+
+        mainEnvironment shouldBe mapOf(
+            "ALLOWED" to "allowed-value",
+            "SPECIFIC_PROPERTY" to "foo",
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
+    }
+
+    "A main container allowlist does not restrict additional containers" {
+        val config = createConfig(
+            mapOf("environmentAllowlist" to "SPECIFIC_PROPERTY", "additionalContainers" to "INIT, SIDECAR"),
+            mapOf("INIT_INIT_CONTAINER" to "true")
+        )
+        config.mainContainer.environmentAllowlist shouldBe setOf("SPECIFIC_PROPERTY")
+        config.additionalContainers.forEach { it.environmentAllowlist should beNull() }
+
+        val job = createJob(config)
+        val pod = job.spec?.template?.spec
+        val mainEnvironment = pod?.containers.orEmpty().first().env.orEmpty().associate { it.name to it.value }
+        val sidecarEnvironment = pod?.containers.orEmpty().last().env.orEmpty().associate { it.name to it.value }
+        val initEnvironment = pod?.initContainers.orEmpty().single().env.orEmpty().associate { it.name to it.value }
+
+        mainEnvironment shouldBe mapOf(
+            "SPECIFIC_PROPERTY" to "foo",
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
+        listOf(sidecarEnvironment, initEnvironment).forEach { environment ->
+            environment shouldContainAll mapOf(
+                "SPECIFIC_PROPERTY" to "foo",
+                "SHELL" to "/bin/bash",
+                TRACE_PROPERTY to header.traceId,
+                RUN_ID_PROPERTY to header.ortRunId.toString(),
+                "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+            )
+        }
+    }
+
+    "Additional containers have independent environment allowlists" {
+        val config = createConfig(
+            mapOf("additionalContainers" to "INIT, SIDECAR", "environmentAllowlist" to "SPECIFIC_PROPERTY"),
+            mapOf(
+                "INIT_INIT_CONTAINER" to "true",
+                "INIT_ENVIRONMENT_ALLOWLIST" to "",
+                "SIDECAR_ENVIRONMENT_ALLOWLIST" to " SPECIFIC_PROPERTY, SHELL, "
+            )
+        )
+        config.mainContainer.environmentAllowlist shouldBe setOf("SPECIFIC_PROPERTY")
+        config.additionalContainers[0].environmentAllowlist shouldBe emptySet()
+        config.additionalContainers[1].environmentAllowlist shouldBe setOf("SPECIFIC_PROPERTY", "SHELL")
+
+        val job = createJob(config)
+        val containers = job.spec?.template?.spec?.containers.orEmpty()
+        val mainEnvironment = containers.first().env.orEmpty().associate { it.name to it.value }
+        val sidecarEnvironment = containers.last().env.orEmpty().associate { it.name to it.value }
+        val initEnvironment = job.spec?.template?.spec?.initContainers.orEmpty().single()
+            .env.orEmpty().associate { it.name to it.value }
+
+        mainEnvironment shouldBe mapOf(
+            "SPECIFIC_PROPERTY" to "foo",
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
+        sidecarEnvironment shouldBe mapOf(
+            "SPECIFIC_PROPERTY" to "foo",
+            "SHELL" to "/bin/bash",
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
+        initEnvironment shouldBe mapOf(
+            TRACE_PROPERTY to header.traceId,
+            RUN_ID_PROPERTY to header.ortRunId.toString(),
+            "payload" to "{\"analyzerJobId\":${payload.analyzerJobId}}"
+        )
     }
 })
 
