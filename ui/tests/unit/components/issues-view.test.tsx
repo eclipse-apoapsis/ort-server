@@ -20,10 +20,10 @@
 // @vitest-environment jsdom
 
 import { defaultParseSearch } from '@tanstack/react-router';
-import { screen } from '@testing-library/react';
-import { beforeEach, expect, it, vi } from 'vitest';
+import { act, screen, waitFor, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Issue } from '@/api';
+import type { GetRunIssuesData, Issue } from '@/api';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/index';
@@ -41,6 +41,19 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   getRepositoryRun: mocks.run,
   getRunIssues: mocks.issues,
 }));
+
+vi.mock('@/components/resolutions', () => ({
+  Resolutions: () => null,
+}));
+
+vi.mock(
+  '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/-components/issue-details',
+  () => ({
+    IssueDetails: ({ issue }: { issue: Issue }) => (
+      <div>Details of {issue.message}</div>
+    ),
+  })
+);
 
 const IssuesComponent = Route.options.component!;
 const identifier = {
@@ -125,3 +138,181 @@ it.each([
     expect(defaultParseSearch(target.search)).toEqual(search);
   }
 );
+
+describe('issues table', () => {
+  type IssuesQuery = NonNullable<GetRunIssuesData['query']>;
+
+  // The first part of the issue names, which tells the query the issues come from.
+  let nameTag = 'issue';
+
+  const purlOf = (name: string) => `pkg:maven/com.example/${name}@1.0`;
+
+  // Serve three issues per page, named after the query and their position.
+  const getIssuesPage = (query: IssuesQuery = {}) => {
+    const tag = query.severity ? 'error' : query.sort ? 'sorted' : nameTag;
+    const offset = query.offset ?? 0;
+    const data: Issue[] = [1, 2, 3].map((position) => {
+      const name = `${tag}-${offset + position}`;
+
+      return {
+        identifier: { ...identifier, name },
+        purl: purlOf(name),
+        message: name,
+        severity: 'WARNING',
+        source: 'Analyzer',
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+    });
+
+    return {
+      data,
+      pagination: {
+        limit: query.limit ?? 10,
+        offset,
+        totalCount: query.severity ? 3 : 25,
+      },
+    };
+  };
+
+  const renderIssues = (search = '') =>
+    renderInteractiveWithRouter(
+      <TooltipProvider>
+        <IssuesComponent />
+      </TooltipProvider>,
+      {
+        path: `/organizations/1/products/2/repositories/3/runs/4/issues${search}`,
+        routes: [
+          {
+            path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/',
+          },
+        ],
+        withQueryClient: true,
+      }
+    );
+
+  const findIssue = (name: string) =>
+    screen.findByRole('link', { name: purlOf(name) });
+
+  // The button that expands and collapses the row of the given issue.
+  const getDetailsButton = (name: string) =>
+    within(
+      screen.getByRole('link', { name: purlOf(name) }).closest('tr')!
+    ).getAllByRole('button')[0]!;
+
+  const lastIssuesQuery = () =>
+    mocks.issues.mock.calls.at(-1)?.[0].query as IssuesQuery;
+
+  beforeEach(() => {
+    nameTag = 'issue';
+    mocks.issues.mockImplementation(
+      async ({ query }: { query?: IssuesQuery }) => ({
+        data: getIssuesPage(query),
+      })
+    );
+  });
+
+  it('is compiled by React Compiler', () => {
+    expect(IssuesComponent.toString()).toContain('react.memo_cache_sentinel');
+  });
+
+  it('applies filters from the URL', async () => {
+    const { container, router } = renderIssues();
+
+    expect(await findIssue('issue-1')).toBeVisible();
+
+    await act(() =>
+      router.navigate({
+        to: '.',
+        search: { severity: ['ERROR'], itemResolved: ['Resolved'] },
+      })
+    );
+
+    expect(await findIssue('error-1')).toBeVisible();
+    expect(
+      screen.queryByRole('link', { name: purlOf('issue-1') })
+    ).not.toBeInTheDocument();
+    expect(lastIssuesQuery()).toMatchObject({
+      severity: 'ERROR',
+      resolved: true,
+    });
+    expect(container).toHaveTextContent(
+      'Issues (25 in total, 3 matching filters)'
+    );
+  });
+
+  it('applies sorting and the page from the URL', async () => {
+    const { router } = renderIssues();
+
+    expect(await findIssue('issue-1')).toBeVisible();
+
+    await act(() =>
+      router.navigate({
+        to: '.',
+        search: { sortBy: [{ id: 'severity', desc: true }], page: 2 },
+      })
+    );
+
+    expect(await findIssue('sorted-11')).toBeVisible();
+    expect(lastIssuesQuery()).toMatchObject({
+      sort: '-severity',
+      limit: 10,
+      offset: 10,
+    });
+  });
+
+  it('expands and collapses a row', async () => {
+    const { user } = renderIssues();
+
+    expect(await findIssue('issue-1')).toBeVisible();
+    expect(screen.queryByText(/^Details of/)).not.toBeInTheDocument();
+
+    await user.click(getDetailsButton('issue-1'));
+
+    expect(await screen.findByText('Details of issue-1')).toBeVisible();
+    expect(
+      getDetailsButton('issue-1').querySelector('.lucide-chevron-up')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Details of issue-2')).not.toBeInTheDocument();
+    expect(
+      getDetailsButton('issue-2').querySelector('.lucide-chevron-down')
+    ).toBeInTheDocument();
+
+    await user.click(getDetailsButton('issue-1'));
+
+    await waitFor(() =>
+      expect(screen.queryByText('Details of issue-1')).not.toBeInTheDocument()
+    );
+    expect(
+      getDetailsButton('issue-1').querySelector('.lucide-chevron-down')
+    ).toBeInTheDocument();
+  });
+
+  it('expands the row marked in the URL', async () => {
+    renderIssues('?marked=1');
+
+    expect(await screen.findByText('Details of issue-2')).toBeVisible();
+    expect(screen.queryByText('Details of issue-1')).not.toBeInTheDocument();
+  });
+
+  it('replaces the rows and collapses them when the query data is refreshed', async () => {
+    const { queryClient, user } = renderIssues();
+
+    expect(await findIssue('issue-1')).toBeVisible();
+    await user.click(getDetailsButton('issue-1'));
+    expect(await screen.findByText('Details of issue-1')).toBeVisible();
+
+    nameTag = 'renamed';
+    await queryClient!.invalidateQueries();
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('link', { name: purlOf('renamed-1') })
+      ).toBeVisible()
+    );
+    expect(
+      screen.queryByRole('link', { name: purlOf('issue-1') })
+    ).not.toBeInTheDocument();
+    // The table collapses expanded rows when it receives new data.
+    expect(screen.queryByText(/^Details of/)).not.toBeInTheDocument();
+  });
+});

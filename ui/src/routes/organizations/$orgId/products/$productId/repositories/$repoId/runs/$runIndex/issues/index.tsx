@@ -201,6 +201,8 @@ const IssueCard = ({ issue }: { issue: Issue }) => {
 };
 
 const IssuesComponent = () => {
+  'use memo';
+
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();

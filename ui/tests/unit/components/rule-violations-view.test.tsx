@@ -20,10 +20,10 @@
 // @vitest-environment jsdom
 
 import { defaultParseSearch } from '@tanstack/react-router';
-import { screen } from '@testing-library/react';
-import { beforeEach, expect, it, vi } from 'vitest';
+import { act, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { RuleViolation } from '@/api';
+import type { GetRunRuleViolationsData, RuleViolation } from '@/api';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/index';
@@ -128,3 +128,88 @@ it.each([
     expect(defaultParseSearch(target.search)).toEqual(search);
   }
 );
+
+describe('rule violations table', () => {
+  type ViolationsQuery = NonNullable<GetRunRuleViolationsData['query']>;
+
+  const purlOf = (name: string) => `pkg:maven/com.example/${name}@1.0`;
+
+  const getViolationsPage = (query: ViolationsQuery = {}) => {
+    const name = query.rule ? 'filtered' : 'violation';
+    const violation: RuleViolation = {
+      id: { ...identifier, name },
+      purl: purlOf(name),
+      howToFix: '',
+      message: 'A violation',
+      rule: query.rule ?? 'TestRule',
+      severity: 'WARNING',
+    };
+
+    return {
+      data: [violation],
+      pagination: {
+        limit: query.limit ?? 10,
+        offset: query.offset ?? 0,
+        totalCount: query.rule ? 1 : 5,
+      },
+    };
+  };
+
+  beforeEach(() => {
+    mocks.violations.mockImplementation(
+      async ({ query }: { query?: ViolationsQuery }) => ({
+        data: getViolationsPage(query),
+      })
+    );
+  });
+
+  it('is compiled by React Compiler', () => {
+    expect(RuleViolationsComponent.toString()).toContain(
+      'react.memo_cache_sentinel'
+    );
+  });
+
+  it('applies filters from the URL', async () => {
+    const { container, router } = renderInteractiveWithRouter(
+      <TooltipProvider>
+        <RuleViolationsComponent />
+      </TooltipProvider>,
+      {
+        path: '/organizations/1/products/2/repositories/3/runs/4/rule-violations',
+        routes: [
+          {
+            path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/',
+          },
+        ],
+        withQueryClient: true,
+      }
+    );
+
+    expect(
+      await screen.findByRole('link', { name: purlOf('violation') })
+    ).toBeInTheDocument();
+
+    await act(() =>
+      router.navigate({
+        to: '.',
+        search: { severity: ['ERROR'], rule: ['RuleA', 'RuleB'] },
+      })
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('link', { name: purlOf('filtered') })
+      ).toBeVisible()
+    );
+    expect(
+      screen.queryByRole('link', { name: purlOf('violation') })
+    ).not.toBeInTheDocument();
+    expect(mocks.violations.mock.calls.at(-1)?.[0].query).toMatchObject({
+      severity: 'ERROR',
+      rule: 'RuleA,RuleB',
+    });
+    expect(container).toHaveTextContent(
+      'Rule Violations (5 in total, 1 matching filters)'
+    );
+  });
+});
