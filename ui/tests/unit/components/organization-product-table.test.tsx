@@ -20,25 +20,38 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Product } from '@/api';
+import type { Organization, Product } from '@/api';
+import { getOrganizationProductsQueryKey } from '@/api/@tanstack/react-query.gen';
 import {
+  OrganizationProductTable,
   ProductJobStatusCell,
   ProductLastRunDateCell,
   ProductRunStatusCell,
   ProductTotalRunsCell,
 } from '@/routes/organizations/$orgId/-components/organization-product-table';
+import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
 const mocks = vi.hoisted(() => ({
+  organization: vi.fn(),
+  products: vi.fn(),
   repositories: vi.fn(),
 }));
 
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
+  getOrganization: mocks.organization,
+  getOrganizationProducts: mocks.products,
   getProductRepositories: mocks.repositories,
+}));
+
+vi.mock('@/components/favorite-button', () => ({
+  ProductFavoriteButton: ({ product }: { product: Product }) => (
+    <button type='button'>Add to favorites: {product.name}</button>
+  ),
 }));
 
 vi.mock(
@@ -197,3 +210,88 @@ describe.each(cells)(
     });
   }
 );
+
+describe('OrganizationProductTable', () => {
+  const organization: Organization = { id: 1, name: 'organization' };
+
+  const products = (...names: string[]) => ({
+    data: {
+      data: names.map((name, index): Product => ({
+        id: index + 2,
+        organizationId: 1,
+        name,
+      })),
+      pagination: { limit: 5, offset: 0, totalCount: names.length },
+    },
+  });
+
+  const renderTable = () =>
+    renderInteractiveWithRouter(<OrganizationProductTable />, {
+      path: '/organizations/1/',
+      routes: [{ path: '/organizations/$orgId/' }],
+      withQueryClient: true,
+    });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.organization.mockResolvedValue({ data: organization });
+    mocks.products.mockResolvedValue(products('first', 'second'));
+    mocks.repositories.mockResolvedValue(repositories(1));
+  });
+
+  it('is compiled by React Compiler', () => {
+    expect(OrganizationProductTable.toString()).toContain(
+      'react.memo_cache_sentinel'
+    );
+  });
+
+  it('shows the favorite buttons once the organization is loaded', async () => {
+    let resolveOrganization = (response: { data: Organization }) => {
+      void response;
+    };
+    mocks.organization.mockReturnValue(
+      new Promise((resolve) => {
+        resolveOrganization = resolve;
+      })
+    );
+
+    renderTable();
+
+    expect(await screen.findByRole('link', { name: 'first' })).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Add to favorites: first' })
+    ).not.toBeInTheDocument();
+
+    resolveOrganization({ data: organization });
+
+    expect(
+      await screen.findByRole('button', { name: 'Add to favorites: first' })
+    ).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Add to favorites: second' })
+    ).toBeVisible();
+    expect(mocks.products).toHaveBeenCalledOnce();
+  });
+
+  it('replaces the rows when the query data is refreshed', async () => {
+    const { queryClient, router } = renderTable();
+
+    expect(await screen.findByRole('link', { name: 'first' })).toBeVisible();
+    const initialHref = router.state.location.href;
+
+    mocks.products.mockResolvedValue(products('renamed'));
+    await queryClient!.invalidateQueries({
+      queryKey: getOrganizationProductsQueryKey({
+        path: { organizationId: 1 },
+      }),
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: 'renamed' })).toBeVisible()
+    );
+    expect(
+      screen.queryByRole('link', { name: 'first' })
+    ).not.toBeInTheDocument();
+    expect(router.state.location.href).toBe(initialHref);
+  });
+});
