@@ -53,7 +53,6 @@ class SecretServiceTest : WordSpec({
         secretRepository = DaoSecretRepository(dbExtension.db)
         secretService = SecretService(
             db,
-            secretRepository,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
     }

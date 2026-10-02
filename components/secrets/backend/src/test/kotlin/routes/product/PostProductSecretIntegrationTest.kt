@@ -64,7 +64,7 @@ class PostProductSecretIntegrationTest : SecretsIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByIdAndName(ProductId(prodId), secret.name)?.mapToApi() shouldBe
+                secretService.getSecret(ProductId(prodId), secret.name)?.mapToApi() shouldBe
                         Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -122,7 +122,7 @@ class PostProductSecretIntegrationTest : SecretsIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for PostSecret"
 
-                secretRepository.getByIdAndName(ProductId(prodId), secret.name)?.mapToApi().shouldBeNull()
+                secretService.getSecret(ProductId(prodId), secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("product_${prodId}_${secret.name}"))?.value should beNull()

@@ -747,7 +747,6 @@ private class ContextFactoryTestHelper {
     val secretService = spyk(
         SecretService(
             mockk(),
-            mockk(),
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
     )

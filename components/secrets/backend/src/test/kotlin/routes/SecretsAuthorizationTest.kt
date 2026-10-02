@@ -30,7 +30,6 @@ import io.mockk.mockk
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.secrets.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
@@ -86,7 +85,6 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
 
         secretService = SecretService(
             dbExtension.db,
-            DaoSecretRepository(dbExtension.db),
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
     }

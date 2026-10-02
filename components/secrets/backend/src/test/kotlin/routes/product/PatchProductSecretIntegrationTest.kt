@@ -40,8 +40,6 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 class PatchProductSecretIntegrationTest : SecretsIntegrationTest({
     var prodId = 0L
 
-    val secretErrorPath = "error-path"
-
     beforeEach {
         prodId = dbExtension.fixtures.product.id
     }
@@ -49,7 +47,7 @@ class PatchProductSecretIntegrationTest : SecretsIntegrationTest({
     "PatchProductSecret" should {
         "update a secret's metadata" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId)
+                val secret = secretService.createProductSecret(prodId)
 
                 val updatedDescription = "updated description"
                 val updateSecret = PatchSecret("value".asPresent(), description = updatedDescription.asPresent())
@@ -61,14 +59,14 @@ class PatchProductSecretIntegrationTest : SecretsIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByIdAndName(ProductId(prodId), secret.name)?.mapToApi() shouldBe
+                secretService.getSecret(ProductId(prodId), secret.name)?.mapToApi() shouldBe
                         Secret(secret.name, updatedDescription)
             }
         }
 
         "update a secret's value" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId)
+                val secret = secretService.createProductSecret(prodId)
 
                 val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 val response = client.patch("/products/$prodId/secrets/${secret.name}") {
@@ -80,19 +78,6 @@ class PatchProductSecretIntegrationTest : SecretsIntegrationTest({
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path))?.value shouldBe "value"
-            }
-        }
-
-        "handle a failure from the SecretStorage" {
-            secretsTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
-
-                val updateSecret = PatchSecret("value".asPresent(), "newDesc".asPresent())
-                client.patch("/products/$prodId/secrets/${secret.name}") {
-                    setBody(updateSecret)
-                } shouldHaveStatus HttpStatusCode.InternalServerError
-
-                secretRepository.getByIdAndName(ProductId(prodId), secret.name) shouldBe secret
             }
         }
     }

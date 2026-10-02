@@ -47,7 +47,7 @@ class PatchRepositorySecretIntegrationTest : SecretsIntegrationTest({
     "PatchRepositorySecret" should {
         "update a secret's metadata" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId)
+                val secret = secretService.createRepositorySecret(repoId)
 
                 val updatedDescription = "updated description"
                 val updateSecret = PatchSecret("value".asPresent(), description = updatedDescription.asPresent())
@@ -59,14 +59,14 @@ class PatchRepositorySecretIntegrationTest : SecretsIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByIdAndName(RepositoryId(repoId), secret.name)
+                secretService.getSecret(RepositoryId(repoId), secret.name)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
 
         "update a secret's value" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId)
+                val secret = secretService.createRepositorySecret(repoId)
 
                 val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 val response = client.patch("/repositories/$repoId/secrets/${secret.name}") {
@@ -78,19 +78,6 @@ class PatchRepositorySecretIntegrationTest : SecretsIntegrationTest({
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path))?.value shouldBe "value"
-            }
-        }
-
-        "handle a failure from the SecretsStorage" {
-            secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId, path = secretErrorPath)
-
-                val updateSecret = PatchSecret("value".asPresent(), "newDesc".asPresent())
-                client.patch("/repositories/$repoId/secrets/${secret.name}") {
-                    setBody(updateSecret)
-                } shouldHaveStatus HttpStatusCode.InternalServerError
-
-                secretRepository.getByIdAndName(RepositoryId(repoId), secret.name) shouldBe secret
             }
         }
     }

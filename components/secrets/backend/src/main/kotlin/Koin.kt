@@ -25,8 +25,7 @@ import org.koin.dsl.module
 
 val secretServiceModule = module {
     single {
-        val secretRepository = DaoSecretRepository(get())
         val secretStorage = SecretStorage.createStorage(get(), get())
-        SecretService(get(), secretRepository, secretStorage)
+        SecretService(get(), secretStorage)
     }
 }

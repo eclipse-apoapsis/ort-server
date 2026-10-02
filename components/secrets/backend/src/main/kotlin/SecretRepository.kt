@@ -28,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 /**
  * A repository of [secrets][Secret].
  */
-interface SecretRepository {
+internal interface SecretRepository {
     /**
      * Create a secret for the given hierarchy [id].
      */
