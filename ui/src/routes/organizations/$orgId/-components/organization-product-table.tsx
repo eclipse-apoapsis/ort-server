@@ -48,6 +48,107 @@ const columnHelper = createAppColumnHelper<Product>();
 
 const routeApi = getRouteApi('/organizations/$orgId/');
 
+export const ProductTotalRunsCell = ({ product }: { product: Product }) => {
+  const { data, isPending, isError } = useQuery({
+    ...getProductRepositoriesOptions({
+      path: { productId: product.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  if (isPending)
+    return (
+      <>
+        <span className='sr-only'>Loading...</span>
+        <Loader2 size={16} className='mx-3 animate-spin' />
+      </>
+    );
+
+  if (isError) return <span>Error loading data.</span>;
+
+  if (data.pagination.totalCount === 1 && data.data[0])
+    return <TotalRuns repoId={data.data[0].id} />;
+  else return <span>-</span>;
+};
+
+export const ProductRunStatusCell = ({ product }: { product: Product }) => {
+  const { data, isPending, isError } = useQuery({
+    ...getProductRepositoriesOptions({
+      path: { productId: product.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  if (isPending)
+    return (
+      <>
+        <span className='sr-only'>Loading...</span>
+        <Loader2 size={16} className='mx-3 animate-spin' />
+      </>
+    );
+
+  if (isError) return <span>Error loading data.</span>;
+
+  return (
+    <div className='flex flex-col gap-1'>
+      {data.pagination.totalCount === 1 && data.data[0] ? (
+        <LastRunStatus repoId={data.data[0].id} />
+      ) : (
+        <span>Contains {data.pagination.totalCount} repositories</span>
+      )}
+      <div className='flex'>
+        <ProductItemCounts productId={product.id} />
+      </div>
+    </div>
+  );
+};
+
+export const ProductLastRunDateCell = ({ product }: { product: Product }) => {
+  const { data, isPending, isError } = useQuery({
+    ...getProductRepositoriesOptions({
+      path: { productId: product.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  if (isPending)
+    return (
+      <>
+        <span className='sr-only'>Loading...</span>
+        <Loader2 size={16} className='mx-3 animate-spin' />
+      </>
+    );
+
+  if (isError) return <span>Error loading data.</span>;
+
+  if (data.pagination.totalCount === 1 && data.data[0])
+    return <LastRunDate repoId={data.data[0].id} />;
+  else return null;
+};
+
+export const ProductJobStatusCell = ({ product }: { product: Product }) => {
+  const { data, isPending, isError } = useQuery({
+    ...getProductRepositoriesOptions({
+      path: { productId: product.id },
+      query: { limit: 1 },
+    }),
+  });
+
+  if (isPending)
+    return (
+      <>
+        <span className='sr-only'>Loading...</span>
+        <Loader2 size={16} className='mx-3 animate-spin' />
+      </>
+    );
+
+  if (isError) return <span>Error loading data.</span>;
+
+  if (data.pagination.totalCount === 1 && data.data[0])
+    return <LastJobStatus repoId={data.data[0].id} />;
+  else return null;
+};
+
 export const OrganizationProductTable = () => {
   const prodPageSize = useTablePrefsStore((state) => state.prodPageSize);
   const setProdPageSize = useTablePrefsStore((state) => state.setProdPageSize);
@@ -141,93 +242,19 @@ export const OrganizationProductTable = () => {
           id: 'runs',
           header: 'Runs',
           size: 50,
-          cell: function CellComponent({ row }) {
-            const { data, isPending, isError } = useQuery({
-              ...getProductRepositoriesOptions({
-                path: { productId: row.original.id },
-                query: { limit: 1 },
-              }),
-            });
-
-            if (isPending)
-              return (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              );
-
-            if (isError) return <span>Error loading data.</span>;
-
-            if (data.pagination.totalCount === 1 && data.data[0])
-              return <TotalRuns repoId={data.data[0].id} />;
-            else return <span>-</span>;
-          },
+          cell: ({ row }) => <ProductTotalRunsCell product={row.original} />,
           enableColumnFilter: false,
         }),
         columnHelper.display({
           id: 'runStatus',
           header: 'Last Run Status',
-          cell: function CellComponent({ row }) {
-            const { data, isPending, isError } = useQuery({
-              ...getProductRepositoriesOptions({
-                path: { productId: row.original.id },
-                query: { limit: 1 },
-              }),
-            });
-
-            if (isPending)
-              return (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              );
-
-            if (isError) return <span>Error loading data.</span>;
-
-            return (
-              <div className='flex flex-col gap-1'>
-                {data.pagination.totalCount === 1 && data.data[0] ? (
-                  <LastRunStatus repoId={data.data[0].id} />
-                ) : (
-                  <span>
-                    Contains {data.pagination.totalCount} repositories
-                  </span>
-                )}
-                <div className='flex'>
-                  <ProductItemCounts productId={row.original.id} />
-                </div>
-              </div>
-            );
-          },
+          cell: ({ row }) => <ProductRunStatusCell product={row.original} />,
           enableColumnFilter: false,
         }),
         columnHelper.display({
           id: 'lastRunDate',
           header: 'Last Run Date',
-          cell: function CellComponent({ row }) {
-            const { data, isPending, isError } = useQuery({
-              ...getProductRepositoriesOptions({
-                path: { productId: row.original.id },
-                query: { limit: 1 },
-              }),
-            });
-
-            if (isPending)
-              return (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              );
-
-            if (isError) return <span>Error loading data.</span>;
-
-            if (data.pagination.totalCount === 1 && data.data[0])
-              return <LastRunDate repoId={data.data[0].id} />;
-            else return null;
-          },
+          cell: ({ row }) => <ProductLastRunDateCell product={row.original} />,
           meta: {
             widthPercentage: 12,
           },
@@ -236,28 +263,7 @@ export const OrganizationProductTable = () => {
         columnHelper.display({
           id: 'jobStatus',
           header: 'Job Statuses',
-          cell: function CellComponent({ row }) {
-            const { data, isPending, isError } = useQuery({
-              ...getProductRepositoriesOptions({
-                path: { productId: row.original.id },
-                query: { limit: 1 },
-              }),
-            });
-
-            if (isPending)
-              return (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              );
-
-            if (isError) return <span>Error loading data.</span>;
-
-            if (data.pagination.totalCount === 1 && data.data[0])
-              return <LastJobStatus repoId={data.data[0].id} />;
-            else return null;
-          },
+          cell: ({ row }) => <ProductJobStatusCell product={row.original} />,
           meta: {
             widthPercentage: 8,
           },
