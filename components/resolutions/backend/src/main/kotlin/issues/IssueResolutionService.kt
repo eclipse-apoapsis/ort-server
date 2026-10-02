@@ -162,7 +162,7 @@ class IssueResolutionService(
         runBlocking {
             repositoryService.getRepository(repositoryId.value).toResultOr {
                 IssueResolutionError.RepositoryNotFound(repositoryId)
-            }.map { }
+            }.map { /* Unit */ }
         }
 }
 

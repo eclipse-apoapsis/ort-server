@@ -164,7 +164,7 @@ class RuleViolationResolutionService(
         runBlocking {
             repositoryService.getRepository(repositoryId.value).toResultOr {
                 RuleViolationResolutionError.RepositoryNotFound(repositoryId)
-            }.map { }
+            }.map { /* Unit */ }
         }
 }
 
