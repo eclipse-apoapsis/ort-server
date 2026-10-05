@@ -38,9 +38,9 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Repository
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
@@ -134,7 +134,7 @@ class DbAuthorizationService(
         role: Role,
         compoundHierarchyId: CompoundHierarchyId
     ) {
-        db.dbQuery {
+        db.transaction {
             doRemoveAssignment(userId, compoundHierarchyId)
 
             logger.info(
@@ -159,7 +159,7 @@ class DbAuthorizationService(
     override suspend fun removeAssignment(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId
-    ): Boolean = db.dbQuery {
+    ): Boolean = db.transaction {
         doRemoveAssignment(userId, compoundHierarchyId)
     }
 
@@ -178,14 +178,14 @@ class DbAuthorizationService(
             compoundHierarchyId.toFilterCondition()
         }
 
-        return db.dbQuery {
+        return db.transaction {
             RoleAssignmentsTable.deleteWhere {
                 condition
             }
         }
     }
 
-    override suspend fun removeUserAssignments(userId: String): Int = db.dbQuery {
+    override suspend fun removeUserAssignments(userId: String): Int = db.transaction {
         RoleAssignmentsTable.deleteWhere {
             RoleAssignmentsTable.userId eq userId
         }
@@ -194,7 +194,7 @@ class DbAuthorizationService(
     override suspend fun listUsersWithRole(
         role: Role,
         compoundHierarchyId: CompoundHierarchyId
-    ): Set<String> = db.dbQuery {
+    ): Set<String> = db.transaction {
         RoleAssignmentsTable.select(RoleAssignmentsTable.userId)
             .where {
                 compoundHierarchyId.toFilterCondition() and roleCondition(role)
@@ -203,7 +203,7 @@ class DbAuthorizationService(
 
     override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, RoleInfo> =
         withContext(Dispatchers.Default) {
-            db.dbQuery {
+            db.transaction {
                 logger.debug("Loading role assignments on element {}...", compoundHierarchyId)
 
                 RoleAssignmentsTable.selectAll()
@@ -296,7 +296,7 @@ class DbAuthorizationService(
      * product does not exist.
      */
     private suspend fun resolveOrganization(productId: ProductId): OrganizationId =
-        db.dbQuery {
+        db.transaction {
             ProductsTable.select(ProductsTable.organizationId)
                 .where { ProductsTable.id eq productId.value }
                 .singleOrNull()?.let {
@@ -309,7 +309,7 @@ class DbAuthorizationService(
      * Return *null* if IDs cannot be resolved.
      */
     private suspend fun resolveOrganizationAndProduct(repositoryId: RepositoryId): Pair<OrganizationId, ProductId> =
-        db.dbQuery {
+        db.transaction {
             RepositoriesTable.join(ProductsTable, JoinType.INNER)
                 .select(ProductsTable.organizationId, RepositoriesTable.productId)
                 .where { RepositoriesTable.id eq repositoryId.value }
@@ -330,7 +330,7 @@ class DbAuthorizationService(
     private suspend fun loadAssignments(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId?
-    ): List<Pair<CompoundHierarchyId, Role>> = db.dbQuery {
+    ): List<Pair<CompoundHierarchyId, Role>> = db.transaction {
         logger.debug("Loading role assignments for user '{}' on element {}...", userId, compoundHierarchyId)
 
         RoleAssignmentsTable.selectAll()

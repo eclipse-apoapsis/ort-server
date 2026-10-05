@@ -43,8 +43,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Repository
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -696,14 +696,14 @@ class DbAuthorizationServiceTest : WordSpec() {
                     service.assignRole(USER_ID, role, hierarchyId)
                     service.assignRole(otherUserId, role, hierarchyId)
                 }
-                val otherUserAssignments = dbExtension.db.dbQuery {
+                val otherUserAssignments = dbExtension.db.transaction {
                     RoleAssignmentsTable.selectAll().where { RoleAssignmentsTable.userId eq otherUserId }
                         .map { row -> RoleAssignmentsTable.columns.map { row[it] } }
                 }
 
                 service.removeUserAssignments(USER_ID) shouldBe assignments.size
 
-                val remainingAssignments = dbExtension.db.dbQuery {
+                val remainingAssignments = dbExtension.db.transaction {
                     RoleAssignmentsTable.selectAll().map { row -> RoleAssignmentsTable.columns.map { row[it] } }
                 }
                 remainingAssignments should containExactlyInAnyOrder(otherUserAssignments)
@@ -1407,7 +1407,7 @@ class DbAuthorizationServiceTest : WordSpec() {
         productRoleName: String? = null,
         repositoryRoleName: String? = null
     ) {
-        dbExtension.db.dbQuery {
+        dbExtension.db.transaction {
             RoleAssignmentsTable.insert {
                 it[RoleAssignmentsTable.userId] = userId
                 it[RoleAssignmentsTable.organizationId] = organizationId
@@ -1450,7 +1450,7 @@ class DbAuthorizationServiceTest : WordSpec() {
     /**
      * Query the number of role assignments in the database.
      */
-    private suspend fun queryRoleAssignmentsCount(): Long = dbExtension.db.dbQuery {
+    private suspend fun queryRoleAssignmentsCount(): Long = dbExtension.db.transaction {
         RoleAssignmentsTable.select(RoleAssignmentsTable.id).count()
     }
 }
