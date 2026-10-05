@@ -27,7 +27,6 @@ import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
@@ -40,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -569,10 +569,10 @@ internal data class SeedResult(
     val otherPurl: String
 )
 
-internal fun seedData(fixtures: Fixtures, db: Database): SeedResult =
+internal suspend fun seedData(fixtures: Fixtures, db: Database): SeedResult =
     seedData(fixtures, db, duplicatePackageEntries = false)
 
-internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries: Boolean): SeedResult {
+internal suspend fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries: Boolean): SeedResult {
     val artifactIdentifier = Identifier("Maven", "com.example", "artifact-package", "1.0")
     val vcsIdentifier = Identifier("Maven", "com.example", "vcs-package", "2.0")
     val otherIdentifier = Identifier("NPM", "", "other-package", "3.0")
@@ -626,7 +626,7 @@ internal fun seedData(fixtures: Fixtures, db: Database, duplicatePackageEntries:
 
     var scannerRunId = 0L
 
-    db.blockingQuery {
+    db.transaction {
         val scannerJob = fixtures.createScannerJob(ortRun.id)
         val scannerRun = fixtures.scannerRunRepository.create(scannerJob.id)
         scannerRunId = scannerRun.id
@@ -694,7 +694,7 @@ internal data class CrossRunSeedResult(
  *
  * Run 1 uses "ScanCode" and finds "Apache-2.0". Run 2 uses "Licensee" and finds "MIT".
  */
-internal fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedResult {
+internal suspend fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedResult {
     val identifier = Identifier("Maven", "com.example", "shared-package", "1.0")
     val artifact = RemoteArtifact(
         url = "https://example.com/shared-package-1.0.jar",
@@ -705,7 +705,7 @@ internal fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedRes
     val ortRun1 = fixtures.createOrtRun()
     val ortRun2 = fixtures.createOrtRun()
 
-    db.blockingQuery {
+    db.transaction {
         val scannerJob1 = fixtures.createScannerJob(ortRun1.id)
         val scannerRun1 = fixtures.scannerRunRepository.create(scannerJob1.id)
         val scannerJob2 = fixtures.createScannerJob(ortRun2.id)
@@ -761,7 +761,7 @@ internal fun seedCrossRunData(fixtures: Fixtures, db: Database): CrossRunSeedRes
     return CrossRunSeedResult(ortRun1.id, ortRun2.id, identifier)
 }
 
-internal fun addLicenseFindings(
+internal suspend fun addLicenseFindings(
     db: Database,
     scannerRunId: Long,
     identifier: Identifier,
@@ -774,7 +774,7 @@ internal fun addLicenseFindings(
         path = ""
     )
 
-    db.blockingQuery {
+    db.transaction {
         val packageProvenance = createPackageProvenance(scannerRunId, identifier, vcs = vcs)
         val findings = licenses.mapIndexed { index, license ->
             FindingSeed(license, "file-$index", index + 1, index + 1, 100f)
