@@ -409,7 +409,7 @@ class IssueService(
             .where { OrtRunsIssuesTable.ortRunId inList ortRunIds.asList() }
             .groupBy(IssuesTable.severity)
             .forEach { row ->
-                severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
+                severityToCountMap[row[IssuesTable.severity]] = row[countAlias]
             }
 
         CountByCategory(severityToCountMap)
@@ -451,7 +451,7 @@ class IssueService(
             }
             .groupBy(IssuesTable.severity)
             .forEach { row ->
-                severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
+                severityToCountMap[row[IssuesTable.severity]] = row[countAlias]
             }
 
         CountByCategory(severityToCountMap)
