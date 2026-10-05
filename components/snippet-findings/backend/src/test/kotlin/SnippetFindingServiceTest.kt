@@ -30,7 +30,6 @@ import io.kotest.matchers.shouldBe
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
@@ -47,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -108,7 +108,7 @@ class SnippetFindingServiceTest : WordSpec() {
 
             "return both direct and nested sub-repository provenances with findings" {
                 var subRepoScanResultId = -1L
-                db.blockingQuery {
+                db.transaction {
                     subRepoScanResultId = addNestedSubRepoScanResult(
                         seed,
                         snippetFinding = SnippetFindingSeed("submodule/source.c", 4, 9)
@@ -137,7 +137,7 @@ class SnippetFindingServiceTest : WordSpec() {
             }
 
             "omit direct and nested provenances without findings" {
-                db.blockingQuery {
+                db.transaction {
                     addDirectScanResult(
                         seed,
                         Identifier("Maven", "com.example", "empty-package", "1.0"),
@@ -158,7 +158,7 @@ class SnippetFindingServiceTest : WordSpec() {
             "support sorting by every identifier field" {
                 var gradleScanResultId = -1L
                 var npmScanResultId = -1L
-                db.blockingQuery {
+                db.transaction {
                     gradleScanResultId = addDirectScanResult(
                         seed,
                         Identifier("Gradle", "zulu", "alpha-package", "3.0")
@@ -190,7 +190,7 @@ class SnippetFindingServiceTest : WordSpec() {
                 var firstScanResultId = -1L
                 var lastScanResultId = -1L
                 var nestedScanResultId = -1L
-                db.blockingQuery {
+                db.transaction {
                     firstScanResultId = addDirectScanResult(
                         seed,
                         Identifier("Maven", "com.example", "aaa-package", "1.0")
@@ -288,7 +288,7 @@ class SnippetFindingServiceTest : WordSpec() {
 
             "return findings for a nested sub-repository scan result" {
                 var subRepoScanResultId = -1L
-                db.blockingQuery {
+                db.transaction {
                     subRepoScanResultId = addNestedSubRepoScanResult(seed)
                 }
 
@@ -431,7 +431,7 @@ internal data class SeedResult(
     val otherFindingId: Long
 )
 
-internal fun seedData(fixtures: Fixtures, db: Database): SeedResult {
+internal suspend fun seedData(fixtures: Fixtures, db: Database): SeedResult {
     val ortRun = fixtures.createOrtRun()
     val otherOrtRun = fixtures.createOrtRun()
 
@@ -461,7 +461,7 @@ internal fun seedData(fixtures: Fixtures, db: Database): SeedResult {
     var mainScannerRunId = -1L
     var mainPackageProvenanceId = -1L
 
-    db.blockingQuery {
+    db.transaction {
         val scannerJob = fixtures.createScannerJob(ortRun.id)
         val scannerRun = fixtures.scannerRunRepository.create(scannerJob.id)
         mainScannerRunId = scannerRun.id
@@ -713,7 +713,7 @@ internal fun createScanResultWithSnippetFindings(
  * the root package VCS). The nested provenance path through [NestedProvenanceSubRepositoriesTable] is the only way
  * to resolve its package identifier.
  *
- * Must be called inside a transaction (e.g. `db.blockingQuery { ... }`).
+ * Must be called inside a transaction (e.g. `db.transaction { ... }`).
  */
 internal fun addNestedSubRepoScanResult(
     seed: SeedResult,
