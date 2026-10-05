@@ -446,7 +446,7 @@ class RuleViolationService(
             .where { EvaluatorJobsTable.ortRunId inList ortRunIds.asList() }
             .groupBy(RuleViolationsTable.severity)
             .forEach { row ->
-                severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])
+                severityToCountMap[row[RuleViolationsTable.severity]] = row[countAlias]
             }
 
         CountByCategory(severityToCountMap)
@@ -494,7 +494,7 @@ class RuleViolationService(
             }
             .groupBy(RuleViolationsTable.severity)
             .forEach { row ->
-                severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])
+                severityToCountMap[row[RuleViolationsTable.severity]] = row[countAlias]
             }
 
         CountByCategory(severityToCountMap)
