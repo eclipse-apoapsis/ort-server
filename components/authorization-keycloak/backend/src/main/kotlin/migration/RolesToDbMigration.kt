@@ -32,10 +32,10 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRol
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole as DbRepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role as DbRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -88,7 +88,7 @@ class RolesToDbMigration(
             keycloakGroupPrefix
         )
 
-        val organizationIds = db.dbQuery {
+        val organizationIds = db.transaction {
             OrganizationsTable.select(OrganizationsTable.id)
                 .map { it[OrganizationsTable.id].value }
         }
@@ -123,7 +123,7 @@ class RolesToDbMigration(
             newHierarchyID = organizationHierarchyId
         )
 
-        val productIds = db.dbQuery {
+        val productIds = db.transaction {
             ProductsTable.select(ProductsTable.id)
                 .where { ProductsTable.organizationId eq organizationId }
                 .map { it[ProductsTable.id].value }
@@ -154,7 +154,7 @@ class RolesToDbMigration(
             productHierarchyId
         )
 
-        val repositoryIds = db.dbQuery {
+        val repositoryIds = db.transaction {
             RepositoriesTable.select(RepositoriesTable.id)
                 .where { RepositoriesTable.productId eq productId.value }
                 .map { it[RepositoriesTable.id].value }
@@ -240,7 +240,7 @@ class RolesToDbMigration(
      * Return a flag whether the migration of access rights to the new database structures is possible. This is the
      * case if the table for role assignments is empty. This should ensure that the migration is only performed once.
      */
-    private suspend fun canMigrate(): Boolean = db.dbQuery {
+    private suspend fun canMigrate(): Boolean = db.transaction {
         RoleAssignmentsTable.select(RoleAssignmentsTable.id).empty()
     }
 }

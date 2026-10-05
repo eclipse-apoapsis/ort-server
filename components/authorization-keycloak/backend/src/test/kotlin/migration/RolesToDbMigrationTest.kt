@@ -45,8 +45,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRol
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole as DbRepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
@@ -278,7 +278,7 @@ class RolesToDbMigrationTest : StringSpec() {
         "migration should be skipped if the DB already contains role assignments" {
             dbExtension.fixtures.repository.id // This forces the creation of hierarchy elements.
 
-            dbExtension.db.dbQuery {
+            dbExtension.db.transaction {
                 RoleAssignmentsTable.insert {
                     it[userId] = "some-user-id"
                     it[organizationRole] = "READER"
