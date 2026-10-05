@@ -119,3 +119,78 @@ export const createDependencyGraph = (): DependencyGraph => ({
     },
   ],
 });
+
+/**
+ * Creates a graph of packages with the given names and edges between their
+ * indexes. It has a single project with a single scope whose roots are the
+ * given root nodes.
+ */
+export const createGraph = (
+  names: string[],
+  edges: [number, number][],
+  rootNodeIndexes: number[] = [0]
+): DependencyGraph => ({
+  edges: edges.map(([from, to]) => ({ from, to })),
+  nodes: names.map((_, index) => ({
+    fragment: 0,
+    linkage: 'DYNAMIC',
+    packageCount: 0,
+    pkg: index,
+  })),
+  packageCount: names.length,
+  packages: names.map((name) => ({
+    name,
+    namespace: 'com.example',
+    type: 'Maven',
+    version: '1.0',
+  })),
+  purls: names.map(packagePurl),
+  projectGroups: [
+    {
+      packageCount: names.length,
+      projectLabel: 'Gradle::project:1.0',
+      scopes: [
+        {
+          packageCount: names.length,
+          rootNodeIndexes,
+          scopeLabel: 'compileClasspath',
+          scopeName: 'compileClasspath',
+        },
+      ],
+    },
+  ],
+});
+
+/**
+ * Creates a graph of `layers` layers with `width` packages each, where every
+ * package depends on every package of the next layer. The scope's roots are
+ * the first layer, so there are `width ** layers` paths to the packages of the
+ * last layer, whose names all contain "leaf".
+ */
+export const createSharedDependencyGraph = (
+  layers: number,
+  width: number
+): DependencyGraph => {
+  const names: string[] = [];
+  const edges: [number, number][] = [];
+
+  for (let layer = 0; layer < layers; layer++) {
+    for (let position = 0; position < width; position++) {
+      names.push(
+        layer === layers - 1 ? `leaf-${position}` : `layer-${layer}-${position}`
+      );
+
+      if (layer > 0) {
+        for (let parent = 0; parent < width; parent++) {
+          edges.push([(layer - 1) * width + parent, layer * width + position]);
+        }
+      }
+    }
+  }
+
+  return createGraph(
+    names,
+    edges,
+    Array.from({ length: width }, (_, position) => position)
+  );
+};
