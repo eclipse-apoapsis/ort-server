@@ -395,7 +395,7 @@ class RuleViolationServiceTest : WordSpec() {
             "sort identifier, severity, and rule in both directions" {
                 val ortRun = createRuleViolationEntries()
 
-                fun sorted(field: String, direction: OrderDirection) = service.listForOrtRunId(
+                suspend fun sorted(field: String, direction: OrderDirection) = service.listForOrtRunId(
                     ortRun.id,
                     ListQueryParameters(sortFields = listOf(OrderField(field, direction)))
                 ).data.map { it.rule }

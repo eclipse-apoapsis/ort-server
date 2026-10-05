@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.advisor
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.vulnerabilities.VulnerabilityResolutionService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
@@ -110,7 +110,7 @@ internal class AdvisorWorker(
                 vulnerabilities = allVulnerabilities
             )
 
-            db.dbQuery {
+            db.transaction {
                 getValidAdvisorJob(jobId)
                 ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
                 ortRunService.storeResolvedItems(job.ortRunId, resolvedItems)
@@ -154,6 +154,6 @@ internal class AdvisorWorker(
         }
     }
 
-    private fun getValidAdvisorJob(jobId: Long) =
+    private suspend fun getValidAdvisorJob(jobId: Long) =
         ortRunService.getAdvisorJob(jobId).validateForProcessing(jobId)
 }

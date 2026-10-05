@@ -98,6 +98,6 @@ internal class NotifierWorker(
         }
     }
 
-    private fun getValidNotifierJob(jobId: Long) =
+    private suspend fun getValidNotifierJob(jobId: Long) =
         ortRunService.getNotifierJob(jobId).validateForProcessing(jobId)
 }

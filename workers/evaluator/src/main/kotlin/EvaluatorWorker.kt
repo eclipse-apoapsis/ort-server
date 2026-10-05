@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
@@ -65,7 +65,7 @@ internal class EvaluatorWorker(
 
             val evaluatorRunnerResult = runner.run(ortResult, job.configuration, context)
 
-            db.dbQuery {
+            db.transaction {
                 getValidEvaluatorJob(job.id)
                 ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
                 ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
@@ -103,6 +103,6 @@ internal class EvaluatorWorker(
         }
     }
 
-    private fun getValidEvaluatorJob(jobId: Long) =
+    private suspend fun getValidEvaluatorJob(jobId: Long) =
         ortRunService.getEvaluatorJob(jobId).validateForProcessing(jobId)
 }

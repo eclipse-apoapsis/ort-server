@@ -25,8 +25,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration as ApiPackageCuration
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackageDao
@@ -43,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Res
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -81,14 +80,14 @@ import org.ossreviewtoolkit.model.CuratedPackage as OrtCuratedPackage
  */
 class PackageService(private val db: Database, private val ortRunService: OrtRunService) {
     @Suppress("LongMethod")
-    fun listForOrtRunId(
+    suspend fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: PackageFilters = PackageFilters()
     ): ListQueryResult<ApiPackage> {
         ortRunService.getOrtRun(ortRunId) ?: return ListQueryResult(emptyList(), parameters, 0)
 
-        return db.blockingQuery {
+        return db.transaction {
             val query = PackagesTable.joinAnalyzerTables()
                 .innerJoin(IdentifiersTable)
                 .innerJoin(ProcessedDeclaredLicensesTable)
@@ -244,7 +243,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             val packageIds = query.map { it[PackagesTable.id] }
 
             if (packageIds.isEmpty()) {
-                return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
+                return@transaction ListQueryResult(emptyList(), parameters, totalCount)
             }
 
             val packagesById = PackageDao.find { PackagesTable.id inList packageIds }
@@ -276,7 +275,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
     }
 
     /** Count packages found in provided ORT runs. */
-    suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
+    suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.transaction {
         PackagesTable.joinAnalyzerTables()
             .select(PackagesTable.id)
             .where { AnalyzerJobsTable.ortRunId inList ortRunIds.asList() }
@@ -286,7 +285,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
 
     /** Count packages by ecosystem found in provided ORT runs. */
     suspend fun countEcosystemsForOrtRunIds(vararg ortRunIds: Long): List<EcosystemStats> =
-        db.dbQuery {
+        db.transaction {
             val countAlias = Count(PackagesTable.id, true)
             PackagesTable.joinAnalyzerTables()
                 .innerJoin(IdentifiersTable)
@@ -303,7 +302,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
 
     /** Return distinct processed declared SPDX license expressions for the ORT run. */
     suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> =
-        db.dbQuery {
+        db.transaction {
             val curationsMap = CuratedPackagesTable.getForOrtRunId(ortRunId)
             val curatedDeclaredLicenses = getCuratedDeclaredLicenses(ortRunId, curationsMap)
             val packageIdsWithDeclaredLicenseCurations = curatedDeclaredLicenses.map { it.first }
@@ -329,7 +328,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
 
     /** Return distinct unmapped declared license strings for the ORT run. */
     suspend fun getUnmappedDeclaredLicenses(ortRunId: Long): List<String> =
-        db.dbQuery {
+        db.transaction {
             val curationsMap = CuratedPackagesTable.getForOrtRunId(ortRunId)
             val curatedDeclaredLicenses = getCuratedDeclaredLicenses(ortRunId, curationsMap)
             val packageIdsWithDeclaredLicenseCurations = curatedDeclaredLicenses.map { it.first }

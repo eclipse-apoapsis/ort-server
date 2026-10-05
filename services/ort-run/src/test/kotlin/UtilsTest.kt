@@ -29,7 +29,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
@@ -37,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -160,7 +160,7 @@ class UtilsTest : WordSpec({
                 listOf(higherPriorityCurations, lowerPriorityCurations)
             )
 
-            val identifierIds = db.dbQuery {
+            val identifierIds = db.transaction {
                 IdentifiersTable
                     .innerJoin(PackagesTable)
                     .innerJoin(PackagesAnalyzerRunsTable)
@@ -184,7 +184,7 @@ class UtilsTest : WordSpec({
                     }
             }
 
-            val purls = db.dbQuery {
+            val purls = db.transaction {
                 getPurlByIdentifierIdForOrtRun(ortRun.id, identifierIds.values)
             }
 

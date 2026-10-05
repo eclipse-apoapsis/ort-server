@@ -25,6 +25,7 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -117,19 +118,19 @@ class NotifierOrtResultGeneratorTest : StringSpec({
 
     "Labels for the status of jobs should be added" {
         val helper = ResultGeneratorTestHelper()
-        every {
+        coEvery {
             helper.ortRunService.getAnalyzerJobForOrtRun(ORT_RUN_ID)
         } returns createJob<AnalyzerJob>(JobStatus.FINISHED, 11)
-        every {
+        coEvery {
             helper.ortRunService.getAdvisorJobForOrtRun(ORT_RUN_ID)
         } returns createJob<AdvisorJob>(JobStatus.FAILED, 22)
-        every {
+        coEvery {
             helper.ortRunService.getEvaluatorJobForOrtRun(ORT_RUN_ID)
         } returns createJob<EvaluatorJob>(JobStatus.FINISHED, 33)
-        every {
+        coEvery {
             helper.ortRunService.getScannerJobForOrtRun(ORT_RUN_ID)
         } returns createJob<ScannerJob>(JobStatus.RUNNING, 44)
-        every {
+        coEvery {
             helper.ortRunService.getReporterJobForOrtRun(ORT_RUN_ID)
         } returns createJob<ReporterJob>(JobStatus.FINISHED, 55)
 
@@ -199,20 +200,20 @@ private class ResultGeneratorTestHelper {
     }
 
     val ortRunService = mockk<OrtRunService> {
-        every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
-        every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
-        every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
-        every { getOrtRepositoryInformation(ortRun, failIfMissing = false) } returns repository
-        every { getOrtRun(ORT_RUN_ID) } returns ortRun
-        every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
-        every { getResolvedConfiguration(ortRun) } returns resolvedConfig
-        every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
-        every { getAnalyzerJobForOrtRun(ORT_RUN_ID) } returns null
-        every { getAdvisorJobForOrtRun(ORT_RUN_ID) } returns null
-        every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns null
-        every { getScannerJobForOrtRun(ORT_RUN_ID) } returns null
-        every { getReporterJobForOrtRun(ORT_RUN_ID) } returns null
-        every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtResult.EMPTY.copy(
+        coEvery { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+        coEvery { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+        coEvery { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+        coEvery { getOrtRepositoryInformation(ortRun, failIfMissing = false) } returns repository
+        coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+        coEvery { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+        coEvery { getResolvedConfiguration(ortRun) } returns resolvedConfig
+        coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+        coEvery { getAnalyzerJobForOrtRun(ORT_RUN_ID) } returns null
+        coEvery { getAdvisorJobForOrtRun(ORT_RUN_ID) } returns null
+        coEvery { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns null
+        coEvery { getScannerJobForOrtRun(ORT_RUN_ID) } returns null
+        coEvery { getReporterJobForOrtRun(ORT_RUN_ID) } returns null
+        coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtResult.EMPTY.copy(
             repository = repository,
             analyzer = ortAnalyzerRun,
             advisor = ortAdvisorRun,
@@ -251,8 +252,8 @@ private class ResultGeneratorTestHelper {
      * Run a test to generate an [OrtResult] based on the mocks managed by this instance and the given [job] and
      * [reports] list. Return the result.
      */
-    fun runResultGeneratorTest(job: NotifierJob = notifierJob, reports: List<Report> = emptyList()): OrtResult {
-        every { ortRunService.getDownloadLinksForOrtRun(ORT_RUN_ID) } returns reports
+    suspend fun runResultGeneratorTest(job: NotifierJob = notifierJob, reports: List<Report> = emptyList()): OrtResult {
+        coEvery { ortRunService.getDownloadLinksForOrtRun(ORT_RUN_ID) } returns reports
 
         val generator = NotifierOrtResultGenerator(ortRunService)
 

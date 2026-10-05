@@ -93,15 +93,15 @@ class NotifierWorkerTest : StringSpec({
         }
 
         val resultGenerator = mockk<NotifierOrtResultGenerator> {
-            every { generateOrtResult(ortRun, notifierJob) } returns ortResult
+            coEvery { generateOrtResult(ortRun, notifierJob) } returns ortResult
         }
 
         val ortRunService = mockk<OrtRunService> {
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { storeNotifierRun(any()) } returns mockk()
-            every { storeIssues(any(), any()) } just runs
+            coEvery { storeIssues(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -150,7 +150,7 @@ class NotifierWorkerTest : StringSpec({
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
         val ortRunService = mockk<OrtRunService> {
-            every { getNotifierJob(NOTIFIER_JOB_ID) } throws testException
+            coEvery { getNotifierJob(NOTIFIER_JOB_ID) } throws testException
         }
 
         val worker = NotifierWorker(mockk(), mockk(), ortRunService, mockk(), mockk())
@@ -166,7 +166,7 @@ class NotifierWorkerTest : StringSpec({
     "An ignored result should be returned for an invalid job" {
         val invalidJob = notifierJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
-            every { getNotifierJob(NOTIFIER_JOB_ID) } returns invalidJob
+            coEvery { getNotifierJob(NOTIFIER_JOB_ID) } returns invalidJob
         }
 
         val worker = NotifierWorker(mockk(), mockk(), ortRunService, mockk(), mockk())
@@ -192,15 +192,15 @@ class NotifierWorkerTest : StringSpec({
         }
 
         val resultGenerator = mockk<NotifierOrtResultGenerator> {
-            every { generateOrtResult(ortRun, notifierJob) } returns ortResult
+            coEvery { generateOrtResult(ortRun, notifierJob) } returns ortResult
         }
 
         val ortRunService = mockk<OrtRunService> {
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
             every { storeNotifierRun(any()) } returns mockk()
-            every { storeIssues(any(), any()) } just runs
+            coEvery { storeIssues(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
