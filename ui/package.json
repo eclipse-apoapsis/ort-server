@@ -9,6 +9,11 @@
       "name": "pnpm",
       "version": "12.8.0",
       "onFail": "download"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "24.21.0",
+      "onFail": "download"
     }
   },
   "scripts": {

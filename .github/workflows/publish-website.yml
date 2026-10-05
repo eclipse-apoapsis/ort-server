@@ -23,18 +23,12 @@ jobs:
     - name: Generate OpenAPI spec
       run: ./gradlew --stacktrace :core:generateOpenApiSpec
 
-    - name: Install Node
-      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+    - name: Setup pnpm
+      uses: pnpm/setup@v3
       with:
-        node-version: 24
-        cache-dependency-path: website/pnpm-lock.yaml
-
-    - name: Enable Corepack
-      run: corepack enable
-
-    - name: Install dependencies
-      working-directory: website
-      run: pnpm ci
+        cache: true
+        require-lockfile: true
+        working-directory: website
 
     - name: Test build
       working-directory: website
