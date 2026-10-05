@@ -44,8 +44,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
-import org.ossreviewtoolkit.utils.ort.runBlocking
-
 internal const val ADMIN_SECRET_PLACEHOLDER = "[set by admin]"
 
 /** A service for managing plugin templates. */
@@ -529,12 +527,10 @@ class PluginTemplateService(
 
     /** Validate that the organization with the given [organizationId] exists. */
     private fun validateOrganizationExists(organizationId: OrganizationId): Result<Unit, TemplateError> =
-        runBlocking {
-            if (organizationRepository.get(organizationId.value) == null) {
-                TemplateError.NotFound("No organization with ID '$organizationId' found.").toErr()
-            } else {
-                Ok(Unit)
-            }
+        if (organizationRepository.get(organizationId.value) == null) {
+            TemplateError.NotFound("No organization with ID '$organizationId' found.").toErr()
+        } else {
+            Ok(Unit)
         }
 
     /** Validate that there is no other global template for the same plugin. */
