@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -35,10 +35,10 @@ class PluginService(private val db: Database) {
      * Returns the [PluginAvailability] of the plugin with the given [pluginType] and [pluginId]. Returns
      * [PluginAvailability.DISABLED] if the plugin is not installed.
      */
-    fun getAvailability(pluginType: PluginType, pluginId: String): PluginAvailability {
+    suspend fun getAvailability(pluginType: PluginType, pluginId: String): PluginAvailability {
         val normalizedPluginId = normalizePluginId(pluginType, pluginId) ?: return PluginAvailability.DISABLED
 
-        return db.blockingQuery {
+        return db.transaction {
             PluginsReadModel.select(PluginsReadModel.availability)
                 .where {
                     PluginsReadModel.pluginType eq pluginType and
@@ -56,10 +56,10 @@ class PluginService(private val db: Database) {
     /**
      * Returns the [PluginDescriptor]s for all installed ORT plugins.
      */
-    fun getPlugins(): List<PluginDescriptor> {
+    suspend fun getPlugins(): List<PluginDescriptor> {
         val pluginInfo = mutableMapOf<PluginType, MutableMap<String, PluginAvailability>>()
 
-        db.blockingQuery {
+        db.transaction {
             PluginsReadModel.selectAll().forEach {
                 val pluginType = it[PluginsReadModel.pluginType]
                 val pluginId = it[PluginsReadModel.pluginId]

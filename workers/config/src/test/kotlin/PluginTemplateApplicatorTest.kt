@@ -35,7 +35,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
@@ -542,7 +541,7 @@ private fun applicator(vararg templates: PluginTemplate): PluginTemplateApplicat
 
 /** Create a mock of the [PluginService] that reports the given [plugins] as installed and enabled. */
 private fun pluginService(vararg plugins: Pair<PluginType, String>) = mockk<PluginService> {
-    every { getPlugins() } returns plugins.map { (pluginType, pluginId) ->
+    coEvery { getPlugins() } returns plugins.map { (pluginType, pluginId) ->
         PluginDescriptor(
             id = pluginId,
             type = pluginType,

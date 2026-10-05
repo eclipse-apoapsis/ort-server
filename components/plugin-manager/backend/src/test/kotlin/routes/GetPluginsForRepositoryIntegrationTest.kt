@@ -35,7 +35,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.ADMIN_SECRET_PLACEHOLDER
@@ -407,7 +407,7 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
             )
 
             val mockedPluginService = mockk<PluginService> {
-                every { getPlugins() } returns listOf(descriptor)
+                coEvery { getPlugins() } returns listOf(descriptor)
             }
 
             pluginTemplateService = PluginTemplateService(
