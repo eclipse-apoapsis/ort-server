@@ -67,7 +67,7 @@ internal class NotifierOrtResultGenerator(
     }
 
     /** A map with functions to retrieve the job status for each worker endpoint. */
-    private val jobStatusFunctions: Map<Endpoint<*>, (Long) -> WorkerJob?> = mapOf(
+    private val jobStatusFunctions: Map<Endpoint<*>, suspend (Long) -> WorkerJob?> = mapOf(
         AnalyzerEndpoint to ortRunService::getAnalyzerJobForOrtRun,
         AdvisorEndpoint to ortRunService::getAdvisorJobForOrtRun,
         ScannerEndpoint to ortRunService::getScannerJobForOrtRun,
@@ -78,7 +78,7 @@ internal class NotifierOrtResultGenerator(
     /**
      * Generate an [OrtResult] from the given [ortRun] object based on the given [notifierJob].
      */
-    fun generateOrtResult(ortRun: OrtRun, notifierJob: NotifierJob): OrtResult {
+    suspend fun generateOrtResult(ortRun: OrtRun, notifierJob: NotifierJob): OrtResult {
         val baseResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
 
         // Add other labels that are specific to the Notifier.
@@ -94,7 +94,7 @@ internal class NotifierOrtResultGenerator(
      * Return a map with labels that represent the direct download links for the reports generated for the given
      * [ortRun].
      */
-    private fun getLabelsForReportDownloadLinks(ortRun: OrtRun): Map<String, String> =
+    private suspend fun getLabelsForReportDownloadLinks(ortRun: OrtRun): Map<String, String> =
         ortRunService.getDownloadLinksForOrtRun(ortRun.id).associate {
             "$REPORT_LABEL_PREFIX${it.filename}" to it.downloadLink
         }
@@ -115,7 +115,7 @@ internal class NotifierOrtResultGenerator(
     /**
      * Return a map with labels that contain information about the worker jobs executed for the given [ortRun].
      */
-    private fun getJobStatusLabels(ortRun: OrtRun): Map<String, String> {
+    private suspend fun getJobStatusLabels(ortRun: OrtRun): Map<String, String> {
         val jobStatusLabels = mutableMapOf<String, String>()
 
         jobStatusFunctions.forEach { (endpoint, getJobFunction) ->

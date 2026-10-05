@@ -34,7 +34,6 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
@@ -75,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -101,7 +101,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
         "deleteOrphanedEntities" should {
             "delete packages that are not associated with any other entity" {
-                db.dbQuery {
+                db.transaction {
                     // Orphan entries - should be deleted by removal process.
                     createPackagesTableEntry(purl = "to.delete.1")
 
@@ -156,7 +156,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     PackagesTable.selectAll().count() shouldBe 1
                     PackagesTable.selectAll().toList().forEach {
                         it[PackagesTable.purl] shouldStartWith "not.to.delete"
@@ -169,7 +169,7 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
 
             "delete projects that are not associated with any other entity" {
-                db.dbQuery {
+                db.transaction {
                     // Orphan entry - should be deleted by removal process
                     createProjectsTableEntry(homepageUrl = "to.delete.1")
 
@@ -218,7 +218,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     ProjectsTable.selectAll().count() shouldBe 1
                     ProjectsTable.selectAll().toList().forEach {
                         it[ProjectsTable.homepageUrl] shouldStartWith "not.to.delete"
@@ -229,7 +229,7 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
 
             "delete authors that are not associated with any other entity" {
-                db.dbQuery {
+                db.transaction {
                     createAuthorsTableEntry(name = "to.delete.1")
 
                     createPackagesAuthorsTableEntry(
@@ -271,7 +271,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     AuthorsTable.selectAll().count() shouldBe 3
                     AuthorsTable.selectAll().toList().forEach {
                         it[AuthorsTable.name] shouldStartWith "not.to.delete"
@@ -280,7 +280,7 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
 
             "delete declared licenses that are not associated with any other entity" {
-                db.dbQuery {
+                db.transaction {
                     createDeclaredLicensesTableEntry(name = "to.delete.1")
 
                     createPackagesDeclaredLicensesTableEntry(
@@ -320,7 +320,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     DeclaredLicensesTable.selectAll().count() shouldBe 2
                     DeclaredLicensesTable.selectAll().toList().forEach {
                         it[DeclaredLicensesTable.name] shouldStartWith "not.to.delete"
@@ -329,7 +329,7 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
 
             "delete vcsInfos that are not associated with any other entity" {
-                db.dbQuery {
+                db.transaction {
                     // Orphan entries - should be deleted by removal process
                     createVcsInfoTableEntry(url = "to.delete1")
                     createVcsInfoTableEntry(url = "to.delete2")
@@ -377,7 +377,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     VcsInfoTable.selectAll().count() shouldBe 8
                     VcsInfoTable.selectAll().toList().forEach {
                         it[VcsInfoTable.url] shouldStartWith "not.to.delete"
@@ -386,7 +386,7 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
 
             "delete remote artifacts that are not associated with any other entity" {
-                db.dbQuery {
+                db.transaction {
                     createRemoteArtifactsTableEntry(url = "to.delete.1")
 
                     // Package-related entries wrapped to prevent cascade deletion with package
@@ -419,7 +419,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     RemoteArtifactsTable.selectAll().count() shouldBe 6
                     RemoteArtifactsTable.selectAll().toList().forEach {
                         it[RemoteArtifactsTable.url] shouldStartWith "not.to.delete"
@@ -428,7 +428,7 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
 
             "take the limit into account when deleting entities" {
-                db.dbQuery {
+                db.transaction {
                     (1..16).forEach {
                         createRemoteArtifactsTableEntry(url = "https://repo.example.com/artifact-$it")
                     }
@@ -436,13 +436,13 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     RemoteArtifactsTable.selectAll().count() shouldBe 6
                 }
             }
 
             "delete snippet associations which are no longer assigned to an ORT run" {
-                val remainingSnippet = db.dbQuery {
+                val remainingSnippet = db.transaction {
                     val run = createOrtRunTableEntry().value
                     val scanSummary1 = createScanSummariesTableEntry().value
                     val scanSummary2 = createScanSummariesTableEntry().value
@@ -458,7 +458,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery {
+                db.transaction {
                     val snippetAssociation = SnippetFindingsSnippetsTable.selectAll().single()
                     snippetAssociation[SnippetFindingsSnippetsTable.snippetId].value shouldBe remainingSnippet
                 }
@@ -468,7 +468,7 @@ class OrphanRemovalServiceTest : WordSpec() {
         "deleteOrphanedSnippets" should {
             "only delete a limited number of orphaned snippets at a time" {
                 val numberOfSnippets = 100
-                db.dbQuery {
+                db.transaction {
                     repeat(numberOfSnippets) {
                         createSnippetsTableEntry()
                     }
@@ -476,14 +476,14 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery(readOnly = true) {
+                db.transaction(readOnly = true) {
                     SnippetsTable.selectAll().count() shouldBe (numberOfSnippets - 10) // 10 is the limit in this test
                 }
             }
 
             "does not delete snippets that have snipped findings" {
                 val numberOfSnippets = 100
-                db.dbQuery {
+                db.transaction {
                     val runId = createOrtRunTableEntry().value
                     val scanSummaryId = createScanSummariesTableEntry().value
                     assignScanSummaryWithRun(runId, scanSummaryId)
@@ -496,7 +496,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                 }
 
                 // Add 5 orphan snippets
-                db.dbQuery {
+                db.transaction {
                     repeat(5) {
                         createSnippetsTableEntry()
                     }
@@ -504,14 +504,14 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery(readOnly = true) {
+                db.transaction(readOnly = true) {
                     SnippetsTable.selectAll().count() shouldBe (numberOfSnippets) // Nothing deleted but the orphans
                 }
             }
 
             "delete a limited number of orphaned snippet findings at a time" {
                 val numberOfSnippetFindings = 100
-                db.dbQuery {
+                db.transaction {
                     val summary = createScanSummariesTableEntry().value
                     repeat(numberOfSnippetFindings) {
                         createSnippetFindingTableEntry(summary)
@@ -520,7 +520,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery(readOnly = true) {
+                db.transaction(readOnly = true) {
                     SnippetFindingsTable
                         .selectAll().count() shouldBe (numberOfSnippetFindings - 11) // 11 is the limit in this test
                 }
@@ -528,7 +528,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
             "not delete snippet findings that have snippets" {
                 val numberOfSnippetFindings = 100
-                db.dbQuery {
+                db.transaction {
                     val runId = createOrtRunTableEntry().value
                     val scanSummaryId = createScanSummariesTableEntry().value
                     assignScanSummaryWithRun(runId, scanSummaryId)
@@ -547,7 +547,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
                 service.deleteRunsOrphanedEntities(createConfigManager())
 
-                db.dbQuery(readOnly = true) {
+                db.transaction(readOnly = true) {
                     SnippetsTable
                         .selectAll().count() shouldBe (numberOfSnippetFindings) // Nothing deleted but the orphans
                 }

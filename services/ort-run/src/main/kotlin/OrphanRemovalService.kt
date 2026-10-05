@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAuthorsTable
@@ -46,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 
 import org.jetbrains.exposed.v1.core.AbstractQuery
 import org.jetbrains.exposed.v1.core.Column
@@ -120,7 +121,7 @@ class OrphanRemovalService(
     private suspend fun <T : LongIdTable> T.deleteWhereNotExists(
         cond: (Column<EntityID<Long>>) -> AbstractQuery<*>
     ): Int =
-        db.dbQuery {
+        db.transaction {
             deleteWhere {
                 id inSubQuery (
                         select(id).where { notExists(cond(id)) }
@@ -170,7 +171,7 @@ class OrphanRemovalService(
         }
 
     private suspend fun deleteOrphanedSnippetAssociations() =
-        db.dbQuery {
+        db.transaction {
             SnippetFindingsSnippetsTable.deleteWhere {
                 SnippetFindingsSnippetsTable.snippetFindingId inSubQuery findUnassignedSnippetFindings()
             }
@@ -333,7 +334,7 @@ private enum class OrphanEntityHandler(
         val limit = config.getInt("$configPrefix.limit")
         val chunkSize = config.getInt("$configPrefix.chunkSize")
 
-        val orphanIds = db.dbQuery {
+        val orphanIds = db.transaction {
             val orphansQuery = table.select(table.id).where {
                 notExists(filterOrphanedEntities().invoke())
             }.limit(limit)
@@ -346,10 +347,8 @@ private enum class OrphanEntityHandler(
         orphanIds.chunked(chunkSize).forEach { ids ->
             logger.info("Deleting ${ids.size} orphaned entities from ${table.tableName}.")
 
-            runCatching {
-                db.dbQuery {
-                    table.deleteWhere { table.id inList ids }
-                }
+            db.transactionCatching {
+                table.deleteWhere { table.id inList ids }
             }.onFailure {
                 logger.error("Failed to delete chunk of orphaned entities from ${table.tableName}.", it)
             }

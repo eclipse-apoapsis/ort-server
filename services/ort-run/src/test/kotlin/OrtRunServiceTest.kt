@@ -55,8 +55,6 @@ import kotlinx.coroutines.delay
 import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.components.reportstorage.ReportStorageService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
@@ -76,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -1157,7 +1156,7 @@ class OrtRunServiceTest : WordSpec({
                 excludedProjectIds = setOf(excludedProject.identifier)
             )
 
-            db.dbQuery {
+            db.transaction {
                 val storedPackages = PackagesAnalyzerRunsTable
                     .innerJoin(PackagesTable)
                     .innerJoin(IdentifiersTable)
@@ -1296,7 +1295,7 @@ class OrtRunServiceTest : WordSpec({
 
     "storeRepositoryInformation" should {
         "store repository information correctly" {
-            val repository = db.blockingQuery {
+            val repository = db.transaction {
                 val vcsInfo = VcsInfoDao.getOrPut(createVcsInfo("https://example.org/repo.git"))
                 val processedVcsInfo = VcsInfoDao.getOrPut(createVcsInfo("https://example.org/processed-repo.git"))
                 val nestedVcsInfo = VcsInfoDao.getOrPut(createVcsInfo("https://example.org/nested-repo.git"))
@@ -1476,7 +1475,7 @@ class OrtRunServiceTest : WordSpec({
                 )
             )
 
-            val packageIds = dbExtension.db.dbQuery {
+            val packageIds = dbExtension.db.transaction {
                 PackagesTable
                     .innerJoin(IdentifiersTable)
                     .innerJoin(PackagesAnalyzerRunsTable)
@@ -1500,7 +1499,7 @@ class OrtRunServiceTest : WordSpec({
                     }
             }
 
-            val curationIds = dbExtension.db.dbQuery {
+            val curationIds = dbExtension.db.transaction {
                 ResolvedPackageCurationsTable
                     .innerJoin(ResolvedPackageCurationProvidersTable)
                     .innerJoin(PackageCurationProviderConfigsTable)
@@ -1517,7 +1516,7 @@ class OrtRunServiceTest : WordSpec({
                     }
             }
 
-            val storedRows = dbExtension.db.dbQuery {
+            val storedRows = dbExtension.db.transaction {
                 CuratedPackagesTable.selectAll()
                     .where { CuratedPackagesTable.ortRunId eq fixtures.ortRun.id }
                     .toList()
@@ -1833,14 +1832,14 @@ class OrtRunServiceTest : WordSpec({
     }
 })
 
-private fun createOrtRun(
+private suspend fun createOrtRun(
     db: Database,
     vcsInfo: VcsInfo?,
     processedVcsInfo: VcsInfo?,
     nestedVcsInfo1: VcsInfo,
     nestedVcsInfo2: VcsInfo,
     fixtures: Fixtures
-) = db.blockingQuery {
+) = db.transaction {
     val vcs = vcsInfo?.let(VcsInfoDao::getOrPut)
     val vcsProcessed = processedVcsInfo?.let(VcsInfoDao::getOrPut)
     val vcsNested = mapOf(

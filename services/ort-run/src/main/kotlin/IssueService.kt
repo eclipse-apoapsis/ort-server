@@ -23,13 +23,12 @@ import com.github.michaelbull.result.getOr
 
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.IssueResolutionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.calculateResolutionMessageHash
@@ -50,7 +49,6 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.services.utils.toSortOrder
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.Count
@@ -92,7 +90,7 @@ class IssueService(
     private val issueResolutionService: IssueResolutionService
 ) {
     /** Return a page of issues for the given ORT run after applying the requested filters. */
-    fun listForOrtRunId(
+    suspend fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         issuesFilter: IssueFilter = IssueFilter()
@@ -101,19 +99,19 @@ class IssueService(
             "ORT run with ID $ortRunId not found."
         )
 
-        return db.blockingQuery {
+        return db.transaction {
             val context = buildListForOrtRunIdQueryContext(ortRunId, issuesFilter)
 
             val totalCount = context.query.count()
             val ortRunIssueIds = fetchPagedIssueIds(context, parameters)
 
             if (ortRunIssueIds.isEmpty()) {
-                return@blockingQuery ListQueryResult(emptyList(), parameters, totalCount)
+                return@transaction ListQueryResult(emptyList(), parameters, totalCount)
             }
 
             val issueRows = fetchIssueRows(ortRunIssueIds)
             val resolutionsByOrtRunIssueId = fetchResolutionsByOrtRunIssueId(ortRunIssueIds)
-            val serverResolutions = runBlocking { getServerResolutions(ortRun.repositoryId) }
+            val serverResolutions = getServerResolutions(ortRun.repositoryId)
             val unappliedResolutions = getUnappliedResolutions(serverResolutions, resolutionsByOrtRunIssueId)
 
             val identifierIds = issueRows
@@ -390,7 +388,7 @@ class IssueService(
         }
 
     /** Count issues found in provided ORT runs. */
-    suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
+    suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.transaction {
         OrtRunsIssuesTable
             .select(OrtRunsIssuesTable.id)
             .where { OrtRunsIssuesTable.ortRunId inList ortRunIds.asList() }
@@ -400,7 +398,7 @@ class IssueService(
     /**
      * Count overall issues by severity for provided ORT runs.
      */
-    suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
+    suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.transaction {
         val countAlias = Count(OrtRunsIssuesTable.id, true)
 
         val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
@@ -418,7 +416,7 @@ class IssueService(
     }
 
     /** Count unresolved issues found in provided ORT runs. */
-    suspend fun countUnresolvedForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
+    suspend fun countUnresolvedForOrtRunIds(vararg ortRunIds: Long): Long = db.transaction {
         val resolvedIssueIdsSubquery = ResolvedIssuesTable
             .select(ResolvedIssuesTable.ortRunIssueId)
             .where { ResolvedIssuesTable.ortRunId inList ortRunIds.asList() }
@@ -433,7 +431,9 @@ class IssueService(
     }
 
     /** Count unresolved issues by severity for provided ORT runs. */
-    suspend fun countUnresolvedBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
+    suspend fun countUnresolvedBySeverityForOrtRunIds(
+        vararg ortRunIds: Long
+    ): CountByCategory<Severity> = db.transaction {
         val countAlias = Count(OrtRunsIssuesTable.id, true)
 
         val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }

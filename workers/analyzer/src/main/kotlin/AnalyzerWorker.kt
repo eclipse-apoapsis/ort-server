@@ -23,7 +23,7 @@ import java.io.File
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -243,7 +243,7 @@ internal class AnalyzerWorker(
             }
         }
 
-        db.dbQuery {
+        db.transaction {
             ortRunService.getValidAnalyzerJob(job.id)
             ortRunService.storeAnalyzerRun(
                 analyzerRun.mapToModel(job.id),
@@ -303,13 +303,13 @@ private class AnalyzerException(message: String) : Exception(message)
  * Obtain the [AnalyzerJob] for the given [jobId] and make sure that it is valid. Throw an exception if no valid
  * job can be obtained.
  */
-internal fun OrtRunService.getValidAnalyzerJob(jobId: Long) =
+internal suspend fun OrtRunService.getValidAnalyzerJob(jobId: Long) =
     getAnalyzerJob(jobId).validateForProcessing(jobId)
 
 /**
  * Return the [OrtRun] referenced by the given [job] or throw an [IllegalArgumentException] if it does not exist.
  */
-internal fun OrtRunService.getValidOrtRun(job: AnalyzerJob): OrtRun =
+internal suspend fun OrtRunService.getValidOrtRun(job: AnalyzerJob): OrtRun =
     getOrtRun(job.ortRunId)
         ?: throw IllegalArgumentException("The ORT run '${job.ortRunId}' does not exist.")
 

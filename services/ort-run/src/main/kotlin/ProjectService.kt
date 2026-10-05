@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
@@ -30,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAnaly
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.ProjectFilters
@@ -58,7 +58,7 @@ class ProjectService(private val db: Database) {
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: ProjectFilters = ProjectFilters()
-    ): ListQueryResult<Project> = db.dbQuery {
+    ): ListQueryResult<Project> = db.transaction {
         val query = ProjectsTable.joinAnalyzerTables()
             .innerJoin(IdentifiersTable)
             .innerJoin(ProcessedDeclaredLicensesTable)
@@ -148,7 +148,7 @@ class ProjectService(private val db: Database) {
         query.limit(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT).offset(parameters.offset ?: 0L)
 
         val projectIds = query.map { it[ProjectsTable.id] }
-        if (projectIds.isEmpty()) return@dbQuery ListQueryResult(emptyList(), parameters, totalCount)
+        if (projectIds.isEmpty()) return@transaction ListQueryResult(emptyList(), parameters, totalCount)
 
         val projectsById = ProjectDao.find { ProjectsTable.id inList projectIds }.associateBy { it.id }
         val projects = projectIds.map { projectsById.getValue(it).mapToModel() }
@@ -157,7 +157,7 @@ class ProjectService(private val db: Database) {
     }
 
     /** Return distinct processed declared SPDX license expressions for the ORT run. */
-    suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> = db.dbQuery {
+    suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> = db.transaction {
         ProjectsTable.joinAnalyzerTables()
             .innerJoin(ProcessedDeclaredLicensesTable)
             .select(ProcessedDeclaredLicensesTable.spdxExpression)
@@ -168,7 +168,7 @@ class ProjectService(private val db: Database) {
     }
 
     /** Return distinct unmapped declared license strings for the ORT run. */
-    suspend fun getUnmappedDeclaredLicenses(ortRunId: Long): List<String> = db.dbQuery {
+    suspend fun getUnmappedDeclaredLicenses(ortRunId: Long): List<String> = db.transaction {
         ProjectsTable.joinAnalyzerTables()
             .innerJoin(ProcessedDeclaredLicensesTable)
             .innerJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)

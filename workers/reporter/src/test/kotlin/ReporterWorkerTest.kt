@@ -152,21 +152,21 @@ class ReporterWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtTestData.result
 
         val ortRunService = mockk<OrtRunService> {
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
-            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
-            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
-            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
-            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
-            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
-            every { getOrtRepositoryInformation(ortRun) } returns mockk()
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
-            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
+            coEvery { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            coEvery { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            coEvery { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
+            coEvery { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+            coEvery { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(ortRun) } returns mockk()
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { storeIssues(any(), any()) } just runs
+            coEvery { storeIssues(any(), any()) } just runs
             every { storeReporterRun(any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -235,7 +235,7 @@ class ReporterWorkerTest : StringSpec({
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
         val ortRunService = mockk<OrtRunService> {
-            every { getReporterJob(any()) } throws testException
+            coEvery { getReporterJob(any()) } throws testException
         }
 
         val worker = ReporterWorker(
@@ -280,21 +280,21 @@ class ReporterWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtTestData.result
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
-            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
-            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
-            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
-            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
-            every { getOrtRepositoryInformation(ortRun) } returns mockk()
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
-            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            coEvery { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            coEvery { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            coEvery { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
+            coEvery { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+            coEvery { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(ortRun) } returns mockk()
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
-            every { storeIssues(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
+            coEvery { storeIssues(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
         }
 
         val context = mockk<WorkerContext> {
@@ -378,21 +378,21 @@ class ReporterWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtTestData.result
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
-            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
-            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
-            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
-            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
-            every { getOrtRepositoryInformation(ortRun) } returns mockk()
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
-            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            coEvery { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            coEvery { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            coEvery { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
+            coEvery { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+            coEvery { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(ortRun) } returns mockk()
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
-            every { storeIssues(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
+            coEvery { storeIssues(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
         }
 
         val context = mockk<WorkerContext> {
@@ -474,20 +474,20 @@ class ReporterWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtTestData.result
 
         val ortRunService = mockk<OrtRunService> {
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
-            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
-            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
-            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns null // No evaluator job
-            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
-            every { getOrtRepositoryInformation(ortRun) } returns mockk()
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
-            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
+            coEvery { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            coEvery { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            coEvery { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns null // No evaluator job
+            coEvery { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(ortRun) } returns mockk()
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { storeReporterRun(any()) } just runs
-            every { storeResolvedPackageConfigurations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeResolvedPackageConfigurations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -545,7 +545,7 @@ class ReporterWorkerTest : StringSpec({
     "An ignored result should be returned for an invalid job" {
         val invalidJob = reporterJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
-            every { getReporterJob(any()) } returns invalidJob
+            coEvery { getReporterJob(any()) } returns invalidJob
         }
 
         val worker = ReporterWorker(
@@ -582,10 +582,10 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val ortRunService = mockk<OrtRunService> {
-            every { getOrtRun(ORT_RUN_ID) } returns ortRun
-            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
+            coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
             every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
+            coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
             every { storeReporterRun(any()) } just runs
         }
 

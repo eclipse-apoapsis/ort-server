@@ -181,16 +181,16 @@ class AnalyzerWorkerTest : StringSpec({
         val job = analyzerJob.copy(configuration = jobConfig)
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns job
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns job
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -230,7 +230,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 ortRunService.updateResolvedRevision(ortRun.id, "resolvedRevision")
                 ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID }, any())
                 ortRunService.storeRepositoryInformation(any(), any())
@@ -250,16 +250,16 @@ class AnalyzerWorkerTest : StringSpec({
 
     "A repository without credentials should be analyzed successfully" {
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -313,16 +313,16 @@ class AnalyzerWorkerTest : StringSpec({
         val job = analyzerJob.copy(configuration = jobConfig)
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns job
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns job
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns job
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -376,16 +376,16 @@ class AnalyzerWorkerTest : StringSpec({
         val job = analyzerJob.copy(configuration = jobConfig)
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns job
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns job
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns job
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -434,16 +434,16 @@ class AnalyzerWorkerTest : StringSpec({
 
     "AnalyzerRunner should be invoked correctly with an environment configuration from the repository" {
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -500,16 +500,16 @@ class AnalyzerWorkerTest : StringSpec({
         val job = analyzerJob.copy(configuration = jobConfig)
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns job
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns job
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns job
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -585,7 +585,7 @@ class AnalyzerWorkerTest : StringSpec({
     "A failure result should be returned in case of an error" {
         val testException = IllegalStateException("Test exception")
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } throws testException
+            coEvery { getAnalyzerJob(any()) } throws testException
         }
 
         val phase = FullPhase(
@@ -609,7 +609,7 @@ class AnalyzerWorkerTest : StringSpec({
     "An ignore result should be returned for an invalid job" {
         val invalidJob = analyzerJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns invalidJob
+            coEvery { getAnalyzerJob(any()) } returns invalidJob
         }
 
         val phase = FullPhase(
@@ -646,16 +646,16 @@ class AnalyzerWorkerTest : StringSpec({
         val resolvedItemsSlot = slot<ResolvedItemsResult>()
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -740,16 +740,16 @@ class AnalyzerWorkerTest : StringSpec({
         val resolvedItemsSlot = slot<ResolvedItemsResult>()
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -817,16 +817,16 @@ class AnalyzerWorkerTest : StringSpec({
             slot<Map<Identifier, List<AppliedPackageCurationRef>>>()
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), capture(associationsSlot)) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), capture(associationsSlot)) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -861,7 +861,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 ortRunService.storePackageCurationAssociations(analyzerJob.ortRunId, any())
             }
 
@@ -879,16 +879,16 @@ class AnalyzerWorkerTest : StringSpec({
 
     "Package curation associations should not be stored when no curations are applied" {
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -927,7 +927,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 0) {
+            coVerify(exactly = 0) {
                 ortRunService.storePackageCurationAssociations(any(), any())
             }
         }
@@ -938,18 +938,18 @@ class AnalyzerWorkerTest : StringSpec({
         val excludedProjectIdsSlot = slot<Set<Identifier>>()
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every {
                 storeAnalyzerRun(any(), any(), capture(excludedPackageIdsSlot), capture(excludedProjectIdsSlot))
             } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -999,16 +999,16 @@ class AnalyzerWorkerTest : StringSpec({
 
     "A 'finished with issues' result should be returned if the analyzer run finished with issues" {
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -1058,16 +1058,16 @@ class AnalyzerWorkerTest : StringSpec({
 
     "A 'success' result should be returned if the analyzer run finished with issues with severity HINT" {
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -1133,16 +1133,16 @@ class AnalyzerWorkerTest : StringSpec({
 
     "A 'success' result should be returned if the analyzer run finished with resolved issues" {
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns analyzerJob
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -1197,11 +1197,11 @@ class AnalyzerWorkerTest : StringSpec({
         val job = analyzerJob.copy(configuration = jobConfig)
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns job
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns job
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { startAnalyzerJob(any()) } returns job
-            every { updateResolvedRevision(any(), any()) } just runs
+            coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
@@ -1259,7 +1259,7 @@ class AnalyzerWorkerTest : StringSpec({
 
                 result shouldBe RunResult.Ignored
 
-                verify(exactly = 1) {
+                coVerify(exactly = 1) {
                     ortRunService.updateResolvedRevision(ortRun.id, "resolvedRevision")
 
                     EnvironmentForkHelper.persistAuthenticationInfo(jobDir.resolve(AUTH_INFO_FILE))
@@ -1440,14 +1440,14 @@ class AnalyzerWorkerTest : StringSpec({
         val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
 
         val ortRunService = mockk<OrtRunService> {
-            every { getAnalyzerJob(any()) } returns analyzerJob
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRun(any()) } returns ortRun
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRun(any()) } returns ortRun
             every { storeAnalyzerRun(any(), any()) } just runs
-            every { storeRepositoryInformation(any(), any()) } just runs
-            every { storeResolvedPackageCurations(any(), any()) } just runs
-            every { storePackageCurationAssociations(any(), any()) } just runs
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeRepositoryInformation(any(), any()) } just runs
+            coEvery { storeResolvedPackageCurations(any(), any()) } just runs
+            coEvery { storePackageCurationAssociations(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockWorkerContext()
@@ -1485,7 +1485,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             result shouldBe RunResult.FinishedWithIssues
 
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 ortRunService.storeAnalyzerRun(
                     withArg {
                         // There is no exact match because of different orders of elements in sets.

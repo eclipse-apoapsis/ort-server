@@ -23,7 +23,7 @@ import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
@@ -138,7 +138,7 @@ internal class ReporterWorker(
                 vulnerabilities = emptyList()
             )
 
-            db.dbQuery {
+            db.transaction {
                 ortRunService.storeReporterRun(reporterRun)
                 reporterRunnerResult.resolvedPackageConfigurations?.let {
                     ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)
@@ -184,7 +184,7 @@ internal class ReporterWorker(
         }
     }
 
-    private fun getValidReporterJob(jobId: Long) =
+    private suspend fun getValidReporterJob(jobId: Long) =
         ortRunService.getReporterJob(jobId).validateForProcessing(jobId)
 
     /**

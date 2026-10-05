@@ -305,7 +305,7 @@ class PackageServiceTest : WordSpec() {
                     )
                 )
 
-                fun sortedNames(direction: OrderDirection) = service.listForOrtRunId(
+                suspend fun sortedNames(direction: OrderDirection) = service.listForOrtRunId(
                     ortRunId,
                     ListQueryParameters(listOf(OrderField("publishedAt", direction)))
                 ).data.map { it.identifier.name }
@@ -330,7 +330,7 @@ class PackageServiceTest : WordSpec() {
                     "provider" to mapOf(early.identifier to "2024-03-01T00:00:00Z")
                 )
 
-                fun sortedNames(ortRunId: Long) = service.listForOrtRunId(
+                suspend fun sortedNames(ortRunId: Long) = service.listForOrtRunId(
                     ortRunId,
                     ListQueryParameters(listOf(OrderField("publishedAt", OrderDirection.ASCENDING)))
                 ).data.map { it.identifier.name }
@@ -369,7 +369,7 @@ class PackageServiceTest : WordSpec() {
                     }
                 ).id
 
-                fun page(direction: OrderDirection, offset: Long) = service.listForOrtRunId(
+                suspend fun page(direction: OrderDirection, offset: Long) = service.listForOrtRunId(
                     ortRunId,
                     ListQueryParameters(listOf(OrderField("publishedAt", direction)), limit = 2, offset = offset)
                 ).data.map { it.identifier.name }

@@ -36,7 +36,6 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
-import io.mockk.verify
 
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -122,18 +121,18 @@ class ScannerWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
-            every { createScannerRun(any()) } returns mockk {
+            coEvery { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
             }
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any(), any()) } returns mockk()
+            coEvery { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(any()) } returns mockk()
+            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            coEvery { getScannerJob(any()) } returns scannerJob
+            coEvery { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -202,7 +201,7 @@ class ScannerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             val slotScannerRun = slot<org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun>()
-            verify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun), any()) }
+            coVerify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun), any()) }
             slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
 
             coVerify { environmentService.setupAuthenticationForCurrentRun(context) }
@@ -226,18 +225,18 @@ class ScannerWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
-            every { createScannerRun(any()) } returns mockk {
+            coEvery { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
             }
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any(), any()) } returns mockk()
+            coEvery { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(any()) } returns mockk()
+            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            coEvery { getScannerJob(any()) } returns scannerJob
+            coEvery { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -377,7 +376,7 @@ class ScannerWorkerTest : StringSpec({
 
             val slotScannerRun = slot<org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun>()
             val slotIssues = slot<Collection<Issue>>()
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 ortRunService.finalizeScannerRun(capture(slotScannerRun), capture(slotIssues))
             }
             slotScannerRun.captured.scanners shouldBe mapOf(
@@ -427,7 +426,7 @@ class ScannerWorkerTest : StringSpec({
     "A failure result should be returned in case of an error" {
         val textException = IllegalStateException("Test exception")
         val ortRunService = mockk<OrtRunService> {
-            every { getScannerJob(any()) } throws textException
+            coEvery { getScannerJob(any()) } throws textException
         }
 
         val worker = ScannerWorker(
@@ -465,18 +464,18 @@ class ScannerWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
-            every { createScannerRun(any()) } returns mockk {
+            coEvery { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
             }
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any(), any()) } returns mockk()
+            coEvery { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(any()) } returns mockk()
+            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            coEvery { getScannerJob(any()) } returns scannerJob
+            coEvery { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -539,18 +538,18 @@ class ScannerWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
 
         val ortRunService = mockk<OrtRunService> {
-            every { createScannerRun(any()) } returns mockk {
+            coEvery { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
             }
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any(), any()) } returns mockk()
+            coEvery { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(any()) } returns mockk()
+            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            coEvery { getScannerJob(any()) } returns scannerJob
+            coEvery { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
-            every { storeResolvedItems(any(), any()) } just runs
+            coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -638,18 +637,18 @@ class ScannerWorkerTest : StringSpec({
         val resolvedItemsSlot = slot<ResolvedItemsResult>()
 
         val ortRunService = mockk<OrtRunService> {
-            every { createScannerRun(any()) } returns mockk {
+            coEvery { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
             }
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any(), any()) } returns mockk()
+            coEvery { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(any()) } returns mockk()
+            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            coEvery { getScannerJob(any()) } returns scannerJob
+            coEvery { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
-            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+            coEvery { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -752,18 +751,18 @@ class ScannerWorkerTest : StringSpec({
         val resolvedItemsSlot = slot<ResolvedItemsResult>()
 
         val ortRunService = mockk<OrtRunService> {
-            every { createScannerRun(any()) } returns mockk {
+            coEvery { createScannerRun(any()) } returns mockk {
                 every { id } returns scannerJob.id
             }
-            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
-            every { getHierarchyForOrtRun(any()) } returns hierarchy
-            every { getOrtRepositoryInformation(any()) } returns mockk()
-            every { getOrtRun(any()) } returns ortRun
-            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
-            every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any(), any()) } returns mockk()
+            coEvery { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
+            coEvery { getOrtRepositoryInformation(any()) } returns mockk()
+            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            coEvery { getScannerJob(any()) } returns scannerJob
+            coEvery { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
-            every { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
+            coEvery { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
         }
 
         val context = mockk<WorkerContext> {
@@ -825,7 +824,7 @@ class ScannerWorkerTest : StringSpec({
     "An ignore result should be returned for an invalid job" {
         val invalidJob = scannerJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {
-            every { getScannerJob(any()) } returns invalidJob
+            coEvery { getScannerJob(any()) } returns invalidJob
         }
 
         val worker = ScannerWorker(
