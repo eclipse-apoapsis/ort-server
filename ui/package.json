@@ -67,7 +67,7 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
-    "@babel/core": "8.0.6",
+    "@babel/core": "7.29.7",
     "@eslint/js": "10.0.1",
     "@hey-api/openapi-ts": "0.99.0",
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",

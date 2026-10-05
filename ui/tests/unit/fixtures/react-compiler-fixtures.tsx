@@ -26,3 +26,9 @@ export function AnnotatedFixture() {
 export function UnannotatedFixture() {
   return <span>Fixture</span>;
 }
+
+export function DefaultPropFixture({ label = 'Fixture' }: { label?: string }) {
+  'use memo';
+
+  return <span>{label}</span>;
+}

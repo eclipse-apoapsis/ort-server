@@ -65,6 +65,11 @@
     {
       "matchPackageNames": ["io.kubernetes:client-java-extended", "io.kubernetes:client-java"],
       "allowedVersions": "!/.*-legacy$/"
+    },
+    {
+      "description": "React Compiler 1.0 does not support Babel 8 and silently skips components with default prop values when it runs with it.",
+      "matchPackageNames": ["@babel/core"],
+      "allowedVersions": "< 8"
     }
   ]
 }
