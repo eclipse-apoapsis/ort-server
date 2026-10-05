@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
@@ -32,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -48,8 +48,8 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
  * Use the [fileListResolver] to get the [FileList]s for the provided [provenances]. If a [FileList] is not
  * available for a provenance, it is ignored and not included in the result.
  */
-internal fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
-    runBlocking(Dispatchers.IO.limitedParallelism(20)) {
+internal suspend fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
+    withContext(Dispatchers.IO.limitedParallelism(20)) {
         provenances.map { provenance ->
             async {
                 fileListResolver.get(provenance)?.let { fileList ->
