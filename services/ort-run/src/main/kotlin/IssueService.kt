@@ -408,7 +408,7 @@ class IssueService(
             .select(IssuesTable.severity, countAlias)
             .where { OrtRunsIssuesTable.ortRunId inList ortRunIds.asList() }
             .groupBy(IssuesTable.severity)
-            .map { row ->
+            .forEach { row ->
                 severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
             }
 
@@ -450,7 +450,7 @@ class IssueService(
                     not(OrtRunsIssuesTable.id inSubQuery resolvedIssueIdsSubquery)
             }
             .groupBy(IssuesTable.severity)
-            .map { row ->
+            .forEach { row ->
                 severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
             }
 
