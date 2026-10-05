@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import type { DependencyGraph } from '@/api';
+import type { DependencyGraph, DependencyGraphScope } from '@/api';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
@@ -58,6 +58,17 @@ export const matchesSearch = (
   searchTerm: string
 ): boolean =>
   searchTerm.length > 0 && value?.toLowerCase().includes(searchTerm) === true;
+
+// The search never hides parts of the graph; it only decides which branches are
+// auto-expanded to reveal the matches. A scope is considered to contain a match
+// when its own label matches or any of its node subtrees does.
+export const scopeHasSearchMatch = (
+  { rootNodeIndexes, scopeLabel }: DependencyGraphScope,
+  searchTerm: string,
+  matchesNodeSubtree: (nodeIndex: number) => boolean
+): boolean =>
+  matchesSearch(scopeLabel, searchTerm) ||
+  rootNodeIndexes.some(matchesNodeSubtree);
 
 export const createNodeSubtreeMatcher = (
   graph: DependencyGraph,

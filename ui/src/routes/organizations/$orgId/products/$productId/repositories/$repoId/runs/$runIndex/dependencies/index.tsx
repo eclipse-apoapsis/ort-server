@@ -19,17 +19,13 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { ChevronDown, ChevronsUpDown, ChevronUp, X } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
-import type { DependencyGraph, DependencyGraphScope } from '@/api';
 import {
   getRepositoryRunOptions,
   getRunDependencyGraphOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -37,32 +33,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toggle } from '@/components/ui/toggle';
 import { convertToBackendSorting } from '@/helpers/handle-multisort';
-import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
 import {
   dependencyGraphSortSearchParameterSchema,
   type DependencyGraphSortField,
 } from '@/schemas';
-import { useUserSettingsStore } from '@/store/user-settings.store';
-import {
-  buildAdjacencyMap,
-  createNodeSubtreeMatcher,
-  matchesSearch,
-  normalizeSearchTerm,
-} from './-components/dependency-graph-utils';
-import { DependencyTreeNode } from './-components/dependency-tree-node';
-import { HighlightedMatch } from './-components/highlighted-match';
-import { TreeBranch } from './-components/tree-branch';
-import { TreeToggleIcon } from './-components/tree-toggle-icon';
+import { ManagerDependenciesTab } from './-components/manager-dependencies-tab';
+import { PackageCountBadge } from './-components/package-count-badge';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -161,224 +141,6 @@ const SortControls = ({ className }: { className?: string }) => {
         />
       ))}
     </div>
-  );
-};
-
-const PackageCountBadge = ({ count }: { count?: number | null }) => {
-  if (count == null) return null;
-
-  return (
-    <Badge variant='secondary'>
-      {count} package
-      {count === 1 ? '' : 's'}
-    </Badge>
-  );
-};
-
-const TreeToggle = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <CollapsibleTrigger asChild>
-    <button
-      type='button'
-      className={cn(
-        'group/toggle flex w-full items-start gap-2 rounded-sm text-left',
-        className
-      )}
-    >
-      <TreeToggleIcon />
-      <div className='min-w-0 flex-1'>{children}</div>
-    </button>
-  </CollapsibleTrigger>
-);
-
-const ManagerDependenciesTab = ({
-  graph,
-  managerName,
-}: {
-  graph: DependencyGraph;
-  managerName: string;
-}) => {
-  const [searchValue, setSearchValue] = useState('');
-  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
-  const debouncedSearchValue = useDebounce(searchValue);
-  const searchTerm = normalizeSearchTerm(debouncedSearchValue);
-  const adjacency = buildAdjacencyMap(graph);
-  const matchesNodeSubtree = createNodeSubtreeMatcher(
-    graph,
-    adjacency,
-    searchTerm,
-    packageIdType
-  );
-
-  // The search never hides parts of the graph; it only decides which branches
-  // are auto-expanded to reveal the matches. A scope is considered to contain a
-  // match when its own label matches or any of its node subtrees does.
-  const scopeHasMatch = ({
-    rootNodeIndexes,
-    scopeLabel,
-  }: DependencyGraphScope) =>
-    matchesSearch(scopeLabel, searchTerm) ||
-    rootNodeIndexes.some(matchesNodeSubtree);
-
-  const hasMatches =
-    !searchTerm ||
-    graph.projectGroups.some(
-      ({ projectLabel, scopes }) =>
-        matchesSearch(projectLabel, searchTerm) || scopes.some(scopeHasMatch)
-    );
-
-  return (
-    <TabsContent value={managerName} className='space-y-4'>
-      <div className='flex items-center gap-2'>
-        <Input
-          value={searchValue}
-          onChange={(event) => setSearchValue(event.target.value)}
-          placeholder='Search package ID or PURL...'
-        />
-        {searchValue && (
-          <Button
-            type='button'
-            variant='secondary'
-            size='icon'
-            className='shrink-0'
-            onClick={() => setSearchValue('')}
-            aria-label='Clear search'
-          >
-            <X className='size-4' />
-          </Button>
-        )}
-      </div>
-
-      {searchTerm && !hasMatches && (
-        <div className='text-muted-foreground text-sm'>
-          No packages match your search. Showing the full graph.
-        </div>
-      )}
-
-      {graph.projectGroups.length === 0 ? (
-        <div className='text-muted-foreground text-sm'>
-          No scopes are available for this dependency graph.
-        </div>
-      ) : (
-        <div className='space-y-2'>
-          {graph.projectGroups.map(({ packageCount, projectLabel, scopes }) => {
-            const projectOpen =
-              searchTerm.length > 0 && scopes.some(scopeHasMatch);
-
-            return scopes.length > 0 ? (
-              // Keying on the search term remounts the tree whenever the search
-              // changes, so the `defaultOpen` auto-expansion is recomputed for
-              // the new matches while leaving nodes freely toggleable in
-              // between.
-              <Collapsible
-                key={`${projectLabel}-${searchTerm}`}
-                className='space-y-2'
-                defaultOpen={projectOpen}
-              >
-                <TreeToggle>
-                  <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                    <span className='block min-w-0 text-sm font-semibold break-all'>
-                      <HighlightedMatch
-                        searchTerm={searchTerm}
-                        text={projectLabel}
-                      />
-                    </span>
-                    <PackageCountBadge count={packageCount} />
-                  </div>
-                </TreeToggle>
-
-                <CollapsibleContent>
-                  <div className='space-y-2'>
-                    {scopes.map(
-                      (
-                        {
-                          packageCount,
-                          rootNodeIndexes,
-                          scopeName,
-                          scopeLabel,
-                        },
-                        scopePosition
-                      ) => {
-                        const scopeOpen =
-                          searchTerm.length > 0 &&
-                          rootNodeIndexes.some(matchesNodeSubtree);
-
-                        return (
-                          <TreeBranch
-                            key={scopeName}
-                            isLast={scopePosition === scopes.length - 1}
-                          >
-                            <Collapsible
-                              className='space-y-2'
-                              defaultOpen={scopeOpen}
-                            >
-                              <TreeToggle>
-                                <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                                  {scopeLabel && (
-                                    <Badge variant='outline'>
-                                      <HighlightedMatch
-                                        searchTerm={searchTerm}
-                                        text={scopeLabel}
-                                      />
-                                    </Badge>
-                                  )}
-                                  <PackageCountBadge count={packageCount} />
-                                </div>
-                              </TreeToggle>
-
-                              <CollapsibleContent className='pt-2'>
-                                <div className='space-y-2'>
-                                  {rootNodeIndexes.map(
-                                    (nodeIndex, nodePosition) => (
-                                      <DependencyTreeNode
-                                        key={`${scopeName}-${nodeIndex}`}
-                                        adjacency={adjacency}
-                                        graph={graph}
-                                        isLast={
-                                          nodePosition ===
-                                          rootNodeIndexes.length - 1
-                                        }
-                                        matchesNodeSubtree={matchesNodeSubtree}
-                                        nodeIndex={nodeIndex}
-                                        packageIdType={packageIdType}
-                                        path={new Set<number>()}
-                                        searchTerm={searchTerm}
-                                      />
-                                    )
-                                  )}
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </TreeBranch>
-                        );
-                      }
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            ) : (
-              <div key={projectLabel} className='flex items-start gap-2'>
-                <div className='mt-[3px] size-4 shrink-0' />
-                <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                  <span className='block min-w-0 text-sm font-semibold break-all'>
-                    <HighlightedMatch
-                      searchTerm={searchTerm}
-                      text={projectLabel}
-                    />
-                  </span>
-                  <PackageCountBadge count={packageCount} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </TabsContent>
   );
 };
 
