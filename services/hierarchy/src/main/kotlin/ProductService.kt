@@ -24,9 +24,9 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -73,7 +73,7 @@ class ProductService(
         description: String?,
         creatorId: String? = null
     ): Repository {
-        val repository = db.dbQuery {
+        val repository = db.transaction {
             repositoryRepository.create(
                 type = type,
                 url = url,
@@ -102,7 +102,7 @@ class ProductService(
     /**
      * Delete a [product][productId] with its [repositories][Repository] and [OrtRun]s.
      */
-    suspend fun deleteProduct(productId: Long): Unit = db.dbQuery {
+    suspend fun deleteProduct(productId: Long): Unit = db.transaction {
         ortRunRepository.deleteByProduct(productId)
         repositoryRepository.deleteByProduct(productId)
 
@@ -112,7 +112,7 @@ class ProductService(
     /**
      * Get a product by [productId]. Returns null if the product is not found.
      */
-    suspend fun getProduct(productId: Long): Product? = db.dbQuery {
+    suspend fun getProduct(productId: Long): Product? = db.transaction {
         productRepository.get(productId)
     }
 
@@ -123,7 +123,7 @@ class ProductService(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
-    ): ListQueryResult<Repository> = db.dbQuery {
+    ): ListQueryResult<Repository> = db.transaction {
         repositoryRepository.listForProduct(productId, parameters, filter)
     }
 
@@ -142,7 +142,7 @@ class ProductService(
             RepositoryRole.READER,
             ProductId(product.id)
         )
-        db.dbQuery {
+        db.transaction {
             repositoryRepository.list(parameters, filter, hierarchyFilter)
         }
     } ?: ListQueryResult(emptyList(), parameters, 0)
@@ -154,11 +154,11 @@ class ProductService(
         productId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
-    ): Product = db.dbQuery {
+    ): Product = db.transaction {
         productRepository.update(productId, name, description)
     }
 
-    suspend fun getRepositoryIdsForProduct(productId: Long): List<Long> = db.dbQuery {
+    suspend fun getRepositoryIdsForProduct(productId: Long): List<Long> = db.transaction {
         RepositoriesTable
             .select(RepositoriesTable.id)
             .where { RepositoriesTable.productId eq productId }
@@ -181,7 +181,7 @@ class ProductService(
     /**
      * Get the ID of the latest ORT run of the repository where the status is failed.
      **/
-    suspend fun getLatestOrtRunWithFailedStatusForProduct(productId: Long): List<Long> = db.dbQuery {
+    suspend fun getLatestOrtRunWithFailedStatusForProduct(productId: Long): List<Long> = db.transaction {
         RepositoriesTable
             .innerJoin(OrtRunsTable)
             .select(
