@@ -29,8 +29,8 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
@@ -79,7 +79,7 @@ class DatabaseSecretsProviderTest : WordSpec({
 
             storage.writeSecret(path, SecretValue(plaintext))
 
-            val row = dbExtension.db.blockingQuery {
+            val row = dbExtension.db.transaction {
                 DatabaseSecretsTable.selectAll().where { DatabaseSecretsTable.path eq path.path }.single()
             }
 
@@ -94,7 +94,7 @@ class DatabaseSecretsProviderTest : WordSpec({
 
             storage.writeSecret(path, SecretValue("first"))
 
-            val firstRow = dbExtension.db.blockingQuery {
+            val firstRow = dbExtension.db.transaction {
                 DatabaseSecretsTable.select(
                     DatabaseSecretsTable.createdAt,
                     DatabaseSecretsTable.updatedAt
@@ -103,7 +103,7 @@ class DatabaseSecretsProviderTest : WordSpec({
 
             storage.writeSecret(path, SecretValue("second"))
 
-            val secondRow = dbExtension.db.blockingQuery {
+            val secondRow = dbExtension.db.transaction {
                 DatabaseSecretsTable.select(
                     DatabaseSecretsTable.createdAt,
                     DatabaseSecretsTable.updatedAt
@@ -121,13 +121,13 @@ class DatabaseSecretsProviderTest : WordSpec({
 
             storage.writeSecret(path, SecretValue(plaintext))
 
-            val firstRow = dbExtension.db.blockingQuery {
+            val firstRow = dbExtension.db.transaction {
                 DatabaseSecretsTable.selectAll().where { DatabaseSecretsTable.path eq path.path }.single()
             }
 
             storage.writeSecret(path, SecretValue(plaintext))
 
-            val secondRow = dbExtension.db.blockingQuery {
+            val secondRow = dbExtension.db.transaction {
                 DatabaseSecretsTable.selectAll().where { DatabaseSecretsTable.path eq path.path }.single()
             }
 
