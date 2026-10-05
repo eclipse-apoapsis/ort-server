@@ -24,6 +24,7 @@ import { expect, it } from 'vitest';
 
 import {
   AnnotatedFixture,
+  DefaultPropFixture,
   UnannotatedFixture,
 } from '../fixtures/react-compiler-fixtures';
 
@@ -40,4 +41,18 @@ it('renders annotated and unannotated components identically', () => {
 
   rerender(<UnannotatedFixture />);
   expect(screen.getByText('Fixture')).toBeInTheDocument();
+});
+
+// React Compiler 1.0 skips such components when it runs with Babel 8. The fixture has no output
+// that is independent of its props, so it has no sentinel check; test for the memo cache instead.
+it('compiles annotated components with a default prop value', () => {
+  expect(DefaultPropFixture.toString()).toMatch(/const \$ = .*\.c\)\(\d+\);/);
+});
+
+it('renders the default prop value unless another value is passed', () => {
+  const { rerender } = render(<DefaultPropFixture />);
+  expect(screen.getByText('Fixture')).toBeInTheDocument();
+
+  rerender(<DefaultPropFixture label='Other' />);
+  expect(screen.getByText('Other')).toBeInTheDocument();
 });
