@@ -445,7 +445,7 @@ class RuleViolationService(
             .select(RuleViolationsTable.severity, countAlias)
             .where { EvaluatorJobsTable.ortRunId inList ortRunIds.asList() }
             .groupBy(RuleViolationsTable.severity)
-            .map { row ->
+            .forEach { row ->
                 severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])
             }
 
@@ -493,7 +493,7 @@ class RuleViolationService(
                     not(RuleViolationsTable.id inSubQuery resolvedViolationIdsSubquery)
             }
             .groupBy(RuleViolationsTable.severity)
-            .map { row ->
+            .forEach { row ->
                 severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])
             }
 
