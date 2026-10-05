@@ -26,7 +26,6 @@ import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
@@ -41,7 +40,7 @@ class UtilsTest : WordSpec({
     "getDefaultPackageManagers()" should {
         "return all enabled and restricted package managers available for an organization that are ORT defaults" {
             val pluginService = mockk<PluginService> {
-                every { getPlugins() } returns listOf(
+                coEvery { getPlugins() } returns listOf(
                     PluginDescriptor(
                         "Maven",
                         PluginType.PACKAGE_MANAGER,

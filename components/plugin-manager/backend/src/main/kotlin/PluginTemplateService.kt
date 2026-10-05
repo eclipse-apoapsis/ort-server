@@ -562,7 +562,7 @@ class PluginTemplateService(
      * Validate that the provided [options] are valid for the given [pluginType] and [pluginId]. Returns the plugin ID
      * on success.
      */
-    private fun validatePluginOptions(
+    private suspend fun validatePluginOptions(
         pluginType: PluginType,
         pluginId: String,
         options: List<PluginOptionTemplate>
