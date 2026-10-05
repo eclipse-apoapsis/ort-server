@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Organizati
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -55,7 +55,7 @@ class OrganizationService(
     /**
      * Create an organization.
      */
-    suspend fun createOrganization(name: String, description: String?): Organization = db.dbQuery {
+    suspend fun createOrganization(name: String, description: String?): Organization = db.transaction {
         organizationRepository.create(name, description)
     }
 
@@ -68,7 +68,7 @@ class OrganizationService(
         organizationId: Long,
         creatorId: String? = null
     ): Product {
-        val product = db.dbQuery {
+        val product = db.transaction {
             productRepository.create(name, description, organizationId)
         }
 
@@ -87,7 +87,7 @@ class OrganizationService(
     /**
      * Delete an organization by [organizationId].
      */
-    suspend fun deleteOrganization(organizationId: Long): Unit = db.dbQuery {
+    suspend fun deleteOrganization(organizationId: Long): Unit = db.transaction {
         if (productRepository.countForOrganization(organizationId) != 0L) {
             throw OrganizationNotEmptyException(
                 "Cannot delete organization '$organizationId', as it still contains products."
@@ -100,7 +100,7 @@ class OrganizationService(
     /**
      * Get an organization by [organizationId]. Returns null if the organization is not found.
      */
-    suspend fun getOrganization(organizationId: Long): Organization? = db.dbQuery {
+    suspend fun getOrganization(organizationId: Long): Organization? = db.transaction {
         organizationRepository.get(organizationId)
     }
 
@@ -110,7 +110,7 @@ class OrganizationService(
     suspend fun listOrganizations(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
-    ): ListQueryResult<Organization> = db.dbQuery {
+    ): ListQueryResult<Organization> = db.transaction {
         organizationRepository.list(parameters, filter)
     }
 
@@ -138,7 +138,7 @@ class OrganizationService(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
-    ) = db.dbQuery {
+    ) = db.transaction {
         productRepository.listForOrganization(organizationId, parameters, filter)
     }
 
@@ -168,7 +168,7 @@ class OrganizationService(
         organizationId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
-    ): Organization = db.dbQuery {
+    ): Organization = db.transaction {
         organizationRepository.update(organizationId, name, description)
     }
 
