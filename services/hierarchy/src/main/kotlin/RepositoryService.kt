@@ -44,7 +44,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -156,11 +155,9 @@ class RepositoryService(
             productId = productId
         ).also {
             if (isMove) {
-                runBlocking {
-                    // Because of the change in the hierarchical structure, role assignments may now be inconsistent.
-                    // Therefore, remove all direct role assignments for the repository.
-                    authorizationService.removeAssignments(RepositoryId(repositoryId), recursively = true)
-                }
+                // Because of the change in the hierarchical structure, role assignments may now be inconsistent.
+                // Therefore, remove all direct role assignments for the repository.
+                authorizationService.removeAssignments(RepositoryId(repositoryId), recursively = true)
             }
         }
     }
