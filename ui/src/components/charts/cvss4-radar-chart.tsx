@@ -45,6 +45,8 @@ type Cvss4RadarChartProps = {
 };
 
 export const Cvss4RadarChart = ({ cvssScore }: Cvss4RadarChartProps) => {
+  'use memo';
+
   const { base, overall, environmental, threat } = cvssScore.scores;
   const version = `4.0`;
   const nomenclature = cvssScore.nomenclature;

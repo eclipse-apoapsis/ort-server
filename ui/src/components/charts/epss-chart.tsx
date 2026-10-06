@@ -39,6 +39,8 @@ type EpssChartProps = {
 };
 
 export const EpssChart = ({ epssData }: EpssChartProps) => {
+  'use memo';
+
   const epssScoreData = [{ component: 'Score', score: epssData.score * 100 }];
   const epssPercentileData = [
     { component: 'Percentile', percentile: epssData.percentile * 100 },

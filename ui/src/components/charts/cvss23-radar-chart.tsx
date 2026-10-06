@@ -45,6 +45,8 @@ type Cvss23RadarChartProps = {
 };
 
 export const Cvss23RadarChart = ({ cvssScore }: Cvss23RadarChartProps) => {
+  'use memo';
+
   const {
     base,
     modifiedImpact,
