@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
@@ -78,7 +78,7 @@ internal class NotifierWorker(
                 endTime = endTime
             )
 
-            db.dbQuery {
+            db.transaction {
                 ortRunService.storeNotifierRun(notifierRun)
             }
 
