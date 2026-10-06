@@ -28,7 +28,7 @@ import {
   buildAdjacencyMap,
   createNodeSubtreeMatcher,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-graph-utils';
-import { DependencyTreeNode } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-node';
+import { DependencyTreeRow } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-row';
 import { ManagerDependenciesTab } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/manager-dependencies-tab';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
@@ -53,17 +53,16 @@ vi.mock(
   }
 );
 
-// Only the dependencies rendered directly by the tree go through this spy, so
-// it counts how often the tree itself renders its scopes' contents.
+// Counts how often the rows of the tree are rendered.
 vi.mock(
-  '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-node',
+  '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-row',
   async (importOriginal) => {
     const actual =
       await importOriginal<
-        typeof import('@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-node')
+        typeof import('@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-row')
       >();
 
-    return { DependencyTreeNode: vi.fn(actual.DependencyTreeNode) };
+    return { DependencyTreeRow: vi.fn(actual.DependencyTreeRow) };
   }
 );
 
@@ -162,18 +161,16 @@ describe('ManagerDependenciesTab', () => {
     renderTab(createDependencyGraph());
     search('logback');
 
-    const treeNodeRenders = vi.mocked(DependencyTreeNode).mock.calls.length;
+    const rowRenders = vi.mocked(DependencyTreeRow).mock.calls.length;
     const matcherCreations = vi.mocked(createNodeSubtreeMatcher).mock.calls
       .length;
 
-    expect(treeNodeRenders).toBeGreaterThan(0);
+    expect(rowRenders).toBeGreaterThan(0);
 
     typeSearch('logbackx');
     typeSearch('logbackxy');
 
-    expect(vi.mocked(DependencyTreeNode).mock.calls).toHaveLength(
-      treeNodeRenders
-    );
+    expect(vi.mocked(DependencyTreeRow).mock.calls).toHaveLength(rowRenders);
     expect(vi.mocked(createNodeSubtreeMatcher).mock.calls).toHaveLength(
       matcherCreations
     );
