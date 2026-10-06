@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -210,7 +210,7 @@ class ConfigWorker(
             }
         }
 
-        db.dbQuery {
+        db.transaction {
             ortRunRepository.update(
                 id = ortRunId,
                 resolvedJobConfigs = resolvedJobConfigs,
