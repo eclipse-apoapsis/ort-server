@@ -206,6 +206,8 @@ export const DependencyTreeRow = ({
   measureRef,
   onToggle,
 }: DependencyTreeRowProps) => {
+  'use memo';
+
   const label = (
     <RowLabel
       row={row}

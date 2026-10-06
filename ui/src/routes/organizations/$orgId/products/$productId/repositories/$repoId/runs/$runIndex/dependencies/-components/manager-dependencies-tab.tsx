@@ -42,6 +42,8 @@ export const ManagerDependenciesTab = ({
   graph: DependencyGraph;
   managerName: string;
 }) => {
+  'use memo';
+
   const [searchValue, setSearchValue] = useState('');
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const debouncedSearchValue = useDebounce(searchValue);

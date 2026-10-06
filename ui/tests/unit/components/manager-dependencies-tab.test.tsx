@@ -36,6 +36,7 @@ import {
   createDependencyGraph,
   packageLabel,
 } from '../fixtures/dependency-graph';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 vi.mock(
   '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-graph-utils',
@@ -117,6 +118,10 @@ describe('ManagerDependenciesTab', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('is compiled by React Compiler', () => {
+    expect(isCompiledByReactCompiler(ManagerDependenciesTab)).toBe(true);
   });
 
   it('shows all projects collapsed without a search', () => {

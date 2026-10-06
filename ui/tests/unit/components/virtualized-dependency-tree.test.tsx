@@ -50,6 +50,7 @@ import {
   setScrollY,
   setUpDependencyTreeLayout,
 } from '../fixtures/dependency-tree-layout';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const renderList = (graph: DependencyGraph, searchTerm: string) => {
   const packageIdType = packageIdTypeSchema.enum.ORT_ID;
@@ -195,6 +196,6 @@ describe('VirtualizedDependencyTree', () => {
     const source = VirtualizedDependencyTree.toString();
 
     expect(source).toContain('use no memo');
-    expect(source).not.toMatch(/const \$ = .*\.c\)\(\d+\);/);
+    expect(isCompiledByReactCompiler(VirtualizedDependencyTree)).toBe(false);
   });
 });

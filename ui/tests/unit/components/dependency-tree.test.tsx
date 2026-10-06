@@ -37,11 +37,16 @@ import {
   packagePurl,
 } from '../fixtures/dependency-graph';
 import {
+  MAX_MOUNTED_ROWS,
+  mountedIndexes,
   mountedRows,
+  resizeRow,
   ROW_HEIGHT,
+  rowTop,
   setScrollY,
   setUpDependencyTreeLayout,
 } from '../fixtures/dependency-tree-layout';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const runGeneration = () => act(() => vi.runAllTimers());
 
@@ -107,6 +112,46 @@ describe('DependencyTree', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('is compiled by React Compiler', () => {
+    expect(isCompiledByReactCompiler(DependencyTree)).toBe(true);
+  });
+
+  // The compiled tree renders the uncompiled virtualized list, whose
+  // virtualizer keeps its identity while scrolling and measuring.
+  it('shows other rows when scrolling although the tree is compiled', () => {
+    renderTree(largeGraph(), 'leaf');
+    runGeneration();
+
+    expect(mountedIndexes()[0]).toBe(0);
+
+    setScrollY(20_000);
+
+    expect(mountedIndexes()[0]).toBeGreaterThan(600);
+    expect(mountedRows().length).toBeLessThanOrEqual(MAX_MOUNTED_ROWS);
+
+    setScrollY(0);
+
+    expect(mountedIndexes()[0]).toBe(0);
+  });
+
+  it('moves rows when a row becomes higher although the tree is compiled', () => {
+    renderTree(createDependencyGraph(), 'logback');
+
+    resizeRow('Gradle::app:1.0', 3 * ROW_HEIGHT);
+
+    expect(rowTop('compileClasspath')).toBe(`translateY(${3 * ROW_HEIGHT}px)`);
+  });
+
+  it('shows changed labels when switching to PURLs although the tree is compiled', () => {
+    const { rerenderTree } = renderTree(createDependencyGraph(), 'logback');
+
+    expect(screen.queryByText(packagePurl('json-lib'))).not.toBeInTheDocument();
+
+    rerenderTree('logback', packageIdTypeSchema.enum.PURL);
+
+    expect(screen.getByText(packagePurl('json-lib'))).toBeInTheDocument();
   });
 
   it('collapses and expands rows', () => {
