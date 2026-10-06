@@ -19,6 +19,8 @@ import { useEffect, useState } from 'react';
  * @returns The debounced value.
  */
 export function useDebounce<T>(value: T, delay?: number): T {
+  'use memo';
+
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {

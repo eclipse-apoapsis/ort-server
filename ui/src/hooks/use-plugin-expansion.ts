@@ -40,6 +40,8 @@ export function usePluginExpansion({
   submitCount,
   idsWithErrors,
 }: UsePluginExpansionArgs) {
+  'use memo';
+
   const [expandedIds, setExpandedIds] = useState<string[]>(() => [
     ...initiallyExpandedIds,
   ]);

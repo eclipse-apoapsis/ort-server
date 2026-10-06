@@ -66,6 +66,8 @@ export const useInfrastructureServices = ({
   permissions,
   enabled = true,
 }: UseInfrastructureServicesParams): InfiniteList<InfrastructureServiceWithHierarchy> => {
+  'use memo';
+
   const readsOrganization =
     enabled && !!orgId && !!permissions.organization?.includes('READ');
   const readsProduct =

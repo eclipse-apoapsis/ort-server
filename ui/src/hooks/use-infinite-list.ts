@@ -71,6 +71,8 @@ export function useInfiniteList<TItem, TQueryKey extends QueryKey, TPageParam>(
   { queryKey, queryFn }: InfiniteListOptions<TItem, TQueryKey, TPageParam>,
   { enabled, staleTime, gcTime }: InfiniteListQueryOptions = {}
 ): InfiniteList<TItem> {
+  'use memo';
+
   const { data, isPending, isError, error, hasNextPage, ...query } =
     useInfiniteQuery({
       queryKey,

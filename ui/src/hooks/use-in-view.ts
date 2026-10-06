@@ -37,6 +37,8 @@ export function useInView<T extends Element = HTMLDivElement>({
   rootMargin,
   threshold,
 }: UseInViewOptions = {}) {
+  'use memo';
+
   const [element, setElement] = useState<T | null>(null);
   const [inView, setInView] = useState(false);
 

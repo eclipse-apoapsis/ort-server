@@ -68,6 +68,8 @@ export function usePluginSelection<
   enableReordering,
   showSelectedPluginsFirst,
 }: UsePluginSelectionArgs<TFieldValues, TName>) {
+  'use memo';
+
   const [pluginOrder, setPluginOrder] = useState<string[]>();
 
   const selectedPluginIds = (field.value ?? []) as string[];

@@ -17,11 +17,15 @@
  * License-Filename: LICENSE
  */
 
+// @vitest-environment jsdom
+
+import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { OrtRunSummary } from '@/api';
 import { config } from '@/config';
 import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 type RefetchInterval = (query: {
   state: {
@@ -57,25 +61,31 @@ const getRefetchInterval = () => {
 const runSummary = (finishedAt?: string | null) =>
   ({ id: 1, finishedAt }) as OrtRunSummary;
 
+const renderLatestRun = () => renderHook(() => useLatestRepositoryRun(42));
+
 describe('useLatestRepositoryRun', () => {
   beforeEach(() => {
     mocks.runs = [];
     mocks.queryOptions = undefined;
   });
 
+  it('is compiled by React Compiler', () => {
+    expect(isCompiledByReactCompiler(useLatestRepositoryRun)).toBe(true);
+  });
+
   it('returns the latest run', () => {
     const run = runSummary();
     mocks.runs = [run];
 
-    expect(useLatestRepositoryRun(42)).toBe(run);
+    expect(renderLatestRun().result.current).toBe(run);
   });
 
   it('returns undefined when the repository has no runs', () => {
-    expect(useLatestRepositoryRun(42)).toBeUndefined();
+    expect(renderLatestRun().result.current).toBeUndefined();
   });
 
   it('polls while the latest run is unfinished', () => {
-    useLatestRepositoryRun(42);
+    renderLatestRun();
 
     expect(
       getRefetchInterval()({ state: { data: { data: [runSummary()] } } })
@@ -83,7 +93,7 @@ describe('useLatestRepositoryRun', () => {
   });
 
   it('stops polling after the latest run finishes', () => {
-    useLatestRepositoryRun(42);
+    renderLatestRun();
 
     expect(
       getRefetchInterval()({
