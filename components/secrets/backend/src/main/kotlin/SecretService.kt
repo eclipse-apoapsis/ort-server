@@ -128,8 +128,8 @@ class SecretService(
     ): Secret = db.transaction {
         val secret = secretRepository.updateForIdAndName(id, name, description)
 
-        if (value is OptionalValue.Present) {
-            secretRepository.getByIdAndName(id, name)?.updateValue(value.value)
+        value.ifPresent {
+            secretRepository.getByIdAndName(id, name)?.updateValue(it)
         }
 
         secret
