@@ -17,17 +17,19 @@
  * License-Filename: LICENSE
  */
 
-import { Badge } from '@/components/ui/badge';
+/**
+ * Returns whether React Compiler compiled the given component. Compiled
+ * components allocate a memo cache when they start rendering; unlike the memo
+ * cache sentinel, this allocation is present in every compiled component.
+ *
+ * Components are only compiled in test files that run in the jsdom
+ * environment; in the node environment, the compiler does not run at all.
+ */
+export const isCompiledByReactCompiler = (component: unknown): boolean => {
+  const render =
+    typeof component === 'object' && component !== null && 'type' in component
+      ? component.type
+      : component;
 
-export const PackageCountBadge = ({ count }: { count?: number | null }) => {
-  'use memo';
-
-  if (count == null) return null;
-
-  return (
-    <Badge variant='secondary'>
-      {count} package
-      {count === 1 ? '' : 's'}
-    </Badge>
-  );
+  return /const \$ = .*\.c\)\(\d+\);/.test(String(render));
 };
