@@ -159,3 +159,40 @@ describe('MultipleSelector search callbacks', () => {
     }
   );
 });
+
+describe('MultipleSelector command filter', () => {
+  const defaultOptions = [
+    { value: 'apple', label: 'Apple' },
+    { value: 'banana', label: 'Banana' },
+  ];
+  const onlyValue = (kept: string) => (value: string) =>
+    value === kept ? 1 : 0;
+
+  it('filters with a new filter passed in the command props', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <MultipleSelector
+        inputProps={inputProps}
+        defaultOptions={defaultOptions}
+        commandProps={{ filter: onlyValue('Apple') }}
+      />
+    );
+
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.type(input, 'a');
+    expect(await screen.findByRole('option', { name: 'Apple' })).toBeVisible();
+    expect(screen.queryByRole('option', { name: 'Banana' })).toBeNull();
+
+    rerender(
+      <MultipleSelector
+        inputProps={inputProps}
+        defaultOptions={defaultOptions}
+        commandProps={{ filter: onlyValue('Banana') }}
+      />
+    );
+    await user.type(input, 'n');
+    expect(await screen.findByRole('option', { name: 'Banana' })).toBeVisible();
+    expect(screen.queryByRole('option', { name: 'Apple' })).toBeNull();
+  });
+});
