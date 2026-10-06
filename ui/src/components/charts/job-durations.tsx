@@ -96,6 +96,8 @@ export const JobDurations = ({
   pageIndex,
   pageSize,
 }: JobDurationsProps) => {
+  'use memo';
+
   const navigate = useNavigate();
 
   // This state drives the query for the runs, and it is updated on form submission.

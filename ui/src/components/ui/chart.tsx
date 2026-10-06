@@ -62,6 +62,8 @@ function ChartContainer({
   >['children'];
   initialDimension?: { width: number; height: number };
 }) {
+  'use memo';
+
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`;
 
@@ -88,6 +90,8 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  'use memo';
+
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color
   );
@@ -164,6 +168,8 @@ function ChartTooltipContent({
   nameKey,
   labelKey,
 }: CustomTooltipProps) {
+  'use memo';
+
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -310,6 +316,8 @@ function ChartLegendContent({
   nameKey,
   order,
 }: ChartLegendContentProps) {
+  'use memo';
+
   const { config } = useChart();
 
   const orderedPayload = React.useMemo(() => {
