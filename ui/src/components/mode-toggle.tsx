@@ -29,6 +29,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function ModeToggle() {
+  'use memo';
+
   const { mode, setMode } = useTheme();
 
   return (
