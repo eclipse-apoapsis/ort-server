@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.core.services
 import java.sql.Connection
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -62,7 +62,7 @@ class OrchestratorService(
     ): OrtRun {
         val traceId = MDC.get("traceId")
 
-        val ortRun = db.dbQuery(transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
+        val ortRun = db.transaction(transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
             maxAttempts = 25
             ortRunRepository.create(
                 repositoryId,
