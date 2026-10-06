@@ -45,7 +45,7 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
 
     private var ortRunId = -1L
 
-    override fun createJob() = notifierJobRepository.create(ortRunId, notifierJobConfiguration)
+    override suspend fun createJob() = notifierJobRepository.create(ortRunId, notifierJobConfiguration)
 
     override fun getJobRepository() = notifierJobRepository
 

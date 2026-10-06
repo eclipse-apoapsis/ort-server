@@ -265,7 +265,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
     }
 })
 
-private fun DaoAnalyzerRunRepository.create(
+private suspend fun DaoAnalyzerRunRepository.create(
     analyzerJobId: Long,
     analyzerRun: AnalyzerRun,
     shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),

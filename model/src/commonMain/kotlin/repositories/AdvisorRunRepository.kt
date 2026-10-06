@@ -35,7 +35,7 @@ interface AdvisorRunRepository {
     /**
      * Create an advisor run.
      */
-    fun create(
+    suspend fun create(
         advisorJobId: Long,
         startTime: Instant,
         endTime: Instant,
@@ -48,10 +48,10 @@ interface AdvisorRunRepository {
     /**
      * Get an advisor run by [id]. Returns null if the advisor run is not found.
      */
-    fun get(id: Long): AdvisorRun?
+    suspend fun get(id: Long): AdvisorRun?
 
     /**
      * Get an advisor run by [advisorJobId]. Returns null if the advisor run is not found.
      */
-    fun getByJobId(advisorJobId: Long): AdvisorRun?
+    suspend fun getByJobId(advisorJobId: Long): AdvisorRun?
 }

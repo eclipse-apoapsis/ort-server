@@ -132,7 +132,7 @@ internal class LostJobsFinderTask(
      *  Return a map with the active ORT runs and their jobs of the endpoint and a list with the lost jobs that were
      *  found.
      */
-    private fun gatherLostJobData(
+    private suspend fun gatherLostJobData(
         endpoint: Endpoint<*>,
         jobRepository: WorkerJobRepository<*>
     ): Pair<Map<Long?, V1Job>, List<WorkerJob>> {
@@ -156,7 +156,7 @@ internal class LostJobsFinderTask(
     /**
      * Perform actions to handle the given list of [lostJobs] for the given [endpoint].
      */
-    private fun handleLostWorkerJobs(
+    private suspend fun handleLostWorkerJobs(
         endpoint: Endpoint<*>,
         lostJobs: List<WorkerJob>
     ) {
@@ -179,7 +179,7 @@ internal class LostJobsFinderTask(
      * Check for active ORT runs for which no jobs exist in Kubernetes. Determine affected runs based on the given
      * set with [ortRunsWithJobs]. Notify the Orchestrator about those runs.
      */
-    private fun checkForLostSchedules(ortRunsWithJobs: Set<Long>) {
+    private suspend fun checkForLostSchedules(ortRunsWithJobs: Set<Long>) {
         val referenceTime = timeHelper.now() - monitorConfig.lostJobsMinAge
 
         // The ORT runs with jobs take only workers into account for which a database representation exists.

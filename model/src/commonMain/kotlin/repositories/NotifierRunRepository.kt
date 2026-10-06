@@ -24,13 +24,13 @@ import kotlin.time.Instant
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 
 interface NotifierRunRepository {
-    fun create(
+    suspend fun create(
         notifierJobId: Long,
         startTime: Instant,
         endTime: Instant
     ): NotifierRun
 
-    fun get(id: Long): NotifierRun?
+    suspend fun get(id: Long): NotifierRun?
 
-    fun getByJobId(notifierJobId: Long): NotifierRun?
+    suspend fun getByJobId(notifierJobId: Long): NotifierRun?
 }

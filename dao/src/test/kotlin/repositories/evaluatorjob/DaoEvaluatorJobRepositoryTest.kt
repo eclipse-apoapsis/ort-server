@@ -44,7 +44,7 @@ class DaoEvaluatorJobRepositoryTest : WorkerJobRepositoryTest<EvaluatorJob>() {
 
     private var ortRunId = -1L
 
-    override fun createJob() = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
+    override suspend fun createJob() = evaluatorJobRepository.create(ortRunId, evaluatorJobConfiguration)
 
     override fun getJobRepository() = evaluatorJobRepository
 

@@ -39,7 +39,7 @@ interface AnalyzerRunRepository {
      * Create an analyzer run.
      */
     @Suppress("LongParameterList")
-    fun create(
+    suspend fun create(
         analyzerJobId: Long,
         startTime: Instant,
         endTime: Instant,
@@ -57,10 +57,10 @@ interface AnalyzerRunRepository {
     /**
      * Get an analyzer run by [id]. Returns null if the analyzer run is not found.
      */
-    fun get(id: Long): AnalyzerRun?
+    suspend fun get(id: Long): AnalyzerRun?
 
     /**
      * Get an analyzer run by [analyzerJobId]. Returns null if the analyzer run is not found.
      */
-    fun getByJobId(analyzerJobId: Long): AnalyzerRun?
+    suspend fun getByJobId(analyzerJobId: Long): AnalyzerRun?
 }

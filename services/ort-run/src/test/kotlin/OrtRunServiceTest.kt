@@ -189,7 +189,7 @@ class OrtRunServiceTest : WordSpec({
             reportStorageService
         )
 
-    fun createRepository(organizationName: String): Long {
+    suspend fun createRepository(organizationName: String): Long {
         val organizationId = fixtures.createOrganization(organizationName).id
         val productId = fixtures.createProduct(organizationId = organizationId).id
         val repositoryId = fixtures.createRepository(productId = productId).id
@@ -197,14 +197,14 @@ class OrtRunServiceTest : WordSpec({
         return repositoryId
     }
 
-    fun createOrtRun(): Long {
+    suspend fun createOrtRun(): Long {
         val repositoryId = createRepository("org3")
         val ortRunId = fixtures.createOrtRun(repositoryId).id
 
         return ortRunId
     }
 
-    fun createOrtRuns(): List<Long> {
+    suspend fun createOrtRuns(): List<Long> {
         val repository1Id = createRepository("org1")
         val repository2Id = createRepository("org2")
 
@@ -220,7 +220,7 @@ class OrtRunServiceTest : WordSpec({
         return listOf(ortRunId1, ortRunId2, ortRunId3)
     }
 
-    fun createReporterJob(ortRunId: Long): Long {
+    suspend fun createReporterJob(ortRunId: Long): Long {
         val reporterJobId = fixtures.createReporterJob(ortRunId, ReporterJobConfiguration()).id
         val reports = listOf(
             Report("abc123", "https://example.com/report/abc123", Clock.System.now(), sizeInBytes = 100L),

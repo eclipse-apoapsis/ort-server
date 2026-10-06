@@ -224,7 +224,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     val reportData = "Data of the report to download".toByteArray()
 
     /** Create an [OrtRun] containing the given [projects]. */
-    fun createRunWithPackages(packages: Set<Package>): OrtRun {
+    suspend fun createRunWithPackages(packages: Set<Package>): OrtRun {
         val ortRun = dbExtension.fixtures.createOrtRun(
             repositoryId = repositoryId,
             revision = "revision",
@@ -240,7 +240,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         return ortRun
     }
 
-    fun createRunWithProjects(projects: Set<Project>): OrtRun {
+    suspend fun createRunWithProjects(projects: Set<Project>): OrtRun {
         val ortRun = dbExtension.fixtures.createOrtRun(
             repositoryId = repositoryId,
             revision = "revision",
@@ -287,7 +287,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
      * generated and added to the test log access provider expecting that they are queried for the given [levels].
      * By default, the run can be marked as [completed][complete].
      */
-    fun prepareLogTest(levels: Set<LogLevel>, complete: Boolean = true): OrtRun {
+    suspend fun prepareLogTest(levels: Set<LogLevel>, complete: Boolean = true): OrtRun {
         val logFileDir = tempdir()
         val run = dbExtension.fixtures.createOrtRun(repositoryId)
         val updatedRun = if (complete) {
@@ -347,7 +347,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         val resolvedIssuePurl: String
     )
 
-    fun createIssueRouteScenario(): IssueRouteScenario {
+    suspend fun createIssueRouteScenario(): IssueRouteScenario {
         val ortRun = dbExtension.fixtures.createOrtRun(
             repositoryId = repositoryId,
             revision = "revision",
@@ -409,7 +409,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         val resolvedViolationPurl: String
     )
 
-    fun createRuleViolationRouteScenario(includeDuplicateRule: Boolean = false): RuleViolationRouteScenario {
+    suspend fun createRuleViolationRouteScenario(includeDuplicateRule: Boolean = false): RuleViolationRouteScenario {
         val ortRun = dbExtension.fixtures.createOrtRun(
             repositoryId = repositoryId,
             revision = "revision",

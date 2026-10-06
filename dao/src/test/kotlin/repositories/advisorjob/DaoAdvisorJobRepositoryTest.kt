@@ -43,7 +43,7 @@ class DaoAdvisorJobRepositoryTest : WorkerJobRepositoryTest<AdvisorJob>() {
 
     private var ortRunId = -1L
 
-    override fun createJob() = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
+    override suspend fun createJob() = advisorJobRepository.create(ortRunId, advisorJobConfiguration)
 
     override fun getJobRepository() = advisorJobRepository
 

@@ -99,7 +99,7 @@ class Orchestrator(
             }
 
             val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
-            context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
+            context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
@@ -270,7 +270,7 @@ class Orchestrator(
             if (context.jobs.isNotEmpty()) {
                 fetchNextJobs(context)
             } else {
-                context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
+                context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
             }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'LostSchedule' message.", it)
@@ -280,7 +280,7 @@ class Orchestrator(
     /**
      * Obtain the [OrtRun] with the given [ortRunId] of fail with an exception if it does not exist.
      */
-    private fun getCurrentOrtRun(ortRunId: Long): OrtRun =
+    private suspend fun getCurrentOrtRun(ortRunId: Long): OrtRun =
         requireNotNull(ortRunRepository.get(ortRunId)) {
             "ORT run '$ortRunId' not found."
         }
@@ -353,7 +353,7 @@ class Orchestrator(
      * accept a map with the [jobs] that have been run. Return a list with the new jobs to schedule and the current
      * [WorkerScheduleContext].
      */
-    private fun nextJobsToSchedule(
+    private suspend fun nextJobsToSchedule(
         endpoint: Endpoint<*>,
         ortRunId: Long,
         header: MessageHeader,
@@ -372,7 +372,7 @@ class Orchestrator(
      * If the result is successful, actually trigger the jobs. Otherwise, call the given [onFailure] function with the
      * exception that occurred.
      */
-    private fun Result<Pair<WorkerScheduleContext, List<JobScheduleFunc>>>.scheduleNextJobs(
+    private suspend fun Result<Pair<WorkerScheduleContext, List<JobScheduleFunc>>>.scheduleNextJobs(
         onFailure: (Throwable) -> Unit
     ) {
         onSuccess { (context, schedules) ->
@@ -386,7 +386,7 @@ class Orchestrator(
      * The context is initialized with the status of all jobs for this run, either from the given [workerJobs]
      * parameter or by loading the job status from the database.
      */
-    private fun createWorkerScheduleContext(
+    private suspend fun createWorkerScheduleContext(
         ortRun: OrtRun,
         header: MessageHeader,
         failed: Boolean = false,
@@ -403,7 +403,7 @@ class Orchestrator(
      * Trigger the scheduling of the given new [createdJobs] for the ORT run contained in the given [context]. This
      * also includes sending corresponding messages to the worker endpoints.
      */
-    private fun scheduleCreatedJobs(context: WorkerScheduleContext, createdJobs: CreatedJobs) {
+    private suspend fun scheduleCreatedJobs(context: WorkerScheduleContext, createdJobs: CreatedJobs) {
         // TODO: Handle errors during job scheduling.
 
         createdJobs.forEach { it() }
@@ -427,7 +427,7 @@ class Orchestrator(
      * Publish a message with the given [header] to the [ConfigEndpoint] to trigger the Config worker job for the given
      * [run]. If [updateRun] is *true*, set the status of the run to ACTIVE.
      */
-    private fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader, updateRun: Boolean) {
+    private suspend fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader, updateRun: Boolean) {
         publish(ConfigEndpoint, run, header, ConfigRequest(run.id))
 
         if (updateRun) {
@@ -449,7 +449,7 @@ class Orchestrator(
     /**
      * Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job.
      */
-    private fun cleanupJobs(ortRunId: Long) {
+    private suspend fun cleanupJobs(ortRunId: Long) {
         workerJobRepositories.notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
             workerJobRepositories.notifierJobRepository.deleteMailRecipients(notifierJob.id)
         }
@@ -478,7 +478,7 @@ private fun extractErrorMessage(message: Any): String? =
  * Return a [Pair] with the given [scheduleContext] and the list of jobs that can be scheduled in the current phase
  * of the affected ORT run.
  */
-private fun fetchNextJobs(
+private suspend fun fetchNextJobs(
     scheduleContext: WorkerScheduleContext
 ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> =
     scheduleContext to WorkerScheduleInfo.entries.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }

@@ -467,7 +467,7 @@ class DaoScannerRunRepositoryTest : WordSpec({
 
 private const val SCANNER_NAME = "TestScanner"
 
-private fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun): ScannerRun {
+private suspend fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun): ScannerRun {
     val createdScannerRun = create(scannerJobId = scannerJobId)
     return update(
         id = createdScannerRun.id,
@@ -702,7 +702,7 @@ private val analyzerRun = AnalyzerRun(
     dependencyGraphs = emptyMap()
 )
 
-private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
+private suspend fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
     analyzerJobId = analyzerJobId,
     startTime = analyzerRun.startTime,
     endTime = analyzerRun.endTime,

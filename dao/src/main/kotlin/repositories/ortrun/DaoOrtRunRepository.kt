@@ -22,8 +22,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
@@ -33,6 +31,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ortRunIssueContentMatches
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
@@ -89,7 +89,7 @@ private fun Issue.matchKey() = IssueMatchKey(
 )
 
 class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
-    override fun create(
+    override suspend fun create(
         repositoryId: Long,
         revision: String,
         path: String?,
@@ -99,7 +99,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         traceId: String?,
         environmentConfigPath: String?,
         userDisplayName: UserDisplayName?
-    ): OrtRun = db.blockingQuery {
+    ): OrtRun = db.transaction {
         val maxIndex = OrtRunsTable.index.max()
         val lastIndex = OrtRunsTable
             .select(maxIndex)
@@ -126,20 +126,21 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long): OrtRun? = db.blockingQueryCatching { OrtRunDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long): OrtRun? =
+        db.transactionCatching { OrtRunDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.blockingQuery {
+    override suspend fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.transaction {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
             .firstOrNull()?.mapToModel()
     }
 
-    override fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long? = db.blockingQuery {
+    override suspend fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long? = db.transaction {
         OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
             .firstOrNull()?.id?.value
     }
 
-    override fun list(parameters: ListQueryParameters, filters: OrtRunFilters?): ListQueryResult<OrtRun> =
-        db.blockingQuery {
+    override suspend fun list(parameters: ListQueryParameters, filters: OrtRunFilters?): ListQueryResult<OrtRun> =
+        db.transaction {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) {
                 var condition: Op<Boolean> = Op.TRUE
 
@@ -154,26 +155,29 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             }
         }
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<OrtRun> =
-        db.blockingQueryCatching {
+    override suspend fun listForRepository(
+        repositoryId: Long,
+        parameters: ListQueryParameters
+    ): ListQueryResult<OrtRun> =
+        db.transactionCatching {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) { OrtRunsTable.repositoryId eq repositoryId }
         }.getOrElse {
             logger.error("Cannot list ORT runs for repository $repositoryId.", it)
             ListQueryResult(emptyList(), parameters, 0L)
         }
 
-    override fun listSummariesForRepository(
+    override suspend fun listSummariesForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters
     ): ListQueryResult<OrtRunSummary> =
-        db.blockingQueryCatching {
+        db.transactionCatching {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToSummaryModel) { OrtRunsTable.repositoryId eq repositoryId }
         }.getOrElse {
             logger.error("Cannot list ORT runs for repository $repositoryId.", it)
             ListQueryResult(emptyList(), parameters, 0L)
         }
 
-    override fun listActiveRuns(): List<ActiveOrtRun> = db.blockingQuery {
+    override suspend fun listActiveRuns(): List<ActiveOrtRun> = db.transaction {
         OrtRunDao.find {
             OrtRunsTable.status inList activeRunStatuses
         }.map { ActiveOrtRun(it.id.value, it.createdAt, it.traceId) }
@@ -183,7 +187,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
      * Return a [List] with the IDs of all ORT runs that have finished before [before], except the latest run per
      * repository, in case there is no newer one at all.
      */
-    override fun findRunsBefore(before: Instant): List<Long> = db.blockingQuery {
+    override suspend fun findRunsBefore(before: Instant): List<Long> = db.transaction {
         val maxIdAlias = OrtRunsTable.id.max().alias("max_id")
         val latestRunPerRepository = OrtRunsTable
             .select(OrtRunsTable.repositoryId, maxIdAlias)
@@ -203,7 +207,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             .map { it[OrtRunsTable.id].value }
     }
 
-    override fun update(
+    override suspend fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus>,
         jobConfigs: OptionalValue<JobConfigurations>,
@@ -213,7 +217,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         resolvedRevision: OptionalValue<String?>,
         issues: OptionalValue<Collection<Issue>>,
         labels: OptionalValue<Map<String, String>>
-    ): OrtRun = db.blockingQuery {
+    ): OrtRun = db.transaction {
         val ortRun = OrtRunDao[id]
 
         status.ifPresent {
@@ -245,7 +249,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         OrtRunDao[id].mapToModel()
     }
 
-    override fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int {
+    override suspend fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int {
         if (issues.isEmpty()) return 0
 
         val distinctIssues = issues.groupBy { it.matchKey() }.values.map { matchingIssues ->
@@ -265,7 +269,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             issue
         }
 
-        return db.blockingQuery {
+        return db.transaction {
             distinctIssues.sumOf { issue ->
                 val updatedOccurrences = OrtRunsIssuesTable.innerJoin(IssuesTable)
                     .update({ ortRunIssueContentMatches(ortRunId, issue) }) {
@@ -283,15 +287,15 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         }
     }
 
-    override fun delete(id: Long): Int = db.blockingQuery {
+    override suspend fun delete(id: Long): Int = db.transaction {
         OrtRunsTable.deleteWhere { OrtRunsTable.id eq id }
     }
 
-    override fun deleteByRepository(repositoryId: Long): Int = db.blockingQuery {
+    override suspend fun deleteByRepository(repositoryId: Long): Int = db.transaction {
         OrtRunsTable.deleteWhere { OrtRunsTable.repositoryId eq repositoryId }
     }
 
-    override fun deleteByProduct(productId: Long): Int = db.blockingQuery {
+    override suspend fun deleteByProduct(productId: Long): Int = db.transaction {
         OrtRunsTable
             .innerJoin(RepositoriesTable, { repositoryId }, { id })
             .innerJoin(ProductsTable, { RepositoriesTable.productId }, { id })

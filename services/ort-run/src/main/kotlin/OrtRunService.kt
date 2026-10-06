@@ -452,37 +452,37 @@ class OrtRunService(
     /**
      * Start the [AdvisorJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
-    fun startAdvisorJob(id: Long) = advisorJobRepository.tryStart(id, Clock.System.now())
+    suspend fun startAdvisorJob(id: Long) = advisorJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Start the [AnalyzerJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
-    fun startAnalyzerJob(id: Long) = analyzerJobRepository.tryStart(id, Clock.System.now())
+    suspend fun startAnalyzerJob(id: Long) = analyzerJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Start the [EvaluatorJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
-    fun startEvaluatorJob(id: Long) = evaluatorJobRepository.tryStart(id, Clock.System.now())
+    suspend fun startEvaluatorJob(id: Long) = evaluatorJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Start the [ReporterJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
-    fun startReporterJob(id: Long) = reporterJobRepository.tryStart(id, Clock.System.now())
+    suspend fun startReporterJob(id: Long) = reporterJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Start the [NotifierJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
-    fun startNotifierJob(id: Long) = notifierJobRepository.tryStart(id, Clock.System.now())
+    suspend fun startNotifierJob(id: Long) = notifierJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Start the [ScannerJob] with the provided [id] and return the updated job or `null` if the job does not exist.
      */
-    fun startScannerJob(id: Long) = scannerJobRepository.tryStart(id, Clock.System.now())
+    suspend fun startScannerJob(id: Long) = scannerJobRepository.tryStart(id, Clock.System.now())
 
     /**
      * Store the provided [advisorRun].
      */
-    fun storeAdvisorRun(advisorRun: AdvisorRun) {
+    suspend fun storeAdvisorRun(advisorRun: AdvisorRun) {
         advisorRunRepository.create(
             advisorJobId = advisorRun.advisorJobId,
             startTime = advisorRun.startTime,
@@ -497,7 +497,7 @@ class OrtRunService(
     /**
      * Store the provided [analyzerRun].
      */
-    fun storeAnalyzerRun(
+    suspend fun storeAnalyzerRun(
         analyzerRun: AnalyzerRun,
         shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
         excludedPackageIds: Set<Identifier> = emptySet(),
@@ -522,7 +522,7 @@ class OrtRunService(
     /**
      * Store the provided [evaluatorRun].
      */
-    fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {
+    suspend fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {
         evaluatorRunRepository.create(
             evaluatorRun.evaluatorJobId,
             evaluatorRun.startTime,
@@ -535,7 +535,7 @@ class OrtRunService(
     /**
      * Store the provided [reporterRun].
      */
-    fun storeReporterRun(reporterRun: ReporterRun) {
+    suspend fun storeReporterRun(reporterRun: ReporterRun) {
         reporterRunRepository.create(
             reporterRun.reporterJobId,
             reporterRun.startTime,
@@ -544,7 +544,7 @@ class OrtRunService(
         )
     }
 
-    fun storeNotifierRun(notifierRun: NotifierRun) {
+    suspend fun storeNotifierRun(notifierRun: NotifierRun) {
         notifierRunRepository.create(
             notifierRun.notifierJobId,
             notifierRun.startTime,
@@ -649,7 +649,7 @@ class OrtRunService(
      * Set the how-to-fix text of all issue occurrences in the ORT run with [ortRunId] that match the content and
      * timestamp of the given [issues], regardless of their identifier. Return the number of updated occurrences.
      */
-    fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int {
+    suspend fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int {
         val updatedOccurrences = ortRunRepository.updateIssueHowToFixTexts(ortRunId, issues)
         logger.debug("Updated how-to-fix text for {} issues in ORT run {}.", updatedOccurrences, ortRunId)
         return updatedOccurrences

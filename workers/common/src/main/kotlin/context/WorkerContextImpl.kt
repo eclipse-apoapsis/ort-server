@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.shared.authenticator.infraSecretResolverFromConfig
 import org.eclipse.apoapsis.ortserver.shared.authenticator.secretResolver
 import org.eclipse.apoapsis.ortserver.shared.authenticator.undefinedSecretResolver
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
@@ -109,11 +110,11 @@ internal class WorkerContextImpl(
     private val refSecretResolverFun = AtomicReference(undefinedSecretResolver)
 
     override val ortRun: OrtRun by lazy {
-        requireNotNull(ortRunRepository.get(ortRunId)) { "Could not resolve ORT run ID $ortRunId" }
+        requireNotNull(runBlocking { ortRunRepository.get(ortRunId) }) { "Could not resolve ORT run ID $ortRunId" }
     }
 
     override val hierarchy: Hierarchy by lazy {
-        repositoryRepository.getHierarchy(ortRun.repositoryId)
+        runBlocking { repositoryRepository.getHierarchy(ortRun.repositoryId) }
     }
 
     private val hierarchySecretsMutex = Mutex()

@@ -99,8 +99,8 @@ class NotifierWorkerTest : StringSpec({
         val ortRunService = mockk<OrtRunService> {
             coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
             coEvery { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
-            every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
-            every { storeNotifierRun(any()) } returns mockk()
+            coEvery { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+            coEvery { storeNotifierRun(any()) } returns mockk()
             coEvery { storeIssues(any(), any()) } just runs
         }
 
@@ -198,8 +198,8 @@ class NotifierWorkerTest : StringSpec({
         val ortRunService = mockk<OrtRunService> {
             coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
             coEvery { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
-            every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
-            every { storeNotifierRun(any()) } returns mockk()
+            coEvery { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+            coEvery { storeNotifierRun(any()) } returns mockk()
             coEvery { storeIssues(any(), any()) } just runs
         }
 

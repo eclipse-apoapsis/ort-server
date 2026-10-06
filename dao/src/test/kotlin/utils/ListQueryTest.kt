@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepositor
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -132,7 +133,7 @@ class ListQueryTest : StringSpec() {
                 )
             )
 
-            val repositories = transaction {
+            val repositories = dbExtension.db.transaction {
                 repositoryRepository.listForProduct(product.id, parameters)
             }
 
@@ -184,7 +185,7 @@ class ListQueryTest : StringSpec() {
                 )
             )
 
-            val runsFromQuery = transaction {
+            val runsFromQuery = dbExtension.db.transaction {
                 ortRunRepository.listForRepository(repo.id, parameters)
             }
 
@@ -218,7 +219,7 @@ class ListQueryTest : StringSpec() {
     /**
      * Insert a number of synthetic test organizations in random order.
      */
-    private fun insertTestOrganizations() {
+    private suspend fun insertTestOrganizations() {
         (1..COUNT).toList().shuffled().forEach { index ->
             organizationRepository.create(ORGANIZATION_NAME.appendIndex(index), ORGANIZATION_DESC.appendIndex(index))
         }

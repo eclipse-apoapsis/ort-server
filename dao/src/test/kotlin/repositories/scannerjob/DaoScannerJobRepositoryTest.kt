@@ -44,7 +44,7 @@ class DaoScannerJobRepositoryTest : WorkerJobRepositoryTest<ScannerJob>() {
 
     private var ortRunId = -1L
 
-    override fun createJob() = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
+    override suspend fun createJob() = scannerJobRepository.create(ortRunId, scannerJobConfiguration)
 
     override fun getJobRepository() = scannerJobRepository
 

@@ -26,15 +26,15 @@ interface NotifierJobRepository : WorkerJobRepository<NotifierJob> {
     /**
      * Create a notifier job.
      */
-    fun create(ortRunId: Long, configuration: NotifierJobConfiguration): NotifierJob
+    suspend fun create(ortRunId: Long, configuration: NotifierJobConfiguration): NotifierJob
 
     /**
      * Delete a notifier job by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 
     /**
      * Delete the recipients from the NotifierJob, as the email addresses are personal data.
      */
-    fun deleteMailRecipients(id: Long): NotifierJob
+    suspend fun deleteMailRecipients(id: Long): NotifierJob
 }

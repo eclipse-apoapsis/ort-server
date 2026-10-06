@@ -41,7 +41,7 @@ interface OrtRunRepository {
     /**
      * Create an ORT run.
      */
-    fun create(
+    suspend fun create(
         repositoryId: Long,
         revision: String,
         path: String?,
@@ -56,24 +56,24 @@ interface OrtRunRepository {
     /**
      * Get an ORT run by [id]. Returns null if the ORT run is not found.
      */
-    fun get(id: Long): OrtRun?
+    suspend fun get(id: Long): OrtRun?
 
     /**
      * Get an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
      */
-    fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
+    suspend fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
 
     /**
      * Get the id of an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
      * This function is more efficient than [getByIndex], as it only retrieves the ID of the ORT run or
      * returns null if the ORT run is not found.
      */
-    fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long?
+    suspend fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long?
 
     /**
      * List all ORT runs according to the given [parameters] and [filters].
      */
-    fun list(
+    suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: OrtRunFilters? = null
     ): ListQueryResult<OrtRun>
@@ -81,7 +81,7 @@ interface OrtRunRepository {
     /**
      * List all ORT runs for a [repository][repositoryId] according to the given [parameters].
      */
-    fun listForRepository(
+    suspend fun listForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<OrtRun>
@@ -90,7 +90,7 @@ interface OrtRunRepository {
      * List all ORT runs for a [repository][repositoryId] according to the given [parameters],
      * but only return a summary of each run.
      */
-    fun listSummariesForRepository(
+    suspend fun listSummariesForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<OrtRunSummary>
@@ -99,18 +99,18 @@ interface OrtRunRepository {
      * Return a list with information about all currently active ORT runs. The list contains all the runs in the states
      * `ACTIVE` and `CREATED`.
      */
-    fun listActiveRuns(): List<ActiveOrtRun>
+    suspend fun listActiveRuns(): List<ActiveOrtRun>
 
     /**
      * Return a [List] with the IDs of all ORT runs that have finished before [before].
      */
-    fun findRunsBefore(before: Instant): List<Long>
+    suspend fun findRunsBefore(before: Instant): List<Long>
 
     /**
      * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] or [labels] are
      * provided, they are added to the already existing ones.
      */
-    fun update(
+    suspend fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus> = OptionalValue.Absent,
         jobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
@@ -126,20 +126,20 @@ interface OrtRunRepository {
      * Set the how-to-fix text of all issue occurrences in the ORT run with [ortRunId] that match the content and
      * timestamp of the given [issues], regardless of their identifier. Return the number of updated occurrences.
      */
-    fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int
+    suspend fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int
 
     /**
      * Delete an ORT run by [id].
      */
-    fun delete(id: Long): Int
+    suspend fun delete(id: Long): Int
 
     /**
      * Delete the ORT runs of a repository, specified by the [repositoryId].
      */
-    fun deleteByRepository(repositoryId: Long): Int
+    suspend fun deleteByRepository(repositoryId: Long): Int
 
     /**
      * Delete all ORT runs associated to this [productId].
      */
-    fun deleteByProduct(productId: Long): Int
+    suspend fun deleteByProduct(productId: Long): Int
 }

@@ -184,8 +184,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns job
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -253,8 +253,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -293,7 +293,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID }, any())
             }
 
@@ -316,8 +316,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns job
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns job
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns job
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -356,7 +356,7 @@ class AnalyzerWorkerTest : StringSpec({
 
             result shouldBe RunResult.Success
 
-            verify(exactly = 1) {
+            coVerify(exactly = 1) {
                 ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID }, any())
             }
 
@@ -379,8 +379,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns job
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns job
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns job
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -437,8 +437,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -503,8 +503,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns job
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns job
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns job
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -649,8 +649,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -743,8 +743,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -820,8 +820,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), capture(associationsSlot)) } just runs
@@ -882,8 +882,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -941,8 +941,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every {
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery {
                 storeAnalyzerRun(any(), any(), capture(excludedPackageIdsSlot), capture(excludedProjectIdsSlot))
             } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
@@ -1002,8 +1002,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -1061,8 +1061,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -1136,8 +1136,8 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns analyzerJob
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { startAnalyzerJob(any()) } returns analyzerJob
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs
@@ -1200,7 +1200,7 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns job
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { startAnalyzerJob(any()) } returns job
+            coEvery { startAnalyzerJob(any()) } returns job
             coEvery { updateResolvedRevision(any(), any()) } just runs
         }
 
@@ -1443,7 +1443,7 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { getAnalyzerJob(any()) } returns analyzerJob
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
             coEvery { getOrtRun(any()) } returns ortRun
-            every { storeAnalyzerRun(any(), any()) } just runs
+            coEvery { storeAnalyzerRun(any(), any()) } just runs
             coEvery { storeRepositoryInformation(any(), any()) } just runs
             coEvery { storeResolvedPackageCurations(any(), any()) } just runs
             coEvery { storePackageCurationAssociations(any(), any()) } just runs

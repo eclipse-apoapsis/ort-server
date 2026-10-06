@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
@@ -37,7 +37,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
 
 class DaoNotifierJobRepository(private val db: Database) : NotifierJobRepository {
-    override fun create(ortRunId: Long, configuration: NotifierJobConfiguration): NotifierJob = db.blockingQuery {
+    override suspend fun create(ortRunId: Long, configuration: NotifierJobConfiguration): NotifierJob = db.transaction {
         NotifierJobDao.new {
             this.ortRunId = ortRunId
             createdAt = Clock.System.now()
@@ -46,20 +46,20 @@ class DaoNotifierJobRepository(private val db: Database) : NotifierJobRepository
         }.mapToModel()
     }
 
-    override fun get(id: Long): NotifierJob? =
-        db.blockingQueryCatching { NotifierJobDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long): NotifierJob? =
+        db.transactionCatching { NotifierJobDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getForOrtRun(ortRunId: Long): NotifierJob? = db.blockingQuery {
+    override suspend fun getForOrtRun(ortRunId: Long): NotifierJob? = db.transaction {
         NotifierJobDao.find { NotifierJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()?.mapToModel()
     }
 
-    override fun update(
+    override suspend fun update(
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>,
         errorMessage: OptionalValue<String>
-    ): NotifierJob = db.blockingQuery {
+    ): NotifierJob = db.transaction {
         val notifierJob = NotifierJobDao[id]
 
         startedAt.ifPresent { notifierJob.startedAt = it }
@@ -70,16 +70,16 @@ class DaoNotifierJobRepository(private val db: Database) : NotifierJobRepository
         notifierJob.mapToModel()
     }
 
-    override fun listActive(before: Instant?): List<NotifierJob> = db.blockingQuery {
+    override suspend fun listActive(before: Instant?): List<NotifierJob> = db.transaction {
         NotifierJobDao.find {
             val opFinished = NotifierJobsTable.finishedAt eq null
             before?.let { opFinished and (NotifierJobsTable.createdAt lessEq it) } ?: opFinished
         }.map { it.mapToModel() }
     }
 
-    override fun delete(id: Long) = db.blockingQuery { NotifierJobDao[id].delete() }
+    override suspend fun delete(id: Long) = db.transaction { NotifierJobDao[id].delete() }
 
-    override fun deleteMailRecipients(id: Long): NotifierJob = db.blockingQuery {
+    override suspend fun deleteMailRecipients(id: Long): NotifierJob = db.transaction {
         val notifierJob = NotifierJobDao[id]
         notifierJob.configuration = notifierJob.configuration.copy(
             recipientAddresses = emptyList()

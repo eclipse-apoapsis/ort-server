@@ -21,10 +21,10 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun
 
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
@@ -36,12 +36,12 @@ import org.jetbrains.exposed.v1.jdbc.Database
  * An implementation of [ReporterRunRepository] that stores reporter runs in [ReporterRunsTable].
  */
 class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository {
-    override fun create(
+    override suspend fun create(
         reporterJobId: Long,
         startTime: Instant,
         endTime: Instant,
         reports: List<Report>
-    ): ReporterRun = db.blockingQuery {
+    ): ReporterRun = db.transaction {
         val reportsList = mapAndDeduplicate(reports) {
             ReportDao.new {
                 filename = it.filename
@@ -59,10 +59,10 @@ class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository
         }.mapToModel()
     }
 
-    override fun get(id: Long): ReporterRun? =
-        db.blockingQueryCatching { ReporterRunDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long): ReporterRun? =
+        db.transactionCatching { ReporterRunDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getByJobId(reporterJobId: Long): ReporterRun? = db.blockingQueryCatching {
+    override suspend fun getByJobId(reporterJobId: Long): ReporterRun? = db.transactionCatching {
         ReporterRunDao.find { ReporterRunsTable.reporterJobId eq reporterJobId }.firstOrNull()?.mapToModel()
     }.getEntityOrNull()
 }

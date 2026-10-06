@@ -151,7 +151,10 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
     }
 })
 
-private fun DaoRepositoryConfigurationRepository.create(ortRunId: Long, repositoryConfig: RepositoryConfiguration) =
+private suspend fun DaoRepositoryConfigurationRepository.create(
+    ortRunId: Long,
+    repositoryConfig: RepositoryConfiguration
+) =
     create(
         ortRunId = ortRunId,
         analyzerConfig = repositoryConfig.analyzerConfig,

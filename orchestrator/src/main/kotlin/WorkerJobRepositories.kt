@@ -87,7 +87,7 @@ class WorkerJobRepositories(
      * Update the status for a job for the given [endpoint] and [jobId] in the database to the provided [status].
      * If [finished] is *true*, also set the finished time.
      */
-    fun updateJobStatus(
+    suspend fun updateJobStatus(
         endpoint: Endpoint<*>,
         jobId: Long,
         status: JobStatus,

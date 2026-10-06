@@ -181,7 +181,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         description: String? = repositoryDescription
     ) = productService.createRepository(type, url, prodId, name, description)
 
-    fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
+    suspend fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
     fun org.eclipse.apoapsis.ortserver.model.Repository.hierarchyId(prodId: Long = productId): CompoundHierarchyId =
         CompoundHierarchyId.forRepository(

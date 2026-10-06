@@ -50,7 +50,7 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
 
     private var ortRunId = -1L
 
-    override fun createJob() = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
+    override suspend fun createJob() = reporterJobRepository.create(ortRunId, reporterJobConfiguration)
 
     override fun getJobRepository() = reporterJobRepository
 
@@ -212,7 +212,7 @@ class DaoReporterJobRepositoryTest : WorkerJobRepositoryTest<ReporterJob>() {
      * Create a run for this [ReporterJob] that contains a test report with the given token [expiryTime]
      * and optional [sizeInBytes].
      */
-    private fun ReporterJob.createRunWithReport(expiryTime: Instant, sizeInBytes: Long? = null): Report {
+    private suspend fun ReporterJob.createRunWithReport(expiryTime: Instant, sizeInBytes: Long? = null): Report {
         val refTime = Clock.System.now().toDatabasePrecision()
         val downloadLink = "https://reports.example.org/ap1/v1/runs/42/downloads/report/report-token"
         val report = Report("file.pdf", downloadLink, expiryTime, sizeInBytes = sizeInBytes)

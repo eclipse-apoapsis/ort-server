@@ -1140,7 +1140,7 @@ class PackageServiceTest : WordSpec() {
         }
     }
 
-    private fun addLicenseMappingCuration(
+    private suspend fun addLicenseMappingCuration(
         ortRunId: Long,
         identifier: Identifier,
         mapping: Map<String, String>
@@ -1165,7 +1165,10 @@ class PackageServiceTest : WordSpec() {
      * applied. Each of the [providers] maps package identifiers to the curated date; a `null` date creates a curation
      * that does not change the date. The providers are given in the order of their priority, highest first.
      */
-    private fun addPublicationDateCurations(ortRunId: Long, vararg providers: Pair<String, Map<Identifier, String?>>) {
+    private suspend fun addPublicationDateCurations(
+        ortRunId: Long,
+        vararg providers: Pair<String, Map<Identifier, String?>>
+    ) {
         val associations = mutableMapOf<Identifier, MutableList<AppliedPackageCurationRef>>()
 
         val resolvedPackageCurations = providers.map { (providerName, publicationDates) ->
@@ -1189,9 +1192,9 @@ class PackageServiceTest : WordSpec() {
         fixtures.generatePackage(Identifier("Maven", "com.example", name, "1.0"))
             .copy(publishedAt = publishedAt?.let(Instant::parse))
 
-    private fun createAnalyzerRunWithPackages(
+    private suspend fun createAnalyzerRunWithPackages(
         packages: Set<Package>,
-        repositoryId: Long = fixtures.createRepository().id,
+        repositoryId: Long = fixtures.repository.id,
         projects: Set<Project> = emptySet(),
         shortestPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
     ): OrtRun {

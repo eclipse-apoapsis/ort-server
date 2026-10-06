@@ -35,14 +35,14 @@ interface ScannerRunRepository {
      * Create an empty [ScannerRun]. This function is supposed to be called before the ORT scanner is invoked, so that
      * data can be associated to the scanner run while the ORT scanner is running.
      */
-    fun create(scannerJobId: Long): ScannerRun
+    suspend fun create(scannerJobId: Long): ScannerRun
 
     /**
      * Update the scanner run identified by [id] with the provided [startTime], [endTime], [environment], [config],
      * [scanners], and [issues]. This function can be called only once to finalize a scanner run and throws an exception
      * if it is called multiple times for the same scanner run.
      */
-    fun update(
+    suspend fun update(
         id: Long,
         startTime: Instant,
         endTime: Instant,
@@ -55,10 +55,10 @@ interface ScannerRunRepository {
     /**
      * Get a scanner run by [id]. Returns null if the scanner run is not found.
      */
-    fun get(id: Long): ScannerRun?
+    suspend fun get(id: Long): ScannerRun?
 
     /**
      * Get a scanner run by [scannerJobId]. Returns null if the scanner run is not found.
      */
-    fun getByJobId(scannerJobId: Long): ScannerRun?
+    suspend fun getByJobId(scannerJobId: Long): ScannerRun?
 }

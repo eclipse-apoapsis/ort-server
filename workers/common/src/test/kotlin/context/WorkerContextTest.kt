@@ -108,7 +108,7 @@ class WorkerContextTest : WordSpec({
         }
 
         "throw an exception if the run ID cannot be resolved" {
-            every { helper.ortRunRepository.get(any()) } returns null
+            coEvery { helper.ortRunRepository.get(any()) } returns null
 
             val context = helper.context()
 
@@ -126,7 +126,7 @@ class WorkerContextTest : WordSpec({
             every { run.repositoryId } returns repositoryId
 
             val hierarchy = mockk<Hierarchy>()
-            every { helper.repositoryRepository.getHierarchy(repositoryId) } returns hierarchy
+            coEvery { helper.repositoryRepository.getHierarchy(repositoryId) } returns hierarchy
 
             val context = helper.context()
 
@@ -349,7 +349,7 @@ class WorkerContextTest : WordSpec({
             val run = helper.expectRunRequest()
             every { run.repositoryId } returns hierarchy.repository.id
 
-            every { helper.repositoryRepository.getHierarchy(hierarchy.repository.id) } returns hierarchy
+            coEvery { helper.repositoryRepository.getHierarchy(hierarchy.repository.id) } returns hierarchy
 
             coEvery { helper.secretService.listForHierarchy(hierarchy) } returns
                     listOf(
@@ -440,7 +440,7 @@ class WorkerContextTest : WordSpec({
             val run = helper.expectRunRequest()
             every { run.repositoryId } returns hierarchy.repository.id
 
-            every { helper.repositoryRepository.getHierarchy(hierarchy.repository.id) } returns hierarchy
+            coEvery { helper.repositoryRepository.getHierarchy(hierarchy.repository.id) } returns hierarchy
 
             coEvery { helper.secretService.listForHierarchy(hierarchy) } returns
                     listOf(
@@ -767,7 +767,7 @@ private class ContextFactoryTestHelper {
         val run = mockk<OrtRun> {
             every { resolvedJobConfigContext } returns CONFIG_FILE_DIRECTORY
         }
-        every { ortRunRepository.get(RUN_ID) } returns run
+        coEvery { ortRunRepository.get(RUN_ID) } returns run
 
         return run
     }
