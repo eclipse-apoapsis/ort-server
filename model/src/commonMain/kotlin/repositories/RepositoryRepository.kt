@@ -35,7 +35,7 @@ interface RepositoryRepository {
     /**
      * Create a repository.
      */
-    fun create(
+    suspend fun create(
         type: RepositoryType,
         url: String,
         productId: Long,
@@ -46,19 +46,19 @@ interface RepositoryRepository {
     /**
      * Get a repository by [id]. Returns null if the repository is not found.
      */
-    fun get(id: Long): Repository?
+    suspend fun get(id: Long): Repository?
 
     /**
      * Return a [Hierarchy] object for the repository with the given [id] with the entities it belongs to. Fail with
      * an exception if the [id] cannot be resolved.
      */
-    fun getHierarchy(id: Long): Hierarchy
+    suspend fun getHierarchy(id: Long): Hierarchy
 
     /**
      * List all repositories according to the given [parameters]. Optionally, a [filter] on the repository name or URL
      * and a [hierarchyFilter] can be provided.
      */
-    fun list(
+    suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null,
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
@@ -67,7 +67,7 @@ interface RepositoryRepository {
     /**
      * List all repositories for a [product][productId] according to the given [parameters].
      */
-    fun listForProduct(
+    suspend fun listForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
@@ -76,7 +76,7 @@ interface RepositoryRepository {
     /**
      * Update a repository by [id] with the [present][OptionalValue.Present] values.
      */
-    fun update(
+    suspend fun update(
         id: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
         url: OptionalValue<String> = OptionalValue.Absent,
@@ -88,10 +88,10 @@ interface RepositoryRepository {
     /**
      * Delete a repository by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 
     /**
      * Delete all [Repositories][Repository] associated to this [productId].
      */
-    fun deleteByProduct(productId: Long): Int
+    suspend fun deleteByProduct(productId: Long): Int
 }

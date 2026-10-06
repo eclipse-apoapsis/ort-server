@@ -399,7 +399,7 @@ class ProjectServiceTest : WordSpec() {
         scopeNames = setOf("Compile")
     )
 
-    private fun createAnalyzerRunWithProjects(projects: Set<Project>): OrtRun {
+    private suspend fun createAnalyzerRunWithProjects(projects: Set<Project>): OrtRun {
         val ortRun = fixtures.createOrtRun()
         val analyzerJob = fixtures.createAnalyzerJob(ortRun.id)
 

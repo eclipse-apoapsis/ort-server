@@ -1016,7 +1016,7 @@ class RuleViolationServiceTest : WordSpec() {
         )
 
     private suspend fun createRuleViolationEntries(
-        repositoryId: Long = fixtures.createRepository().id,
+        repositoryId: Long = fixtures.repository.id,
         ruleViolations: List<RuleViolation> = generateRuleViolations()
     ): OrtRun {
         val ortRun = fixtures.createOrtRun(

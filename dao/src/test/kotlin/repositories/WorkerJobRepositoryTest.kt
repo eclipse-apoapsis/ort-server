@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
  * An abstract test class that contains common tests for all [WorkerJobRepository] implementations.
  */
 abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
-    abstract fun createJob(): T
+    abstract suspend fun createJob(): T
 
     abstract fun getJobRepository(): WorkerJobRepository<T>
 

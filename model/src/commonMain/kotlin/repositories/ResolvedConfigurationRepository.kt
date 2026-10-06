@@ -34,24 +34,24 @@ interface ResolvedConfigurationRepository {
     /**
      * Get a [ResolvedConfiguration] by id. Returns null if the [ResolvedConfiguration] is not found.
      */
-    fun get(id: Long): ResolvedConfiguration?
+    suspend fun get(id: Long): ResolvedConfiguration?
 
     /**
      * Get the [ResolvedConfiguration] for an [OrtRun] by [ortRunId].
      */
-    fun getForOrtRun(ortRunId: Long): ResolvedConfiguration?
+    suspend fun getForOrtRun(ortRunId: Long): ResolvedConfiguration?
 
     /**
      * Add the provided [packageConfigurations] to the [ResolvedConfiguration] of the [OrtRun] identified by [ortRunId].
      * If there is no [ResolvedConfiguration] for the [OrtRun] it is created.
      */
-    fun addPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>)
+    suspend fun addPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>)
 
     /**
      * Add the provided [packageCurations] to the [ResolvedConfiguration] of the [OrtRun] identified by [ortRunId]. If
      * there is no [ResolvedConfiguration] for the [OrtRun] it is created.
      */
-    fun addPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>)
+    suspend fun addPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>)
 
     /**
      * Add the provided [resolvedItems] to the [ResolvedConfiguration] of the [OrtRun] identified by [ortRunId].
@@ -61,14 +61,14 @@ interface ResolvedConfigurationRepository {
      *
      * If there is no [ResolvedConfiguration] for the [OrtRun] it is created.
      */
-    fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult)
+    suspend fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult)
 
     /**
      * Add package-to-curation associations for the [OrtRun] identified by [ortRunId].
      *
      * Unknown packages or curation references are skipped.
      */
-    fun addPackageCurationAssociations(
+    suspend fun addPackageCurationAssociations(
         ortRunId: Long,
         packageCurationAssociations: Map<Identifier, List<AppliedPackageCurationRef>>
     )

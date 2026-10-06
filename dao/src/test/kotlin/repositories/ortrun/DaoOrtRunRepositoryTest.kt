@@ -503,7 +503,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 Clock.System.now()
             } returnsMany mockTimes
 
-            fun createFinishedRun(): OrtRun =
+            suspend fun createFinishedRun(): OrtRun =
                 ortRunRepository.create(
                     repositoryId,
                     "revision",
@@ -555,7 +555,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 Clock.System.now()
             } returnsMany mockTimes
 
-            fun createFinishedRun(): OrtRun =
+            suspend fun createFinishedRun(): OrtRun =
                 ortRunRepository.create(
                     repositoryId,
                     "revision",

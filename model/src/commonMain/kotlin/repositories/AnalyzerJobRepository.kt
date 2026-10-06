@@ -29,10 +29,10 @@ interface AnalyzerJobRepository : WorkerJobRepository<AnalyzerJob> {
     /**
      * Create an analyzer job.
      */
-    fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob
+    suspend fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob
 
     /**
      * Delete an analyzer job by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 }

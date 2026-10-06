@@ -41,7 +41,7 @@ class DaoAnalyzerJobRepositoryTest : WorkerJobRepositoryTest<AnalyzerJob>() {
 
     private var ortRunId = -1L
 
-    override fun createJob() = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
+    override suspend fun createJob() = analyzerJobRepository.create(ortRunId, jobConfigurations.analyzer)
 
     override fun getJobRepository() = analyzerJobRepository
 

@@ -101,7 +101,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
     }
 })
 
-private fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) = create(
+private suspend fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) = create(
     advisorJobId = advisorJobId,
     startTime = advisorRun.startTime,
     endTime = advisorRun.endTime,

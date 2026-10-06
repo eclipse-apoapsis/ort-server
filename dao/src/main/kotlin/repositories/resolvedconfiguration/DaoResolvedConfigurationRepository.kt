@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorResultsTable
@@ -50,6 +48,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ResolvedIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.ortRunIssueContentMatches
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
@@ -69,16 +69,16 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedConfigurationRepository {
-    override fun get(id: Long): ResolvedConfiguration? =
-        db.blockingQueryCatching { ResolvedConfigurationDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long): ResolvedConfiguration? =
+        db.transactionCatching { ResolvedConfigurationDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getForOrtRun(ortRunId: Long): ResolvedConfiguration? = db.blockingQuery {
+    override suspend fun getForOrtRun(ortRunId: Long): ResolvedConfiguration? = db.transaction {
         ResolvedConfigurationDao.find { ResolvedConfigurationsTable.ortRunId eq ortRunId }.limit(1)
             .firstOrNull()?.mapToModel()
     }
 
-    override fun addPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>) =
-        db.blockingQuery {
+    override suspend fun addPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>) =
+        db.transaction {
             val resolvedConfiguration = ResolvedConfigurationDao.getOrPut(ortRunId)
             packageConfigurations.forEach { packageConfiguration ->
                 val packageConfigurationDao = PackageConfigurationDao.getOrPut(packageConfiguration)
@@ -89,8 +89,8 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
             }
         }
 
-    override fun addPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) =
-        db.blockingQuery {
+    override suspend fun addPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) =
+        db.transaction {
             val resolvedConfiguration = ResolvedConfigurationDao.getOrPut(ortRunId)
             val providerOffset = resolvedConfiguration.packageCurationProviders.count().toInt()
             packageCurations.forEachIndexed { index, resolvedPackageCurations ->
@@ -118,10 +118,10 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
             }
         }
 
-    override fun addPackageCurationAssociations(
+    override suspend fun addPackageCurationAssociations(
         ortRunId: Long,
         packageCurationAssociations: Map<Identifier, List<AppliedPackageCurationRef>>
-    ) = db.blockingQuery {
+    ) = db.transaction {
         val packageIdByIdentifier = PackagesTable
             .innerJoin(IdentifiersTable)
             .innerJoin(PackagesAnalyzerRunsTable)
@@ -187,7 +187,7 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
         }
     }
 
-    override fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult) = db.blockingQuery {
+    override suspend fun addResolutions(ortRunId: Long, resolvedItems: ResolvedItemsResult) = db.transaction {
         val resolvedConfiguration = ResolvedConfigurationDao.getOrPut(ortRunId)
 
         // Store unique issue resolutions and the mappings between issues and their resolutions

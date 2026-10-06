@@ -1541,8 +1541,8 @@ class IssueServiceTest : WordSpec() {
         val packagePurl: String
     )
 
-    private fun createIssuePackageScenario(
-        repositoryId: Long = fixtures.createRepository().id,
+    private suspend fun createIssuePackageScenario(
+        repositoryId: Long = fixtures.repository.id,
         primaryPackageName: String = "alpha-lib",
         curatedPurl: String? = null
     ): IssuePackageScenario {
@@ -1619,7 +1619,7 @@ class IssueServiceTest : WordSpec() {
         )
     }
 
-    private fun createOrtRunWithIssueResolutions(
+    private suspend fun createOrtRunWithIssueResolutions(
         repositoryId: Long,
         issues: List<Issue>,
         resolutions: Resolutions
@@ -1671,8 +1671,8 @@ class IssueServiceTest : WordSpec() {
         return ortRun
     }
 
-    private fun createOrtRunWithIssues(
-        repositoryId: Long = fixtures.createRepository().id,
+    private suspend fun createOrtRunWithIssues(
+        repositoryId: Long = fixtures.repository.id,
         issues: List<Issue> = this.generateIssues()
     ): OrtRun {
         val ortRun = fixtures.createOrtRun(repositoryId)

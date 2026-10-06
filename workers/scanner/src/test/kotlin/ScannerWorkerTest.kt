@@ -131,7 +131,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerJob(any()) } returns scannerJob
             coEvery { finalizeScannerRun(any(), any()) } returns mockk()
-            every { startScannerJob(any()) } returns scannerJob
+            coEvery { startScannerJob(any()) } returns scannerJob
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
@@ -235,7 +235,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerJob(any()) } returns scannerJob
             coEvery { finalizeScannerRun(any(), any()) } returns mockk()
-            every { startScannerJob(any()) } returns scannerJob
+            coEvery { startScannerJob(any()) } returns scannerJob
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
@@ -474,7 +474,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerJob(any()) } returns scannerJob
             coEvery { finalizeScannerRun(any(), any()) } returns mockk()
-            every { startScannerJob(any()) } returns scannerJob
+            coEvery { startScannerJob(any()) } returns scannerJob
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
@@ -548,7 +548,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerJob(any()) } returns scannerJob
             coEvery { finalizeScannerRun(any(), any()) } returns mockk()
-            every { startScannerJob(any()) } returns scannerJob
+            coEvery { startScannerJob(any()) } returns scannerJob
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
@@ -647,7 +647,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerJob(any()) } returns scannerJob
             coEvery { finalizeScannerRun(any(), any()) } returns mockk()
-            every { startScannerJob(any()) } returns scannerJob
+            coEvery { startScannerJob(any()) } returns scannerJob
             coEvery { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
         }
 
@@ -761,7 +761,7 @@ class ScannerWorkerTest : StringSpec({
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerJob(any()) } returns scannerJob
             coEvery { finalizeScannerRun(any(), any()) } returns mockk()
-            every { startScannerJob(any()) } returns scannerJob
+            coEvery { startScannerJob(any()) } returns scannerJob
             coEvery { storeResolvedItems(any(), capture(resolvedItemsSlot)) } just runs
         }
 

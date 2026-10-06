@@ -31,7 +31,7 @@ interface ReporterRunRepository {
     /**
      * Create a reporter run.
      */
-    fun create(
+    suspend fun create(
         reporterJobId: Long,
         startTime: Instant,
         endTime: Instant,
@@ -41,10 +41,10 @@ interface ReporterRunRepository {
     /**
      * Get a reporter run by [id]. Returns null if the reporter run is not found.
      */
-    fun get(id: Long): ReporterRun?
+    suspend fun get(id: Long): ReporterRun?
 
     /**
      * Get a reporter run by [reporterJobId]. Returns null if the reporter run is not found.
      */
-    fun getByJobId(reporterJobId: Long): ReporterRun?
+    suspend fun getByJobId(reporterJobId: Long): ReporterRun?
 }

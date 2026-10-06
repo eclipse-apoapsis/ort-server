@@ -22,14 +22,14 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.queries.ortrun.GetIssuesForOrtRunQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
@@ -48,7 +48,7 @@ import org.jetbrains.exposed.v1.jdbc.insert
  * An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable].
  */
 class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
-    override fun create(scannerJobId: Long): ScannerRun = db.blockingQuery {
+    override suspend fun create(scannerJobId: Long): ScannerRun = db.transaction {
         val scannerRunDao = ScannerRunDao.new {
             this.scannerJobId = scannerJobId
         }
@@ -56,7 +56,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         scannerRunDao.mapToModel()
     }
 
-    override fun update(
+    override suspend fun update(
         id: Long,
         startTime: Instant,
         endTime: Instant,
@@ -64,7 +64,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         config: ScannerConfiguration,
         scanners: Map<Identifier, Set<String>>,
         issues: Map<Identifier, Set<Issue>>
-    ) = db.blockingQuery {
+    ) = db.transaction {
         val scannerRunDao = ScannerRunDao[id]
 
         require(scannerRunDao.startTime == null) {
@@ -82,7 +82,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         scannerRunDao.mapToModel()
     }
 
-    override fun get(id: Long): ScannerRun? = db.blockingQueryCatching {
+    override suspend fun get(id: Long): ScannerRun? = db.transactionCatching {
         val scannerRunDao = ScannerRunDao[id]
 
         // Get the provenance resolution results for the scanned packages.
@@ -104,7 +104,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         )
     }.getEntityOrNull()
 
-    override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {
+    override suspend fun getByJobId(scannerJobId: Long): ScannerRun? = db.transaction {
         ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.let { get(it.id.value) }
     }
 

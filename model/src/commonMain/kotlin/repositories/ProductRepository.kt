@@ -33,18 +33,18 @@ interface ProductRepository {
     /**
      * Create a product.
      */
-    fun create(name: String, description: String?, organizationId: Long): Product
+    suspend fun create(name: String, description: String?, organizationId: Long): Product
 
     /**
      * Get a product by [id]. Returns null if the product is not found.
      */
-    fun get(id: Long): Product?
+    suspend fun get(id: Long): Product?
 
     /**
      * List all products according to the given [parameters]. Optionally, a [nameFilter] on the product name and a
      * [hierarchyFilter] can be provided.
      */
-    fun list(
+    suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         nameFilter: FilterParameter? = null,
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
@@ -53,7 +53,7 @@ interface ProductRepository {
     /**
      * List all products for an [organization][organizationId] according to the given [parameters].
      */
-    fun listForOrganization(
+    suspend fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
@@ -62,12 +62,12 @@ interface ProductRepository {
     /**
      * Count the products associated to an [organization][organizationId].
      */
-    fun countForOrganization(organizationId: Long): Long
+    suspend fun countForOrganization(organizationId: Long): Long
 
     /**
      * Update a product by [id] with the [present][OptionalValue.Present] values.
      */
-    fun update(
+    suspend fun update(
         id: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
@@ -76,5 +76,5 @@ interface ProductRepository {
     /**
      * Delete a product by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 }

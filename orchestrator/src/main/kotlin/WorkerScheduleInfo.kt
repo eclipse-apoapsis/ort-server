@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 /**
  * Type definition for a function that schedules another worker job.
  */
-typealias JobScheduleFunc = () -> Unit
+typealias JobScheduleFunc = suspend () -> Unit
 
 /**
  * An enumeration class with constants that describe if and when a job for a specific worker should be scheduled.
@@ -70,7 +70,7 @@ internal enum class WorkerScheduleInfo(
     private val runAfterFailure: Boolean = false
 ) {
     ANALYZER(AnalyzerEndpoint) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob =
+        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob =
             context.workerJobRepositories.analyzerJobRepository.create(
                 context.ortRun.id,
                 context.jobConfigs().analyzer
@@ -84,7 +84,7 @@ internal enum class WorkerScheduleInfo(
     },
 
     ADVISOR(AdvisorEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().advisor?.let { config ->
                 context.workerJobRepositories.advisorJobRepository.create(context.ortRun.id, config)
             }
@@ -98,7 +98,7 @@ internal enum class WorkerScheduleInfo(
     },
 
     SCANNER(ScannerEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().scanner?.let { config ->
                 context.workerJobRepositories.scannerJobRepository.create(context.ortRun.id, config)
             }
@@ -112,7 +112,7 @@ internal enum class WorkerScheduleInfo(
     },
 
     EVALUATOR(EvaluatorEndpoint, runsAfter = listOf(AdvisorEndpoint, ScannerEndpoint)) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().evaluator?.let { config ->
                 context.workerJobRepositories.evaluatorJobRepository.create(context.ortRun.id, config)
             }
@@ -126,7 +126,7 @@ internal enum class WorkerScheduleInfo(
     },
 
     REPORTER(ReporterEndpoint, runsAfter = listOf(EvaluatorEndpoint), runAfterFailure = true) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().reporter?.let { config ->
                 context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
             }
@@ -140,7 +140,7 @@ internal enum class WorkerScheduleInfo(
     },
 
     NOTIFIER(NotifierEndpoint, dependsOn = listOf(ReporterEndpoint), runAfterFailure = true) {
-        override fun createJob(context: WorkerScheduleContext): WorkerJob? =
+        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().notifier?.let { config ->
                 context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
             }
@@ -172,7 +172,7 @@ internal enum class WorkerScheduleInfo(
      * Check whether a job for the represented worker can be scheduled now based on the given [context]. If so, create
      * the job in the database and return a function that schedules the job.
      */
-    fun createAndScheduleJobIfPossible(context: WorkerScheduleContext): JobScheduleFunc? {
+    suspend fun createAndScheduleJobIfPossible(context: WorkerScheduleContext): JobScheduleFunc? {
         if (!canRun(context)) return null
 
         return createJob(context)?.let { job ->
@@ -187,7 +187,7 @@ internal enum class WorkerScheduleInfo(
     /**
      * Create a new job for this worker based on the information in the given [context].
      */
-    protected abstract fun createJob(context: WorkerScheduleContext): WorkerJob?
+    protected abstract suspend fun createJob(context: WorkerScheduleContext): WorkerJob?
 
     /**
      * Publish a message to the worker endpoint to schedule the given [job] based on the information in the given

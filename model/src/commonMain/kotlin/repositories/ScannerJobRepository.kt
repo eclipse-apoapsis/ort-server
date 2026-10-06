@@ -29,10 +29,10 @@ interface ScannerJobRepository : WorkerJobRepository<ScannerJob> {
     /**
      * Create a scanner job.
      */
-    fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob
+    suspend fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob
 
     /**
      * Delete a scanner job by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 }

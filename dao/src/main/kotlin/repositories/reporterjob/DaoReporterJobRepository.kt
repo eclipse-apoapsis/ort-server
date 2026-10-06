@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
@@ -38,7 +38,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
 
 class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository {
-    override fun create(ortRunId: Long, configuration: ReporterJobConfiguration): ReporterJob = db.blockingQuery {
+    override suspend fun create(ortRunId: Long, configuration: ReporterJobConfiguration): ReporterJob = db.transaction {
         ReporterJobDao.new {
             this.ortRunId = ortRunId
             createdAt = Clock.System.now()
@@ -47,20 +47,20 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
         }.mapToModel()
     }
 
-    override fun get(id: Long): ReporterJob? =
-        db.blockingQueryCatching { ReporterJobDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long): ReporterJob? =
+        db.transactionCatching { ReporterJobDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getForOrtRun(ortRunId: Long): ReporterJob? = db.blockingQuery {
+    override suspend fun getForOrtRun(ortRunId: Long): ReporterJob? = db.transaction {
         findJobForOrtRun(ortRunId)?.mapToModel()
     }
 
-    override fun update(
+    override suspend fun update(
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
         status: OptionalValue<JobStatus>,
         errorMessage: OptionalValue<String>
-    ): ReporterJob = db.blockingQuery {
+    ): ReporterJob = db.transaction {
         val reporterJob = ReporterJobDao[id]
 
         startedAt.ifPresent { reporterJob.startedAt = it }
@@ -71,16 +71,16 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
         ReporterJobDao[id].mapToModel()
     }
 
-    override fun listActive(before: Instant?): List<ReporterJob> = db.blockingQuery {
+    override suspend fun listActive(before: Instant?): List<ReporterJob> = db.transaction {
         ReporterJobDao.find {
             val opFinished = ReporterJobsTable.finishedAt eq null
             before?.let { opFinished and (ReporterJobsTable.createdAt lessEq it) } ?: opFinished
         }.map { it.mapToModel() }
     }
 
-    override fun delete(id: Long) = db.blockingQuery { ReporterJobDao[id].delete() }
+    override suspend fun delete(id: Long) = db.transaction { ReporterJobDao[id].delete() }
 
-    override fun getReportByToken(ortRunId: Long, token: String): Report? = db.blockingQuery {
+    override suspend fun getReportByToken(ortRunId: Long, token: String): Report? = db.transaction {
         val time = Clock.System.now()
         val linkSuffix = "/downloads/report/$token"
         findJobForOrtRun(ortRunId)?.reporterRun?.reports?.find {
@@ -88,7 +88,7 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
         }?.mapToModel()
     }
 
-    override fun getNonExpiredReports(ortRunId: Long) = db.blockingQuery {
+    override suspend fun getNonExpiredReports(ortRunId: Long) = db.transaction {
         val time = Clock.System.now()
         findJobForOrtRun(ortRunId)?.reporterRun?.reports?.filter {
             it.downloadTokenExpiryDate > time

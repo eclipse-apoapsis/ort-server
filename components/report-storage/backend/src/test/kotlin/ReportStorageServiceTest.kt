@@ -30,7 +30,7 @@ import io.kotest.matchers.string.shouldContain
 
 import io.ktor.http.ContentType
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 
 import java.io.ByteArrayOutputStream
@@ -104,7 +104,7 @@ class ReportStorageServiceTest : WordSpec({
             storage.write(generateKey(RUN_ID, fileName), reportData, contentType.toString())
 
             val reporterJobRepository = mockk<ReporterJobRepository> {
-                every { getReportByToken(RUN_ID, token) } returns Report(fileName, token, Instant.DISTANT_FUTURE)
+                coEvery { getReportByToken(RUN_ID, token) } returns Report(fileName, token, Instant.DISTANT_FUTURE)
             }
 
             val service = ReportStorageService(storage, reporterJobRepository)
@@ -120,7 +120,7 @@ class ReportStorageServiceTest : WordSpec({
         "throw an exception if the token cannot be resolved" {
             val token = "anInvalidToken"
             val reporterJobRepository = mockk<ReporterJobRepository> {
-                every { getReportByToken(RUN_ID, token) } returns null
+                coEvery { getReportByToken(RUN_ID, token) } returns null
             }
 
             val service = ReportStorageService(createStorage(), reporterJobRepository)

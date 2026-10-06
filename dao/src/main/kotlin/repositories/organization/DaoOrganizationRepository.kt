@@ -19,9 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.organization
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
@@ -42,17 +42,21 @@ import org.jetbrains.exposed.v1.jdbc.Database
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
  */
 class DaoOrganizationRepository(private val db: Database) : OrganizationRepository {
-    override fun create(name: String, description: String?) = db.blockingQuery {
+    override suspend fun create(name: String, description: String?) = db.transaction {
         OrganizationDao.new {
             this.name = name
             this.description = description
         }
     }.mapToModel()
 
-    override fun get(id: Long) = db.blockingQueryCatching { OrganizationDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long) = db.transactionCatching { OrganizationDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun list(parameters: ListQueryParameters, nameFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
-        db.blockingQuery {
+    override suspend fun list(
+        parameters: ListQueryParameters,
+        nameFilter: FilterParameter?,
+        hierarchyFilter: HierarchyFilter
+    ) =
+        db.transaction {
             val nameCondition = nameFilter?.let {
                 OrganizationsTable.name.applyIRegex(it.value)
             } ?: Op.TRUE
@@ -64,16 +68,17 @@ class DaoOrganizationRepository(private val db: Database) : OrganizationReposito
             OrganizationDao.listQuery(parameters, OrganizationDao::mapToModel, builder)
         }
 
-    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = db.blockingQuery {
-        val org = OrganizationDao[id]
+    override suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) =
+        db.transaction {
+            val org = OrganizationDao[id]
 
-        name.ifPresent { org.name = it }
-        description.ifPresent { org.description = it }
+            name.ifPresent { org.name = it }
+            description.ifPresent { org.description = it }
 
-        OrganizationDao[id].mapToModel()
-    }
+            OrganizationDao[id].mapToModel()
+        }
 
-    override fun delete(id: Long) = db.blockingQuery { OrganizationDao[id].delete() }
+    override suspend fun delete(id: Long) = db.transaction { OrganizationDao[id].delete() }
 }
 
 /**

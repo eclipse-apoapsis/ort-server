@@ -115,8 +115,8 @@ class EvaluatorWorkerTest : StringSpec({
             coEvery { getOrtRepositoryInformation(any()) } returns mockk()
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(any()) } returns scannerRun
-            every { startEvaluatorJob(any()) } returns evaluatorJob
-            every { storeEvaluatorRun(any()) } returns mockk()
+            coEvery { startEvaluatorJob(any()) } returns evaluatorJob
+            coEvery { storeEvaluatorRun(any()) } returns mockk()
             coEvery { storeResolvedPackageConfigurations(any(), any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
@@ -219,8 +219,8 @@ class EvaluatorWorkerTest : StringSpec({
             coEvery { getOrtRepositoryInformation(any()) } returns mockk()
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(any()) } returns scannerRun
-            every { startEvaluatorJob(any()) } returns evaluatorJob
-            every { storeEvaluatorRun(any()) } returns mockk()
+            coEvery { startEvaluatorJob(any()) } returns evaluatorJob
+            coEvery { storeEvaluatorRun(any()) } returns mockk()
             coEvery { storeResolvedPackageConfigurations(any(), any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
@@ -280,8 +280,8 @@ class EvaluatorWorkerTest : StringSpec({
             coEvery { getOrtRepositoryInformation(any()) } returns mockk()
             coEvery { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(any()) } returns scannerRun
-            every { startEvaluatorJob(any()) } returns evaluatorJob
-            every { storeEvaluatorRun(any()) } returns mockk()
+            coEvery { startEvaluatorJob(any()) } returns evaluatorJob
+            coEvery { storeEvaluatorRun(any()) } returns mockk()
             coEvery { storeResolvedPackageConfigurations(any(), any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
         }

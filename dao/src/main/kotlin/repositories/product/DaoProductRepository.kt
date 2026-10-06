@@ -19,9 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.product
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
@@ -41,7 +41,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
 
 class DaoProductRepository(private val db: Database) : ProductRepository {
-    override fun create(name: String, description: String?, organizationId: Long) = db.blockingQuery {
+    override suspend fun create(name: String, description: String?, organizationId: Long) = db.transaction {
         ProductDao.new {
             this.name = name
             this.description = description
@@ -49,10 +49,14 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
         }.mapToModel()
     }
 
-    override fun get(id: Long) = db.blockingQueryCatching { ProductDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long) = db.transactionCatching { ProductDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun list(parameters: ListQueryParameters, nameFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
-        db.blockingQuery {
+    override suspend fun list(
+        parameters: ListQueryParameters,
+        nameFilter: FilterParameter?,
+        hierarchyFilter: HierarchyFilter
+    ) =
+        db.transaction {
             val nameCondition = nameFilter?.let {
                 ProductsTable.name.applyIRegex(it.value)
             } ?: Op.TRUE
@@ -64,11 +68,15 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
             ProductDao.listQuery(parameters, ProductDao::mapToModel, builder)
         }
 
-    override fun countForOrganization(organizationId: Long) =
+    override suspend fun countForOrganization(organizationId: Long) =
         ProductDao.count(ProductsTable.organizationId eq organizationId)
 
-    override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters, filter: FilterParameter?) =
-        db.blockingQuery {
+    override suspend fun listForOrganization(
+        organizationId: Long,
+        parameters: ListQueryParameters,
+        filter: FilterParameter?
+    ) =
+        db.transaction {
             ProductDao.listQuery(parameters, ProductDao::mapToModel) {
                 if (filter != null) {
                     ProductsTable.organizationId eq organizationId and ProductsTable.name.applyIRegex(filter.value)
@@ -78,16 +86,17 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
             }
         }
 
-    override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = db.blockingQuery {
-        val product = ProductDao[id]
+    override suspend fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) =
+        db.transaction {
+            val product = ProductDao[id]
 
-        name.ifPresent { product.name = it }
-        description.ifPresent { product.description = it }
+            name.ifPresent { product.name = it }
+            description.ifPresent { product.description = it }
 
-        ProductDao[id].mapToModel()
-    }
+            ProductDao[id].mapToModel()
+        }
 
-    override fun delete(id: Long) = db.blockingQuery { ProductDao[id].delete() }
+    override suspend fun delete(id: Long) = db.transaction { ProductDao[id].delete() }
 }
 
 /**

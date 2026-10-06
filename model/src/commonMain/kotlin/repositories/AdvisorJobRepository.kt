@@ -29,10 +29,10 @@ interface AdvisorJobRepository : WorkerJobRepository<AdvisorJob> {
     /**
      * Create an advisor job.
      */
-    fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob
+    suspend fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob
 
     /**
      * Delete an advisor job by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 }

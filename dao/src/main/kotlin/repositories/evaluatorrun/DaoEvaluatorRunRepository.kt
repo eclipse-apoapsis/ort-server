@@ -21,11 +21,11 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
@@ -38,13 +38,13 @@ import org.jetbrains.exposed.v1.jdbc.Database
  * An implementation of [EvaluatorRunRepository] that stores evaluator runs in [EvaluatorRunsTable].
  */
 class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunRepository {
-    override fun create(
+    override suspend fun create(
         evaluatorJobId: Long,
         startTime: Instant,
         endTime: Instant,
         environment: Environment,
         violations: List<RuleViolation>
-    ): EvaluatorRun = db.blockingQuery {
+    ): EvaluatorRun = db.transaction {
         val environmentDao = EnvironmentDao.getOrPut(environment)
         val ruleViolations = mapAndDeduplicate(violations, RuleViolationDao::getOrPut)
 
@@ -57,10 +57,10 @@ class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunReposito
         }.mapToModel()
     }
 
-    override fun get(id: Long): EvaluatorRun? =
-        db.blockingQueryCatching { EvaluatorRunDao[id].mapToModel() }.getEntityOrNull()
+    override suspend fun get(id: Long): EvaluatorRun? =
+        db.transactionCatching { EvaluatorRunDao[id].mapToModel() }.getEntityOrNull()
 
-    override fun getByJobId(evaluatorJobId: Long): EvaluatorRun? = db.blockingQueryCatching {
+    override suspend fun getByJobId(evaluatorJobId: Long): EvaluatorRun? = db.transactionCatching {
         EvaluatorRunDao.find { EvaluatorRunsTable.evaluatorJobId eq evaluatorJobId }.firstOrNull()?.mapToModel()
     }.getEntityOrNull()
 }

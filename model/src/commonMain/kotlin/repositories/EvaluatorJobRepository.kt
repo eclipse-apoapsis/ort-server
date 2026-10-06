@@ -29,10 +29,10 @@ interface EvaluatorJobRepository : WorkerJobRepository<EvaluatorJob> {
     /**
      * Create an evaluator job.
      */
-    fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob
+    suspend fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob
 
     /**
      * Delete an evaluator job by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 }

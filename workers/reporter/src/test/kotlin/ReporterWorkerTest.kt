@@ -163,9 +163,9 @@ class ReporterWorkerTest : StringSpec({
             coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
             coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
-            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             coEvery { storeIssues(any(), any()) } just runs
-            every { storeReporterRun(any()) } just runs
+            coEvery { storeReporterRun(any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
 
@@ -189,7 +189,7 @@ class ReporterWorkerTest : StringSpec({
                 OrtTestData.providerIssue.mapToModel().copy(howToFix = null)
             )
         )
-        every { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
+        coEvery { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
 
         val runner = mockk<ReporterRunner> {
             coEvery {
@@ -290,8 +290,8 @@ class ReporterWorkerTest : StringSpec({
             coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
             coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
-            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { storeReporterRun(any()) } just runs
+            coEvery { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { storeReporterRun(any()) } just runs
             coEvery { storeIssues(any(), any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
             coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
@@ -313,7 +313,7 @@ class ReporterWorkerTest : StringSpec({
             resolvedItems = null,
             issues = listOf(OrtTestData.issue.mapToModel())
         )
-        every { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
+        coEvery { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
 
         val runner = mockk<ReporterRunner> {
             coEvery {
@@ -388,8 +388,8 @@ class ReporterWorkerTest : StringSpec({
             coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
             coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
-            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { storeReporterRun(any()) } just runs
+            coEvery { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { storeReporterRun(any()) } just runs
             coEvery { storeIssues(any(), any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
             coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns OrtTestData.result
@@ -411,7 +411,7 @@ class ReporterWorkerTest : StringSpec({
             resolvedItems = null,
             issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
         )
-        every { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
+        coEvery { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
 
         val runner = mockk<ReporterRunner> {
             coEvery {
@@ -484,8 +484,8 @@ class ReporterWorkerTest : StringSpec({
             coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
             coEvery { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
             coEvery { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
-            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { storeReporterRun(any()) } just runs
+            coEvery { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { storeReporterRun(any()) } just runs
             coEvery { storeResolvedPackageConfigurations(any(), any()) } just runs
             coEvery { storeResolvedItems(any(), any()) } just runs
         }
@@ -507,7 +507,7 @@ class ReporterWorkerTest : StringSpec({
             resolvedItems = resolvedItems,
             issues = emptyList()
         )
-        every { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
+        coEvery { ortRunService.updateIssueHowToFixTexts(any(), any()) } returns 0
 
         val runner = mockk<ReporterRunner> {
             coEvery {
@@ -584,9 +584,9 @@ class ReporterWorkerTest : StringSpec({
         val ortRunService = mockk<OrtRunService> {
             coEvery { getOrtRun(ORT_RUN_ID) } returns ortRun
             coEvery { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
-            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            coEvery { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
             coEvery { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
-            every { storeReporterRun(any()) } just runs
+            coEvery { storeReporterRun(any()) } just runs
         }
 
         val worker = ReporterWorker(

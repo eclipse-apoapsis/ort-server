@@ -526,7 +526,7 @@ class PluginTemplateService(
     }
 
     /** Validate that the organization with the given [organizationId] exists. */
-    private fun validateOrganizationExists(organizationId: OrganizationId): Result<Unit, TemplateError> =
+    private suspend fun validateOrganizationExists(organizationId: OrganizationId): Result<Unit, TemplateError> =
         if (organizationRepository.get(organizationId.value) == null) {
             TemplateError.NotFound("No organization with ID '$organizationId' found.").toErr()
         } else {

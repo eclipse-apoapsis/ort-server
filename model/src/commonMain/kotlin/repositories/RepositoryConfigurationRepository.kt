@@ -37,7 +37,7 @@ interface RepositoryConfigurationRepository {
      * Create a repository configuration.
      */
     @Suppress("LongParameterList")
-    fun create(
+    suspend fun create(
         ortRunId: Long,
         analyzerConfig: RepositoryAnalyzerConfiguration?,
         excludes: Excludes,
@@ -52,5 +52,5 @@ interface RepositoryConfigurationRepository {
     /**
      * Get an analyzer run by [id]. Returns null if the repository configuration is not found.
      */
-    fun get(id: Long): RepositoryConfiguration?
+    suspend fun get(id: Long): RepositoryConfiguration?
 }

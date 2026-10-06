@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier as ApiIdentifier
 
-fun createRunWithPackage(
+suspend fun createRunWithPackage(
     fixtures: Fixtures,
     repoId: Long = -1L,
     pkgId: Identifier = Identifier("test", "ns", "name", "ver")
@@ -58,7 +58,7 @@ fun createRunWithPackage(
  * Create a run with a package and add a PURL curation for it.
  * Returns the RunWithPackage with the curated PURL in the purl field (for PURL search testing).
  */
-fun createRunWithCuratedPurl(
+suspend fun createRunWithCuratedPurl(
     fixtures: Fixtures,
     repoId: Long,
     pkgId: Identifier,
@@ -96,7 +96,7 @@ fun createRunWithCuratedPurl(
  * Create a run with a package for PURL search testing (without curation).
  * Returns the RunWithPackage with the original PURL in the purl field.
  */
-fun createRunWithPackageForPurlSearch(
+suspend fun createRunWithPackageForPurlSearch(
     fixtures: Fixtures,
     repoId: Long = -1L,
     pkgId: Identifier = Identifier("test", "ns", "name", "ver")
@@ -125,7 +125,7 @@ fun Identifier.toApiIdentifier(): ApiIdentifier = ApiIdentifier(type, namespace,
  * Create an ORT run with a vulnerability associated with the given package identifier.
  * Returns a RunWithVulnerability with the packageId populated (for returnPurl=false testing).
  */
-fun createRunWithVulnerability(
+suspend fun createRunWithVulnerability(
     fixtures: Fixtures,
     repoId: Long,
     pkgId: Identifier,
@@ -174,7 +174,7 @@ fun createRunWithVulnerability(
  * Create an ORT run with a vulnerability and add a PURL curation for the package.
  * Returns a RunWithVulnerability with the curated PURL in the purl field (for returnPurl=true testing).
  */
-fun createRunWithVulnerabilityAndCuratedPurl(
+suspend fun createRunWithVulnerabilityAndCuratedPurl(
     fixtures: Fixtures,
     repoId: Long,
     pkgId: Identifier,
@@ -237,7 +237,7 @@ fun createRunWithVulnerabilityAndCuratedPurl(
  * Create an ORT run with a vulnerability for PURL search testing (without curation).
  * Returns a RunWithVulnerability with the original PURL in the purl field.
  */
-fun createRunWithVulnerabilityForPurlSearch(
+suspend fun createRunWithVulnerabilityForPurlSearch(
     fixtures: Fixtures,
     repoId: Long,
     pkgId: Identifier,

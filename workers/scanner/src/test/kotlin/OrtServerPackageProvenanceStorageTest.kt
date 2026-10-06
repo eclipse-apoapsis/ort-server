@@ -164,7 +164,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
         }
 
         "readProvenance" should {
-            fun createScannerRun(): ScannerRun {
+            suspend fun createScannerRun(): ScannerRun {
                 val ortRun = dbExtension.fixtures.createOrtRun()
                 val scannerJob = dbExtension.fixtures.createScannerJob(ortRun.id)
                 return dbExtension.fixtures.scannerRunRepository.create(scannerJob.id)

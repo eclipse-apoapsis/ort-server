@@ -33,18 +33,18 @@ interface OrganizationRepository {
     /**
      * Create an organization.
      */
-    fun create(name: String, description: String?): Organization
+    suspend fun create(name: String, description: String?): Organization
 
     /**
      * Get an organization by [id]. Returns null if the organization is not found.
      */
-    fun get(id: Long): Organization?
+    suspend fun get(id: Long): Organization?
 
     /**
      * List all organizations according to the given [parameters]. Optionally, a [nameFilter] on the product name and a
      * [hierarchyFilter] can be provided.
      */
-    fun list(
+    suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         nameFilter: FilterParameter? = null,
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
@@ -53,7 +53,7 @@ interface OrganizationRepository {
     /**
      * Update an organization by [id] with the [present][OptionalValue.Present] values.
      */
-    fun update(
+    suspend fun update(
         id: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
@@ -62,5 +62,5 @@ interface OrganizationRepository {
     /**
      * Delete an organization by [id].
      */
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 }
