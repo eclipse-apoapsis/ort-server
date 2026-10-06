@@ -21,7 +21,8 @@ package org.eclipse.apoapsis.ortserver.dao.test
 
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import kotlinx.coroutines.runBlocking
+
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
@@ -41,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Dao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
@@ -69,7 +71,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
+import org.jetbrains.exposed.v1.core.InternalApi
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.withTransactionContext
 
 /**
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
@@ -105,7 +110,7 @@ class Fixtures(private val db: Database) {
     val evaluatorJob by lazy { createEvaluatorJob() }
     val reporterJob by lazy { createReporterJob() }
     val notifierJob by lazy { createNotifierJob() }
-    val identifier by lazy { createIdentifier() }
+    val identifier by blockingLazy { createIdentifier() }
     val ruleViolation by lazy { getViolation() }
 
     val jobConfigurations = JobConfigurations(
@@ -226,14 +231,14 @@ class Fixtures(private val db: Database) {
         return ortRun
     }
 
-    fun createIdentifier(
+    suspend fun createIdentifier(
         identifier: Identifier = Identifier(
             "identifier_type",
             "identifier_namespace",
             "identifier_package",
             "identifier_version"
         )
-    ): Identifier = db.blockingQuery {
+    ): Identifier = db.transaction {
         IdentifierDao.getOrPut(identifier).mapToModel()
     }
 
@@ -374,4 +379,22 @@ class Fixtures(private val db: Database) {
         isMetadataOnly = false,
         isModified = false
     )
+}
+
+/**
+ * Create a [Lazy] delegate whose value is computed by the suspending [initializer] while preserving the transaction
+ * context of the current thread. This allows to access the lazily initialized properties of `Fixtures` from within a
+ * transaction in test code.
+ */
+@OptIn(InternalApi::class)
+private fun <T> blockingLazy(initializer: suspend () -> T): Lazy<T> = lazy {
+    val outerTransaction = TransactionManager.currentOrNull()
+
+    runBlocking {
+        if (outerTransaction != null) {
+            withTransactionContext(outerTransaction) { initializer() }
+        } else {
+            initializer()
+        }
+    }
 }
