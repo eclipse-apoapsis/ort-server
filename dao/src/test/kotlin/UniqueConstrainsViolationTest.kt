@@ -49,11 +49,11 @@ class UniqueConstrainsViolationTest : StringSpec() {
             // To simulate the situation in worker pods, the creation of entities has to happen in nested query calls. A
             // worker runner typically starts a query/transaction and invokes OrtRunService. The service calls
             // repositories, which again invoke a query function.
-            dbExtension.db.dbQuery {
+            dbExtension.db.transaction {
                 runCreateArtifactTest(db, callCount)
             }
 
-            val artifacts = dbExtension.db.dbQuery {
+            val artifacts = dbExtension.db.transaction {
                 RemoteArtifactDao.all().toList().map(RemoteArtifactDao::mapToModel)
             }
             artifacts should containExactly(testArtifact)
@@ -73,8 +73,8 @@ private val testArtifact = RemoteArtifact(
  * operation on the first call (determined by the given [counter][callCount]) with a unique constraint violation
  * exception to test whether this error condition is handled properly.
  */
-private fun runCreateArtifactTest(db: Database, callCount: AtomicInteger) {
-    db.blockingQuery {
+private suspend fun runCreateArtifactTest(db: Database, callCount: AtomicInteger) {
+    db.transaction {
         if (callCount.andIncrement == 0) {
             // Fail the first call to simulate a unique constraint violation.
             val sqlException = SQLException(
@@ -91,8 +91,8 @@ private fun runCreateArtifactTest(db: Database, callCount: AtomicInteger) {
 /**
  * Create the test artifact in the given [database][db].
  */
-private fun createArtifact(db: Database) {
-    db.blockingQuery {
+private suspend fun createArtifact(db: Database) {
+    db.transaction {
         RemoteArtifactDao.getOrPut(testArtifact)
     }
 }
