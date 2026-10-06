@@ -24,8 +24,8 @@ import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 
@@ -33,7 +33,7 @@ class LicenseFindingCurationsTableTest : StringSpec({
     val extension = extension(DatabaseTestExtension())
 
     "Invalid start lines should be handled" {
-        extension.db.blockingQuery {
+        extension.db.transaction {
             val id = LicenseFindingCurationsTable.insertAndGetId {
                 it[path] = "somePath"
                 it[concludedLicense] = "BSD-3-Clause"

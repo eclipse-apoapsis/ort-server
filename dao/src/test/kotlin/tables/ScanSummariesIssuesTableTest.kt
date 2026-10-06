@@ -28,9 +28,9 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -53,7 +53,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
                     worker = "testWorker"
                 )
 
-                dbExtension.db.blockingQuery {
+                dbExtension.db.transaction {
                     val newEntity = ScanSummariesIssuesDao.createByIssue(summary.id.value, issue)
 
                     ScanSummariesIssuesDao.all().toList() should containExactlyInAnyOrder(newEntity)
@@ -91,7 +91,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
                 )
                 val issue3 = issue1.copy(timestamp = Instant.parse("2024-10-18T07:34:44Z"))
 
-                dbExtension.db.blockingQuery {
+                dbExtension.db.transaction {
                     listOf(issue1, issue2, issue3).forEach {
                         ScanSummariesIssuesDao.createByIssue(summary.id.value, it)
                     }
@@ -108,8 +108,8 @@ class ScanSummariesIssuesTableTest : WordSpec() {
     /**
      * Create a [ScanSummaryDao] entity that can be used to assign issues to it.
      */
-    private fun createScanSummary(): ScanSummaryDao =
-        dbExtension.db.blockingQuery {
+    private suspend fun createScanSummary(): ScanSummaryDao =
+        dbExtension.db.transaction {
             ScanSummaryDao.new {
                 startTime = Clock.System.now().minus(2.minutes).toDatabasePrecision()
                 endTime = Clock.System.now().toDatabasePrecision()

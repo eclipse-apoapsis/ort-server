@@ -25,10 +25,10 @@ import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 
@@ -42,7 +42,7 @@ class ScanResultPackageProvenancesTableTest : WordSpec() {
     init {
         "insertIfNotExists" should {
             "create a row when none exists" {
-                dbExtension.db.blockingQuery {
+                dbExtension.db.transaction {
                     val scanResult = createScanResult()
                     val provenance = createPackageProvenance()
 
@@ -61,7 +61,7 @@ class ScanResultPackageProvenancesTableTest : WordSpec() {
             }
 
             "be idempotent on repeated calls" {
-                dbExtension.db.blockingQuery {
+                dbExtension.db.transaction {
                     val scanResult = createScanResult()
                     val provenance = createPackageProvenance()
 
@@ -82,7 +82,7 @@ class ScanResultPackageProvenancesTableTest : WordSpec() {
             }
 
             "raise a FK violation for a non-existent scan_result_id" {
-                dbExtension.db.blockingQuery {
+                dbExtension.db.transaction {
                     val provenance = createPackageProvenance()
 
                     shouldThrow<Exception> {
@@ -96,8 +96,8 @@ class ScanResultPackageProvenancesTableTest : WordSpec() {
         }
     }
 
-    private fun createScanResult(): ScanResultDao =
-        dbExtension.db.blockingQuery {
+    private suspend fun createScanResult(): ScanResultDao =
+        dbExtension.db.transaction {
             val scanSummary = ScanSummaryDao.new {
                 startTime = Clock.System.now()
                 endTime = Clock.System.now()
@@ -115,8 +115,8 @@ class ScanResultPackageProvenancesTableTest : WordSpec() {
             }
         }
 
-    private fun createPackageProvenance(): PackageProvenanceDao =
-        dbExtension.db.blockingQuery {
+    private suspend fun createPackageProvenance(): PackageProvenanceDao =
+        dbExtension.db.transaction {
             val identifier = IdentifierDao.getOrPut(
                 Identifier(type = "Maven", namespace = "com.example", name = "lib", version = "1.0")
             )

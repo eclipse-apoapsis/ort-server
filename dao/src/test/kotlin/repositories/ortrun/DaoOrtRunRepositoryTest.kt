@@ -41,12 +41,12 @@ import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -578,7 +578,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
     "update" should {
         "update an entry in the database" {
-            val identifier = dbExtension.db.dbQuery {
+            val identifier = dbExtension.db.transaction {
                 IdentifierDao.getOrPut(Identifier("test", "ns", "name", "1.0"))
             }
 
@@ -655,7 +655,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
         }
 
         "add new issues to a run" {
-            val identifier = dbExtension.db.dbQuery {
+            val identifier = dbExtension.db.transaction {
                 IdentifierDao.getOrPut(Identifier("test", "ns", "name", "1.0"))
             }
 
@@ -710,10 +710,10 @@ class DaoOrtRunRepositoryTest : WordSpec({
         }
 
         "deduplicate issues added to a run" {
-            val identifier1 = dbExtension.db.dbQuery {
+            val identifier1 = dbExtension.db.transaction {
                 IdentifierDao.getOrPut(Identifier("test", "ns", "name", "1.0"))
             }
-            val identifier2 = dbExtension.db.dbQuery {
+            val identifier2 = dbExtension.db.transaction {
                 IdentifierDao.getOrPut(Identifier("test", "ns", "name2", "2.0"))
             }
 
@@ -770,7 +770,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 issues = listOf(issue3).asPresent()
             )
 
-            dbExtension.db.dbQuery {
+            dbExtension.db.transaction {
                 val issueTime = Instant.parse("2024-10-18T09:42:31Z")
                 val expectedIssues = listOf(
                     issue1.copy(timestamp = issueTime, worker = null, identifier = null),
@@ -893,7 +893,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 issue.copy(howToFix = updatedIssue.howToFix),
                 otherIssue.copy(howToFix = updatedIssue.howToFix)
             )
-            dbExtension.db.dbQuery {
+            dbExtension.db.transaction {
                 IssueDao.all().count() shouldBe 1L
             }
         }
@@ -956,7 +956,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
             ortRunRepository.get(ortRunId).shouldNotBeNull().issues.shouldBeSingleton {
                 it shouldBe issue
             }
-            dbExtension.db.dbQuery {
+            dbExtension.db.transaction {
                 IssueDao.all().count() shouldBe 1L
                 OrtRunIssueDao.all().count() shouldBe 1L
             }
@@ -1004,7 +1004,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 notifierJobRepository.getForOrtRun(ortRun.id) should beNull()
             }
 
-            dbExtension.db.dbQuery {
+            dbExtension.db.transaction {
                 val runIssues = OrtRunIssueDao.find {
                     OrtRunsIssuesTable.ortRunId eq dbExtension.fixtures.ortRun.id
                 }.toList()
