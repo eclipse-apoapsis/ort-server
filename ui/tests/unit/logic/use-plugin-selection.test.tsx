@@ -25,6 +25,7 @@ import { describe, expect, it } from 'vitest';
 
 import { usePluginSelection } from '@/hooks/use-plugin-selection';
 import { createPluginDescriptor } from '../fixtures/create-run';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 type FormValues = {
   plugins: string[];
@@ -83,6 +84,10 @@ const renderSelection = ({
 };
 
 describe('usePluginSelection', () => {
+  it('is compiled by React Compiler', () => {
+    expect(isCompiledByReactCompiler(usePluginSelection)).toBe(true);
+  });
+
   describe('setSelected', () => {
     it('stores the selection in click order without reordering', () => {
       const { selection, values } = renderSelection();

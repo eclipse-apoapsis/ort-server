@@ -151,6 +151,12 @@ export function calculateColumnSizing(
  * ```
  */
 export function useTableSizing<TData extends RowData>(table: AppTable<TData>) {
+  // The shared table components that use this hook are not compiled yet: they
+  // read the table state through objects whose identity does not change, so
+  // compiled, they would show outdated rows. Compile this hook together with
+  // them.
+  'use no memo';
+
   const containerRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef(table);
   const lastWidthRef = useRef<number>(0);

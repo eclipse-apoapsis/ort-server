@@ -26,6 +26,8 @@ import { config } from '@/config';
 export const useLatestRepositoryRun = (
   repoId: number
 ): OrtRunSummary | undefined => {
+  'use memo';
+
   const { data: runs } = useSuspenseQuery({
     ...getRepositoryRunsOptions({
       path: { repositoryId: repoId },
