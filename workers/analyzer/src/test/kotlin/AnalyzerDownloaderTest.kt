@@ -187,7 +187,16 @@ class AnalyzerDownloaderTest : WordSpec({
 
                 shouldThrow<IllegalArgumentException> {
                     downloader.downloadRepository("https://example.com", "revision")
-                }
+                }.message shouldBe "Could not determine the VCS for URL 'https://example.com'."
+            }
+        }
+
+        "throw an exception if the main branch cannot be determined for the repository" {
+            mockkObject(VersionControlSystem) {
+                shouldThrow<IOException> {
+                    downloader.downloadRepository("https://git.example.org/repository.git", "")
+                }.message shouldBe "Could not determine the default branch for repository " +
+                        "'https://git.example.org/repository.git'."
             }
         }
 
@@ -203,7 +212,7 @@ class AnalyzerDownloaderTest : WordSpec({
 
                 shouldThrow<IOException> {
                     downloader.downloadRepository(repositoryUrl, revision = "invalid-revision")
-                }
+                }.message shouldBe "Failed to update working tree to revision 'invalid-revision'."
             }
         }
 

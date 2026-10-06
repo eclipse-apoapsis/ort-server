@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import java.io.File
+import java.io.IOException
 
 import kotlin.io.path.createTempDirectory
 
@@ -82,7 +83,11 @@ class AnalyzerDownloader {
         val vcs = VersionControlSystem.forUrl(repositoryUrl, config)
         requireNotNull(vcs) { "Could not determine the VCS for URL '$repositoryUrl'." }
 
-        val initRevision = revision.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(repositoryUrl)
+        val initRevision = revision.takeUnless { it.isEmpty() } ?: runCatching {
+            vcs.getDefaultBranchName(repositoryUrl)
+        }.getOrElse {
+            throw IOException("Could not determine the default branch for repository '$repositoryUrl'.", it)
+        }
 
         val vcsInfo = VcsInfo(
             type = vcs.type,
