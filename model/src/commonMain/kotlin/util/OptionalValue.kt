@@ -28,11 +28,11 @@ package org.eclipse.apoapsis.ortserver.model.util
  * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties, there would be no way to
  * distinguish if the property should be ignored or updated.
  */
-sealed interface OptionalValue<out T> {
+sealed class OptionalValue<out T> {
     /**
      * Value is present, the property will be updated with [value].
      */
-    class Present<T>(val value: T) : OptionalValue<T> {
+    class Present<T>(val value: T) : OptionalValue<T>() {
         override fun toString() = value.toString()
 
         override fun equals(other: Any?): Boolean {
@@ -51,7 +51,7 @@ sealed interface OptionalValue<out T> {
     /**
      * Value is not present, the property will be ignored.
      */
-    data object Absent : OptionalValue<Nothing>
+    data object Absent : OptionalValue<Nothing>()
 
     /**
      * Return the [value][Present.value] if this [OptionalValue] is [Present], otherwise throw an
@@ -65,14 +65,14 @@ sealed interface OptionalValue<out T> {
     /**
      * Execute [function] if this value is [Present].
      */
-    fun ifPresent(function: (T) -> Unit) {
+    inline fun ifPresent(function: (T) -> Unit) {
         if (this is Present) function(value)
     }
 
     /**
      * Execute [function] if this value is [Absent].
      */
-    fun ifAbsent(function: () -> Unit) {
+    inline fun ifAbsent(function: () -> Unit) {
         when (this) {
             is Absent -> function()
             else -> return
@@ -82,7 +82,7 @@ sealed interface OptionalValue<out T> {
     /**
      * If this [OptionalValue] is [Present], [transform] the [value][Present.value], otherwise return [Absent].
      */
-    fun <M> map(transform: (T) -> M) =
+    inline fun <M> map(transform: (T) -> M) =
         when (this) {
             is Present -> Present(transform(value))
             else -> Absent
