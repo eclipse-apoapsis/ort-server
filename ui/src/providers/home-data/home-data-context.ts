@@ -17,6 +17,12 @@
  * License-Filename: LICENSE
  */
 
+// The hooks in this module call hooks taken from the context value. React
+// Compiler cannot check that these are the same functions on every render, and
+// they are not: the provider hands out new ones when the user changes. Compile
+// this module once the context value holds data and actions instead of hooks.
+'use no memo';
+
 import { createContext, useContext } from 'react';
 
 import { localHomeDataProvider } from './local-home-data-provider';

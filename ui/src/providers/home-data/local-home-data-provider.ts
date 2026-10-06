@@ -17,6 +17,11 @@
  * License-Filename: LICENSE
  */
 
+// This module creates the hooks that the home data context hands out, which
+// React Compiler cannot check. Compile it once the context value holds data and
+// actions instead of hooks.
+'use no memo';
+
 import { useMemo } from 'react';
 
 import { useFavoritesStore } from '@/store/favorites.store';
