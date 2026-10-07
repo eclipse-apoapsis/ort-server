@@ -36,7 +36,6 @@ import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Hash
@@ -84,7 +83,7 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
                 associatedProvenances.single() shouldBe provenance
 
                 if (provenance is RepositoryProvenance) {
-                    runBlocking { cache.get(provenance).single() } shouldBe associatedProvenanceDaos.single().id.value
+                    cache.get(provenance).single() shouldBe associatedProvenanceDaos.single().id.value
                 }
             }
         }
