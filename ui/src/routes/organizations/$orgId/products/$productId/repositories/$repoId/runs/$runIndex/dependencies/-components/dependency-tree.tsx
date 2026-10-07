@@ -21,7 +21,6 @@ import {
   memo,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useState,
   useSyncExternalStore,
 } from 'react';
@@ -260,15 +259,11 @@ export const DependencyTree = memo(function DependencyTree({
   // identifiers for as long as this tree exists, also across graph changes.
   const [occurrenceIds] = useState(() => new OccurrenceIds());
   const [treeRows] = useState(() => new DependencyTreeRows(rowLimit));
-  const context = useMemo(
-    () =>
-      createDependencyTreeContext(
-        graph,
-        adjacency,
-        matchesNodeSubtree,
-        occurrenceIds
-      ),
-    [graph, adjacency, matchesNodeSubtree, occurrenceIds]
+  const context = createDependencyTreeContext(
+    graph,
+    adjacency,
+    matchesNodeSubtree,
+    occurrenceIds
   );
 
   // Generate the first rows before the browser draws the page, so that it does
