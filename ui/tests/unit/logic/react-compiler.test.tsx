@@ -22,6 +22,7 @@
 import { render, screen } from '@testing-library/react';
 import { expect, it } from 'vitest';
 
+import { compiledFunctionNames } from '../fixtures/react-compiler';
 import {
   AnnotatedFixture,
   DefaultPropFixture,
@@ -55,4 +56,10 @@ it('renders the default prop value unless another value is passed', () => {
 
   rerender(<DefaultPropFixture label='Other' />);
   expect(screen.getByText('Other')).toBeInTheDocument();
+});
+
+it('names the functions of a source file that are compiled', () => {
+  expect(
+    compiledFunctionNames('tests/unit/fixtures/react-compiler-fixtures.tsx')
+  ).toEqual(['AnnotatedFixture', 'DefaultPropFixture']);
 });

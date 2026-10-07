@@ -60,6 +60,8 @@ const clearAuthQueryParams = () => {
 };
 
 const TokenCallbackPage = () => {
+  'use memo';
+
   const navigate = useNavigate();
 
   const [offlineToken, setOfflineToken] = useState<string | undefined>();
