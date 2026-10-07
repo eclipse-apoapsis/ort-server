@@ -95,7 +95,7 @@ jobs:
       run: ./${{ matrix.target.artifact }}/${{ matrix.target.binName }} --version
 
     - name: Upload CLI binary
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: ${{ matrix.target.artifact }}
         path: ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
@@ -152,7 +152,7 @@ jobs:
       if: success() || failure()
 
     - name: Upload test results
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       if: success() || failure()
       with:
         name: test-results
@@ -179,7 +179,7 @@ jobs:
         if: success() || failure()
 
       - name: Upload test results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success() || failure()
         with:
           name: authorization-test-results
@@ -206,7 +206,7 @@ jobs:
       if: success() || failure()
 
     - name: Upload test results
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       if: success() || failure()
       with:
         name: integration-test-results
@@ -329,14 +329,14 @@ jobs:
 
     - name: Upload UI dev log
       if: success() || failure()
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: ui-dev-log
         path: ui-dev.log
         retention-days: 7
 
     - name: Upload Playwright report
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       if: success() || failure()
       with:
         name: playwright-report
