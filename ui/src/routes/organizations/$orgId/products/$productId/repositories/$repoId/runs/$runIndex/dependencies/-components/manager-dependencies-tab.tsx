@@ -49,27 +49,26 @@ export const ManagerDependenciesTab = ({
   const debouncedSearchValue = useDebounce(searchValue);
   const searchTerm = normalizeSearchTerm(debouncedSearchValue);
 
+  const adjacency = buildAdjacencyMap(graph);
+
   // Every keystroke renders this component, but the search term only changes
-  // after the debounce delay. Keep the graph preparation and the matcher
-  // unchanged in between, so that the memoized tree is not rendered again.
-  const adjacency = useMemo(() => buildAdjacencyMap(graph), [graph]);
+  // after the debounce delay. Without `useMemo`, React Compiler would create
+  // the matcher together with the graph preparation, so a changed search
+  // would prepare the graph again.
   const matchesNodeSubtree = useMemo(
     () => createNodeSubtreeMatcher(graph, adjacency, searchTerm, packageIdType),
     [graph, adjacency, searchTerm, packageIdType]
   );
 
-  const hasMatches = useMemo(
-    () =>
-      !searchTerm ||
-      graph.projectGroups.some(
-        ({ projectLabel, scopes }) =>
-          matchesSearch(projectLabel, searchTerm) ||
-          scopes.some((scope) =>
-            scopeHasSearchMatch(scope, searchTerm, matchesNodeSubtree)
-          )
-      ),
-    [graph, searchTerm, matchesNodeSubtree]
-  );
+  const hasMatches =
+    !searchTerm ||
+    graph.projectGroups.some(
+      ({ projectLabel, scopes }) =>
+        matchesSearch(projectLabel, searchTerm) ||
+        scopes.some((scope) =>
+          scopeHasSearchMatch(scope, searchTerm, matchesNodeSubtree)
+        )
+    );
 
   return (
     <TabsContent value={managerName} className='space-y-4'>
