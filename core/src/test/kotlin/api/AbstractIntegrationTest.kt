@@ -54,7 +54,6 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 @Suppress("AbstractClassCanBeConcreteClass")
 abstract class AbstractIntegrationTest(
@@ -124,13 +123,13 @@ abstract class AbstractIntegrationTest(
         body()
     }
 
-    fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
+    suspend fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
         authorizationService = setUpAuthorizationService()
 
         ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig, block)
     }
 
-    fun requestShouldRequireRole(
+    suspend fun requestShouldRequireRole(
         role: Role,
         hierarchyId: CompoundHierarchyId,
         successStatus: HttpStatusCode = HttpStatusCode.OK,
@@ -145,7 +144,7 @@ abstract class AbstractIntegrationTest(
         }
     }
 
-    fun requestShouldRequireSuperuser(
+    suspend fun requestShouldRequireSuperuser(
         successStatus: HttpStatusCode = HttpStatusCode.OK,
         request: suspend HttpClient.() -> HttpResponse
     ) {
@@ -162,7 +161,7 @@ abstract class AbstractIntegrationTest(
         }
     }
 
-    fun requestShouldRequireAuthentication(
+    suspend fun requestShouldRequireAuthentication(
         successStatus: HttpStatusCode = HttpStatusCode.OK,
         request: suspend HttpClient.() -> HttpResponse
     ) {
@@ -176,14 +175,12 @@ abstract class AbstractIntegrationTest(
      * Create a new instance of the [AuthorizationService] used for testing and make sure that the permissions
      * required by tests are added.
      */
-    private fun setUpAuthorizationService(): AuthorizationService =
+    private suspend fun setUpAuthorizationService(): AuthorizationService =
         DbAuthorizationService(dbExtension.db).apply {
-            runBlocking {
-                assignRole(
-                    SUPERUSER.username.value,
-                    OrganizationRole.ADMIN,
-                    CompoundHierarchyId.WILDCARD
-                )
-            }
+            assignRole(
+                SUPERUSER.username.value,
+                OrganizationRole.ADMIN,
+                CompoundHierarchyId.WILDCARD
+            )
         }
 }

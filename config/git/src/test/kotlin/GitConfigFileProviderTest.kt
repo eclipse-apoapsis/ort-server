@@ -30,12 +30,12 @@ import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 internal const val GIT_URL = "https://github.com/doubleopen-project/ort-config-test.git"
@@ -267,7 +267,7 @@ class GitConfigFileProviderTest : WordSpec({
             val mainContent = "This is the main branch of the repository"
             val devContent = "This is a dev branch of the repository"
 
-            runBlocking(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
                 (1..10).map { index ->
                     async {
                         if (index % 2 == 0) {
