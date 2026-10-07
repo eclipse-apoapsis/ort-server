@@ -288,9 +288,9 @@ class OrtServerScanResultStorage(
     private fun linkScanResultToPackageProvenances(scanResultDao: ScanResultDao) {
         val provenanceMatchCondition: Op<Boolean> =
             if (scanResultDao.artifactUrl != null) {
-                val url = requireNotNull(scanResultDao.artifactUrl)
-                val hash = requireNotNull(scanResultDao.artifactHash)
-                val hashAlgorithm = requireNotNull(scanResultDao.artifactHashAlgorithm)
+                val url = checkNotNull(scanResultDao.artifactUrl)
+                val hash = checkNotNull(scanResultDao.artifactHash)
+                val hashAlgorithm = checkNotNull(scanResultDao.artifactHashAlgorithm)
                 val artifactId = RemoteArtifactsTable
                     .select(RemoteArtifactsTable.id)
                     .where {
@@ -304,9 +304,9 @@ class OrtServerScanResultStorage(
 
                 PackageProvenancesTable.artifactId eq artifactId
             } else {
-                val type = requireNotNull(scanResultDao.vcsType)
-                val url = requireNotNull(scanResultDao.vcsUrl)
-                val revision = requireNotNull(scanResultDao.vcsRevision)
+                val type = checkNotNull(scanResultDao.vcsType)
+                val url = checkNotNull(scanResultDao.vcsUrl)
+                val revision = checkNotNull(scanResultDao.vcsRevision)
                 val vcsId = VcsInfoTable
                     .select(VcsInfoTable.id)
                     .where {

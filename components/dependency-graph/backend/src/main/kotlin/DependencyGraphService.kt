@@ -147,7 +147,7 @@ internal fun getPurlByIdentifierForOrtRun(ortRunId: Long): Map<ModelIdentifier, 
         .orderBy(ResolvedPackageCurationsTable.rank)
         .groupBy { row -> row[PackageCurationsTable.identifierId].value }
         .mapValues { (_, rows) ->
-            requireNotNull(rows.first()[PackageCurationDataTable.purl]) {
+            checkNotNull(rows.first()[PackageCurationDataTable.purl]) {
                 "Curated purl was unexpectedly null after filtering."
             }
         }
@@ -169,7 +169,7 @@ internal fun getPurlByIdentifierForOrtRun(ortRunId: Long): Map<ModelIdentifier, 
         }
 
     return purlsByIdentifierId.mapKeys { (identifierId, _) ->
-        requireNotNull(identifiersById[identifierId]) {
+        checkNotNull(identifiersById[identifierId]) {
             "Could not find identifier with ID $identifierId while resolving purls for ORT run $ortRunId."
         }
     }

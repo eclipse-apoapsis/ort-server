@@ -110,7 +110,7 @@ internal class WorkerContextImpl(
     private val refSecretResolverFun = AtomicReference(undefinedSecretResolver)
 
     override val ortRun: OrtRun by lazy {
-        requireNotNull(runBlocking { ortRunRepository.get(ortRunId) }) { "Could not resolve ORT run ID $ortRunId" }
+        checkNotNull(runBlocking { ortRunRepository.get(ortRunId) }) { "Could not resolve ORT run ID $ortRunId" }
     }
 
     override val hierarchy: Hierarchy by lazy {

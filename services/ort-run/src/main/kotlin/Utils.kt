@@ -95,7 +95,7 @@ internal fun getPurlByIdentifierIdForOrtRun(ortRunId: Long, identifierIds: Colle
         .orderBy(ResolvedPackageCurationsTable.rank)
         .groupBy { it[PackageCurationsTable.identifierId].value }
         .mapValues { (_, rows) ->
-            requireNotNull(rows.first()[PackageCurationDataTable.purl]) {
+            checkNotNull(rows.first()[PackageCurationDataTable.purl]) {
                 "Curated purl was unexpectedly null after filtering."
             }
         }
