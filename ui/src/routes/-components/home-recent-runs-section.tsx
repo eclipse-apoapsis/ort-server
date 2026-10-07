@@ -60,6 +60,8 @@ const isRunFinished = (status: OrtRunStatus | undefined) =>
 
 /** Render a recent run and mark it if the run can no longer be loaded. */
 const RecentRunListItem = ({ recentRun }: { recentRun: RecentRunItem }) => {
+  'use memo';
+
   const { removeRecentRun, setRecentRunUnavailable } =
     useHomeRecentRunActions();
   const runQuery = useQuery({
