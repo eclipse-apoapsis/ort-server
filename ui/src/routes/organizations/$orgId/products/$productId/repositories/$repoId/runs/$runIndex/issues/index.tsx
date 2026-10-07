@@ -21,7 +21,7 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import z from 'zod';
 
 import { Issue, Severity } from '@/api';
@@ -398,41 +398,36 @@ const IssuesComponent = () => {
     }),
   });
 
-  const renderSubComponent = useCallback(
-    ({ row }: { row: AppRow<Issue> }) => {
-      const issue = row.original;
+  const renderSubComponent = ({ row }: { row: AppRow<Issue> }) => {
+    const issue = row.original;
 
-      return (
-        <Accordion
-          type='multiple'
-          className='w-full'
-          defaultValue={getResolutionAccordionDefaultValue(issue)}
-        >
-          <AccordionItem value='resolutions'>
-            <AccordionTrigger className='font-semibold'>
-              {getResolutionAccordionLabel(issue)}
-            </AccordionTrigger>
-            <AccordionContent>
-              <Resolutions
-                item={issue}
-                repositoryId={params.repoId}
-                runId={ortRun.id}
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value='details'>
-            <AccordionTrigger className='font-semibold'>
-              Details
-            </AccordionTrigger>
-            <AccordionContent>
-              <IssueDetails issue={issue} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      );
-    },
-    [params.repoId, ortRun.id]
-  );
+    return (
+      <Accordion
+        type='multiple'
+        className='w-full'
+        defaultValue={getResolutionAccordionDefaultValue(issue)}
+      >
+        <AccordionItem value='resolutions'>
+          <AccordionTrigger className='font-semibold'>
+            {getResolutionAccordionLabel(issue)}
+          </AccordionTrigger>
+          <AccordionContent>
+            <Resolutions
+              item={issue}
+              repositoryId={params.repoId}
+              runId={ortRun.id}
+            />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='details'>
+          <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
+          <AccordionContent>
+            <IssueDetails issue={issue} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    );
+  };
 
   // Control the expanded state of the subrows manually, so that when
   // a user arrives at the table view via a URL link with search parameter
