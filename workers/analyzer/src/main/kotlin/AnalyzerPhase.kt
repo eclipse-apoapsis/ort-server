@@ -253,7 +253,7 @@ internal class AnalysisPhase : AnalyzerPhase {
         val configManager = ConfigManager.create(ConfigFactory.empty())
         EnvironmentForkHelper.setupAuthentication(exchangeDir.resolve(AUTH_INFO_FILE), configManager)
 
-        val cloneDirectory = requireNotNull(
+        val cloneDirectory = checkNotNull(
             AnalyzerDownloader.findDownloadDir(exchangeDir, preparationExchange.runId)
         ) {
             "Could not find the directory with the cloned repository for Analyzer job $jobId."

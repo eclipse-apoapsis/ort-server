@@ -112,7 +112,7 @@ class WorkerContextTest : WordSpec({
 
             val context = helper.context()
 
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<IllegalStateException> {
                 context.ortRun
             }
         }
