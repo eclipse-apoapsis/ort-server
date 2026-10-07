@@ -178,6 +178,18 @@ describe('useInView', () => {
     expect(result.current.inView).toBe(false);
     expect(observers[0]?.disconnected).toBe(true);
   });
+
+  it('keeps its ref and observer when it renders again', () => {
+    const { result, rerender } = renderHook(() => useInView());
+    const { ref } = result.current;
+
+    act(() => ref(document.createElement('div')));
+    rerender();
+
+    expect(result.current.ref).toBe(ref);
+    expect(observers).toHaveLength(1);
+    expect(observers[0]?.disconnected).toBe(false);
+  });
 });
 
 /** Answers every request with one item named after the level and its ID. */
