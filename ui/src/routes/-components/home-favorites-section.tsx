@@ -30,7 +30,7 @@ import {
   PlayCircle,
   Star,
 } from 'lucide-react';
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 import type { Organization, OrtRun, Product, Repository } from '@/api';
 import {
@@ -224,31 +224,6 @@ const FavoriteListItem = ({ favorite }: { favorite: FavoriteItem }) => {
     retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
   });
 
-  const refreshedFavorite = useMemo<FavoriteItemInput | undefined>(() => {
-    const organization = organizationQuery.data;
-    const product = productQuery.data;
-    const repository = repositoryQuery.data;
-    const run = runQuery.data;
-
-    const refreshed = favoriteRefreshBuilders[favorite.type]({
-      organization,
-      product,
-      repository,
-      run,
-    });
-
-    return refreshed
-      ? { ...refreshed, starredAt: favorite.starredAt }
-      : undefined;
-  }, [
-    favorite.starredAt,
-    favorite.type,
-    organizationQuery.data,
-    productQuery.data,
-    repositoryQuery.data,
-    runQuery.data,
-  ]);
-
   useEffect(() => {
     if (
       isNotFoundError(organizationQuery.error) ||
@@ -268,10 +243,27 @@ const FavoriteListItem = ({ favorite }: { favorite: FavoriteItem }) => {
   ]);
 
   useEffect(() => {
+    const refreshed = favoriteRefreshBuilders[favorite.type]({
+      organization: organizationQuery.data,
+      product: productQuery.data,
+      repository: repositoryQuery.data,
+      run: runQuery.data,
+    });
+    const refreshedFavorite: FavoriteItemInput | undefined = refreshed
+      ? { ...refreshed, starredAt: favorite.starredAt }
+      : undefined;
+
     if (refreshedFavorite && !areFavoritesEqual(favorite, refreshedFavorite)) {
       updateFavorite(refreshedFavorite);
     }
-  }, [favorite, refreshedFavorite, updateFavorite]);
+  }, [
+    favorite,
+    organizationQuery.data,
+    productQuery.data,
+    repositoryQuery.data,
+    runQuery.data,
+    updateFavorite,
+  ]);
 
   return (
     <li className='flex items-center justify-between gap-3 rounded-lg border p-2'>

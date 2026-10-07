@@ -21,7 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 import { OidcClient } from 'oidc-client-ts';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { getCliOidcConfigOptions } from '@/api/@tanstack/react-query.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
@@ -66,7 +66,7 @@ const TokenPage = () => {
   const cliClientId = cliOidcConfig?.clientId;
   const cliLoginCommand = `osc auth login --url=${config.API_URL} --token=<your-token>`;
 
-  const createOidcClient = useCallback(() => {
+  const createOidcClient = () => {
     if (!cliClientId) return undefined;
     return new OidcClient({
       authority: `${config.authBaseUrl}/realms/${config.realm}`,
@@ -76,7 +76,7 @@ const TokenPage = () => {
       scope: CLI_SCOPE,
       loadUserInfo: false,
     });
-  }, [cliClientId]);
+  };
 
   const startTokenGeneration = async () => {
     const oidcClient = createOidcClient();

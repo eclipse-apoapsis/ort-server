@@ -25,6 +25,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   HomeDataProvider,
+  useHomeDataProvider,
   useHomeFavoriteActions,
   useHomeFavorites,
 } from '@/providers/home-data';
@@ -106,5 +107,25 @@ describe('HomeDataProvider', () => {
     rerender(tree());
 
     expect(screen.getByRole('listitem')).toHaveTextContent('Example org');
+  });
+
+  it('keeps the provider for a new profile object of the same user', () => {
+    const providers: unknown[] = [];
+    const ProviderConsumer = () => {
+      providers.push(useHomeDataProvider());
+      return null;
+    };
+    const providerTree = () => (
+      <HomeDataProvider>
+        <ProviderConsumer />
+      </HomeDataProvider>
+    );
+
+    // The mocked `useAuth` returns a new profile object on every render.
+    const { rerender } = render(providerTree());
+    rerender(providerTree());
+
+    expect(providers).toHaveLength(2);
+    expect(providers[1]).toBe(providers[0]);
   });
 });
