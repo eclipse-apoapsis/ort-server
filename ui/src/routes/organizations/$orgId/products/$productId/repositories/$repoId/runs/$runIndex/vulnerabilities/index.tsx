@@ -22,7 +22,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PackageURL } from 'packageurl-js';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import z from 'zod';
 
 import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
@@ -459,131 +459,126 @@ const VulnerabilitiesComponent = () => {
     }),
   });
 
-  const renderSubComponent = useCallback(
-    ({ row }: { row: AppRow<VulnerabilityWithDetails> }) => {
-      const vulnerability = row.original.vulnerability;
-      let pkgVersion;
-      try {
-        pkgVersion = PackageURL.fromString(row.original.purl).version;
-      } catch {
-        pkgVersion = undefined;
-      }
+  const renderSubComponent = ({
+    row,
+  }: {
+    row: AppRow<VulnerabilityWithDetails>;
+  }) => {
+    const vulnerability = row.original.vulnerability;
+    let pkgVersion;
+    try {
+      pkgVersion = PackageURL.fromString(row.original.purl).version;
+    } catch {
+      pkgVersion = undefined;
+    }
 
-      const relativeVersions = getVersionsRelativeToReference(
-        row.original.firstFixedVersions || [],
-        pkgVersion || ''
-      );
+    const relativeVersions = getVersionsRelativeToReference(
+      row.original.firstFixedVersions || [],
+      pkgVersion || ''
+    );
 
-      return (
-        <Accordion
-          type='multiple'
-          className='w-full'
-          defaultValue={getResolutionAccordionDefaultValue(row.original)}
-        >
-          <AccordionItem value='fixed-versions'>
-            <AccordionTrigger className='font-semibold'>
-              First fixed versions
-            </AccordionTrigger>
-            <AccordionContent>
-              {(row.original.firstFixedVersions?.length ?? 0) > 0 ? (
-                <>
-                  {relativeVersions.earlierVersions.length > 0 && (
-                    <span className='text-muted-foreground'>
-                      {relativeVersions.earlierVersions.join(', ')}
-                      {relativeVersions.nextVersion && ', '}
-                    </span>
-                  )}
-                  {relativeVersions.nextVersion && (
-                    <span className='font-semibold'>
-                      {relativeVersions.nextVersion}
-                    </span>
-                  )}
-                  {relativeVersions.laterVersions.length > 0 && (
-                    <span>
-                      {', '}
-                      {relativeVersions.laterVersions.join(', ')}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <div className='text-muted-foreground text-sm'>
-                  No fixed versions available.
-                </div>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value='resolutions'>
-            <AccordionTrigger className='font-semibold'>
-              {getResolutionAccordionLabel(row.original)}
-            </AccordionTrigger>
-            <AccordionContent>
-              <Resolutions
-                item={row.original}
-                repositoryId={params.repoId}
-                runId={ortRun.id}
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value='details'>
-            <AccordionTrigger className='font-semibold'>
-              Details
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className='flex flex-col gap-4'>
-                <VulnerabilityMetrics vulnerability={vulnerability} />
-                <div className='font-semibold'>Description</div>
-                <MarkdownRenderer
-                  markdown={
-                    vulnerability.description || '_No description available._'
-                  }
-                />
-                <div className='mt-2 text-lg font-semibold'>
-                  Links to vulnerability references
-                </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Severity</TableHead>
-                      <TableHead>Scoring system</TableHead>
-                      <TableHead>Score</TableHead>
-                      <TableHead>Vector</TableHead>
-                      <TableHead>Link</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {vulnerability.references
-                      .sort(
-                        (refA, refB) => (refB.score ?? 0) - (refA.score ?? 0)
-                      )
-                      .map((reference, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{reference.severity || '-'}</TableCell>
-                          <TableCell>
-                            {reference.scoringSystem || '-'}
-                          </TableCell>
-                          <TableCell>{reference.score || '-'}</TableCell>
-                          <TableCell>{reference.vector || '-'}</TableCell>
-                          <TableCell>
-                            <Link
-                              className='font-semibold break-all text-blue-400 hover:underline'
-                              to={reference.url}
-                              target='_blank'
-                            >
-                              {reference.url}
-                            </Link>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
+    return (
+      <Accordion
+        type='multiple'
+        className='w-full'
+        defaultValue={getResolutionAccordionDefaultValue(row.original)}
+      >
+        <AccordionItem value='fixed-versions'>
+          <AccordionTrigger className='font-semibold'>
+            First fixed versions
+          </AccordionTrigger>
+          <AccordionContent>
+            {(row.original.firstFixedVersions?.length ?? 0) > 0 ? (
+              <>
+                {relativeVersions.earlierVersions.length > 0 && (
+                  <span className='text-muted-foreground'>
+                    {relativeVersions.earlierVersions.join(', ')}
+                    {relativeVersions.nextVersion && ', '}
+                  </span>
+                )}
+                {relativeVersions.nextVersion && (
+                  <span className='font-semibold'>
+                    {relativeVersions.nextVersion}
+                  </span>
+                )}
+                {relativeVersions.laterVersions.length > 0 && (
+                  <span>
+                    {', '}
+                    {relativeVersions.laterVersions.join(', ')}
+                  </span>
+                )}
+              </>
+            ) : (
+              <div className='text-muted-foreground text-sm'>
+                No fixed versions available.
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      );
-    },
-    [params.repoId, ortRun.id]
-  );
+            )}
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='resolutions'>
+          <AccordionTrigger className='font-semibold'>
+            {getResolutionAccordionLabel(row.original)}
+          </AccordionTrigger>
+          <AccordionContent>
+            <Resolutions
+              item={row.original}
+              repositoryId={params.repoId}
+              runId={ortRun.id}
+            />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='details'>
+          <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
+          <AccordionContent>
+            <div className='flex flex-col gap-4'>
+              <VulnerabilityMetrics vulnerability={vulnerability} />
+              <div className='font-semibold'>Description</div>
+              <MarkdownRenderer
+                markdown={
+                  vulnerability.description || '_No description available._'
+                }
+              />
+              <div className='mt-2 text-lg font-semibold'>
+                Links to vulnerability references
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Severity</TableHead>
+                    <TableHead>Scoring system</TableHead>
+                    <TableHead>Score</TableHead>
+                    <TableHead>Vector</TableHead>
+                    <TableHead>Link</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vulnerability.references
+                    .sort((refA, refB) => (refB.score ?? 0) - (refA.score ?? 0))
+                    .map((reference, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{reference.severity || '-'}</TableCell>
+                        <TableCell>{reference.scoringSystem || '-'}</TableCell>
+                        <TableCell>{reference.score || '-'}</TableCell>
+                        <TableCell>{reference.vector || '-'}</TableCell>
+                        <TableCell>
+                          <Link
+                            className='font-semibold break-all text-blue-400 hover:underline'
+                            to={reference.url}
+                            target='_blank'
+                          >
+                            {reference.url}
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    );
+  };
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}
