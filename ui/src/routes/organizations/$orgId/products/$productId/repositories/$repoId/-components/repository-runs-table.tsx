@@ -25,7 +25,7 @@ import {
 } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { GitCompare, Repeat, View } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { Organization, OrtRunSummary, Product, Repository } from '@/api';
 import {
@@ -465,11 +465,11 @@ export const RepositoryRunsTable = ({
     emptyRunComparisonSelection
   );
 
-  const handleSelectRunForComparison = useCallback((summary: OrtRunSummary) => {
+  const handleSelectRunForComparison = (summary: OrtRunSummary) => {
     setComparisonSelection((selection) =>
       selectRunForComparison(selection, summary)
     );
-  }, []);
+  };
 
   const handleComparisonDialogOpenChange = (open: boolean) => {
     if (!open) {
@@ -521,22 +521,12 @@ export const RepositoryRunsTable = ({
     enabled: hasSelectedRunPair,
   });
 
-  const columns = useMemo(
-    () =>
-      createColumns(
-        { organization, product, repository },
-        {
-          selection: comparisonSelection,
-          onSelectRun: handleSelectRunForComparison,
-        }
-      ),
-    [
-      organization,
-      product,
-      repository,
-      comparisonSelection,
-      handleSelectRunForComparison,
-    ]
+  const columns = createColumns(
+    { organization, product, repository },
+    {
+      selection: comparisonSelection,
+      onSelectRun: handleSelectRunForComparison,
+    }
   );
 
   const {
@@ -570,19 +560,12 @@ export const RepositoryRunsTable = ({
     selectNoTableState
   );
 
-  const comparisonDiff = useMemo(() => {
-    const baseConfig = baseRunQuery.data?.resolvedJobConfigs;
-    const comparedConfig = comparedRunQuery.data?.resolvedJobConfigs;
-
-    if (!baseConfig || !comparedConfig) {
-      return undefined;
-    }
-
-    return diffResolvedJobConfigs(baseConfig, comparedConfig);
-  }, [
-    baseRunQuery.data?.resolvedJobConfigs,
-    comparedRunQuery.data?.resolvedJobConfigs,
-  ]);
+  const baseConfig = baseRunQuery.data?.resolvedJobConfigs;
+  const comparedConfig = comparedRunQuery.data?.resolvedJobConfigs;
+  const comparisonDiff =
+    baseConfig && comparedConfig
+      ? diffResolvedJobConfigs(baseConfig, comparedConfig)
+      : undefined;
 
   if (runsIsPending) {
     return <LoadingIndicator />;
