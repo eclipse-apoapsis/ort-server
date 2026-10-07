@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type UseInViewOptions = {
   /** Margin around the scroll container, in CSS units, as for `IntersectionObserver`. */
@@ -54,11 +54,11 @@ export function useInView<T extends Element = HTMLDivElement>({
     return () => observer.disconnect();
   }, [element, rootMargin, threshold]);
 
-  const ref = useCallback((element: T | null) => {
+  const ref = (element: T | null) => {
     setElement(element);
     // The element that was in view is gone, so nothing is in view anymore.
     if (!element) setInView(false);
-  }, []);
+  };
 
   return { ref, inView };
 }

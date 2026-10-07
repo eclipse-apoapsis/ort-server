@@ -196,3 +196,37 @@ describe('MultipleSelector command filter', () => {
     expect(screen.queryByRole('option', { name: 'Apple' })).toBeNull();
   });
 });
+
+describe('MultipleSelector keyboard', () => {
+  it('removes the last selected option with Backspace, one after the other', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <MultipleSelector
+        inputProps={inputProps}
+        defaultOptions={[
+          { value: 'apple', label: 'Apple' },
+          { value: 'banana', label: 'Banana' },
+        ]}
+        onChange={onChange}
+      />
+    );
+
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.click(await screen.findByRole('option', { name: 'Apple' }));
+    await user.click(await screen.findByRole('option', { name: 'Banana' }));
+    expect(onChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ value: 'apple' }),
+      expect.objectContaining({ value: 'banana' }),
+    ]);
+
+    await user.keyboard('{Backspace}');
+    expect(onChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ value: 'apple' }),
+    ]);
+
+    await user.keyboard('{Backspace}');
+    expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+});
