@@ -21,14 +21,20 @@
  * Returns whether React Compiler compiled the given component. Compiled
  * components allocate a memo cache when they start rendering; unlike the memo
  * cache sentinel, this allocation is present in every compiled component.
+ * Components wrapped in `memo()` or `forwardRef()` are checked by the function
+ * they wrap.
  *
  * Components are only compiled in test files that run in the jsdom
  * environment; in the node environment, the compiler does not run at all.
  */
 export const isCompiledByReactCompiler = (component: unknown): boolean => {
   const render =
-    typeof component === 'object' && component !== null && 'type' in component
-      ? component.type
+    typeof component === 'object' && component !== null
+      ? 'type' in component
+        ? component.type
+        : 'render' in component
+          ? component.render
+          : component
       : component;
 
   return /const \$ = .*\.c\)\(\d+\);/.test(String(render));

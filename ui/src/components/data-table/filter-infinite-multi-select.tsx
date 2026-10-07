@@ -59,6 +59,8 @@ export function FilterInfiniteMultiSelect<TValue>({
   onSearchTermChange,
   align = 'start',
 }: FilterInfiniteMultiSelectProps<TValue>) {
+  'use memo';
+
   const list = {
     ...options,
     items: includeSelectedFilterOptions(

@@ -53,6 +53,8 @@ export function FilterSingleSelect<TValue>({
   setSelected,
   align = 'start',
 }: FilterSingleSelectProps<TValue>) {
+  'use memo';
+
   const radioValue = selected !== undefined ? String(selected) : ALL_VALUE;
 
   function handleChange(value: string) {
