@@ -36,6 +36,8 @@ export const PermissionGuard = ({
   isLoading,
   error,
 }: PermissionGuardProps) => {
+  'use memo';
+
   const navigate = useNavigate();
   const isForbidden = !isLoading && !error && isAllowed === false;
 

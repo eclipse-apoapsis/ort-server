@@ -54,6 +54,8 @@ const profileFields = [
 ];
 
 const ProfilePage = () => {
+  'use memo';
+
   const user = useUser();
   const profile = user.user?.profile;
 
