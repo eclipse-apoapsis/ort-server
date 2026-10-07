@@ -152,6 +152,22 @@ class KubernetesMessageSenderTest : StringSpec({
         )
     }
 
+    "Generated message variables override inherited environment variables" {
+        val inheritedEnvironment = envVars + mapOf(
+            TRACE_PROPERTY to "inherited-trace-id",
+            RUN_ID_PROPERTY to "inherited-run-id",
+            "payload" to "inherited-payload"
+        )
+
+        val job = createJob(createConfig(), environment = inheritedEnvironment)
+        val environment = job.spec?.template?.spec?.containers.orEmpty().single()
+            .env.orEmpty().associate { it.name to it.value }
+
+        environment[TRACE_PROPERTY] shouldBe header.traceId
+        environment[RUN_ID_PROPERTY] shouldBe header.ortRunId.toString()
+        environment["payload"] shouldBe "{\"analyzerJobId\":${payload.analyzerJobId}}"
+    }
+
     "The container image should be customizable based on message properties" {
         val jdkVariable = "javaVersion"
         val config = createConfig(mapOf("imageName" to "analyzer-\${$jdkVariable}"))
@@ -403,11 +419,12 @@ private val envVars = mapOf(
  */
 private fun createJob(
     config: KubernetesSenderConfig,
-    msg: Message<AnalyzerRequest> = message
+    msg: Message<AnalyzerRequest> = message,
+    environment: Map<String, String> = envVars
 ): V1Job {
     val (client, sender) = createClientAndSender(config)
 
-    withEnvironment(envVars, OverrideMode.SetOrOverride) {
+    withEnvironment(environment, OverrideMode.SetOrOverride) {
         sender.send(msg)
     }
 
