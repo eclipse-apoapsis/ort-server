@@ -20,7 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { OidcClient } from 'oidc-client-ts';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { getCliOidcConfigOptions } from '@/api/@tanstack/react-query.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
@@ -71,18 +71,6 @@ const TokenCallbackPage = () => {
   const { data: cliOidcConfig } = useQuery(getCliOidcConfigOptions());
   const cliClientId = cliOidcConfig?.clientId;
 
-  const createOidcClient = useCallback(() => {
-    if (!cliClientId) return undefined;
-    return new OidcClient({
-      authority: `${config.authBaseUrl}/realms/${config.realm}`,
-      client_id: cliClientId,
-      redirect_uri: getTokenCallbackRedirectUri(),
-      response_type: 'code',
-      scope: CLI_SCOPE,
-      loadUserInfo: false,
-    });
-  }, [cliClientId]);
-
   useEffect(() => {
     if (!cliClientId || offlineToken) return;
 
@@ -96,6 +84,18 @@ const TokenCallbackPage = () => {
       void navigate({ to: '/profile/token', replace: true });
       return;
     }
+
+    const createOidcClient = () => {
+      if (!cliClientId) return undefined;
+      return new OidcClient({
+        authority: `${config.authBaseUrl}/realms/${config.realm}`,
+        client_id: cliClientId,
+        redirect_uri: getTokenCallbackRedirectUri(),
+        response_type: 'code',
+        scope: CLI_SCOPE,
+        loadUserInfo: false,
+      });
+    };
 
     let canceled = false;
 
@@ -141,7 +141,7 @@ const TokenCallbackPage = () => {
     return () => {
       canceled = true;
     };
-  }, [cliClientId, createOidcClient, navigate, offlineToken]);
+  }, [cliClientId, navigate, offlineToken]);
 
   return (
     <div className='mx-auto flex w-full max-w-4xl flex-col gap-6'>

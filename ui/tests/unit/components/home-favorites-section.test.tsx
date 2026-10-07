@@ -203,6 +203,20 @@ describe('home page', () => {
     expect(favoritesStore().favoritesByUser[USER_ID]).toEqual([]);
   });
 
+  it('renames a favorite after its organization was renamed', async () => {
+    addFavorite(1, 'Old org');
+    renderHomePage();
+
+    await waitFor(() =>
+      expect(favoritesStore().favoritesByUser[USER_ID]).toEqual([
+        expect.objectContaining({ name: 'Example org' }),
+      ])
+    );
+    expect(
+      await within(favoritesCard()).findByRole('link', { name: 'Example org' })
+    ).toBeInTheDocument();
+  });
+
   it('removes a favorite whose organization no longer exists', async () => {
     vi.mocked(getOrganization).mockRejectedValue(notFound());
     addFavorite(9, 'Deleted org');
