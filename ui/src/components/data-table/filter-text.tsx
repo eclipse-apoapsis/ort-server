@@ -42,6 +42,8 @@ export function FilterText({
   filterValue: initialValue,
   setFilterValue,
 }: FilterTextProps) {
+  'use memo';
+
   const [value, setValue] = useState(initialValue);
   const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
   const [filterOpen, setFilterOpen] = useState(false);

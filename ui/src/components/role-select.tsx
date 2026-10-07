@@ -70,6 +70,8 @@ type RoleSelectProps = {
  * Render it inside a `FormField`, as it brings the `FormControl` of the field with it.
  */
 export const RoleSelect = ({ value, onChange, level }: RoleSelectProps) => {
+  'use memo';
+
   return (
     <Select value={value} onValueChange={onChange}>
       <FormControl>

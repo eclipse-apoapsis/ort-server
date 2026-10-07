@@ -61,6 +61,8 @@ export function FilterMultiSelect<TValue>({
   setSelected,
   align = 'start',
 }: FilterMultiSelectProps<TValue>) {
+  'use memo';
+
   const optionGroups = options.reduce<
     { group?: string; options: FilterOption<TValue>[] }[]
   >((groups, option) => {
