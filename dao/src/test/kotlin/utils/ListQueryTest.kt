@@ -220,7 +220,7 @@ class ListQueryTest : StringSpec() {
      * Insert a number of synthetic test organizations in random order.
      */
     private suspend fun insertTestOrganizations() {
-        (1..COUNT).toList().shuffled().forEach { index ->
+        (1..COUNT).shuffled().forEach { index ->
             organizationRepository.create(ORGANIZATION_NAME.appendIndex(index), ORGANIZATION_DESC.appendIndex(index))
         }
     }
