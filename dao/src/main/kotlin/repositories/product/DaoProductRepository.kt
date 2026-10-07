@@ -69,7 +69,9 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
         }
 
     override suspend fun countForOrganization(organizationId: Long) =
-        ProductDao.count(ProductsTable.organizationId eq organizationId)
+        db.transaction {
+            ProductDao.count(ProductsTable.organizationId eq organizationId)
+        }
 
     override suspend fun listForOrganization(
         organizationId: Long,
