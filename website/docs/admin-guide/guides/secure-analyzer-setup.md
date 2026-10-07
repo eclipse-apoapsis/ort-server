@@ -72,6 +72,19 @@ Both containers require access to infrastructure secrets. How this is configured
 
 This declaration basically states that a secret volume named `secrets` is created from the Kubernetes secret `ort-server-secrets` and mounted into the preparation and result containers at the path `/mnt/secrets`. _Note: It is important to use a named volume declaration here; volumes without a name are mounted into all containers of the pod, which would make the secrets available in the analysis phase as well._
 
+### Limit inherited environment variables in the analysis phase
+
+The Kubernetes Transport also copies environment variables from the Orchestrator into Analyzer pod containers. These variables can contain infrastructure credentials in some setups. Set `ANALYZER_ENVIRONMENT_ALLOWLIST` on the Orchestrator to limit the inherited variables in the **main container**, which runs the analysis phase:
+
+```yaml
+- name: ANALYZER_ENVIRONMENT_ALLOWLIST
+  value: ''
+```
+
+Choose the names needed by your analysis setup. The list matches exact environment variable names after the transport's Analyzer prefix mapping; for example, an Orchestrator variable named `ANALYZER_HOME` becomes `HOME`, so list `HOME` to pass that mapped value. If the setting is absent, the main container inherits the Orchestrator environment as before. If it is set to an empty string, it inherits none of those variables. In either case, the transport supplies the generated `traceId`, `runId`, and `payload` variables needed to receive the job message.
+
+The preparation phase writes the resolved dependency repository credentials and package manager configuration to the shared exchange volume for the analysis phase. Those credentials are still available to access private dependencies; the allowlist controls only variables inherited from the Orchestrator.
+
 ### Configure the entrypoints for the containers
 
 The three containers defined for the Analyzer pod are all using the same container image for the Analyzer worker. The final step of the secure Analyzer configuration is to tell the containers via command line arguments which phase they should run and where to find the shared volume for data exchange.
