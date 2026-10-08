@@ -6,6 +6,26 @@ This directory contains the web UI for ORT Server.
 
 The UI is a [React](https://react.dev/) application and uses [Vite](https://vitejs.dev/) as the build tool and [pnpm](https://pnpm.io/) as the package manager.
 
+### React Compiler
+
+The build runs [React Compiler](https://react.dev/learn/react-compiler) through `@rolldown/plugin-babel`, configured in `vite.config.ts`.
+It memoizes components and hooks, so new code usually does not need `useMemo`, `useCallback` or `memo()`.
+Keep a manual `useMemo` or `useCallback` where a value must keep its identity while the compiler would see a changed input, such as a new object with the same contents, and say why in a comment.
+
+- The compiler silently skips a component it cannot handle, and `pnpm lint` does not report every reason for a skip; unsupported syntax such as `try … finally` is not reported.
+  A skipped component also hides its other compiler lint findings.
+- The compiler reuses a value computed from an object for as long as the object stays the same.
+  A component that reads state through an object whose identity does not change when the state does, such as TanStack Table rows and columns, would show outdated content.
+  Either read the state through an API that re-renders the component, such as `table.Subscribe`, or leave the component out with a `'use no memo'` directive and a comment saying why.
+- With React Hook Form, a component that receives the result of `useForm` from its parent must subscribe to what it shows: read values with `useWatch` and form state with `useFormState`.
+  `watch()` is rejected by lint.
+  Leaving out only the child does not help, because the compiled parent keeps reusing the child's element.
+  If the child cannot subscribe, leave out the parent instead, with a comment saying why.
+  Call `getValues()` only in event handlers and effects.
+- Define components at module level.
+  For a component defined inside another function, the compiler can move callbacks out of the function, where they no longer see its variables.
+- Code is compiled only in tests that run in the jsdom environment (`// @vitest-environment jsdom`).
+
 ## Prerequisites
 
 By default, the UI expects ORT Server to be running locally.
