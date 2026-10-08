@@ -58,5 +58,5 @@ interface GitHubConfigCache {
      * argument, to make sure that this one does not get removed. It is up to a concrete implementation to decide
      * which entries to remove.
      */
-    fun cleanup(currentRevision: String)
+    suspend fun cleanup(currentRevision: String)
 }

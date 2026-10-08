@@ -381,7 +381,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             }
 
             declareMock<AdminConfigService> {
-                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+                coEvery { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
             }
 
             val secretsMap = mapOf(

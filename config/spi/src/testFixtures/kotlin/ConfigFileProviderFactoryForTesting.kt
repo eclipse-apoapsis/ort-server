@@ -26,6 +26,10 @@ import java.io.InputStream
 
 import kotlin.IllegalArgumentException
 
+import kotlinx.coroutines.Dispatchers
+
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
+import org.eclipse.apoapsis.ortserver.shared.coroutines.withContextClosingOnCancel
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
 /**
@@ -80,18 +84,18 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
                 ?: throw IllegalArgumentException("Error when accessing path.")
 
         return object : ConfigFileProvider {
-            override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
+            override suspend fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
                 context.takeUnless { it.name == ERROR_VALUE }?.let {
                     ResolvedConfigContext("$RESOLVED_PREFIX${it.name}")
                 } ?: throw IllegalArgumentException("Error context.")
 
-            override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
-                resolveFile(context, path).inputStream()
+            override suspend fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
+                withContextClosingOnCancel(Dispatchers.Virtual) { resolveFile(context, path).inputStream() }
 
-            override fun contains(context: ResolvedConfigContext, path: Path): Boolean =
+            override suspend fun contains(context: ResolvedConfigContext, path: Path): Boolean =
                 resolveFile(context, path).isFile
 
-            override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
+            override suspend fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
                 resolveFile(context, path).list()?.mapTo(mutableSetOf()) { name ->
                     Path("${path.path}/$name")
                 } ?: throw IllegalArgumentException("Invalid path to list: '$path'.")

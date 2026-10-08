@@ -38,13 +38,13 @@ interface ConfigFileProvider {
      * Throughout an ORT run, the same configuration files should be used. Therefore, at the beginning, the context is
      * resolved and stored, so that it can be reused later.
      */
-    fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext
+    suspend fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext
 
     /**
      * Return an [InputStream] for reading the content of the configuration file with the given [path] in the given
      * [context]. Throw an exception if the file cannot be resolved or access is not possible for whatever reason.
      */
-    fun getFile(context: ResolvedConfigContext, path: Path): InputStream
+    suspend fun getFile(context: ResolvedConfigContext, path: Path): InputStream
 
     /**
      * Return a flag whether the specified [path] exists in the given [context]. The [path] can either denote a file or
@@ -52,7 +52,7 @@ interface ConfigFileProvider {
      * to actually read this file via the [getFile] function or, in case of a directory, list its content via the
      * [listFiles] function.
      */
-    fun contains(context: ResolvedConfigContext, path: Path): Boolean
+    suspend fun contains(context: ResolvedConfigContext, path: Path): Boolean
 
     /**
      * Return a [Set] with the [Path]s to the configuration files contained in the given [path] and [context]. The
@@ -60,5 +60,5 @@ interface ConfigFileProvider {
      * methods for further processing, for instance, to [getFile] to download the content of files. Throw an exception
      * if the [path] is invalid, e.g., does not point to an existing subdirectory.
      */
-    fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path>
+    suspend fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path>
 }

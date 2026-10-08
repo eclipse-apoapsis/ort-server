@@ -25,6 +25,7 @@ import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
@@ -112,7 +113,7 @@ class ExtensionsTest : WordSpec({
             val context = ResolvedConfigContext("resolvedContext")
 
             val configManager = mockk<ConfigManager> {
-                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
+                coEvery { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
             }
 
             configManager.readConfigFileValueWithDefault(path, defaultPath, fallbackValue, context) shouldBe configFile
@@ -120,7 +121,7 @@ class ExtensionsTest : WordSpec({
 
         "throw an exception if the file at path cannot be read" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } throws configException
+                coEvery { getFile(any(), Path(path)) } throws configException
             }
 
             shouldThrow<ConfigException> {
@@ -131,7 +132,7 @@ class ExtensionsTest : WordSpec({
 
         "throw an exception if the file at path cannot be deserialized" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } returns invalidConfigFileYaml.byteInputStream()
+                coEvery { getFile(any(), Path(path)) } returns invalidConfigFileYaml.byteInputStream()
             }
 
             shouldThrow<IOException> {
@@ -144,7 +145,7 @@ class ExtensionsTest : WordSpec({
             val context = ResolvedConfigContext("theContext")
 
             val configManager = mockk<ConfigManager> {
-                every { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
+                coEvery { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
             }
 
             configManager.readConfigFileValueWithDefault(null, defaultPath, fallbackValue, context) shouldBe configFile
@@ -152,7 +153,7 @@ class ExtensionsTest : WordSpec({
 
         "return the fallback value if the file at default path cannot be read" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(defaultPath)) } throws configException
+                coEvery { getFile(any(), Path(defaultPath)) } throws configException
             }
 
             configManager.readConfigFileValueWithDefault(
@@ -165,7 +166,7 @@ class ExtensionsTest : WordSpec({
 
         "throw an exception if the file at default path cannot be deserialized" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(defaultPath)) } returns invalidConfigFileYaml.byteInputStream()
+                coEvery { getFile(any(), Path(defaultPath)) } returns invalidConfigFileYaml.byteInputStream()
             }
 
             shouldThrow<IOException> {
@@ -184,7 +185,7 @@ class ExtensionsTest : WordSpec({
             val context = ResolvedConfigContext("myConfigContext")
 
             val configManager = mockk<ConfigManager> {
-                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
+                coEvery { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
             }
 
             configManager.readConfigFileValue<ConfigClass>(path, context) shouldBe configFile
@@ -192,7 +193,7 @@ class ExtensionsTest : WordSpec({
 
         "call the exception handler if a ConfigException occurs" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } throws configException
+                coEvery { getFile(any(), Path(path)) } throws configException
             }
 
             var capturedException: ConfigException? = null
@@ -203,7 +204,7 @@ class ExtensionsTest : WordSpec({
 
         "throw an exception if the config file cannot be deserialized" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } returns invalidConfigFileYaml.byteInputStream()
+                coEvery { getFile(any(), Path(path)) } returns invalidConfigFileYaml.byteInputStream()
             }
 
             shouldThrow<IOException> {
@@ -217,7 +218,7 @@ class ExtensionsTest : WordSpec({
             val context = ResolvedConfigContext("resolvedContext")
 
             val configManager = mockk<ConfigManager> {
-                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
+                coEvery { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
             }
 
             configManager.readConfigFileWithDefault(
@@ -230,7 +231,7 @@ class ExtensionsTest : WordSpec({
 
         "throw an exception if the file at path cannot be read" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } throws configException
+                coEvery { getFile(any(), Path(path)) } throws configException
             }
 
             shouldThrow<ConfigException> {
@@ -242,7 +243,7 @@ class ExtensionsTest : WordSpec({
             val context = ResolvedConfigContext("theContext")
 
             val configManager = mockk<ConfigManager> {
-                every { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
+                coEvery { getFile(context, Path(defaultPath)) } returns configFileYaml.byteInputStream()
             }
 
             configManager.readConfigFileWithDefault(
@@ -255,7 +256,7 @@ class ExtensionsTest : WordSpec({
 
         "return the fallback value if the file at default path cannot be read" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(defaultPath)) } throws configException
+                coEvery { getFile(any(), Path(defaultPath)) } throws configException
             }
 
             configManager.readConfigFileWithDefault(
@@ -272,7 +273,7 @@ class ExtensionsTest : WordSpec({
             val context = ResolvedConfigContext("myConfigContext")
 
             val configManager = mockk<ConfigManager> {
-                every { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
+                coEvery { getFile(context, Path(path)) } returns configFileYaml.byteInputStream()
             }
 
             configManager.readConfigFile(path, context) shouldBe configFileYaml
@@ -280,7 +281,7 @@ class ExtensionsTest : WordSpec({
 
         "call the exception handler if a ConfigException occurs" {
             val configManager = mockk<ConfigManager> {
-                every { getFile(any(), Path(path)) } throws configException
+                coEvery { getFile(any(), Path(path)) } throws configException
             }
 
             var capturedException: ConfigException? = null

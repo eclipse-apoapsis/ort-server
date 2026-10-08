@@ -31,11 +31,17 @@ group = "org.eclipse.apoapsis.ortserver.config"
 dependencies {
     api(libs.typesafeConfig)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.config)
+
+    implementation(libs.kotlinx.coroutines)
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 
+    testFixturesImplementation(projects.shared.coroutines)
     testFixturesImplementation(projects.utils.config)
+
+    testFixturesImplementation(libs.kotlinx.coroutines)
 }

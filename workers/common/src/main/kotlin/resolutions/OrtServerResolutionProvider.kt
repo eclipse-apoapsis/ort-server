@@ -113,7 +113,7 @@ class OrtServerResolutionProvider(
         /**
          * Return the global [Resolutions] loaded from the resolutions file.
          */
-        private fun WorkerContext.loadGlobalResolutions(adminConfigService: AdminConfigService): Resolutions {
+        private suspend fun WorkerContext.loadGlobalResolutions(adminConfigService: AdminConfigService): Resolutions {
             val adminConfig = adminConfigService.loadAdminConfig(resolvedConfigurationContext)
             val ruleSet = adminConfig.getRuleSet(ortRun.resolvedJobConfigs?.ruleSet)
 

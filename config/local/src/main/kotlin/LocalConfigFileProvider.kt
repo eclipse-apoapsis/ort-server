@@ -24,12 +24,19 @@ import com.typesafe.config.Config
 import java.io.File
 import java.io.InputStream
 
+import kotlin.coroutines.cancellation.CancellationException
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
+import org.eclipse.apoapsis.ortserver.shared.coroutines.withContextClosingOnCancel
 
 /**
  * An implementation of [ConfigFileProvider] that reads config files from a [local directory][configDir].
@@ -58,32 +65,38 @@ class LocalConfigFileProvider(
         }
     }
 
-    override fun resolveContext(context: RequestedConfigContext) = ResolvedConfigContext.EMPTY
+    override suspend fun resolveContext(context: RequestedConfigContext) = ResolvedConfigContext.EMPTY
 
-    override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
-        runCatching {
-            configDir.resolveSecurely(path).inputStream()
-        }.getOrElse {
-            throw ConfigException("Cannot read path '${path.path}'.", it)
+    override suspend fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
+        withContextClosingOnCancel(Dispatchers.Virtual) {
+            runCatching {
+                configDir.resolveSecurely(path).inputStream()
+            }.getOrElse {
+                if (it is CancellationException) throw it
+
+                throw ConfigException("Cannot read path '${path.path}'.", it)
+            }
         }
 
-    override fun contains(context: ResolvedConfigContext, path: Path): Boolean {
-        val isDirectoryPath = path.path.endsWith("/")
-        val p = configDir.resolveSecurely(path)
+    override suspend fun contains(context: ResolvedConfigContext, path: Path): Boolean =
+        withContext(Dispatchers.Virtual) {
+            val isDirectoryPath = path.path.endsWith("/")
+            val p = configDir.resolveSecurely(path)
 
-        return (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
-    }
-
-    override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> {
-        val requestedDir = configDir.resolve(path.path)
-        val dir = configDir.resolveSecurely(path)
-
-        if (!dir.isDirectory) {
-            throw ConfigException("The provided path '${path.path}' does not refer a directory.")
+            (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
         }
 
-        return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) {
-            Path(requestedDir.resolve(it.relativeTo(dir)).path)
+    override suspend fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
+        withContext(Dispatchers.Virtual) {
+            val requestedDir = configDir.resolve(path.path)
+            val dir = configDir.resolveSecurely(path)
+
+            if (!dir.isDirectory) {
+                throw ConfigException("The provided path '${path.path}' does not refer a directory.")
+            }
+
+            dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) {
+                Path(requestedDir.resolve(it.relativeTo(dir)).path)
+            }
         }
-    }
 }

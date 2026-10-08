@@ -25,6 +25,12 @@ import java.io.File
 import java.io.InputStream
 import java.util.ServiceLoader
 
+import kotlin.coroutines.cancellation.CancellationException
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
@@ -153,26 +159,28 @@ class ConfigManager(
     /**
      * Ask the underlying [ConfigFileProvider] to resolve the given [context]. Throw a [ConfigException] if this fails.
      */
-    fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
+    suspend fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
         wrapExceptions { configFileProvider.resolveContext(context) }
 
     /**
      * Return an [InputStream] for reading the content of the configuration file at the given [path] in the given
      * [context]. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
+    suspend fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
         wrapExceptions { configFileProvider.getFile(context, path) }
 
     /**
      * Return the content of the configuration file under the given [path] in the given [context] as a string.
      * Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun getFileAsString(context: ResolvedConfigContext, path: Path): String {
+    suspend fun getFileAsString(context: ResolvedConfigContext, path: Path): String {
         val configStream = getFile(context, path)
 
         return wrapExceptions {
             configStream.use { stream ->
-                String(stream.readAllBytes())
+                withContext(Dispatchers.Virtual) {
+                    String(stream.readAllBytes())
+                }
             }
         }
     }
@@ -185,7 +193,7 @@ class ConfigManager(
      * the downloaded configuration data. Throw a [ConfigException] if the underlying [ConfigFileProvider] throws an
      * exception or the file could not be written.
      */
-    fun downloadFile(
+    suspend fun downloadFile(
         context: ResolvedConfigContext,
         path: Path,
         directory: File = getTempDir(),
@@ -197,7 +205,9 @@ class ConfigManager(
         return wrapExceptions {
             configStream.use { stream ->
                 targetFile.outputStream().use { out ->
-                    stream.copyTo(out)
+                    withContext(Dispatchers.Virtual) {
+                        stream.copyTo(out)
+                    }
                 }
             }
             targetFile
@@ -208,7 +218,7 @@ class ConfigManager(
      * Check whether a configuration file exists at the given [path] in the given [context]. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun containsFile(context: ResolvedConfigContext, path: Path): Boolean =
+    suspend fun containsFile(context: ResolvedConfigContext, path: Path): Boolean =
         wrapExceptions { configFileProvider.contains(context, path) }
 
     /**
@@ -216,7 +226,7 @@ class ConfigManager(
      * [context]. The provided [path] should point to a directory, so that it can contain files. Throw a
      * [ConfigException] if the underlying [ConfigFileProvider] throws an exception.
      */
-    fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
+    suspend fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
         wrapExceptions { configFileProvider.listFiles(context, path) }
 
     /**
@@ -258,9 +268,11 @@ class ConfigException(message: String, cause: Throwable? = null) : Exception(mes
  * [ConfigException] which is rethrown.
  */
 @Suppress("TooGenericExceptionCaught")
-private fun <T> wrapExceptions(block: () -> T): T =
+private inline fun <T> wrapExceptions(block: () -> T): T =
     try {
         block()
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: ConfigException) {
         // Do not wrap ConfigExceptions.
         throw e

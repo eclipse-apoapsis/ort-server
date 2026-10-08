@@ -31,10 +31,12 @@ dependencies {
     api(libs.typesafeConfig)
     api(ortLibs.downloader)
 
+    implementation(projects.shared.coroutines)
+    implementation(projects.utils.config)
+
     implementation(libs.jgit)
     implementation(libs.slf4j)
     implementation(ortLibs.ortPlugins.versionControlSystems.git)
-    implementation(projects.utils.config)
 
     testImplementation(testFixtures(projects.config.configSpi))
 

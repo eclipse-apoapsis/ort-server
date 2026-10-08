@@ -30,6 +30,7 @@ import java.io.RandomAccessFile
 import java.nio.channels.FileLock
 import java.util.concurrent.atomic.AtomicInteger
 
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.use
 import kotlin.text.toByteArray
 import kotlin.time.Clock
@@ -43,6 +44,8 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
+import org.eclipse.apoapsis.ortserver.shared.coroutines.withContextClosingOnCancel
 
 import org.slf4j.LoggerFactory
 
@@ -134,36 +137,40 @@ internal class GitHubConfigFileCache(
         val dataFile = resolveFileInCache(FOLDERS_PATH, revision, path)
 
         return getOrPutFileInCache(dataFile, ::loadFolderContent).use {
-            it.bufferedReader().readLines().toSet()
+            withContext(Dispatchers.Virtual) {
+                it.bufferedReader().readLines().toSet()
+            }
         }
     }
 
-    override fun cleanup(currentRevision: String) {
-        if (cleanupCounter.incrementAndGet() >= cleanupRatio) {
-            cleanupCounter.set(0)
+    override suspend fun cleanup(currentRevision: String) {
+        withContext(Dispatchers.Virtual) {
+            if (cleanupCounter.incrementAndGet() >= cleanupRatio) {
+                cleanupCounter.set(0)
 
-            val ageThresholdInstant = Clock.System.now() - cleanupMaxAge
-            val ageThreshold = ageThresholdInstant.toEpochMilliseconds()
+                val ageThresholdInstant = Clock.System.now() - cleanupMaxAge
+                val ageThreshold = ageThresholdInstant.toEpochMilliseconds()
 
-            logger.info(
-                "Performing cleanup of cache directory '{}' on revisions older than {}.",
-                cacheDir,
-                ageThresholdInstant
-            )
+                logger.info(
+                    "Performing cleanup of cache directory '{}' on revisions older than {}.",
+                    cacheDir,
+                    ageThresholdInstant
+                )
 
-            cacheDir.listFiles().orEmpty()
-                .filterNot { it.name == currentRevision }
-                .filter { it.lastModified() < ageThreshold }
-                .forEach { revisionDir ->
-                    logger.info(
-                        "Removing outdated cache entry for revision '{}' from {}.",
-                        revisionDir.name,
-                        Instant.fromEpochMilliseconds(revisionDir.lastModified())
-                    )
-                    if (!revisionDir.deleteRecursively()) {
-                        logger.warn("Failed to remove outdated cache entry for revision '{}'.", revisionDir.name)
+                cacheDir.listFiles().orEmpty()
+                    .filterNot { it.name == currentRevision }
+                    .filter { it.lastModified() < ageThreshold }
+                    .forEach { revisionDir ->
+                        logger.info(
+                            "Removing outdated cache entry for revision '{}' from {}.",
+                            revisionDir.name,
+                            Instant.fromEpochMilliseconds(revisionDir.lastModified())
+                        )
+                        if (!revisionDir.deleteRecursively()) {
+                            logger.warn("Failed to remove outdated cache entry for revision '{}'.", revisionDir.name)
+                        }
                     }
-                }
+            }
         }
     }
 
@@ -173,76 +180,77 @@ internal class GitHubConfigFileCache(
      * invoked only once for a specific file and that the file is fully written before it is read.
      */
     private suspend fun getOrPutFileInCache(dataFile: File, load: suspend () -> ByteReadChannel): InputStream =
-        withContext(Dispatchers.IO) {
-            val needRetry = if (!dataFile.isFile) {
+        withContextClosingOnCancel(Dispatchers.Virtual) { openFileInCache(dataFile, load) }
+
+    /**
+     * Implementation of [getOrPutFileInCache] that must be called on a dispatcher suitable for blocking I/O.
+     */
+    private suspend fun openFileInCache(dataFile: File, load: suspend () -> ByteReadChannel): FileInputStream {
+        while (true) {
+            if (!dataFile.isFile) {
                 logger.info("File '{}' not found in cache, downloading it now.", dataFile)
-                downloadFile(dataFile, load)
-            } else {
-                false
+
+                // If the download returns true, the file is currently downloaded by another process, so retry.
+                if (downloadFile(dataFile, load)) continue
             }
 
-            if (needRetry) {
-                getOrPutFileInCache(dataFile, load)
-            } else {
-                val stream = dataFile.inputStream().waitForReadLock()
-                // There can be the race condition that a process obtains a read lock first before the downloading
-                // process acquires the write lock. So, it has to be checked whether the file actually contains data.
-                // Otherwise, the operation has to be retried.
-                if (dataFile.length() > 0) {
-                    stream
-                } else {
-                    stream.close()
-                    getOrPutFileInCache(dataFile, load)
-                }
-            }
+            val stream = dataFile.inputStream().waitForReadLockOrClose()
+
+            // There can be the race condition that a process obtains a read lock first before the downloading
+            // process acquires the write lock. So, it has to be checked whether the file actually contains data.
+            // Otherwise, the operation has to be retried.
+            if (dataFile.length() > 0) return stream
+
+            stream.close()
         }
+    }
 
     /**
      * Download a file using the given [load] function and write it into the cache as [dataFile]. Return a flag
      * whether this was successful. A return value of *false* means that the same file is currently downloaded by
-     * a different process. Then the operation needs to be retried.
+     * a different process. Then the operation needs to be retried. This function must be called on a dispatcher
+     * suitable for blocking I/O.
      */
-    private suspend fun downloadFile(dataFile: File, load: suspend () -> ByteReadChannel): Boolean =
-        withContext(Dispatchers.IO) {
-            dataFile.parentFile.mkdirs()
+    private suspend fun downloadFile(dataFile: File, load: suspend () -> ByteReadChannel): Boolean {
+        dataFile.parentFile.mkdirs()
 
-            RandomAccessFile(dataFile, "rw").use { file ->
-                file.channel.use { writeChannel ->
-                    val lock = runCatching { writeChannel.tryLock() }.getOrNull()
+        return RandomAccessFile(dataFile, "rw").use { file ->
+            file.channel.use { writeChannel ->
+                val lock = runCatching { writeChannel.tryLock() }.getOrNull()
 
-                    // If no write lock can be acquired, the file is currently downloaded by another process. In this
-                    // case, simply retry the operation.
-                    lock?.use { _ ->
-                        if (dataFile.length() <= 0L) {
-                            val readChannel = load()
+                // If no write lock can be acquired, the file is currently downloaded by another process. In this
+                // case, simply retry the operation.
+                lock?.use { _ ->
+                    if (dataFile.length() <= 0L) {
+                        val readChannel = load()
 
-                            while (!readChannel.isClosedForRead) {
-                                val packet = readChannel.readBuffer()
-                                while (!packet.exhausted()) {
-                                    packet.read { writeChannel.write(it) }
-                                }
+                        while (!readChannel.isClosedForRead) {
+                            val packet = readChannel.readBuffer()
+                            while (!packet.exhausted()) {
+                                packet.read { writeChannel.write(it) }
                             }
-                        } else {
-                            logger.info("File '{}' already exists, skipping download.", dataFile)
                         }
-                        false
-                    } ?: true
-                }
+                    } else {
+                        logger.info("File '{}' already exists, skipping download.", dataFile)
+                    }
+                    false
+                } ?: true
             }
         }
+    }
 
     /**
-     * Wait until a read lock is available for the given [FileInputStream]. This is needed to ensure that a file has
-     * been fully downloaded until a stream to it is returned from the cache.
+     * Wait until a read lock is available for this [FileInputStream]. This is needed to ensure that a file has been
+     * fully downloaded until a stream to it is returned from the cache. If waiting fails (e.g. because the calling
+     * coroutine is canceled), the stream is closed. This function must be called on a dispatcher suitable for blocking
+     * I/O.
      */
-    private suspend fun FileInputStream.waitForReadLock(): FileInputStream =
-        withContext(Dispatchers.IO) {
+    private suspend fun FileInputStream.waitForReadLockOrClose(): FileInputStream {
+        try {
             var lock: FileLock?
 
             do {
-                lock = runCatching {
-                    this@waitForReadLock.channel.tryLock(0, Long.MAX_VALUE, true)
-                }.getOrNull()
+                lock = runCatching { channel.tryLock(0, Long.MAX_VALUE, true) }.getOrNull()
 
                 if (lock == null) {
                     delay(lockCheckInterval)
@@ -250,8 +258,13 @@ internal class GitHubConfigFileCache(
             } while (lock == null)
 
             lock.close()
-            this@waitForReadLock
+        } catch (e: CancellationException) {
+            close()
+            throw e
         }
+
+        return this
+    }
 
     /**
      * Resolve a file in the cache based on the given [subFolder], [revision], and [path]. A [ConfigException] is thrown

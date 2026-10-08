@@ -156,10 +156,10 @@ class ReporterRunnerTest : WordSpec({
     }
 
     val configManager = mockk<ConfigManager> {
-        every { getFile(configurationContext, any()) } answers {
+        coEvery { getFile(configurationContext, any()) } answers {
             simulateGetConfigFile(secondArg())
         }
-        every { getFileAsString(any(), any()) } returns ""
+        coEvery { getFileAsString(any(), any()) } returns ""
     }
 
     val configDirectory = tempdir()
@@ -990,7 +990,7 @@ class ReporterRunnerTest : WordSpec({
                 HowToFixTextProvider.fromKotlinScript(howToFixTextProviderScript, any())
             } returns mockHowToFixTextProvider
 
-            every {
+            coEvery {
                 configManager.getFile(any(), Path(howToFixTextProviderFile))
             } returns howToFixTextProviderScript.byteInputStream()
 
@@ -1044,7 +1044,7 @@ class ReporterRunnerTest : WordSpec({
             }
             mockkObject(HowToFixTextProvider)
             every { HowToFixTextProvider.fromKotlinScript(script, any()) } returns provider
-            every { configManager.getFile(any(), Path(scriptFile)) } returns script.byteInputStream()
+            coEvery { configManager.getFile(any(), Path(scriptFile)) } returns script.byteInputStream()
 
             val reporterConfig = createReporterConfig(
                 howToFixTextProviderFile = scriptFile,
@@ -1340,7 +1340,7 @@ private fun createReporterConfig(
  */
 private fun createAdminConfigService(reporterConfig: ReporterConfig): AdminConfigService =
     mockk {
-        every {
+        coEvery {
             loadAdminConfig(configurationContext)
         } returns AdminConfig(
             reporterConfig = reporterConfig,

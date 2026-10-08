@@ -27,6 +27,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeTypeOf
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
@@ -153,7 +154,7 @@ private fun mockContext(run: OrtRun, configMan: ConfigManager = mockConfigManage
  */
 private fun mockConfigManager(): ConfigManager =
     mockk {
-        every { containsFile(any(), any()) } returns true
+        coEvery { containsFile(any(), any()) } returns true
     }
 
 /**

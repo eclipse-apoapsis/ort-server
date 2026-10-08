@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -33,7 +33,7 @@ class CustomLicenseFactProviderTest : WordSpec({
     "getLicenseText" should {
         "return a license from the config directory" {
             val configManager = createConfigManagerMock()
-            every {
+            coEvery {
                 configManager.getFileAsString(configContext, Path("${licenseDir.path}/$LICENSE_ID"))
             } returns LICENSE_TEXT
 
@@ -45,7 +45,7 @@ class CustomLicenseFactProviderTest : WordSpec({
 
         "handle a license text dir with a trailing slash" {
             val configManager = createConfigManagerMock()
-            every {
+            coEvery {
                 configManager.getFileAsString(configContext, Path("${licenseDir.path}/$LICENSE_ID"))
             } returns LICENSE_TEXT
 
@@ -83,5 +83,5 @@ private val configContext = ResolvedConfigContext("theCurrentContext")
  */
 private fun createConfigManagerMock(): ConfigManager =
     mockk {
-        every { listFiles(configContext, licenseDir) } returns setOf(Path("${licenseDir.path}/$LICENSE_ID"))
+        coEvery { listFiles(configContext, licenseDir) } returns setOf(Path("${licenseDir.path}/$LICENSE_ID"))
     }

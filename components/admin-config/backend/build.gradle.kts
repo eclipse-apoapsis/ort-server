@@ -30,6 +30,7 @@ dependencies {
 
     api(libs.hoplite.core)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.shared.pluginInfo)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)

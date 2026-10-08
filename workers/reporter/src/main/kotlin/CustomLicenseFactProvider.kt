@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 import org.ossreviewtoolkit.plugins.licensefactproviders.api.LicenseFactProvider
@@ -62,9 +63,11 @@ internal class CustomLicenseFactProvider(
     /** Stores the IDs of the licenses that can be resolved from the config directory. */
     private val knownLicenseTexts by lazy {
         val directoryPrefix = "${licenseTextDir.path}/"
-        configManager.listFiles(configurationContext, licenseTextDir)
-            .map { it.path.removePrefix(directoryPrefix) }
-            .also { logger.debug("Found custom license texts: {}.", it) }
+        runBlocking {
+            configManager.listFiles(configurationContext, licenseTextDir)
+                .map { it.path.removePrefix(directoryPrefix) }
+                .also { logger.debug("Found custom license texts: {}.", it) }
+        }
     }
 
     override fun getLicenseText(licenseOrExceptionId: String): LicenseText? {
@@ -73,10 +76,12 @@ internal class CustomLicenseFactProvider(
         if (hasLicenseText(licenseOrExceptionId)) {
             logger.debug("Loading license text of '{}' from config directory.", licenseOrExceptionId)
             return LicenseText(
-                configManager.getFileAsString(
-                    configurationContext,
-                    Path("${licenseTextDir.path}/$licenseOrExceptionId")
-                )
+                runBlocking {
+                    configManager.getFileAsString(
+                        configurationContext,
+                        Path("${licenseTextDir.path}/$licenseOrExceptionId")
+                    )
+                }
             )
         }
 

@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import kotlin.coroutines.cancellation.CancellationException
+
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
@@ -108,7 +110,7 @@ class ConfigWorker(
      * Validate and transform the given [baseConfigs] by running the validation script found in the given
      * [resolvedJobConfigContext] - if any - and afterwards checking the result against the admin configuration.
      */
-    private fun validateConfigs(
+    private suspend fun validateConfigs(
         context: WorkerContext,
         resolvedJobConfigContext: ResolvedConfigContext,
         baseConfigs: JobConfigurations
@@ -162,7 +164,7 @@ class ConfigWorker(
         return ConfigValidationResultFailure(listOf(issue))
     }
 
-    private fun validateAdminConfig(
+    private suspend fun validateAdminConfig(
         resolvedJobConfigContext: ResolvedConfigContext,
         validationScriptResult: ConfigValidationResultSuccess
     ) = runCatching {
@@ -179,6 +181,8 @@ class ConfigWorker(
             validationScriptResult
         }
     }.getOrElse { e ->
+        if (e is CancellationException) throw e
+
         logger.error("Error during admin configuration validation.", e)
 
         val issue = createIssue(

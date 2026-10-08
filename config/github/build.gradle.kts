@@ -31,6 +31,7 @@ dependencies {
     api(ktorLibs.io)
     api(libs.typesafeConfig)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.shared.ktorClientUtils)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
