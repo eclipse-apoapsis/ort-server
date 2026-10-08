@@ -17,6 +17,10 @@
  * License-Filename: LICENSE
  */
 
+// @vitest-environment jsdom
+
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
@@ -40,8 +44,16 @@ import {
   createPluginDescriptor,
   createPluginSecrets,
 } from '../fixtures/create-run';
-import { renderWithForm } from '../fixtures/form-harness';
-import { renderStaticWithRouter } from '../fixtures/router-harness';
+import {
+  createStableFormHarness,
+  renderWithForm,
+  renderWithStableForm,
+} from '../fixtures/form-harness';
+import {
+  createTestRouter,
+  renderStaticWithRouter,
+  RouterTestProvider,
+} from '../fixtures/router-harness';
 
 const advisorPlugins = [
   createPluginDescriptor({
@@ -273,5 +285,101 @@ describe('create run job fields', () => {
     // The package managers start collapsed, so their settings are not rendered.
     expect(markup).toContain('Expand all');
     expect(markup).not.toContain('Must run after');
+  });
+
+  it('hides the reporter package configuration providers once the evaluator is enabled', () => {
+    const { form } = renderWithStableForm(
+      (form) => (
+        <Accordion type='multiple' defaultValue={['reporter']}>
+          <ReporterFields
+            form={form}
+            value='reporter'
+            onToggle={onToggle}
+            reporterPlugins={reporterPlugins}
+            isSuperuser
+            packageConfigurationProviderPlugins={
+              packageConfigurationProviderPlugins
+            }
+            secrets={secrets}
+            isRerun={false}
+          />
+        </Accordion>
+      ),
+      {
+        defaultValues: {
+          ...formDefaultValues,
+          jobConfigs: {
+            ...formDefaultValues.jobConfigs,
+            evaluator: {
+              ...formDefaultValues.jobConfigs.evaluator,
+              enabled: false,
+            },
+          },
+        },
+      }
+    );
+
+    expect(
+      screen.getByText('Package configuration providers')
+    ).toBeInTheDocument();
+
+    act(() => {
+      form.setValue('jobConfigs.evaluator.enabled', true);
+    });
+
+    expect(
+      screen.queryByText('Package configuration providers')
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the keep-alive phases once keeping the worker alive is enabled', async () => {
+    const user = userEvent.setup();
+    const { StableFormHarness } = createStableFormHarness(
+      (form) => (
+        <Accordion type='multiple' defaultValue={['analyzer']}>
+          <AnalyzerFields
+            form={form}
+            value='analyzer'
+            onToggle={onToggle}
+            isSuperuser
+            packageCurationProviderPlugins={packageCurationProviderPlugins}
+            packageManagerPlugins={packageManagerPlugins}
+            pluginSecrets={secrets}
+            isRerun={false}
+            permissions={permissions}
+          />
+        </Accordion>
+      ),
+      {
+        defaultValues: {
+          ...formDefaultValues,
+          jobConfigs: {
+            ...formDefaultValues.jobConfigs,
+            analyzer: {
+              ...formDefaultValues.jobConfigs.analyzer,
+              keepAliveWorker: false,
+            },
+          },
+        },
+      }
+    );
+    const router = createTestRouter({
+      path: '/organizations/1/products/2/repositories/3',
+      routes: [
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId',
+          component: StableFormHarness,
+        },
+      ],
+    });
+    await router.load();
+    render(<RouterTestProvider router={router} />);
+
+    const phases = await screen.findByText('Phases');
+    expect(phases.closest('.grid')).toHaveClass('invisible');
+
+    await user.click(screen.getByRole('switch', { name: 'Keep worker alive' }));
+
+    expect(phases.closest('.grid')).not.toHaveClass('invisible');
   });
 });

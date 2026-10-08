@@ -17,12 +17,18 @@
  * License-Filename: LICENSE
  */
 
+// @vitest-environment jsdom
+
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { memo } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   FormProvider,
   useForm,
   type DefaultValues,
   type FieldValues,
+  type UseFormReturn,
 } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
@@ -60,6 +66,35 @@ function renderPluginOptions(
   }
 
   return renderToStaticMarkup(<FormHarness />);
+}
+
+/**
+ * Render the fields inside a parent that receives the form and never renders
+ * again, as a parent memoized by React Compiler does.
+ */
+function renderPluginOptionsInStableParent(
+  options: PluginOption[],
+  defaultValues: DefaultValues<FieldValues>
+) {
+  const StableParent = memo(function StableParent({
+    form,
+  }: {
+    form: UseFormReturn<FieldValues>;
+  }) {
+    return <PluginOptionFormFields options={options} form={form} />;
+  });
+
+  function FormHarness() {
+    const form = useForm<FieldValues>({ defaultValues });
+
+    return (
+      <FormProvider {...form}>
+        <StableParent form={form} />
+      </FormProvider>
+    );
+  }
+
+  return render(<FormHarness />);
 }
 
 type OptionTestCase = {
@@ -152,5 +187,27 @@ describe('PluginOptionFormFields', () => {
     expect(markup).toContain('data-state="checked"');
     expect(markup).toContain('Final');
     expect(markup).toContain('Undefined');
+  });
+
+  it('marks an option as not set while its value is empty', async () => {
+    const user = userEvent.setup();
+    const option = createPluginOption('STRING', { name: 'stringOption' });
+    renderPluginOptionsInStableParent([option], {
+      stringOption: '',
+      stringOption_isFinal: false,
+      stringOption_isNotSet: true,
+    });
+    const input = screen.getByRole('textbox');
+    const finalCheckbox = screen.getByRole('checkbox', { name: 'Final' });
+
+    expect(finalCheckbox).toBeDisabled();
+
+    await user.type(input, 'value');
+
+    expect(finalCheckbox).toBeEnabled();
+
+    await user.clear(input);
+
+    expect(finalCheckbox).toBeDisabled();
   });
 });

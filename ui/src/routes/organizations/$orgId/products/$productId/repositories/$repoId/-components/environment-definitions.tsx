@@ -19,7 +19,7 @@
 
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { ReactNode } from 'react';
-import { FieldPath, UseFormReturn } from 'react-hook-form';
+import { FieldPath, UseFormReturn, useWatch } from 'react-hook-form';
 
 import { InfrastructureServiceSelect } from '@/components/infrastructure-service-select';
 import { Button } from '@/components/ui/button';
@@ -224,7 +224,10 @@ export const EnvironmentDefinitionsFields = ({
   form,
 }: EnvironmentDefinitionsFieldsProps) => {
   const environmentDefinitions = definitionsAsRecord(
-    form.watch('jobConfigs.analyzer.environmentDefinitions')
+    useWatch({
+      control: form.control,
+      name: 'jobConfigs.analyzer.environmentDefinitions',
+    })
   );
 
   const cards = ENVIRONMENT_DEFINITION_SCHEMAS.flatMap((schema) =>

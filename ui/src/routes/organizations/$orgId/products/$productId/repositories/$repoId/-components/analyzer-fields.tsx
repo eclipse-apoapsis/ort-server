@@ -19,7 +19,7 @@
 
 import { useParams } from '@tanstack/react-router';
 import { PlusIcon, TrashIcon } from 'lucide-react';
-import { useFieldArray, UseFormReturn } from 'react-hook-form';
+import { useFieldArray, UseFormReturn, useWatch } from 'react-hook-form';
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { zAnalyzerPhase } from '@/api/zod.gen';
@@ -90,7 +90,10 @@ export const AnalyzerFields = ({
     control: form.control,
   });
 
-  const keepAliveWorker = form.watch('jobConfigs.analyzer.keepAliveWorker');
+  const keepAliveWorker = useWatch({
+    control: form.control,
+    name: 'jobConfigs.analyzer.keepAliveWorker',
+  });
 
   return (
     <div className='flex flex-row align-middle'>

@@ -19,7 +19,7 @@
 
 import { CheckedState } from '@radix-ui/react-checkbox';
 import { ChangeEvent } from 'react';
-import { FieldValues, UseFormReturn } from 'react-hook-form';
+import { FieldValues, UseFormReturn, useWatch } from 'react-hook-form';
 
 import { PluginOption } from '@/api';
 import { OptionalInput } from '@/components/form/optional-input';
@@ -61,8 +61,13 @@ export function PluginOptionFormFields({ options, form }: Props) {
     }
   }
 
-  return options.map((option) => {
-    const isNotSet = form.watch(`${option.name}_isNotSet`);
+  const isNotSetValues = useWatch({
+    control: form.control,
+    name: options.map((option) => `${option.name}_isNotSet`),
+  });
+
+  return options.map((option, index) => {
+    const isNotSet = isNotSetValues[index];
 
     return (
       <FormField

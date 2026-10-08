@@ -17,7 +17,8 @@
  * License-Filename: LICENSE
  */
 
-import type { ReactNode } from 'react';
+import { render } from '@testing-library/react';
+import { memo, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   FormProvider,
@@ -56,4 +57,56 @@ export function renderWithForm(
   }
 
   return renderToStaticMarkup(<FormHarness />);
+}
+
+/**
+ * Create a harness that renders the content inside a parent that receives the
+ * form and never renders again, as a parent memoized by React Compiler does. A
+ * field group under it shows a changed value only if it subscribes to that
+ * value itself.
+ */
+export function createStableFormHarness(
+  children: (form: UseFormReturn<CreateRunFormValues>) => ReactNode,
+  { defaultValues }: Pick<FormHarnessOptions, 'defaultValues'>
+) {
+  const StableParent = memo(function StableParent({
+    form,
+  }: {
+    form: UseFormReturn<CreateRunFormValues>;
+  }) {
+    return children(form);
+  });
+
+  let form: UseFormReturn<CreateRunFormValues> | undefined;
+
+  function StableFormHarness() {
+    form = useForm<CreateRunFormValues>({ defaultValues });
+
+    return (
+      <FormProvider {...form}>
+        <StableParent form={form} />
+      </FormProvider>
+    );
+  }
+
+  const getForm = () => {
+    if (!form) throw new Error('The form harness has not rendered yet.');
+    return form;
+  };
+
+  return { StableFormHarness, getForm };
+}
+
+/** Render the content with {@link createStableFormHarness}. */
+export function renderWithStableForm(
+  children: (form: UseFormReturn<CreateRunFormValues>) => ReactNode,
+  options: Pick<FormHarnessOptions, 'defaultValues'>
+) {
+  const { StableFormHarness, getForm } = createStableFormHarness(
+    children,
+    options
+  );
+  const result = render(<StableFormHarness />);
+
+  return { ...result, form: getForm() };
 }
