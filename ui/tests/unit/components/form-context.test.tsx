@@ -17,11 +17,24 @@
  * License-Filename: LICENSE
  */
 
+// @vitest-environment jsdom
+
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { FormProvider, useForm } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { useFormField } from '@/components/ui/form-context';
+import { Input } from '@/components/ui/input';
 
 const FieldConsumer = () => <>{useFormField().id}</>;
 
@@ -37,7 +50,53 @@ const FormWithoutField = () => {
   );
 };
 
+const RequiredNameForm = () => {
+  const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(() => {})}>
+        <FormField
+          control={form.control}
+          name='name'
+          rules={{ required: 'Name is required' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <button type='submit'>Submit</button>
+      </form>
+    </Form>
+  );
+};
+
 describe('useFormField', () => {
+  // The hook reads the field state through `useFormContext()` and subscribes
+  // with `useFormState`, which React Hook Form reports as the safe pattern
+  // under React Compiler.
+  it('shows the error of a field until it is valid', async () => {
+    const user = userEvent.setup();
+    render(<RequiredNameForm />);
+
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(await screen.findByText('Name is required')).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+
+    await user.type(screen.getByLabelText('Name'), 'core');
+
+    expect(screen.queryByText('Name is required')).not.toBeInTheDocument();
+  });
+
   it('throws when used outside a FormField', () => {
     expect(() => renderToStaticMarkup(<FormWithoutField />)).toThrow(
       'useFormField should be used within <FormField>'
