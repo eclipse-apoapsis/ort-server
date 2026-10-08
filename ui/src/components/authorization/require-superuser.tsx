@@ -27,8 +27,6 @@ interface RequireSuperuserProps {
 }
 
 export const RequireSuperuser = ({ children }: RequireSuperuserProps) => {
-  'use memo';
-
   const { isPending, isSuperuser, error } = useIsSuperuser();
 
   return (

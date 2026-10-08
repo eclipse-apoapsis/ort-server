@@ -46,8 +46,6 @@ export const useCreateRunPlugins = (
   repositoryId: number,
   configContext: string
 ) => {
-  'use memo';
-
   const { data, error, isPending, isPlaceholderData } = useQuery({
     ...createRunPluginsOptions(repositoryId, configContext),
     placeholderData: keepPreviousData,

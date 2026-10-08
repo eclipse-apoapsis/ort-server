@@ -26,8 +26,6 @@ export const HighlightedMatch = ({
   searchTerm,
   text,
 }: HighlightedMatchProps) => {
-  'use memo';
-
   if (!searchTerm) {
     return text;
   }

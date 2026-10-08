@@ -42,8 +42,6 @@ export const HomeDataProvider = ({
   value,
   children,
 }: HomeDataProviderProps) => {
-  'use memo';
-
   const auth = useAuth();
   const userId = getHomeDataUserId(auth.user?.profile);
   // Create the provider only when the user ID changes. Without `useMemo`,

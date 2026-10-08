@@ -20,8 +20,6 @@
 import type { ReactNode } from 'react';
 
 export const HomeEmptyState = ({ children }: { children: ReactNode }) => {
-  'use memo';
-
   return (
     <div className='text-muted-foreground rounded-lg border border-dashed p-6 text-sm'>
       {children}

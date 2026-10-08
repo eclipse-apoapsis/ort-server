@@ -43,8 +43,6 @@ export function FilterRegex({
   filterValue: initialValue,
   setFilterValue,
 }: FilterRegexProps) {
-  'use memo';
-
   const [value, setValue] = useState(initialValue);
   const [filterOpen, setFilterOpen] = useState(false);
 

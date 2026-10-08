@@ -55,8 +55,6 @@ const getTokenCallbackRedirectUri = () => {
 };
 
 const TokenPage = () => {
-  'use memo';
-
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [isRedirecting, setIsRedirecting] = useState(false);
 

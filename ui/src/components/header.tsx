@@ -66,8 +66,6 @@ const formSchema = z.object({
 });
 
 export const Header = () => {
-  'use memo';
-
   const user = useUser();
   const navigate = useNavigate();
   const mode = useTheme().mode;

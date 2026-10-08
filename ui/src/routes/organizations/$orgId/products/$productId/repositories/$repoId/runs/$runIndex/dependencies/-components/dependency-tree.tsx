@@ -253,8 +253,6 @@ export const DependencyTree = memo(function DependencyTree({
   searchTerm,
   rowLimit = ROW_LIMIT,
 }: DependencyTreeProps) {
-  'use memo';
-
   // Manual expansion changes are stored by occurrence identifier, so keep the
   // identifiers for as long as this tree exists, also across graph changes.
   const [occurrenceIds] = useState(() => new OccurrenceIds());

@@ -28,8 +28,6 @@ export const authRef: { current: AuthContextProps | null } = {
 };
 
 export const useUser = () => {
-  'use memo';
-
   const auth = useAuth();
 
   // Refresh the token silently. This also refreshes the user profile (and the roles).

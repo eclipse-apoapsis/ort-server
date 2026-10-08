@@ -221,8 +221,6 @@ const renderSubComponent = ({
 };
 
 const ProjectsComponent = () => {
-  'use memo';
-
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();

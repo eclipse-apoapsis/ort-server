@@ -57,8 +57,6 @@ import { useTablePrefsStore } from '@/store/table-prefs.store';
 const columnHelper = createAppColumnHelper<Organization>();
 
 export const OrganizationsPage = () => {
-  'use memo';
-
   const orgPageSize = useTablePrefsStore((state) => state.orgPageSize);
   const setOrgPageSize = useTablePrefsStore((state) => state.setOrgPageSize);
   const search = Route.useSearch();

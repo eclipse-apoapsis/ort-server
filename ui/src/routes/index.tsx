@@ -31,8 +31,6 @@ import { HomeRecentRunsSection } from './-components/home-recent-runs-section';
 const PRODUCT_NAME = 'ORT Server';
 
 const HomePage = () => {
-  'use memo';
-
   const favorites = useHomeFavorites();
   const recentRuns = useHomeRecentRuns();
   const user = useUser();

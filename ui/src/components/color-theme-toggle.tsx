@@ -64,8 +64,6 @@ function ThemeChip({
 }
 
 export function ColorThemeToggle() {
-  'use memo';
-
   const { colorTheme, setColorTheme } = useTheme();
 
   return (

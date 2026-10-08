@@ -59,8 +59,6 @@ export const useIsSuperuser = (): {
   isPending: boolean;
   error: unknown;
 } => {
-  'use memo';
-
   const {
     data: isSuperuser,
     isPending,
@@ -80,8 +78,6 @@ export const useIsSuperuser = (): {
 const useEntityPermission = (
   request: ScopedPermissionRequest
 ): PermissionResult => {
-  'use memo';
-
   const {
     data: userInfo,
     isPending,
@@ -114,8 +110,6 @@ export const useOrganizationPermission = (
   organizationId: number,
   requiredPermission: OrganizationPermission
 ): PermissionResult => {
-  'use memo';
-
   return useEntityPermission({
     scopeType: 'organization',
     scope: {
@@ -129,8 +123,6 @@ export const useProductPermission = (
   productId: number,
   requiredPermission: ProductPermission
 ): PermissionResult => {
-  'use memo';
-
   return useEntityPermission({
     scopeType: 'product',
     scope: {
@@ -144,8 +136,6 @@ export const useRepositoryPermission = (
   repositoryId: number,
   requiredPermission: RepositoryPermission
 ): PermissionResult => {
-  'use memo';
-
   return useEntityPermission({
     scopeType: 'repository',
     scope: {
