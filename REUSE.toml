@@ -101,6 +101,11 @@ SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "ui/tests/coverage-baseline.md"
+SPDX-FileCopyrightText = "2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "**/tsconfig.*json"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"

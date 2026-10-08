@@ -72,6 +72,27 @@ $ ./gradlew :core:generateOpenApiSpec
 $ pnpm -C ui generate:api
 ```
 
+## Unit and component tests
+
+After completing the normal UI setup above, run the Vitest suite from the repository root:
+
+```shell
+$ pnpm -C ui test --run
+$ pnpm -C ui test:coverage
+```
+
+These tests use local fixtures and mocks and do not require running Docker services or installing Playwright browsers.
+Coverage is disabled for ordinary test runs. The coverage command prints statement, branch, function, and line totals and writes reports to `ui/coverage/`:
+
+- Open `ui/coverage/index.html` in a browser to inspect coverage by source file.
+- `ui/coverage/coverage-summary.json` contains machine-readable totals.
+- `ui/coverage/lcov.info` can be used by coverage reporting tools.
+
+Reports include untested TypeScript and TSX source files, but exclude generated API code, the generated route tree, and type declarations.
+Generated reports are ignored by version control, ESLint, and Prettier. No coverage threshold is enforced.
+
+See the [initial coverage baseline](tests/coverage-baseline.md) for the recorded results, exclusions, and limitations.
+
 ## e2e tests
 
 To run the Playwright e2e tests locally, first start core service (also starts keycloak, postgres and rabbitmq) and dev UI, then run the tests:
