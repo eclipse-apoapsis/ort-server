@@ -22,32 +22,41 @@
 import { render, screen } from '@testing-library/react';
 import { expect, it } from 'vitest';
 
-import { compiledFunctionNames } from '../fixtures/react-compiler';
 import {
-  AnnotatedFixture,
+  compiledFunctionNames,
+  isCompiledByReactCompiler,
+} from '../fixtures/react-compiler';
+import {
   DefaultPropFixture,
-  UnannotatedFixture,
+  InferredFixture,
+  OptedOutFixture,
+  renderFixture,
 } from '../fixtures/react-compiler-fixtures';
 
-it('compiles only components annotated with use memo', () => {
-  expect(AnnotatedFixture.toString()).toContain('react.memo_cache_sentinel');
-  expect(UnannotatedFixture.toString()).not.toContain(
-    'react.memo_cache_sentinel'
-  );
+it('compiles components without a directive', () => {
+  expect(InferredFixture.toString()).toContain('react.memo_cache_sentinel');
 });
 
-it('renders annotated and unannotated components identically', () => {
-  const { rerender } = render(<AnnotatedFixture />);
+it('does not compile components that opt out with use no memo', () => {
+  expect(isCompiledByReactCompiler(OptedOutFixture)).toBe(false);
+});
+
+it('does not compile functions that are neither components nor hooks', () => {
+  expect(isCompiledByReactCompiler(renderFixture)).toBe(false);
+});
+
+it('renders compiled and opted-out components identically', () => {
+  const { rerender } = render(<InferredFixture />);
   expect(screen.getByText('Fixture')).toBeInTheDocument();
 
-  rerender(<UnannotatedFixture />);
+  rerender(<OptedOutFixture />);
   expect(screen.getByText('Fixture')).toBeInTheDocument();
 });
 
 // React Compiler 1.0 skips such components when it runs with Babel 8. The fixture has no output
 // that is independent of its props, so it has no sentinel check; test for the memo cache instead.
-it('compiles annotated components with a default prop value', () => {
-  expect(DefaultPropFixture.toString()).toMatch(/const \$ = .*\.c\)\(\d+\);/);
+it('compiles components with a default prop value', () => {
+  expect(isCompiledByReactCompiler(DefaultPropFixture)).toBe(true);
 });
 
 it('renders the default prop value unless another value is passed', () => {
@@ -61,5 +70,11 @@ it('renders the default prop value unless another value is passed', () => {
 it('names the functions of a source file that are compiled', () => {
   expect(
     compiledFunctionNames('tests/unit/fixtures/react-compiler-fixtures.tsx')
-  ).toEqual(['AnnotatedFixture', 'DefaultPropFixture']);
+  ).toEqual(['InferredFixture', 'DefaultPropFixture']);
+});
+
+it('names no functions of a module that opts out with use no memo', () => {
+  expect(
+    compiledFunctionNames('src/providers/home-data/home-data-context.ts')
+  ).toEqual([]);
 });

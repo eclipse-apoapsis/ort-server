@@ -68,8 +68,7 @@ export const VirtualizedDependencyTree = ({
   // The virtualizer is a mutable object whose identity does not change when it
   // scrolls or measures rows. React Compiler would reuse the rows read from it
   // as long as its identity stays the same and show outdated rows, so this
-  // component must not be compiled. See #6147 and, for the switch to compiling
-  // components by default, #5741 and #6030.
+  // component must not be compiled.
   'use no memo';
 
   const listRef = useRef<HTMLDivElement>(null);

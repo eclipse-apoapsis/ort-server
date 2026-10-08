@@ -38,6 +38,12 @@ export function DataTableBody<TData extends RowData>({
   columnCount,
   noResultsContent,
 }: DataTableBodyProps<TData>) {
+  // The rows keep their identity when a row is expanded or a column is hidden;
+  // only their methods return the new state. React Compiler would reuse what
+  // was rendered from them as long as the props stay the same and show
+  // outdated rows, so this component must not be compiled.
+  'use no memo';
+
   return (
     <TableBody>
       {rows.length ? (

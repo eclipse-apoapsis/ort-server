@@ -62,12 +62,9 @@ describe('shared hooks', () => {
     ['useInfiniteList', useInfiniteList],
     ['useSecrets', useSecrets],
     ['useInfrastructureServices', useInfrastructureServices],
+    ['useTableSizing', useTableSizing],
   ])('compiles %s with React Compiler', (_, hook) => {
     expect(isCompiledByReactCompiler(hook)).toBe(true);
-  });
-
-  it('does not compile useTableSizing with React Compiler', () => {
-    expect(isCompiledByReactCompiler(useTableSizing)).toBe(false);
   });
 });
 

@@ -25,6 +25,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
 import { MultiSelectField } from '@/components/form/multi-select-field';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const options = [
   { id: 'scan', label: 'Scan' },
@@ -52,6 +53,10 @@ const MultiSelectHarness = () => {
 // field's render function, which React Hook Form reports as fragile under
 // React Compiler.
 describe('MultiSelectField', () => {
+  it('is compiled with React Compiler', () => {
+    expect(isCompiledByReactCompiler(MultiSelectField)).toBe(true);
+  });
+
   it('shows whether none, some or all options are selected', async () => {
     const user = userEvent.setup();
     render(<MultiSelectHarness />);

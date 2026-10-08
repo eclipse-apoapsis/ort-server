@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/form';
 import { useFormField } from '@/components/ui/form-context';
 import { Input } from '@/components/ui/input';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const FieldConsumer = () => <>{useFormField().id}</>;
 
@@ -77,6 +78,10 @@ const RequiredNameForm = () => {
 };
 
 describe('useFormField', () => {
+  it('is compiled with React Compiler', () => {
+    expect(isCompiledByReactCompiler(useFormField)).toBe(true);
+  });
+
   // The hook reads the field state through `useFormContext()` and subscribes
   // with `useFormState`, which React Hook Form reports as the safe pattern
   // under React Compiler.

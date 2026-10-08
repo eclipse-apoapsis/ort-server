@@ -24,8 +24,14 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { EditRepositoryForm } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/-components/edit-repository-form';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 describe('EditRepositoryForm', () => {
+  // The form reads `formState.isValid` during render, on the compiled form.
+  it('is compiled with React Compiler', () => {
+    expect(isCompiledByReactCompiler(EditRepositoryForm)).toBe(true);
+  });
+
   it('enables submitting only when the URL is valid', async () => {
     const user = userEvent.setup();
 

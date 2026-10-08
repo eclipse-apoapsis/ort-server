@@ -31,7 +31,7 @@ export default defineConfig({
   plugins: [
     react(),
     babel({
-      presets: [reactCompilerPreset({ compilationMode: 'annotation' })],
+      presets: [reactCompilerPreset({ compilationMode: 'infer' })],
     }),
     tanstackRouter(),
   ],
