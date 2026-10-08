@@ -19,6 +19,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "build": "pnpm generate:api && pnpm generate:routes && tsc && vite build",
     "format": "prettier --write .",
@@ -100,6 +101,7 @@
     "@typescript-eslint/eslint-plugin": "8.71.0",
     "@typescript-eslint/parser": "8.71.0",
     "@vitejs/plugin-react": "6.1.1",
+    "@vitest/coverage-v8": "5.0.3",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "10.11.0",
     "eslint-plugin-react-hooks": "7.1.1",
