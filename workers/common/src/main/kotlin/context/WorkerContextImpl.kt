@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.shared.authenticator.SecretResolverFun
 import org.eclipse.apoapsis.ortserver.shared.authenticator.infraSecretResolverFromConfig
 import org.eclipse.apoapsis.ortserver.shared.authenticator.secretResolver
 import org.eclipse.apoapsis.ortserver.shared.authenticator.undefinedSecretResolver
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.ossreviewtoolkit.utils.authentication.OrtAuthenticator
@@ -298,7 +299,7 @@ internal class WorkerContextImpl(
         transform: suspend (K) -> V,
         keyExtract: (T) -> K
     ): Deferred<V> =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Virtual) {
             val key = keyExtract(data)
             cache.getOrPut(key) { async { transform(key) } }
         }

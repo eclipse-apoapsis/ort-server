@@ -36,9 +36,10 @@ dependencies {
 
     implementation(projects.components.reportStorage.reportStorageBackend)
     implementation(projects.dao)
-    implementation(projects.utils.logging)
+    implementation(projects.shared.coroutines)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
+    implementation(projects.utils.logging)
 
     implementation(libs.koin.core)
     implementation(libs.kotlinx.coroutines)

@@ -71,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
@@ -161,7 +162,7 @@ internal suspend fun runTasks(modules: List<Module>) {
         val config = app.koin.get<ConfigManager>().subConfig(Path(TASK_RUNNER_SECTION))
         val tasksToRun = config.getString(TASKS_PROPERTY).split(',')
 
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Virtual) {
             tasksToRun.map { taskName ->
                 async {
                     logger.info("Executing task '$taskName'.")

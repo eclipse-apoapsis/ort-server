@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
@@ -98,7 +99,7 @@ abstract class EndpointComponent<T : Any>(
          * See also [sleepWhileKeepAliveFileExists].
          */
         suspend fun generateKeepAliveFile() =
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.Virtual) {
                 val file = getKeepAliveFile()
                 file.createNewFile().let {
                     logger.info("Keep-alive lock file ${file.absolutePath} created.")

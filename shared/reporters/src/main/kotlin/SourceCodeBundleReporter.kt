@@ -26,6 +26,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
+
 import org.ossreviewtoolkit.downloader.Downloader
 import org.ossreviewtoolkit.downloader.consolidateProjectPackagesByVcs
 import org.ossreviewtoolkit.model.OrtResult
@@ -220,7 +222,7 @@ class SourceCodeBundleReporter(
     }
 
     private suspend fun downloadAllPackages(packageDownloadDirs: Map<Package, File>, outputDir: File) {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Virtual) {
             packageDownloadDirs.entries.mapIndexed { index, (pkg, dir) ->
                 async {
                     val progress = "${index + 1} of ${packageDownloadDirs.size}"

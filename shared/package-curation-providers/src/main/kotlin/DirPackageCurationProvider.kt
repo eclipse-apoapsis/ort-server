@@ -25,6 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
+
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageCuration
@@ -71,7 +73,7 @@ class DirPackageCurationProvider(
     private val root = File(config.path)
 
     override fun getCurationsFor(packages: Collection<Package>): Set<PackageCuration> =
-        runBlocking(Dispatchers.IO) {
+        runBlocking(Dispatchers.Virtual) {
             packages.map { pkg ->
                 async { lookupCurations(pkg) }
             }.awaitAll().flatten().toSet()

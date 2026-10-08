@@ -30,6 +30,7 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
@@ -197,7 +198,7 @@ class AnalyzerRunner(
             val processBuilder = createProcessBuilder(exchangeDir, inputDir, environment)
 
             logger.info("Starting forked AnalyzerRunner with command: ${processBuilder.command()}")
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.Virtual) {
                 val process = processBuilder.start()
                 process.outputStream.use { pipe ->
                     EnvironmentForkHelper.prepareFork(pipe)

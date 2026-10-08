@@ -68,6 +68,7 @@ dependencies {
     testFixturesApi(projects.model)
 
     testFixturesImplementation(projects.config.configSpi)
+    testFixturesImplementation(projects.shared.coroutines)
     testFixturesImplementation(projects.utils.test)
 
     testFixturesImplementation(libs.flyway.core)

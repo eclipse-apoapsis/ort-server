@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsR
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
@@ -265,7 +266,7 @@ class ReporterRunner(
         licenseClassifications: LicenseClassifications,
         howToFixTextProvider: HowToFixTextProvider
     ): Pair<Map<String, Long>, List<Issue>> =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Virtual) {
             val outputDir = context.createTempDir()
             val issues = ConcurrentLinkedQueue<Issue>()
 
@@ -367,7 +368,7 @@ class ReporterRunner(
         context: WorkerContext,
         config: ReporterJobConfiguration,
         reporterConfig: ReporterConfig
-    ): Map<String, PluginConfig> = withContext(Dispatchers.IO) {
+    ): Map<String, PluginConfig> = withContext(Dispatchers.Virtual) {
         val templateDir = context.createTempDir()
         val (assetFiles, assetDirectories) = reporterConfig.getReporterAssets(config)
 

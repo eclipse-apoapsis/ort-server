@@ -36,6 +36,7 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.dao.connect
 import org.eclipse.apoapsis.ortserver.dao.migrate
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.flywaydb.core.Flyway
@@ -75,7 +76,7 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
 
     override suspend fun afterSpec(spec: Spec) {
         if (postgres.isRunning) {
-            withContext(Dispatchers.IO) { postgres.stop() }
+            withContext(Dispatchers.Virtual) { postgres.stop() }
         }
     }
 

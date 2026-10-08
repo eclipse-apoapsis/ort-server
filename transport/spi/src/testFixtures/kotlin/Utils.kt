@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
@@ -104,7 +105,7 @@ fun startReceiver(
         return result
     }
 
-    val job = CoroutineScope(Dispatchers.IO).launch {
+    val job = CoroutineScope(Dispatchers.Virtual).launch {
         MessageReceiverFactory.createReceiver(OrchestratorEndpoint, configManager, ::handler)
     }
 

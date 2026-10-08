@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -173,7 +174,7 @@ class ProductService(
             ProductId(productId)
         )
 
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.Virtual) {
             repositoryRepository.list(ListQueryParameters.DEFAULT, null, hierarchyFilter).data.map { it.id }
         }
     }

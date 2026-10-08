@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 /**
  * An implementation of the [UserService] interface that uses Keycloak as the backend user management system. As unique
@@ -91,7 +92,7 @@ class KeycloakUserService(
     override suspend fun getUserById(id: String): User =
         keycloakClient.getUser(UserName(id)).toOrtUser()
 
-    override suspend fun getUsersById(ids: Set<String>): Set<User> = withContext(Dispatchers.IO) {
+    override suspend fun getUsersById(ids: Set<String>): Set<User> = withContext(Dispatchers.Virtual) {
         ids.map { async { runCatching { getUserById(it) } } }
             .mapNotNullTo(mutableSetOf()) { it.await().getOrNull() }
     }

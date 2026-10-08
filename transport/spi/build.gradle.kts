@@ -35,6 +35,7 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 dependencies {
     api(projects.model)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.system)
 
     implementation(ktorLibs.serialization.kotlinx.json)
@@ -48,6 +49,8 @@ dependencies {
     testImplementation(libs.mockk)
 
     testFixturesApi(projects.model)
+
+    testFixturesImplementation(projects.shared.coroutines)
 
     testFixturesImplementation(libs.kotest.assertions.core)
     testFixturesImplementation(libs.kotlinx.coroutines)

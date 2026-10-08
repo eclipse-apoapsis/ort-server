@@ -37,6 +37,7 @@ dependencies {
     api(libs.ktor.openApi)
 
     implementation(projects.dao)
+    implementation(projects.shared.coroutines)
     implementation(projects.shared.ktorUtils)
 
     routesImplementation(libs.ktor.openApi)

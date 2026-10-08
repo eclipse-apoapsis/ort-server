@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.services.hierarchyService)
     implementation(projects.shared.apiMappings)
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.logging)
 
     implementation(ortLibs.utils.common)
