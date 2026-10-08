@@ -233,11 +233,10 @@ private fun isAcceptedResult(provenanceDao: PackageProvenanceDao?): Boolean {
         returns(true) implies (provenanceDao != null)
     }
 
-    val result = provenanceDao?.mapToOrt()
-    return when {
-        result == null -> false
-        result is UnresolvedPackageProvenance -> false
-        result is ResolvedRepositoryProvenance && !result.isFixedRevision -> false
+    return when (val result = provenanceDao?.mapToOrt()) {
+        null -> false
+        is UnresolvedPackageProvenance -> false
+        is ResolvedRepositoryProvenance if !result.isFixedRevision -> false
         else -> true
     }
 }
