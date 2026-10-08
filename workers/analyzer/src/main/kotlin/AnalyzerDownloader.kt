@@ -83,9 +83,7 @@ class AnalyzerDownloader {
         val vcs = VersionControlSystem.forUrl(repositoryUrl, config)
         requireNotNull(vcs) { "Could not determine the VCS for URL '$repositoryUrl'." }
 
-        val initRevision = revision.takeUnless { it.isEmpty() } ?: runCatching {
-            vcs.getDefaultBranchName(repositoryUrl)
-        }.getOrElse {
+        val initRevision = revision.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(repositoryUrl).getOrElse {
             throw IOException("Could not determine the default branch for repository '$repositoryUrl'.", it)
         }
 
@@ -96,7 +94,7 @@ class AnalyzerDownloader {
             path = path
         )
 
-        val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)
+        val workingTree = vcs.initWorkingTree(outputDir, vcsInfo).getOrThrow()
         val recursiveCheckout = submoduleFetchStrategy != SubmoduleFetchStrategy.DISABLED
         vcs.updateWorkingTree(workingTree, vcsInfo.revision, recursive = recursiveCheckout).getOrThrow()
 

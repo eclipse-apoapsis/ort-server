@@ -26,7 +26,6 @@ import kotlin.time.toKotlinInstant
 
 import kotlinx.serialization.json.Json
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
@@ -45,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -101,8 +101,8 @@ class OrtServerScanResultStorage(
      */
     private val issuesMap = ConcurrentHashMap<Provenance, Set<Issue>>()
 
-    override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher?): List<ScanResult> =
-        db.blockingQuery {
+    override suspend fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher?): List<ScanResult> =
+        db.transaction {
             withLoggedTime("reading scan results for provenance '$provenance'.") {
                 val scanResultDaos = when (provenance) {
                     is ArtifactProvenance -> {
@@ -138,7 +138,7 @@ class OrtServerScanResultStorage(
             }
         }
 
-    override fun write(scanResult: ScanResult): Boolean {
+    override suspend fun write(scanResult: ScanResult): Boolean {
         val provenance = scanResult.provenance
         storeIssues(provenance, scanResult.summary)
 
@@ -151,7 +151,7 @@ class OrtServerScanResultStorage(
         }
 
         return withLoggedTime("writing scan result for provenance: '$provenance'.") {
-            db.blockingQuery {
+            db.transaction {
                 val resultDao = findExistingScanResult(scanResult)
                 if (resultDao != null) {
                     associateScanResultWithScannerRun(resultDao)
@@ -381,7 +381,7 @@ private fun matchesBasicScanResultProperties(scanResult: ScanResult): Expression
  * Helper function to log the time taken for a given [action]. Execute the given [block], return its result, and log
  * information about the execution time.
  */
-private fun <T> withLoggedTime(action: String, block: () -> T): T {
+private inline fun <T> withLoggedTime(action: String, block: () -> T): T {
     logger.info("Start {}.", action)
 
     val timedValue = measureTimedValue { block() }

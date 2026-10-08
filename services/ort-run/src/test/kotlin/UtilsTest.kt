@@ -26,7 +26,7 @@ import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
@@ -84,8 +84,8 @@ class UtilsTest : WordSpec({
             )
 
             val fileListResolver = mockk<FileListResolver> {
-                every { get(provenance1) } returns fileList1
-                every { get(provenance2) } returns fileList2
+                coEvery { get(provenance1) } returns fileList1
+                coEvery { get(provenance2) } returns fileList2
             }
 
             val fileLists = getFileLists(fileListResolver, setOf(provenance1, provenance2))
@@ -107,7 +107,7 @@ class UtilsTest : WordSpec({
             val provenance2 = ArtifactProvenance(RemoteArtifact("url", Hash.NONE))
 
             val fileListResolver = mockk<FileListResolver> {
-                every { get(any<KnownProvenance>()) } returns null
+                coEvery { get(any<KnownProvenance>()) } returns null
             }
 
             val fileLists = getFileLists(fileListResolver, setOf(provenance1, provenance2))

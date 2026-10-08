@@ -225,7 +225,7 @@ class GitConfigFileProvider internal constructor(
         try {
             val revisionToCheckout = requestedRevision.ifBlank {
                 accessedRemote = true
-                git.getDefaultBranchName(gitUrl)
+                git.getDefaultBranchName(gitUrl).getOrThrow()
             }
             val workingTree = git.getWorkingTree(configDir)
 

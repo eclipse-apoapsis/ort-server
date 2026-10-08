@@ -54,7 +54,7 @@ class AnalyzerDownloaderTest : WordSpec({
     fun createMockVcs(mockWorkingTree: WorkingTree): VersionControlSystem =
         mockk<VersionControlSystem> {
             every { type } returns VcsType.GIT
-            every { initWorkingTree(any(), any()) } returns mockWorkingTree
+            every { initWorkingTree(any(), any()) } returns Result.success(mockWorkingTree)
             every { updateWorkingTree(any(), any(), any(), any()) } returns Result.success(resolvedRevision)
             every { getWorkingTree(any()) } returns mockWorkingTree
         }
@@ -69,7 +69,7 @@ class AnalyzerDownloaderTest : WordSpec({
             val defaultBranch = "main"
             val mockWorkingTree = createMockWorkingTree()
             val mockVcs = createMockVcs(mockWorkingTree)
-            every { mockVcs.getDefaultBranchName(repositoryUrl) } returns defaultBranch
+            every { mockVcs.getDefaultBranchName(repositoryUrl) } returns Result.success(defaultBranch)
             every {
                 mockVcs.updateWorkingTree(any(), defaultBranch, any(), any())
             } returns Result.success(resolvedRevision)
