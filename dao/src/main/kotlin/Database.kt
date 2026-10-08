@@ -38,7 +38,6 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.jetbrains.exposed.v1.core.DatabaseConfig
 import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
@@ -49,7 +48,6 @@ import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
 
 import org.koin.core.module.Module
@@ -139,9 +137,9 @@ fun databaseModule(startEager: Boolean = true): Module = module {
  * Execute the [block] in a database [suspendTransaction], configured with the provided [transactionIsolation] and
  * [readOnly], and return the result. Throws an exception in case of a failure.
  *
- * See [Database.transactionCatching] for details on how the current transaction is propagated to nested calls of
- * [blockingQuery], [blockingQueryCatching], [dbQuery], [dbQueryCatching], [Database.transaction] and
- * [Database.transactionCatching].
+ * Calls to [Database.transaction] and [Database.transactionCatching] from [block] are running in the same transaction,
+ * as long as the coroutine context is not dropped. This is because Exposed's `suspendTransaction` stores the current
+ * transaction in the coroutine context. Otherwise, nested calls will start a new transaction.
  */
 suspend fun <T> Database.transaction(
     transactionIsolation: Int = transactionManager.defaultIsolationLevel,
@@ -158,14 +156,6 @@ suspend fun <T> Database.transaction(
  * Calls to [Database.transaction] and [Database.transactionCatching] from [block] are running in the same transaction,
  * as long as the coroutine context is not dropped. This is because Exposed's `suspendTransaction` stores the current
  * transaction in the coroutine context. Otherwise, nested calls will start a new transaction.
- *
- * Calls to [blockingQuery] and [blockingQueryCatching] from [block] are running in the same transaction, because they
- * do not switch the thread and `suspendTransaction` stores the current transaction in a
- * [kotlinx.coroutines.ThreadContextElement] which adds the transaction from the coroutine to the thread-local.
- *
- * Calls to [dbQuery] and [dbQueryCatching] from [block] are running in the same transaction, because even though they
- * switch the thread using `withContext(Dispatchers.IO)`, this keeps the coroutine context intact and copying the
- * current transaction from the [kotlinx.coroutines.ThreadContextElement] to the thread-local still works.
  */
 @Suppress("ForbiddenMethodCall", "TooGenericExceptionCaught")
 suspend fun <T> Database.transactionCatching(
@@ -185,85 +175,6 @@ suspend fun <T> Database.transactionCatching(
     } catch (e: Throwable) {
         Result.failure<T>(e).mapExceptions()
     }
-
-/**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly],
- * and return the result. Throws an exception in case of a failure.
- *
- * See [dbQueryCatching] for details on how the current transaction is propagated to nested calls of [blockingQuery],
- * [blockingQueryCatching], [dbQuery], [dbQueryCatching], [Database.transaction] and [Database.transactionCatching].
- */
-suspend fun <T> Database.dbQuery(
-    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: JdbcTransaction.() -> T
-): T =
-    dbQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
-
-/**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly],
- * and return a wrapped [Result] object.
- *
- * Calls to this function from [block] will start a new transaction, because switching the thread using
- * `withContext(Dispatchers.IO)` does not preserve the thread-local that Exposed's blocking `transaction` uses to store
- * the current transaction.
- *
- * Calls to [blockingQuery] and [blockingQueryCatching] from [block] will run in the same transaction, because they do
- * not switch the thread and Exposed's blocking [transaction] uses a thread-local to store the current transaction.
- *
- * Calls to [Database.transaction] and [Database.transactionCatching] from [block] will start a new transaction, because
- * Exposed's [suspendTransaction] expects the current transaction to be stored in the coroutine context, while the
- * blocking [transaction] stores it in a thread-local.
- */
-@Suppress("ForbiddenMethodCall")
-suspend fun <T> Database.dbQueryCatching(
-    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: JdbcTransaction.() -> T
-): Result<T> =
-    runCatching {
-        withContext(Dispatchers.IO) {
-            transaction(this@runCatching, transactionIsolation, readOnly) { block() }
-        }
-    }.mapExceptions()
-
-/**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly],
- * and return the result. Throws an exception in case of a failure.
- *
- * See [blockingQueryCatching] for details on how the current transaction is propagated to nested calls of
- * [blockingQuery], [blockingQueryCatching], [dbQuery], [dbQueryCatching], [Database.transaction] and
- * [Database.transactionCatching].
- */
-fun <T> Database.blockingQuery(
-    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
-): T =
-    blockingQueryCatching(transactionIsolation, readOnly, block).getOrThrow()
-
-/**
- * Execute the [block] in a database [transaction], configured with the provided [transactionIsolation] and [readOnly],
- * and return a wrapped [Result] object.
- *
- * Calls to this function from [block] will run in the same transaction, because it does not switch the thread and
- * Exposed's blocking [transaction] uses a thread-local to store the current transaction.
- *
- * Calls to [dbQuery] and [dbQueryCatching] from [block] will start a new transaction, because switching the thread
- * using `withContext(Dispatchers.IO)` does not preserve the thread-local that Exposed's blocking [transaction] uses to
- * store the current transaction.
- *
- * Calls to [Database.transaction] and [Database.transactionCatching] from [block] will start a new transaction, because
- * Exposed's [suspendTransaction] expects the current transaction to be stored in the coroutine context, while the
- * blocking [transaction] stores it in a thread-local.
- */
-@Suppress("ForbiddenMethodCall")
-fun <T> Database.blockingQueryCatching(
-    transactionIsolation: Int = transactionManager.defaultIsolationLevel,
-    readOnly: Boolean = transactionManager.defaultReadOnly,
-    block: Transaction.() -> T
-): Result<T> =
-    runCatching { transaction(this, transactionIsolation, readOnly) { block() } }.mapExceptions()
 
 /**
  * Return the encapsulated value in case of [success][Result.isSuccess]. In case of [failure][Result.isFailure] return
