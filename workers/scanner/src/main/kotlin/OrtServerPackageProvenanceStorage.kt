@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
@@ -30,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
@@ -49,7 +49,6 @@ import org.ossreviewtoolkit.scanner.provenance.PackageProvenanceStorage
 import org.ossreviewtoolkit.scanner.provenance.ResolvedArtifactProvenance
 import org.ossreviewtoolkit.scanner.provenance.ResolvedRepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.UnresolvedPackageProvenance
-import org.ossreviewtoolkit.utils.ort.runBlocking
 
 /**
  * An ORT Server specific implementation of the `PackageProvenanceStorage`. Read and put package provenances are
@@ -60,13 +59,13 @@ class OrtServerPackageProvenanceStorage(
     private val scannerRunId: Long,
     private val cache: PackageProvenanceCache
 ) : PackageProvenanceStorage {
-    override fun readProvenance(
+    override suspend fun readProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact
-    ): PackageProvenanceResolutionResult? = db.blockingQuery {
-        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: return@blockingQuery null
+    ): PackageProvenanceResolutionResult? = db.transaction {
+        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: return@transaction null
         val sourceArtifactDao =
-            RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel()) ?: return@blockingQuery null
+            RemoteArtifactDao.findByRemoteArtifact(sourceArtifact.mapToModel()) ?: return@transaction null
 
         val provenanceDao = getLatestProvenance(
             identifierId = identifierDao.id.value,
@@ -80,21 +79,22 @@ class OrtServerPackageProvenanceStorage(
         provenanceDao?.mapToOrt()
     }
 
-    override fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? = db.blockingQuery {
-        val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: return@blockingQuery null
-        val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel()) ?: return@blockingQuery null
+    override suspend fun readProvenance(id: Identifier, vcs: VcsInfo): PackageProvenanceResolutionResult? =
+        db.transaction {
+            val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: return@transaction null
+            val vcsInfoDao = VcsInfoDao.findByVcsInfo(vcs.mapToModel()) ?: return@transaction null
 
-        val provenanceDao = getLatestProvenance(
-            identifierId = identifierDao.id.value,
-            condition = PackageProvenancesTable.vcsId eq vcsInfoDao.id.value
-        )
+            val provenanceDao = getLatestProvenance(
+                identifierId = identifierDao.id.value,
+                condition = PackageProvenancesTable.vcsId eq vcsInfoDao.id.value
+            )
 
-        if (isAcceptedResult(provenanceDao)) {
-            associateProvenanceWithScannerRun(provenanceDao)
+            if (isAcceptedResult(provenanceDao)) {
+                associateProvenanceWithScannerRun(provenanceDao)
+            }
+
+            provenanceDao?.mapToOrt()
         }
-
-        provenanceDao?.mapToOrt()
-    }
 
     /**
      * Return the latest [PackageProvenanceDao] that matches the provided [identifierId] and [condition], or nul if
@@ -104,19 +104,19 @@ class OrtServerPackageProvenanceStorage(
         PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierId and condition)
             .orderBy(PackageProvenancesTable.id to SortOrder.DESC).limit(1).singleOrNull()
 
-    override fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = db.blockingQuery {
+    override suspend fun readProvenances(id: Identifier): List<PackageProvenanceResolutionResult> = db.transaction {
         val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel())
 
         PackageProvenanceDao.find(PackageProvenancesTable.identifierId eq identifierDao?.id?.value)
             .mapNotNull { it.mapToOrt() }
     }
 
-    override fun writeProvenance(
+    override suspend fun writeProvenance(
         id: Identifier,
         sourceArtifact: RemoteArtifact,
         result: PackageProvenanceResolutionResult
     ) {
-        db.blockingQuery {
+        db.transaction {
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -143,12 +143,12 @@ class OrtServerPackageProvenanceStorage(
         }
     }
 
-    override fun writeProvenance(
+    override suspend fun writeProvenance(
         id: Identifier,
         vcs: VcsInfo,
         result: PackageProvenanceResolutionResult
     ) {
-        db.blockingQuery {
+        db.transaction {
             val identifierDao = IdentifierDao.findByIdentifier(id.mapToModel()) ?: IdentifierDao.new {
                 type = id.type
                 namespace = id.namespace
@@ -179,22 +179,20 @@ class OrtServerPackageProvenanceStorage(
         }
     }
 
-    override fun deleteProvenances(id: Identifier) {
+    override suspend fun deleteProvenances(id: Identifier) {
         // Do not implement the function as it is currently only used by a helper CLI command.
         throw UnsupportedOperationException("deleteProvenance is not implemented.")
     }
 
-    private fun associateProvenanceWithScannerRun(provenanceDao: PackageProvenanceDao) {
+    private suspend fun associateProvenanceWithScannerRun(provenanceDao: PackageProvenanceDao) {
         ScannerRunsPackageProvenancesTable.insertIfNotExists(
             scannerRunId = scannerRunId,
             packageProvenanceId = provenanceDao.id.value
         )
 
-        runBlocking {
-            (provenanceDao.mapToOrt() as? ResolvedRepositoryProvenance)?.provenance?.let {
-                cache.putAndGetNestedProvenance(it, provenanceDao.id.value)?.let { nestedId ->
-                    provenanceDao.nestedProvenance = NestedProvenanceDao[nestedId]
-                }
+        (provenanceDao.mapToOrt() as? ResolvedRepositoryProvenance)?.provenance?.let {
+            cache.putAndGetNestedProvenance(it, provenanceDao.id.value)?.let { nestedId ->
+                provenanceDao.nestedProvenance = NestedProvenanceDao[nestedId]
             }
         }
     }

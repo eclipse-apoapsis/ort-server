@@ -107,7 +107,7 @@ class OrtServerFileArchiveStorageTest : WordSpec({
     }
 })
 
-private fun OrtServerFileArchiveStorage.putArchive(provenance: KnownProvenance, content: String) {
+private suspend fun OrtServerFileArchiveStorage.putArchive(provenance: KnownProvenance, content: String) {
     val byteArray = content.toByteArray()
     putData(provenance, ByteArrayInputStream(byteArray), byteArray.size.toLong())
 }

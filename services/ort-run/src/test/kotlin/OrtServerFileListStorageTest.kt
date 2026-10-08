@@ -119,7 +119,7 @@ class OrtServerFileListStorageTest : WordSpec({
     }
 })
 
-private fun OrtServerFileListStorage.putFileList(provenance: KnownProvenance, fileList: FileList) {
+private suspend fun OrtServerFileListStorage.putFileList(provenance: KnownProvenance, fileList: FileList) {
     val byteArray = fileList.toYaml().toByteArray()
     putData(provenance, ByteArrayInputStream(byteArray), byteArray.size.toLong())
 }

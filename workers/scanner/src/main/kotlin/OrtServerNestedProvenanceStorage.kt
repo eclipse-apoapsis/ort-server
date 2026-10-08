@@ -19,13 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -40,23 +40,22 @@ import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceResolutionResult
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceStorage
-import org.ossreviewtoolkit.utils.ort.runBlocking
 
 class OrtServerNestedProvenanceStorage(
     private val db: Database,
     private val packageProvenanceCache: PackageProvenanceCache,
     private val vcsPluginConfigs: String?
 ) : NestedProvenanceStorage {
-    override fun writeNestedProvenance(
+    override suspend fun writeNestedProvenance(
         root: RepositoryProvenance,
         result: NestedProvenanceResolutionResult
-    ) = db.blockingQuery {
+    ) = db.transaction {
         val resolvedVcs = root.getResolvedVcs()
 
         storeResult(resolvedVcs, root, result)
     }
 
-    private fun storeResult(
+    private suspend fun storeResult(
         resolvedVcs: VcsInfo,
         root: RepositoryProvenance,
         result: NestedProvenanceResolutionResult
@@ -84,8 +83,8 @@ class OrtServerNestedProvenanceStorage(
         associateWithPackageProvenance(root, nestedProvenanceDao)
     }
 
-    override fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? =
-        db.blockingQuery {
+    override suspend fun readNestedProvenance(root: RepositoryProvenance): NestedProvenanceResolutionResult? =
+        db.transaction {
             val resolvedVcs = root.getResolvedVcs()
 
             NestedProvenancesTable.innerJoin(VcsInfoTable)
@@ -108,14 +107,12 @@ class OrtServerNestedProvenanceStorage(
                 }
         }
 
-    private fun associateWithPackageProvenance(
+    private suspend fun associateWithPackageProvenance(
         provenance: RepositoryProvenance,
         nestedProvenanceDao: NestedProvenanceDao
     ) {
-        runBlocking {
-            packageProvenanceCache.get(provenance).forEach { packageProvenanceId ->
-                PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
-            }
+        packageProvenanceCache.get(provenance).forEach { packageProvenanceId ->
+            PackageProvenanceDao[packageProvenanceId].nestedProvenance = nestedProvenanceDao
         }
 
         associateWithPendingSubProvenances(provenance, nestedProvenanceDao)
@@ -127,13 +124,11 @@ class OrtServerNestedProvenanceStorage(
      * the corner case that package provenances have already been added to the [PackageProvenanceCache] before the
      * nested provenance resolution result becomes available.
      */
-    private fun associateWithPendingSubProvenances(
+    private suspend fun associateWithPendingSubProvenances(
         root: RepositoryProvenance,
         nestedProvenanceDao: NestedProvenanceDao
     ) {
-        val pendingProvenanceIds = runBlocking {
-            packageProvenanceCache.putNestedProvenance(root, nestedProvenanceDao.id.value)
-        }
+        val pendingProvenanceIds = packageProvenanceCache.putNestedProvenance(root, nestedProvenanceDao.id.value)
 
         pendingProvenanceIds.forEach { provenanceId ->
             PackageProvenanceDao[provenanceId].nestedProvenance = nestedProvenanceDao
