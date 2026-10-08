@@ -25,6 +25,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicReference
 
+import kotlin.coroutines.cancellation.CancellationException
+
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -317,11 +319,13 @@ internal class WorkerContextImpl(
      * Return a function to download configuration files from the current [Context] into the given [directory],
      * optionally using the given [targetName].
      */
-    private fun downloadConfigFile(directory: File, targetName: String?): (String) -> Result<File> =
+    private fun downloadConfigFile(directory: File, targetName: String?): suspend (String) -> Result<File> =
         { key ->
             runCatching {
                 val path = ConfigPath(key.substringBefore('|'))
                 configManager.downloadFile(currentContext, path, directory, targetName)
+            }.onFailure {
+                if (it is CancellationException) throw it
             }
         }
 }

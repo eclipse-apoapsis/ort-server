@@ -96,13 +96,13 @@ class OrtServerResolutionProviderTest : WordSpec({
                 }
 
                 every { configManager } returns mockk {
-                    every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
+                    coEvery { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
                             ByteArrayInputStream(globalResolutionsYaml.toByteArray())
                 }
             }
 
             val adminConfigService = mockk<AdminConfigService> {
-                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+                coEvery { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
             }
 
             // Prepare repository configuration resolutions.
@@ -269,13 +269,13 @@ class OrtServerResolutionProviderTest : WordSpec({
                 }
 
                 every { configManager } returns mockk {
-                    every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
+                    coEvery { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
                             ByteArrayInputStream("{}\n".toByteArray())
                 }
             }
 
             val adminConfigService = mockk<AdminConfigService> {
-                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+                coEvery { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
             }
 
             val repositoryId = RepositoryId(1)
@@ -320,13 +320,13 @@ class OrtServerResolutionProviderTest : WordSpec({
                 }
 
                 every { configManager } returns mockk {
-                    every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
+                    coEvery { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } returns
                             ByteArrayInputStream("{}\n".toByteArray())
                 }
             }
 
             val adminConfigService = mockk<AdminConfigService> {
-                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+                coEvery { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
             }
 
             val repositoryId = RepositoryId(1)

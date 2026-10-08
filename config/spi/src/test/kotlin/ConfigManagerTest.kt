@@ -32,7 +32,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beInstanceOf
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.spyk
 
@@ -206,7 +206,7 @@ class ConfigManagerTest : WordSpec({
 
         "handle exceptions while reading the stream" {
             val manager = spyk(createConfigManager())
-            every { manager.getFile(any(), any()) } returns mockk()
+            coEvery { manager.getFile(any(), any()) } returns mockk()
 
             // Since an uninitialized mock is returned as stream, it will throw on each method call.
             shouldThrow<ConfigException> {

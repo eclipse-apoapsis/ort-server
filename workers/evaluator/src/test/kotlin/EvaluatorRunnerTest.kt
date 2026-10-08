@@ -124,7 +124,7 @@ class EvaluatorRunnerTest : WordSpec({
         }
 
         "try to read the default rule file when no rule set is provided" {
-            every { adminConfigService.loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+            coEvery { adminConfigService.loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
 
             shouldThrow<ConfigException> {
                 runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(), createWorkerContext(ruleSetName = null))
@@ -377,34 +377,34 @@ class EvaluatorRunnerTest : WordSpec({
 
 private fun createConfigManager(): ConfigManager {
     val configManager = mockk<ConfigManager> {
-        every { getFileAsString(resolvedConfigContext, Path(SCRIPT_FILE)) } returns
+        coEvery { getFileAsString(resolvedConfigContext, Path(SCRIPT_FILE)) } returns
                 File("src/test/resources/example.rules.kts").readText()
 
-        every { getFileAsString(resolvedConfigContext, Path(PACKAGE_CONFIGURATION_RULES)) } returns
+        coEvery { getFileAsString(resolvedConfigContext, Path(PACKAGE_CONFIGURATION_RULES)) } returns
                 File("src/test/resources/$PACKAGE_CONFIGURATION_RULES").readText()
 
-        every { getFileAsString(resolvedConfigContext, Path(VULNERABILITY_RULES)) } returns
+        coEvery { getFileAsString(resolvedConfigContext, Path(VULNERABILITY_RULES)) } returns
                 File("src/test/resources/$VULNERABILITY_RULES").readText()
 
-        every { getFile(resolvedConfigContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
+        coEvery { getFile(resolvedConfigContext, Path(LICENSE_CLASSIFICATIONS_FILE)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(resolvedConfigContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
+        coEvery { getFile(resolvedConfigContext, Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("")
 
-        every { getFileAsString(resolvedConfigContext, Path(ORT_EVALUATOR_RULES_FILENAME)) } throws
+        coEvery { getFileAsString(resolvedConfigContext, Path(ORT_EVALUATOR_RULES_FILENAME)) } throws
                 ConfigException("Could not read '$ORT_EVALUATOR_RULES_FILENAME'.")
 
-        every { getFile(resolvedConfigContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
+        coEvery { getFile(resolvedConfigContext, Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } answers
                 { File("src/test/resources/license-classifications.yml").inputStream() }
 
-        every { getFile(resolvedConfigContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("")
+        coEvery { getFile(resolvedConfigContext, Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("")
 
-        every { getFile(resolvedConfigContext, Path(RESOLUTIONS_FILE)) } answers
+        coEvery { getFile(resolvedConfigContext, Path(RESOLUTIONS_FILE)) } answers
                 { File("src/test/resources/resolutions.yml").inputStream() }
 
-        every { getFileAsString(resolvedConfigContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
+        coEvery { getFileAsString(resolvedConfigContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
 
-        every { getFile(resolvedConfigContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
+        coEvery { getFile(resolvedConfigContext, Path(UNKNOWN_RULES_KTS)) } answers { callOriginal() }
     }
 
     return configManager
@@ -435,5 +435,5 @@ private fun AdminConfigService.initRuleSet(ruleSet: RuleSet) {
         every { getRuleSet(RULE_SET) } returns ruleSet
     }
 
-    every { loadAdminConfig(resolvedConfigContext) } returns adminConfig
+    coEvery { loadAdminConfig(resolvedConfigContext) } returns adminConfig
 }

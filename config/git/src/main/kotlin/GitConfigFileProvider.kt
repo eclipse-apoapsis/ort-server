@@ -32,12 +32,17 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.config.resolveSecurely
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
+import org.eclipse.apoapsis.ortserver.shared.coroutines.withContextClosingOnCancel
 import org.eclipse.apoapsis.ortserver.utils.config.getLongOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getServiceUrl
 import org.eclipse.jgit.api.Git as JGit
@@ -127,72 +132,83 @@ class GitConfigFileProvider internal constructor(
         override fun removeEldestEntry(eldest: Map.Entry<String, CachedRevision>) = size > MAX_REVISION_CACHE_SIZE
     }
 
-    override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext = synchronized(lock) {
-        val requestedRevision = context.name
+    override suspend fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext =
+        withContext(Dispatchers.Virtual) {
+            synchronized(lock) {
+                val requestedRevision = context.name
 
-        val cached = revisionCache[requestedRevision]
+                val cached = revisionCache[requestedRevision]
 
-        val resolvedRevision = if (cached != null && cached.expiresAt.hasNotPassedNow()) {
-            logger.debug("Using cached revision '{}' for context '{}'.", cached.revision, requestedRevision)
-            cached.revision
-        } else {
-            resolveRevision(requestedRevision).also {
-                logger.debug("Resolved revision '{}' for context '{}'.", it, requestedRevision)
-                revisionCache[requestedRevision] = CachedRevision(it, timeSource.markNow() + revisionCacheTtl)
+                val resolvedRevision = if (cached != null && cached.expiresAt.hasNotPassedNow()) {
+                    logger.debug("Using cached revision '{}' for context '{}'.", cached.revision, requestedRevision)
+                    cached.revision
+                } else {
+                    resolveRevision(requestedRevision).also {
+                        logger.debug("Resolved revision '{}' for context '{}'.", it, requestedRevision)
+                        revisionCache[requestedRevision] = CachedRevision(it, timeSource.markNow() + revisionCacheTtl)
+                    }
+                }
+
+                ResolvedConfigContext(resolvedRevision)
             }
         }
-
-        ResolvedConfigContext(resolvedRevision)
-    }
 
     /** Resolve the given [requestedRevision] to a concrete revision by updating the working tree. */
     internal fun resolveRevision(requestedRevision: String): String =
         synchronized(lock) { updateWorkingTree(requestedRevision) }
 
-    override fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
-        synchronized(lock) {
-            runCatching {
-                updateWorkingTree(context.name, allowLocalCheckout = true)
-
-                // Copy the file to a temporary location while holding the lock, so that reading the returned stream is
-                // not affected by a concurrent update of the working tree.
-                val sourceFile = configDir.resolveSecurely(path)
-                val tempFile = File.createTempFile("config", null, snapshotDir)
-
+    override suspend fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
+        withContextClosingOnCancel(Dispatchers.Virtual) {
+            synchronized(lock) {
                 runCatching {
-                    sourceFile.inputStream().use { input ->
-                        tempFile.outputStream().use { output -> input.copyTo(output) }
-                    }
+                    updateWorkingTree(context.name, allowLocalCheckout = true)
 
-                    DeleteOnCloseInputStream(tempFile)
-                }.onFailure {
-                    tempFile.delete()
-                }.getOrThrow()
-            }.getOrElse {
-                throw ConfigException("Cannot read path '${path.path}'.", it)
+                    // Copy the file to a temporary location while holding the lock, so that reading the returned stream
+                    // is not affected by a concurrent update of the working tree.
+                    val sourceFile = configDir.resolveSecurely(path)
+                    val tempFile = File.createTempFile("config", null, snapshotDir)
+
+                    runCatching {
+                        sourceFile.inputStream().use { input ->
+                            tempFile.outputStream().use { output -> input.copyTo(output) }
+                        }
+
+                        DeleteOnCloseInputStream(tempFile)
+                    }.onFailure {
+                        tempFile.delete()
+                    }.getOrThrow()
+                }.getOrElse {
+                    throw ConfigException("Cannot read path '${path.path}'.", it)
+                }
             }
         }
 
-    override fun contains(context: ResolvedConfigContext, path: Path): Boolean = synchronized(lock) {
-        updateWorkingTree(context.name, allowLocalCheckout = true)
-        val p = configDir.resolveSecurely(path)
-        val isDirectoryPath = path.path.endsWith("/")
+    override suspend fun contains(context: ResolvedConfigContext, path: Path): Boolean =
+        withContext(Dispatchers.Virtual) {
+            synchronized(lock) {
+                updateWorkingTree(context.name, allowLocalCheckout = true)
+                val p = configDir.resolveSecurely(path)
+                val isDirectoryPath = path.path.endsWith("/")
 
-        (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
-    }
-
-    override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> = synchronized(lock) {
-        updateWorkingTree(context.name, allowLocalCheckout = true)
-
-        val dir = configDir.resolveSecurely(path)
-
-        if (!dir.isDirectory) {
-            throw ConfigException("The provided path '${path.path}' does not refer to a directory.")
+                (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
+            }
         }
 
-        dir.walk().maxDepth(1).filter { it.isFile }
-            .mapTo(mutableSetOf()) { Path(it.relativeTo(configDir).path) }
-    }
+    override suspend fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> =
+        withContext(Dispatchers.Virtual) {
+            synchronized(lock) {
+                updateWorkingTree(context.name, allowLocalCheckout = true)
+
+                val dir = configDir.resolveSecurely(path)
+
+                if (!dir.isDirectory) {
+                    throw ConfigException("The provided path '${path.path}' does not refer to a directory.")
+                }
+
+                dir.walk().maxDepth(1).filter { it.isFile }
+                    .mapTo(mutableSetOf()) { Path(it.relativeTo(configDir).path) }
+            }
+        }
 
     /**
      * Update the working tree to the [requestedRevision]. If the [configDir] does not contain a ".git" subdirectory,

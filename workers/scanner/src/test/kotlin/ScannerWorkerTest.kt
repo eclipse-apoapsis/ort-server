@@ -767,7 +767,7 @@ class ScannerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             every { this@mockk.configManager } returns mockk<ConfigManager> {
-                every { getFile(any(), any()) } returns ByteArrayInputStream(emptyResolutionsYaml.toByteArray())
+                coEvery { getFile(any(), any()) } returns ByteArrayInputStream(emptyResolutionsYaml.toByteArray())
             }
             every { this@mockk.ortRun } returns ortRun
         }
@@ -858,7 +858,7 @@ private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextF
 }
 
 private fun mockConfigManager() = mockk<ConfigManager> {
-    every { getFile(any(), any()) } returns
+    coEvery { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
 }
 

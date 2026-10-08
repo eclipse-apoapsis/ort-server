@@ -25,7 +25,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 
@@ -44,7 +44,7 @@ class GitHubConfigFileProviderFactoryTest : WordSpec({
     "A correctly initialized provider instance" should {
         "be created" {
             mockkConstructor(GitHubConfigFileProvider::class)
-            every { anyConstructed<GitHubConfigFileProvider>().getFile(any(), any()) } returns ByteArrayInputStream(
+            coEvery { anyConstructed<GitHubConfigFileProvider>().getFile(any(), any()) } returns ByteArrayInputStream(
                 CONTENT.toByteArray()
             )
 

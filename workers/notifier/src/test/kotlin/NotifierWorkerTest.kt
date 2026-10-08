@@ -31,7 +31,6 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkAll
-import io.mockk.verify
 
 import kotlin.time.Clock
 
@@ -116,7 +115,7 @@ class NotifierWorkerTest : StringSpec({
         }
 
         val runner = mockk<NotifierRunner> {
-            every {
+            coEvery {
                 run(ortResult, jobConfigurations, context)
             } just runs
         }
@@ -142,7 +141,7 @@ class NotifierWorkerTest : StringSpec({
 
         slotNotifierRun.captured.notifierJobId shouldBe NOTIFIER_JOB_ID
 
-        verify {
+        coVerify {
             runner.run(ortResult, jobConfigurations, context)
         }
     }
@@ -216,7 +215,7 @@ class NotifierWorkerTest : StringSpec({
 
         val exception = IllegalStateException("Test exception: Notifier runner execution.")
         val runner = mockk<NotifierRunner> {
-            every {
+            coEvery {
                 run(ortResult, jobConfigurations, context)
             } throws exception
         }

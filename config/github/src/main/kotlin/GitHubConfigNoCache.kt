@@ -56,7 +56,7 @@ internal class GitHubConfigNoCache : GitHubConfigCache {
     /**
      * This implementation is just a noop. There is no need to clean up anything.
      */
-    override fun cleanup(currentRevision: String) {
+    override suspend fun cleanup(currentRevision: String) {
         // Do nothing.
     }
 }

@@ -59,7 +59,6 @@ import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.shared.ktorclientutils.createHttpClient
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 import org.slf4j.LoggerFactory
 
@@ -227,7 +226,7 @@ class GitHubConfigFileProvider(
         }
     }
 
-    override fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext {
+    override suspend fun resolveContext(context: RequestedConfigContext): ResolvedConfigContext {
         val defaultBranch = configuredDefaultBranch?.takeUnless { it.isEmpty() }
             ?: getRemoteDefaultBranch()
             ?: DEFAULT_REPOSITORY_BRANCH
@@ -257,11 +256,10 @@ class GitHubConfigFileProvider(
      * the case when the returned 'Content Type' header is neither a raw file nor JSON, or it is missing, a
      * [ConfigException] is thrown with the description of the cause.
      */
-    override fun getFile(context: ResolvedConfigContext, path: Path): InputStream = runBlocking {
+    override suspend fun getFile(context: ResolvedConfigContext, path: Path): InputStream =
         cache.getOrPutFile(context.name, path.path) { downloadFile(context, path) }
-    }
 
-    override fun contains(context: ResolvedConfigContext, path: Path): Boolean {
+    override suspend fun contains(context: ResolvedConfigContext, path: Path): Boolean {
         val sanitizedPath = path.path.removeSuffix("/")
         val response = sendHttpRequest(
             "/contents/$sanitizedPath?ref=${context.name}",
@@ -277,9 +275,9 @@ class GitHubConfigFileProvider(
                 (!isDirectoryPath && !jsonBody.isDirectory() && jsonBody.isFile())
     }
 
-    override fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> = runBlocking {
+    override suspend fun listFiles(context: ResolvedConfigContext, path: Path): Set<Path> {
         val sanitizedPath = path.path.removeSuffix("/")
-        cache.getOrPutFolderContent(context.name, sanitizedPath) {
+        return cache.getOrPutFolderContent(context.name, sanitizedPath) {
             downloadFolderContent(context, Path(sanitizedPath))
         }.map { Path(it) }.toSet()
     }
@@ -288,14 +286,14 @@ class GitHubConfigFileProvider(
      * Send a request to the GitHub REST API as defined by [baseUrl] with the provided [path]. If the [checkSuccess]
      * flag is *true*, also check if the response is successful and throw a [ConfigException] if not.
      */
-    private fun sendHttpRequest(
+    private suspend fun sendHttpRequest(
         path: String,
         contentType: String = JSON_CONTENT_TYPE_HEADER,
         checkSuccess: Boolean = true
-    ): HttpResponse = runBlocking {
+    ): HttpResponse {
         val response = sendHttpRequestWithRetry(path, contentType)
 
-        if (checkSuccess && !response.status.isSuccess()) {
+        return if (checkSuccess && !response.status.isSuccess()) {
             logger.error("Error response from GitHub API request: ${response.status}.")
             logger.info("Response body: ${response.bodyAsText()}")
 
@@ -359,7 +357,7 @@ class GitHubConfigFileProvider(
      * Query the GitHub REST API for the content of the folder at the given [path] at the revision specified by
      * [context]. Throw a [ConfigException] if the path does not exist or is not a directory.
      */
-    private fun downloadFolderContent(context: ResolvedConfigContext, path: Path): Set<String> {
+    private suspend fun downloadFolderContent(context: ResolvedConfigContext, path: Path): Set<String> {
         val response = sendHttpRequest("/contents/${path.path}?ref=${context.name}")
 
         val jsonBody = getJsonBody(response)
@@ -374,19 +372,19 @@ class GitHubConfigFileProvider(
             .toSet()
     }
 
-    private fun getRemoteDefaultBranch(): String? {
+    private suspend fun getRemoteDefaultBranch(): String? {
         val response = sendHttpRequest("")
         val jsonBody = getJsonBody(response).jsonObject
         return jsonBody["default_branch"]?.jsonPrimitive?.contentOrNull
     }
 }
 
-private fun getJsonBody(response: HttpResponse): JsonElement {
+private suspend fun getJsonBody(response: HttpResponse): JsonElement {
     if (!response.isPresent()) {
         throw ConfigException("The requested path doesn't exist in the specified branch.")
     }
 
-    return runBlocking { Json.parseToJsonElement(response.body<String>()) }
+    return Json.parseToJsonElement(response.body<String>())
 }
 
 private fun JsonElement.isFile() = this.jsonObject["type"]?.jsonPrimitive?.content == "file"

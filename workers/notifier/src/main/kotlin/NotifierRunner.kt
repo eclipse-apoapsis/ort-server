@@ -46,7 +46,7 @@ class NotifierRunner(
      * [workerContext].
      * The notification script to be executed is specified in the admin configuration.
      */
-    fun run(
+    suspend fun run(
         ortResult: OrtResult,
         jobConfigurations: JobConfigurations?,
         workerContext: WorkerContext

@@ -645,7 +645,7 @@ private fun mockOrtRun() = mockk<OrtRun> {
 }
 
 private fun mockConfigManager() = mockk<ConfigManager> {
-    every { getFile(any(), any()) } returns
+    coEvery { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
 }
 

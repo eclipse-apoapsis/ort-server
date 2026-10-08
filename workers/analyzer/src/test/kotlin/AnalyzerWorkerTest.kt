@@ -759,7 +759,7 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockWorkerContext {
             every { configManager } returns mockk<ConfigManager> {
-                every { getFile(any(), any()) } returns ByteArrayInputStream(
+                coEvery { getFile(any(), any()) } returns ByteArrayInputStream(
                     """
                         ---
                         issues: []
@@ -1528,7 +1528,7 @@ private fun mockContextFactory(
 }
 
 private fun mockConfigManager() = mockk<ConfigManager> {
-    every { getFile(any(), any()) } returns
+    coEvery { getFile(any(), any()) } returns
             File("src/test/resources/resolutions.yml").inputStream()
 }
 

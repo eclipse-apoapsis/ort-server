@@ -50,6 +50,7 @@ dependencies {
 
     implementation(projects.dao)
     implementation(projects.services.ortRunService)
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.config)
 
     implementation(libs.kaml)

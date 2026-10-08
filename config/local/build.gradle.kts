@@ -30,6 +30,10 @@ dependencies {
 
     api(libs.typesafeConfig)
 
+    implementation(projects.shared.coroutines)
+
+    implementation(libs.kotlinx.coroutines)
+
     testImplementation(testFixtures(projects.config.configSpi))
 
     testImplementation(libs.kotest.assertions.core)
