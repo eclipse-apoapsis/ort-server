@@ -27,7 +27,13 @@ import globals from 'globals';
 
 export default defineConfig([
   {
-    ignores: ['dist/', '.eslintrc.cjs', 'src/api/', 'src/routeTree.gen.ts'],
+    ignores: [
+      'dist/',
+      'coverage/',
+      '.eslintrc.cjs',
+      'src/api/',
+      'src/routeTree.gen.ts',
+    ],
   },
   js.configs.recommended,
   ...tsEslint.configs['flat/recommended'],

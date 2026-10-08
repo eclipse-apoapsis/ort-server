@@ -43,5 +43,12 @@ export default defineConfig({
   test: {
     include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
     setupFiles: ['./tests/unit/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/api/**', 'src/routeTree.gen.ts', 'src/**/*.d.ts'],
+      reporter: ['text-summary', 'html', 'json-summary', 'lcov'],
+      reportsDirectory: 'coverage',
+    },
   },
 });
