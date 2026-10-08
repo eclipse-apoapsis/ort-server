@@ -73,19 +73,60 @@ sealed interface VolumeMount {
     val subPath: String?
 
     /**
-     * Populate the properties of the passed in [mount] according to the data stored in this object. Use the given
-     * [index] to generate properties that need to be unique, such as a volume name. The sender implementation calls
-     * this function when it constructs the Kubernetes manifest for the pod to create.
+     * The typed identity of the underlying Kubernetes resource (e.g. a secret or a persistent volume claim) backing
+     * this mount. Multiple mount declarations referencing the same resource of the same type have an equal
+     * [VolumeIdentity]. This is used to deduplicate the `volumes` generated for a pod and to link a `volumeMount` to
+     * its corresponding `volume`. Using a typed identity - rather than, for instance, the generated Kubernetes volume
+     * name - prevents mounts that reference different kinds of resources from being incorrectly merged just because
+     * they happen to produce the same name.
      */
-    fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount
+    val volumeIdentity: VolumeIdentity
 
     /**
-     * Populate the properties of the passed in [volume] according to the data stored in this object. Use the given
-     * [index] to generate properties that need to be unique, such as a volume name. The sender implementation calls
-     * this function when it constructs the Kubernetes manifest for the pod to create.
+     * Populate the properties of the passed in [mount] according to the data stored in this object, using the given
+     * [volumeName] as the name of the referenced Kubernetes volume. The sender implementation calls this function
+     * when it constructs the Kubernetes manifest for the pod to create.
      */
-    fun initializeVolume(volume: V1Volume, index: Int): V1Volume
+    fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount
+
+    /**
+     * Populate the properties of the passed in [volume] according to the data stored in this object, using the
+     * given [volumeName] as the name of the Kubernetes volume. The sender implementation calls this function when it
+     * constructs the Kubernetes manifest for the pod to create.
+     */
+    fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume
 }
+
+/**
+ * A sealed interface describing the identity of the concrete Kubernetes resource backing a [VolumeMount]. Instances
+ * are used as keys to deduplicate volume mounts that reference the same resource, independent of the (generated)
+ * name of the resulting Kubernetes volume.
+ */
+sealed interface VolumeIdentity {
+    /** The identity of a volume based on a Kubernetes secret with the given [secretName]. */
+    data class Secret(val secretName: String) : VolumeIdentity
+
+    /** The identity of a volume based on a persistent volume claim with the given [claimName]. */
+    data class Pvc(val claimName: String) : VolumeIdentity
+
+    /** The identity of an empty dir volume with the given [name]. */
+    data class EmptyDir(val name: String) : VolumeIdentity
+}
+
+/**
+ * Generate a Kubernetes-compliant name for the volume identified by [identity]. The generated name must be a valid
+ * DNS label (at most 63 characters, consisting only of lowercase alphanumeric characters or '-'). Since the name of
+ * the backing resource (e.g. a secret name, which is a DNS subdomain that may contain dots and be much longer than
+ * 63 characters) is not guaranteed to fulfill these constraints, the name is not derived from it directly. Instead,
+ * a stable [index] - the position of this identity within the deduplicated list of volume mounts of a pod - is used
+ * to generate a short, deterministic, and always valid name.
+ */
+internal fun generateVolumeName(identity: VolumeIdentity, index: Int): String =
+    when (identity) {
+        is VolumeIdentity.Secret -> "$SECRET_VOLUME_PREFIX${index + 1}"
+        is VolumeIdentity.Pvc -> "$PVC_VOLUME_PREFIX${index + 1}"
+        is VolumeIdentity.EmptyDir -> identity.name
+    }
 
 /**
  * A data class defining a volume for a secret to be mounted in a container.
@@ -102,16 +143,15 @@ internal data class SecretVolumeMount(
 
     override val mountName: String? = null
 ) : VolumeMount {
-    override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
-        mount.name("$SECRET_VOLUME_PREFIX${index + 1}")
+    override val volumeIdentity: VolumeIdentity = VolumeIdentity.Secret(secretName)
+
+    override fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount =
+        mount.name(volumeName)
             .subPath(subPath)
             .readOnly(true)
 
-    override fun initializeVolume(
-        volume: V1Volume,
-        index: Int
-    ): V1Volume =
-        volume.name("$SECRET_VOLUME_PREFIX${index + 1}")
+    override fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume =
+        volume.name(volumeName)
             .secret(V1SecretVolumeSource().secretName(secretName))
 }
 
@@ -132,18 +172,16 @@ internal data class PvcVolumeMount(
 
     override val subPath: String? = null
 ) : VolumeMount {
-    override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
-        mount.name("$PVC_VOLUME_PREFIX${index + 1}")
+    override val volumeIdentity: VolumeIdentity = VolumeIdentity.Pvc(claimName)
+
+    override fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount =
+        mount.name(volumeName)
             .subPath(subPath)
             .readOnly(readOnly)
 
-    override fun initializeVolume(volume: V1Volume, index: Int): V1Volume =
-        volume.name("$PVC_VOLUME_PREFIX${index + 1}")
-            .persistentVolumeClaim(
-                V1PersistentVolumeClaimVolumeSource()
-                    .claimName(claimName)
-                    .readOnly(readOnly)
-            )
+    override fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume =
+        volume.name(volumeName)
+            .persistentVolumeClaim(V1PersistentVolumeClaimVolumeSource().claimName(claimName))
 }
 
 /** A data class defining a volume mount for an empty dir. */
@@ -158,15 +196,14 @@ data class EmptyDirVolumeMount(
 
     override val subPath: String? = null
 ) : VolumeMount {
-    override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
-        mount.name(name)
+    override val volumeIdentity: VolumeIdentity = VolumeIdentity.EmptyDir(name)
+
+    override fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount =
+        mount.name(volumeName)
             .subPath(subPath)
 
-    override fun initializeVolume(
-        volume: V1Volume,
-        index: Int
-    ): V1Volume =
-        volume.name(name)
+    override fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume =
+        volume.name(volumeName)
             .emptyDir(V1EmptyDirVolumeSource())
 }
 
