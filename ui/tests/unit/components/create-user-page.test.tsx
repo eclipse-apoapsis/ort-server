@@ -19,6 +19,7 @@
 
 // @vitest-environment jsdom
 
+import { renderHook } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -79,8 +80,14 @@ const values: CreateUserFormValues = {
   ],
 };
 
+// Call the page inside a component, as React does: once React Compiler
+// compiles it, the page reads React's memo cache, which exists only while
+// React renders.
 function getOnSubmit() {
-  return (CreateUserPage() as CreateUserPageElement).props.onSubmit;
+  const { result } = renderHook(
+    () => CreateUserPage() as CreateUserPageElement
+  );
+  return result.current.props.onSubmit;
 }
 
 describe('CreateUserPage', () => {
