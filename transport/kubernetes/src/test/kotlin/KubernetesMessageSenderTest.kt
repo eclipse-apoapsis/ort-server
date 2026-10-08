@@ -324,6 +324,51 @@ class KubernetesMessageSenderTest : StringSpec({
             expectMounts("secret-volume-1", "dir1")
         }
     }
+
+    "Volumes are deduplicated when the same resource is referenced by multiple mounts" {
+        val config = createConfig(
+            mapOf(
+                "mountSecrets" to "secretX->/mnt/s1 secretX->/mnt/s2|sub",
+                "mountPvcs" to "pvc1->/mnt/a,R pvc1->/mnt/b,W",
+                "mountEmptyDirs" to "dirX->/mnt/e1 dirX->/mnt/e2"
+            )
+        )
+
+        val job = createJob(config)
+
+        val volumes = job.spec?.template?.spec?.volumes.orEmpty()
+        volumes.map { it.name } should containExactly(
+            "secret-volume-1",
+            "pvc-volume-2",
+            "dirX"
+        )
+
+        val container = job.spec?.template?.spec?.containers?.single()
+        val mounts = container?.volumeMounts.orEmpty()
+        mounts shouldHaveSize 6
+        mounts.map { it.name } shouldBe listOf(
+            "secret-volume-1",
+            "secret-volume-1",
+            "pvc-volume-2",
+            "pvc-volume-2",
+            "dirX",
+            "dirX"
+        )
+        mounts.map { it.mountPath } shouldBe listOf(
+            "/mnt/s1",
+            "/mnt/s2",
+            "/mnt/a",
+            "/mnt/b",
+            "/mnt/e1",
+            "/mnt/e2"
+        )
+        with(mounts[2]) {
+            readOnly shouldBe true
+        }
+        with(mounts[3]) {
+            readOnly shouldBe false
+        }
+    }
 })
 
 private val annotations = mapOf(
