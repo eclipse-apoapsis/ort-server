@@ -32,6 +32,8 @@ dependencies {
     api(ortLibs.downloader)
     api(ortLibs.reporter)
 
+    implementation(projects.shared.coroutines)
+
     implementation(libs.slf4j)
     implementation(ortLibs.utils.common)
 

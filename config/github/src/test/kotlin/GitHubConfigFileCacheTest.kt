@@ -46,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 class GitHubConfigFileCacheTest : WordSpec({
     "getOrPutFile" should {
@@ -87,7 +88,7 @@ class GitHubConfigFileCacheTest : WordSpec({
                 val loadFunc = loadFileFunc(prefix)
 
                 repeat(accessCount) {
-                    launch(Dispatchers.IO) {
+                    launch(Dispatchers.Virtual) {
                         val stream = cache.getOrPutFile(revision(revisionIndex), TEST_PATH, loadFunc)
 
                         stream.verifyContent(prefix)
@@ -156,7 +157,7 @@ class GitHubConfigFileCacheTest : WordSpec({
                 val loadFunc = loadFolderContentFunc(folder, revision(revisionIndex))
 
                 repeat(accessCount) {
-                    launch(Dispatchers.IO) {
+                    launch(Dispatchers.Virtual) {
                         val content = cache.getOrPutFolderContent(revision(revisionIndex), folder, loadFunc)
 
                         content shouldBe testFolderContent(folder, revision(revisionIndex))

@@ -32,6 +32,7 @@ dependencies {
     api(libs.exposed.core)
 
     implementation(projects.dao)
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.logging)
 
     runtimeOnly(libs.logback)

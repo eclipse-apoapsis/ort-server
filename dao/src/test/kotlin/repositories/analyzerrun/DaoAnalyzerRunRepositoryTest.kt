@@ -57,6 +57,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
@@ -196,7 +197,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
 
     "create should handle unique constraint violations" {
         val txCount = 64
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Virtual) {
             (1..txCount).map {
                 async {
                     val run = analyzerRun.copy(packages = setOf(createPackage(it)))

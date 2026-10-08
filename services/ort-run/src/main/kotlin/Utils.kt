@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -49,7 +50,7 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
  * available for a provenance, it is ignored and not included in the result.
  */
 internal suspend fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
-    withContext(Dispatchers.IO.limitedParallelism(20)) {
+    withContext(Dispatchers.Virtual.limitedParallelism(20)) {
         provenances.map { provenance ->
             async {
                 fileListResolver.get(provenance)?.let { fileList ->

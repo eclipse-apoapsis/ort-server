@@ -31,6 +31,8 @@ group = "org.eclipse.apoapsis.ortserver.shared"
 dependencies {
     api(ortLibs.ortPlugins.packageCurationProviders.api)
 
+    implementation(projects.shared.coroutines)
+
     implementation(libs.slf4j)
     implementation(ortLibs.utils.common)
 

@@ -56,6 +56,7 @@ dependencies {
     implementation(projects.model)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.ortRunService)
+    implementation(projects.shared.coroutines)
     implementation(projects.shared.packageCurationProviders)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.config)
