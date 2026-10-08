@@ -348,13 +348,13 @@ class OrtServerScanResultStorage(
 private fun findExistingScanResult(scanResult: ScanResult): ScanResultDao? =
     (scanResult.provenance as? KnownProvenance?)?.let { knownProvenance ->
         ScanResultDao.find {
-            when (val provenance = knownProvenance) {
+            when (knownProvenance) {
                 is ArtifactProvenance ->
-                    matchesRemoteArtifact(provenance.sourceArtifact.mapToModel())
+                    matchesRemoteArtifact(knownProvenance.sourceArtifact.mapToModel())
 
                 is RepositoryProvenance ->
                     matchesVcsInfo(
-                        provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel()
+                        knownProvenance.vcsInfo.copy(revision = knownProvenance.resolvedRevision).mapToModel()
                     )
             } and matchesBasicScanResultProperties(scanResult)
         }.firstOrNull()
