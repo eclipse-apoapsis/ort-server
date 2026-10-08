@@ -24,6 +24,7 @@ import { act, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { DataTable } from '@/components/data-table/data-table';
+import { DataTableBody } from '@/components/data-table/data-table-body';
 import {
   selectNoTableState,
   useAppTable,
@@ -31,6 +32,7 @@ import {
   type AppReactTable,
   type AppRow,
 } from '@/hooks/use-app-table';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
 type TestRow = {
@@ -95,6 +97,11 @@ const renderDataTable = async () => {
 };
 
 describe('DataTableBody', () => {
+  it('is not compiled with React Compiler', () => {
+    expect(isCompiledByReactCompiler(DataTable)).toBe(true);
+    expect(isCompiledByReactCompiler(DataTableBody)).toBe(false);
+  });
+
   it('shows and hides the sub-component when a row is expanded and collapsed', async () => {
     const { user } = await renderDataTable();
 

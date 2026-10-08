@@ -42,6 +42,12 @@ export function DataTableFilter<TData extends RowData, TValue>({
   column,
   showTitle,
 }: DataTableFilterProps<TData, TValue>) {
+  // The column keeps its identity when its filter value changes; only its
+  // methods return the new value. React Compiler would reuse the value read
+  // from it as long as the column stays the same and show an outdated filter,
+  // so this component must not be compiled.
+  'use no memo';
+
   const filterVariant = column.columnDef.meta?.filter?.filterVariant;
 
   const columnFilterValue = column.getFilterValue();

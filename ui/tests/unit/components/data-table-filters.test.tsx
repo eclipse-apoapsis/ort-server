@@ -24,6 +24,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
+import { DataTableFilter } from '@/components/data-table/data-table-filter';
 import { DataTableHeader } from '@/components/data-table/data-table-header';
 import { FilterInfiniteMultiSelect } from '@/components/data-table/filter-infinite-multi-select';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
@@ -219,6 +220,10 @@ const renderFilterHeaders = () => {
 };
 
 describe('DataTableFilter', () => {
+  it('is not compiled with React Compiler', () => {
+    expect(isCompiledByReactCompiler(DataTableFilter)).toBe(false);
+  });
+
   it('shows a filter value that changed in the table', async () => {
     const user = userEvent.setup();
     const table = renderFilterHeaders();

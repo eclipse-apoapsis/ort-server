@@ -51,6 +51,11 @@ export const isCompiledByReactCompiler = (component: unknown): boolean => {
  * compiles, with the compilation mode set in `vite.config.ts`. Unlike
  * `isCompiledByReactCompiler`, this also reaches functions that the file does
  * not export. The path is relative to the `ui` directory.
+ *
+ * In a file that opts out with a module-level `'use no memo'` directive, the
+ * compiler still reports its functions as compiled but leaves them unchanged,
+ * so no names are returned for a file whose output does not use the compiler
+ * runtime.
  */
 export const compiledFunctionNames = (sourcePath: string): string[] => {
   const file = path.resolve(import.meta.dirname, '../../..', sourcePath);
@@ -58,7 +63,7 @@ export const compiledFunctionNames = (sourcePath: string): string[] => {
   const lines = source.split('\n');
   const names: string[] = [];
   const { preset } = reactCompilerPreset({
-    compilationMode: 'annotation',
+    compilationMode: 'infer',
     logger: {
       logEvent: (_, event) => {
         if (event.kind !== 'CompileSuccess') return;
@@ -73,7 +78,7 @@ export const compiledFunctionNames = (sourcePath: string): string[] => {
     },
   });
 
-  transformSync(source, {
+  const result = transformSync(source, {
     filename: file,
     babelrc: false,
     configFile: false,
@@ -81,5 +86,5 @@ export const compiledFunctionNames = (sourcePath: string): string[] => {
     presets: [preset],
   });
 
-  return names;
+  return result?.code?.includes('react/compiler-runtime') ? names : [];
 };

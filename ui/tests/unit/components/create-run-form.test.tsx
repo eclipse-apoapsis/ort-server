@@ -31,6 +31,7 @@ import {
   createPluginDescriptor,
   createPluginSecrets,
 } from '../fixtures/create-run';
+import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
 const advisorPlugin = createPluginDescriptor({
@@ -178,6 +179,13 @@ const getJobSwitch = (job: string) => {
 };
 
 describe('CreateRunForm', () => {
+  // The form takes the plugin defaults as `values` and keeps dirty values when
+  // they change, which React Hook Form reports as fragile under React Compiler.
+  // The tests below run on the compiled form.
+  it('is compiled with React Compiler', () => {
+    expect(isCompiledByReactCompiler(CreateRunForm)).toBe(true);
+  });
+
   it('previews the complete defaults for new runs and reruns', async () => {
     const { user: newRunUser } = renderSwappableForm(
       [advisorPlugin, scannerPlugin, ...packageManagerPlugins],
