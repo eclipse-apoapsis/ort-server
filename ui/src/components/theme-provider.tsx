@@ -40,8 +40,6 @@ export function ThemeProvider({
   storageKeyColorTheme = 'vite-ui-theme-color',
   ...props
 }: ThemeProviderProps) {
-  'use memo';
-
   const [mode, setMode] = useState<Mode>(
     () => (localStorage.getItem(storageKeyMode) as Mode | null) || defaultMode
   );

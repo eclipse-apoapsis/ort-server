@@ -60,8 +60,6 @@ export const SecretSelect = ({
   permissions,
   className,
 }: SecretSelectProps) => {
-  'use memo';
-
   const [open, setOpen] = useState(false);
   const secrets = useSecrets({
     orgId,

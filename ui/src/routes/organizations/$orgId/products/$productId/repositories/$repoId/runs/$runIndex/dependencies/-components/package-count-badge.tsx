@@ -20,8 +20,6 @@
 import { Badge } from '@/components/ui/badge';
 
 export const PackageCountBadge = ({ count }: { count?: number | null }) => {
-  'use memo';
-
   if (count == null) return null;
 
   return (

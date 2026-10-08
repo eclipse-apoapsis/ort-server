@@ -47,8 +47,6 @@ const columnHelper = createAppColumnHelper<Repository>();
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/');
 
 export const ProductRepositoryTable = () => {
-  'use memo';
-
   const repoPageSize = useTablePrefsStore((state) => state.repoPageSize);
   const setRepoPageSize = useTablePrefsStore((state) => state.setRepoPageSize);
   const navigate = routeApi.useNavigate();

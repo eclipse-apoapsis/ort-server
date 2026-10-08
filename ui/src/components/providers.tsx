@@ -35,8 +35,6 @@ const oidcConfig = config.oidcConfig;
 const logLevel = config.oidcLogLevel;
 
 export const Providers = ({ children }: { children: ReactNode }) => {
-  'use memo';
-
   Log.setLevel(logLevel);
   Log.setLogger(console);
 

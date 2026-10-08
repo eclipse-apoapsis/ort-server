@@ -65,8 +65,6 @@ export function useSecrets({
   permissions,
   enabled = true,
 }: UseSecretsParams): InfiniteList<SecretWithHierarchy> {
-  'use memo';
-
   const readsOrganization =
     enabled && !!orgId && !!permissions.organization?.includes('READ');
   const readsProduct =

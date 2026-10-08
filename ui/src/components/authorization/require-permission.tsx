@@ -53,8 +53,6 @@ export const RequireOrganizationPermission = ({
   children,
   permission,
 }: RequireOrganizationPermissionProps) => {
-  'use memo';
-
   const { isAllowed, isPending, error } = useOrganizationPermission(
     organizationId,
     permission
@@ -72,8 +70,6 @@ export const RequireProductPermission = ({
   children,
   permission,
 }: RequireProductPermissionProps) => {
-  'use memo';
-
   const { isAllowed, isPending, error } = useProductPermission(
     productId,
     permission
@@ -91,8 +87,6 @@ export const RequireRepositoryPermission = ({
   children,
   permission,
 }: RequireRepositoryPermissionProps) => {
-  'use memo';
-
   const { isAllowed, isPending, error } = useRepositoryPermission(
     repositoryId,
     permission

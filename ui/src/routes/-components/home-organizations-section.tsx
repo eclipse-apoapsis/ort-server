@@ -29,8 +29,6 @@ import {
 } from '@/components/ui/card';
 
 export const HomeOrganizationsSection = () => {
-  'use memo';
-
   return (
     <Card>
       <CardHeader>

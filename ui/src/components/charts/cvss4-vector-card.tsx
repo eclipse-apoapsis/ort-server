@@ -37,8 +37,6 @@ import { Cvss4MacroVector } from '@/helpers/vulnerability-statistics';
 type Cvss4VectorCardProps = { macroVector: Cvss4MacroVector };
 
 export const Cvss4VectorCard = ({ macroVector }: Cvss4VectorCardProps) => {
-  'use memo';
-
   const {
     name,
     exploitability,

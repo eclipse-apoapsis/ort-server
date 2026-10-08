@@ -65,8 +65,6 @@ const defaultPageSize = 10;
 const columnHelper = createAppColumnHelper<RunWithPackage>();
 
 function SearchPackageComponent() {
-  'use memo';
-
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = useNavigate();

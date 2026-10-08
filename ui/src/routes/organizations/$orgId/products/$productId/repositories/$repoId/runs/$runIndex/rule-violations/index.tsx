@@ -206,8 +206,6 @@ const RuleViolationCard = ({
 };
 
 const RuleViolationsComponent = () => {
-  'use memo';
-
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();

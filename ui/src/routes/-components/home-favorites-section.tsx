@@ -178,8 +178,6 @@ const areFavoritesEqual = (
 
 /** Render a favorite and refresh its stored display data if backing data changed. */
 const FavoriteListItem = ({ favorite }: { favorite: FavoriteItem }) => {
-  'use memo';
-
   const { updateFavorite, removeFavorite } = useHomeFavoriteActions();
   const orgId = getFavoriteRouteParam(favorite, 'orgId');
   const productId = getFavoriteRouteParam(favorite, 'productId');
@@ -291,8 +289,6 @@ const FavoriteGroupCard = ({
   group: FavoriteGroup;
   dragHandle?: ReactNode;
 }) => {
-  'use memo';
-
   const Icon = group.icon;
 
   return (
@@ -328,8 +324,6 @@ const SortableFavoriteGroupCard = ({
   group: FavoriteGroup;
   index: number;
 }) => {
-  'use memo';
-
   const { ref, handleRef, isDragging } = useSortable({
     id: group.type,
     index,
@@ -362,8 +356,6 @@ export const HomeFavoritesSection = ({
 }: {
   favorites: FavoriteItem[];
 }) => {
-  'use memo';
-
   const favoriteGroupOrder = useHomeFavoriteGroupOrder();
   const { setFavoriteGroupOrder } = useHomeFavoriteActions();
   const groups: FavoriteGroup[] = favoriteGroupOrder.map((type) => ({

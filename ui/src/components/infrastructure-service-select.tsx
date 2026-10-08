@@ -56,8 +56,6 @@ export const InfrastructureServiceSelect = ({
   placeholder,
   className,
 }: InfrastructureServiceSelectProps) => {
-  'use memo';
-
   const { orgId, productId, repoId } = useParams({ strict: false });
   const permissions = useRouter().options.context.permissions;
 

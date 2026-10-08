@@ -149,8 +149,6 @@ export const ProductJobStatusCell = ({ product }: { product: Product }) => {
 };
 
 export const OrganizationProductTable = () => {
-  'use memo';
-
   const prodPageSize = useTablePrefsStore((state) => state.prodPageSize);
   const setProdPageSize = useTablePrefsStore((state) => state.setProdPageSize);
   const navigate = routeApi.useNavigate();
