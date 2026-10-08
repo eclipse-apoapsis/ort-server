@@ -19,15 +19,23 @@
 
 // @vitest-environment jsdom
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
+import { DataTableHeader } from '@/components/data-table/data-table-header';
 import { FilterInfiniteMultiSelect } from '@/components/data-table/filter-infinite-multi-select';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterSingleSelect } from '@/components/data-table/filter-single-select';
 import { FilterText } from '@/components/data-table/filter-text';
+import {
+  selectNoTableState,
+  useAppTable,
+  type AppColumnDef,
+  type AppReactTable,
+} from '@/hooks/use-app-table';
 import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const openFilter = async (user: ReturnType<typeof userEvent.setup>) =>
@@ -154,5 +162,79 @@ describe('FilterMultiSelect', () => {
 
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledWith(['open', 'closed']);
+  });
+});
+
+type FilterTestRow = { name: string; note: string };
+
+const textFilter = {
+  filterVariant: 'text',
+  setFilterValue: () => {},
+} as const;
+
+const filterColumns: AppColumnDef<FilterTestRow>[] = [
+  { accessorKey: 'name', header: 'Name', meta: { filter: textFilter } },
+  { accessorKey: 'note', header: 'Note', meta: { filter: textFilter } },
+];
+
+/**
+ * Render the table header, which shows the filters of the visible columns, and
+ * the card header, which shows the filters of the hidden ones. Return the
+ * table, to change its filters.
+ */
+const renderFilterHeaders = () => {
+  let table: AppReactTable<FilterTestRow> | undefined;
+
+  const HeadersHarness = () => {
+    table = useAppTable(
+      {
+        columns: filterColumns,
+        data: [{ name: 'core', note: 'library' }],
+        initialState: {
+          columnVisibility: { note: false },
+          columnFilters: [
+            { id: 'name', value: 'first name' },
+            { id: 'note', value: 'first note' },
+          ],
+        },
+      },
+      selectNoTableState
+    );
+
+    return (
+      <>
+        <table>
+          <DataTableHeader table={table} />
+        </table>
+        <DataTableCardsHeader table={table} />
+      </>
+    );
+  };
+
+  render(<HeadersHarness />);
+
+  if (!table) throw new Error('The headers harness did not render.');
+
+  return table;
+};
+
+describe('DataTableFilter', () => {
+  it('shows a filter value that changed in the table', async () => {
+    const user = userEvent.setup();
+    const table = renderFilterHeaders();
+
+    act(() => {
+      table.setColumnFilters([
+        { id: 'name', value: 'second name' },
+        { id: 'note', value: 'second note' },
+      ]);
+    });
+
+    await user.click(within(screen.getByRole('table')).getByRole('button'));
+    expect(screen.getByRole('textbox')).toHaveValue('second name');
+
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: 'Note' }));
+    expect(screen.getByRole('textbox')).toHaveValue('second note');
   });
 });
