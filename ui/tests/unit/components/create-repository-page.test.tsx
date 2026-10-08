@@ -19,6 +19,7 @@
 
 // @vitest-environment jsdom
 
+import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Repository } from '@/api';
@@ -80,7 +81,10 @@ describe('CreateRepositoryPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.mutationOptions = undefined;
-    CreateRepositoryPage();
+    // Call the page inside a component, as React does: once React Compiler
+    // compiles it, the page reads React's memo cache, which exists only while
+    // React renders.
+    renderHook(() => CreateRepositoryPage());
   });
 
   it('reports success and navigates to the repository', () => {

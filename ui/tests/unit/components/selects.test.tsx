@@ -95,28 +95,34 @@ describe('MultipleSelector', () => {
   });
 });
 
-/** Renders a select inside the form field it expects, with a query client. */
-const renderInForm = (select: (field: { value: string }) => ReactNode) => {
-  const Harness = () => {
-    const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
+type SelectRenderer = (field: { value: string }) => ReactNode;
 
-    return (
-      <Form {...form}>
-        <FormField
-          control={form.control}
-          name='name'
-          render={({ field }) => <FormItem>{select(field)}</FormItem>}
-        />
-      </Form>
-    );
-  };
+// Defined at module level: when React Compiler compiles a component defined
+// inside another function, it moves the `render` callback out to module level,
+// where the callback can no longer see that function's parameters.
+const SelectFormHarness = ({ select }: { select: SelectRenderer }) => {
+  const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
+
+  return (
+    <Form {...form}>
+      <FormField
+        control={form.control}
+        name='name'
+        render={({ field }) => <FormItem>{select(field)}</FormItem>}
+      />
+    </Form>
+  );
+};
+
+/** Renders a select inside the form field it expects, with a query client. */
+const renderInForm = (select: SelectRenderer) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
 
   render(
     <QueryClientProvider client={queryClient}>
-      <Harness />
+      <SelectFormHarness select={select} />
     </QueryClientProvider>
   );
 
