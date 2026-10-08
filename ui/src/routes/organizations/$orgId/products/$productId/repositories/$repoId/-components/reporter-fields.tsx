@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, useWatch } from 'react-hook-form';
 
 import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field';
@@ -57,7 +57,10 @@ export const ReporterFields = ({
   secrets,
   isRerun,
 }: ReporterFieldsProps) => {
-  const evaluatorEnabled = form.watch('jobConfigs.evaluator.enabled');
+  const evaluatorEnabled = useWatch({
+    control: form.control,
+    name: 'jobConfigs.evaluator.enabled',
+  });
 
   return (
     <div className='flex flex-row align-middle'>

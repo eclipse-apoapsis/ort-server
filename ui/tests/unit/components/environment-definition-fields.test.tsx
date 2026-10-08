@@ -17,12 +17,16 @@
  * License-Filename: LICENSE
  */
 
+// @vitest-environment jsdom
+
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ENVIRONMENT_DEFINITION_SCHEMAS } from '@/lib/environment-definition-fields';
 import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import { EnvironmentDefinitionsFields } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components/environment-definitions';
-import { renderWithForm } from '../fixtures/form-harness';
+import { renderWithForm, renderWithStableForm } from '../fixtures/form-harness';
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual =
@@ -106,5 +110,23 @@ describe('EnvironmentDefinitionsFields', () => {
     );
     expect(markup).toMatch(new RegExp(`<button[^>]*id="${selectorId}"`));
     expect(markup).toContain('Remote name');
+  });
+
+  it('shows an added definition without a render of its parent', async () => {
+    const user = userEvent.setup();
+    renderWithStableForm(
+      (form) => <EnvironmentDefinitionsFields form={form} />,
+      {
+        defaultValues: baseDefaultValues,
+      }
+    );
+
+    expect(screen.queryByText('Package manager')).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /Add environment configuration/ })
+    );
+
+    expect(screen.getByText('Package manager')).toBeInTheDocument();
   });
 });
