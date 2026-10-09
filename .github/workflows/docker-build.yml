@@ -56,6 +56,8 @@ jobs:
     - name: Extract Docker Metadata for base image
       id: meta-base-image
       uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+      env:
+        DOCKER_METADATA_ANNOTATIONS_LEVELS: index
       with:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image
         tags: |
@@ -63,6 +65,20 @@ jobs:
           type=ref,event=branch
           type=sha
           type=raw,value=latest,enable=${{ env.IS_RELEASE }}
+
+    # Since BuildKit v0.33.1, the cache key of a "FROM" instruction is based on the manifest digest of the base image
+    # instead of its layers. Labels that change with every run would therefore change the digest and invalidate the
+    # layer caches of all images built on top of the base image. So only use labels that are stable between runs and
+    # attach the run-specific metadata as index annotations, which do not affect the image manifest.
+    - name: Determine stable base image labels
+      env:
+        LABELS: ${{ steps.meta-base-image.outputs.labels }}
+      run: |
+        {
+          echo 'BASE_LABELS<<EOF'
+          printf '%s\n' "$LABELS" | grep -vE '^org\.opencontainers\.image\.(created|revision|version)='
+          echo 'EOF'
+        } >> $GITHUB_ENV
 
     - name: Set cache-to
       run: |
@@ -77,7 +93,7 @@ jobs:
         context: docker
         file: docker/Base.Dockerfile
         tags: localhost:5000/ort-server-base-image:${{ env.ORT_SERVER_VERSION }}
-        labels: ${{ steps.meta-base-image.outputs.labels }}
+        labels: ${{ env.BASE_LABELS }}
         outputs: type=docker,dest=/tmp/ort-server-base-image.tar
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
         cache-to: ${{ env.BASE_CACHE_TO }}
@@ -98,7 +114,8 @@ jobs:
         context: docker
         file: docker/Base.Dockerfile
         tags: ${{ steps.meta-base-image.outputs.tags }}
-        labels: ${{ steps.meta-base-image.outputs.labels }}
+        labels: ${{ env.BASE_LABELS }}
+        annotations: ${{ steps.meta-base-image.outputs.annotations }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
         push: true
 
