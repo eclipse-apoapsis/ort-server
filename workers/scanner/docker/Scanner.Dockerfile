@@ -59,7 +59,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # renovate: datasource=rubygems depName=licensee
 ARG LICENSEE_VERSION=10.1.0
 # renovate: datasource=github-releases depName=getprovenant/provenant extractVersion=^v(?<version>.*)$
-ARG PROVENANT_VERSION=1.0.11
+ARG PROVENANT_VERSION=1.0.12
 # renovate: datasource=ruby-version depName=ruby
 ARG RUBY_VERSION=4.0.7
 # renovate: datasource=pypi depName=scancode-toolkit
