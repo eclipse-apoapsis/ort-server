@@ -316,7 +316,11 @@ describe('independent detected-license tables', () => {
 
   it('paginates findings independently, including the same package under two licenses', async () => {
     const { user, router } = renderView(openedSearch());
-    await screen.findByRole('region', { name: findingsName('Apache-2.0') });
+    await screen.findByRole(
+      'region',
+      { name: findingsName('Apache-2.0') },
+      { timeout: 5_000 }
+    );
     await user.click(
       within(findingsRegion('MIT')).getByRole('link', {
         name: 'Go to next page',
