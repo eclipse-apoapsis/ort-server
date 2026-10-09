@@ -114,11 +114,11 @@ RUN echo "$USERNAME ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
 # Support for custom certificates at build time.
-COPY scripts/*.sh /etc/scripts/
+COPY --chmod=755 scripts/*.sh /etc/scripts/
 
 # Set this to a directory containing CRT-files for custom certificates that ORT and all build tools should know about.
 ARG CRT_FILES="*.crt"
-COPY "$CRT_FILES" /tmp/certificates/
+COPY --chmod=644 "$CRT_FILES" /tmp/certificates/
 
 RUN /etc/scripts/export_proxy_certificates.sh /tmp/certificates/ \
     &&  /etc/scripts/import_certificates.sh /tmp/certificates/ \

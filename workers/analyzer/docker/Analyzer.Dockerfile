@@ -61,7 +61,7 @@ ARG BASE_IMAGE_TAG="latest"
 FROM ${BASE_REGISTRY}ort-server-base-image:$BASE_IMAGE_TAG AS ort-base-image
 
 # Check and set apt proxy
-COPY scripts/set_apt_proxy.sh /etc/analyzer_scripts/set_apt_proxy.sh
+COPY --chmod=755 scripts/set_apt_proxy.sh /etc/analyzer_scripts/set_apt_proxy.sh
 RUN /etc/analyzer_scripts/set_apt_proxy.sh
 
 # Base package set
@@ -604,4 +604,4 @@ COPY --from=gleam --chown=$USER:$USER $GLEAM_HOME $GLEAM_HOME
 # Make sure the user executing the container has access rights in the $CARGO_HOME directory.
 RUN sudo chgrp -R 0 $CARGO_HOME && sudo chmod -R g+rwX $CARGO_HOME
 
-COPY scripts/await.sh /etc/analyzer_scripts/await.sh
+COPY --chmod=755 scripts/await.sh /etc/analyzer_scripts/await.sh

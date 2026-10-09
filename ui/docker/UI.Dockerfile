@@ -25,7 +25,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
 WORKDIR /app
-COPY . .
+COPY --chmod=755 . .
 
 ENV VITE_API_URL="UI_API_URL_PLACEHOLDER" \
     VITE_AUTHORITY="UI_AUTHORITY_PLACEHOLDER" \
@@ -46,18 +46,17 @@ COPY --from=build /app/dist /usr/share/nginx/html-template
 
 # Copy custom nginx configuration to /etc/nginx/. The entrypoint script will copy the file to
 # /etc/nginx/conf.d/default.conf at startup, allowing /etc/nginx/conf.d to be a writable volume mount.
-COPY docker/nginx.conf.template /etc/nginx/default.conf.template
+COPY --chmod=644 docker/nginx.conf.template /etc/nginx/default.conf.template
 
 # Copy robots.txt to disallow indexing by search engines.
-COPY docker/robots.txt /usr/share/nginx/html-template/robots.txt
+COPY --chmod=644 docker/robots.txt /usr/share/nginx/html-template/robots.txt
 
 # Configure nginx to run as non-root user for OpenShift compatibility
 RUN sed -i 's/user  nginx;//g' /etc/nginx/nginx.conf \
     && sed -i 's|/var/run/nginx.pid|/tmp/nginx.pid|g' /etc/nginx/nginx.conf
 
 # Copy entrypoint script.
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY --chmod=755 docker/entrypoint.sh /entrypoint.sh
 
 # Make sure the user executing the container has access rights to the directories required by nginx.
 # The template directory only needs to be readable by the group.
