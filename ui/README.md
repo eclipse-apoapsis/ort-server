@@ -93,6 +93,24 @@ Generated reports are ignored by version control, ESLint, and Prettier. No cover
 
 See the [initial coverage baseline](tests/coverage-baseline.md) for the recorded results, exclusions, and limitations.
 
+### Coverage in pull requests
+
+The "Build and Test" workflow measures UI test coverage for every pull request and posts the result as a comment on it.
+Each new push updates the same comment.
+The comment compares the coverage of the pull request with the coverage of the `main` commit it targets, and shows the change in percentage points (pp): the plain difference between the two percentages.
+The pull request is measured as GitHub merges it into `main` for testing, so the change comes from the pull request only, even if the branch is behind `main`.
+The comment names the `main` commit and the last commit of the branch.
+
+If the target commit is older than coverage reporting, the comment shows the coverage of the pull request only.
+Measuring coverage makes the tests slower, so a test can occasionally hit its time limit.
+Coverage is therefore measured in a separate run that cannot fail the build; if it fails for the pull request or the target commit, the comment says so.
+Pull requests from forks get no permission to comment; their report is only on the summary page of the workflow run.
+Pushes to `main` and merge queue runs show the current coverage on the summary page.
+
+The full HTML and LCOV reports can be downloaded from the workflow run.
+Coverage is for information only: a drop in coverage does not fail the build.
+Small changes can come from code that depends on the current time, and the React Compiler can change function and branch counts, so look at the reports before reading too much into a change of a few hundredths.
+
 ## e2e tests
 
 To run the Playwright e2e tests locally, first start core service (also starts keycloak, postgres and rabbitmq) and dev UI, then run the tests:

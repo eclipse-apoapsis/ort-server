@@ -103,9 +103,16 @@ jobs:
 
   build-ui:
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    outputs:
+      coverage-outcome: ${{ steps.coverage.outcome }}
+      coverage-url: ${{ steps.upload-coverage.outputs.artifact-url }}
     steps:
     - name: Checkout Repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -128,9 +135,200 @@ jobs:
       working-directory: ui
       run: pnpm dlx knip --dependencies
 
+    - name: Test coverage report script
+      working-directory: ui
+      run: pnpm test:coverage-report
+
     - name: Test UI
       working-directory: ui
       run: pnpm test
+
+    # Coverage is for information only. Measuring it slows the tests down, so
+    # that some of them can hit their time limit; this must not fail the build.
+    - name: Measure UI test coverage
+      id: coverage
+      continue-on-error: true
+      working-directory: ui
+      run: pnpm test:coverage
+
+    - name: Upload coverage reports
+      id: upload-coverage
+      if: steps.coverage.outcome == 'success'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ui-coverage
+        path: ui/coverage
+        if-no-files-found: error
+        retention-days: 7
+
+  # Measures the coverage of the commit a pull request targets, so that the
+  # report can show how the pull request changes it.
+  build-ui-base:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    outputs:
+      has-coverage: ${{ steps.check.outputs.has-coverage }}
+      coverage-outcome: ${{ steps.coverage.outcome }}
+    steps:
+    - name: Checkout base commit
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        persist-credentials: false
+
+    - name: Check whether the base commit has coverage
+      id: check
+      run: |
+        if jq -e '.scripts["test:coverage"]' ui/package.json > /dev/null; then
+          echo "has-coverage=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "The base commit has no test:coverage script."
+          echo "has-coverage=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup Gradle
+      if: steps.check.outputs.has-coverage == 'true'
+      uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+    - name: Generate OpenAPI spec
+      if: steps.check.outputs.has-coverage == 'true'
+      run: ./gradlew --stacktrace :core:generateOpenApiSpec
+
+    - name: Setup pnpm
+      if: steps.check.outputs.has-coverage == 'true'
+      uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3
+      with:
+        cache: true
+        require-lockfile: true
+        working-directory: ui
+
+    - name: Generate API client and routes
+      if: steps.check.outputs.has-coverage == 'true'
+      working-directory: ui
+      run: pnpm generate:api && pnpm generate:routes
+
+    # As in the build-ui job, a failure to measure coverage must not fail the
+    # build.
+    - name: Measure UI test coverage
+      id: coverage
+      if: steps.check.outputs.has-coverage == 'true'
+      continue-on-error: true
+      working-directory: ui
+      run: pnpm test:coverage
+
+    - name: Upload coverage summary
+      if: steps.coverage.outcome == 'success'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ui-coverage-base
+        path: ui/coverage/coverage-summary.json
+        if-no-files-found: error
+        retention-days: 7
+
+  # Shows the UI coverage on the summary page of the workflow run and, for pull
+  # requests from branches in this repository, in a pull request comment.
+  report-ui-coverage:
+    needs: [build-ui, build-ui-base]
+    # Also run when the base job failed or was skipped, so that the report can
+    # say so. If the UI tests fail, the build fails and there is nothing to show.
+    if: always() && needs.build-ui.result == 'success'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout coverage report script
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: ui/scripts
+
+    - name: Download coverage summary
+      if: needs.build-ui.outputs.coverage-outcome == 'success'
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: ui-coverage
+        path: coverage-current
+
+    - name: Download base coverage summary
+      if: needs.build-ui.outputs.coverage-outcome == 'success' && needs.build-ui-base.outputs.coverage-outcome == 'success'
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: ui-coverage-base
+        path: coverage-base
+
+    - name: Write coverage report
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        CURRENT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        COVERAGE_OUTCOME: ${{ needs.build-ui.outputs.coverage-outcome }}
+        BASE_HAS_COVERAGE: ${{ needs.build-ui-base.outputs.has-coverage }}
+        BASE_COVERAGE_OUTCOME: ${{ needs.build-ui-base.outputs.coverage-outcome }}
+        COVERAGE_URL: ${{ needs.build-ui.outputs.coverage-url }}
+        REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        # Lets the comment step find the comment of an earlier run.
+        echo "<!-- ui-coverage-report -->" > coverage-report.md
+
+        if [[ "$COVERAGE_OUTCOME" != "success" ]]; then
+          {
+            echo "### UI test coverage"
+            echo
+            echo "> [!WARNING]"
+            echo "> The UI tests passed, but measuring their coverage failed. See the [workflow run]($RUN_URL) for the error."
+          } >> coverage-report.md
+        else
+          args=(--current coverage-current/coverage-summary.json --current-sha "$CURRENT_SHA" --repository-url "$REPOSITORY_URL")
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            args+=(--base-sha "$BASE_SHA")
+            if [[ "$BASE_COVERAGE_OUTCOME" == "success" ]]; then
+              args+=(--base coverage-base/coverage-summary.json)
+            elif [[ "$BASE_HAS_COVERAGE" == "false" ]]; then
+              args+=(--base-status missing)
+            else
+              args+=(--base-status failed)
+            fi
+          fi
+
+          {
+            node ui/scripts/coverage-summary.mjs "${args[@]}"
+            echo
+            echo "[Download the full coverage report]($COVERAGE_URL)"
+          } >> coverage-report.md
+        fi
+
+        cat coverage-report.md >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Post coverage report to the pull request
+      # Pull requests from forks get no permission to comment.
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COMMENTS_URL: repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
+        PULL_URL: repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        # A run for an older push can finish after the run for a newer one. Do
+        # not let it replace the report of the newer push.
+        if [[ "$(gh api "$PULL_URL" --jq .head.sha)" != "$HEAD_SHA" ]]; then
+          echo "The pull request has newer commits, so this report is not posted."
+          exit 0
+        fi
+
+        comment_id=$(gh api --paginate "$COMMENTS_URL" \
+          --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- ui-coverage-report -->"))) | .id' \
+          | head -n 1)
+
+        if [[ -n "$comment_id" ]]; then
+          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$comment_id" -F body=@coverage-report.md > /dev/null
+        else
+          gh api --method POST "$COMMENTS_URL" -F body=@coverage-report.md > /dev/null
+        fi
 
   test:
     needs: build
