@@ -93,6 +93,26 @@ Generated reports are ignored by version control, ESLint, and Prettier. No cover
 
 See the [initial coverage baseline](tests/coverage-baseline.md) for the recorded results, exclusions, and limitations.
 
+### Coverage in pull requests
+
+The "UI Coverage" workflow measures UI test coverage for every pull request, and the "Report UI Coverage" workflow posts the result as a comment on it once "UI Coverage" has finished.
+This also works for pull requests from forks.
+Each new push updates the same comment.
+The comment shows the coverage of the pull request and, below each value, the change against the commit of the target branch the pull request is based on.
+The change is labelled `%`, but it is the plain difference between the two percentages in percentage points, not a relative change.
+The pull request is measured as GitHub merges it into the target branch for testing, so the change comes from the pull request only, even if the branch is behind the target branch.
+The footer names the last commit of the pull request.
+
+The status icon of each metric shows its coverage level: 🔴 below 50%, 🟠 from 50% and 🟢 from 80%.
+These thresholds are a trial and only colour the report.
+
+Coverage is for information only: a drop in coverage does not fail the build, and "UI Coverage" is not a required check.
+Measuring coverage makes the tests slower, so a test can occasionally hit its time limit and fail "UI Coverage" without blocking the merge.
+If measuring either coverage fails, the comment is not updated and still shows the numbers of an earlier commit, named in its footer.
+
+The full HTML and LCOV reports can be downloaded from the "UI Coverage" run.
+Small changes can come from code that depends on the current time, and the React Compiler can change function and branch counts, so look at the reports before reading too much into a change of a few hundredths.
+
 ## e2e tests
 
 To run the Playwright e2e tests locally, first start core service (also starts keycloak, postgres and rabbitmq) and dev UI, then run the tests:
