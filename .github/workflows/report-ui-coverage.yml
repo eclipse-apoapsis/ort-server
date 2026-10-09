@@ -1,0 +1,61 @@
+name: Report UI Coverage
+
+# Posts the UI coverage measured by "UI Coverage" as a pull request comment. A
+# run for a pull request from a fork has no permission to comment, so this
+# workflow runs separately, once "UI Coverage" has completed. It runs with that
+# permission on artifacts a fork can control, so it must never run code from
+# the pull request.
+
+on:
+  workflow_run:
+    workflows: [UI Coverage]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  report-ui-coverage:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-26.04
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+    # The action looks for coverage thresholds in the Vite config. Take it from
+    # the default branch, not from the pull request.
+    - name: Checkout Vite config
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: ui/vite.config.ts
+        sparse-checkout-cone-mode: false
+
+    - name: Download coverage summary
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: ui-coverage
+        path: ${{ runner.temp }}/ui-coverage
+        github-token: ${{ github.token }}
+        run-id: ${{ github.event.workflow_run.id }}
+
+    - name: Download base coverage summary
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: ui-coverage-base
+        path: ${{ runner.temp }}/ui-coverage-base
+        github-token: ${{ github.token }}
+        run-id: ${{ github.event.workflow_run.id }}
+
+    # The action finds the pull request from the commit that was measured.
+    - name: Report UI test coverage
+      uses: davelosert/vitest-coverage-report-action@c4bbc33a89b7ace0e63d35f1f7d4bcee31155a73 # v2.13.0
+      with:
+        name: UI
+        vite-config-path: ui/vite.config.ts
+        json-summary-path: ${{ runner.temp }}/ui-coverage/coverage-summary.json
+        json-summary-compare-path: ${{ runner.temp }}/ui-coverage-base/coverage-summary.json
+        file-coverage-mode: none
+        threshold-icons: "{0: '🔴', 50: '🟠', 80: '🟢'}"

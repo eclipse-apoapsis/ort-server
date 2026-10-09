@@ -1,0 +1,67 @@
+name: UI Coverage
+
+# Measures the UI test coverage of a pull request and of the commit it is based
+# on. The "Report UI Coverage" workflow posts both as a comment on the pull
+# request. Coverage is for information only, so this is not a required check.
+
+on:
+  pull_request:
+
+permissions: {}
+
+# A run for an older push is cancelled, so that it cannot replace the report of
+# a newer one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ui-coverage:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+        # The commit that merges the pull request into the target branch.
+        - artifact: ui-coverage
+          ref: ${{ github.sha }}
+        # The SHA rather than the branch name, so that the base is the commit the
+        # merge commit was built on, even if the target branch has moved since.
+        - artifact: ui-coverage-base
+          ref: ${{ github.event.pull_request.base.sha }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ matrix.ref }}
+        persist-credentials: false
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+    - name: Generate OpenAPI spec
+      run: ./gradlew --stacktrace :core:generateOpenApiSpec
+
+    - name: Setup pnpm
+      uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
+      with:
+        cache: true
+        require-lockfile: true
+        working-directory: ui
+
+    - name: Generate API client and routes
+      working-directory: ui
+      run: pnpm generate:api && pnpm generate:routes
+
+    - name: Measure UI test coverage
+      working-directory: ui
+      run: pnpm test:coverage
+
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ${{ matrix.artifact }}
+        path: ui/coverage
+        if-no-files-found: error
+        retention-days: 7
