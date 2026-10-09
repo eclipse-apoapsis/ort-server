@@ -100,8 +100,9 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Fetch all previous comments from this bot. 
-        existing_comments=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --jq '.[] | select(.user.login == "github-actions[bot]") | .id')
+        # Fetch all previous comments of this check. Other workflows also comment as this bot, so
+        # select the comments by their first sentence.
+        existing_comments=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("Issues referenced in commit messages and issues linked to this PR are not in sync."))) | .id')
         echo "existing comments: $existing_comments"
 
         # Delete existing comments from this bot.
