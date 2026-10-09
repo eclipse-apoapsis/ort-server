@@ -20,6 +20,7 @@
     "dev": "vite",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:coverage-report": "node --test scripts/coverage-summary.test.mjs",
     "test:e2e": "playwright test",
     "build": "pnpm generate:api && pnpm generate:routes && tsc && vite build",
     "format": "prettier --write .",
