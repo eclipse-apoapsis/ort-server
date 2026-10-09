@@ -237,8 +237,9 @@ The value can contain variables that are resolved based on message properties.
 
 With this property, it is possible to mount [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volumes into the resulting pod.
 The string is interpreted as a sequence of mount declarations separated by whitespace.
-Each mount declaration has the form `name->mountPath`, where `name` is the name of the empty dir volume and `mountPath` is the path in the container where the volume should be mounted.
+Each mount declaration has the form `name->mountPath|subPath`, where `name` is the name of the empty dir volume, `mountPath` is the path in the container where the volume should be mounted, and `subPath` is an optional sub path within the volume to mount instead of its root.
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
+Declaring multiple mount declarations with the same `name` causes the same underlying emptyDir volume to be shared between them; this can be combined with different `subPath` values to expose different subdirectories of this shared volume to different mounts (e.g., in different containers).
 
 #### `mountPvcs`
 
@@ -246,7 +247,7 @@ To achieve this, the Kubernetes Transport implementation generates corresponding
 
 With this property, it is possible to mount [PersistentVolumeClaims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) into the resulting pod.
 The string is interpreted as a sequence of mount declarations separated by whitespace.
-Each mount declaration has the form `pvcName->mountPath,access`, where `pvcName` is the name of the persistent volume claim, `mountPath` is the path in the container where the volume should be mounted, and `access` is either `R` (read-only) or `W` (writable).
+Each mount declaration has the form `pvcName->mountPath|subPath,access`, where `pvcName` is the name of the persistent volume claim, `mountPath` is the path in the container where the volume should be mounted, `subPath` is an optional sub path within the volume to mount instead of its root, and `access` is either `R` (read-only) or `W` (writable).
 To achieve this, the Kubernetes Transport implementation generates corresponding `volume` and `volumeMount` declarations in the pod configuration.
 
 #### `mountSecrets`

@@ -37,10 +37,10 @@ private const val PVC_VOLUME_PREFIX = "pvc-volume-"
 private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)(?:(?:\s*)\|\s*(.+))?""")
 
 /** A regular expression to parse a PVC-based volume mount declaration. */
-private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+),([RrWw])""")
+private val mountPvcDeclarationRegex = Regex("""(\S+)\s*->\s*([^|,]+)(?:\|\s*([^,]+))?,([RrWw])""")
 
 /** A regular expression to parse an empty volume mount declaration. */
-private val mountEmptyDirDeclarationRegex = Regex("""(\S+)\s*->\s*([^,]+)""")
+private val mountEmptyDirDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)(?:\s*\|\s*(.+))?""")
 
 /** A regular expression to parse an expression with an optional preceding name assignment. */
 private val namedDeclarationRegex = Regex("""((\S+)\s*=\s*)?(.+)""")
@@ -67,19 +67,66 @@ sealed interface VolumeMount {
     val mountName: String?
 
     /**
-     * Populate the properties of the passed in [mount] according to the data stored in this object. Use the given
-     * [index] to generate properties that need to be unique, such as a volume name. The sender implementation calls
-     * this function when it constructs the Kubernetes manifest for the pod to create.
+     * An optional sub path to mount from the volume. This is used to mount a specific file or directory from the volume
+     * instead of the whole volume.
      */
-    fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount
+    val subPath: String?
 
     /**
-     * Populate the properties of the passed in [volume] according to the data stored in this object. Use the given
-     * [index] to generate properties that need to be unique, such as a volume name. The sender implementation calls
-     * this function when it constructs the Kubernetes manifest for the pod to create.
+     * The typed identity of the underlying Kubernetes resource (e.g. a secret or a persistent volume claim) backing
+     * this mount. Multiple mount declarations referencing the same resource of the same type have an equal
+     * [VolumeIdentity]. This is used to deduplicate the `volumes` generated for a pod and to link a `volumeMount` to
+     * its corresponding `volume`. Using a typed identity - rather than, for instance, the generated Kubernetes volume
+     * name - prevents mounts that reference different kinds of resources from being incorrectly merged just because
+     * they happen to produce the same name.
      */
-    fun initializeVolume(volume: V1Volume, index: Int): V1Volume
+    val volumeIdentity: VolumeIdentity
+
+    /**
+     * Populate the properties of the passed in [mount] according to the data stored in this object, using the given
+     * [volumeName] as the name of the referenced Kubernetes volume. The sender implementation calls this function
+     * when it constructs the Kubernetes manifest for the pod to create.
+     */
+    fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount
+
+    /**
+     * Populate the properties of the passed in [volume] according to the data stored in this object, using the
+     * given [volumeName] as the name of the Kubernetes volume. The sender implementation calls this function when it
+     * constructs the Kubernetes manifest for the pod to create.
+     */
+    fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume
 }
+
+/**
+ * A sealed interface describing the identity of the concrete Kubernetes resource backing a [VolumeMount]. Instances
+ * are used as keys to deduplicate volume mounts that reference the same resource, independent of the (generated)
+ * name of the resulting Kubernetes volume.
+ */
+sealed interface VolumeIdentity {
+    /** The identity of a volume based on a Kubernetes secret with the given [secretName]. */
+    data class Secret(val secretName: String) : VolumeIdentity
+
+    /** The identity of a volume based on a persistent volume claim with the given [claimName]. */
+    data class Pvc(val claimName: String) : VolumeIdentity
+
+    /** The identity of an empty dir volume with the given [name]. */
+    data class EmptyDir(val name: String) : VolumeIdentity
+}
+
+/**
+ * Generate a Kubernetes-compliant name for the volume identified by [identity]. The generated name must be a valid
+ * DNS label (at most 63 characters, consisting only of lowercase alphanumeric characters or '-'). Since the name of
+ * the backing resource (e.g. a secret name, which is a DNS subdomain that may contain dots and be much longer than
+ * 63 characters) is not guaranteed to fulfill these constraints, the name is not derived from it directly. Instead,
+ * a stable [index] - the position of this identity within the deduplicated list of volume mounts of a pod - is used
+ * to generate a short, deterministic, and always valid name.
+ */
+internal fun generateVolumeName(identity: VolumeIdentity, index: Int): String =
+    when (identity) {
+        is VolumeIdentity.Secret -> "$SECRET_VOLUME_PREFIX${index + 1}"
+        is VolumeIdentity.Pvc -> "$PVC_VOLUME_PREFIX${index + 1}"
+        is VolumeIdentity.EmptyDir -> identity.name
+    }
 
 /**
  * A data class defining a volume for a secret to be mounted in a container.
@@ -92,20 +139,19 @@ internal data class SecretVolumeMount(
     override val mountPath: String,
 
     /** The optional sub path to mount from the volume. */
-    val subPath: String? = null,
+    override val subPath: String? = null,
 
     override val mountName: String? = null
 ) : VolumeMount {
-    override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
-        mount.name("$SECRET_VOLUME_PREFIX${index + 1}")
+    override val volumeIdentity: VolumeIdentity = VolumeIdentity.Secret(secretName)
+
+    override fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount =
+        mount.name(volumeName)
             .subPath(subPath)
             .readOnly(true)
 
-    override fun initializeVolume(
-        volume: V1Volume,
-        index: Int
-    ): V1Volume =
-        volume.name("$SECRET_VOLUME_PREFIX${index + 1}")
+    override fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume =
+        volume.name(volumeName)
             .secret(V1SecretVolumeSource().secretName(secretName))
 }
 
@@ -122,19 +168,20 @@ internal data class PvcVolumeMount(
     /** A flag whether this is a read-only volume. */
     val readOnly: Boolean,
 
-    override val mountName: String? = null
+    override val mountName: String? = null,
+
+    override val subPath: String? = null
 ) : VolumeMount {
-    override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
-        mount.name("$PVC_VOLUME_PREFIX${index + 1}")
+    override val volumeIdentity: VolumeIdentity = VolumeIdentity.Pvc(claimName)
+
+    override fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount =
+        mount.name(volumeName)
+            .subPath(subPath)
             .readOnly(readOnly)
 
-    override fun initializeVolume(volume: V1Volume, index: Int): V1Volume =
-        volume.name("$PVC_VOLUME_PREFIX${index + 1}")
-            .persistentVolumeClaim(
-                V1PersistentVolumeClaimVolumeSource()
-                    .claimName(claimName)
-                    .readOnly(readOnly)
-            )
+    override fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume =
+        volume.name(volumeName)
+            .persistentVolumeClaim(V1PersistentVolumeClaimVolumeSource().claimName(claimName))
 }
 
 /** A data class defining a volume mount for an empty dir. */
@@ -145,16 +192,18 @@ data class EmptyDirVolumeMount(
     /** The path where the volume is mounted into the pod. */
     override val mountPath: String,
 
-    override val mountName: String? = null
-) : VolumeMount {
-    override fun initializeVolumeMount(mount: V1VolumeMount, index: Int): V1VolumeMount =
-        mount.name(name)
+    override val mountName: String? = null,
 
-    override fun initializeVolume(
-        volume: V1Volume,
-        index: Int
-    ): V1Volume =
-        volume.name(name)
+    override val subPath: String? = null
+) : VolumeMount {
+    override val volumeIdentity: VolumeIdentity = VolumeIdentity.EmptyDir(name)
+
+    override fun initializeVolumeMount(mount: V1VolumeMount, volumeName: String): V1VolumeMount =
+        mount.name(volumeName)
+            .subPath(subPath)
+
+    override fun initializeVolume(volume: V1Volume, volumeName: String): V1Volume =
+        volume.name(volumeName)
             .emptyDir(V1EmptyDirVolumeSource())
 }
 
@@ -165,17 +214,24 @@ data class EmptyDirVolumeMount(
 internal fun parseSecretVolumeMount(mountDeclaration: String): VolumeMount? =
     parseVolumeMount(mountDeclaration, mountSecretDeclarationRegex) { match, name ->
         val (secretName, mountPath, subPath) = match.destructured
-        SecretVolumeMount(secretName, mountPath.trim(), subPath.takeUnless { it.isEmpty() }, name)
+        SecretVolumeMount(secretName, mountPath.trim(), subPath.trim().takeUnless { it.isEmpty() }, name)
     }
 
 /**
  * Parse the given [mountDeclaration] for a persistent volume claim and return the corresponding [VolumeMount] or
  * *null* if the declaration is invalid.
  */
+@Suppress("DestructuringDeclarationWithTooManyEntries")
 internal fun parsePvcVolumeMount(mountDeclaration: String): VolumeMount? =
     parseVolumeMount(mountDeclaration, mountPvcDeclarationRegex) { match, name ->
-        val (claimName, mountPath, readOnly) = match.destructured
-        PvcVolumeMount(claimName, mountPath, readOnly.lowercase() == "r", name)
+        val (claimName, mountPath, subPath, readOnly) = match.destructured
+        PvcVolumeMount(
+            claimName,
+            mountPath.trim(),
+            readOnly.lowercase() == "r",
+            name,
+            subPath.trim().takeUnless { it.isEmpty() }
+        )
     }
 
 /**
@@ -184,8 +240,8 @@ internal fun parsePvcVolumeMount(mountDeclaration: String): VolumeMount? =
  */
 internal fun parseEmptyVolumeMount(mountDeclaration: String): VolumeMount? =
     parseVolumeMount(mountDeclaration, mountEmptyDirDeclarationRegex) { match, mountName ->
-        val (name, mountPath) = match.destructured
-        EmptyDirVolumeMount(name, mountPath, mountName)
+        val (name, mountPath, subPath) = match.destructured
+        EmptyDirVolumeMount(name, mountPath.trim(), mountName, subPath.trim().takeUnless { it.isEmpty() })
     }
 
 /**
