@@ -33,6 +33,9 @@ private const val SECRET_VOLUME_PREFIX = "secret-volume-"
 /** A prefix for generating names for PVC volumes. */
 private const val PVC_VOLUME_PREFIX = "pvc-volume-"
 
+/** A prefix for generating names for empty dir volumes. */
+private const val EMPTY_DIR_VOLUME_PREFIX = "empty-dir-volume-"
+
 /** A regular expression to parse a secret volume mount declaration. */
 private val mountSecretDeclarationRegex = Regex("""(\S+)\s*->\s*([^|]+)(?:(?:\s*)\|\s*(.+))?""")
 
@@ -125,7 +128,7 @@ internal fun generateVolumeName(identity: VolumeIdentity, index: Int): String =
     when (identity) {
         is VolumeIdentity.Secret -> "$SECRET_VOLUME_PREFIX${index + 1}"
         is VolumeIdentity.Pvc -> "$PVC_VOLUME_PREFIX${index + 1}"
-        is VolumeIdentity.EmptyDir -> identity.name
+        is VolumeIdentity.EmptyDir -> "$EMPTY_DIR_VOLUME_PREFIX${index + 1}"
     }
 
 /**

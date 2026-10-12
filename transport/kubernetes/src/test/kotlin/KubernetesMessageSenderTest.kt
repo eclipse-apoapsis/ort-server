@@ -105,12 +105,12 @@ class KubernetesMessageSenderTest : StringSpec({
                 subPath shouldBe "sub-data"
             }
             with(mounts[4]) {
-                name shouldBe "dir1"
+                name shouldBe "empty-dir-volume-5"
                 mountPath shouldBe "/mnt/dir1"
                 subPath should beNull()
             }
             with(mounts[5]) {
-                name shouldBe "dir2"
+                name shouldBe "empty-dir-volume-6"
                 mountPath shouldBe "/mnt/dir2"
                 subPath shouldBe "sub-dir2"
             }
@@ -130,8 +130,8 @@ class KubernetesMessageSenderTest : StringSpec({
             "secret-volume-2",
             "pvc-volume-3",
             "pvc-volume-4",
-            "dir1",
-            "dir2"
+            "empty-dir-volume-5",
+            "empty-dir-volume-6"
         )
         val secrets = volumes.mapNotNull { it.secret?.secretName }
         secrets should containExactly("secretService", "topSecret")
@@ -256,7 +256,7 @@ class KubernetesMessageSenderTest : StringSpec({
 
         with(containers[0]) {
             name shouldBe config.mainContainer.name
-            expectMounts("pvc-volume-2", "dir1", "dir2")
+            expectMounts("pvc-volume-2", "empty-dir-volume-3", "empty-dir-volume-4")
         }
 
         with(containers[1]) {
@@ -268,7 +268,7 @@ class KubernetesMessageSenderTest : StringSpec({
                 limits shouldBe mapOf("cpu" to Quantity("50"), "memory" to Quantity("1024"))
                 requests shouldBe mapOf("cpu" to Quantity("25"), "memory" to Quantity("512"))
             }
-            expectMounts("dir1", "dir2")
+            expectMounts("empty-dir-volume-3", "empty-dir-volume-4")
         }
 
         with(containers[2]) {
@@ -277,7 +277,7 @@ class KubernetesMessageSenderTest : StringSpec({
             command shouldBe config.mainContainer.commands
             args shouldBe config.mainContainer.args
             resources should beNull()
-            expectMounts("dir1", "dir2", "secret-volume-1")
+            expectMounts("empty-dir-volume-3", "empty-dir-volume-4", "secret-volume-1")
         }
 
         with(containers[3]) {
@@ -289,7 +289,7 @@ class KubernetesMessageSenderTest : StringSpec({
                 limits?.keys.orEmpty() should beEmpty()
                 requests shouldBe mapOf("cpu" to Quantity("250m"))
             }
-            expectMounts("dir1", "dir2", "secret-volume-1", "pvc-volume-2")
+            expectMounts("empty-dir-volume-3", "empty-dir-volume-4", "secret-volume-1", "pvc-volume-2")
         }
     }
 
@@ -324,7 +324,7 @@ class KubernetesMessageSenderTest : StringSpec({
                 limits?.keys.orEmpty() should beEmpty()
                 requests shouldBe mapOf("memory" to Quantity("128"))
             }
-            expectMounts("secret-volume-1", "dir1")
+            expectMounts("secret-volume-1", "empty-dir-volume-2")
         }
     }
 
@@ -343,7 +343,7 @@ class KubernetesMessageSenderTest : StringSpec({
         volumes.map { it.name } should containExactly(
             "secret-volume-1",
             "pvc-volume-2",
-            "dirX"
+            "empty-dir-volume-3"
         )
 
         val container = job.spec?.template?.spec?.containers?.single()
@@ -354,8 +354,8 @@ class KubernetesMessageSenderTest : StringSpec({
             "secret-volume-1",
             "pvc-volume-2",
             "pvc-volume-2",
-            "dirX",
-            "dirX"
+            "empty-dir-volume-3",
+            "empty-dir-volume-3"
         )
         mounts.map { it.mountPath } shouldBe listOf(
             "/mnt/s1",
