@@ -61,15 +61,13 @@ describe('LastRunStatus', () => {
     const markup = renderLastRunStatus();
 
     expect(markup).toContain('data-slot="skeleton"');
-    expect(markup).toContain('h-5 w-16 rounded-md');
     expect(markup).toContain('Loading data...');
     expect(markup).not.toContain('data-slot="badge"');
   });
 
-  it('reserves space when the repository has no runs', () => {
+  it('renders nothing when the repository has no runs', () => {
     const markup = renderLastRunStatus();
 
-    expect(markup).toContain('class="min-h-5"');
     expect(markup).not.toContain('data-slot="badge"');
     expect(markup).not.toContain('data-slot="skeleton"');
   });

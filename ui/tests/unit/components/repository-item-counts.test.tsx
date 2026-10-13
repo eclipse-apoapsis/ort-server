@@ -172,12 +172,11 @@ describe('RepositoryItemCounts', () => {
     expect(mocks.itemCountsProps).toBeUndefined();
   });
 
-  it('reserves space when the repository has no runs', () => {
+  it('renders nothing when the repository has no runs', () => {
     mocks.latestRun = undefined;
 
     const markup = renderItemCounts();
 
-    expect(markup).toContain('class="min-h-6"');
     expect(markup).not.toContain('item-counts-skeleton');
     expect(mocks.useSuspenseQuery).not.toHaveBeenCalled();
     expect(mocks.itemCountsProps).toBeUndefined();

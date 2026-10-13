@@ -79,7 +79,6 @@ describe('LastJobStatus', () => {
 
     const markup = renderLastJobStatus();
 
-    expect(markup).toContain('class="min-h-3"');
     expect(markup).toContain('data-slot="job-status"');
     expect(mocks.jobStatusProps).toEqual({
       jobs,
@@ -90,22 +89,19 @@ describe('LastJobStatus', () => {
     });
   });
 
-  it('renders five skeleton dots while the latest run is loading', () => {
+  it('renders a skeleton while the latest run is loading', () => {
     mocks.suspend = true;
 
     const markup = renderLastJobStatus();
 
-    expect(markup).toContain('flex min-h-3 items-center space-x-1');
-    expect(markup.match(/data-slot="skeleton"/g)).toHaveLength(5);
-    expect(markup.match(/h-3 w-3 rounded-full/g)).toHaveLength(5);
+    expect(markup).toContain('data-slot="skeleton"');
     expect(markup).toContain('Loading data...');
     expect(mocks.jobStatusProps).toBeUndefined();
   });
 
-  it('reserves space when the repository has no runs', () => {
+  it('renders nothing when the repository has no runs', () => {
     const markup = renderLastJobStatus();
 
-    expect(markup).toContain('class="min-h-3"');
     expect(markup).not.toContain('data-slot="job-status"');
     expect(markup).not.toContain('data-slot="skeleton"');
     expect(mocks.jobStatusProps).toBeUndefined();
