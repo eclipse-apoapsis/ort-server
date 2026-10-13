@@ -124,12 +124,20 @@ const renderView = (search: Record<string, unknown> = {}) =>
       withQueryClient: true,
     }
   );
+// These look panels and their toggle buttons up by their label instead of
+// their role. With several tables open, a page-wide role query has to work out
+// the role of every element on the page, which takes most of a second when the
+// tests run with coverage.
+const licenseButton = (license: string) =>
+  screen.getByLabelText(`Packages for ${license}`, { selector: 'button' });
 const packageRegion = (license: string) =>
-  screen.getByRole('region', { name: `Packages for ${license}` });
+  screen.getByLabelText(`Packages for ${license}`, { selector: 'section' });
 const findingsName = (license: string, id = firstId) =>
   `License findings for ${id} under ${license}`;
+const findingsButton = (license: string, id = firstId) =>
+  screen.getByLabelText(findingsName(license, id), { selector: 'button' });
 const findingsRegion = (license: string, id = firstId) =>
-  screen.getByRole('region', { name: findingsName(license, id) });
+  screen.getByLabelText(findingsName(license, id), { selector: 'section' });
 const currentSearch = (router: ReturnType<typeof renderView>['router']) =>
   licenseFindingsSearchParameterSchema.parse(router.state.location.search);
 const packageRequests = (license: string) =>
@@ -213,21 +221,17 @@ describe('independent detected-license tables', () => {
   it('opens multiple licenses and packages and deletes only the closed subtree', async () => {
     const { user, router } = renderView();
     await user.click(
-      await screen.findByRole('button', { name: 'Packages for MIT' })
+      await screen.findByLabelText('Packages for MIT', { selector: 'button' })
     );
+    await user.click(licenseButton('Apache-2.0'));
     await user.click(
-      screen.getByRole('button', { name: 'Packages for Apache-2.0' })
+      await screen.findByLabelText(findingsName('MIT'), { selector: 'button' })
     );
-    await user.click(
-      await screen.findByRole('button', { name: findingsName('MIT') })
-    );
-    await user.click(
-      screen.getByRole('button', { name: findingsName('MIT', secondId) })
-    );
-    await user.click(
-      screen.getByRole('button', { name: findingsName('Apache-2.0') })
-    );
-    await screen.findByRole('region', { name: findingsName('Apache-2.0') });
+    await user.click(findingsButton('MIT', secondId));
+    await user.click(findingsButton('Apache-2.0'));
+    await screen.findByLabelText(findingsName('Apache-2.0'), {
+      selector: 'section',
+    });
     expect(currentSearch(router)).toEqual(openedSearch());
     expect(findingsRegion('MIT', secondId)).toBeVisible();
 
@@ -242,29 +246,29 @@ describe('independent detected-license tables', () => {
       ).toEqual({ page: 2 })
     );
     const sibling = currentSearch(router).licenseTables?.['Apache-2.0'];
-    await user.click(screen.getByRole('button', { name: findingsName('MIT') }));
+    await user.click(findingsButton('MIT'));
     expect(currentSearch(router).licenseTables?.MIT?.packages).toEqual({
       [secondId]: {},
     });
-    await user.click(screen.getByRole('button', { name: findingsName('MIT') }));
-    await screen.findByRole('region', { name: findingsName('MIT') });
+    await user.click(findingsButton('MIT'));
+    await screen.findByLabelText(findingsName('MIT'), { selector: 'section' });
     expect(
       currentSearch(router).licenseTables?.MIT?.packages?.[firstId]
     ).toEqual({});
 
-    await user.click(screen.getByRole('button', { name: 'Packages for MIT' }));
+    await user.click(licenseButton('MIT'));
     expect(currentSearch(router).licenseTables).toEqual({
       'Apache-2.0': sibling,
     });
     expect(
-      screen.queryByRole('region', { name: 'Packages for MIT' })
+      screen.queryByLabelText('Packages for MIT', { selector: 'section' })
     ).not.toBeInTheDocument();
     expect(findingsRegion('Apache-2.0')).toBeVisible();
-    await user.click(screen.getByRole('button', { name: 'Packages for MIT' }));
-    await screen.findByRole('region', { name: 'Packages for MIT' });
+    await user.click(licenseButton('MIT'));
+    await screen.findByLabelText('Packages for MIT', { selector: 'section' });
     expect(currentSearch(router).licenseTables?.MIT).toEqual({});
     expect(
-      screen.queryByRole('region', { name: findingsName('MIT') })
+      screen.queryByLabelText(findingsName('MIT'), { selector: 'section' })
     ).not.toBeInTheDocument();
   });
 
