@@ -18,7 +18,7 @@ Contributions are welcome, please see the [contributing guide](CONTRIBUTING.md) 
 ## Running ORT Server
 
 The easiest way to run the ORT Server for testing is to use [Docker Compose](https://docs.docker.com/compose/).
-For a proper deployment to Kubernetes, the project will later provide a Helm chart.
+For a proper deployment to Kubernetes, a [Helm chart](https://github.com/eclipse-apoapsis/helm-charts) is provided.
 
 ### Docker Compose
 
