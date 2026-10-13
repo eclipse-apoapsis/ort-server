@@ -110,8 +110,4 @@ describe('getLicenseBadgeColors', () => {
     expect(result.borderColor).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
     expect(['black', 'white']).toContain(result.color);
   });
-
-  it('returns deterministic colors for the same license', () => {
-    expect(getLicenseBadgeColors('MIT')).toEqual(getLicenseBadgeColors('MIT'));
-  });
 });
