@@ -41,28 +41,17 @@ function HomepageHeader() {
   );
 }
 
-function EclipseIncubation() {
+function ReferenceImplementation() {
   return (
     <section className={clsx('hero', styles.heroBanner)}>
       <div className='container'>
-        <div className={styles.incubation}>
-          <img
-            src='https://projects.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_projects/images/project_state/incubating.png'
-            alt='Incubation'
-            className={styles.incubationImage}
-          />
-          <p className='hero__subtitle'>
-            The ORT Server is the reference implementation of the{' '}
-            <a href='https://projects.eclipse.org/projects/technology.apoapsis'>
-              Eclipse Apoapsis™
-            </a>{' '}
-            project which is currently in the{' '}
-            <a href='https://www.eclipse.org/projects/handbook/#incubation'>
-              incubation
-            </a>{' '}
-            phase.
-          </p>
-        </div>
+        <p className='hero__subtitle'>
+          The <b>ORT Server</b> is the reference implementation of the{' '}
+          <a href='https://projects.eclipse.org/projects/technology.apoapsis'>
+            Eclipse Apoapsis™
+          </a>{' '}
+          project.
+        </p>
       </div>
     </section>
   );
@@ -75,7 +64,7 @@ export default function Home(): JSX.Element {
       <HomepageHeader />
       <main>
         <HomepageFeatures />
-        <EclipseIncubation />
+        <ReferenceImplementation />
       </main>
     </Layout>
   );
