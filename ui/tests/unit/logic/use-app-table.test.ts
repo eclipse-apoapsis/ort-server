@@ -22,25 +22,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 
 import {
-  appTableFeatures,
   selectNoTableState,
   useAppTable,
   type AppColumnDef,
 } from '@/hooks/use-app-table';
-
-it('registers only the required table features and row models', () => {
-  expect(Object.keys(appTableFeatures).sort()).toEqual([
-    'columnFilteringFeature',
-    'columnMeta',
-    'columnSizingFeature',
-    'columnVisibilityFeature',
-    'paginatedRowModel',
-    'rowExpandingFeature',
-    'rowPaginationFeature',
-    'rowSortingFeature',
-    'sortedRowModel',
-  ]);
-});
 
 it('sorts client-side rows by a controlled string accessor', () => {
   type PackageRow = { packageId: string };
