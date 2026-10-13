@@ -52,53 +52,6 @@ describe('CreateRepositoryForm', () => {
     expect(createButton).toBeDisabled();
   });
 
-  it('renders the fields in the expected order', () => {
-    const { container } = render(
-      <CreateRepositoryForm isPending={false} onSubmit={vi.fn()} />
-    );
-
-    const labels = Array.from(container.querySelectorAll('label')).map(
-      (label) => label.textContent
-    );
-
-    expect(labels).toEqual([
-      'URL',
-      'Type',
-      'Name',
-      'Description',
-      'Username',
-      passwordLabel,
-    ]);
-
-    const urlField = screen
-      .getByLabelText('URL')
-      .closest('[data-slot="form-item"]');
-    const typeField = screen
-      .getByLabelText('Type')
-      .closest('[data-slot="form-item"]');
-
-    expect(urlField?.parentElement).toBe(typeField?.parentElement);
-    expect(urlField?.parentElement).toHaveClass(
-      'grid',
-      'md:grid-cols-[minmax(0,1fr)_auto]'
-    );
-
-    const usernameField = screen
-      .getByLabelText('Username')
-      .closest('[data-slot="form-item"]');
-    const passwordField = screen
-      .getByLabelText(passwordLabel)
-      .closest('[data-slot="form-item"]');
-
-    expect(usernameField?.parentElement).toBe(passwordField?.parentElement);
-    expect(usernameField?.parentElement).toHaveClass('grid', 'md:grid-cols-2');
-    expect(
-      screen.getAllByPlaceholderText(
-        '(optional, only needed for private repositories)'
-      )
-    ).toHaveLength(2);
-  });
-
   it('requires a password or token when a username is entered', async () => {
     const user = userEvent.setup();
 

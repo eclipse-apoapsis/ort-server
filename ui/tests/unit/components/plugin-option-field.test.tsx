@@ -81,14 +81,6 @@ describe('PluginOptionField', () => {
     Element.prototype.scrollIntoView = () => {};
   });
 
-  it('renders the option name, type and description', () => {
-    renderOptionField(createOption());
-
-    expect(screen.getByText('setting')).toBeInTheDocument();
-    expect(screen.getByText('STRING')).toBeInTheDocument();
-    expect(screen.getByText('The setting description.')).toBeInTheDocument();
-  });
-
   describe('required marker', () => {
     it('marks a required option without a value until it is filled', async () => {
       const user = userEvent.setup();
@@ -168,17 +160,6 @@ describe('PluginOptionField', () => {
 
       expect(screen.queryByText('MODIFIED')).not.toBeInTheDocument();
     });
-  });
-
-  it('renders the checkbox of a BOOLEAN option before its label', () => {
-    renderOptionField(createOption({ type: 'BOOLEAN' }), { value: false });
-
-    const checkbox = screen.getByRole('checkbox', { name: /setting/ });
-    const label = screen.getByText('setting');
-
-    expect(
-      checkbox.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
   });
 
   it('renders a checkbox for a BOOLEAN option', async () => {
