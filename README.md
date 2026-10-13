@@ -4,13 +4,6 @@ The [Eclipse Apoapsis](https://projects.eclipse.org/projects/technology.apoapsis
 standalone application to deploy the [OSS Review Toolkit](https://github.com/oss-review-toolkit/ort) as a service in the
 cloud.
 
-> [!NOTE]
-> This project is currently in the [incubation phase](https://www.eclipse.org/projects/handbook/#incubation) at the
-> Eclipse Foundation and working towards making the first release.
-> Once released, the project will use semantic versioning, until then breaking changes can occur at any time.
-> 
-> <img alt="Eclipse Incubation" src="https://projects.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_projects/images/project_state/incubating.png" width="10%">
-
 ## Community
 
 To communicate with the developers, you can:
