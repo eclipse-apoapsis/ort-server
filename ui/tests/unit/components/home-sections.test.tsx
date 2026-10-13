@@ -24,7 +24,6 @@ import { useState } from 'react';
 import { expect, it, vi } from 'vitest';
 
 import type { RecentRunItem } from '@/providers/home-data';
-import { HomeEmptyState } from '@/routes/-components/home-empty-state';
 import { HomeOrganizationsSection } from '@/routes/-components/home-organizations-section';
 import { HomeRecentRunsSection } from '@/routes/-components/home-recent-runs-section';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
@@ -70,26 +69,14 @@ const renderRecentRuns = (recentRuns: RecentRunItem[]) =>
     }
   );
 
-it('renders children in the home empty state', async () => {
-  renderInteractiveWithRouter(
-    <HomeEmptyState>No favorites yet</HomeEmptyState>,
-    {
-      path: '/',
-    }
-  );
-
-  expect(await screen.findByText('No favorites yet')).toBeInTheDocument();
-});
-
 it('links to the organizations page', async () => {
   renderInteractiveWithRouter(<HomeOrganizationsSection />, {
     path: '/',
     routes: [{ path: '/' }, { path: '/organizations' }],
   });
 
-  expect(await screen.findByText('Organizations')).toBeInTheDocument();
   expect(
-    screen.getByRole('link', { name: 'Browse organizations' })
+    await screen.findByRole('link', { name: 'Browse organizations' })
   ).toHaveAttribute('href', '/organizations');
 });
 

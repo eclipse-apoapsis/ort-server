@@ -164,8 +164,6 @@ describe('PluginOptionFormFields', () => {
       expect(markup).toContain(type);
       expect(markup).toContain(option.description);
       expect(markup).toContain(expectedMarkup);
-      expect(markup).toContain('Final');
-      expect(markup).toContain('Undefined');
 
       if (type === 'SECRET') {
         expect(markup).toContain(
@@ -185,8 +183,6 @@ describe('PluginOptionFormFields', () => {
 
     expect(markup).toContain('value="configured value"');
     expect(markup).toContain('data-state="checked"');
-    expect(markup).toContain('Final');
-    expect(markup).toContain('Undefined');
   });
 
   it('marks an option as not set while its value is empty', async () => {

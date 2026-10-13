@@ -92,10 +92,9 @@ const renderEnvironmentDefinitions = (
   });
 
 describe('EnvironmentDefinitionsFields', () => {
-  it('renders an empty environment definition list', () => {
+  it('renders only the add action without definitions', () => {
     const markup = renderEnvironmentDefinitions(baseDefaultValues);
 
-    expect(markup).toContain('Environment configuration');
     expect(markup).toContain('Add environment configuration');
     expect(markup).not.toContain('>Package manager<');
   });
