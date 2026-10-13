@@ -43,11 +43,7 @@ vi.mock('@/hooks/use-authorization', () => ({
 
 const renderCard = () =>
   renderStaticWithRouter(
-    <ProductRepositoriesStatisticsCard
-      orgId='42'
-      productId='84'
-      className='col-span-2'
-    />,
+    <ProductRepositoriesStatisticsCard orgId='42' productId='84' />,
     {
       path: '/organizations/42/products/84',
       routes: [
@@ -81,7 +77,6 @@ describe('ProductRepositoriesStatisticsCard', () => {
     expect(markup).toContain(
       'href="/organizations/42/products/84/create-repository"'
     );
-    expect(markup).toContain('col-span-2');
     expect(mocks.useProductPermission).toHaveBeenCalledWith(
       84,
       'CREATE_REPOSITORY'

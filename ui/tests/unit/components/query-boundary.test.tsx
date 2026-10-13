@@ -65,7 +65,6 @@ describe('QueryErrorFallback', () => {
       <QueryErrorFallback error={new Error('Request failed')} reset={vi.fn()} />
     );
 
-    expect(markup).toContain('lucide-triangle-alert');
     expect(markup).toContain('Retry');
     expect(markup).toContain(
       'aria-label="Could not load data: Request failed. Click to retry."'

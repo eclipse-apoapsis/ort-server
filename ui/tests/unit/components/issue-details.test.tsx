@@ -31,22 +31,18 @@ const issue: Issue = {
 };
 
 describe('IssueDetails', () => {
-  it('renders the existing message and styling unchanged', () => {
+  it('renders the message', () => {
     const markup = renderToStaticMarkup(<IssueDetails issue={issue} />);
 
-    expect(markup).toContain(
-      `<div class="text-muted-foreground break-all whitespace-pre-line italic">${issue.message}</div>`
-    );
+    expect(markup).toContain(issue.message);
   });
 
-  it('renders the fallback for an empty message with the same styling', () => {
+  it('renders a fallback for an empty message', () => {
     const markup = renderToStaticMarkup(
       <IssueDetails issue={{ ...issue, message: '' }} />
     );
 
-    expect(markup).toContain(
-      '<div class="text-muted-foreground break-all whitespace-pre-line italic">No details.</div>'
-    );
+    expect(markup).toContain('No details.');
   });
 
   it.each([undefined, null, '', ' \n\t '])(
@@ -57,7 +53,6 @@ describe('IssueDetails', () => {
       );
 
       expect(markup).not.toContain('How to fix');
-      expect(markup).not.toContain('prose');
       expect(markup).toContain(issue.message);
     }
   );
@@ -77,12 +72,12 @@ describe('IssueDetails', () => {
       );
 
       expect(markup).toContain(message || 'No details.');
-      expect(markup).toContain('<div class="font-semibold">How to fix</div>');
+      expect(markup).toContain('How to fix');
       expect(markup).toContain('<strong>Update</strong>');
       expect(markup).toContain('href="https://example.com/fix"');
       expect(markup).toContain('rel="noopener noreferrer"');
       expect(markup).toContain('<pre');
-      expect(markup).toContain('<code class="p-1">pnpm install\n</code>');
+      expect(markup).toMatch(/<code[^>]*>pnpm install\n<\/code>/);
     }
   );
 

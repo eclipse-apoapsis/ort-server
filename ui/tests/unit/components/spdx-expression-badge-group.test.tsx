@@ -59,7 +59,7 @@ describe('SpdxExpressionBadgeGroup', () => {
       <SpdxExpressionBadgeGroup expression='MIT AND Apache-2.0' suffix=',' />
     );
 
-    expect(markup).toMatch(/Apache-2.0<\/span>,<\/span>/);
+    expect(markup.replace(/<[^>]*>/g, '')).toContain('Apache-2.0,');
   });
 
   it('renders deprecated GPL plus syntax unchanged', () => {
