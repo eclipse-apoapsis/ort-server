@@ -79,18 +79,19 @@ const renderSearch = (search = '') =>
   });
 
 // The texts of the cells in the column with the given header, from top to bottom.
+// Reads the table through the DOM instead of role queries. A role query per
+// row and cell is slow when the tests run with coverage, and this runs on every
+// retry of waitFor.
 const getColumnTexts = (header: string) => {
-  const columnIndex = screen
-    .getAllByRole('columnheader')
-    .findIndex((columnHeader) => columnHeader.textContent.includes(header));
+  const columnIndex = Array.from(
+    screen.getByRole('table').querySelectorAll('thead th')
+  ).findIndex((columnHeader) => columnHeader.textContent.includes(header));
   expect(columnIndex).toBeGreaterThanOrEqual(0);
 
-  return screen
-    .getAllByRole('row')
-    .slice(1)
-    .map(
-      (row) => within(row).getAllByRole('cell').at(columnIndex)?.textContent
-    );
+  return Array.from(
+    screen.getByRole('table').querySelectorAll('tbody tr'),
+    (row) => row.querySelectorAll('td')[columnIndex]?.textContent
+  );
 };
 
 const revisions = (first: number, last: number) =>
@@ -166,7 +167,7 @@ describe('package search pages', () => {
       sortBy: [{ id: 'ortRunIndex', desc: false }],
     });
     expect(mocks.runs).toHaveBeenCalledOnce();
-  });
+  }, 10_000);
 
   it('shows the other package identifier when the identifier type changes', async () => {
     renderSearch('?pkgId=example');
