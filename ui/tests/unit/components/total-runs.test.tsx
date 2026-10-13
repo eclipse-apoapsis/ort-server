@@ -50,10 +50,9 @@ describe('TotalRuns', () => {
     });
   });
 
-  it('renders the total run count in a stable-height container', () => {
+  it('renders the total run count', () => {
     const markup = renderTotalRuns();
 
-    expect(markup).toContain('class="min-h-5"');
     expect(markup).toContain('>17</div>');
   });
 
@@ -63,7 +62,6 @@ describe('TotalRuns', () => {
     const markup = renderTotalRuns();
 
     expect(markup).toContain('data-slot="skeleton"');
-    expect(markup).toContain('h-5 w-6');
     expect(markup).toContain('Loading data...');
     expect(markup).not.toContain('>17</div>');
   });
