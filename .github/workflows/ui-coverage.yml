@@ -6,6 +6,10 @@ name: UI Coverage
 
 on:
   pull_request:
+    # Only run if the UI or the coverage workflow change.
+    paths:
+    - .github/workflows/ui-coverage.yml
+    - ui/**
 
 permissions: {}
 
