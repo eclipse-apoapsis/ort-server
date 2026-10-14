@@ -17,7 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { OrtRun, PreconfiguredPluginDescriptor } from '@/api';
+import type {
+  DefaultPlugins,
+  DefaultPluginsCategory,
+  OrtRun,
+  PreconfiguredPluginDescriptor,
+} from '@/api';
+import type { ScannerScope } from '@/components/form/plugin-multi-select-field';
 import { environmentDefinitionsSchema } from '@/lib/types';
 import { convertMapToArray } from './form-primitives';
 import {
@@ -30,22 +36,119 @@ import {
 } from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
 
-/** The ID of the legacy Gradle package manager, which is not enabled by default. */
-const LEGACY_GRADLE_ID = 'Gradle';
+/**
+ * Get the selected scanners and their scopes from the default package and project scanners.
+ */
+function getDefaultScannerSelection(
+  packageScanners: readonly string[],
+  projectScanners: readonly string[]
+): {
+  scanners: string[];
+  scannerScopes: Record<string, ScannerScope>;
+} {
+  const packageScannerSet = new Set(packageScanners);
+  const projectScannerSet = new Set(projectScanners);
+  const scanners = Array.from(
+    new Set([...packageScanners, ...projectScanners])
+  );
+
+  const getScope = (scanner: string) => {
+    if (!projectScannerSet.has(scanner)) return 'packages' as const;
+    if (!packageScannerSet.has(scanner)) return 'projects' as const;
+    return 'both' as const;
+  };
+
+  return {
+    scanners,
+    scannerScopes: Object.fromEntries(
+      scanners.map((scanner) => [scanner, getScope(scanner)])
+    ),
+  };
+}
+
+/** The plugins available in the create run form, grouped by plugin type. */
+export type PluginGroups = {
+  advisorPlugins: PreconfiguredPluginDescriptor[];
+  scannerPlugins: PreconfiguredPluginDescriptor[];
+  reporterPlugins: PreconfiguredPluginDescriptor[];
+  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[];
+  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
+  packageManagerPlugins: PreconfiguredPluginDescriptor[];
+};
+
+/** The plugins that are selected by default in the plugin lists of the create run form. */
+export type DefaultPluginSelections = {
+  packageManagers: string[];
+  packageCurationProviders: string[];
+  advisors: string[];
+  scanners: string[];
+  scannerScopes: Record<string, ScannerScope>;
+  packageConfigurationProviders: string[];
+  reporters: string[];
+};
+
+/**
+ * Get the plugins that are selected by default in the create run form from the given default
+ * plugins, ignoring those that are not available.
+ */
+export function getDefaultPluginSelections(
+  defaultPlugins: readonly DefaultPlugins[],
+  pluginGroups: PluginGroups
+): DefaultPluginSelections {
+  const getDefaultPluginIds = (
+    category: DefaultPluginsCategory,
+    plugins: readonly PreconfiguredPluginDescriptor[]
+  ) => {
+    const availablePluginIds = new Set(plugins.map((plugin) => plugin.id));
+
+    return (
+      defaultPlugins.find((defaults) => defaults.category === category)
+        ?.pluginIds ?? []
+    ).filter((pluginId) => availablePluginIds.has(pluginId));
+  };
+
+  const scannerSelection = getDefaultScannerSelection(
+    getDefaultPluginIds('SCANNER', pluginGroups.scannerPlugins),
+    getDefaultPluginIds('PROJECT_SCANNER', pluginGroups.scannerPlugins)
+  );
+
+  return {
+    packageManagers: getDefaultPluginIds(
+      'PACKAGE_MANAGER',
+      pluginGroups.packageManagerPlugins
+    ),
+    packageCurationProviders: getDefaultPluginIds(
+      'PACKAGE_CURATION_PROVIDER',
+      pluginGroups.packageCurationProviderPlugins
+    ),
+    advisors: getDefaultPluginIds('ADVISOR', pluginGroups.advisorPlugins),
+    scanners: scannerSelection.scanners,
+    scannerScopes: scannerSelection.scannerScopes,
+    packageConfigurationProviders: getDefaultPluginIds(
+      'PACKAGE_CONFIGURATION_PROVIDER',
+      pluginGroups.packageConfigurationProviderPlugins
+    ),
+    reporters: getDefaultPluginIds('REPORTER', pluginGroups.reporterPlugins),
+  };
+}
 
 /**
  * Get the default values for the create run form. The form can be provided with a previously run
- * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults.
+ * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults,
+ * which select the given default plugins.
  */
 export function defaultValues(
   ortRun: OrtRun | null,
-  advisorPlugins: PreconfiguredPluginDescriptor[],
-  scannerPlugins: PreconfiguredPluginDescriptor[],
-  reporterPlugins: PreconfiguredPluginDescriptor[],
+  {
+    advisorPlugins,
+    scannerPlugins,
+    reporterPlugins,
+    packageCurationProviderPlugins,
+    packageConfigurationProviderPlugins,
+    packageManagerPlugins,
+  }: PluginGroups,
   isSuperuser: boolean,
-  packageCurationProviderPlugins: PreconfiguredPluginDescriptor[],
-  packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[],
-  packageManagerPlugins: PreconfiguredPluginDescriptor[]
+  defaultSelections: DefaultPluginSelections
 ): CreateRunFormValues {
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
   const scannerPluginDefaultValues = getPluginDefaultValues(scannerPlugins);
@@ -66,21 +169,9 @@ export function defaultValues(
     providerPluginConfigsToFormValues(
       ortRun?.jobConfigs.reporter?.packageConfigurationProviders
     );
-  const scannerDefaults = {
-    scanners: ['ScanCode'],
-    scannerScopes: {
-      ScanCode: 'both' as const,
-    } as Record<string, 'both' | 'packages' | 'projects'>,
-  };
-
   const packageManagerPluginDefaultValues = getPluginDefaultValues(
     packageManagerPlugins
   );
-  // All available package managers are enabled by default, except the legacy Gradle
-  // package manager which is mutually exclusive with the current Gradle package manager.
-  const defaultPackageManagers = packageManagerPlugins
-    .map((plugin) => plugin.id)
-    .filter((pluginId) => pluginId !== LEGACY_GRADLE_ID);
   const packageManagerFormValues = packageManagerConfigsToFormValues(
     ortRun?.jobConfigs.analyzer?.packageManagerOptions
   );
@@ -97,17 +188,17 @@ export function defaultValues(
         skipExcluded: true,
         keepAliveWorker: false,
         keepAlivePhases: [],
-        packageCurationProviders: [],
+        packageCurationProviders: defaultSelections.packageCurationProviders,
         packageCurationProviderConfig:
           packageCurationProviderPluginDefaultValues,
-        packageManagers: defaultPackageManagers,
+        packageManagers: defaultSelections.packageManagers,
         packageManagerConfig: packageManagerPluginDefaultValues,
         packageManagerMustRunAfter: {},
       },
       advisor: {
         enabled: true,
         skipExcluded: true,
-        advisors: ['OSV', 'VulnerableCode'],
+        advisors: defaultSelections.advisors,
         config: advisorPluginDefaultValues,
         keepAliveWorker: false,
       },
@@ -115,7 +206,8 @@ export function defaultValues(
         enabled: true,
         skipConcluded: true,
         skipExcluded: true,
-        ...scannerDefaults,
+        scanners: defaultSelections.scanners,
+        scannerScopes: defaultSelections.scannerScopes,
         config: scannerPluginDefaultValues,
         keepAliveWorker: false,
       },
@@ -126,16 +218,18 @@ export function defaultValues(
         copyrightGarbageFile: '',
         resolutionsFile: '',
         keepAliveWorker: false,
-        packageConfigurationProviders: [],
+        packageConfigurationProviders:
+          defaultSelections.packageConfigurationProviders,
         packageConfigurationProviderConfig:
           packageConfigurationProviderPluginDefaultValues,
       },
       reporter: {
         enabled: true,
-        formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
+        formats: defaultSelections.reporters,
         config: reporterPluginDefaultValues,
         keepAliveWorker: false,
-        packageConfigurationProviders: [],
+        packageConfigurationProviders:
+          defaultSelections.packageConfigurationProviders,
         packageConfigurationProviderConfig:
           packageConfigurationProviderPluginDefaultValues,
       },
@@ -206,8 +300,11 @@ export function defaultValues(
             environmentVariables:
               ortRun.jobConfigs.analyzer?.environmentConfig
                 ?.environmentVariables || undefined,
-            packageCurationProviders:
-              packageCurationProviderFormValues.selectedPluginIds,
+            // Provider lists that are not set in the previous run use the defaults.
+            packageCurationProviders: ortRun.jobConfigs.analyzer
+              ?.packageCurationProviders
+              ? packageCurationProviderFormValues.selectedPluginIds
+              : baseDefaults.jobConfigs.analyzer.packageCurationProviders,
             packageCurationProviderConfig: mergePluginConfigs(
               packageCurationProviderFormValues.config,
               packageCurationProviderPluginDefaultValues,
@@ -258,7 +355,7 @@ export function defaultValues(
             ...reconstructScannerSelection(
               ortRun.jobConfigs.scanner?.scanners ?? null,
               ortRun.jobConfigs.scanner?.projectScanners ?? null,
-              scannerDefaults
+              defaultSelections
             ),
             config: mergePluginConfigs(
               ortRun.jobConfigs.scanner?.config,
@@ -270,8 +367,10 @@ export function defaultValues(
             enabled:
               ortRun.jobConfigs.evaluator !== undefined &&
               ortRun.jobConfigs.evaluator !== null,
-            packageConfigurationProviders:
-              evaluatorPackageConfigurationProviderFormValues.selectedPluginIds,
+            packageConfigurationProviders: ortRun.jobConfigs.evaluator
+              ?.packageConfigurationProviders
+              ? evaluatorPackageConfigurationProviderFormValues.selectedPluginIds
+              : baseDefaults.jobConfigs.evaluator.packageConfigurationProviders,
             packageConfigurationProviderConfig: mergePluginConfigs(
               evaluatorPackageConfigurationProviderFormValues.config,
               packageConfigurationProviderPluginDefaultValues,
@@ -294,8 +393,10 @@ export function defaultValues(
               reporterPluginDefaultValues,
               reporterPlugins
             ),
-            packageConfigurationProviders:
-              reporterPackageConfigurationProviderFormValues.selectedPluginIds,
+            packageConfigurationProviders: ortRun.jobConfigs.reporter
+              ?.packageConfigurationProviders
+              ? reporterPackageConfigurationProviderFormValues.selectedPluginIds
+              : baseDefaults.jobConfigs.reporter.packageConfigurationProviders,
             packageConfigurationProviderConfig: mergePluginConfigs(
               reporterPackageConfigurationProviderFormValues.config,
               packageConfigurationProviderPluginDefaultValues,

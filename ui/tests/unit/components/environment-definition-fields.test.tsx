@@ -24,8 +24,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ENVIRONMENT_DEFINITION_SCHEMAS } from '@/lib/environment-definition-fields';
-import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import { EnvironmentDefinitionsFields } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components/environment-definitions';
+import { createFormDefaultValues } from '../fixtures/create-run';
 import { renderWithForm, renderWithStableForm } from '../fixtures/form-harness';
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -62,7 +62,7 @@ vi.mock('@/hooks/use-infrastructure-services', () => ({
   }),
 }));
 
-const baseDefaultValues = defaultValues(null, [], [], [], false, [], [], []);
+const baseDefaultValues = createFormDefaultValues();
 const conanDefaultEntry = ENVIRONMENT_DEFINITION_SCHEMAS.find(
   (schema) => schema.key === 'conan'
 )?.defaultEntries[0];

@@ -24,6 +24,7 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import type {
+  DefaultPlugins,
   OrtRun,
   PostRepositoryRun,
   PreconfiguredPluginDescriptor,
@@ -67,7 +68,11 @@ import {
   ReporterFields,
   ScannerFields,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
-import { defaultValues } from './default-values';
+import {
+  defaultValues,
+  getDefaultPluginSelections,
+  type PluginGroups,
+} from './default-values';
 import { formValuesToPayload } from './payload';
 import { UNMANAGED_PACKAGE_MANAGER_ID } from './plugin-utils';
 import {
@@ -86,6 +91,11 @@ type CreateRunPermissions = {
 };
 
 export type CreateRunFormProps = {
+  /**
+   * The plugins that are enabled by default for each plugin type. If they are not available, no
+   * plugins are selected by default.
+   */
+  defaultPlugins?: DefaultPlugins[];
   isSubmitting: boolean;
   isSuperuser: boolean;
   onConfigContextChange?: (configContext: string) => void;
@@ -99,6 +109,7 @@ export type CreateRunFormProps = {
 };
 
 export const CreateRunForm = ({
+  defaultPlugins,
   isSubmitting,
   isSuperuser,
   onConfigContextChange,
@@ -116,7 +127,7 @@ export const CreateRunForm = ({
   const pluginsUnavailable = pluginsLoading || pluginsLoadFailed;
 
   // Memoize the grouping so that its identity only changes with the plugins.
-  const pluginGroups = useMemo(() => {
+  const pluginGroups = useMemo((): PluginGroups => {
     const byType = (type: PreconfiguredPluginDescriptor['type']) =>
       plugins.filter((plugin) => plugin.type === type);
     return {
@@ -161,21 +172,17 @@ export const CreateRunForm = ({
     packageManagerPlugins
   );
 
+  const defaultPluginSelections = useMemo(
+    () => getDefaultPluginSelections(defaultPlugins ?? [], pluginGroups),
+    [defaultPlugins, pluginGroups]
+  );
+
   // `values` lets React Hook Form update untouched fields when the plugins change.
   // Memoize them so unrelated form renders do not trigger a reset.
   const pluginDefaults = useMemo(
     () =>
-      defaultValues(
-        rerun,
-        pluginGroups.advisorPlugins,
-        pluginGroups.scannerPlugins,
-        pluginGroups.reporterPlugins,
-        isSuperuser,
-        pluginGroups.packageCurationProviderPlugins,
-        pluginGroups.packageConfigurationProviderPlugins,
-        pluginGroups.packageManagerPlugins
-      ),
-    [pluginGroups, rerun, isSuperuser]
+      defaultValues(rerun, pluginGroups, isSuperuser, defaultPluginSelections),
+    [pluginGroups, rerun, isSuperuser, defaultPluginSelections]
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
