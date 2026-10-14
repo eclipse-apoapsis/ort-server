@@ -38,7 +38,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # Stage 2: Serve the app with nginx.
-FROM nginx:1.31-alpine@sha256:df221db836e1754089190208cee7eeda94f233197056426eda74a43ab1abeac2
+FROM nginx:1.31-alpine@sha256:72aeb3308ef6cb3118242fb16389518923916dfa206e32d1a8377acc328b9870
 
 # Copy the build output to a template directory. The entrypoint script will copy the files to /usr/share/nginx/html at
 # startup, allowing the serving directory to be a writable volume mount.
