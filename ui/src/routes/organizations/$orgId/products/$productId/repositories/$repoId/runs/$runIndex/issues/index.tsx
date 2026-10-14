@@ -18,7 +18,7 @@
  */
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
@@ -30,8 +30,6 @@ import {
   getRunIssuesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
-import { BreakableString } from '@/components/breakable-string';
-import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
@@ -53,11 +51,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { getIssueCategory } from '@/helpers/get-issue-category';
 import {
   getIssueSeverityBackgroundColor,
@@ -93,6 +86,7 @@ import {
   sortingSearchParameterSchema,
 } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
+import { RunPackageLink } from '../-components/run-package-link';
 import { IssueDetails } from './-components/issue-details';
 
 const defaultPageSize = 10;
@@ -110,58 +104,18 @@ const columnHelper = createAppColumnHelper<Issue>();
 const IssueCard = ({ issue }: { issue: Issue }) => {
   const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
-  const purl =
-    packageIdType === packageIdTypeSchema.enum.PURL && issue.purl
-      ? issue.purl
-      : undefined;
-  const id = purl ?? identifierToString(issue.identifier);
-  const idType = purl
-    ? packageIdTypeSchema.enum.PURL
-    : packageIdTypeSchema.enum.ORT_ID;
-
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
         <div className='min-w-0 flex-1'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {issue.purl != null ? (
-                <Link
-                  className='text-left font-semibold text-blue-400 hover:underline'
-                  to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
-                  params={{
-                    orgId: params.orgId,
-                    productId: params.productId,
-                    repoId: params.repoId,
-                    runIndex: params.runIndex,
-                  }}
-                  search={{ pkgId: id, pkgIdType: idType, marked: '0' }}
-                >
-                  <BreakableString text={id} />
-                </Link>
-              ) : (
-                <Link
-                  className='text-left font-semibold text-blue-400 hover:underline'
-                  to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects'
-                  params={{
-                    orgId: params.orgId,
-                    productId: params.productId,
-                    repoId: params.repoId,
-                    runIndex: params.runIndex,
-                  }}
-                  search={{ projectId: id, marked: id }}
-                >
-                  <BreakableString text={id} />
-                </Link>
-              )}
-            </TooltipTrigger>
-            <TooltipContent>
-              {issue.purl != null
-                ? 'Inspect the package details in packages table'
-                : 'Inspect the project details in projects table'}
-            </TooltipContent>
-          </Tooltip>
-          <CopyToClipboard copyText={id} className='h-5 px-2 align-middle' />
+          <RunPackageLink
+            identifier={issue.identifier}
+            purl={issue.purl}
+            packageIdType={packageIdType}
+            params={params}
+            linkProjectWhenPurlIsNull
+            copyClassName='h-5 px-2 align-middle'
+          />
         </div>
         <Badge
           className='bg-blue-300 whitespace-nowrap text-black'

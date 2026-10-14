@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { defaultParseSearch } from '@tanstack/react-router';
 import { screen } from '@testing-library/react';
 import { expect } from 'vitest';
 
@@ -40,4 +41,14 @@ export const getColumnTexts = (header: string) => {
     screen.getByRole('table').querySelectorAll('tbody tr'),
     (row) => row.querySelectorAll('td')[columnIndex]?.textContent
   );
+};
+
+// The path and the parsed search parameters of the page a link leads to.
+export const getLinkTarget = (link: HTMLElement) => {
+  const target = new URL(link.getAttribute('href')!, 'http://localhost');
+
+  return {
+    pathname: target.pathname,
+    search: defaultParseSearch(target.search),
+  };
 };

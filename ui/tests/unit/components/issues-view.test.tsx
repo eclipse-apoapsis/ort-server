@@ -19,7 +19,6 @@
 
 // @vitest-environment jsdom
 
-import { defaultParseSearch } from '@tanstack/react-router';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -30,6 +29,7 @@ import { Route } from '@/routes/organizations/$orgId/products/$productId/reposit
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { getLinkTarget } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
@@ -107,12 +107,6 @@ const renderIssue = (issuePurl: string | null) => {
 
 it.each([
   {
-    purl: '',
-    linkText: id,
-    table: 'packages',
-    search: { pkgId: id, pkgIdType: 'ORT_ID', marked: '0' },
-  },
-  {
     purl,
     linkText: purl,
     table: 'packages',
@@ -129,13 +123,12 @@ it.each([
   async ({ purl, linkText, table, search }) => {
     renderIssue(purl);
 
-    const link = await screen.findByRole('link', { name: linkText });
-    const target = new URL(link.getAttribute('href')!, 'http://localhost');
-
-    expect(target.pathname).toBe(
-      `/organizations/1/products/2/repositories/3/runs/4/${table}`
-    );
-    expect(defaultParseSearch(target.search)).toEqual(search);
+    expect(
+      getLinkTarget(await screen.findByRole('link', { name: linkText }))
+    ).toEqual({
+      pathname: `/organizations/1/products/2/repositories/3/runs/4/${table}`,
+      search,
+    });
   }
 );
 

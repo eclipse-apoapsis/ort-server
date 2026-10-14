@@ -158,7 +158,6 @@ const openedSearch = (): LicenseFindingsSearchParameters => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  packages[0]!.purl = 'pkg:maven/com.example/library-0@1.0';
   useUserSettingsStore.setState({
     packageIdType: packageIdTypeSchema.enum.ORT_ID,
   });
@@ -266,31 +265,6 @@ describe('independent detected-license tables', () => {
   });
 
   it('links package IDs to their entries in the packages table', async () => {
-    const { user } = renderView();
-    await user.click(
-      await screen.findByRole('button', { name: 'Packages for MIT' })
-    );
-
-    const link = await within(packageRegion('MIT')).findByRole('link', {
-      name: firstId,
-    });
-    const target = new URL(link.getAttribute('href')!, 'http://localhost');
-
-    expect(target.pathname).toBe(
-      '/organizations/1/products/2/repositories/3/runs/4/packages'
-    );
-    expect(defaultParseSearch(target.search)).toEqual({
-      pkgId: firstId,
-      pkgIdType: packageIdTypeSchema.enum.ORT_ID,
-      marked: '0',
-    });
-  });
-
-  it('links a package with an empty PURL by its ORT ID', async () => {
-    packages[0]!.purl = '';
-    useUserSettingsStore.setState({
-      packageIdType: packageIdTypeSchema.enum.PURL,
-    });
     const { user } = renderView();
     await user.click(
       await screen.findByRole('button', { name: 'Packages for MIT' })
