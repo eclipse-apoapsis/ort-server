@@ -57,6 +57,7 @@ fun ModelOrganizationPermission.mapToApi() = when (this) {
     ModelOrganizationPermission.WRITE -> OrganizationPermission.WRITE
     ModelOrganizationPermission.WRITE_SECRETS -> OrganizationPermission.WRITE_SECRETS
     ModelOrganizationPermission.MANAGE_GROUPS -> OrganizationPermission.MANAGE_GROUPS
+    ModelOrganizationPermission.MANAGE_DEFAULT_PLUGINS -> OrganizationPermission.MANAGE_DEFAULT_PLUGINS
     ModelOrganizationPermission.READ_PRODUCTS -> OrganizationPermission.READ_PRODUCTS
     ModelOrganizationPermission.CREATE_PRODUCT -> OrganizationPermission.CREATE_PRODUCT
     ModelOrganizationPermission.DELETE -> OrganizationPermission.DELETE
