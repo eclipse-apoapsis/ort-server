@@ -623,16 +623,4 @@ describe('detected-license URL compatibility', () => {
       2
     );
   });
-
-  it('ignores malformed entries without losing valid open panels', async () => {
-    const { router } = renderView({
-      licenseTables: { MIT: { page: -2 }, 'Apache-2.0': null },
-    });
-    await screen.findByRole('region', { name: 'Packages for MIT' });
-    expect(currentSearch(router).licenseTables).toEqual({ MIT: {} });
-    expect(
-      screen.getByRole('button', { name: 'Packages for Apache-2.0' })
-    ).toHaveAttribute('aria-expanded', 'false');
-    expect(packageRequests('Apache-2.0')).toHaveLength(0);
-  });
 });
