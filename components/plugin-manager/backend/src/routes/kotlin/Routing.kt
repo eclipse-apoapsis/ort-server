@@ -30,13 +30,16 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enableGlob
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enablePlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getGlobalDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getInstalledPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getOrganizationDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForRepository
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplates
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.removeTemplateFromOrganization
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.resetGlobalDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.resetOrganizationDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.restrictPlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.setGlobalDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.setOrganizationDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.updateTemplateOptions
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
@@ -57,12 +60,15 @@ fun Route.pluginManagerRoutes(
     enablePlugin(eventStore)
     getGlobalDefaultPlugins(defaultPluginsService)
     getInstalledPlugins(pluginService)
+    getOrganizationDefaultPlugins(defaultPluginsService)
     getPluginsForRepository(configManager, pluginTemplateService)
     getTemplate(pluginTemplateService)
     getTemplates(pluginTemplateService)
     removeTemplateFromOrganization(pluginTemplateService)
     resetGlobalDefaultPlugins(defaultPluginsService)
+    resetOrganizationDefaultPlugins(defaultPluginsService)
     restrictPlugin(eventStore)
     setGlobalDefaultPlugins(defaultPluginsService)
+    setOrganizationDefaultPlugins(defaultPluginsService)
     updateTemplateOptions(pluginTemplateService)
 }
