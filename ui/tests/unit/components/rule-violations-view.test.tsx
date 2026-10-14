@@ -23,13 +23,12 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GetRunRuleViolationsData, RuleViolation } from '@/api';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/index';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
-import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
-import { getLinkTarget } from '../fixtures/table';
+import { renderRunPage } from '../fixtures/finding-tables';
+import { getLinkTarget, pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
@@ -72,27 +71,9 @@ const renderViolation = (violationPurl: string | null) => {
     rule: 'TestRule',
     severity: 'WARNING',
   };
-  mocks.violations.mockResolvedValue({
-    data: {
-      data: [violation],
-      pagination: { totalCount: 1, limit: 10, offset: 0 },
-    },
-  });
+  mocks.violations.mockResolvedValue(pageOf([violation]));
 
-  renderInteractiveWithRouter(
-    <TooltipProvider>
-      <RuleViolationsComponent />
-    </TooltipProvider>,
-    {
-      path: '/organizations/1/products/2/repositories/3/runs/4/rule-violations',
-      routes: [
-        {
-          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/',
-        },
-      ],
-      withQueryClient: true,
-    }
-  );
+  renderRunPage(RuleViolationsComponent, 'rule-violations');
 };
 
 it.each([
@@ -138,21 +119,16 @@ describe('rule violations table', () => {
       severity: 'WARNING',
     };
 
-    return {
-      data: [violation],
-      pagination: {
-        limit: query.limit ?? 10,
-        offset: query.offset ?? 0,
-        totalCount: query.rule ? 1 : 5,
-      },
-    };
+    return pageOf([violation], {
+      limit: query.limit,
+      offset: query.offset,
+      totalCount: query.rule ? 1 : 5,
+    });
   };
 
   beforeEach(() => {
     mocks.violations.mockImplementation(
-      async ({ query }: { query?: ViolationsQuery }) => ({
-        data: getViolationsPage(query),
-      })
+      async ({ query }: { query?: ViolationsQuery }) => getViolationsPage(query)
     );
   });
 
@@ -163,19 +139,9 @@ describe('rule violations table', () => {
   });
 
   it('applies filters from the URL', async () => {
-    const { container, router } = renderInteractiveWithRouter(
-      <TooltipProvider>
-        <RuleViolationsComponent />
-      </TooltipProvider>,
-      {
-        path: '/organizations/1/products/2/repositories/3/runs/4/rule-violations',
-        routes: [
-          {
-            path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/',
-          },
-        ],
-        withQueryClient: true,
-      }
+    const { container, router } = renderRunPage(
+      RuleViolationsComponent,
+      'rule-violations'
     );
 
     expect(

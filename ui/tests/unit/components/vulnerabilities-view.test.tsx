@@ -19,21 +19,20 @@
 
 // @vitest-environment jsdom
 
-import { defaultParseSearch } from '@tanstack/react-router';
 import { act, screen, waitFor, within } from '@testing-library/react';
-import { Suspense } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
   GetRunVulnerabilitiesData,
   VulnerabilityWithDetails,
 } from '@/api';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities/index';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
-import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { renderRunPage } from '../fixtures/finding-tables';
+import { createDeferred } from '../fixtures/loader-test-utils';
+import { getLinkTarget, pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
@@ -79,62 +78,32 @@ beforeEach(() => {
   });
   mocks.run.mockResolvedValue({ data: { id: 42, jobs: { advisor: {} } } });
   mocks.advisors.mockResolvedValue({ data: [] });
-  mocks.vulnerabilities.mockResolvedValue({
-    data: {
-      data: [vulnerability],
-      pagination: { totalCount: 1, limit: 10, offset: 0 },
-    },
-  });
+  mocks.vulnerabilities.mockResolvedValue(pageOf([vulnerability]));
 });
 
 it('links a vulnerability for a package with an empty PURL by its ORT ID', async () => {
   const id = identifierToString(vulnerability.identifier);
-  renderInteractiveWithRouter(
-    <TooltipProvider>
-      <VulnerabilitiesComponent />
-    </TooltipProvider>,
-    {
-      path: '/organizations/1/products/2/repositories/3/runs/4/vulnerabilities',
-      routes: [
-        {
-          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities/',
-        },
-      ],
-      withQueryClient: true,
-    }
-  );
+  renderRunPage(VulnerabilitiesComponent, 'vulnerabilities');
 
-  const link = await screen.findByRole('link', { name: id });
-  const target = new URL(link.getAttribute('href')!, 'http://localhost');
-
-  expect(target.pathname).toBe(
-    '/organizations/1/products/2/repositories/3/runs/4/packages'
-  );
-  expect(defaultParseSearch(target.search)).toEqual({
-    pkgId: id,
-    pkgIdType: packageIdTypeSchema.enum.ORT_ID,
-    marked: '0',
+  expect(getLinkTarget(await screen.findByRole('link', { name: id }))).toEqual({
+    pathname: '/organizations/1/products/2/repositories/3/runs/4/packages',
+    search: {
+      pkgId: id,
+      pkgIdType: packageIdTypeSchema.enum.ORT_ID,
+      marked: '0',
+    },
   });
 });
 
 describe('vulnerabilities table', () => {
   type VulnerabilitiesQuery = NonNullable<GetRunVulnerabilitiesData['query']>;
 
-  type VulnerabilitiesResponse = {
-    data: {
-      data: VulnerabilityWithDetails[];
-      pagination: { limit: number; offset: number; totalCount: number };
-    };
-  };
-
   const idOf = (name: string) =>
     identifierToString({ ...vulnerability.identifier, name });
 
-  const getVulnerabilitiesPage = (
-    query: VulnerabilitiesQuery = {}
-  ): VulnerabilitiesResponse => ({
-    data: {
-      data: [
+  const getVulnerabilitiesPage = (query: VulnerabilitiesQuery = {}) =>
+    pageOf(
+      [
         {
           ...vulnerability,
           identifier: {
@@ -143,31 +112,15 @@ describe('vulnerabilities table', () => {
           },
         },
       ],
-      pagination: {
-        limit: query.limit ?? 10,
-        offset: query.offset ?? 0,
-        totalCount: query.externalId ? 1 : 5,
-      },
-    },
-  });
-
-  const renderVulnerabilities = () =>
-    renderInteractiveWithRouter(
-      <Suspense fallback='Loading vulnerabilities'>
-        <TooltipProvider>
-          <VulnerabilitiesComponent />
-        </TooltipProvider>
-      </Suspense>,
       {
-        path: '/organizations/1/products/2/repositories/3/runs/4/vulnerabilities',
-        routes: [
-          {
-            path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities/',
-          },
-        ],
-        withQueryClient: true,
+        limit: query.limit,
+        offset: query.offset,
+        totalCount: query.externalId ? 1 : 5,
       }
     );
+
+  const renderVulnerabilities = () =>
+    renderRunPage(VulnerabilitiesComponent, 'vulnerabilities');
 
   it('is compiled by React Compiler', () => {
     expect(VulnerabilitiesComponent.toString()).toContain(
@@ -176,15 +129,12 @@ describe('vulnerabilities table', () => {
   });
 
   it('applies filters from the URL once the filtered data has loaded', async () => {
-    let resolveFiltered = (response: VulnerabilitiesResponse) => {
-      void response;
-    };
+    const filtered =
+      createDeferred<ReturnType<typeof getVulnerabilitiesPage>>();
     mocks.vulnerabilities.mockImplementation(
       ({ query }: { query?: VulnerabilitiesQuery }) =>
         query?.externalId
-          ? new Promise<VulnerabilitiesResponse>((resolve) => {
-              resolveFiltered = resolve;
-            })
+          ? filtered.promise
           : Promise.resolve(getVulnerabilitiesPage(query))
     );
 
@@ -214,7 +164,7 @@ describe('vulnerabilities table', () => {
     ).not.toBeInTheDocument();
 
     await act(async () =>
-      resolveFiltered(getVulnerabilitiesPage({ externalId: 'CVE-2026-9999' }))
+      filtered.resolve(getVulnerabilitiesPage({ externalId: 'CVE-2026-9999' }))
     );
 
     await waitFor(() =>
