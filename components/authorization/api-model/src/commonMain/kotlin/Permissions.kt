@@ -28,6 +28,7 @@ enum class OrganizationPermission {
     WRITE,
     WRITE_SECRETS,
     MANAGE_GROUPS,
+    MANAGE_DEFAULT_PLUGINS,
     READ_PRODUCTS,
     CREATE_PRODUCT,
     DELETE
