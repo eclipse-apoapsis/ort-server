@@ -20,6 +20,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Route as AdminPluginTemplatesRoute } from '@/routes/admin/plugins/$pluginType/$pluginId/index';
+import { Route as AdminDefaultPluginsRoute } from '@/routes/admin/plugins/defaults/index';
 import { Route as AdminRunsRoute } from '@/routes/admin/runs/index';
 import { Route as AdminUsersRoute } from '@/routes/admin/users/index';
 import {
@@ -152,5 +153,25 @@ describe('admin route loaders', () => {
         pluginId: 'ScanCode',
       },
     });
+  });
+
+  it('awaits the default plugins queries before resolving', async () => {
+    const loader = AdminDefaultPluginsRoute.options.loader as unknown as (
+      options: unknown
+    ) => Promise<void>;
+
+    const queryFn = await expectLoaderToAwaitQuery(
+      loader,
+      'ensureQueryData',
+      { deps: {}, params: {} },
+      2
+    );
+
+    expect(getQueryKeyRequest(queryFn.mock.calls[0]![0])._id).toBe(
+      'getGlobalDefaultPlugins'
+    );
+    expect(getQueryKeyRequest(queryFn.mock.calls[1]![0])._id).toBe(
+      'getAvailableGlobalDefaultPlugins'
+    );
   });
 });
