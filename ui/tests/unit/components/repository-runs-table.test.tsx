@@ -27,6 +27,7 @@ import type { OrtRunSummary } from '@/api';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { RepositoryRunsTable } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components/repository-runs-table';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { pageOf } from '../fixtures/table';
 
 type DiffDialogProps = {
   open: boolean;
@@ -124,12 +125,7 @@ const createRun = (
   status,
 });
 
-const runs = (...summaries: OrtRunSummary[]) => ({
-  data: {
-    data: summaries,
-    pagination: { limit: 10, offset: 0, totalCount: summaries.length },
-  },
-});
+const runs = (...summaries: OrtRunSummary[]) => pageOf(summaries);
 
 const renderTable = () =>
   renderInteractiveWithRouter(
@@ -193,7 +189,7 @@ describe('RepositoryRunsTable', () => {
     );
   });
 
-  it('marks the base run and offers the other runs for comparison', async () => {
+  it('marks the base run, offers the other runs for comparison and deselects the base run', async () => {
     const { user } = renderTable();
 
     for (const runIndex of [1, 2, 3]) {
@@ -211,6 +207,15 @@ describe('RepositoryRunsTable', () => {
 
       expect(toggle).toHaveAccessibleName(selectComparedLabel);
       expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    }
+
+    await user.click(await findToggle(2));
+
+    await waitFor(async () =>
+      expect(await findToggle(2)).toHaveAccessibleName(selectBaseLabel)
+    );
+    for (const runIndex of [1, 3]) {
+      expect(await findToggle(runIndex)).toHaveAccessibleName(selectBaseLabel);
     }
   });
 

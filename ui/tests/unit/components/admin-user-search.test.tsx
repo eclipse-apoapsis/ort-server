@@ -27,6 +27,7 @@ import { Route } from '@/routes/admin/users';
 import { adminUsersSearchParameterSchema } from '@/schemas';
 import { getQueryKeyRequest } from '../fixtures/loader-test-utils';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { getColumnTexts } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
@@ -202,12 +203,7 @@ describe('admin user list', () => {
 
     await screen.findByRole('table');
 
-    expect(
-      screen
-        .getAllByRole('row')
-        .slice(1)
-        .map((row) => within(row).getAllByRole('cell')[0]?.textContent)
-    ).toEqual(['zulu', 'alpha', 'mike']);
+    expect(getColumnTexts('Username')).toEqual(['zulu', 'alpha', 'mike']);
     expect(getLastUsersRequest().query).toMatchObject({
       limit: 2,
       offset: 2,
@@ -232,12 +228,7 @@ describe('admin user list', () => {
       });
     });
     expect(getLastUsersRequest().query?.sort).toBe('username');
-    expect(
-      screen
-        .getAllByRole('row')
-        .slice(1)
-        .map((row) => within(row).getAllByRole('cell')[0]?.textContent)
-    ).toEqual(['zulu', 'alpha', 'mike']);
+    expect(getColumnTexts('Username')).toEqual(['zulu', 'alpha', 'mike']);
   });
 
   it('rejects unsupported sort fields in URL search parameters', () => {

@@ -29,6 +29,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { OrganizationsPage } from '@/routes/organizations/index';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { pageOf } from '../fixtures/table';
 
 type OrganizationsQuery = NonNullable<GetOrganizationsData['query']>;
 
@@ -66,14 +67,11 @@ const getOrganizationsPage = (query: OrganizationsQuery = {}) => {
     name,
   }));
 
-  return {
-    data,
-    pagination: {
-      limit,
-      offset,
-      totalCount: query.filter ? data.length : TOTAL_COUNT,
-    },
-  };
+  return pageOf(data, {
+    limit,
+    offset,
+    totalCount: query.filter ? data.length : TOTAL_COUNT,
+  });
 };
 
 // The queries issued for the table, without the query for the total number of organizations.
@@ -101,9 +99,8 @@ describe('organizations table', () => {
     vi.clearAllMocks();
     mocks.namePrefix = 'org';
     mocks.organizations.mockImplementation(
-      async ({ query }: { query?: OrganizationsQuery }) => ({
-        data: getOrganizationsPage(query),
-      })
+      async ({ query }: { query?: OrganizationsQuery }) =>
+        getOrganizationsPage(query)
     );
     mocks.superuser.mockResolvedValue({ data: true });
   });

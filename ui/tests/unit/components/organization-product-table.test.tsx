@@ -33,7 +33,9 @@ import {
   ProductRunStatusCell,
   ProductTotalRunsCell,
 } from '@/routes/organizations/$orgId/-components/organization-product-table';
+import { createDeferred } from '../fixtures/loader-test-utils';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   organization: vi.fn(),
@@ -103,12 +105,8 @@ type CellComponent = ComponentType<{ product: Product }>;
 
 const product: Product = { id: 2, organizationId: 1, name: 'product' };
 
-const repositories = (totalCount: number) => ({
-  data: {
-    data: [{ id: 7 }],
-    pagination: { limit: 1, offset: 0, totalCount },
-  },
-});
+const repositories = (totalCount: number) =>
+  pageOf([{ id: 7 }], { limit: 1, totalCount });
 
 const renderCell = (Cell: CellComponent) => {
   const queryClient = new QueryClient({
@@ -214,16 +212,14 @@ describe.each(cells)(
 describe('OrganizationProductTable', () => {
   const organization: Organization = { id: 1, name: 'organization' };
 
-  const products = (...names: string[]) => ({
-    data: {
-      data: names.map((name, index): Product => ({
+  const products = (...names: string[]) =>
+    pageOf(
+      names.map((name, index): Product => ({
         id: index + 2,
         organizationId: 1,
         name,
-      })),
-      pagination: { limit: 5, offset: 0, totalCount: names.length },
-    },
-  });
+      }))
+    );
 
   const renderTable = () =>
     renderInteractiveWithRouter(<OrganizationProductTable />, {
@@ -246,14 +242,8 @@ describe('OrganizationProductTable', () => {
   });
 
   it('shows the favorite buttons once the organization is loaded', async () => {
-    let resolveOrganization = (response: { data: Organization }) => {
-      void response;
-    };
-    mocks.organization.mockReturnValue(
-      new Promise((resolve) => {
-        resolveOrganization = resolve;
-      })
-    );
+    const loadedOrganization = createDeferred<{ data: Organization }>();
+    mocks.organization.mockReturnValue(loadedOrganization.promise);
 
     renderTable();
 
@@ -262,7 +252,7 @@ describe('OrganizationProductTable', () => {
       screen.queryByRole('button', { name: 'Add to favorites: first' })
     ).not.toBeInTheDocument();
 
-    resolveOrganization({ data: organization });
+    loadedOrganization.resolve({ data: organization });
 
     expect(
       await screen.findByRole('button', { name: 'Add to favorites: first' })
