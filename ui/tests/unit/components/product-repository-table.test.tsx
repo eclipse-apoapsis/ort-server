@@ -25,7 +25,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Organization, Product, Repository } from '@/api';
 import { getProductRepositoriesQueryKey } from '@/api/@tanstack/react-query.gen';
 import { ProductRepositoryTable } from '@/routes/organizations/$orgId/products/$productId/-components/product-repository-table';
+import { createDeferred } from '../fixtures/loader-test-utils';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   organization: vi.fn(),
@@ -74,31 +76,17 @@ vi.mock(
 const organization: Organization = { id: 1, name: 'organization' };
 const product: Product = { id: 2, organizationId: 1, name: 'product' };
 
-const repositories = (...names: string[]) => ({
-  data: {
-    data: names.map((name, index): Repository => ({
+const repositories = (...names: string[]) =>
+  pageOf(
+    names.map((name, index): Repository => ({
       id: index + 3,
       organizationId: 1,
       productId: 2,
       type: 'GIT',
       url: `https://example.com/${name}.git`,
       name,
-    })),
-    pagination: { limit: 5, offset: 0, totalCount: names.length },
-  },
-});
-
-// Create a promise together with the function that resolves it.
-const deferred = <T,>() => {
-  let resolve = (value: T) => {
-    void value;
-  };
-  const promise = new Promise<T>((resolvePromise) => {
-    resolve = resolvePromise;
-  });
-
-  return { promise, resolve };
-};
+    }))
+  );
 
 const renderTable = () =>
   renderInteractiveWithRouter(<ProductRepositoryTable />, {
@@ -122,8 +110,8 @@ describe('ProductRepositoryTable', () => {
   });
 
   it('shows the favorite buttons once the organization and the product are loaded', async () => {
-    const loadedOrganization = deferred<{ data: Organization }>();
-    const loadedProduct = deferred<{ data: Product }>();
+    const loadedOrganization = createDeferred<{ data: Organization }>();
+    const loadedProduct = createDeferred<{ data: Product }>();
     mocks.organization.mockReturnValue(loadedOrganization.promise);
     mocks.product.mockReturnValue(loadedProduct.promise);
 
