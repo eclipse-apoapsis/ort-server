@@ -72,7 +72,7 @@ class ScannerRunnerTest : WordSpec({
             val factory = mockScannerWrapperFactory("ScanCode")
             mockScannerWrapperAll(listOf(factory))
 
-            val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
+            val result = runner.run(mockContext(), OrtResult.EMPTY, scanCodeJobConfig, 0L)
 
             result.scannerRun shouldNotBeNull {
                 provenances should beEmpty()
@@ -85,6 +85,7 @@ class ScannerRunnerTest : WordSpec({
             mockScannerWrapperAll(listOf(factory))
 
             val scannerConfig = ScannerJobConfiguration(
+                scanners = listOf("ScanCode"),
                 skipConcluded = true,
                 submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
             )
@@ -104,7 +105,7 @@ class ScannerRunnerTest : WordSpec({
             val factory = mockScannerWrapperFactory("ScanCode")
             mockScannerWrapperAll(listOf(factory))
 
-            val scannerConfig = ScannerJobConfiguration()
+            val scannerConfig = scanCodeJobConfig
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
@@ -174,7 +175,7 @@ class ScannerRunnerTest : WordSpec({
             coEvery { anyConstructed<Scanner>().scan(any(), any(), any()) } returns OrtResult.EMPTY
 
             shouldThrow<ScannerException> {
-                runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
+                runner.run(mockContext(), OrtResult.EMPTY, scanCodeJobConfig, 0L)
             }
         }
 
@@ -192,7 +193,7 @@ class ScannerRunnerTest : WordSpec({
             )
             every { anyConstructed<OrtServerScanResultStorage>().getAllIssues() } returns issuesMap
 
-            val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
+            val result = runner.run(mockContext(), OrtResult.EMPTY, scanCodeJobConfig, 0L)
 
             result.issues shouldBe issuesMap
         }
@@ -283,12 +284,15 @@ private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory>) {
     every { ScannerWrapperFactory.ALL } returns scanners.associateByTo(sortedMapOf()) { it.descriptor.id }
 }
 
+/** A [ScannerJobConfiguration] that uses the ScanCode scanner. */
+private val scanCodeJobConfig = ScannerJobConfiguration(scanners = listOf("ScanCode"))
+
 /**
  * Create a mock for the [WorkerContext] and prepare it to return the given [resolvedPluginConfig] when called to
  * resolve the secrets in the plugin configuration of the given [jobConfig].
  */
 private fun mockContext(
-    jobConfig: ScannerJobConfiguration = ScannerJobConfiguration(),
+    jobConfig: ScannerJobConfiguration = scanCodeJobConfig,
     resolvedPluginConfig: Map<String, PluginConfig> = emptyMap()
 ): WorkerContext =
     mockk {

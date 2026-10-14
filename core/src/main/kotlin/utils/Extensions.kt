@@ -64,7 +64,7 @@ private val emptyPluginConfig = PluginConfig(options = emptyMap(), secrets = emp
 fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> =
     buildMap {
         jobConfigs.advisor?.let { jobConfig ->
-            val allAdvisors = jobConfig.advisors + jobConfig.config?.keys.orEmpty()
+            val allAdvisors = jobConfig.advisors.orEmpty() + jobConfig.config?.keys.orEmpty()
             put(PluginType.ADVISOR, allAdvisors.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
         }
 
@@ -117,7 +117,7 @@ fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConf
         }
 
         jobConfigs.reporter?.let { jobConfig ->
-            val allReporters = jobConfig.formats + jobConfig.config?.keys.orEmpty()
+            val allReporters = jobConfig.formats.orEmpty() + jobConfig.config?.keys.orEmpty()
             put(PluginType.REPORTER, allReporters.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
 
             // Ignore package configuration providers if the evaluator job is configured, because then the reporter

@@ -30,7 +30,7 @@ val defaultReportFormats = listOf(
 // Add default report formats in case no formats are specified.
 val resolvedReporterJobConfig = context.ortRun.jobConfigs.reporter?.let {
     when {
-        it.formats.isEmpty() -> it.copy(formats = defaultReportFormats)
+        it.formats.isNullOrEmpty() -> it.copy(formats = defaultReportFormats)
         else -> it
     }
 }
