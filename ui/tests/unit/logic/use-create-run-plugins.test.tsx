@@ -22,19 +22,36 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PreconfiguredPluginDescriptor } from '@/api';
-import { getPluginsForRepository } from '@/api/sdk.gen';
+import type { DefaultPlugins, PreconfiguredPluginDescriptor } from '@/api';
+import {
+  getDefaultPluginsForRepository,
+  getPluginsForRepository,
+} from '@/api/sdk.gen';
 import { useCreateRunPlugins } from '@/hooks/use-create-run-plugins';
 import { createPluginDescriptor } from '../fixtures/create-run';
 import { createDeferred } from '../fixtures/loader-test-utils';
 
 vi.mock('@/api/sdk.gen', () => ({
+  getDefaultPluginsForRepository: vi.fn(),
   getPluginsForRepository: vi.fn(),
 }));
 
 type PluginsResult = Awaited<ReturnType<typeof getPluginsForRepository>>;
+type DefaultPluginsResult = Awaited<
+  ReturnType<typeof getDefaultPluginsForRepository>
+>;
+
+const advisorDefaults: DefaultPlugins[] = [
+  { category: 'ADVISOR', pluginIds: ['OSV'], source: 'BUILT_IN' },
+];
+
+/** Let the requests for the default plugins return the given defaults. */
+const mockDefaultPlugins = (defaultPlugins: DefaultPlugins[]) =>
+  vi
+    .mocked(getDefaultPluginsForRepository)
+    .mockResolvedValue({ data: defaultPlugins } as DefaultPluginsResult);
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -65,6 +82,10 @@ const vulnerableCode = createPluginDescriptor({
 });
 
 describe('useCreateRunPlugins', () => {
+  beforeEach(() => {
+    mockDefaultPlugins(advisorDefaults);
+  });
+
   afterEach(() => {
     queryClient.clear();
     vi.clearAllMocks();
@@ -139,6 +160,82 @@ describe('useCreateRunPlugins', () => {
         plugins: [],
         pluginsLoading: false,
         pluginsError: error,
+      })
+    );
+  });
+
+  it('loads the default plugins for the config context', async () => {
+    const requests = deferPluginRequests();
+
+    const { result } = renderHook(() => useCreateRunPlugins(3, 'ctx'), {
+      wrapper,
+    });
+    act(() => requests[0]!([osv]));
+
+    await waitFor(() =>
+      expect(result.current).toMatchObject({
+        plugins: [osv],
+        defaultPlugins: advisorDefaults,
+        pluginsLoading: false,
+      })
+    );
+    expect(getDefaultPluginsForRepository).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: { repositoryId: 3 },
+        query: { configContext: 'ctx' },
+      })
+    );
+  });
+
+  it('reports the plugins as loading until the default plugins are available', async () => {
+    const deferredDefaults = createDeferred<DefaultPluginsResult>();
+    vi.mocked(getDefaultPluginsForRepository).mockReturnValue(
+      deferredDefaults.promise as ReturnType<
+        typeof getDefaultPluginsForRepository
+      >
+    );
+    const requests = deferPluginRequests();
+
+    const { result } = renderHook(() => useCreateRunPlugins(3, ''), {
+      wrapper,
+    });
+    act(() => requests[0]!([osv]));
+
+    await waitFor(() => expect(result.current.plugins).toEqual([osv]));
+    expect(result.current.pluginsLoading).toBe(true);
+
+    act(() =>
+      deferredDefaults.resolve({
+        data: advisorDefaults,
+      } as DefaultPluginsResult)
+    );
+
+    await waitFor(() =>
+      expect(result.current).toMatchObject({
+        defaultPlugins: advisorDefaults,
+        pluginsLoading: false,
+      })
+    );
+  });
+
+  it('reports an error if the default plugins cannot be loaded without blocking the plugins', async () => {
+    const error = new Error('Default plugins unavailable');
+    vi.mocked(getDefaultPluginsForRepository).mockRejectedValue(error);
+    vi.mocked(getPluginsForRepository).mockResolvedValue({
+      data: [osv],
+    } as PluginsResult);
+
+    const { result } = renderHook(() => useCreateRunPlugins(3, ''), {
+      wrapper,
+    });
+
+    await waitFor(() =>
+      expect(result.current).toMatchObject({
+        plugins: [osv],
+        defaultPlugins: undefined,
+        pluginsLoading: false,
+        pluginsError: null,
+        defaultPluginsError: error,
       })
     );
   });

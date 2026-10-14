@@ -19,9 +19,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/default-values';
 import { createRunFormSchema } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/run-schema';
-import { createPluginDescriptor } from '../fixtures/create-run';
+import {
+  createFormDefaultValues,
+  createPluginDescriptor,
+} from '../fixtures/create-run';
 
 const packageConfigurationProviderPlugin = createPluginDescriptor({
   id: 'Dir',
@@ -39,16 +41,11 @@ const packageConfigurationProviderPlugin = createPluginDescriptor({
 });
 
 function createValidFormData() {
-  const formData = defaultValues(
-    null,
-    [],
-    [],
-    [],
-    false,
-    [],
-    [packageConfigurationProviderPlugin],
-    []
-  );
+  const formData = createFormDefaultValues({
+    plugins: {
+      packageConfigurationProviderPlugins: [packageConfigurationProviderPlugin],
+    },
+  });
 
   formData.revision = 'main';
   formData.jobConfigs.evaluator.packageConfigurationProviders = ['Dir'];

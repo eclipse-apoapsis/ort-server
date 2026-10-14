@@ -32,6 +32,7 @@ import {
 import { getAvailableRepositorySecrets, getRepositoryRun } from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
+  createRunDefaultPluginsOptions,
   createRunPluginsOptions,
   useCreateRunPlugins,
 } from '@/hooks/use-create-run-plugins';
@@ -58,14 +59,22 @@ const CreateRunPage = () => {
     ortRun?.data?.jobConfigContext ?? ''
   );
 
-  const { plugins, pluginsLoading, pluginsError } = useCreateRunPlugins(
-    Number.parseInt(params.repoId),
-    configContext
-  );
+  const {
+    plugins,
+    defaultPlugins,
+    pluginsLoading,
+    pluginsError,
+    defaultPluginsError,
+  } = useCreateRunPlugins(Number.parseInt(params.repoId), configContext);
 
   useEffect(() => {
     if (pluginsError) toastError('Unable to load plugins', pluginsError);
   }, [pluginsError]);
+
+  useEffect(() => {
+    if (defaultPluginsError)
+      toastError('Unable to load default plugins', defaultPluginsError);
+  }, [defaultPluginsError]);
 
   const {
     data: organization,
@@ -151,6 +160,7 @@ const CreateRunPage = () => {
 
   return (
     <CreateRunForm
+      defaultPlugins={defaultPlugins}
       isSubmitting={isPending}
       isSuperuser={isSuperuser}
       onConfigContextChange={setConfigContext}
@@ -180,25 +190,27 @@ export const Route = createFileRoute(
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
   loader: async ({ params, deps: { rerunIndex }, context }) => {
+    const repositoryId = Number.parseInt(params.repoId);
     const ortRun =
       rerunIndex !== undefined
         ? await getRepositoryRun({
-            path: {
-              repositoryId: Number.parseInt(params.repoId),
-              ortRunIndex: rerunIndex,
-            },
+            path: { repositoryId, ortRunIndex: rerunIndex },
           })
         : null;
 
-    // Start loading the plugins without blocking the page. For reruns, use the
-    // original run's config context for the initial fetch.
+    // Start loading the plugins and the default plugins without blocking the
+    // page. For reruns, use the original run's config context for the initial
+    // fetch.
     const configContext = ortRun?.data?.jobConfigContext || undefined;
     void context.queryClient.prefetchQuery(
-      createRunPluginsOptions(Number.parseInt(params.repoId), configContext)
+      createRunPluginsOptions(repositoryId, configContext)
+    );
+    void context.queryClient.prefetchQuery(
+      createRunDefaultPluginsOptions(repositoryId, configContext)
     );
 
     const secrets = await getAvailableRepositorySecrets({
-      path: { repositoryId: Number.parseInt(params.repoId) },
+      path: { repositoryId },
     });
 
     return { ortRun, secrets };
