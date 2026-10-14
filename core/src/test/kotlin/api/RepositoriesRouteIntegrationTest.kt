@@ -923,7 +923,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 run.jobConfigs.evaluator.shouldNotBeNull {
-                    packageConfigurationProviders.shouldBeSingleton {
+                    packageConfigurationProviders.shouldNotBeNull().shouldBeSingleton {
                         it.type shouldBe "DOS"
                         it.secrets["token"].shouldNotBeNull {
                             name shouldBe "DOS_TOKEN"
