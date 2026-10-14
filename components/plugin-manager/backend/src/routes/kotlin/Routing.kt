@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getDefault
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getGlobalDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getInstalledPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getOrganizationDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForOrganization
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForRepository
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplates
@@ -63,6 +64,7 @@ fun Route.pluginManagerRoutes(
     getGlobalDefaultPlugins(defaultPluginsService)
     getInstalledPlugins(pluginService)
     getOrganizationDefaultPlugins(defaultPluginsService)
+    getPluginsForOrganization(configManager, pluginTemplateService)
     getPluginsForRepository(configManager, pluginTemplateService)
     getTemplate(pluginTemplateService)
     getTemplates(pluginTemplateService)
