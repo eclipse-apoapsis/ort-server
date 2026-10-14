@@ -237,6 +237,18 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetPluginsForOrganization" should {
+        "require OrganizationPermission.READ" {
+            requestShouldRequireRole(
+                routes = { routes() },
+                role = OrganizationRole.READER,
+                hierarchyId = orgHierarchyId
+            ) {
+                get("/organizations/$orgId/plugins")
+            }
+        }
+    }
+
     "GetTemplate" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
