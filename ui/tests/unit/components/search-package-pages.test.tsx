@@ -29,6 +29,7 @@ import { Route as OrganizationRoute } from '@/routes/organizations/$orgId/search
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { getColumnTexts, hierarchyLevels } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   runs: vi.fn(),
@@ -47,51 +48,46 @@ vi.mock(
   })
 );
 
-const createRuns = (count: number): RunWithPackage[] =>
-  Array.from({ length: count }, (_, index) => {
-    const ortRunIndex = index + 1;
+// A run with a package that has the given name in its ORT ID and in its PURL.
+const createRun = (
+  ortRunIndex: number,
+  name = `library-${ortRunIndex}`,
+  purlName = name
+): RunWithPackage => ({
+  createdAt: '2026-01-01T00:00:00Z',
+  organizationId: 1,
+  ortRunId: ortRunIndex,
+  ortRunIndex,
+  packageId: {
+    type: 'Maven',
+    namespace: 'org.example',
+    name,
+    version: '1.0',
+  },
+  productId: 2,
+  purl: `pkg:maven/org.example/${purlName}@1.0`,
+  repositoryId: 3,
+  revision: `revision-${ortRunIndex}`,
+});
 
-    return {
-      createdAt: '2026-01-01T00:00:00Z',
-      organizationId: 1,
-      ortRunId: ortRunIndex,
-      ortRunIndex,
-      packageId: {
-        type: 'Maven',
-        namespace: 'org.example',
-        name: `library-${ortRunIndex}`,
-        version: '1.0',
-      },
-      productId: 2,
-      purl: `pkg:maven/org.example/library-${ortRunIndex}@1.0`,
-      repositoryId: 3,
-      revision: `revision-${ortRunIndex}`,
-    };
-  });
+const createRuns = (count: number) =>
+  Array.from({ length: count }, (_, index) => createRun(index + 1));
 
-const SearchPackageComponent = OrganizationRoute.options.component!;
+const [organization, product, repository] = hierarchyLevels('search-package');
+const levels = [
+  { ...organization, route: OrganizationRoute },
+  { ...product, route: ProductRoute },
+  { ...repository, route: RepositoryRoute },
+];
 
-const renderSearch = (search = '') =>
-  renderInteractiveWithRouter(<SearchPackageComponent />, {
-    path: `/organizations/1/search-package${search}`,
-    routes: [{ path: '/organizations/$orgId/search-package/' }],
+const renderSearch = (search = '', level = levels[0]!) => {
+  const SearchPackageComponent = level.route.options.component!;
+
+  return renderInteractiveWithRouter(<SearchPackageComponent />, {
+    path: `${level.path}${search}`,
+    routes: level.routes,
     withQueryClient: true,
   });
-
-// The texts of the cells in the column with the given header, from top to bottom.
-// Reads the table through the DOM instead of role queries. A role query per
-// row and cell is slow when the tests run with coverage, and this runs on every
-// retry of waitFor.
-const getColumnTexts = (header: string) => {
-  const columnIndex = Array.from(
-    screen.getByRole('table').querySelectorAll('thead th')
-  ).findIndex((columnHeader) => columnHeader.textContent.includes(header));
-  expect(columnIndex).toBeGreaterThanOrEqual(0);
-
-  return Array.from(
-    screen.getByRole('table').querySelectorAll('tbody tr'),
-    (row) => row.querySelectorAll('td')[columnIndex]?.textContent
-  );
 };
 
 const revisions = (first: number, last: number) =>
@@ -112,34 +108,36 @@ describe('package search pages', () => {
     });
   });
 
-  it.each([
-    { level: 'organization', route: OrganizationRoute },
-    { level: 'product', route: ProductRoute },
-    { level: 'repository', route: RepositoryRoute },
-  ])('compiles the $level level page with React Compiler', ({ route }) => {
-    expect(route.options.component!.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
+  it.each(levels)(
+    'compiles the $level level page with React Compiler',
+    ({ route }) => {
+      expect(route.options.component!.toString()).toContain(
+        'react.memo_cache_sentinel'
+      );
+    }
+  );
 
-  it('searches for the submitted term, starting from the first page', async () => {
-    const { router, user } = renderSearch('?page=2');
+  it.each(levels)(
+    'searches for the submitted term at the $level level, starting from the first page',
+    async (level) => {
+      const { router, user } = renderSearch('?page=2', level);
 
-    const input = await screen.findByPlaceholderText('(regular expression)');
-    expect(screen.queryByText('revision-1')).not.toBeInTheDocument();
-    expect(mocks.runs).not.toHaveBeenCalled();
+      const input = await screen.findByPlaceholderText('(regular expression)');
+      expect(screen.queryByText('revision-1')).not.toBeInTheDocument();
+      expect(mocks.runs).not.toHaveBeenCalled();
 
-    await user.type(input, 'example{Enter}');
+      await user.type(input, 'example{Enter}');
 
-    expect(await screen.findByText('revision-1')).toBeVisible();
-    expect(router.state.location.search).toMatchObject({
-      pkgId: 'example',
-      page: 1,
-    });
-    expect(mocks.runs.mock.calls.at(-1)?.[0]).toMatchObject({
-      query: { identifier: 'example', organizationId: 1 },
-    });
-  });
+      expect(await screen.findByText('revision-1')).toBeVisible();
+      expect(router.state.location.search).toMatchObject({
+        pkgId: 'example',
+        page: 1,
+      });
+      expect(mocks.runs.mock.calls.at(-1)?.[0]).toMatchObject({
+        query: { identifier: 'example', ...level.hierarchyId },
+      });
+    }
+  );
 
   it('pages and sorts the result in the browser', async () => {
     mocks.runs.mockResolvedValue({ data: createRuns(25).reverse() });
@@ -192,4 +190,44 @@ describe('package search pages', () => {
       query: { purl: 'example', organizationId: 1 },
     });
   });
+
+  it.each(packageIdTypeSchema.options)(
+    'sorts by the displayed %s identifiers',
+    async (packageIdType) => {
+      useUserSettingsStore.setState({ packageIdType });
+      // The ORT IDs and the PURLs sort in opposite orders.
+      mocks.runs.mockResolvedValue({
+        data: [
+          createRun(1, 'zulu', 'alpha'),
+          createRun(2, 'alpha', 'zulu'),
+          createRun(3, 'mike', 'mike'),
+        ],
+      });
+
+      const { user } = renderSearch('?pkgId=example');
+
+      await user.click(
+        within(
+          (await screen.findByText('Matching Package')).closest('th')!
+        ).getByRole('link')
+      );
+
+      await waitFor(() =>
+        expect(getColumnTexts('Matching Package')).toEqual(
+          {
+            ORT_ID: [
+              'Maven:org.example:alpha:1.0',
+              'Maven:org.example:mike:1.0',
+              'Maven:org.example:zulu:1.0',
+            ],
+            PURL: [
+              'pkg:maven/org.example/alpha@1.0',
+              'pkg:maven/org.example/mike@1.0',
+              'pkg:maven/org.example/zulu@1.0',
+            ],
+          }[packageIdType]
+        )
+      );
+    }
+  );
 });
