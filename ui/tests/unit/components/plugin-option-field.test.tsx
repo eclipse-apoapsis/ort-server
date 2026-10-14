@@ -22,7 +22,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { PreconfiguredPluginOption, Secret } from '@/api';
 import { PluginOptionField } from '@/components/form/plugin-multi-select-field/plugin-option-field';
@@ -74,13 +74,6 @@ const renderOptionField = (
 };
 
 describe('PluginOptionField', () => {
-  beforeAll(() => {
-    // Radix Select relies on DOM APIs that jsdom does not implement.
-    Element.prototype.hasPointerCapture = () => false;
-    Element.prototype.releasePointerCapture = () => {};
-    Element.prototype.scrollIntoView = () => {};
-  });
-
   describe('required marker', () => {
     it('marks a required option without a value until it is filled', async () => {
       const user = userEvent.setup();

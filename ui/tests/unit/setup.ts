@@ -42,6 +42,11 @@ if (typeof window !== 'undefined') {
     observe() {}
     unobserve() {}
   };
+
+  // Radix Select and cmdk rely on DOM APIs that jsdom does not implement.
+  Element.prototype.hasPointerCapture = () => false;
+  Element.prototype.releasePointerCapture = () => {};
+  Element.prototype.scrollIntoView = () => {};
 }
 
 afterEach(() => {

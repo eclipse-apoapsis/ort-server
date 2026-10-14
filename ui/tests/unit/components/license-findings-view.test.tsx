@@ -30,7 +30,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
   GetRunDetectedLicenseFindingsData,
@@ -154,13 +154,6 @@ const openedSearch = (): LicenseFindingsSearchParameters => ({
     MIT: { packages: { [firstId]: {}, [secondId]: {} } },
     'Apache-2.0': { packages: { [firstId]: {} } },
   },
-});
-
-beforeAll(() => {
-  // The page size selector relies on DOM APIs that jsdom does not implement.
-  Element.prototype.hasPointerCapture = () => false;
-  Element.prototype.releasePointerCapture = () => {};
-  Element.prototype.scrollIntoView = () => {};
 });
 
 beforeEach(() => {
