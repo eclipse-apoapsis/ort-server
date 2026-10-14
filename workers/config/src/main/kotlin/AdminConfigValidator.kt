@@ -69,7 +69,7 @@ object AdminConfigValidator {
         reporterConfig: ReporterConfig,
         jobConfig: ReporterJobConfiguration
     ) = buildList {
-        jobConfig.formats
+        jobConfig.formats.orEmpty()
             .filterNot { it.lowercase() in reporterConfig.validFormats }
             .forEach { format ->
                 add(

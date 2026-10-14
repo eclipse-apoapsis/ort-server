@@ -205,6 +205,53 @@ class PluginTemplateApplicatorTest : WordSpec({
                     listOf("Maven", "NPM")
         }
 
+        "use the default plugins for plugin lists that are not configured" {
+            val applicator = applicator(
+                pluginTemplate(PluginType.SCANNER, "ScanCode", option("preferFileLicense", "true", true))
+            )
+            val jobConfigs = JobConfigurations(
+                advisor = AdvisorJobConfiguration(),
+                scanner = ScannerJobConfiguration(),
+                evaluator = EvaluatorJobConfiguration(),
+                reporter = ReporterJobConfiguration()
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId)
+
+            result.analyzer.packageCurationProviders.shouldNotBeNull().shouldBeEmpty()
+            result.advisor?.advisors.shouldNotBeNull().shouldBeEmpty()
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode")
+            result.scanner?.config?.getValue("ScanCode")?.options.shouldNotBeNull() shouldContainExactly
+                    mapOf("preferFileLicense" to "true")
+            result.evaluator?.packageConfigurationProviders.shouldNotBeNull().shouldBeEmpty()
+            result.reporter?.formats.shouldNotBeNull().shouldBeEmpty()
+            result.reporter?.packageConfigurationProviders.shouldNotBeNull().shouldBeEmpty()
+        }
+
+        "keep explicitly configured empty plugin lists" {
+            val applicator = applicator()
+            val jobConfigs = JobConfigurations(
+                advisor = AdvisorJobConfiguration(advisors = emptyList()),
+                scanner = ScannerJobConfiguration(scanners = emptyList()),
+                reporter = ReporterJobConfiguration(formats = emptyList())
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId)
+
+            result.advisor?.advisors.shouldNotBeNull().shouldBeEmpty()
+            result.scanner?.scanners.shouldNotBeNull().shouldBeEmpty()
+            result.reporter?.formats.shouldNotBeNull().shouldBeEmpty()
+        }
+
+        "not add configurations for jobs that are not configured" {
+            val result = applicator().applyTemplates(JobConfigurations(), organizationId)
+
+            result.advisor.shouldBeNull()
+            result.scanner.shouldBeNull()
+            result.evaluator.shouldBeNull()
+            result.reporter.shouldBeNull()
+        }
+
         "throw if a template cannot be fetched" {
             val templateService = mockk<PluginTemplateService> {
                 coEvery { getTemplateForOrganization(any(), any(), any()) } returns
@@ -435,7 +482,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.forAll { provider ->
+            result.analyzer.packageCurationProviders.shouldNotBeNull().forAll { provider ->
                 provider.options shouldContainExactly mapOf("path" to "/admin-curations")
                 provider.secrets shouldContainExactly
                         mapOf("token" to ResolvableSecret("admin-token", SecretSource.ADMIN))
@@ -461,7 +508,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.single().options shouldContainExactly
+            result.analyzer.packageCurationProviders.shouldNotBeNull().single().options shouldContainExactly
                     mapOf("path" to "/user-curations")
         }
 
@@ -471,14 +518,16 @@ class PluginTemplateApplicatorTest : WordSpec({
                 "OrtConfig",
                 option("path", "/admin-curations", true)
             )
-            val jobConfigs = JobConfigurations(analyzer = AnalyzerJobConfiguration())
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(packageCurationProviders = emptyList())
+            )
 
             val result = applyTemplatesToConfigs(
                 jobConfigs,
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.shouldBeEmpty()
+            result.analyzer.packageCurationProviders.shouldNotBeNull().shouldBeEmpty()
         }
 
         "apply package configuration provider templates only to the job the provider is configured for" {
