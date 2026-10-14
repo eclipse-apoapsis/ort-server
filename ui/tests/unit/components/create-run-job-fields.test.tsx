@@ -26,10 +26,7 @@ import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
 import { Accordion } from '@/components/ui/accordion';
-import {
-  defaultValues,
-  type CreateRunFormValues,
-} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import type { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import {
   AdvisorFields,
   AnalyzerFields,
@@ -39,6 +36,7 @@ import {
   ScannerFields,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-components';
 import {
+  createFormDefaultValues,
   createPackageCurationProviderPlugins,
   createPermissions,
   createPluginDescriptor,
@@ -94,16 +92,16 @@ const packageManagerPlugins = [
 ];
 const permissions = createPermissions();
 const secrets = createPluginSecrets();
-const formDefaultValues = defaultValues(
-  null,
-  advisorPlugins,
-  scannerPlugins,
-  reporterPlugins,
-  true,
-  [],
-  packageConfigurationProviderPlugins,
-  packageManagerPlugins
-);
+const formDefaultValues = createFormDefaultValues({
+  plugins: {
+    advisorPlugins,
+    scannerPlugins,
+    reporterPlugins,
+    packageConfigurationProviderPlugins,
+    packageManagerPlugins,
+  },
+  isSuperuser: true,
+});
 const onToggle = () => {};
 
 type JobFieldsTestCase = {
@@ -259,6 +257,53 @@ describe('create run job fields', () => {
     // The package managers start collapsed, so their settings are not rendered.
     expect(markup).toContain('Expand all');
     expect(markup).not.toContain('Must run after');
+  });
+
+  it('shows the default package configuration providers first in their default order', () => {
+    const providers = ['Alpha', 'Beta', 'Gamma'].map((id) =>
+      createPluginDescriptor({
+        id,
+        type: 'PACKAGE_CONFIGURATION_PROVIDER',
+        displayName: `Provider ${id}`,
+      })
+    );
+    const values = createFormDefaultValues({
+      plugins: {
+        advisorPlugins,
+        scannerPlugins,
+        reporterPlugins,
+        packageConfigurationProviderPlugins: providers,
+        packageManagerPlugins,
+      },
+      isSuperuser: true,
+      defaultPlugins: [
+        {
+          category: 'PACKAGE_CONFIGURATION_PROVIDER',
+          pluginIds: ['Gamma', 'Alpha'],
+          source: 'GLOBAL',
+        },
+      ],
+    });
+
+    const markup = renderWithForm(
+      (form) => (
+        <EvaluatorFields
+          form={form}
+          value='evaluator'
+          onToggle={onToggle}
+          isSuperuser
+          packageConfigurationProviderPlugins={providers}
+          secrets={secrets}
+        />
+      ),
+      { defaultValues: values, openAccordion: 'evaluator' }
+    );
+
+    const positions = ['Gamma', 'Alpha', 'Beta'].map((id) =>
+      markup.indexOf(`Provider ${id}`)
+    );
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
   });
 
   it('hides the reporter package configuration providers once the evaluator is enabled', () => {

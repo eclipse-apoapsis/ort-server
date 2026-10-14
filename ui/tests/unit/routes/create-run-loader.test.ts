@@ -38,7 +38,7 @@ const loader = Route.options.loader as unknown as (
 ) => Promise<unknown>;
 
 describe('create run loader', () => {
-  it('does not wait for the plugins when creating a new run', async () => {
+  it('does not wait for the plugins and the default plugins when creating a new run', async () => {
     const pending = createDeferred();
     const prefetchQuery = vi.fn().mockReturnValue(pending.promise);
     vi.mocked(getAvailableRepositorySecrets).mockResolvedValue({
@@ -53,14 +53,21 @@ describe('create run loader', () => {
 
     expect(result).toEqual({ ortRun: null, secrets: { data: [] } });
     expect(getRepositoryRun).not.toHaveBeenCalled();
-    expect(prefetchQuery).toHaveBeenCalledOnce();
-    const request = getQueryKeyRequest(prefetchQuery.mock.calls[0]![0]);
-    expect(request._id).toBe('getPluginsForRepository');
-    expect(request.path).toEqual({ repositoryId: 3 });
-    expect(request.query).toBeUndefined();
+    expect(prefetchQuery).toHaveBeenCalledTimes(2);
+    const requests = prefetchQuery.mock.calls.map(([options]) =>
+      getQueryKeyRequest(options)
+    );
+    expect(requests.map((request) => request._id)).toEqual([
+      'getPluginsForRepository',
+      'getDefaultPluginsForRepository',
+    ]);
+    requests.forEach((request) => {
+      expect(request.path).toEqual({ repositoryId: 3 });
+      expect(request.query).toBeUndefined();
+    });
   });
 
-  it('prefetches plugins for the config context of a rerun', async () => {
+  it('prefetches plugins and default plugins for the config context of a rerun', async () => {
     const prefetchQuery = vi.fn().mockResolvedValue(undefined);
     vi.mocked(getRepositoryRun).mockResolvedValue({
       data: createOrtRun({ jobConfigContext: 'ctx' }),
@@ -78,8 +85,15 @@ describe('create run loader', () => {
     expect(getRepositoryRun).toHaveBeenCalledWith({
       path: { repositoryId: 3, ortRunIndex: 7 },
     });
-    const request = getQueryKeyRequest(prefetchQuery.mock.calls[0]![0]);
-    expect(request._id).toBe('getPluginsForRepository');
-    expect(request.query).toEqual({ configContext: 'ctx' });
+    const requests = prefetchQuery.mock.calls.map(([options]) =>
+      getQueryKeyRequest(options)
+    );
+    expect(requests.map((request) => request._id)).toEqual([
+      'getPluginsForRepository',
+      'getDefaultPluginsForRepository',
+    ]);
+    requests.forEach((request) =>
+      expect(request.query).toEqual({ configContext: 'ctx' })
+    );
   });
 });

@@ -19,14 +19,16 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/default-values';
 import { formValuesToPayload } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/payload';
 import type { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/run-schema';
-import { createPluginDescriptor } from '../fixtures/create-run';
+import {
+  createFormDefaultValues,
+  createPluginDescriptor,
+} from '../fixtures/create-run';
 
 function createFormValues(): CreateRunFormValues {
   return {
-    ...defaultValues(null, [], [], [], false, [], [], []),
+    ...createFormDefaultValues(),
     revision: 'main',
     path: '',
   };

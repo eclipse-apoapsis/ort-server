@@ -26,6 +26,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { OrtRun, PreconfiguredPluginDescriptor } from '@/api';
 import { CreateRunForm } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/create-run-form';
 import {
+  createDefaultPlugins,
   createOrtRun,
   createPermissions,
   createPluginDescriptor,
@@ -78,6 +79,7 @@ const packageManagerPlugins = [
     displayName: 'Unmanaged',
   }),
 ];
+const defaultPlugins = createDefaultPlugins();
 const permissions = createPermissions();
 const rerun = createOrtRun({ revision: '', path: '', jobConfigs: {} });
 const secrets = createPluginSecrets();
@@ -88,6 +90,7 @@ const renderCreateRunForm = (onSubmit = vi.fn()) => ({
   onSubmit,
   ...renderInteractiveWithRouter(
     <CreateRunForm
+      defaultPlugins={defaultPlugins}
       isSubmitting={false}
       isSuperuser={false}
       onSubmit={onSubmit}
@@ -131,6 +134,7 @@ const renderSwappableForm = (
         </button>
         <button onClick={() => setTick(tick + 1)}>Unrelated render</button>
         <CreateRunForm
+          defaultPlugins={defaultPlugins}
           isSubmitting={false}
           isSuperuser={false}
           onSubmit={onSubmit}
@@ -366,6 +370,7 @@ describe('CreateRunForm', () => {
     const onSubmit = vi.fn();
     const { user } = renderInteractiveWithRouter(
       <CreateRunForm
+        defaultPlugins={defaultPlugins}
         isSubmitting={false}
         isSuperuser={false}
         onSubmit={onSubmit}
@@ -426,7 +431,8 @@ describe('CreateRunForm', () => {
         },
         advisor: {
           skipExcluded: true,
-          advisors: ['OSV', 'VulnerableCode'],
+          // Default plugins that are not available are not enabled.
+          advisors: ['OSV'],
           config: {
             OSV: {
               options: { serverUrl: 'https://osv.dev' },

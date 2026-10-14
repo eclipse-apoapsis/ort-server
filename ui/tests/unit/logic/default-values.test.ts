@@ -19,8 +19,13 @@
 
 import { expect, it } from 'vitest';
 
-import { defaultValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/default-values';
-import { createOrtRun, createPluginDescriptor } from '../fixtures/create-run';
+import type { OrtRun, PluginType } from '@/api';
+import {
+  createDefaultPlugins,
+  createFormDefaultValues,
+  createOrtRun,
+  createPluginDescriptor,
+} from '../fixtures/create-run';
 
 it('preserves multiple environment definitions from reruns', () => {
   const ortRun = createOrtRun({
@@ -47,7 +52,7 @@ it('preserves multiple environment definitions from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], [], false, [], [], []);
+  const defaults = createFormDefaultValues({ ortRun });
 
   expect(defaults.jobConfigs.analyzer.environmentDefinitions).toEqual(
     ortRun.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions
@@ -90,7 +95,7 @@ it('preserves package configuration provider config from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], [], false, [], [], []);
+  const defaults = createFormDefaultValues({ ortRun });
 
   expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual([
     'OrtConfig',
@@ -145,7 +150,7 @@ it('preserves package curation provider config from reruns', () => {
     },
   });
 
-  const defaults = defaultValues(ortRun, [], [], [], false, [], [], []);
+  const defaults = createFormDefaultValues({ ortRun });
 
   expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([
     'ClearlyDefined',
@@ -163,32 +168,27 @@ it('preserves package curation provider config from reruns', () => {
 });
 
 it('uses package configuration provider plugin default values for fresh runs', () => {
-  const defaults = defaultValues(
-    null,
-    [],
-    [],
-    [],
-    false,
-    [],
-    [
-      createPluginDescriptor({
-        id: 'OrtConfig',
-        type: 'PACKAGE_CONFIGURATION_PROVIDER',
-        options: [
-          {
-            name: 'path',
-            description: 'Provider path.',
-            type: 'STRING',
-            defaultValue: 'package-configurations.yml',
-            isFixed: true,
-            isNullable: false,
-            isRequired: true,
-          },
-        ],
-      }),
-    ],
-    []
-  );
+  const defaults = createFormDefaultValues({
+    plugins: {
+      packageConfigurationProviderPlugins: [
+        createPluginDescriptor({
+          id: 'OrtConfig',
+          type: 'PACKAGE_CONFIGURATION_PROVIDER',
+          options: [
+            {
+              name: 'path',
+              description: 'Provider path.',
+              type: 'STRING',
+              defaultValue: 'package-configurations.yml',
+              isFixed: true,
+              isNullable: false,
+              isRequired: true,
+            },
+          ],
+        }),
+      ],
+    },
+  });
 
   expect(defaults.jobConfigs.evaluator.packageConfigurationProviders).toEqual(
     []
@@ -219,32 +219,27 @@ it('uses package configuration provider plugin default values for fresh runs', (
 });
 
 it('uses package curation provider plugin default values for fresh runs', () => {
-  const defaults = defaultValues(
-    null,
-    [],
-    [],
-    [],
-    false,
-    [
-      createPluginDescriptor({
-        id: 'ClearlyDefined',
-        type: 'PACKAGE_CURATION_PROVIDER',
-        options: [
-          {
-            name: 'serverUrl',
-            description: 'Backend URL.',
-            type: 'STRING',
-            defaultValue: 'https://api.clearlydefined.io',
-            isFixed: true,
-            isNullable: false,
-            isRequired: true,
-          },
-        ],
-      }),
-    ],
-    [],
-    []
-  );
+  const defaults = createFormDefaultValues({
+    plugins: {
+      packageCurationProviderPlugins: [
+        createPluginDescriptor({
+          id: 'ClearlyDefined',
+          type: 'PACKAGE_CURATION_PROVIDER',
+          options: [
+            {
+              name: 'serverUrl',
+              description: 'Backend URL.',
+              type: 'STRING',
+              defaultValue: 'https://api.clearlydefined.io',
+              isFixed: true,
+              isNullable: false,
+              isRequired: true,
+            },
+          ],
+        }),
+      ],
+    },
+  });
 
   expect(defaults.jobConfigs.analyzer.packageCurationProviders).toEqual([]);
   expect(defaults.jobConfigs.analyzer.packageCurationProviderConfig).toEqual({
@@ -258,32 +253,27 @@ it('uses package curation provider plugin default values for fresh runs', () => 
 });
 
 it('uses scanner plugin default values for fresh runs', () => {
-  const defaults = defaultValues(
-    null,
-    [],
-    [
-      createPluginDescriptor({
-        id: 'DOS',
-        type: 'SCANNER',
-        options: [
-          {
-            name: 'url',
-            description: 'Backend URL.',
-            type: 'STRING',
-            defaultValue: 'https://dos-api.example/api/',
-            isFixed: true,
-            isNullable: false,
-            isRequired: true,
-          },
-        ],
-      }),
-    ],
-    [],
-    false,
-    [],
-    [],
-    []
-  );
+  const defaults = createFormDefaultValues({
+    plugins: {
+      scannerPlugins: [
+        createPluginDescriptor({
+          id: 'DOS',
+          type: 'SCANNER',
+          options: [
+            {
+              name: 'url',
+              description: 'Backend URL.',
+              type: 'STRING',
+              defaultValue: 'https://dos-api.example/api/',
+              isFixed: true,
+              isNullable: false,
+              isRequired: true,
+            },
+          ],
+        }),
+      ],
+    },
+  });
 
   expect(defaults.jobConfigs.scanner.config).toEqual({
     DOS: {
@@ -296,32 +286,27 @@ it('uses scanner plugin default values for fresh runs', () => {
 });
 
 it('uses reporter plugin default values for fresh runs', () => {
-  const defaults = defaultValues(
-    null,
-    [],
-    [],
-    [
-      createPluginDescriptor({
-        id: 'WebApp',
-        type: 'REPORTER',
-        options: [
-          {
-            name: 'deduplicateDependencyTree',
-            description: 'Deduplicate the dependency tree.',
-            type: 'BOOLEAN',
-            defaultValue: 'true',
-            isFixed: true,
-            isNullable: false,
-            isRequired: false,
-          },
-        ],
-      }),
-    ],
-    false,
-    [],
-    [],
-    []
-  );
+  const defaults = createFormDefaultValues({
+    plugins: {
+      reporterPlugins: [
+        createPluginDescriptor({
+          id: 'WebApp',
+          type: 'REPORTER',
+          options: [
+            {
+              name: 'deduplicateDependencyTree',
+              description: 'Deduplicate the dependency tree.',
+              type: 'BOOLEAN',
+              defaultValue: 'true',
+              isFixed: true,
+              isNullable: false,
+              isRequired: false,
+            },
+          ],
+        }),
+      ],
+    },
+  });
 
   expect(defaults.jobConfigs.reporter.config).toEqual({
     WebApp: {
@@ -513,16 +498,10 @@ it('applies fixed plugin option precedence for advisor, scanner, and reporter re
     }),
   ];
 
-  const defaults = defaultValues(
+  const defaults = createFormDefaultValues({
     ortRun,
-    advisorPlugins,
-    scannerPlugins,
-    reporterPlugins,
-    false,
-    [],
-    [],
-    []
-  );
+    plugins: { advisorPlugins, scannerPlugins, reporterPlugins },
+  });
 
   expect(defaults.jobConfigs.advisor.config).toEqual({
     OSV: {
@@ -553,4 +532,148 @@ it('applies fixed plugin option precedence for advisor, scanner, and reporter re
       secrets: {},
     },
   });
+});
+
+const pluginsOfType = (type: PluginType, ...ids: string[]) =>
+  ids.map((id) => createPluginDescriptor({ id, type }));
+
+const defaultPluginsTestValues = (ortRun: OrtRun | null) =>
+  createFormDefaultValues({
+    ortRun,
+    plugins: {
+      advisorPlugins: pluginsOfType(
+        'ADVISOR',
+        'OSV',
+        'VulnerableCode',
+        'Other'
+      ),
+      scannerPlugins: pluginsOfType('SCANNER', 'ScanCode', 'Other'),
+      reporterPlugins: pluginsOfType(
+        'REPORTER',
+        'CycloneDX',
+        'WebApp',
+        'Other'
+      ),
+      packageCurationProviderPlugins: pluginsOfType(
+        'PACKAGE_CURATION_PROVIDER',
+        'ClearlyDefined',
+        'Other'
+      ),
+      packageConfigurationProviderPlugins: pluginsOfType(
+        'PACKAGE_CONFIGURATION_PROVIDER',
+        'OrtConfig',
+        'Other'
+      ),
+      packageManagerPlugins: pluginsOfType('PACKAGE_MANAGER', 'Maven', 'Other'),
+    },
+    defaultPlugins: createDefaultPlugins({
+      PACKAGE_CURATION_PROVIDER: ['ClearlyDefined'],
+      PACKAGE_CONFIGURATION_PROVIDER: ['OrtConfig'],
+    }),
+  });
+
+it('enables the available default plugins for fresh runs', () => {
+  const { jobConfigs } = defaultPluginsTestValues(null);
+
+  expect(jobConfigs.analyzer.packageManagers).toEqual(['Maven']);
+  expect(jobConfigs.analyzer.packageCurationProviders).toEqual([
+    'ClearlyDefined',
+  ]);
+  expect(jobConfigs.advisor.advisors).toEqual(['OSV', 'VulnerableCode']);
+  expect(jobConfigs.scanner.scanners).toEqual(['ScanCode']);
+  expect(jobConfigs.scanner.scannerScopes).toEqual({ ScanCode: 'both' });
+  expect(jobConfigs.evaluator.packageConfigurationProviders).toEqual([
+    'OrtConfig',
+  ]);
+  // The default reporter "SpdxDocument" is not available.
+  expect(jobConfigs.reporter.formats).toEqual(['CycloneDX', 'WebApp']);
+  expect(jobConfigs.reporter.packageConfigurationProviders).toEqual([
+    'OrtConfig',
+  ]);
+});
+
+const scannerDefaultValues = (scanners: string[], projectScanners: string[]) =>
+  createFormDefaultValues({
+    plugins: {
+      scannerPlugins: pluginsOfType('SCANNER', 'ScanCode', 'SCANOSS', 'Other'),
+    },
+    defaultPlugins: createDefaultPlugins({
+      SCANNER: scanners,
+      PROJECT_SCANNER: projectScanners,
+    }),
+  }).jobConfigs.scanner;
+
+it('sets the scopes of the default scanners from the default project scanners', () => {
+  const scanner = scannerDefaultValues(
+    ['ScanCode', 'Other'],
+    ['SCANOSS', 'ScanCode']
+  );
+
+  expect(scanner.scanners).toEqual(['ScanCode', 'Other', 'SCANOSS']);
+  expect(scanner.scannerScopes).toEqual({
+    ScanCode: 'both',
+    Other: 'packages',
+    SCANOSS: 'projects',
+  });
+});
+
+it('scans packages and projects with the default scanners if the project scanners are the same', () => {
+  const scanner = scannerDefaultValues(
+    ['ScanCode', 'SCANOSS'],
+    ['SCANOSS', 'ScanCode']
+  );
+
+  expect(scanner.scanners).toEqual(['ScanCode', 'SCANOSS']);
+  expect(scanner.scannerScopes).toEqual({ ScanCode: 'both', SCANOSS: 'both' });
+});
+
+it('scans only packages with the default scanners if there are no default project scanners', () => {
+  const scanner = scannerDefaultValues(['ScanCode'], []);
+
+  expect(scanner.scanners).toEqual(['ScanCode']);
+  expect(scanner.scannerScopes).toEqual({ ScanCode: 'packages' });
+});
+
+it('uses the default plugins for plugin lists that are not set in reruns', () => {
+  const ortRun = createOrtRun({
+    jobConfigs: {
+      analyzer: {},
+      advisor: {},
+      scanner: {},
+      evaluator: {},
+      reporter: {},
+    },
+  });
+
+  const { jobConfigs } = defaultPluginsTestValues(ortRun);
+
+  expect(jobConfigs.analyzer.packageManagers).toEqual(['Maven']);
+  expect(jobConfigs.analyzer.packageCurationProviders).toEqual([
+    'ClearlyDefined',
+  ]);
+  expect(jobConfigs.advisor.advisors).toEqual(['OSV', 'VulnerableCode']);
+  expect(jobConfigs.scanner.scanners).toEqual(['ScanCode']);
+  expect(jobConfigs.evaluator.packageConfigurationProviders).toEqual([
+    'OrtConfig',
+  ]);
+  expect(jobConfigs.reporter.formats).toEqual(['CycloneDX', 'WebApp']);
+  expect(jobConfigs.reporter.packageConfigurationProviders).toEqual([
+    'OrtConfig',
+  ]);
+});
+
+it('keeps empty provider lists from reruns', () => {
+  const ortRun = createOrtRun({
+    jobConfigs: {
+      analyzer: { packageCurationProviders: [] },
+      evaluator: { packageConfigurationProviders: [] },
+      reporter: { packageConfigurationProviders: [] },
+    },
+  });
+
+  const { jobConfigs } = defaultPluginsTestValues(ortRun);
+
+  expect(jobConfigs.analyzer.packageCurationProviders).toEqual([]);
+  expect(jobConfigs.evaluator.packageConfigurationProviders).toEqual([]);
+  expect(jobConfigs.reporter.packageConfigurationProviders).toEqual([]);
 });

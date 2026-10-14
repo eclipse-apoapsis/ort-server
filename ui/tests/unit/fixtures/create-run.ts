@@ -18,6 +18,7 @@
  */
 
 import type {
+  DefaultPlugins,
   OrganizationPermission,
   OrtRun,
   PreconfiguredPluginDescriptor,
@@ -30,6 +31,11 @@ import {
   ProductPermissions,
   RepositoryPermissions,
 } from '@/lib/permissions';
+import {
+  defaultValues,
+  getDefaultPluginSelections,
+  type PluginGroups,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import type { DeepPartial } from './deep-partial';
 
 /**
@@ -48,6 +54,58 @@ export const createPluginDescriptor = (
     options: [],
     ...overrides,
   }) as PreconfiguredPluginDescriptor;
+
+/** Build the default plugins for the create-run form, as the built-in defaults of the server would. */
+export const createDefaultPlugins = (
+  overrides: Partial<Record<DefaultPlugins['category'], string[]>> = {}
+): DefaultPlugins[] =>
+  Object.entries({
+    ADVISOR: ['OSV', 'VulnerableCode'],
+    PACKAGE_CONFIGURATION_PROVIDER: [],
+    PACKAGE_CURATION_PROVIDER: [],
+    PACKAGE_MANAGER: ['Maven', 'NPM'],
+    REPORTER: ['CycloneDX', 'SpdxDocument', 'WebApp'],
+    SCANNER: ['ScanCode'],
+    PROJECT_SCANNER: overrides.SCANNER ?? ['ScanCode'],
+    ...overrides,
+  }).map(([category, pluginIds]) => ({
+    category: category as DefaultPlugins['category'],
+    pluginIds,
+    source: 'BUILT_IN',
+  }));
+
+/**
+ * Build the default values of the create-run form. Plugin types without given plugins have no
+ * plugins, and no default plugins are configured unless given.
+ */
+export const createFormDefaultValues = ({
+  ortRun = null,
+  plugins = {},
+  isSuperuser = false,
+  defaultPlugins = [],
+}: {
+  ortRun?: OrtRun | null;
+  plugins?: Partial<PluginGroups>;
+  isSuperuser?: boolean;
+  defaultPlugins?: DefaultPlugins[];
+} = {}) => {
+  const pluginGroups: PluginGroups = {
+    advisorPlugins: [],
+    scannerPlugins: [],
+    reporterPlugins: [],
+    packageCurationProviderPlugins: [],
+    packageConfigurationProviderPlugins: [],
+    packageManagerPlugins: [],
+    ...plugins,
+  };
+
+  return defaultValues(
+    ortRun,
+    pluginGroups,
+    isSuperuser,
+    getDefaultPluginSelections(defaultPlugins, pluginGroups)
+  );
+};
 
 /** Build the permission context expected by create-run field components. */
 export const createPermissions = (

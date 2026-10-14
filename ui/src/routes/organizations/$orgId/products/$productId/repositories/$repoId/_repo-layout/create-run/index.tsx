@@ -32,6 +32,7 @@ import {
 import { getAvailableRepositorySecrets, getRepositoryRun } from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
+  createRunDefaultPluginsOptions,
   createRunPluginsOptions,
   useCreateRunPlugins,
 } from '@/hooks/use-create-run-plugins';
@@ -58,10 +59,8 @@ const CreateRunPage = () => {
     ortRun?.data?.jobConfigContext ?? ''
   );
 
-  const { plugins, pluginsLoading, pluginsError } = useCreateRunPlugins(
-    Number.parseInt(params.repoId),
-    configContext
-  );
+  const { plugins, defaultPlugins, pluginsLoading, pluginsError } =
+    useCreateRunPlugins(Number.parseInt(params.repoId), configContext);
 
   useEffect(() => {
     if (pluginsError) toastError('Unable to load plugins', pluginsError);
@@ -151,6 +150,7 @@ const CreateRunPage = () => {
 
   return (
     <CreateRunForm
+      defaultPlugins={defaultPlugins}
       isSubmitting={isPending}
       isSuperuser={isSuperuser}
       onConfigContextChange={setConfigContext}
@@ -190,11 +190,18 @@ export const Route = createFileRoute(
           })
         : null;
 
-    // Start loading the plugins without blocking the page. For reruns, use the
-    // original run's config context for the initial fetch.
+    // Start loading the plugins and the default plugins without blocking the
+    // page. For reruns, use the original run's config context for the initial
+    // fetch.
     const configContext = ortRun?.data?.jobConfigContext || undefined;
     void context.queryClient.prefetchQuery(
       createRunPluginsOptions(Number.parseInt(params.repoId), configContext)
+    );
+    void context.queryClient.prefetchQuery(
+      createRunDefaultPluginsOptions(
+        Number.parseInt(params.repoId),
+        configContext
+      )
     );
 
     const secrets = await getAvailableRepositorySecrets({
