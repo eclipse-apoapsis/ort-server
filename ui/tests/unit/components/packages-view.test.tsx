@@ -27,54 +27,23 @@ import { formatTimestamp } from '@/lib/utils';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
-import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { renderRunPage } from '../fixtures/finding-tables';
+import { pageOf } from '../fixtures/table';
+
+type PackagesQuery = GetRunPackagesData['query'];
 
 const mocks = vi.hoisted(() => ({
-  packages: [] as Package[],
-  packageQueries: [] as GetRunPackagesData['query'][],
+  run: vi.fn(),
+  licenses: vi.fn(),
+  packages: vi.fn(),
 }));
 
-vi.mock('@tanstack/react-query', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('@tanstack/react-query')>();
-
-  return {
-    ...original,
-    useSuspenseQuery: ({
-      queryKey: [{ _id, query }],
-    }: {
-      queryKey: [{ _id: string; query?: GetRunPackagesData['query'] }];
-    }) => {
-      switch (_id) {
-        case 'getRepositoryRun':
-          return { data: { id: 1 } };
-        case 'getRunPackageLicenses':
-          return {
-            data: {
-              processedDeclaredLicenses: [],
-              unmappedDeclaredLicenses: [],
-            },
-          };
-        case 'getRunPackages':
-          mocks.packageQueries.push(query);
-          return {
-            data: {
-              data: mocks.packages,
-              pagination: {
-                limit: query?.limit,
-                offset: query?.offset,
-                totalCount: 30,
-              },
-            },
-            error: null,
-            isError: false,
-          };
-        default:
-          throw new Error(`Unexpected query '${_id}'.`);
-      }
-    },
-  };
-});
+vi.mock('@/api/sdk.gen', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
+  getRepositoryRun: mocks.run,
+  getRunPackageLicenses: mocks.licenses,
+  getRunPackages: mocks.packages,
+}));
 
 const createPackage = (name: string, publishedAt?: string | null): Package => ({
   authors: [],
@@ -101,19 +70,30 @@ const createPackage = (name: string, publishedAt?: string | null): Package => ({
 const PackagesComponent = Route.options.component!;
 
 const renderPackages = (search = '') =>
-  renderInteractiveWithRouter(<PackagesComponent />, {
-    path: `/organizations/1/products/2/repositories/3/runs/4/packages/${search}`,
-    routes: [
-      {
-        path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages/',
-      },
-    ],
-  });
+  renderRunPage(PackagesComponent, 'packages', search);
+
+// Serves the given packages for every query of packages.
+const servePackages = (...packages: Package[]) =>
+  mocks.packages.mockImplementation(
+    async ({ query }: { query?: PackagesQuery }) =>
+      pageOf(packages, {
+        limit: query?.limit,
+        offset: query?.offset,
+        totalCount: 30,
+      })
+  );
+
+const lastPackagesQuery = () =>
+  mocks.packages.mock.calls.at(-1)?.[0].query as PackagesQuery;
 
 describe('packages view', () => {
   beforeEach(() => {
-    mocks.packages = [];
-    mocks.packageQueries = [];
+    vi.clearAllMocks();
+    mocks.run.mockResolvedValue({ data: { id: 1 } });
+    mocks.licenses.mockResolvedValue({
+      data: { processedDeclaredLicenses: [], unmappedDeclaredLicenses: [] },
+    });
+    servePackages();
   });
 
   afterEach(() => {
@@ -126,11 +106,11 @@ describe('packages view', () => {
     'shows the publication date above the homepage in %s mode',
     async (packageIdType) => {
       useUserSettingsStore.setState({ packageIdType });
-      mocks.packages = [
+      servePackages(
         createPackage('dated', '2024-05-06T07:08:09Z'),
         createPackage('null-date', null),
-        createPackage('no-date'),
-      ];
+        createPackage('no-date')
+      );
 
       renderPackages();
 
@@ -154,7 +134,7 @@ describe('packages view', () => {
   );
 
   it('labels the publication date in its tooltip', async () => {
-    mocks.packages = [createPackage('dated', '2024-05-06T07:08:09Z')];
+    servePackages(createPackage('dated', '2024-05-06T07:08:09Z'));
 
     const { user } = renderPackages();
 
@@ -168,7 +148,7 @@ describe('packages view', () => {
   });
 
   it('sorts by publication date in both directions after the other sort fields, starting from the first page', async () => {
-    mocks.packages = [createPackage('example', '2024-05-06T07:08:09Z')];
+    servePackages(createPackage('example', '2024-05-06T07:08:09Z'));
     const sortBy = encodeURIComponent(
       JSON.stringify([{ id: 'identifier', desc: false }])
     );
@@ -191,7 +171,7 @@ describe('packages view', () => {
         ],
       })
     );
-    expect(mocks.packageQueries.at(-1)).toMatchObject({
+    expect(lastPackagesQuery()).toMatchObject({
       offset: 0,
       sort: 'identifier,publishedAt',
     });
@@ -206,7 +186,7 @@ describe('packages view', () => {
         ],
       })
     );
-    expect(mocks.packageQueries.at(-1)).toMatchObject({
+    expect(lastPackagesQuery()).toMatchObject({
       offset: 0,
       sort: 'identifier,-publishedAt',
     });

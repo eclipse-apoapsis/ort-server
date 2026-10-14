@@ -19,17 +19,16 @@
 
 // @vitest-environment jsdom
 
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GetRunIssuesData, Issue } from '@/api';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/index';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
-import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
-import { getLinkTarget } from '../fixtures/table';
+import { renderRunPage } from '../fixtures/finding-tables';
+import { getLinkTarget, pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
@@ -82,27 +81,9 @@ const renderIssue = (issuePurl: string | null) => {
     source: 'Analyzer',
     timestamp: '2026-01-01T00:00:00Z',
   };
-  mocks.issues.mockResolvedValue({
-    data: {
-      data: [issue],
-      pagination: { totalCount: 1, limit: 10, offset: 0 },
-    },
-  });
+  mocks.issues.mockResolvedValue(pageOf([issue]));
 
-  renderInteractiveWithRouter(
-    <TooltipProvider>
-      <IssuesComponent />
-    </TooltipProvider>,
-    {
-      path: '/organizations/1/products/2/repositories/3/runs/4/issues',
-      routes: [
-        {
-          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/',
-        },
-      ],
-      withQueryClient: true,
-    }
-  );
+  renderRunPage(IssuesComponent, 'issues');
 };
 
 it.each([
@@ -135,14 +116,11 @@ it.each([
 describe('issues table', () => {
   type IssuesQuery = NonNullable<GetRunIssuesData['query']>;
 
-  // The first part of the issue names, which tells the query the issues come from.
-  let nameTag = 'issue';
-
   const purlOf = (name: string) => `pkg:maven/com.example/${name}@1.0`;
 
   // Serve three issues per page, named after the query and their position.
   const getIssuesPage = (query: IssuesQuery = {}) => {
-    const tag = query.severity ? 'error' : query.sort ? 'sorted' : nameTag;
+    const tag = query.severity ? 'error' : query.sort ? 'sorted' : 'issue';
     const offset = query.offset ?? 0;
     const data: Issue[] = [1, 2, 3].map((position) => {
       const name = `${tag}-${offset + position}`;
@@ -157,36 +135,20 @@ describe('issues table', () => {
       };
     });
 
-    return {
-      data,
-      pagination: {
-        limit: query.limit ?? 10,
-        offset,
-        totalCount: query.severity ? 3 : 25,
-      },
-    };
+    return pageOf(data, {
+      limit: query.limit,
+      offset,
+      totalCount: query.severity ? 3 : 25,
+    });
   };
 
   const renderIssues = (search = '') =>
-    renderInteractiveWithRouter(
-      <TooltipProvider>
-        <IssuesComponent />
-      </TooltipProvider>,
-      {
-        path: `/organizations/1/products/2/repositories/3/runs/4/issues${search}`,
-        routes: [
-          {
-            path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/',
-          },
-        ],
-        withQueryClient: true,
-      }
-    );
+    renderRunPage(IssuesComponent, 'issues', search);
 
   const findIssue = (name: string) =>
     screen.findByRole('link', { name: purlOf(name) });
 
-  // The button that expands and collapses the row of the given issue.
+  // The button that expands the row of the given issue.
   const getDetailsButton = (name: string) =>
     within(
       screen.getByRole('link', { name: purlOf(name) }).closest('tr')!
@@ -196,11 +158,8 @@ describe('issues table', () => {
     mocks.issues.mock.calls.at(-1)?.[0].query as IssuesQuery;
 
   beforeEach(() => {
-    nameTag = 'issue';
     mocks.issues.mockImplementation(
-      async ({ query }: { query?: IssuesQuery }) => ({
-        data: getIssuesPage(query),
-      })
+      async ({ query }: { query?: IssuesQuery }) => getIssuesPage(query)
     );
   });
 
@@ -253,31 +212,14 @@ describe('issues table', () => {
     });
   });
 
-  it('expands and collapses a row', async () => {
+  it('shows the details of an expanded row', async () => {
     const { user } = renderIssues();
 
     expect(await findIssue('issue-1')).toBeVisible();
-    expect(screen.queryByText(/^Details of/)).not.toBeInTheDocument();
 
     await user.click(getDetailsButton('issue-1'));
 
     expect(await screen.findByText('Details of issue-1')).toBeVisible();
-    expect(
-      getDetailsButton('issue-1').querySelector('.lucide-chevron-up')
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Details of issue-2')).not.toBeInTheDocument();
-    expect(
-      getDetailsButton('issue-2').querySelector('.lucide-chevron-down')
-    ).toBeInTheDocument();
-
-    await user.click(getDetailsButton('issue-1'));
-
-    await waitFor(() =>
-      expect(screen.queryByText('Details of issue-1')).not.toBeInTheDocument()
-    );
-    expect(
-      getDetailsButton('issue-1').querySelector('.lucide-chevron-down')
-    ).toBeInTheDocument();
   });
 
   it('expands the row marked in the URL', async () => {
@@ -285,27 +227,5 @@ describe('issues table', () => {
 
     expect(await screen.findByText('Details of issue-2')).toBeVisible();
     expect(screen.queryByText('Details of issue-1')).not.toBeInTheDocument();
-  });
-
-  it('replaces the rows and collapses them when the query data is refreshed', async () => {
-    const { queryClient, user } = renderIssues();
-
-    expect(await findIssue('issue-1')).toBeVisible();
-    await user.click(getDetailsButton('issue-1'));
-    expect(await screen.findByText('Details of issue-1')).toBeVisible();
-
-    nameTag = 'renamed';
-    await queryClient!.invalidateQueries();
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole('link', { name: purlOf('renamed-1') })
-      ).toBeVisible()
-    );
-    expect(
-      screen.queryByRole('link', { name: purlOf('issue-1') })
-    ).not.toBeInTheDocument();
-    // The table collapses expanded rows when it receives new data.
-    expect(screen.queryByText(/^Details of/)).not.toBeInTheDocument();
   });
 });

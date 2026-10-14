@@ -23,15 +23,14 @@ import { defaultParseSearch } from '@tanstack/react-router';
 import { act, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type {
-  GetProductVulnerabilitiesData,
-  VulnerabilityWithStats,
-} from '@/api';
+import type { GetProductVulnerabilitiesData } from '@/api';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/vulnerabilities/index';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
+import { createVulnerabilityWithStats } from '../fixtures/finding-tables';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   advisors: vi.fn(),
@@ -55,38 +54,15 @@ const purlOf = (name: string) => `pkg:maven/com.example/${name}@1.0`;
 const getVulnerabilitiesPage = (query: VulnerabilitiesQuery = {}) => {
   const tag = query.rating ? 'filtered' : 'vuln';
   const offset = query.offset ?? 0;
-  const data: VulnerabilityWithStats[] = [1, 2, 3].map((position) => {
-    const name = `${tag}-${offset + position}`;
+  const data = [1, 2, 3].map((position) =>
+    createVulnerabilityWithStats(`${tag}-${offset + position}`)
+  );
 
-    return {
-      identifier: {
-        type: 'Maven',
-        namespace: 'com.example',
-        name,
-        version: '1.0',
-      },
-      ortRunIds: [1],
-      purl: purlOf(name),
-      rating: 'HIGH',
-      repositoriesCount: 2,
-      vulnerability: {
-        externalId: `CVE-${name}`,
-        summary: `Summary of ${name}`,
-        references: [],
-      },
-    };
+  return pageOf(data, {
+    limit: query.limit,
+    offset,
+    totalCount: query.limit !== 1 && query.rating ? 13 : 25,
   });
-
-  return {
-    data: {
-      data,
-      pagination: {
-        limit: query.limit ?? 10,
-        offset,
-        totalCount: query.limit !== 1 && query.rating ? 13 : 25,
-      },
-    },
-  };
 };
 
 const renderVulnerabilities = () =>

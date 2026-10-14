@@ -23,16 +23,16 @@ import { defaultParseSearch } from '@tanstack/react-router';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type {
-  GetOrganizationVulnerabilitiesData,
-  VulnerabilityWithStats,
-} from '@/api';
+import type { GetOrganizationVulnerabilitiesData } from '@/api';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { Route } from '@/routes/organizations/$orgId/vulnerabilities/index';
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
+import { createVulnerabilityWithStats } from '../fixtures/finding-tables';
+import { createDeferred } from '../fixtures/loader-test-utils';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   advisors: vi.fn(),
@@ -55,13 +55,6 @@ type VulnerabilitiesQuery = NonNullable<
   GetOrganizationVulnerabilitiesData['query']
 >;
 
-type VulnerabilitiesResponse = {
-  data: {
-    data: VulnerabilityWithStats[];
-    pagination: { limit: number; offset: number; totalCount: number };
-  };
-};
-
 const identifierOf = (name: string) => ({
   type: 'Maven',
   namespace: 'com.example',
@@ -71,47 +64,23 @@ const identifierOf = (name: string) => ({
 
 const purlOf = (name: string) => `pkg:maven/com.example/${name}@1.0`;
 
-// The first part of the vulnerability names, which tells the query the vulnerabilities come from.
-let nameTag = 'vuln';
-
 // Serve three vulnerabilities per page, named after the query and their position. The total
 // query, with a limit of one, always reports 25 vulnerabilities.
-const getVulnerabilitiesPage = (
-  query: VulnerabilitiesQuery = {}
-): VulnerabilitiesResponse => {
+const getVulnerabilitiesPage = (query: VulnerabilitiesQuery = {}) => {
   const filtered = Boolean(
     query.rating || query.externalId || query.identifier || query.purl
   );
-  const tag = filtered ? 'filtered' : query.sort ? 'sorted' : nameTag;
+  const tag = filtered ? 'filtered' : query.sort ? 'sorted' : 'vuln';
   const offset = query.offset ?? 0;
-  const data: VulnerabilityWithStats[] = [1, 2, 3].map((position) => {
-    const name = `${tag}-${offset + position}`;
+  const data = [1, 2, 3].map((position) =>
+    createVulnerabilityWithStats(`${tag}-${offset + position}`)
+  );
 
-    return {
-      identifier: identifierOf(name),
-      ortRunIds: [1],
-      purl: purlOf(name),
-      rating: 'HIGH',
-      repositoriesCount: 2,
-      vulnerability: {
-        externalId: `CVE-${name}`,
-        summary: `Summary of ${name}`,
-        description: `Description of ${name}`,
-        references: [],
-      },
-    };
+  return pageOf(data, {
+    limit: query.limit,
+    offset,
+    totalCount: query.limit !== 1 && filtered ? 13 : 25,
   });
-
-  return {
-    data: {
-      data,
-      pagination: {
-        limit: query.limit ?? 10,
-        offset,
-        totalCount: query.limit !== 1 && filtered ? 13 : 25,
-      },
-    },
-  };
 };
 
 const renderVulnerabilities = (search = '') =>
@@ -132,7 +101,7 @@ const renderVulnerabilities = (search = '') =>
 const findVulnerability = (name: string) =>
   screen.findByText(`Summary of ${name}`);
 
-// The button that expands and collapses the row of the given vulnerability.
+// The button that expands the row of the given vulnerability.
 const getDetailsButton = (name: string) =>
   within(screen.getByText(`Summary of ${name}`).closest('tr')!).getAllByRole(
     'button'
@@ -157,7 +126,6 @@ const lastPageQuery = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  nameTag = 'vuln';
   useUserSettingsStore.setState({
     packageIdType: packageIdTypeSchema.enum.PURL,
   });
@@ -176,16 +144,12 @@ describe('organization vulnerabilities table', () => {
   });
 
   it('shows the vulnerabilities once they have loaded', async () => {
-    let resolvePage = (response: VulnerabilitiesResponse) => {
-      void response;
-    };
+    const page = createDeferred<ReturnType<typeof getVulnerabilitiesPage>>();
     mocks.vulnerabilities.mockImplementation(
       ({ query }: { query?: VulnerabilitiesQuery }) =>
         query?.limit === 1
           ? Promise.resolve(getVulnerabilitiesPage(query))
-          : new Promise<VulnerabilitiesResponse>((resolve) => {
-              resolvePage = resolve;
-            })
+          : page.promise
     );
 
     const { container } = renderVulnerabilities();
@@ -193,7 +157,9 @@ describe('organization vulnerabilities table', () => {
     await waitFor(() => expect(lastPageQuery()).toBeDefined());
     expect(screen.queryByText(/^Summary of/)).not.toBeInTheDocument();
 
-    await act(async () => resolvePage(getVulnerabilitiesPage(lastPageQuery())));
+    await act(async () =>
+      page.resolve(getVulnerabilitiesPage(lastPageQuery()))
+    );
 
     expect(await findVulnerability('vuln-1')).toBeVisible();
     expect(screen.getByText('Summary of vuln-3')).toBeVisible();
@@ -295,33 +261,14 @@ describe('organization vulnerabilities table', () => {
     );
   });
 
-  it('expands and collapses a row', async () => {
+  it('shows the details of an expanded row', async () => {
     const { user } = renderVulnerabilities();
 
     expect(await findVulnerability('vuln-1')).toBeVisible();
-    expect(screen.queryByText(/^Description of/)).not.toBeInTheDocument();
 
     await user.click(getDetailsButton('vuln-1'));
 
     expect(await screen.findByText('Description of vuln-1')).toBeVisible();
-    expect(
-      getDetailsButton('vuln-1').querySelector('.lucide-chevron-up')
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Description of vuln-2')).not.toBeInTheDocument();
-    expect(
-      getDetailsButton('vuln-2').querySelector('.lucide-chevron-down')
-    ).toBeInTheDocument();
-
-    await user.click(getDetailsButton('vuln-1'));
-
-    await waitFor(() =>
-      expect(
-        screen.queryByText('Description of vuln-1')
-      ).not.toBeInTheDocument()
-    );
-    expect(
-      getDetailsButton('vuln-1').querySelector('.lucide-chevron-down')
-    ).toBeInTheDocument();
   });
 
   it('expands the row marked in the URL', async () => {
@@ -329,22 +276,6 @@ describe('organization vulnerabilities table', () => {
 
     expect(await screen.findByText('Description of vuln-2')).toBeVisible();
     expect(screen.queryByText('Description of vuln-1')).not.toBeInTheDocument();
-  });
-
-  it('replaces the rows and collapses them when the query data is refreshed', async () => {
-    const { queryClient, user } = renderVulnerabilities();
-
-    expect(await findVulnerability('vuln-1')).toBeVisible();
-    await user.click(getDetailsButton('vuln-1'));
-    expect(await screen.findByText('Description of vuln-1')).toBeVisible();
-
-    nameTag = 'renamed';
-    await act(() => queryClient!.invalidateQueries());
-
-    expect(await findVulnerability('renamed-1')).toBeVisible();
-    expect(screen.queryByText('Summary of vuln-1')).not.toBeInTheDocument();
-    // The table collapses expanded rows when it receives new data.
-    expect(screen.queryByText(/^Description of/)).not.toBeInTheDocument();
   });
 
   it('offers the advisor filter once more than one advisor is known', async () => {

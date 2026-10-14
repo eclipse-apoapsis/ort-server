@@ -23,9 +23,9 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GetRunProjectsData, Project } from '@/api';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects/index';
-import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { renderRunPage } from '../fixtures/finding-tables';
+import { pageOf } from '../fixtures/table';
 
 type ProjectsQuery = NonNullable<GetRunProjectsData['query']>;
 
@@ -68,31 +68,14 @@ const createProject = (name: string): Project => ({
 const getProjectsPage = (query: ProjectsQuery = {}) => {
   const tag = query.identifier ? 'filtered' : 'project';
 
-  return {
-    data: [createProject(`${tag}-1`), createProject(`${tag}-2`)],
-    pagination: {
-      limit: query.limit ?? 10,
-      offset: query.offset ?? 0,
-      totalCount: query.identifier ? 2 : 7,
-    },
-  };
+  return pageOf([createProject(`${tag}-1`), createProject(`${tag}-2`)], {
+    limit: query.limit,
+    offset: query.offset,
+    totalCount: query.identifier ? 2 : 7,
+  });
 };
 
-const renderProjects = () =>
-  renderInteractiveWithRouter(
-    <TooltipProvider>
-      <ProjectsComponent />
-    </TooltipProvider>,
-    {
-      path: '/organizations/1/products/2/repositories/3/runs/4/projects',
-      routes: [
-        {
-          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects/',
-        },
-      ],
-      withQueryClient: true,
-    }
-  );
+const renderProjects = () => renderRunPage(ProjectsComponent, 'projects');
 
 const findDefinitionFile = (name: string) =>
   screen.findByText(`${name}/pom.xml`);
@@ -105,9 +88,7 @@ describe('projects table', () => {
       data: { processedDeclaredLicenses: [], unmappedDeclaredLicenses: [] },
     });
     mocks.projects.mockImplementation(
-      async ({ query }: { query?: ProjectsQuery }) => ({
-        data: getProjectsPage(query),
-      })
+      async ({ query }: { query?: ProjectsQuery }) => getProjectsPage(query)
     );
   });
 
