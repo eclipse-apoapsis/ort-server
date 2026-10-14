@@ -20,67 +20,55 @@
 // @vitest-environment jsdom
 
 import { screen, waitFor, within } from '@testing-library/react';
-import { expect, it, vi } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 
 import type { LicenseFinding } from '@/api';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { createLicenseFindingCurationTemplate } from '@/lib/license-finding-curation';
 import { buildSwhBrowseUrl } from '@/lib/software-heritage';
 import { DetectedLicenseFindingsTable } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/-components/detected-license-findings-table';
-import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
+import { renderRunPage } from '../fixtures/finding-tables';
+import { pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
-  finding: {
-    path: 'package/package.json',
-    startLine: 18,
-    endLine: 18,
-    score: 100,
-    scanner: 'DOS 1.0.0 (ScanCode 32.5.0)',
-  } satisfies LicenseFinding,
+  findings: vi.fn(),
 }));
 
-const finding = mocks.finding;
+vi.mock('@/api/sdk.gen', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
+  getRunDetectedLicenseFindings: mocks.findings,
+}));
 
-vi.mock('@tanstack/react-query', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('@tanstack/react-query')>();
+const finding: LicenseFinding = {
+  path: 'package/package.json',
+  startLine: 18,
+  endLine: 18,
+  score: 100,
+  scanner: 'DOS 1.0.0 (ScanCode 32.5.0)',
+};
 
-  return {
-    ...original,
-    useQuery: () => ({
-      data: {
-        data: [mocks.finding],
-        pagination: { limit: 10, offset: 0, totalCount: 1 },
-      },
-      error: null,
-      isError: false,
-      isPending: false,
-    }),
-  };
-});
-
-it('copies a curation template before the Software Heritage link', async () => {
-  const identifier = 'NPM::abs-svg-path:0.1.1';
-  const license = 'MIT';
-  const purl = 'pkg:npm/abs-svg-path@0.1.1';
-  const { user } = renderInteractiveWithRouter(
-    <TooltipProvider>
+const renderTable = (identifier: string, license: string, purl?: string) =>
+  renderRunPage(
+    () => (
       <DetectedLicenseFindingsTable
         runId={1}
         identifier={identifier}
         license={license}
         purl={purl}
       />
-    </TooltipProvider>,
-    {
-      path: '/organizations/1/products/2/repositories/3/runs/4/license-findings',
-      routes: [
-        {
-          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/',
-        },
-      ],
-    }
+    ),
+    'license-findings'
   );
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.findings.mockResolvedValue(pageOf([finding]));
+});
+
+it('copies a curation template before the Software Heritage link', async () => {
+  const identifier = 'NPM::abs-svg-path:0.1.1';
+  const license = 'MIT';
+  const purl = 'pkg:npm/abs-svg-path@0.1.1';
+  const { user } = renderTable(identifier, license, purl);
   const writeText = vi.spyOn(navigator.clipboard, 'writeText');
   const path = await screen.findByText(finding.path);
   const pathCell = path.closest('td');
@@ -120,24 +108,7 @@ it('copies a curation template before the Software Heritage link', async () => {
 it('names its panel after the package and its license', async () => {
   const identifier = 'Maven:com.example:some library:1.0/rc%1';
   const license = 'MIT AND Apache-2.0';
-  renderInteractiveWithRouter(
-    <TooltipProvider>
-      <DetectedLicenseFindingsTable
-        runId={1}
-        identifier={identifier}
-        license={license}
-        purl={undefined}
-      />
-    </TooltipProvider>,
-    {
-      path: '/organizations/1/products/2/repositories/3/runs/4/license-findings',
-      routes: [
-        {
-          path: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/',
-        },
-      ],
-    }
-  );
+  renderTable(identifier, license);
 
   // Two panels for the same package under different licenses stay distinguishable.
   expect(
