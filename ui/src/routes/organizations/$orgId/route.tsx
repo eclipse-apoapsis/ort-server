@@ -22,6 +22,7 @@ import { AxiosError } from 'axios';
 import {
   BookLock,
   Eye,
+  ListChecks,
   Search,
   ServerCog,
   Settings,
@@ -100,6 +101,12 @@ const Layout = () => {
           to: '/organizations/$orgId/users',
           icon: () => <User className='h-4 w-4' />,
           visible: organizationPermissions?.includes('MANAGE_GROUPS'),
+        },
+        {
+          title: 'Default Plugins',
+          to: '/organizations/$orgId/default-plugins',
+          icon: () => <ListChecks className='h-4 w-4' />,
+          visible: organizationPermissions?.includes('MANAGE_DEFAULT_PLUGINS'),
         },
         {
           title: 'Settings',
