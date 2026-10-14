@@ -83,12 +83,13 @@ class ConfigWorker(
                 resolvedJobConfigContext.name
             )
 
-            // Apply the plugin templates before the validation script runs so that the script can override any value
-            // an administrator has configured.
+            // Resolve the default plugins and apply the plugin templates before the validation script runs so that the
+            // script can override any value an administrator has configured.
             val validationResult = runCatching {
                 pluginTemplateApplicator.applyTemplates(
                     context.ortRun.jobConfigs,
-                    OrganizationId(context.ortRun.organizationId)
+                    OrganizationId(context.ortRun.organizationId),
+                    resolvedJobConfigContext
                 )
             }.fold(
                 onSuccess = { baseConfigs -> validateConfigs(context, resolvedJobConfigContext, baseConfigs) },
@@ -153,11 +154,11 @@ class ConfigWorker(
      * the plugin templates.
      */
     private fun createPluginTemplateFailure(exception: Throwable): ConfigValidationResultFailure {
-        logger.error("Error while applying the plugin templates.", exception)
+        logger.error("Error while applying the default plugins or plugin templates.", exception)
 
         val issue = createIssue(
-            message = "Could not apply the plugin templates: '${exception.message}'. This is a problem with the " +
-                    "configuration of ORT Server, please contact the administrator.",
+            message = "Could not apply the default plugins or plugin templates: '${exception.message}'. This is a " +
+                    "problem with the configuration of ORT Server, please contact the administrator.",
             source = PLUGIN_TEMPLATE_SOURCE
         )
 

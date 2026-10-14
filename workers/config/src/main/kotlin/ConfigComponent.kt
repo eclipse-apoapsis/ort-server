@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
@@ -89,6 +91,8 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
         singleOf(::DaoRepositoryRepository).bind<RepositoryRepository>()
         singleOf(::PluginTemplateEventStore)
         singleOf(::PluginTemplateService)
+        singleOf(::DefaultPluginsEventStore)
+        singleOf(::DefaultPluginsService)
         singleOf(::PluginTemplateApplicator)
     }
 }
