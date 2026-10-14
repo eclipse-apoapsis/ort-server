@@ -21,15 +21,21 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
+
+import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
@@ -42,6 +48,8 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRout
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
@@ -57,7 +65,13 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     val pluginId = VulnerableCodeFactory.descriptor.id
     val templateName = "test-template"
 
+    var orgId = 0L
+    lateinit var orgHierarchyId: CompoundHierarchyId
+
     beforeEach {
+        orgId = dbExtension.fixtures.organization.id
+        orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
+
         val configMap = mapOf(
             ConfigManager.CONFIG_MANAGER_SECTION to mapOf(
                 ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
@@ -95,6 +109,13 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         pluginService,
         pluginTemplateService
     )
+
+    fun requestShouldBeForbiddenForRole(role: Role, request: suspend HttpClient.() -> HttpResponse) {
+        authorizationTestApplication({ routes() }) { _, testUserClient ->
+            authorizationService.assignRole("test-user", role, orgHierarchyId)
+            testUserClient.request() shouldHaveStatus HttpStatusCode.Forbidden
+        }
+    }
 
     "AddTemplateToOrganization" should {
         "require the superuser role" {
@@ -182,6 +203,18 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetOrganizationDefaultPlugins" should {
+        "require OrganizationPermission.READ" {
+            requestShouldRequireRole(
+                routes = { routes() },
+                role = OrganizationRole.READER,
+                hierarchyId = orgHierarchyId
+            ) {
+                get("/organizations/$orgId/plugins/defaults")
+            }
+        }
+    }
+
     "GetTemplate" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
@@ -229,6 +262,25 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "ResetOrganizationDefaultPlugins" should {
+        "require OrganizationPermission.MANAGE_DEFAULT_PLUGINS" {
+            requestShouldRequireRole(
+                routes = { routes() },
+                role = OrganizationRole.ADMIN,
+                hierarchyId = orgHierarchyId,
+                successStatus = HttpStatusCode.NoContent
+            ) {
+                delete("/organizations/$orgId/plugins/defaults/$pluginType")
+            }
+        }
+
+        "be forbidden for organization writers" {
+            requestShouldBeForbiddenForRole(OrganizationRole.WRITER) {
+                delete("/organizations/$orgId/plugins/defaults/$pluginType")
+            }
+        }
+    }
+
     "RestrictPlugin" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
@@ -247,6 +299,29 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
                 successStatus = HttpStatusCode.NoContent
             ) {
                 put("/admin/plugins/defaults/$pluginType") {
+                    setBody(listOf(pluginId))
+                }
+            }
+        }
+    }
+
+    "SetOrganizationDefaultPlugins" should {
+        "require OrganizationPermission.MANAGE_DEFAULT_PLUGINS" {
+            requestShouldRequireRole(
+                routes = { routes() },
+                role = OrganizationRole.ADMIN,
+                hierarchyId = orgHierarchyId,
+                successStatus = HttpStatusCode.NoContent
+            ) {
+                put("/organizations/$orgId/plugins/defaults/$pluginType") {
+                    setBody(listOf(pluginId))
+                }
+            }
+        }
+
+        "be forbidden for organization writers" {
+            requestShouldBeForbiddenForRole(OrganizationRole.WRITER) {
+                put("/organizations/$orgId/plugins/defaults/$pluginType") {
                     setBody(listOf(pluginId))
                 }
             }
