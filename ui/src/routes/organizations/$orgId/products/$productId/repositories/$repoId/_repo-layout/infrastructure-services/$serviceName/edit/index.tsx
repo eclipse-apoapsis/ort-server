@@ -197,10 +197,10 @@ const EditInfrastructureServicePage = () => {
                     permissions={permissions}
                   />
                   <FormDescription>
-                    The name of the repository secret that contains the username
-                    of the credentials for the infrastructure service. Please
-                    note that the secret first needs to be created in order to
-                    use it here.
+                    The name of the secret that contains the username of the
+                    credentials for the infrastructure service. Please note that
+                    the secret first needs to be created in order to use it
+                    here.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -222,10 +222,10 @@ const EditInfrastructureServicePage = () => {
                     permissions={permissions}
                   />
                   <FormDescription>
-                    The name of the repository secret that contains the password
-                    of the credentials for the infrastructure service. Please
-                    note that the secret first needs to be created in order to
-                    use it here.
+                    The name of the secret that contains the password of the
+                    credentials for the infrastructure service. Please note that
+                    the secret first needs to be created in order to use it
+                    here.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
