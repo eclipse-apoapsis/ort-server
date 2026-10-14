@@ -52,3 +52,38 @@ export const getLinkTarget = (link: HTMLElement) => {
     search: defaultParseSearch(target.search),
   };
 };
+
+// The organization, product and repository level of the page with the given subpath, such as
+// 'search-package', with the routes to render it and the query fields that identify the level.
+// The repository pages live under the pathless '_repo-layout' route, which is part of their
+// route IDs.
+export const hierarchyLevels = (subpage: string) =>
+  [
+    {
+      level: 'organization',
+      path: `/organizations/1/${subpage}`,
+      routes: [{ path: `/organizations/$orgId/${subpage}/` }],
+      hierarchyId: { organizationId: 1 },
+    },
+    {
+      level: 'product',
+      path: `/organizations/1/products/2/${subpage}`,
+      routes: [
+        { path: `/organizations/$orgId/products/$productId/${subpage}/` },
+      ],
+      hierarchyId: { productId: 2 },
+    },
+    {
+      level: 'repository',
+      path: `/organizations/1/products/2/repositories/3/${subpage}`,
+      routes: [
+        {
+          path: '/organizations/$orgId/products/$productId/repositories/$repoId',
+          children: [
+            { id: '_repo-layout', children: [{ path: `${subpage}/` }] },
+          ],
+        },
+      ],
+      hierarchyId: { repositoryId: 3 },
+    },
+  ] as const;
