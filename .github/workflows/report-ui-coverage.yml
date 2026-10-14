@@ -51,7 +51,7 @@ jobs:
 
     # The action finds the pull request from the commit that was measured.
     - name: Report UI test coverage
-      uses: davelosert/vitest-coverage-report-action@c4bbc33a89b7ace0e63d35f1f7d4bcee31155a73 # v2.13.0
+      uses: davelosert/vitest-coverage-report-action@8f86cfb56ed6d5613ea8cdc5259f207fbfd51ece # v2.13.1
       with:
         name: UI
         vite-config-path: ui/vite.config.ts
