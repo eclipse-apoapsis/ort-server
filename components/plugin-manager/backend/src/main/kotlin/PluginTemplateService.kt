@@ -210,13 +210,30 @@ class PluginTemplateService(
             }
     }
 
+    /**
+     * Return the plugins available for the repository with the given [repositoryId] using the admin configuration from
+     * the given config [context]. See [getPluginsForOrganization] for details.
+     */
     internal suspend fun getPluginsForRepository(
         repositoryId: RepositoryId,
         context: ResolvedConfigContext
-    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
+    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> {
         val organizationId = repositoryRepository.get(repositoryId.value)?.organizationId?.let { OrganizationId(it) }
-            ?: return@transaction TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+            ?: return TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
 
+        return getPluginsForOrganization(organizationId, context)
+    }
+
+    /**
+     * Return the plugins available for the organization with the given [organizationId] using the admin configuration
+     * from the given config [context]. Disabled plugins and restricted plugins without a template for the organization
+     * are excluded. The default values of the plugin options are taken from the templates for the organization. The
+     * report definitions from the admin configuration are added as reporters and replace the reporters they use.
+     */
+    internal suspend fun getPluginsForOrganization(
+        organizationId: OrganizationId,
+        context: ResolvedConfigContext
+    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
         val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
         pluginService.getPlugins().filter { it.availability != PluginAvailability.DISABLED }
