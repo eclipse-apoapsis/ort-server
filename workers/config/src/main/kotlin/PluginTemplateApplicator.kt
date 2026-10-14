@@ -45,10 +45,13 @@ class PluginTemplateApplicator(
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PluginTemplateApplicator::class.java)
+
+        /** The scanners that are used if no scanners are configured for the run. */
+        private val DEFAULT_SCANNERS = listOf("ScanCode")
     }
 
     /**
-     * Resolve the default package managers and apply the plugin templates applicable to [organizationId] to
+     * Resolve the default plugins and apply the plugin templates applicable to [organizationId] to
      * [jobConfigs], and return the updated [JobConfigurations]. Only plugins that are configured to run are considered,
      * plugins that are not installed are ignored. Throws an [IllegalStateException] if a template lookup fails.
      *
@@ -57,7 +60,7 @@ class PluginTemplateApplicator(
      * report definitions are not implemented, because the available report definitions depend on the config context.
      */
     suspend fun applyTemplates(jobConfigs: JobConfigurations, organizationId: OrganizationId): JobConfigurations {
-        val configs = jobConfigs.withDefaultPackageManagers(organizationId)
+        val configs = jobConfigs.withDefaultPackageManagers(organizationId).withDefaultPlugins()
 
         return applyTemplatesToConfigs(configs, fetchTemplates(configs, organizationId))
     }
@@ -77,6 +80,27 @@ class PluginTemplateApplicator(
 
         return copy(analyzer = analyzer.copy(enabledPackageManagers = defaults))
     }
+
+    /**
+     * Return a copy of these [JobConfigurations] with the default advisors, scanners, report formats, and providers
+     * filled in for the plugin lists that are not configured. The defaults match the values that were used before the
+     * plugin lists became optional: No advisors, the ScanCode scanner, no report formats, and no providers.
+     */
+    private fun JobConfigurations.withDefaultPlugins(): JobConfigurations =
+        copy(
+            analyzer = analyzer.copy(packageCurationProviders = analyzer.packageCurationProviders ?: emptyList()),
+            advisor = advisor?.let { it.copy(advisors = it.advisors ?: emptyList()) },
+            scanner = scanner?.let { it.copy(scanners = it.scanners ?: DEFAULT_SCANNERS) },
+            evaluator = evaluator?.let {
+                it.copy(packageConfigurationProviders = it.packageConfigurationProviders ?: emptyList())
+            },
+            reporter = reporter?.let {
+                it.copy(
+                    formats = it.formats ?: emptyList(),
+                    packageConfigurationProviders = it.packageConfigurationProviders ?: emptyList()
+                )
+            }
+        )
 
     /**
      * Fetch the templates configured for [organizationId] for all plugins that are active in [jobConfigs]. Plugin IDs
@@ -134,7 +158,7 @@ class PluginTemplateApplicator(
     }
 
     private fun getActivePackageCurationProviders(jobConfigs: JobConfigurations) =
-        jobConfigs.analyzer.packageCurationProviders.map { it.type }
+        jobConfigs.analyzer.packageCurationProviders.orEmpty().map { it.type }
 
     private fun getActivePackageConfigProviders(jobConfigs: JobConfigurations): List<String> {
         val providers = jobConfigs.evaluator?.packageConfigurationProviders.orEmpty() +
@@ -276,10 +300,10 @@ private fun mergePackageManagerConfigs(
  * type ignoring case. Templates for providers that are not configured are ignored.
  */
 private fun mergeProviderConfigs(
-    existing: List<ResolvableProviderPluginConfig>,
+    existing: List<ResolvableProviderPluginConfig>?,
     templates: Map<String, PluginTemplate>
-): List<ResolvableProviderPluginConfig> {
-    if (templates.isEmpty()) return existing
+): List<ResolvableProviderPluginConfig>? {
+    if (existing == null || templates.isEmpty()) return existing
 
     return existing.map { provider ->
         val template = templates.entries.find { it.key.equals(provider.type, ignoreCase = true) }?.value

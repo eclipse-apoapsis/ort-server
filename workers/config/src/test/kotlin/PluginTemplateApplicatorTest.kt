@@ -25,12 +25,14 @@ import com.github.michaelbull.result.Ok
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -203,6 +205,53 @@ class PluginTemplateApplicatorTest : WordSpec({
 
             result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactlyInAnyOrder
                     listOf("Maven", "NPM")
+        }
+
+        "use the default plugins for plugin lists that are not configured" {
+            val applicator = applicator(
+                pluginTemplate(PluginType.SCANNER, "ScanCode", option("preferFileLicense", "true", true))
+            )
+            val jobConfigs = JobConfigurations(
+                advisor = AdvisorJobConfiguration(),
+                scanner = ScannerJobConfiguration(),
+                evaluator = EvaluatorJobConfiguration(),
+                reporter = ReporterJobConfiguration()
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId)
+
+            result.analyzer.packageCurationProviders.shouldNotBeNull() should beEmpty()
+            result.advisor?.advisors.shouldNotBeNull() should beEmpty()
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode")
+            result.scanner?.config?.getValue("ScanCode")?.options.shouldNotBeNull() shouldContainExactly
+                    mapOf("preferFileLicense" to "true")
+            result.evaluator?.packageConfigurationProviders.shouldNotBeNull() should beEmpty()
+            result.reporter?.formats.shouldNotBeNull() should beEmpty()
+            result.reporter?.packageConfigurationProviders.shouldNotBeNull() should beEmpty()
+        }
+
+        "keep explicitly configured empty plugin lists" {
+            val applicator = applicator()
+            val jobConfigs = JobConfigurations(
+                advisor = AdvisorJobConfiguration(advisors = emptyList()),
+                scanner = ScannerJobConfiguration(scanners = emptyList()),
+                reporter = ReporterJobConfiguration(formats = emptyList())
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId)
+
+            result.advisor?.advisors.shouldNotBeNull() should beEmpty()
+            result.scanner?.scanners.shouldNotBeNull() should beEmpty()
+            result.reporter?.formats.shouldNotBeNull() should beEmpty()
+        }
+
+        "not add configurations for jobs that are not configured" {
+            val result = applicator().applyTemplates(JobConfigurations(), organizationId)
+
+            result.advisor should beNull()
+            result.scanner should beNull()
+            result.evaluator should beNull()
+            result.reporter should beNull()
         }
 
         "throw if a template cannot be fetched" {
@@ -435,7 +484,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.forAll { provider ->
+            result.analyzer.packageCurationProviders.shouldNotBeNull().forAll { provider ->
                 provider.options shouldContainExactly mapOf("path" to "/admin-curations")
                 provider.secrets shouldContainExactly
                         mapOf("token" to ResolvableSecret("admin-token", SecretSource.ADMIN))
@@ -461,7 +510,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.single().options shouldContainExactly
+            result.analyzer.packageCurationProviders.shouldNotBeNull().single().options shouldContainExactly
                     mapOf("path" to "/user-curations")
         }
 
@@ -471,14 +520,16 @@ class PluginTemplateApplicatorTest : WordSpec({
                 "OrtConfig",
                 option("path", "/admin-curations", true)
             )
-            val jobConfigs = JobConfigurations(analyzer = AnalyzerJobConfiguration())
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(packageCurationProviders = emptyList())
+            )
 
             val result = applyTemplatesToConfigs(
                 jobConfigs,
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.shouldBeEmpty()
+            result.analyzer.packageCurationProviders.shouldNotBeNull() should beEmpty()
         }
 
         "apply package configuration provider templates only to the job the provider is configured for" {

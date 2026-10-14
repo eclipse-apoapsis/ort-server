@@ -131,7 +131,7 @@ class ReporterRunner(
                 add(SimplePackageConfigurationProvider(configurations = repositoryPackageConfigurations))
 
                 val packageConfigurationProviderConfigs = context
-                    .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
+                    .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders.orEmpty())
                     .map { it.mapToOrt() }
 
                 addAll(
@@ -297,7 +297,7 @@ class ReporterRunner(
             val activeReporters = ConcurrentHashMap.newKeySet<String>()
             val monitorJob = launch { logActiveReporters(activeReporters) }
 
-            val success = config.formats.map { format ->
+            val success = config.formats.orEmpty().map { format ->
                 async {
                     logger.info("Generating the '$format' report...")
                     activeReporters += format
@@ -540,7 +540,7 @@ private fun ReporterConfig.getReporterAssets(
     val assetFiles = getGlobalAssets(config.assetFilesGroups)
     val assetDirectories = getGlobalAssets(config.assetDirectoriesGroups)
 
-    config.formats.forEach { format ->
+    config.formats.orEmpty().forEach { format ->
         getReportDefinition(format)?.also { definition ->
             assetFiles += definition.assetFiles
             assetDirectories += definition.assetDirectories

@@ -110,7 +110,7 @@ class EvaluatorRunner(
             add(SimplePackageConfigurationProvider(configurations = repositoryPackageConfigurations))
 
             val packageConfigurationProviderConfigs = workerContext
-                .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
+                .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders.orEmpty())
                 .map { it.mapToOrt() }
 
             addAll(PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs).map { it.second })
