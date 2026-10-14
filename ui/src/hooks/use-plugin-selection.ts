@@ -45,10 +45,11 @@ type UsePluginSelectionArgs<
   plugins: readonly PreconfiguredPluginDescriptor[];
   /** The field holding the scanner scope of each plugin, if the plugins have scopes. */
   scannerScopeName?: TName;
-  /** Store the selection in display order instead of the order in which it was made. */
+  /**
+   * Store the selection in display order instead of the order in which it was made. Selected
+   * plugins are shown first, in selection order, until the user reorders the list.
+   */
   enableReordering: boolean;
-  /** Show selected plugins first, in selection order, until the user reorders the list. */
-  showSelectedPluginsFirst: boolean;
 };
 
 /**
@@ -66,7 +67,6 @@ export function usePluginSelection<
   plugins,
   scannerScopeName,
   enableReordering,
-  showSelectedPluginsFirst,
 }: UsePluginSelectionArgs<TFieldValues, TName>) {
   const [pluginOrder, setPluginOrder] = useState<string[]>();
 
@@ -75,7 +75,7 @@ export function usePluginSelection<
   const pluginsInDisplayOrder = getPluginsInDisplayOrder(
     plugins,
     selectedPluginIds,
-    showSelectedPluginsFirst,
+    enableReordering,
     pluginOrder
   );
 

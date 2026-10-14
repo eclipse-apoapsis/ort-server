@@ -26,7 +26,7 @@ import { createPluginDescriptor } from '../fixtures/create-run';
 
 function createFormValues(): CreateRunFormValues {
   return {
-    ...defaultValues(null, [], [], [], false, [], [], []),
+    ...defaultValues(null, [], [], [], false, [], [], [], []),
     revision: 'main',
     path: '',
   };

@@ -18,6 +18,7 @@
  */
 
 import type {
+  DefaultPlugins,
   OrganizationPermission,
   OrtRun,
   PreconfiguredPluginDescriptor,
@@ -48,6 +49,25 @@ export const createPluginDescriptor = (
     options: [],
     ...overrides,
   }) as PreconfiguredPluginDescriptor;
+
+/** Build the default plugins for the create-run form, as the built-in defaults of the server would. */
+export const createDefaultPlugins = (
+  overrides: Partial<Record<DefaultPlugins['category'], string[]>> = {}
+): DefaultPlugins[] =>
+  Object.entries({
+    ADVISOR: ['OSV', 'VulnerableCode'],
+    PACKAGE_CONFIGURATION_PROVIDER: [],
+    PACKAGE_CURATION_PROVIDER: [],
+    PACKAGE_MANAGER: ['Maven', 'NPM'],
+    REPORTER: ['CycloneDX', 'SpdxDocument', 'WebApp'],
+    SCANNER: ['ScanCode'],
+    PROJECT_SCANNER: overrides.SCANNER ?? ['ScanCode'],
+    ...overrides,
+  }).map(([category, pluginIds]) => ({
+    category: category as DefaultPlugins['category'],
+    pluginIds,
+    source: 'BUILT_IN',
+  }));
 
 /** Build the permission context expected by create-run field components. */
 export const createPermissions = (
