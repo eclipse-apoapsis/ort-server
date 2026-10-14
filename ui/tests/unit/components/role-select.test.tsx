@@ -22,7 +22,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useForm } from 'react-hook-form';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import { RoleSelect } from '@/components/role-select';
@@ -55,13 +55,6 @@ const RoleSelectHarness = ({ role }: { role: Role }) => {
 };
 
 describe('RoleSelect', () => {
-  beforeAll(() => {
-    // Radix Select relies on DOM APIs that jsdom does not implement.
-    Element.prototype.hasPointerCapture = () => false;
-    Element.prototype.releasePointerCapture = () => {};
-    Element.prototype.scrollIntoView = () => {};
-  });
-
   it('is compiled by React Compiler', () => {
     expect(isCompiledByReactCompiler(RoleSelect)).toBe(true);
   });

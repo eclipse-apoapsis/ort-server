@@ -21,15 +21,7 @@
 
 import { screen, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GetOrganizationsData, Organization } from '@/api';
 import { getOrganizationsQueryKey } from '@/api/@tanstack/react-query.gen';
@@ -105,13 +97,6 @@ const renderOrganizations = (search = '') =>
   );
 
 describe('organizations table', () => {
-  beforeAll(() => {
-    // Radix Select relies on DOM APIs that jsdom does not implement.
-    Element.prototype.hasPointerCapture = () => false;
-    Element.prototype.releasePointerCapture = () => {};
-    Element.prototype.scrollIntoView = () => {};
-  });
-
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.namePrefix = 'org';

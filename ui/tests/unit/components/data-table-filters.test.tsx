@@ -21,7 +21,7 @@
 
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
@@ -134,11 +134,6 @@ describe('FilterSingleSelect', () => {
 });
 
 describe('FilterMultiSelect', () => {
-  beforeAll(() => {
-    // cmdk scrolls the selected option into view, which jsdom does not implement.
-    Element.prototype.scrollIntoView = () => {};
-  });
-
   it('offers changed options and passes a choice to the latest handler', async () => {
     const user = userEvent.setup();
     const first = vi.fn();
