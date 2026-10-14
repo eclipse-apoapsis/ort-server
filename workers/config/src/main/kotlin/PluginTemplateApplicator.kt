@@ -21,11 +21,14 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import com.github.michaelbull.result.getOrElse
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
@@ -37,70 +40,130 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.slf4j.LoggerFactory
 
 /**
- * A class responsible for applying plugin templates to the job configurations of an ORT run.
+ * A class responsible for resolving the default plugins and applying plugin templates to the job configurations of an
+ * ORT run.
  */
 class PluginTemplateApplicator(
     private val pluginService: PluginService,
-    private val pluginTemplateService: PluginTemplateService
+    private val pluginTemplateService: PluginTemplateService,
+    private val defaultPluginsService: DefaultPluginsService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PluginTemplateApplicator::class.java)
-
-        /** The scanners that are used if no scanners are configured for the run. */
-        private val DEFAULT_SCANNERS = listOf("ScanCode")
     }
 
     /**
-     * Resolve the default plugins and apply the plugin templates applicable to [organizationId] to
-     * [jobConfigs], and return the updated [JobConfigurations]. Only plugins that are configured to run are considered,
-     * plugins that are not installed are ignored. Throws an [IllegalStateException] if a template lookup fails.
+     * Resolve the default plugins and apply the plugin templates applicable to [organizationId] to [jobConfigs], and
+     * return the updated [JobConfigurations]. The [configContext] is used to resolve the report definitions that can be
+     * part of the default reporters. Only plugins that are configured to run are considered, plugins that are not
+     * installed are ignored. Throws an [IllegalStateException] if the default plugins cannot be resolved or a template
+     * lookup fails.
      *
      * Templates are intentionally not applied to report definitions: Report definitions are fully controlled by
      * administrators, and their options currently have to be set by the parameter validation script. Templates for
      * report definitions are not implemented, because the available report definitions depend on the config context.
      */
-    suspend fun applyTemplates(jobConfigs: JobConfigurations, organizationId: OrganizationId): JobConfigurations {
-        val configs = jobConfigs.withDefaultPackageManagers(organizationId).withDefaultPlugins()
+    suspend fun applyTemplates(
+        jobConfigs: JobConfigurations,
+        organizationId: OrganizationId,
+        configContext: ResolvedConfigContext
+    ): JobConfigurations {
+        val configs = jobConfigs.withDefaultPlugins(organizationId, configContext)
 
         return applyTemplatesToConfigs(configs, fetchTemplates(configs, organizationId))
     }
 
     /**
-     * Return a copy of these [JobConfigurations] with the package managers that are enabled by default for
-     * [organizationId] filled in if none are enabled explicitly.
+     * Return a copy of these [JobConfigurations] with the default plugins resolved for [organizationId] and
+     * [configContext] filled in for the plugin lists that are not configured. For package managers, the defaults are
+     * also used if the list of enabled package managers is empty. The default project scanners are only used if
+     * neither scanners nor project scanners are configured, and only if they do not fall back to the default scanners.
      */
-    private suspend fun JobConfigurations.withDefaultPackageManagers(
-        organizationId: OrganizationId
+    private suspend fun JobConfigurations.withDefaultPlugins(
+        organizationId: OrganizationId,
+        configContext: ResolvedConfigContext
     ): JobConfigurations {
-        if (!analyzer.enabledPackageManagers.isNullOrEmpty()) return this
+        val missingCategories = getCategoriesWithoutConfiguration()
+        if (missingCategories.isEmpty()) return this
 
-        val defaults = getDefaultPackageManagers(pluginService, pluginTemplateService, organizationId)
+        val defaults = defaultPluginsService.resolveDefaultPlugins(organizationId, configContext)
+            .getOrElse { error ->
+                throw IllegalStateException("Failed to resolve the default plugins: ${error.message}")
+            }
+            .associateBy { it.category }
 
-        logger.info("Enabling default package managers as none were configured for the run: {}.", defaults)
+        missingCategories.forEach { category ->
+            logger.info(
+                "Using default plugins of category '{}' as none were configured for the run: {}.",
+                category,
+                defaults[category]?.pluginIds.orEmpty()
+            )
+        }
 
-        return copy(analyzer = analyzer.copy(enabledPackageManagers = defaults))
-    }
+        fun defaultIds(category: DefaultPluginsCategory) = defaults[category]?.pluginIds.orEmpty()
 
-    /**
-     * Return a copy of these [JobConfigurations] with the default advisors, scanners, report formats, and providers
-     * filled in for the plugin lists that are not configured. The defaults match the values that were used before the
-     * plugin lists became optional: No advisors, the ScanCode scanner, no report formats, and no providers.
-     */
-    private fun JobConfigurations.withDefaultPlugins(): JobConfigurations =
-        copy(
-            analyzer = analyzer.copy(packageCurationProviders = analyzer.packageCurationProviders ?: emptyList()),
-            advisor = advisor?.let { it.copy(advisors = it.advisors ?: emptyList()) },
-            scanner = scanner?.let { it.copy(scanners = it.scanners ?: DEFAULT_SCANNERS) },
+        fun defaultProviders(category: DefaultPluginsCategory) =
+            defaultIds(category).map { ResolvableProviderPluginConfig(type = it) }
+
+        // Leave the project scanners unset if they fall back to the package scanners, as then the scanners are used
+        // for projects as well.
+        fun defaultProjectScanners(): List<String>? =
+            defaults[DefaultPluginsCategory.PROJECT_SCANNER]?.takeIf { it.fallbackCategory == null }?.pluginIds
+
+        return copy(
+            analyzer = analyzer.copy(
+                enabledPackageManagers = analyzer.enabledPackageManagers?.takeUnless { it.isEmpty() }
+                    ?: defaultIds(DefaultPluginsCategory.PACKAGE_MANAGER),
+                packageCurationProviders = analyzer.packageCurationProviders
+                    ?: defaultProviders(DefaultPluginsCategory.PACKAGE_CURATION_PROVIDER)
+            ),
+            advisor = advisor?.let { it.copy(advisors = it.advisors ?: defaultIds(DefaultPluginsCategory.ADVISOR)) },
+            scanner = scanner?.let {
+                it.copy(
+                    scanners = it.scanners ?: defaultIds(DefaultPluginsCategory.SCANNER),
+                    projectScanners = if (it.scanners == null && it.projectScanners == null) {
+                        defaultProjectScanners()
+                    } else {
+                        it.projectScanners
+                    }
+                )
+            },
             evaluator = evaluator?.let {
-                it.copy(packageConfigurationProviders = it.packageConfigurationProviders ?: emptyList())
+                it.copy(
+                    packageConfigurationProviders = it.packageConfigurationProviders
+                        ?: defaultProviders(DefaultPluginsCategory.PACKAGE_CONFIGURATION_PROVIDER)
+                )
             },
             reporter = reporter?.let {
                 it.copy(
-                    formats = it.formats ?: emptyList(),
-                    packageConfigurationProviders = it.packageConfigurationProviders ?: emptyList()
+                    formats = it.formats ?: defaultIds(DefaultPluginsCategory.REPORTER),
+                    packageConfigurationProviders = it.packageConfigurationProviders
+                        ?: defaultProviders(DefaultPluginsCategory.PACKAGE_CONFIGURATION_PROVIDER)
                 )
             }
         )
+    }
+
+    /**
+     * Return the [DefaultPluginsCategory]s for which no plugins are configured in these [JobConfigurations]. Project
+     * scanners are only considered missing if neither scanners nor project scanners are configured.
+     */
+    private fun JobConfigurations.getCategoriesWithoutConfiguration(): Set<DefaultPluginsCategory> =
+        buildSet {
+            if (analyzer.enabledPackageManagers.isNullOrEmpty()) add(DefaultPluginsCategory.PACKAGE_MANAGER)
+            if (analyzer.packageCurationProviders == null) add(DefaultPluginsCategory.PACKAGE_CURATION_PROVIDER)
+            if (advisor?.let { it.advisors == null } == true) add(DefaultPluginsCategory.ADVISOR)
+            if (scanner?.let { it.scanners == null } == true) add(DefaultPluginsCategory.SCANNER)
+            if (scanner?.let { it.scanners == null && it.projectScanners == null } == true) {
+                add(DefaultPluginsCategory.PROJECT_SCANNER)
+            }
+
+            if (reporter?.let { it.formats == null } == true) add(DefaultPluginsCategory.REPORTER)
+
+            val evaluatorProviders = evaluator?.let { it.packageConfigurationProviders == null } == true
+            val reporterProviders = reporter?.let { it.packageConfigurationProviders == null } == true
+            if (evaluatorProviders || reporterProviders) add(DefaultPluginsCategory.PACKAGE_CONFIGURATION_PROVIDER)
+        }
 
     /**
      * Fetch the templates configured for [organizationId] for all plugins that are active in [jobConfigs]. Plugin IDs

@@ -19,24 +19,8 @@
 
 import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
-val defaultReportFormats = listOf(
-    "cyclonedx",
-    "ortresult",
-    "runstatistics",
-    "spdxdocument",
-    "webapp"
-)
-
-// Add default report formats in case no formats are specified.
-val resolvedReporterJobConfig = context.ortRun.jobConfigs.reporter?.let {
-    when {
-        it.formats.isNullOrEmpty() -> it.copy(formats = defaultReportFormats)
-        else -> it
-    }
-}
-
 // Disable the notifier job as the notifier-worker is currently not configured in Docker Compose.
-var resolvedJobConfigs = context.ortRun.jobConfigs.copy(reporter = resolvedReporterJobConfig, notifier = null)
+var resolvedJobConfigs = context.ortRun.jobConfigs.copy(notifier = null)
 
 // Configure a version range for stored ScanCode results.
 context.ortRun.jobConfigs.scanner?.let { scannerJobConfig ->
