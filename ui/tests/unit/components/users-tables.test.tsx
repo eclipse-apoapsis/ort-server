@@ -103,7 +103,37 @@ const renderUsers = (level: (typeof levels)[number], search = '') =>
 const getRow = (username: string) =>
   screen.getByRole('cell', { name: username }).closest('tr')!;
 
+type User = ReturnType<typeof renderUsers>['user'];
+
+const assignAdminRole = async (user: User, username: string) => {
+  await user.click(
+    getRow(username).querySelector<HTMLElement>('[aria-haspopup="menu"]')!
+  );
+  await user.click(
+    await screen.findByRole('menuitem', { name: 'Assign ADMIN role' })
+  );
+};
+
+// Opens the removal dialog of the user and returns its Delete button.
+const openRemoval = async (
+  user: User,
+  username: string,
+  level: (typeof levels)[number]
+) => {
+  await user.click(
+    within(getRow(username)).getByRole('button', {
+      name: `Remove user from this ${level.level}`,
+    })
+  );
+
+  return within(await screen.findByRole('alertdialog')).getByRole('button', {
+    name: 'Delete',
+  });
+};
+
 describe('users tables', () => {
+  const organizationLevel = levels[0]!;
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -114,99 +144,94 @@ describe('users tables', () => {
     }
   });
 
-  it.each(levels)(
-    'lists the users of the $level level and their roles',
-    async (level) => {
-      const { user } = renderUsers(level, '?page=2&pageSize=5');
+  it('lists a page of the users and their roles', async () => {
+    const { user } = renderUsers(organizationLevel, '?page=2&pageSize=5');
 
-      expect(await screen.findByText('writer')).toBeVisible();
-      expect(getColumnTexts('Username')).toEqual(['admin', 'writer', 'me']);
-      expect(level.users).toHaveBeenCalledWith(
+    expect(await screen.findByText('writer')).toBeVisible();
+    expect(getColumnTexts('Username')).toEqual(['admin', 'writer', 'me']);
+    expect(organizationLevel.users).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: { limit: 5, offset: 5, sort: 'username' },
+      })
+    );
+
+    // The role column comes before the actions, so its icon is the first in the row.
+    await user.hover(getRow('writer').querySelector('svg')!);
+
+    expect(
+      await screen.findByRole('tooltip', { name: 'WRITER' })
+    ).toBeInTheDocument();
+  });
+
+  it('refreshes the users after assigning a role', async () => {
+    const { user } = renderUsers(organizationLevel);
+
+    await screen.findByText('writer');
+    await assignAdminRole(user, 'writer');
+
+    await waitFor(() =>
+      expect(organizationLevel.users).toHaveBeenCalledTimes(2)
+    );
+  });
+
+  it('removes all roles of a user after confirming the username, then refreshes the users', async () => {
+    const { user } = renderUsers(organizationLevel);
+
+    await screen.findByText('writer');
+    const deleteButton = await openRemoval(user, 'writer', organizationLevel);
+    expect(deleteButton).toBeDisabled();
+
+    await user.type(screen.getByRole('textbox'), 'writer');
+    expect(deleteButton).toBeEnabled();
+    await user.click(deleteButton);
+
+    await waitFor(() =>
+      expect(organizationLevel.users).toHaveBeenCalledTimes(2)
+    );
+    expect(organizationLevel.remove).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not let the signed-in user change their own roles', async () => {
+    renderUsers(organizationLevel);
+
+    await screen.findByText('me');
+    const buttons = within(getRow('me')).getAllByRole('button');
+
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toBeDisabled();
+  });
+
+  it.each(levels)('calls the endpoints of the $level level', async (level) => {
+    const { user } = renderUsers(level);
+
+    await screen.findByText('writer');
+    expect(level.users).toHaveBeenCalledWith(
+      expect.objectContaining({ path: level.hierarchyId })
+    );
+
+    await assignAdminRole(user, 'writer');
+
+    await waitFor(() =>
+      expect(level.assign).toHaveBeenCalledWith(
         expect.objectContaining({
-          path: level.hierarchyId,
-          query: { limit: 5, offset: 5, sort: 'username' },
+          path: { ...level.hierarchyId, role: 'ADMIN' },
+          body: { username: 'writer' },
+        })
+      )
+    );
+
+    const deleteButton = await openRemoval(user, 'writer', level);
+    await user.type(screen.getByRole('textbox'), 'writer');
+    await user.click(deleteButton);
+
+    await waitFor(() => expect(level.remove).toHaveBeenCalledTimes(2));
+    for (const role of ['WRITER', 'READER']) {
+      expect(level.remove).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { ...level.hierarchyId, role },
+          query: { username: 'writer' },
         })
       );
-
-      // The role column comes before the actions, so its icon is the first in the row.
-      await user.hover(getRow('writer').querySelector('svg')!);
-
-      expect(
-        await screen.findByRole('tooltip', { name: 'WRITER' })
-      ).toBeInTheDocument();
     }
-  );
-
-  it.each(levels)(
-    'assigns a role at the $level level and refreshes the users',
-    async (level) => {
-      const { user } = renderUsers(level);
-
-      await screen.findByText('writer');
-      await user.click(
-        getRow('writer').querySelector<HTMLElement>('[aria-haspopup="menu"]')!
-      );
-      await user.click(
-        await screen.findByRole('menuitem', { name: 'Assign ADMIN role' })
-      );
-
-      await waitFor(() =>
-        expect(level.assign).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { ...level.hierarchyId, role: 'ADMIN' },
-            body: { username: 'writer' },
-          })
-        )
-      );
-      await waitFor(() => expect(level.users).toHaveBeenCalledTimes(2));
-    }
-  );
-
-  it.each(levels)(
-    'removes a user from the $level level after confirming the username',
-    async (level) => {
-      const { user } = renderUsers(level);
-
-      await screen.findByText('writer');
-      await user.click(
-        within(getRow('writer')).getByRole('button', {
-          name: `Remove user from this ${level.level}`,
-        })
-      );
-
-      const dialog = await screen.findByRole('alertdialog');
-      const deleteButton = within(dialog).getByRole('button', {
-        name: 'Delete',
-      });
-      expect(deleteButton).toBeDisabled();
-
-      await user.type(within(dialog).getByRole('textbox'), 'writer');
-      expect(deleteButton).toBeEnabled();
-      await user.click(deleteButton);
-
-      await waitFor(() => expect(level.users).toHaveBeenCalledTimes(2));
-      expect(level.remove).toHaveBeenCalledTimes(2);
-      for (const role of ['WRITER', 'READER']) {
-        expect(level.remove).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { ...level.hierarchyId, role },
-            query: { username: 'writer' },
-          })
-        );
-      }
-    }
-  );
-
-  it.each(levels)(
-    'does not let the signed-in user change their own roles at the $level level',
-    async (level) => {
-      renderUsers(level);
-
-      await screen.findByText('me');
-      const buttons = within(getRow('me')).getAllByRole('button');
-
-      expect(buttons).toHaveLength(1);
-      expect(buttons[0]).toBeDisabled();
-    }
-  );
+  });
 });
