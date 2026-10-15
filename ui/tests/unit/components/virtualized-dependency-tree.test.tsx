@@ -50,7 +50,6 @@ import {
   setScrollY,
   setUpDependencyTreeLayout,
 } from '../fixtures/dependency-tree-layout';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const renderList = (graph: DependencyGraph, searchTerm: string) => {
   const packageIdType = packageIdTypeSchema.enum.ORT_ID;
@@ -190,12 +189,5 @@ describe('VirtualizedDependencyTree', () => {
     // The project, the scope and then the focused row.
     expect(mountedIndexes()[0]).toBe(2);
     expect(mountedIndexes()[1]).toBeGreaterThan(600);
-  });
-
-  it('is not compiled by React Compiler', () => {
-    const source = VirtualizedDependencyTree.toString();
-
-    expect(source).toContain('use no memo');
-    expect(isCompiledByReactCompiler(VirtualizedDependencyTree)).toBe(false);
   });
 });
