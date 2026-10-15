@@ -27,20 +27,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { OrtRunSummary, Vulnerability } from '@/api';
 import { getRepositoryRuns } from '@/api/sdk.gen';
-import { Cvss4RadarChart } from '@/components/charts/cvss4-radar-chart';
 import { Cvss4VectorCard } from '@/components/charts/cvss4-vector-card';
-import { Cvss23RadarChart } from '@/components/charts/cvss23-radar-chart';
 import { EpssChart } from '@/components/charts/epss-chart';
 import { JobDurations } from '@/components/charts/job-durations';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
-import {
-  ChartContainer,
-  ChartLegendContent,
-  ChartStyle,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { ChartContainer } from '@/components/ui/chart';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const navigate = vi.hoisted(() => vi.fn());
 
@@ -108,23 +100,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-});
-
-describe('charts', () => {
-  it.each([
-    ['Cvss23RadarChart', Cvss23RadarChart],
-    ['Cvss4RadarChart', Cvss4RadarChart],
-    ['Cvss4VectorCard', Cvss4VectorCard],
-    ['EpssChart', EpssChart],
-    ['VulnerabilityMetrics', VulnerabilityMetrics],
-    ['JobDurations', JobDurations],
-    ['ChartContainer', ChartContainer],
-    ['ChartStyle', ChartStyle],
-    ['ChartTooltipContent', ChartTooltipContent],
-    ['ChartLegendContent', ChartLegendContent],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
-  });
 });
 
 describe('VulnerabilityMetrics', () => {

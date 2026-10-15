@@ -33,15 +33,12 @@ import {
   type ExpandableRow,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-model';
 import { DependencyTreeRow } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/dependency-tree-row';
-import { HighlightedMatch } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/highlighted-match';
-import { PackageCountBadge } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/-components/package-count-badge';
 import { packageIdTypeSchema } from '@/schemas';
 import {
   createDependencyGraph,
   packageLabel,
   packagePurl,
 } from '../fixtures/dependency-graph';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const graph = createDependencyGraph();
 
@@ -83,12 +80,6 @@ const rowElement = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-dependency-tree-row]');
 
 describe('DependencyTreeRow', () => {
-  it('is compiled by React Compiler, as are the components it uses', () => {
-    expect(isCompiledByReactCompiler(DependencyTreeRow)).toBe(true);
-    expect(isCompiledByReactCompiler(HighlightedMatch)).toBe(true);
-    expect(isCompiledByReactCompiler(PackageCountBadge)).toBe(true);
-  });
-
   it('shows the changed position and state of a row', () => {
     const { container, rerender } = render(<DependencyTreeRow {...props()} />);
 

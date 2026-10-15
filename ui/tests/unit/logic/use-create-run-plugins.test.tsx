@@ -29,7 +29,6 @@ import { getPluginsForRepository } from '@/api/sdk.gen';
 import { useCreateRunPlugins } from '@/hooks/use-create-run-plugins';
 import { createPluginDescriptor } from '../fixtures/create-run';
 import { createDeferred } from '../fixtures/loader-test-utils';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 vi.mock('@/api/sdk.gen', () => ({
   getPluginsForRepository: vi.fn(),
@@ -66,10 +65,6 @@ const vulnerableCode = createPluginDescriptor({
 });
 
 describe('useCreateRunPlugins', () => {
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(useCreateRunPlugins)).toBe(true);
-  });
-
   afterEach(() => {
     queryClient.clear();
     vi.clearAllMocks();

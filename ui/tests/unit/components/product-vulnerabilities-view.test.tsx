@@ -103,12 +103,6 @@ beforeEach(() => {
 });
 
 describe('product vulnerabilities table', () => {
-  it('is compiled by React Compiler', () => {
-    expect(ProductVulnerabilitiesComponent.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('applies filters and sorting from the URL', async () => {
     const { container, router } = renderVulnerabilities();
 

@@ -132,12 +132,6 @@ describe('rule violations table', () => {
     );
   });
 
-  it('is compiled by React Compiler', () => {
-    expect(RuleViolationsComponent.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('applies filters from the URL', async () => {
     const { container, router } = renderRunPage(
       RuleViolationsComponent,

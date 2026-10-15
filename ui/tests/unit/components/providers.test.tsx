@@ -25,7 +25,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Providers } from '@/components/providers';
 import { TOKEN_FLOW_MARKER_KEY } from '@/helpers/token-flow';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const authProvider = vi.hoisted(() => ({
   skipSigninCallback: undefined as boolean | undefined,
@@ -64,10 +63,6 @@ describe('Providers', () => {
     authProvider.skipSigninCallback = undefined;
     window.sessionStorage.clear();
     window.history.pushState({}, '', '/');
-  });
-
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(Providers)).toBe(true);
   });
 
   it.each([

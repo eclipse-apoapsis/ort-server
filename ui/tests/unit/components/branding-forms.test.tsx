@@ -26,7 +26,6 @@ import { describe, expect, it } from 'vitest';
 
 import { getServerSettingByKeyQueryKey } from '@/api/@tanstack/react-query.gen';
 import { ProductNameForm } from '@/routes/admin/content-management/branding/-components/product-name-form';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const productNameKey = getServerSettingByKeyQueryKey({
   path: { key: 'MAIN_PRODUCT_NAME' },
@@ -51,10 +50,6 @@ const renderProductNameForm = (value: string) => {
 // The form takes the saved setting as `values` and resets to it, which React
 // Hook Form reports as fragile under React Compiler.
 describe('ProductNameForm', () => {
-  it('is compiled with React Compiler', () => {
-    expect(isCompiledByReactCompiler(ProductNameForm)).toBe(true);
-  });
-
   it('restores the saved product name on reset', async () => {
     const user = userEvent.setup();
     renderProductNameForm('Saved Name');

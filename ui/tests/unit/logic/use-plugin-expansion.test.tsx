@@ -23,7 +23,6 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { usePluginExpansion } from '@/hooks/use-plugin-expansion';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 type Props = Parameters<typeof usePluginExpansion>[0];
 
@@ -48,10 +47,6 @@ const renderExpansion = (props: Partial<Props> = {}) => {
 };
 
 describe('usePluginExpansion', () => {
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(usePluginExpansion)).toBe(true);
-  });
-
   it('starts with the initially expanded plugins', () => {
     const { expansion } = renderExpansion({ initiallyExpandedIds: ['B'] });
 

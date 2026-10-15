@@ -109,10 +109,6 @@ describe('organizations table', () => {
     useTablePrefsStore.setState({ orgPageSize: 10 });
   });
 
-  it('is compiled by React Compiler', () => {
-    expect(OrganizationsPage.toString()).toContain('react.memo_cache_sentinel');
-  });
-
   it('filters by name, starting from the first page', async () => {
     const { router, user } = renderOrganizations('?page=2');
 

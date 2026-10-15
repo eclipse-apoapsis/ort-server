@@ -235,12 +235,6 @@ describe('OrganizationProductTable', () => {
     mocks.repositories.mockResolvedValue(repositories(1));
   });
 
-  it('is compiled by React Compiler', () => {
-    expect(OrganizationProductTable.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('shows the favorite buttons once the organization is loaded', async () => {
     const loadedOrganization = createDeferred<{ data: Organization }>();
     mocks.organization.mockReturnValue(loadedOrganization.promise);

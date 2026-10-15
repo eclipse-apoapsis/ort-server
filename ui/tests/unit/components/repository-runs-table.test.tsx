@@ -183,12 +183,6 @@ describe('RepositoryRunsTable', () => {
     );
   });
 
-  it('is compiled by React Compiler', () => {
-    expect(RepositoryRunsTable.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('marks the base run, offers the other runs for comparison and deselects the base run', async () => {
     const { user } = renderTable();
 

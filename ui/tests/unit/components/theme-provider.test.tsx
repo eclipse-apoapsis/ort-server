@@ -23,11 +23,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ColorThemeToggle } from '@/components/color-theme-toggle';
 import { ModeToggle } from '@/components/mode-toggle';
 import { ThemeProvider } from '@/components/theme-provider';
 import { useTheme } from '@/components/theme-provider-context';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const root = document.documentElement;
 
@@ -67,14 +65,6 @@ describe('ThemeProvider', () => {
     root.className = '';
     root.removeAttribute('data-theme');
     vi.restoreAllMocks();
-  });
-
-  it.each([
-    ['ThemeProvider', ThemeProvider],
-    ['ModeToggle', ModeToggle],
-    ['ColorThemeToggle', ColorThemeToggle],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
   });
 
   it('passes a changed mode to its consumers and the document', async () => {

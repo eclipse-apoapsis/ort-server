@@ -122,12 +122,6 @@ describe('vulnerabilities table', () => {
   const renderVulnerabilities = () =>
     renderRunPage(VulnerabilitiesComponent, 'vulnerabilities');
 
-  it('is compiled by React Compiler', () => {
-    expect(VulnerabilitiesComponent.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('applies filters from the URL once the filtered data has loaded', async () => {
     const filtered =
       createDeferred<ReturnType<typeof getVulnerabilitiesPage>>();

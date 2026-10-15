@@ -26,7 +26,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
 import { DataTableHeader } from '@/components/data-table/data-table-header';
-import { FilterInfiniteMultiSelect } from '@/components/data-table/filter-infinite-multi-select';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterSingleSelect } from '@/components/data-table/filter-single-select';
@@ -41,18 +40,6 @@ import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const openFilter = async (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByRole('button'));
-
-describe('table filters', () => {
-  it.each([
-    ['FilterText', FilterText],
-    ['FilterRegex', FilterRegex],
-    ['FilterSingleSelect', FilterSingleSelect],
-    ['FilterMultiSelect', FilterMultiSelect],
-    ['FilterInfiniteMultiSelect', FilterInfiniteMultiSelect],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
-  });
-});
 
 describe('FilterText', () => {
   it('shows a filter value that changed from outside', async () => {

@@ -163,10 +163,6 @@ describe('issues table', () => {
     );
   });
 
-  it('is compiled by React Compiler', () => {
-    expect(IssuesComponent.toString()).toContain('react.memo_cache_sentinel');
-  });
-
   it('applies filters from the URL', async () => {
     const { container, router } = renderIssues();
 

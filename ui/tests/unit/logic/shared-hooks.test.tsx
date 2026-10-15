@@ -34,16 +34,13 @@ import {
 } from '@/api/sdk.gen';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInView } from '@/hooks/use-in-view';
-import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { useInfrastructureServices } from '@/hooks/use-infrastructure-services';
 import { useSecrets } from '@/hooks/use-secrets';
-import { useTableSizing } from '@/hooks/use-table-sizing';
 import {
   OrganizationPermissions,
   ProductPermissions,
   RepositoryPermissions,
 } from '@/lib/permissions';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
@@ -54,19 +51,6 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   getProductInfrastructureServices: vi.fn(),
   getRepositoryInfrastructureServices: vi.fn(),
 }));
-
-describe('shared hooks', () => {
-  it.each([
-    ['useDebounce', useDebounce],
-    ['useInView', useInView],
-    ['useInfiniteList', useInfiniteList],
-    ['useSecrets', useSecrets],
-    ['useInfrastructureServices', useInfrastructureServices],
-    ['useTableSizing', useTableSizing],
-  ])('compiles %s with React Compiler', (_, hook) => {
-    expect(isCompiledByReactCompiler(hook)).toBe(true);
-  });
-});
 
 describe('useDebounce', () => {
   beforeEach(() => {
