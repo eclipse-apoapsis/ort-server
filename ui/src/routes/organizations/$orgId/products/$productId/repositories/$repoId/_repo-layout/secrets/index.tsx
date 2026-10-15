@@ -271,7 +271,7 @@ const RepositorySecrets = () => {
       data: productSecrets?.data || [],
       columns: baseColumns,
       pageCount: Math.ceil(
-        (productSecrets?.pagination.totalCount ?? 0) / orgPageSize
+        (productSecrets?.pagination.totalCount ?? 0) / productPageSize
       ),
       state: {
         pagination: {
