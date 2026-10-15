@@ -21,19 +21,6 @@ export function InferredFixture() {
   return <span>Fixture</span>;
 }
 
-export function OptedOutFixture() {
-  'use no memo';
-
-  return <span>Fixture</span>;
-}
-
 export function DefaultPropFixture({ label = 'Fixture' }: { label?: string }) {
   return <span>{label}</span>;
-}
-
-// Not a component: React Compiler leaves lower-case functions uncompiled even
-// when they return JSX.
-// eslint-disable-next-line react-refresh/only-export-components
-export function renderFixture() {
-  return <span>Fixture</span>;
 }
