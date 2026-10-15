@@ -57,20 +57,22 @@ export const getLinkTarget = (link: HTMLElement) => {
 // 'search-package', with the routes to render it and the query fields that identify the level.
 // The repository pages live under the pathless '_repo-layout' route, which is part of their
 // route IDs.
-export const hierarchyLevels = (subpage: string) =>
-  [
+// With `layout`, the page is rendered by the layout route of the subpage (its `route.tsx`)
+// instead of its index route, and has that route's ID.
+export const hierarchyLevels = (subpage: string, { layout = false } = {}) => {
+  const page = layout ? subpage : `${subpage}/`;
+
+  return [
     {
       level: 'organization',
       path: `/organizations/1/${subpage}`,
-      routes: [{ path: `/organizations/$orgId/${subpage}/` }],
+      routes: [{ path: `/organizations/$orgId/${page}` }],
       hierarchyId: { organizationId: 1 },
     },
     {
       level: 'product',
       path: `/organizations/1/products/2/${subpage}`,
-      routes: [
-        { path: `/organizations/$orgId/products/$productId/${subpage}/` },
-      ],
+      routes: [{ path: `/organizations/$orgId/products/$productId/${page}` }],
       hierarchyId: { productId: 2 },
     },
     {
@@ -79,11 +81,10 @@ export const hierarchyLevels = (subpage: string) =>
       routes: [
         {
           path: '/organizations/$orgId/products/$productId/repositories/$repoId',
-          children: [
-            { id: '_repo-layout', children: [{ path: `${subpage}/` }] },
-          ],
+          children: [{ id: '_repo-layout', children: [{ path: page }] }],
         },
       ],
       hierarchyId: { repositoryId: 3 },
     },
   ] as const;
+};
