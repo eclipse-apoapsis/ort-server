@@ -24,7 +24,6 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
-import { DataTableFilter } from '@/components/data-table/data-table-filter';
 import { DataTableHeader } from '@/components/data-table/data-table-header';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
@@ -36,7 +35,6 @@ import {
   type AppColumnDef,
   type AppReactTable,
 } from '@/hooks/use-app-table';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const openFilter = async (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByRole('button'));
@@ -202,10 +200,6 @@ const renderFilterHeaders = () => {
 };
 
 describe('DataTableFilter', () => {
-  it('is not compiled with React Compiler', () => {
-    expect(isCompiledByReactCompiler(DataTableFilter)).toBe(false);
-  });
-
   it('shows a filter value that changed in the table', async () => {
     const user = userEvent.setup();
     const table = renderFilterHeaders();

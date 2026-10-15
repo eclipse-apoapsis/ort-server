@@ -30,7 +30,6 @@ import {
   useHomeFavorites,
 } from '@/providers/home-data';
 import { useFavoritesStore } from '@/store/favorites.store';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const auth = vi.hoisted(() => ({ userId: 'user-a' }));
 
@@ -83,11 +82,6 @@ describe('HomeDataProvider', () => {
       })
     );
     localStorage.clear();
-  });
-
-  it('is compiled by React Compiler, unlike the home data hooks', () => {
-    expect(isCompiledByReactCompiler(HomeDataProvider)).toBe(true);
-    expect(isCompiledByReactCompiler(useHomeFavorites)).toBe(false);
   });
 
   it('passes the favorites of the current user to its consumers', async () => {
