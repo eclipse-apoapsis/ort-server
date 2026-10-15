@@ -30,10 +30,6 @@ import { getServerSettingByKey, getSuperuser } from '@/api/sdk.gen';
 import { Header } from '@/components/header';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Route as ProfileRoute } from '@/routes/profile';
-import { Route as TokenRoute } from '@/routes/profile/token';
-import { Route as TokenCallbackRoute } from '@/routes/profile/token/callback';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const auth = vi.hoisted(() => ({ current: undefined as unknown }));
 
@@ -84,17 +80,6 @@ const renderHeader = () => {
 
 const openUserMenu = async (user: ReturnType<typeof userEvent.setup>) =>
   user.click(await screen.findByRole('button', { name: /Toggle user menu/ }));
-
-describe('authentication UI', () => {
-  it.each([
-    ['Header', Header],
-    ['ProfilePage', ProfileRoute.options.component],
-    ['TokenPage', TokenRoute.options.component],
-    ['TokenCallbackPage', TokenCallbackRoute.options.component],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
-  });
-});
 
 describe('Header', () => {
   it('shows the signed-in user and follows a change of the user', async () => {

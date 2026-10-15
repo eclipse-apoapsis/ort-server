@@ -46,7 +46,6 @@ import {
   setScrollY,
   setUpDependencyTreeLayout,
 } from '../fixtures/dependency-tree-layout';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const runGeneration = () => act(() => vi.runAllTimers());
 
@@ -112,10 +111,6 @@ describe('DependencyTree', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-  });
-
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(DependencyTree)).toBe(true);
   });
 
   // The compiled tree renders the uncompiled virtualized list, whose

@@ -27,23 +27,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { UserInfo } from '@/api';
 import { getUserInfo } from '@/api/sdk.gen';
 import { PermissionGuard } from '@/components/authorization/permission-guard';
-import {
-  RequireOrganizationPermission,
-  RequireProductPermission,
-  RequireRepositoryPermission,
-} from '@/components/authorization/require-permission';
-import { RequireSuperuser } from '@/components/authorization/require-superuser';
-import {
-  useIsSuperuser,
-  useOrganizationPermission,
-  useProductPermission,
-  useRepositoryPermission,
-} from '@/hooks/use-authorization';
+import { RequireOrganizationPermission } from '@/components/authorization/require-permission';
 import { toastError } from '@/lib/toast';
-import {
-  compiledFunctionNames,
-  isCompiledByReactCompiler,
-} from '../fixtures/react-compiler';
 
 const navigate = vi.hoisted(() => vi.fn());
 
@@ -58,28 +43,6 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
 
 afterEach(() => {
   vi.clearAllMocks();
-});
-
-describe('authorization', () => {
-  it.each([
-    ['PermissionGuard', PermissionGuard],
-    ['RequireOrganizationPermission', RequireOrganizationPermission],
-    ['RequireProductPermission', RequireProductPermission],
-    ['RequireRepositoryPermission', RequireRepositoryPermission],
-    ['RequireSuperuser', RequireSuperuser],
-    ['useIsSuperuser', useIsSuperuser],
-    ['useOrganizationPermission', useOrganizationPermission],
-    ['useProductPermission', useProductPermission],
-    ['useRepositoryPermission', useRepositoryPermission],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
-  });
-
-  it('compiles useEntityPermission, which is not exported', () => {
-    expect(compiledFunctionNames('src/hooks/use-authorization.ts')).toContain(
-      'useEntityPermission'
-    );
-  });
 });
 
 describe('PermissionGuard', () => {

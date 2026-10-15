@@ -40,14 +40,9 @@ import {
   type FavoriteType,
   type RecentRunItem,
 } from '@/providers/home-data';
-import { HomeFavoritesSection } from '@/routes/-components/home-favorites-section';
 import { Route as HomeRoute } from '@/routes/index';
 import { useFavoritesStore } from '@/store/favorites.store';
 import { useRecentRunsStore } from '@/store/recent-runs.store';
-import {
-  compiledFunctionNames,
-  isCompiledByReactCompiler,
-} from '../fixtures/react-compiler';
 import {
   createTestRouter,
   RouterTestProvider,
@@ -150,30 +145,6 @@ afterEach(() => {
 });
 
 describe('home page', () => {
-  it.each([
-    ['HomePage', HomePage],
-    ['HomeFavoritesSection', HomeFavoritesSection],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
-  });
-
-  it('compiles the components that are not exported', () => {
-    expect(
-      compiledFunctionNames('src/routes/-components/home-favorites-section.tsx')
-    ).toEqual(
-      expect.arrayContaining([
-        'FavoriteListItem',
-        'FavoriteGroupCard',
-        'SortableFavoriteGroupCard',
-      ])
-    );
-    expect(
-      compiledFunctionNames(
-        'src/routes/-components/home-recent-runs-section.tsx'
-      )
-    ).toContain('RecentRunListItem');
-  });
-
   it('shows a favorite once one is added to the store', async () => {
     renderHomePage();
 

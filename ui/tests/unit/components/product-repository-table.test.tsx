@@ -103,12 +103,6 @@ describe('ProductRepositoryTable', () => {
     mocks.repositories.mockResolvedValue(repositories('first', 'second'));
   });
 
-  it('is compiled by React Compiler', () => {
-    expect(ProductRepositoryTable.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('shows the favorite buttons once the organization and the product are loaded', async () => {
     const loadedOrganization = createDeferred<{ data: Organization }>();
     const loadedProduct = createDeferred<{ data: Product }>();

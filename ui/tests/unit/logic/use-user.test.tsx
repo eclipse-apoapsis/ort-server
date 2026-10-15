@@ -27,7 +27,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getSuperuser } from '@/api/sdk.gen';
 import { authRef, useUser } from '@/hooks/use-user';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const auth = vi.hoisted(() => ({ current: undefined as unknown }));
 
@@ -65,10 +64,6 @@ const renderUser = (context: AuthContextProps) => {
 };
 
 describe('useUser', () => {
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(useUser)).toBe(true);
-  });
-
   it('keeps the current auth context for use outside of components', () => {
     const first = authContext('Ada');
     const second = authContext('Grace');

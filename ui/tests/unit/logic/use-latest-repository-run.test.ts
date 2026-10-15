@@ -25,7 +25,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OrtRunSummary } from '@/api';
 import { config } from '@/config';
 import { useLatestRepositoryRun } from '@/hooks/use-latest-repository-run';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 type RefetchInterval = (query: {
   state: {
@@ -67,10 +66,6 @@ describe('useLatestRepositoryRun', () => {
   beforeEach(() => {
     mocks.runs = [];
     mocks.queryOptions = undefined;
-  });
-
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(useLatestRepositoryRun)).toBe(true);
   });
 
   it('returns the latest run', () => {

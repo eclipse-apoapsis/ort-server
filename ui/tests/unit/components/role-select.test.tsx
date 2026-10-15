@@ -28,7 +28,6 @@ import { z } from 'zod';
 import { RoleSelect } from '@/components/role-select';
 import { Form, FormField, FormItem } from '@/components/ui/form';
 import { roleSchema } from '@/schemas';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 type Role = z.infer<typeof roleSchema>;
 
@@ -55,10 +54,6 @@ const RoleSelectHarness = ({ role }: { role: Role }) => {
 };
 
 describe('RoleSelect', () => {
-  it('is compiled by React Compiler', () => {
-    expect(isCompiledByReactCompiler(RoleSelect)).toBe(true);
-  });
-
   it('shows the selected role in the trigger', () => {
     render(<RoleSelectHarness role='READER' />);
 

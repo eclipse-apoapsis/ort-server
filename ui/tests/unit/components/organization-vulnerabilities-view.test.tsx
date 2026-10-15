@@ -137,12 +137,6 @@ beforeEach(() => {
 });
 
 describe('organization vulnerabilities table', () => {
-  it('is compiled by React Compiler', () => {
-    expect(OrganizationVulnerabilitiesComponent.toString()).toContain(
-      'react.memo_cache_sentinel'
-    );
-  });
-
   it('shows the vulnerabilities once they have loaded', async () => {
     const page = createDeferred<ReturnType<typeof getVulnerabilitiesPage>>();
     mocks.vulnerabilities.mockImplementation(

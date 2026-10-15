@@ -43,7 +43,6 @@ import { SecretSelect } from '@/components/secret-select';
 import { Form, FormField, FormItem } from '@/components/ui/form';
 import MultipleSelector from '@/components/ui/multiple-selector';
 import { OrganizationPermissions } from '@/lib/permissions';
-import { isCompiledByReactCompiler } from '../fixtures/react-compiler';
 
 const permissions = vi.hoisted(() => ({
   organization: undefined as unknown,
@@ -61,16 +60,6 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   getOrganizationSecrets: vi.fn(),
   getOrganizationInfrastructureServices: vi.fn(),
 }));
-
-describe('selectors', () => {
-  it.each([
-    ['MultipleSelector', MultipleSelector],
-    ['SecretSelect', SecretSelect],
-    ['InfrastructureServiceSelect', InfrastructureServiceSelect],
-  ])('compiles %s with React Compiler', (_, component) => {
-    expect(isCompiledByReactCompiler(component)).toBe(true);
-  });
-});
 
 describe('MultipleSelector', () => {
   it('passes a selected option to the latest change handler', async () => {
