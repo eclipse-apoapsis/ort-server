@@ -157,6 +157,94 @@ class HTTPTest : WordSpec({
             }
         }
 
+        "compress responses to same-origin browser requests" {
+            testApplication {
+                configureHttpTestApplication()
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header("Sec-Fetch-Site", "same-origin")
+                }
+
+                response.headers[HttpHeaders.ContentEncoding] shouldBe "gzip"
+            }
+        }
+
+        "compress responses to cross-site requests from an allowed host" {
+            testApplication {
+                configureHttpTestApplication()
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header("Sec-Fetch-Site", "cross-site")
+                    header(HttpHeaders.Origin, "http://localhost")
+                }
+
+                response.headers[HttpHeaders.ContentEncoding] shouldBe "gzip"
+            }
+        }
+
+        "leave responses to cross-site requests without an Origin uncompressed" {
+            testApplication {
+                configureHttpTestApplication()
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header("Sec-Fetch-Site", "cross-site")
+                }
+
+                response.headers[HttpHeaders.ContentEncoding].shouldBeNull()
+                response.bodyAsText() shouldBe jsonResponse
+            }
+        }
+
+        "leave responses to same-site requests without an Origin uncompressed" {
+            testApplication {
+                configureHttpTestApplication()
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header("Sec-Fetch-Site", "same-site")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                response.headers[HttpHeaders.ContentEncoding].shouldBeNull()
+                response.bodyAsText() shouldBe jsonResponse
+            }
+        }
+
+        "reject cross-site requests from an untrusted Origin before compression" {
+            testApplication {
+                configureHttpTestApplication()
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header("Sec-Fetch-Site", "cross-site")
+                    header(HttpHeaders.Origin, "https://attacker.example")
+                }
+
+                // CORS refuses the request before the handler runs, so no response body can leak.
+                response.status shouldBe HttpStatusCode.Forbidden
+                response.headers[HttpHeaders.ContentEncoding].shouldBeNull()
+                response.bodyAsText() shouldBe ""
+            }
+        }
+
+        "compress responses to cross-site requests from any Origin if all hosts are allowed" {
+            testApplication {
+                configureHttpTestApplication(allowedHosts = "*")
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header("Sec-Fetch-Site", "cross-site")
+                    header(HttpHeaders.Origin, "https://attacker.example")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                response.headers[HttpHeaders.ContentEncoding] shouldBe "gzip"
+            }
+        }
+
         "not decompress request bodies" {
             testApplication {
                 configureHttpTestApplication()
@@ -176,12 +264,12 @@ class HTTPTest : WordSpec({
     }
 })
 
-private fun ApplicationTestBuilder.configureHttpTestApplication() {
+private fun ApplicationTestBuilder.configureHttpTestApplication(allowedHosts: String = "localhost") {
     application {
         install(Koin) {
             modules(
                 module {
-                    single<ApplicationConfig> { MapApplicationConfig("ktor.cors.allowedHosts" to "localhost") }
+                    single<ApplicationConfig> { MapApplicationConfig("ktor.cors.allowedHosts" to allowedHosts) }
                     single<Json> { Json }
                 }
             )
