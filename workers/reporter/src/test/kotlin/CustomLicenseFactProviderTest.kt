@@ -62,6 +62,20 @@ class CustomLicenseFactProviderTest : WordSpec({
 
             provider.hasLicenseText(LICENSE_ID) shouldBe true
         }
+
+        "return false if the license is not available from the config repository" {
+            val provider = CustomLicenseFactProvider(createConfigManagerMock(), configContext, licenseDir)
+
+            provider.hasLicenseText("NonExistentLicense") shouldBe false
+        }
+
+        "handle a path prefix from the config repository" {
+            val pathPrefix = "/mnt/licenses/"
+            val configManager = createConfigManagerMock(pathPrefix)
+            val provider = CustomLicenseFactProvider(configManager, configContext, licenseDir)
+
+            provider.hasLicenseText(LICENSE_ID) shouldBe true
+        }
     }
 })
 
@@ -79,9 +93,11 @@ private val configContext = ResolvedConfigContext("theCurrentContext")
 
 /**
  * Return a mock for the [ConfigManager] that is prepared to list the content of the directory with custom license
- * files. It returns a list containing only the test license ID.
+ * files. It returns a list containing only the test license ID with an optional [pathPrefix] prepended to it.
  */
-private fun createConfigManagerMock(): ConfigManager =
+private fun createConfigManagerMock(pathPrefix: String = ""): ConfigManager =
     mockk {
-        coEvery { listFiles(configContext, licenseDir) } returns setOf(Path("${licenseDir.path}/$LICENSE_ID"))
+        coEvery {
+            listFiles(configContext, licenseDir)
+        } returns setOf(Path("$pathPrefix${licenseDir.path}/$LICENSE_ID"))
     }
