@@ -31,7 +31,9 @@ import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -54,6 +56,7 @@ class DefaultPluginsService(
     private val pluginService: PluginService,
     private val pluginTemplateService: PluginTemplateService,
     private val organizationRepository: OrganizationRepository,
+    private val repositoryRepository: RepositoryRepository,
     private val adminConfigService: AdminConfigService,
     private val configManager: ConfigManager
 ) {
@@ -144,6 +147,20 @@ class DefaultPluginsService(
                 defaults.copy(pluginIds = resolvedIds.distinct())
             }
         }
+    }
+
+    /**
+     * Resolve the default plugins of all plugin types for the repository with the given [repositoryId] using the admin
+     * configuration from the given config [context]. See [resolveDefaultPlugins] for details.
+     */
+    suspend fun resolveDefaultPluginsForRepository(
+        repositoryId: RepositoryId,
+        context: ResolvedConfigContext
+    ): Result<List<DefaultPlugins>, DefaultPluginsError> {
+        val organizationId = repositoryRepository.get(repositoryId.value)?.organizationId?.let(::OrganizationId)
+            ?: return DefaultPluginsError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+
+        return resolveDefaultPlugins(organizationId, context)
     }
 
     /**

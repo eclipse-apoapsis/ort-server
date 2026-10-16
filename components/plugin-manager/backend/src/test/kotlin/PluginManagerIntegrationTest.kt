@@ -69,6 +69,7 @@ abstract class PluginManagerIntegrationTest(
                 pluginService,
                 pluginTemplateService,
                 dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.repositoryRepository,
                 adminConfigService,
                 configManager
             )

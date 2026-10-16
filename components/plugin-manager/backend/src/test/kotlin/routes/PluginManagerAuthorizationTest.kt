@@ -35,6 +35,7 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
@@ -50,6 +51,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
@@ -97,6 +100,7 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
             pluginService,
             pluginTemplateService,
             dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.repositoryRepository,
             adminConfigService,
             configManager
         )
@@ -179,6 +183,24 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
                 successStatus = HttpStatusCode.NotModified
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/enable")
+            }
+        }
+    }
+
+    "GetDefaultPluginsForRepository" should {
+        "require RepositoryPermission.READ" {
+            val repoId = dbExtension.fixtures.repository.id
+
+            requestShouldRequireRole(
+                routes = { routes() },
+                role = RepositoryRole.READER,
+                hierarchyId = CompoundHierarchyId.forRepository(
+                    OrganizationId(orgId),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(repoId)
+                )
+            ) {
+                get("/repositories/$repoId/plugins/defaults")
             }
         }
     }
