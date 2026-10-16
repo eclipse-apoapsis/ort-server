@@ -74,11 +74,22 @@ const createRuns = (count: number) =>
   Array.from({ length: count }, (_, index) => createRun(index + 1));
 
 const [organization, product, repository] = hierarchyLevels('search-package');
+// The columns of each level that show where a run belongs in the hierarchy.
 const levels = [
-  { ...organization, route: OrganizationRoute },
-  { ...product, route: ProductRoute },
-  { ...repository, route: RepositoryRoute },
+  {
+    ...organization,
+    route: OrganizationRoute,
+    hierarchyColumns: ['Product', 'Repository'],
+  },
+  { ...product, route: ProductRoute, hierarchyColumns: ['Repository'] },
+  { ...repository, route: RepositoryRoute, hierarchyColumns: [] },
 ];
+
+const getHierarchyColumns = () =>
+  Array.from(
+    screen.getByRole('table').querySelectorAll('thead th'),
+    (header) => header.textContent
+  ).filter((header) => ['Product', 'Repository'].includes(header));
 
 const renderSearch = (search = '', level = levels[0]!) => {
   const SearchPackageComponent = level.route.options.component!;
@@ -158,29 +169,42 @@ describe('package search pages', () => {
     expect(mocks.runs).toHaveBeenCalledOnce();
   }, 10_000);
 
-  it('shows the other package identifier when the identifier type changes', async () => {
-    renderSearch('?pkgId=example');
+  it.each(levels)(
+    'shows the hierarchy columns of the $level level',
+    async (level) => {
+      renderSearch('?pkgId=example', level);
 
-    expect(await screen.findByText('revision-1')).toBeVisible();
-    expect(getColumnTexts('Matching Package')[0]).toBe(
-      'Maven:org.example:library-1:1.0'
-    );
+      expect(await screen.findByText('revision-1')).toBeVisible();
+      expect(getHierarchyColumns()).toEqual(level.hierarchyColumns);
+    }
+  );
 
-    act(() =>
-      useUserSettingsStore.setState({
-        packageIdType: packageIdTypeSchema.enum.PURL,
-      })
-    );
+  it.each(levels)(
+    'shows the other package identifier when the identifier type changes at the $level level',
+    async (level) => {
+      renderSearch('?pkgId=example', level);
 
-    await waitFor(() =>
+      expect(await screen.findByText('revision-1')).toBeVisible();
       expect(getColumnTexts('Matching Package')[0]).toBe(
-        'pkg:maven/org.example/library-1@1.0'
-      )
-    );
-    expect(mocks.runs.mock.calls.at(-1)?.[0]).toMatchObject({
-      query: { purl: 'example', organizationId: 1 },
-    });
-  });
+        'Maven:org.example:library-1:1.0'
+      );
+
+      act(() =>
+        useUserSettingsStore.setState({
+          packageIdType: packageIdTypeSchema.enum.PURL,
+        })
+      );
+
+      await waitFor(() =>
+        expect(getColumnTexts('Matching Package')[0]).toBe(
+          'pkg:maven/org.example/library-1@1.0'
+        )
+      );
+      expect(mocks.runs.mock.calls.at(-1)?.[0]).toMatchObject({
+        query: { purl: 'example', ...level.hierarchyId },
+      });
+    }
+  );
 
   it.each(packageIdTypeSchema.options)(
     'sorts by the displayed %s identifiers',
