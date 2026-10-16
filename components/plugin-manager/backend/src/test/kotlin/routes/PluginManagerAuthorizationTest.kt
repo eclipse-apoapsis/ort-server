@@ -187,6 +187,16 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetAvailableGlobalDefaultPlugins" should {
+        "require the superuser role" {
+            requestShouldRequireSuperuser(
+                routes = { routes() }
+            ) {
+                get("/admin/plugins/defaults/available")
+            }
+        }
+    }
+
     "GetDefaultPluginsForRepository" should {
         "require RepositoryPermission.READ" {
             val repoId = dbExtension.fixtures.repository.id
