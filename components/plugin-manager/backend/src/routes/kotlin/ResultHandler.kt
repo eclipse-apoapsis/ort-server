@@ -43,3 +43,18 @@ internal suspend fun <V> Result<V, TemplateError>.handleTemplateResult(onSuccess
         }
     }
 }
+
+/**
+ * Execute the given [onSuccess] block if the result is successful, otherwise respond with the appropriate HTTP status
+ * code and error message based on the type of [DefaultPluginsError].
+ */
+context(context: RoutingContext)
+internal suspend fun <V> Result<V, DefaultPluginsError>.handleDefaultPluginsResult(onSuccess: suspend (V) -> Unit) {
+    onOk { onSuccess(it) }
+    onErr {
+        when (it) {
+            is DefaultPluginsError.InvalidPlugin -> context.call.respondError(HttpStatusCode.BadRequest, it.message)
+            is DefaultPluginsError.NotFound -> context.call.respondError(HttpStatusCode.NotFound, it.message)
+        }
+    }
+}

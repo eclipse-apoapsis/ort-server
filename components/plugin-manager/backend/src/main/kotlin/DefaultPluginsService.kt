@@ -94,6 +94,18 @@ class DefaultPluginsService(
     }
 
     /**
+     * Return the default plugins of all categories that apply to the given [organizationId], or the global defaults
+     * if [organizationId] is `null`. See [getDefaultPlugins] for details.
+     */
+    suspend fun getAllDefaultPlugins(
+        organizationId: OrganizationId?
+    ): Result<List<DefaultPlugins>, DefaultPluginsError> = db.transaction {
+        validateOrganizationExists(organizationId).map {
+            DefaultPluginsCategory.entries.map { category -> getEffectiveDefaults(organizationId, category) }
+        }
+    }
+
+    /**
      * Resolve the default plugins of all categories for the organization with the given [organizationId] using the
      * admin configuration from the given config [context]. Plugins that are not available for the organization and
      * report definitions which do not exist in the config [context] are removed.
