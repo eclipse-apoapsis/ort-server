@@ -109,6 +109,36 @@ class DefaultPluginsService(
     }
 
     /**
+     * Return the plugins that can be configured as global default plugins. These are all plugins that are not disabled,
+     * including restricted plugins, because these can be made available to organizations by plugin templates. The
+     * report definitions from the admin configuration of the default config context are added as reporters and replace
+     * the reporters they use.
+     */
+    suspend fun getAvailableGlobalDefaultPlugins(): List<PluginDescriptor> {
+        val context = configManager.resolveContext(RequestedConfigContext.EMPTY)
+        val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
+        val replacedReporterIds = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
+
+        val plugins = pluginService.getPlugins().filter {
+            it.availability != PluginAvailability.DISABLED &&
+                    !(it.type == PluginType.REPORTER && it.id.lowercase() in replacedReporterIds)
+        }
+
+        val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
+            PluginDescriptor(
+                id = name,
+                type = PluginType.REPORTER,
+                displayName = name,
+                summary = definition.description,
+                description = null,
+                availability = PluginAvailability.ENABLED
+            )
+        }
+
+        return plugins + pluginsFromReportDefinitions
+    }
+
+    /**
      * Resolve the default plugins of all categories for the organization with the given [organizationId] using the
      * admin configuration from the given config [context]. Plugins that are not available for the organization and
      * report definitions which do not exist in the config [context] are removed.
