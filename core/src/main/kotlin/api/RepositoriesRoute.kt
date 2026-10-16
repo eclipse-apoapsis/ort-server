@@ -49,6 +49,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePer
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepository
@@ -88,6 +90,7 @@ import org.koin.ktor.ext.inject
 @Suppress("LongMethod")
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val authorizationService by inject<AuthorizationService>()
+    val configManager by inject<ConfigManager>()
     val orchestratorService by inject<OrchestratorService>()
     val ortRunService by inject<OrtRunService>()
     val pluginTemplateService by inject<PluginTemplateService>()
@@ -171,7 +174,10 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
                         pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
                     },
-                    organizationId = OrganizationId(it.organizationId)
+                    organizationId = OrganizationId(it.organizationId),
+                    context = configManager.resolveContext(
+                        createOrtRun.jobConfigContext?.let(::RequestedConfigContext) ?: RequestedConfigContext.EMPTY
+                    )
                 )
 
                 if (!validationResult.isValid) {
