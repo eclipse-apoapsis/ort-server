@@ -29,7 +29,10 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.collections.shouldNotContainAnyOf
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -212,6 +215,43 @@ class DefaultPluginsServiceTest : WordSpec({
         "fail if the organization does not exist" {
             getDefaultPlugins(OrganizationId(-1L), ADVISOR)
                 .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.NotFound>()
+        }
+    }
+
+    "getAvailableGlobalDefaultPlugins" should {
+        "return all plugins that are not disabled" {
+            disable(PluginType.ADVISOR, "OSV")
+            restrict(PluginType.ADVISOR, "VulnerableCode")
+
+            val advisors = service.getAvailableGlobalDefaultPlugins().filter { it.type == PluginType.ADVISOR }
+
+            advisors.map { it.id } shouldNotContain "OSV"
+            advisors.single { it.id == "VulnerableCode" }.availability shouldBe PluginAvailability.RESTRICTED
+        }
+
+        "replace reporters with the report definitions from the default config context" {
+            val reporters = service.getAvailableGlobalDefaultPlugins().filter { it.type == PluginType.REPORTER }
+
+            reporters.map { it.id } shouldContainAll listOf("customTemplate", "webApp", "CycloneDX")
+            reporters.map { it.id } shouldNotContainAnyOf listOf("PdfTemplate", "WebApp")
+            reporters.single { it.id == "customTemplate" } shouldBe PluginDescriptor(
+                id = "customTemplate",
+                type = PluginType.REPORTER,
+                displayName = "customTemplate",
+                summary = "Custom template report.",
+                description = null,
+                availability = PluginAvailability.ENABLED
+            )
+        }
+
+        "use the availability of the reporters used by report definitions" {
+            restrict(PluginType.REPORTER, "PdfTemplate")
+            disable(PluginType.REPORTER, "WebApp")
+
+            val reporters = service.getAvailableGlobalDefaultPlugins().filter { it.type == PluginType.REPORTER }
+
+            reporters.single { it.id == "customTemplate" }.availability shouldBe PluginAvailability.RESTRICTED
+            reporters.map { it.id } shouldNotContain "webApp"
         }
     }
 
