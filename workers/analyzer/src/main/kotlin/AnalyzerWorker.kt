@@ -325,7 +325,7 @@ private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerConte
         disabledPackageManagers = disabledPackageManagers,
         packageManagerOptions = packageManagerOptions,
         repositoryConfigPath = repositoryConfigPath,
-        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders),
+        packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders.orEmpty()),
         keepAliveWorker = keepAliveWorker,
         keepAlivePhases = keepAlivePhases
     )

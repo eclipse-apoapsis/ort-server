@@ -224,7 +224,7 @@ fun AnalyzerJobConfiguration.mapToApi() =
         enabledPackageManagers = enabledPackageManagers,
         environmentConfig = environmentConfig?.mapToApi(),
         submoduleFetchStrategy = submoduleFetchStrategy?.mapToApi(),
-        packageCurationProviders = packageCurationProviders.map { it.mapToApi() },
+        packageCurationProviders = packageCurationProviders?.map { it.mapToApi() },
         packageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToApi() },
         repositoryConfigPath = repositoryConfigPath,
         skipExcluded = skipExcluded,
@@ -239,7 +239,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         enabledPackageManagers = enabledPackageManagers,
         environmentConfig = environmentConfig?.mapToModel(),
         submoduleFetchStrategy = submoduleFetchStrategy?.mapToModel(),
-        packageCurationProviders = packageCurationProviders?.map { it.mapToModel() }.orEmpty(),
+        packageCurationProviders = packageCurationProviders?.map { it.mapToModel() },
         packageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToModel() },
         repositoryConfigPath = repositoryConfigPath,
         skipExcluded = skipExcluded,
@@ -268,13 +268,13 @@ fun EvaluatorJob.mapToApiSummary() =
 
 fun EvaluatorJobConfiguration.mapToApi() =
     ApiEvaluatorJobConfiguration(
-        packageConfigurationProviders = packageConfigurationProviders.map { it.mapToApi() },
+        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToApi() },
         keepAliveWorker = keepAliveWorker
     )
 
 fun ApiEvaluatorJobConfiguration.mapToModel() =
     EvaluatorJobConfiguration(
-        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
+        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToModel() },
         keepAliveWorker = keepAliveWorker
     )
 
@@ -567,7 +567,7 @@ fun ReporterJobConfiguration.mapToApi() =
         formats = formats,
         assetFilesGroups = assetFilesGroups,
         assetDirectoriesGroups = assetDirectoriesGroups,
-        packageConfigurationProviders = packageConfigurationProviders.map { it.mapToApi() },
+        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToApi() },
         config = config?.mapValues { it.value.mapToApi() },
         keepAliveWorker = keepAliveWorker
     )
@@ -599,7 +599,7 @@ fun ApiReporterJobConfiguration.mapToModel() =
         formats = formats,
         assetFilesGroups = assetFilesGroups,
         assetDirectoriesGroups = assetDirectoriesGroups,
-        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
+        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToModel() },
         config = config?.mapValues { it.value.mapToModel() },
         keepAliveWorker = keepAliveWorker
     )

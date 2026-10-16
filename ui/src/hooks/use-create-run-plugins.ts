@@ -19,10 +19,14 @@
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import type { PreconfiguredPluginDescriptor } from '@/api';
-import { getPluginsForRepositoryOptions } from '@/api/@tanstack/react-query.gen';
+import type { DefaultPlugins, PreconfiguredPluginDescriptor } from '@/api';
+import {
+  getDefaultPluginsForRepositoryOptions,
+  getPluginsForRepositoryOptions,
+} from '@/api/@tanstack/react-query.gen';
 
 const NO_PLUGINS: PreconfiguredPluginDescriptor[] = [];
+const NO_DEFAULT_PLUGINS: DefaultPlugins[] = [];
 
 /**
  * The query options for the plugins available for creating a run in the given repository with the
@@ -38,22 +42,45 @@ export const createRunPluginsOptions = (
   });
 
 /**
- * Load the plugins available for creating a run. The plugins are reported as loading until those
- * for the given config context are available, also while reloading them after a config context
- * change. Meanwhile, the previous plugins are kept so that the form does not lose its values.
+ * The query options for the default plugins for creating a run in the given repository with the
+ * given config context. The route loader and the page share them to use the same query.
+ */
+export const createRunDefaultPluginsOptions = (
+  repositoryId: number,
+  configContext?: string
+) =>
+  getDefaultPluginsForRepositoryOptions({
+    path: { repositoryId },
+    query: configContext ? { configContext } : undefined,
+  });
+
+/**
+ * Load the plugins available for creating a run and the plugins enabled by default. The plugins
+ * are reported as loading until those for the given config context are available, also while
+ * reloading them after a config context change. Meanwhile, the previous plugins are kept so that
+ * the form does not lose its values.
  */
 export const useCreateRunPlugins = (
   repositoryId: number,
   configContext: string
 ) => {
-  const { data, error, isPending, isPlaceholderData } = useQuery({
+  const pluginsQuery = useQuery({
     ...createRunPluginsOptions(repositoryId, configContext),
+    placeholderData: keepPreviousData,
+  });
+  const defaultPluginsQuery = useQuery({
+    ...createRunDefaultPluginsOptions(repositoryId, configContext),
     placeholderData: keepPreviousData,
   });
 
   return {
-    plugins: data ?? NO_PLUGINS,
-    pluginsLoading: isPending || isPlaceholderData,
-    pluginsError: error,
+    plugins: pluginsQuery.data ?? NO_PLUGINS,
+    defaultPlugins: defaultPluginsQuery.data ?? NO_DEFAULT_PLUGINS,
+    pluginsLoading:
+      pluginsQuery.isPending ||
+      pluginsQuery.isPlaceholderData ||
+      defaultPluginsQuery.isPending ||
+      defaultPluginsQuery.isPlaceholderData,
+    pluginsError: pluginsQuery.error ?? defaultPluginsQuery.error,
   };
 };

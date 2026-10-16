@@ -1,0 +1,424 @@
+/*
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package org.eclipse.apoapsis.ortserver.components.pluginmanager
+
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.getError
+import com.github.michaelbull.result.getOrElse
+
+import com.typesafe.config.ConfigFactory
+
+import io.kotest.assertions.fail
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.collections.shouldNotContainAnyOf
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
+
+import io.mockk.coEvery
+import io.mockk.spyk
+
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory.ADVISOR
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory.PACKAGE_CURATION_PROVIDER
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory.PACKAGE_MANAGER
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory.PROJECT_SCANNER
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory.REPORTER
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory.SCANNER
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+
+import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
+
+/** The config context containing an admin config with report definitions. */
+private const val REPORT_DEFINITIONS_CONTEXT = "src/test/resources/config"
+
+/** A config context without an admin config. */
+private const val EMPTY_CONTEXT = "non-existing"
+
+class DefaultPluginsServiceTest : WordSpec({
+    val dbExtension = extension(DatabaseTestExtension())
+
+    lateinit var pluginEventStore: PluginEventStore
+    lateinit var pluginTemplateService: PluginTemplateService
+    lateinit var configManager: ConfigManager
+    lateinit var service: DefaultPluginsService
+    var organizationId = OrganizationId(-1L)
+
+    val curationProviderIds = getInstalledPlugins(PluginType.PACKAGE_CURATION_PROVIDER).map { it.id }
+
+    beforeEach {
+        val configMap = mapOf(
+            ConfigManager.CONFIG_MANAGER_SECTION to mapOf(
+                ConfigManager.FILE_PROVIDER_NAME_PROPERTY to ConfigFileProviderFactoryForTesting.NAME,
+                ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME
+            )
+        )
+
+        val realConfigManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+        configManager = spyk(realConfigManager) {
+            // Use the config with report definitions as default config context.
+            coEvery { resolveContext(RequestedConfigContext.EMPTY) } coAnswers {
+                realConfigManager.resolveContext(RequestedConfigContext(REPORT_DEFINITIONS_CONTEXT))
+            }
+        }
+
+        val adminConfigService = AdminConfigService(configManager)
+        val pluginService = PluginService(dbExtension.db)
+
+        pluginEventStore = PluginEventStore(dbExtension.db)
+        pluginTemplateService = PluginTemplateService(
+            dbExtension.db,
+            PluginTemplateEventStore(dbExtension.db),
+            pluginService,
+            dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.repositoryRepository,
+            adminConfigService
+        )
+
+        service = DefaultPluginsService(
+            dbExtension.db,
+            DefaultPluginsEventStore(dbExtension.db),
+            pluginService,
+            pluginTemplateService,
+            dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.repositoryRepository,
+            adminConfigService,
+            configManager
+        )
+
+        organizationId = OrganizationId(dbExtension.fixtures.organization.id)
+    }
+
+    suspend fun context(name: String) = configManager.resolveContext(RequestedConfigContext(name))
+
+    suspend fun resolve(category: DefaultPluginsCategory, context: ResolvedConfigContext): DefaultPlugins =
+        service.resolveDefaultPlugins(organizationId, context).shouldBeOk().single { it.category == category }
+
+    suspend fun disable(pluginType: PluginType, pluginId: String) =
+        pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
+
+    suspend fun restrict(pluginType: PluginType, pluginId: String) =
+        pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginRestricted, "user"))
+
+    "getDefaultPlugins" should {
+        "return the built-in defaults if no defaults are configured" {
+            service.getDefaultPlugins(null, ADVISOR).shouldBeOk() shouldBe
+                    DefaultPlugins(ADVISOR, listOf("OSV", "VulnerableCode"), DefaultPluginsSource.BUILT_IN)
+            service.getDefaultPlugins(organizationId, SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(SCANNER, listOf("ScanCode"), DefaultPluginsSource.BUILT_IN)
+            service.getDefaultPlugins(null, PACKAGE_CURATION_PROVIDER).shouldBeOk() shouldBe
+                    DefaultPlugins(PACKAGE_CURATION_PROVIDER, emptyList(), DefaultPluginsSource.BUILT_IN)
+        }
+
+        "return the package managers enabled by default in ORT as built-in defaults" {
+            val defaults = service.getDefaultPlugins(null, PACKAGE_MANAGER).shouldBeOk()
+
+            defaults.pluginIds.map { it.lowercase() } shouldBe
+                    AnalyzerConfiguration().enabledPackageManagers.map { it.lowercase() }
+            defaults.source shouldBe DefaultPluginsSource.BUILT_IN
+        }
+
+        "return the global defaults for organizations without configured defaults" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("VulnerableCode"), "user").shouldBeOk()
+
+            service.getDefaultPlugins(null, ADVISOR).shouldBeOk() shouldBe
+                    DefaultPlugins(ADVISOR, listOf("VulnerableCode"), DefaultPluginsSource.GLOBAL)
+            service.getDefaultPlugins(organizationId, ADVISOR).shouldBeOk() shouldBe
+                    DefaultPlugins(ADVISOR, listOf("VulnerableCode"), DefaultPluginsSource.GLOBAL)
+        }
+
+        "prefer the organization defaults over the global defaults" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("VulnerableCode"), "user").shouldBeOk()
+            service.setDefaultPlugins(organizationId, ADVISOR, emptyList(), "user").shouldBeOk()
+
+            service.getDefaultPlugins(organizationId, ADVISOR).shouldBeOk() shouldBe
+                    DefaultPlugins(ADVISOR, emptyList(), DefaultPluginsSource.ORGANIZATION)
+        }
+
+        "return the effective package scanners as built-in defaults for project scanners" {
+            service.getDefaultPlugins(organizationId, PROJECT_SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(
+                        PROJECT_SCANNER,
+                        listOf("ScanCode"),
+                        DefaultPluginsSource.BUILT_IN
+                    )
+
+            service.setDefaultPlugins(null, SCANNER, emptyList(), "user").shouldBeOk()
+            service.getDefaultPlugins(null, PROJECT_SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(PROJECT_SCANNER, emptyList(), DefaultPluginsSource.BUILT_IN)
+
+            service.setDefaultPlugins(organizationId, SCANNER, listOf("ScanCode"), "user")
+                .shouldBeOk()
+            service.getDefaultPlugins(organizationId, PROJECT_SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(
+                        PROJECT_SCANNER,
+                        listOf("ScanCode"),
+                        DefaultPluginsSource.BUILT_IN
+                    )
+        }
+
+        "return configured project scanners independently of the package scanners" {
+            service.setDefaultPlugins(null, PROJECT_SCANNER, emptyList(), "user").shouldBeOk()
+
+            service.getDefaultPlugins(organizationId, PROJECT_SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(PROJECT_SCANNER, emptyList(), DefaultPluginsSource.GLOBAL)
+            service.getDefaultPlugins(organizationId, SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(SCANNER, listOf("ScanCode"), DefaultPluginsSource.BUILT_IN)
+        }
+
+        "fail if the organization does not exist" {
+            service.getDefaultPlugins(OrganizationId(-1L), ADVISOR)
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.NotFound>()
+        }
+    }
+
+    "getAvailableGlobalDefaultPlugins" should {
+        "return all plugins that are not disabled" {
+            disable(PluginType.ADVISOR, "OSV")
+            restrict(PluginType.ADVISOR, "VulnerableCode")
+
+            val advisors = service.getAvailableGlobalDefaultPlugins().filter { it.type == PluginType.ADVISOR }
+
+            advisors.map { it.id } shouldNotContain "OSV"
+            advisors.single { it.id == "VulnerableCode" }.availability shouldBe PluginAvailability.RESTRICTED
+        }
+
+        "replace reporters with the report definitions from the default config context" {
+            val reporters = service.getAvailableGlobalDefaultPlugins().filter { it.type == PluginType.REPORTER }
+
+            reporters.map { it.id } shouldContainAll listOf("customTemplate", "webApp", "CycloneDX")
+            reporters.map { it.id } shouldNotContainAnyOf listOf("PdfTemplate", "WebApp")
+            reporters.single { it.id == "customTemplate" } shouldBe PluginDescriptor(
+                id = "customTemplate",
+                type = PluginType.REPORTER,
+                displayName = "customTemplate",
+                summary = "Custom template report.",
+                description = null,
+                availability = PluginAvailability.ENABLED
+            )
+        }
+    }
+
+    "setDefaultPlugins" should {
+        "normalize the plugin IDs and keep their order" {
+            val ids = curationProviderIds.take(2).reversed()
+
+            service.setDefaultPlugins(
+                null,
+                PACKAGE_CURATION_PROVIDER,
+                ids.map { it.uppercase() },
+                "user"
+            ).shouldBeOk()
+
+            service.getDefaultPlugins(null, PACKAGE_CURATION_PROVIDER).shouldBeOk().pluginIds shouldBe ids
+        }
+
+        "fail for plugins that are not installed" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("unknown"), "user")
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.InvalidPlugin>()
+                .message shouldContain "No plugin with type 'ADVISOR' and ID 'unknown' found."
+        }
+
+        "validate project scanners as scanner plugins" {
+            service.setDefaultPlugins(null, PROJECT_SCANNER, listOf("scancode"), "user")
+                .shouldBeOk()
+            service.getDefaultPlugins(null, PROJECT_SCANNER).shouldBeOk() shouldBe
+                    DefaultPlugins(PROJECT_SCANNER, listOf("ScanCode"), DefaultPluginsSource.GLOBAL)
+
+            service.setDefaultPlugins(null, PROJECT_SCANNER, listOf("OSV"), "user")
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.InvalidPlugin>()
+                .message shouldContain "No plugin with type 'SCANNER' and ID 'OSV' found."
+        }
+
+        "fail for duplicate plugin IDs" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("OSV", "osv"), "user")
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.InvalidPlugin>()
+                .message shouldContain "multiple times"
+        }
+
+        "fail for disabled plugins" {
+            disable(PluginType.ADVISOR, "OSV")
+
+            service.setDefaultPlugins(null, ADVISOR, listOf("OSV"), "user")
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.InvalidPlugin>()
+                .message shouldContain "is not available"
+        }
+
+        "accept restricted plugins globally" {
+            restrict(PluginType.ADVISOR, "OSV")
+
+            service.setDefaultPlugins(null, ADVISOR, listOf("OSV"), "user").shouldBeOk()
+        }
+
+        "fail for restricted plugins without a template for the organization" {
+            restrict(PluginType.ADVISOR, "OSV")
+
+            service.setDefaultPlugins(organizationId, ADVISOR, listOf("OSV"), "user")
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.InvalidPlugin>()
+        }
+
+        "accept restricted plugins with a template for the organization" {
+            restrict(PluginType.ADVISOR, "OSV")
+            pluginTemplateService.create("template", PluginType.ADVISOR, "OSV", "user", emptyList()).shouldBeOk()
+            pluginTemplateService.addOrganization("template", PluginType.ADVISOR, "OSV", organizationId, "user")
+                .shouldBeOk()
+
+            service.setDefaultPlugins(organizationId, ADVISOR, listOf("OSV"), "user").shouldBeOk()
+        }
+
+        "accept report definitions from the default config context" {
+            service.setDefaultPlugins(null, REPORTER, listOf("CUSTOMTEMPLATE", "PdfTemplate"), "user")
+                .shouldBeOk()
+
+            service.getDefaultPlugins(null, REPORTER).shouldBeOk().pluginIds shouldBe
+                    listOf("customTemplate", "PdfTemplate")
+        }
+
+        "fail if the organization does not exist" {
+            service.setDefaultPlugins(OrganizationId(-1L), ADVISOR, listOf("OSV"), "user")
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.NotFound>()
+        }
+
+        "not create a new event if the plugins did not change" {
+            val eventStore = DefaultPluginsEventStore(dbExtension.db)
+
+            service.setDefaultPlugins(null, ADVISOR, listOf("OSV"), "user").shouldBeOk()
+            service.setDefaultPlugins(null, ADVISOR, listOf("osv"), "user").shouldBeOk()
+
+            eventStore.getDefaultPlugins(null, ADVISOR).version shouldBe 1
+        }
+    }
+
+    "resetDefaultPlugins" should {
+        "fall back to the global defaults for an organization" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("VulnerableCode"), "user").shouldBeOk()
+            service.setDefaultPlugins(organizationId, ADVISOR, listOf("OSV"), "user").shouldBeOk()
+
+            service.resetDefaultPlugins(organizationId, ADVISOR, "user").shouldBeOk()
+
+            service.getDefaultPlugins(organizationId, ADVISOR).shouldBeOk() shouldBe
+                    DefaultPlugins(ADVISOR, listOf("VulnerableCode"), DefaultPluginsSource.GLOBAL)
+        }
+
+        "fall back to the built-in defaults globally" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("VulnerableCode"), "user").shouldBeOk()
+
+            service.resetDefaultPlugins(null, ADVISOR, "user").shouldBeOk()
+
+            service.getDefaultPlugins(null, ADVISOR).shouldBeOk().source shouldBe
+                    DefaultPluginsSource.BUILT_IN
+        }
+
+        "do nothing if no defaults are configured" {
+            service.resetDefaultPlugins(null, ADVISOR, "user").shouldBeOk()
+
+            DefaultPluginsEventStore(dbExtension.db).getDefaultPlugins(null, ADVISOR).version shouldBe 0
+        }
+    }
+
+    "resolveDefaultPlugins" should {
+        "return defaults for all plugin types" {
+            val defaults = service.resolveDefaultPlugins(organizationId, context(EMPTY_CONTEXT)).shouldBeOk()
+
+            defaults shouldHaveSize DefaultPluginsCategory.entries.size
+            defaults.map { it.category }.toSet() shouldBe DefaultPluginsCategory.entries.toSet()
+        }
+
+        "remove disabled plugins" {
+            service.setDefaultPlugins(null, ADVISOR, listOf("OSV", "VulnerableCode"), "user").shouldBeOk()
+            disable(PluginType.ADVISOR, "OSV")
+
+            resolve(ADVISOR, context(EMPTY_CONTEXT)) shouldBe
+                    DefaultPlugins(ADVISOR, listOf("VulnerableCode"), DefaultPluginsSource.GLOBAL)
+        }
+
+        "remove restricted plugins without a template for the organization" {
+            restrict(PluginType.ADVISOR, "OSV")
+
+            resolve(ADVISOR, context(EMPTY_CONTEXT)).pluginIds shouldBe listOf("VulnerableCode")
+        }
+
+        "keep restricted plugins with a template for the organization" {
+            restrict(PluginType.ADVISOR, "OSV")
+            pluginTemplateService.create("template", PluginType.ADVISOR, "OSV", "user", emptyList()).shouldBeOk()
+            pluginTemplateService.enableGlobal("template", PluginType.ADVISOR, "OSV", "user").shouldBeOk()
+
+            resolve(ADVISOR, context(EMPTY_CONTEXT)).pluginIds shouldBe listOf("OSV", "VulnerableCode")
+        }
+
+        "remove report definitions which do not exist in the config context" {
+            service.setDefaultPlugins(null, REPORTER, listOf("customTemplate", "CycloneDX"), "user")
+                .shouldBeOk()
+
+            resolve(REPORTER, context(EMPTY_CONTEXT)).pluginIds shouldBe listOf("CycloneDX")
+            resolve(REPORTER, context(REPORT_DEFINITIONS_CONTEXT)).pluginIds shouldBe
+                    listOf("customTemplate", "CycloneDX")
+        }
+
+        "remove reporter plugins which are replaced by report definitions in the config context" {
+            service.setDefaultPlugins(null, REPORTER, listOf("PdfTemplate", "CycloneDX"), "user")
+                .shouldBeOk()
+
+            resolve(REPORTER, context(EMPTY_CONTEXT)).pluginIds shouldBe listOf("PdfTemplate", "CycloneDX")
+            resolve(REPORTER, context(REPORT_DEFINITIONS_CONTEXT)).pluginIds shouldBe listOf("CycloneDX")
+        }
+
+        "keep the order of ordered plugin types" {
+            val ids = curationProviderIds.take(2).reversed()
+            service.setDefaultPlugins(organizationId, PACKAGE_CURATION_PROVIDER, ids, "user")
+                .shouldBeOk()
+
+            resolve(PACKAGE_CURATION_PROVIDER, context(EMPTY_CONTEXT)) shouldBe
+                    DefaultPlugins(PACKAGE_CURATION_PROVIDER, ids, DefaultPluginsSource.ORGANIZATION)
+        }
+    }
+
+    "resolveDefaultPluginsForRepository" should {
+        "resolve the defaults of the organization of the repository" {
+            service.setDefaultPlugins(organizationId, ADVISOR, listOf("OSV"), "user").shouldBeOk()
+            val repositoryId = RepositoryId(dbExtension.fixtures.repository.id)
+
+            val defaults = service.resolveDefaultPluginsForRepository(repositoryId, context(EMPTY_CONTEXT))
+                .shouldBeOk()
+
+            defaults.single { it.category == ADVISOR } shouldBe
+                    DefaultPlugins(ADVISOR, listOf("OSV"), DefaultPluginsSource.ORGANIZATION)
+        }
+
+        "return NotFound if the repository does not exist" {
+            service.resolveDefaultPluginsForRepository(RepositoryId(-1L), context(EMPTY_CONTEXT))
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.NotFound>()
+        }
+    }
+})
+
+private fun <V, E> Result<V, E>.shouldBeOk(): V = getOrElse { fail("Expected an Ok result, but got error '$it'.") }
+
+private fun <V, E> Result<V, E>.shouldBeErr(): E = getError() ?: fail("Expected an error result, but got '$this'.")

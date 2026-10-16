@@ -95,9 +95,10 @@ data class AnalyzerJobConfiguration(
     val submoduleFetchStrategy: SubmoduleFetchStrategy? = SubmoduleFetchStrategy.FULLY_RECURSIVE,
 
     /**
-     * The list of package curation providers to use.
+     * The list of package curation providers to use. If this is `null`, the default package curation providers are
+     * used. An empty list disables all package curation providers.
      */
-    val packageCurationProviders: List<ResolvableProviderPluginConfig> = emptyList(),
+    val packageCurationProviders: List<ResolvableProviderPluginConfig>? = null,
 
     /**
      * Package manager specific configurations. The key needs to match the name of the package manager class, e.g.
@@ -135,9 +136,10 @@ data class AnalyzerJobConfiguration(
 @Serializable
 data class AdvisorJobConfiguration(
     /**
-     * The Advisors to use (e.g., NexusIQ, VulnerableCode).
+     * The Advisors to use (e.g., NexusIQ, VulnerableCode). If this is `null`, the default advisors are used. An empty
+     * list disables all advisors.
      */
-    val advisors: List<String> = emptyList(),
+    val advisors: List<String>? = null,
 
     /**
      * Do not advise excluded packages.
@@ -168,9 +170,10 @@ data class ScannerJobConfiguration(
     val projectScanners: List<String>? = null,
 
     /**
-     * The list of the names of the scanners to use.
+     * The list of the names of the scanners to use. If this is `null`, the default scanners are used. An empty list
+     * disables all scanners.
      */
-    val scanners: List<String>? = listOf("ScanCode"),
+    val scanners: List<String>? = null,
 
     /**
      * A flag to indicate whether packages that have a concluded license and authors set (to derive copyrights from)
@@ -208,9 +211,10 @@ data class ScannerJobConfiguration(
 @Serializable
 data class EvaluatorJobConfiguration(
     /**
-     * The list of package configuration providers to use.
+     * The list of package configuration providers to use. If this is `null`, the default package configuration
+     * providers are used. An empty list disables all package configuration providers.
      */
-    val packageConfigurationProviders: List<ResolvableProviderPluginConfig> = emptyList(),
+    val packageConfigurationProviders: List<ResolvableProviderPluginConfig>? = null,
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
@@ -222,9 +226,10 @@ data class EvaluatorJobConfiguration(
 @Serializable
 data class ReporterJobConfiguration(
     /**
-     * The report formats to generate.
+     * The report formats to generate. If this is `null`, the default report formats are generated. An empty list
+     * disables all report formats.
      */
-    val formats: List<String> = emptyList(),
+    val formats: List<String>? = null,
 
     /**
      * A list with the names of pre-configured groups of asset files that need to be downloaded before the report
@@ -240,13 +245,14 @@ data class ReporterJobConfiguration(
     val assetDirectoriesGroups: List<String> = emptyList(),
 
     /**
-     * The list of package configuration providers to use.
+     * The list of package configuration providers to use. If this is `null`, the default package configuration
+     * providers are used. An empty list disables all package configuration providers.
      *
      * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
      * [value from the evaluator job configuration][EvaluatorJobConfiguration.packageConfigurationProviders] is used to
      * ensure consistency.**
      */
-    val packageConfigurationProviders: List<ResolvableProviderPluginConfig> = emptyList(),
+    val packageConfigurationProviders: List<ResolvableProviderPluginConfig>? = null,
 
     /**
      * A map of configuration options that are specific to a concrete reporter.

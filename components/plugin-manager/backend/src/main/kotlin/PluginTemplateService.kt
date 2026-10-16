@@ -210,12 +210,32 @@ class PluginTemplateService(
             }
     }
 
+    /**
+     * Return the plugins available for the repository with the given [repositoryId] using the admin configuration from
+     * the given config [context]. See [getPluginsForOrganization] for details.
+     */
     internal suspend fun getPluginsForRepository(
         repositoryId: RepositoryId,
         context: ResolvedConfigContext
-    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
+    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> {
         val organizationId = repositoryRepository.get(repositoryId.value)?.organizationId?.let { OrganizationId(it) }
-            ?: return@transaction TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+            ?: return TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+
+        return getPluginsForOrganization(organizationId, context)
+    }
+
+    /**
+     * Return the plugins available for the organization with the given [organizationId] using the admin configuration
+     * from the given config [context], or an error if the organization does not exist. Disabled plugins and restricted
+     * plugins without a template for the organization are excluded. The default values of the plugin options are taken
+     * from the templates for the organization. The report definitions from the admin configuration are added as
+     * reporters and replace the reporters they use.
+     */
+    internal suspend fun getPluginsForOrganization(
+        organizationId: OrganizationId,
+        context: ResolvedConfigContext
+    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
+        validateOrganizationExists(organizationId).onErr { return@transaction it.toErr() }
 
         val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
@@ -392,11 +412,14 @@ class PluginTemplateService(
 
     /**
      * Validate the provided [pluginConfigs] against the admin configuration for the provided
-     * [organization][organizationId].
+     * [organization][organizationId]. Reporters can also be referenced by the names of the report definitions from
+     * the admin configuration of the given config [context]. In this case, the reporter plugin used by the report
+     * definition is validated.
      */
     suspend fun validatePluginConfigs(
         pluginConfigs: Map<PluginType, Map<String, ResolvablePluginConfig>>,
-        organizationId: OrganizationId
+        organizationId: OrganizationId,
+        context: ResolvedConfigContext
     ): PluginConfigValidationResult {
         validateOrganizationExists(organizationId).onErr { error ->
             return PluginConfigValidationResult(listOf(error.message))
@@ -405,8 +428,20 @@ class PluginTemplateService(
         val plugins = pluginService.getPlugins()
         val errors = mutableListOf<String>()
 
+        val reporterConfig = if (pluginConfigs[PluginType.REPORTER].isNullOrEmpty()) {
+            null
+        } else {
+            adminConfigService.loadAdminConfig(context).reporterConfig
+        }
+
         pluginConfigs.forEach { (pluginType, configs) ->
-            configs.forEach { (pluginId, config) ->
+            configs.forEach { (configuredId, config) ->
+                val pluginId = if (pluginType == PluginType.REPORTER) {
+                    reporterConfig?.getReportDefinition(configuredId)?.pluginId ?: configuredId
+                } else {
+                    configuredId
+                }
+
                 val descriptor = plugins.singleOrNull {
                     it.type == pluginType && it.id == normalizePluginId(pluginType, pluginId)
                 }

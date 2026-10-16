@@ -47,6 +47,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePer
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProduct
@@ -92,6 +94,7 @@ import org.koin.ktor.ext.inject
 @Suppress("LongMethod")
 fun Route.products() = route("products/{productId}") {
     val authorizationService by inject<AuthorizationService>()
+    val configManager by inject<ConfigManager>()
     val productService by inject<ProductService>()
     val pluginTemplateService by inject<PluginTemplateService>()
     val repositoryService by inject<RepositoryService>()
@@ -421,7 +424,10 @@ fun Route.products() = route("products/{productId}") {
                 pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
                     pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
                 },
-                organizationId = OrganizationId(product.organizationId)
+                organizationId = OrganizationId(product.organizationId),
+                context = configManager.resolveContext(
+                    createOrtRun.jobConfigContext?.let(::RequestedConfigContext) ?: RequestedConfigContext.EMPTY
+                )
             )
 
             if (!validationResult.isValid) {

@@ -47,6 +47,7 @@ function createValidFormData() {
     false,
     [],
     [packageConfigurationProviderPlugin],
+    [],
     []
   );
 

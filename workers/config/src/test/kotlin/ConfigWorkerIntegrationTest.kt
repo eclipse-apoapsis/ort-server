@@ -37,6 +37,8 @@ import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -120,7 +122,20 @@ class ConfigWorkerIntegrationTest : WordSpec({
             ortRunRepository = fixtures.ortRunRepository,
             contextFactory = workerContextFactory,
             adminConfigService = adminConfigService,
-            pluginTemplateApplicator = PluginTemplateApplicator(pluginService, pluginTemplateService)
+            pluginTemplateApplicator = PluginTemplateApplicator(
+                pluginService,
+                pluginTemplateService,
+                DefaultPluginsService(
+                    db = dbExtension.db,
+                    eventStore = DefaultPluginsEventStore(dbExtension.db),
+                    pluginService = pluginService,
+                    pluginTemplateService = pluginTemplateService,
+                    organizationRepository = fixtures.organizationRepository,
+                    repositoryRepository = fixtures.repositoryRepository,
+                    adminConfigService = adminConfigService,
+                    configManager = configManager
+                )
+            )
         )
     }
 

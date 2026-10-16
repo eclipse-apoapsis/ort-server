@@ -27,7 +27,6 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -35,8 +34,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsCategory
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsError
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsSource
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginAvailability
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
@@ -46,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
@@ -60,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
 private val organizationId = OrganizationId(1)
+private val configContext = ResolvedConfigContext("context")
 
 class PluginTemplateApplicatorTest : WordSpec({
     "applyTemplates" should {
@@ -70,7 +77,7 @@ class PluginTemplateApplicatorTest : WordSpec({
             )
             val jobConfigs = JobConfigurations(advisor = AdvisorJobConfiguration(advisors = listOf("OSV")))
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.advisor?.config.shouldNotBeNull() shouldContainExactly mapOf(
                 "OSV" to ResolvablePluginConfig(
@@ -86,7 +93,7 @@ class PluginTemplateApplicatorTest : WordSpec({
             )
             val jobConfigs = JobConfigurations(advisor = AdvisorJobConfiguration(advisors = listOf("osv")))
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.advisor?.config.shouldNotBeNull() shouldContainExactly mapOf(
                 "OSV" to ResolvablePluginConfig(
@@ -104,7 +111,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 advisor = AdvisorJobConfiguration(advisors = listOf("OSV", "Unknown"))
             )
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.advisor?.config.shouldNotBeNull() shouldContainExactly mapOf(
                 "OSV" to ResolvablePluginConfig(
@@ -122,7 +129,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 scanner = ScannerJobConfiguration(projectScanners = listOf("ScanCode"))
             )
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.scanner?.config?.getValue("ScanCode")?.options.shouldNotBeNull() shouldContainExactly
                     mapOf("preferFileLicense" to "true")
@@ -140,7 +147,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 )
             )
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.analyzer.packageManagerOptions.shouldNotBeNull() shouldContainExactly mapOf(
                 "Maven" to PackageManagerConfiguration(options = mapOf("javaVersion" to "17"))
@@ -149,11 +156,12 @@ class PluginTemplateApplicatorTest : WordSpec({
 
         "apply templates to the default package managers if none are enabled explicitly" {
             val applicator = applicator(
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "Maven", option("javaVersion", "17", true))
+                pluginTemplate(PluginType.PACKAGE_MANAGER, "Maven", option("javaVersion", "17", true)),
+                defaults = mapOf(DefaultPluginsCategory.PACKAGE_MANAGER to listOf("Maven"))
             )
             val jobConfigs = JobConfigurations(analyzer = AnalyzerJobConfiguration(enabledPackageManagers = null))
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.analyzer.packageManagerOptions.shouldNotBeNull() shouldContainExactly mapOf(
                 "Maven" to PackageManagerConfiguration(options = mapOf("javaVersion" to "17"))
@@ -162,35 +170,44 @@ class PluginTemplateApplicatorTest : WordSpec({
 
         "resolve the default package managers if none are enabled explicitly" {
             val applicator = applicator(
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "Maven"),
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "NPM")
+                defaults = mapOf(DefaultPluginsCategory.PACKAGE_MANAGER to listOf("Maven", "NPM"))
             )
             val jobConfigs = JobConfigurations(analyzer = AnalyzerJobConfiguration(enabledPackageManagers = null))
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
-            result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactlyInAnyOrder
-                    listOf("Maven", "NPM")
+            result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactly listOf("Maven", "NPM")
+        }
+
+        "resolve the default package managers if the list of enabled package managers is empty" {
+            val applicator = applicator(
+                defaults = mapOf(DefaultPluginsCategory.PACKAGE_MANAGER to listOf("Maven", "NPM"))
+            )
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(enabledPackageManagers = emptyList())
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactly listOf("Maven", "NPM")
         }
 
         "not overwrite the explicitly enabled package managers" {
             val applicator = applicator(
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "Maven"),
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "NPM")
+                defaults = mapOf(DefaultPluginsCategory.PACKAGE_MANAGER to listOf("Maven", "NPM"))
             )
             val jobConfigs = JobConfigurations(
                 analyzer = AnalyzerJobConfiguration(enabledPackageManagers = listOf("Maven"))
             )
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
             result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactly listOf("Maven")
         }
 
         "not remove the disabled package managers from the resolved default package managers" {
             val applicator = applicator(
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "Maven"),
-                pluginTemplate(PluginType.PACKAGE_MANAGER, "NPM")
+                defaults = mapOf(DefaultPluginsCategory.PACKAGE_MANAGER to listOf("Maven", "NPM"))
             )
             val jobConfigs = JobConfigurations(
                 analyzer = AnalyzerJobConfiguration(
@@ -199,10 +216,194 @@ class PluginTemplateApplicatorTest : WordSpec({
                 )
             )
 
-            val result = applicator.applyTemplates(jobConfigs, organizationId)
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
 
-            result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactlyInAnyOrder
-                    listOf("Maven", "NPM")
+            result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactly listOf("Maven", "NPM")
+        }
+
+        "use the default plugins for plugin lists that are not configured" {
+            val applicator = applicator(
+                pluginTemplate(PluginType.SCANNER, "ScanCode", option("preferFileLicense", "true", true)),
+                pluginTemplate(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig", option("path", "/curations", true)),
+                defaults = mapOf(
+                    DefaultPluginsCategory.ADVISOR to listOf("OSV", "VulnerableCode"),
+                    DefaultPluginsCategory.PACKAGE_CONFIGURATION_PROVIDER to listOf("DefaultDir", "OrtConfig"),
+                    DefaultPluginsCategory.PACKAGE_CURATION_PROVIDER to listOf("OrtConfig"),
+                    DefaultPluginsCategory.PACKAGE_MANAGER to listOf("Maven"),
+                    DefaultPluginsCategory.REPORTER to listOf("CycloneDX", "customTemplate"),
+                    DefaultPluginsCategory.SCANNER to listOf("ScanCode")
+                )
+            )
+            val jobConfigs = JobConfigurations(
+                advisor = AdvisorJobConfiguration(),
+                scanner = ScannerJobConfiguration(),
+                evaluator = EvaluatorJobConfiguration(),
+                reporter = ReporterJobConfiguration()
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            val defaultPackageConfigurationProviders = listOf(
+                ResolvableProviderPluginConfig(type = "DefaultDir"),
+                ResolvableProviderPluginConfig(type = "OrtConfig")
+            )
+
+            result.analyzer.enabledPackageManagers.shouldNotBeNull() shouldContainExactly listOf("Maven")
+            result.analyzer.packageCurationProviders.shouldNotBeNull() shouldContainExactly listOf(
+                ResolvableProviderPluginConfig(type = "OrtConfig", options = mapOf("path" to "/curations"))
+            )
+            result.advisor?.advisors.shouldNotBeNull() shouldContainExactly listOf("OSV", "VulnerableCode")
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode")
+            result.scanner?.projectScanners.shouldBeNull()
+            result.scanner?.config?.getValue("ScanCode")?.options.shouldNotBeNull() shouldContainExactly
+                    mapOf("preferFileLicense" to "true")
+            result.evaluator?.packageConfigurationProviders.shouldNotBeNull() shouldContainExactly
+                    defaultPackageConfigurationProviders
+            result.reporter?.formats.shouldNotBeNull() shouldContainExactly listOf("CycloneDX", "customTemplate")
+            result.reporter?.packageConfigurationProviders.shouldNotBeNull() shouldContainExactly
+                    defaultPackageConfigurationProviders
+        }
+
+        "use the default project scanners if they differ from the default scanners" {
+            val applicator = applicator(
+                pluginTemplate(PluginType.SCANNER, "ScanCode", option("preferFileLicense", "true", true)),
+                defaults = mapOf(
+                    DefaultPluginsCategory.SCANNER to listOf("ScanCode", "SCANOSS"),
+                    DefaultPluginsCategory.PROJECT_SCANNER to listOf("ScanCode")
+                )
+            )
+            val jobConfigs = JobConfigurations(scanner = ScannerJobConfiguration())
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode", "SCANOSS")
+            result.scanner?.projectScanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode")
+            result.scanner?.config?.getValue("ScanCode")?.options.shouldNotBeNull() shouldContainExactly
+                    mapOf("preferFileLicense" to "true")
+        }
+
+        "not set project scanners if the default project scanners equal the default scanners" {
+            val applicator = applicator(
+                defaults = mapOf(
+                    DefaultPluginsCategory.SCANNER to listOf("ScanCode", "SCANOSS"),
+                    DefaultPluginsCategory.PROJECT_SCANNER to listOf("SCANOSS", "ScanCode")
+                )
+            )
+            val jobConfigs = JobConfigurations(scanner = ScannerJobConfiguration())
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode", "SCANOSS")
+            result.scanner?.projectScanners.shouldBeNull()
+        }
+
+        "use the default scanners if only project scanners are configured" {
+            val applicator = applicator(
+                defaults = mapOf(
+                    DefaultPluginsCategory.SCANNER to listOf("ScanCode"),
+                    DefaultPluginsCategory.PROJECT_SCANNER to listOf("SCANOSS")
+                )
+            )
+            val jobConfigs = JobConfigurations(scanner = ScannerJobConfiguration(projectScanners = emptyList()))
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode")
+            result.scanner?.projectScanners.shouldNotBeNull().shouldBeEmpty()
+        }
+
+        "not use the default project scanners if scanners are configured" {
+            val applicator = applicator(
+                defaults = mapOf(
+                    DefaultPluginsCategory.SCANNER to listOf("ScanCode"),
+                    DefaultPluginsCategory.PROJECT_SCANNER to listOf("SCANOSS")
+                )
+            )
+            val jobConfigs = JobConfigurations(scanner = ScannerJobConfiguration(scanners = listOf("ScanCode")))
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.scanner?.scanners.shouldNotBeNull() shouldContainExactly listOf("ScanCode")
+            result.scanner?.projectScanners.shouldBeNull()
+        }
+
+        "resolve the default plugins for the organization and config context of the run" {
+            val defaultPluginsService = defaultPluginsService(mapOf(DefaultPluginsCategory.ADVISOR to listOf("OSV")))
+            val applicator = PluginTemplateApplicator(pluginService(), mockk(), defaultPluginsService)
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(enabledPackageManagers = listOf("Maven")),
+                advisor = AdvisorJobConfiguration()
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.advisor?.advisors.shouldNotBeNull() shouldContainExactly listOf("OSV")
+            coVerify { defaultPluginsService.resolveDefaultPlugins(organizationId, configContext) }
+        }
+
+        "not resolve the default plugins if all plugin lists are configured" {
+            val defaultPluginsService = defaultPluginsService(emptyMap())
+            val applicator = PluginTemplateApplicator(pluginService(), mockk(), defaultPluginsService)
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(
+                    enabledPackageManagers = listOf("Maven"),
+                    packageCurationProviders = emptyList()
+                ),
+                advisor = AdvisorJobConfiguration(advisors = emptyList()),
+                scanner = ScannerJobConfiguration(scanners = emptyList()),
+                evaluator = EvaluatorJobConfiguration(packageConfigurationProviders = emptyList()),
+                reporter = ReporterJobConfiguration(formats = emptyList(), packageConfigurationProviders = emptyList())
+            )
+
+            applicator.applyTemplates(jobConfigs, organizationId, configContext) shouldBe jobConfigs
+
+            coVerify(exactly = 0) { defaultPluginsService.resolveDefaultPlugins(any(), any()) }
+        }
+
+        "throw if the default plugins cannot be resolved" {
+            val defaultPluginsService = mockk<DefaultPluginsService> {
+                coEvery { resolveDefaultPlugins(any(), any()) } returns
+                        Err(DefaultPluginsError.NotFound("Organization not found."))
+            }
+            val applicator = PluginTemplateApplicator(pluginService(), mockk(), defaultPluginsService)
+            val jobConfigs = JobConfigurations(advisor = AdvisorJobConfiguration())
+
+            val exception = shouldThrow<IllegalStateException> {
+                applicator.applyTemplates(jobConfigs, organizationId, configContext)
+            }
+
+            exception.message shouldContain "Organization not found."
+        }
+
+        "keep explicitly configured empty plugin lists" {
+            val applicator = applicator(
+                defaults = DefaultPluginsCategory.entries.associateWith { listOf("${it.name}-default") }
+            )
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(packageCurationProviders = emptyList()),
+                advisor = AdvisorJobConfiguration(advisors = emptyList()),
+                scanner = ScannerJobConfiguration(scanners = emptyList()),
+                evaluator = EvaluatorJobConfiguration(packageConfigurationProviders = emptyList()),
+                reporter = ReporterJobConfiguration(formats = emptyList(), packageConfigurationProviders = emptyList())
+            )
+
+            val result = applicator.applyTemplates(jobConfigs, organizationId, configContext)
+
+            result.analyzer.packageCurationProviders.shouldNotBeNull().shouldBeEmpty()
+            result.advisor?.advisors.shouldNotBeNull().shouldBeEmpty()
+            result.scanner?.scanners.shouldNotBeNull().shouldBeEmpty()
+            result.evaluator?.packageConfigurationProviders.shouldNotBeNull().shouldBeEmpty()
+            result.reporter?.formats.shouldNotBeNull().shouldBeEmpty()
+            result.reporter?.packageConfigurationProviders.shouldNotBeNull().shouldBeEmpty()
+        }
+
+        "not add configurations for jobs that are not configured" {
+            val result = applicator().applyTemplates(JobConfigurations(), organizationId, configContext)
+
+            result.advisor.shouldBeNull()
+            result.scanner.shouldBeNull()
+            result.evaluator.shouldBeNull()
+            result.reporter.shouldBeNull()
         }
 
         "throw if a template cannot be fetched" {
@@ -213,8 +414,10 @@ class PluginTemplateApplicatorTest : WordSpec({
             val pluginService = pluginService(PluginType.ADVISOR to "OSV")
             val jobConfigs = JobConfigurations(advisor = AdvisorJobConfiguration(advisors = listOf("OSV")))
 
+            val applicator = PluginTemplateApplicator(pluginService, templateService, defaultPluginsService(emptyMap()))
+
             val exception = shouldThrow<IllegalStateException> {
-                PluginTemplateApplicator(pluginService, templateService).applyTemplates(jobConfigs, organizationId)
+                applicator.applyTemplates(jobConfigs, organizationId, configContext)
             }
 
             exception.message shouldContain "ADVISOR"
@@ -435,7 +638,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.forAll { provider ->
+            result.analyzer.packageCurationProviders.shouldNotBeNull().forAll { provider ->
                 provider.options shouldContainExactly mapOf("path" to "/admin-curations")
                 provider.secrets shouldContainExactly
                         mapOf("token" to ResolvableSecret("admin-token", SecretSource.ADMIN))
@@ -461,7 +664,7 @@ class PluginTemplateApplicatorTest : WordSpec({
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.single().options shouldContainExactly
+            result.analyzer.packageCurationProviders.shouldNotBeNull().single().options shouldContainExactly
                     mapOf("path" to "/user-curations")
         }
 
@@ -471,14 +674,16 @@ class PluginTemplateApplicatorTest : WordSpec({
                 "OrtConfig",
                 option("path", "/admin-curations", true)
             )
-            val jobConfigs = JobConfigurations(analyzer = AnalyzerJobConfiguration())
+            val jobConfigs = JobConfigurations(
+                analyzer = AnalyzerJobConfiguration(packageCurationProviders = emptyList())
+            )
 
             val result = applyTemplatesToConfigs(
                 jobConfigs,
                 templates(PluginType.PACKAGE_CURATION_PROVIDER, "OrtConfig" to template)
             )
 
-            result.analyzer.packageCurationProviders.shouldBeEmpty()
+            result.analyzer.packageCurationProviders.shouldNotBeNull().shouldBeEmpty()
         }
 
         "apply package configuration provider templates only to the job the provider is configured for" {
@@ -521,10 +726,14 @@ class PluginTemplateApplicatorTest : WordSpec({
 })
 
 /**
- * Create a [PluginTemplateApplicator] that provides the given [templates]. The plugins the templates belong to are
- * reported as installed and enabled; like the production service, the template lookup fails for any other plugin.
+ * Create a [PluginTemplateApplicator] that provides the given [templates] and resolves the given [defaults]. The
+ * plugins the templates belong to are reported as installed and enabled; like the production service, the template
+ * lookup fails for any other plugin.
  */
-private fun applicator(vararg templates: PluginTemplate): PluginTemplateApplicator {
+private fun applicator(
+    vararg templates: PluginTemplate,
+    defaults: Map<DefaultPluginsCategory, List<String>> = emptyMap()
+): PluginTemplateApplicator {
     val templatesByPlugin = templates.associateBy { it.pluginType to it.pluginId }
 
     val pluginTemplateService = mockk<PluginTemplateService> {
@@ -536,8 +745,32 @@ private fun applicator(vararg templates: PluginTemplate): PluginTemplateApplicat
         }
     }
 
-    return PluginTemplateApplicator(pluginService(*templatesByPlugin.keys.toTypedArray()), pluginTemplateService)
+    return PluginTemplateApplicator(
+        pluginService(*templatesByPlugin.keys.toTypedArray()),
+        pluginTemplateService,
+        defaultPluginsService(defaults)
+    )
 }
+
+/**
+ * Create a mock of the [DefaultPluginsService] that resolves the given [defaults]. Like the production service, the
+ * default scanners are used as default project scanners if no project scanners are given.
+ */
+private fun defaultPluginsService(defaults: Map<DefaultPluginsCategory, List<String>>) =
+    mockk<DefaultPluginsService> {
+        coEvery { resolveDefaultPlugins(any(), any()) } returns Ok(
+            DefaultPluginsCategory.entries.map { category ->
+                val pluginIds = when (category) {
+                    DefaultPluginsCategory.PROJECT_SCANNER ->
+                        defaults[category] ?: defaults[DefaultPluginsCategory.SCANNER]
+
+                    else -> defaults[category]
+                }
+
+                DefaultPlugins(category, pluginIds.orEmpty(), DefaultPluginsSource.BUILT_IN)
+            }
+        )
+    }
 
 /** Create a mock of the [PluginService] that reports the given [plugins] as installed and enabled. */
 private fun pluginService(vararg plugins: Pair<PluginType, String>) = mockk<PluginService> {

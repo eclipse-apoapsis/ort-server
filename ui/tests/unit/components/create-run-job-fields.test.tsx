@@ -102,7 +102,8 @@ const formDefaultValues = defaultValues(
   true,
   [],
   packageConfigurationProviderPlugins,
-  packageManagerPlugins
+  packageManagerPlugins,
+  []
 );
 const onToggle = () => {};
 
@@ -129,7 +130,6 @@ const AnalyzerFieldsHarness = () => {
           packageCurationProviderPlugins={packageCurationProviderPlugins}
           packageManagerPlugins={packageManagerPlugins}
           pluginSecrets={secrets}
-          isRerun={false}
           permissions={permissions}
         />
       </Accordion>
@@ -167,7 +167,6 @@ const testCases: JobFieldsTestCase[] = [
           packageConfigurationProviderPlugins
         }
         secrets={secrets}
-        isRerun={false}
       />
     ),
   },
@@ -199,7 +198,6 @@ const testCases: JobFieldsTestCase[] = [
           packageConfigurationProviderPlugins
         }
         secrets={secrets}
-        isRerun={false}
       />
     ),
   },
@@ -264,6 +262,53 @@ describe('create run job fields', () => {
     expect(markup).not.toContain('Must run after');
   });
 
+  it('shows the default package configuration providers first in their default order', () => {
+    const providers = ['Alpha', 'Beta', 'Gamma'].map((id) =>
+      createPluginDescriptor({
+        id,
+        type: 'PACKAGE_CONFIGURATION_PROVIDER',
+        displayName: `Provider ${id}`,
+      })
+    );
+    const values = defaultValues(
+      null,
+      advisorPlugins,
+      scannerPlugins,
+      reporterPlugins,
+      true,
+      [],
+      providers,
+      packageManagerPlugins,
+      [
+        {
+          category: 'PACKAGE_CONFIGURATION_PROVIDER',
+          pluginIds: ['Gamma', 'Alpha'],
+          source: 'GLOBAL',
+        },
+      ]
+    );
+
+    const markup = renderWithForm(
+      (form) => (
+        <EvaluatorFields
+          form={form}
+          value='evaluator'
+          onToggle={onToggle}
+          isSuperuser
+          packageConfigurationProviderPlugins={providers}
+          secrets={secrets}
+        />
+      ),
+      { defaultValues: values, openAccordion: 'evaluator' }
+    );
+
+    const positions = ['Gamma', 'Alpha', 'Beta'].map((id) =>
+      markup.indexOf(`Provider ${id}`)
+    );
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
   it('hides the reporter package configuration providers once the evaluator is enabled', () => {
     const { form } = renderWithStableForm(
       (form) => (
@@ -278,7 +323,6 @@ describe('create run job fields', () => {
               packageConfigurationProviderPlugins
             }
             secrets={secrets}
-            isRerun={false}
           />
         </Accordion>
       ),
@@ -322,7 +366,6 @@ describe('create run job fields', () => {
             packageCurationProviderPlugins={packageCurationProviderPlugins}
             packageManagerPlugins={packageManagerPlugins}
             pluginSecrets={secrets}
-            isRerun={false}
             permissions={permissions}
           />
         </Accordion>

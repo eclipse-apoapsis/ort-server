@@ -39,6 +39,9 @@ enum class OrganizationPermission {
     /** Permission to manage [Organization] groups. */
     MANAGE_GROUPS,
 
+    /** Permission to manage the plugins that are enabled by default for the [Organization]. */
+    MANAGE_DEFAULT_PLUGINS,
+
     /** Permission to read the list of [Product]s of the [Organization]. */
     READ_PRODUCTS,
 

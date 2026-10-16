@@ -24,6 +24,7 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import type {
+  DefaultPlugins,
   OrtRun,
   PostRepositoryRun,
   PreconfiguredPluginDescriptor,
@@ -86,6 +87,8 @@ type CreateRunPermissions = {
 };
 
 export type CreateRunFormProps = {
+  /** The plugins that are enabled by default for each plugin type. */
+  defaultPlugins: DefaultPlugins[];
   isSubmitting: boolean;
   isSuperuser: boolean;
   onConfigContextChange?: (configContext: string) => void;
@@ -99,6 +102,7 @@ export type CreateRunFormProps = {
 };
 
 export const CreateRunForm = ({
+  defaultPlugins,
   isSubmitting,
   isSuperuser,
   onConfigContextChange,
@@ -111,7 +115,6 @@ export const CreateRunForm = ({
   secrets,
 }: CreateRunFormProps) => {
   const [isTest, setIsTest] = useState(false);
-  const isRerun = rerun !== null;
   const [openAccordions, setOpenAccordions] = useState<AccordionSection[]>([]);
   // A run must not be created without knowing which plugins are available.
   const pluginsUnavailable = pluginsLoading || pluginsLoadFailed;
@@ -174,9 +177,10 @@ export const CreateRunForm = ({
         isSuperuser,
         pluginGroups.packageCurationProviderPlugins,
         pluginGroups.packageConfigurationProviderPlugins,
-        pluginGroups.packageManagerPlugins
+        pluginGroups.packageManagerPlugins,
+        defaultPlugins
       ),
-    [pluginGroups, rerun, isSuperuser]
+    [pluginGroups, rerun, isSuperuser, defaultPlugins]
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -642,7 +646,6 @@ export const CreateRunForm = ({
                   }
                   packageManagerPlugins={packageManagerPlugins}
                   pluginSecrets={secrets}
-                  isRerun={isRerun}
                   permissions={permissions}
                 />
                 <AdvisorFields
@@ -670,7 +673,6 @@ export const CreateRunForm = ({
                     packageConfigurationProviderPlugins
                   }
                   secrets={secrets}
-                  isRerun={isRerun}
                 />
                 <ReporterFields
                   form={form}
@@ -682,7 +684,6 @@ export const CreateRunForm = ({
                     packageConfigurationProviderPlugins
                   }
                   secrets={secrets}
-                  isRerun={isRerun}
                 />
                 <NotifierFields
                   form={form}

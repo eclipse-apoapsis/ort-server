@@ -28,18 +28,28 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.disableGlo
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.disablePlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enableGlobalTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enablePlugin
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getAvailableGlobalDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getDefaultPluginsForRepository
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getGlobalDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getInstalledPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getOrganizationDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForOrganization
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForRepository
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplates
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.removeTemplateFromOrganization
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.resetGlobalDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.resetOrganizationDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.restrictPlugin
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.setGlobalDefaultPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.setOrganizationDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.updateTemplateOptions
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 /** Add routes for all plugin-manager endpoints. */
 fun Route.pluginManagerRoutes(
     configManager: ConfigManager,
+    defaultPluginsService: DefaultPluginsService,
     eventStore: PluginEventStore,
     pluginService: PluginService,
     pluginTemplateService: PluginTemplateService
@@ -51,11 +61,20 @@ fun Route.pluginManagerRoutes(
     disablePlugin(eventStore)
     enableGlobalTemplate(pluginTemplateService)
     enablePlugin(eventStore)
+    getAvailableGlobalDefaultPlugins(defaultPluginsService)
+    getDefaultPluginsForRepository(configManager, defaultPluginsService)
+    getGlobalDefaultPlugins(defaultPluginsService)
     getInstalledPlugins(pluginService)
+    getOrganizationDefaultPlugins(defaultPluginsService)
+    getPluginsForOrganization(configManager, pluginTemplateService)
     getPluginsForRepository(configManager, pluginTemplateService)
     getTemplate(pluginTemplateService)
     getTemplates(pluginTemplateService)
     removeTemplateFromOrganization(pluginTemplateService)
+    resetGlobalDefaultPlugins(defaultPluginsService)
+    resetOrganizationDefaultPlugins(defaultPluginsService)
     restrictPlugin(eventStore)
+    setGlobalDefaultPlugins(defaultPluginsService)
+    setOrganizationDefaultPlugins(defaultPluginsService)
     updateTemplateOptions(pluginTemplateService)
 }

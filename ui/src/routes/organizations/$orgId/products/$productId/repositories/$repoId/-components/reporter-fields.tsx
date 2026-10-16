@@ -44,7 +44,6 @@ type ReporterFieldsProps = {
   isSuperuser: boolean;
   packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
   secrets: Secret[];
-  isRerun: boolean;
 };
 
 export const ReporterFields = ({
@@ -55,7 +54,6 @@ export const ReporterFields = ({
   isSuperuser,
   packageConfigurationProviderPlugins,
   secrets,
-  isRerun,
 }: ReporterFieldsProps) => {
   const evaluatorEnabled = useWatch({
     control: form.control,
@@ -92,7 +90,6 @@ export const ReporterFields = ({
             }
             plugins={reporterPlugins}
             secrets={secrets}
-            showSelectedPluginsFirst={isRerun}
           />
           {!evaluatorEnabled && (
             <PluginMultiSelectField
@@ -110,7 +107,6 @@ export const ReporterFields = ({
               plugins={packageConfigurationProviderPlugins}
               secrets={secrets}
               enableReordering
-              showSelectedPluginsFirst={isRerun}
             />
           )}
           {isSuperuser && (

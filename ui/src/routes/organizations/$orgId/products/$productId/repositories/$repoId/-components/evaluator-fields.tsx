@@ -43,7 +43,6 @@ type EvaluatorFieldsProps = {
   isSuperuser: boolean;
   packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
   secrets: Secret[];
-  isRerun: boolean;
 };
 
 export const EvaluatorFields = ({
@@ -53,7 +52,6 @@ export const EvaluatorFields = ({
   isSuperuser,
   packageConfigurationProviderPlugins,
   secrets,
-  isRerun,
 }: EvaluatorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -90,7 +88,6 @@ export const EvaluatorFields = ({
             plugins={packageConfigurationProviderPlugins}
             secrets={secrets}
             enableReordering
-            showSelectedPluginsFirst={isRerun}
           />
           {isSuperuser && (
             <FormField

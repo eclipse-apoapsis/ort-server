@@ -37,6 +37,7 @@ abstract class PluginManagerIntegrationTest(
 ) : AbstractIntegrationTest({}) {
     lateinit var adminConfigService: AdminConfigService
     lateinit var configManager: ConfigManager
+    lateinit var defaultPluginsService: DefaultPluginsService
     lateinit var eventStore: PluginEventStore
     lateinit var pluginService: PluginService
     lateinit var pluginTemplateService: PluginTemplateService
@@ -62,6 +63,16 @@ abstract class PluginManagerIntegrationTest(
                 dbExtension.fixtures.repositoryRepository,
                 adminConfigService
             )
+            defaultPluginsService = DefaultPluginsService(
+                dbExtension.db,
+                DefaultPluginsEventStore(dbExtension.db),
+                pluginService,
+                pluginTemplateService,
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.repositoryRepository,
+                adminConfigService,
+                configManager
+            )
         }
 
         body()
@@ -70,7 +81,9 @@ abstract class PluginManagerIntegrationTest(
     fun pluginManagerTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { pluginManagerRoutes(configManager, eventStore, pluginService, pluginTemplateService) },
+        routes = {
+            pluginManagerRoutes(configManager, defaultPluginsService, eventStore, pluginService, pluginTemplateService)
+        },
         block = block
     )
 }
