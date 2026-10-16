@@ -99,7 +99,7 @@ The "UI Coverage" workflow measures UI test coverage for every pull request, and
 This also works for pull requests from forks.
 Each new push updates the same comment.
 The comment shows the coverage of the pull request and, below each value, the change against the commit of the target branch the pull request is based on.
-The change is labelled `%`, but it is the plain difference between the two percentages in percentage points, not a relative change.
+The change is labelled `pp`, which means percentage points.
 The pull request is measured as GitHub merges it into the target branch for testing, so the change comes from the pull request only, even if the branch is behind the target branch.
 The footer names the last commit of the pull request.
 
