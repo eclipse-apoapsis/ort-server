@@ -162,6 +162,16 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetAvailableGlobalDefaultPlugins" should {
+        "require the superuser role" {
+            requestShouldRequireSuperuser(
+                routes = { routes() }
+            ) {
+                get("/admin/plugins/defaults/available")
+            }
+        }
+    }
+
     "GetGlobalDefaultPlugins" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
