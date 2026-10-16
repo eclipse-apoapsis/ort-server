@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 
@@ -107,6 +108,7 @@ class DefaultPluginsServiceTest : WordSpec({
             pluginService,
             pluginTemplateService,
             dbExtension.fixtures.organizationRepository,
+            dbExtension.fixtures.repositoryRepository,
             adminConfigService,
             configManager
         )
@@ -418,6 +420,24 @@ class DefaultPluginsServiceTest : WordSpec({
 
             resolve(PACKAGE_CURATION_PROVIDER, context(EMPTY_CONTEXT)) shouldBe
                     DefaultPlugins(PACKAGE_CURATION_PROVIDER, ids, DefaultPluginsSource.ORGANIZATION)
+        }
+    }
+
+    "resolveDefaultPluginsForRepository" should {
+        "resolve the defaults of the organization of the repository" {
+            service.setDefaultPlugins(organizationId, ADVISOR, listOf("OSV"), "user").shouldBeOk()
+            val repositoryId = RepositoryId(dbExtension.fixtures.repository.id)
+
+            val defaults = service.resolveDefaultPluginsForRepository(repositoryId, context(EMPTY_CONTEXT))
+                .shouldBeOk()
+
+            defaults.single { it.category == ADVISOR } shouldBe
+                    DefaultPlugins(ADVISOR, listOf("OSV"), DefaultPluginsSource.ORGANIZATION)
+        }
+
+        "return NotFound if the repository does not exist" {
+            service.resolveDefaultPluginsForRepository(RepositoryId(-1L), context(EMPTY_CONTEXT))
+                .shouldBeErr().shouldBeInstanceOf<DefaultPluginsError.NotFound>()
         }
     }
 })
