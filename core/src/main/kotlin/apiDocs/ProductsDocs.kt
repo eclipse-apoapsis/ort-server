@@ -276,6 +276,7 @@ val deleteProductRoleFromUser: RouteConfig.() -> Unit = {
 
         queryParameter<String>("username") {
             description = "The username of the user."
+            required = true
         }
     }
 

@@ -61,7 +61,7 @@ internal fun Route.addTemplateToOrganization(
             required = true
         }
 
-        queryParameter<String>("organizationId") {
+        queryParameter<Long>("organizationId") {
             description = "The ID of the organization to which the template should be added."
             required = true
         }

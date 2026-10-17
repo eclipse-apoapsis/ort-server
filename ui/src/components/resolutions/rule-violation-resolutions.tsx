@@ -91,7 +91,7 @@ export function RuleViolationResolutions({
                 ? () =>
                     deleteResolution({
                       path: {
-                        repositoryId: context.repositoryId,
+                        repositoryId: Number.parseInt(context.repositoryId),
                         messageHash: context.identifier,
                       },
                     })

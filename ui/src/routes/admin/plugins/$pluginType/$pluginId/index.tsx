@@ -346,7 +346,7 @@ const PluginTemplateCard = ({ plugin, template }: PluginTemplateCardProps) => {
                     pluginId: template.pluginId,
                     templateName: template.name,
                   },
-                  query: { organizationId: opt.value },
+                  query: { organizationId: Number(opt.value) },
                 });
               }
             }
@@ -358,7 +358,7 @@ const PluginTemplateCard = ({ plugin, template }: PluginTemplateCardProps) => {
                     pluginId: template.pluginId,
                     templateName: template.name,
                   },
-                  query: { organizationId: id.toString() },
+                  query: { organizationId: id },
                 });
               }
             }
