@@ -803,7 +803,7 @@ val getRunProjects: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 1,
-                            sortProperties = listOf(SortProperty("identifier", SortDirection.ASCENDING))
+                            sortProperties = listOf(SortProperty("id", SortDirection.ASCENDING))
                         ),
                         ProjectFilters(
                             identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "org.namespace"),

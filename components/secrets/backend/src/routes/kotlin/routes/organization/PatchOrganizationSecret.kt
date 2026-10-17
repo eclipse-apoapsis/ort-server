@@ -70,7 +70,7 @@ internal fun Route.patchOrganizationSecret(secretService: SecretService) =
 
                 jsonBody<Secret> {
                     example("Update Secret") {
-                        value = Secret(name = "token_maven_repo_1", description = "New access token for Maven Repo 1")
+                        value = Secret(name = "token-maven-repo-1", description = "New access token for Maven Repo 1")
                     }
                 }
             }

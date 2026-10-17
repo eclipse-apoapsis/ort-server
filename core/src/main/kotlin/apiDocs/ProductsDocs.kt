@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
@@ -168,8 +169,8 @@ val getProductRepositories: RouteConfig.() -> Unit = {
                             ),
                             Repository(
                                 id = 2,
-                                organizationId = 3,
-                                productId = 4,
+                                organizationId = 2,
+                                productId = 3,
                                 type = RepositoryType.SUBVERSION,
                                 url = "https://example.com/second/repo",
                                 name = "second-repo"
@@ -582,8 +583,8 @@ val postProductRuns: RouteConfig.() -> Unit = {
                             revision = "main",
                             createdAt = CREATED_AT,
                             jobConfigs = fullJobConfigurations,
-                            resolvedJobConfigs = fullJobConfigurations,
-                            jobs = jobs,
+                            resolvedJobConfigs = null,
+                            jobs = Jobs(),
                             status = OrtRunStatus.CREATED,
                             finishedAt = null,
                             labels = mapOf("label key" to "label value"),
@@ -601,8 +602,8 @@ val postProductRuns: RouteConfig.() -> Unit = {
                             revision = "main",
                             createdAt = CREATED_AT,
                             jobConfigs = fullJobConfigurations,
-                            resolvedJobConfigs = fullJobConfigurations,
-                            jobs = jobs,
+                            resolvedJobConfigs = null,
+                            jobs = Jobs(),
                             status = OrtRunStatus.CREATED,
                             finishedAt = null,
                             labels = mapOf("label key" to "label value"),

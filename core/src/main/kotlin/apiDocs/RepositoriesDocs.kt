@@ -277,7 +277,7 @@ val patchRepository: RouteConfig.() -> Unit = {
                     value = Repository(
                         id = 1,
                         organizationId = 2,
-                        productId = 3,
+                        productId = 42,
                         type = RepositoryType.GIT_REPO,
                         url = "https://example.com/org/updated-repo.git",
                         name = "updated-repo",
@@ -376,7 +376,7 @@ val getRepositoryRuns: RouteConfig.() -> Unit = {
                             limit = 20,
                             offset = 0,
                             totalCount = 2,
-                            sortProperties = listOf(SortProperty("createdAt", SortDirection.DESCENDING))
+                            sortProperties = listOf(SortProperty("index", SortDirection.ASCENDING))
                         )
                     )
                 }
@@ -429,8 +429,8 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
                         revision = "main",
                         createdAt = CREATED_AT,
                         jobConfigs = fullJobConfigurations,
-                        resolvedJobConfigs = fullJobConfigurations,
-                        jobs = jobs,
+                        resolvedJobConfigs = null,
+                        jobs = Jobs(),
                         status = OrtRunStatus.CREATED,
                         finishedAt = null,
                         labels = mapOf("label key" to "label value"),

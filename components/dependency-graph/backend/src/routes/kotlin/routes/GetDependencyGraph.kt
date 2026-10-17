@@ -75,9 +75,15 @@ internal fun Route.getRunDependencyGraph(
                                             namespace = "com.example",
                                             name = "root",
                                             version = "1.0"
+                                        ),
+                                        Identifier(
+                                            type = "Maven",
+                                            namespace = "com.example",
+                                            name = "dependency",
+                                            version = "2.0"
                                         )
                                     ),
-                                    purls = listOf(null),
+                                    purls = listOf(null, "pkg:maven/com.example/dependency@2.0"),
                                     packageCount = 1,
                                     nodes = listOf(
                                         DependencyGraphNode(
@@ -85,6 +91,12 @@ internal fun Route.getRunDependencyGraph(
                                             fragment = 0,
                                             linkage = "PROJECT_DYNAMIC",
                                             packageCount = 1
+                                        ),
+                                        DependencyGraphNode(
+                                            pkg = 1,
+                                            fragment = 0,
+                                            linkage = "DYNAMIC",
+                                            packageCount = 0
                                         )
                                     ),
                                     edges = listOf(
