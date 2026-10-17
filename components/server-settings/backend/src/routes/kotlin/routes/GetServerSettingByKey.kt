@@ -39,8 +39,9 @@ import org.jetbrains.exposed.v1.jdbc.Database
 internal fun Route.getServerSettingByKey(db: Database) = get("settings/server/{key}", {
     operationId = "GetServerSettingByKey"
     summary = "Get the server setting for the provided key"
-    description = "Get the value and isEnabled properties for a server setting. " +
-            "If no value was set before or the setting is disabled, the default value is returned."
+    description = "Get the value and isEnabled properties for a server setting. If the setting was never stored, " +
+            "the default value is returned and the setting is disabled. A disabled setting that was stored before " +
+            "returns its stored value."
     tags = listOf("Settings")
 
     request {
@@ -56,8 +57,8 @@ internal fun Route.getServerSettingByKey(db: Database) = get("settings/server/{k
             jsonBody<ServerSetting> {
                 example("Server setting") {
                     value = ServerSetting(
-                        isEnabled = false,
-                        value = "http://example.com/icon.png"
+                        isEnabled = true,
+                        value = "https://example.com/custom-icon.png"
                     )
                 }
             }

@@ -76,11 +76,11 @@ internal fun Route.postIssueResolution(
             }
 
             HttpStatusCode.BadRequest to {
-                description = "The request was invalid."
+                description = "The request was invalid or a resolution for the same item already exists."
             }
 
             HttpStatusCode.NotFound to {
-                description = "The repository or issue was not found."
+                description = "The repository was not found."
             }
         }
     },

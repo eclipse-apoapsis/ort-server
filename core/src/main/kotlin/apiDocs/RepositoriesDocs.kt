@@ -259,7 +259,8 @@ val patchRepository: RouteConfig.() -> Unit = {
             description = "The repository's ID."
         }
         jsonBody<PatchRepository> {
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null. " +
+            description = "Set the values that should be updated. Omitted values are not changed. To delete the name " +
+                    "or the description, set it explicitly to null. " +
                     "To move the repository to another product, set the productId field."
             example("Update Repository") {
                 value = PatchRepository(
@@ -578,7 +579,11 @@ val putRepositoryRoleToUser: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.NotFound to {
-            description = "Repository or role not found."
+            description = "The repository or the user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The role is invalid."
         }
     }
 }
@@ -586,6 +591,8 @@ val putRepositoryRoleToUser: RouteConfig.() -> Unit = {
 val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
     operationId = "deleteRepositoryRoleFromUser"
     summary = "Remove a repository role from a user"
+    description = "Remove the role that the user has on the repository. The role in the path must be " +
+            "a valid role, but it is not compared with the role that is actually assigned."
     tags = listOf("Repositories")
 
     request {
@@ -608,7 +615,11 @@ val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.NotFound to {
-            description = "Repository or role not found."
+            description = "The repository or the user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The role is invalid."
         }
     }
 }
@@ -616,10 +627,10 @@ val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
 val getRepositoryUsers: RouteConfig.() -> Unit = {
     operationId = "getRepositoryUsers"
     summary = "Get all users for a repository"
-    description = "Get all users that have access rights for a repository, including the user privileges (groups) " +
-            "the user has within the repository. Fields available for sorting: 'username', 'firstName', " +
-            "'lastName', 'email', 'group'. NOTE: This endpoint supports only one sort field. All fields other than " +
-            " the first one are ignored."
+    description = "Get all users that have a role assigned directly on a repository, including the group " +
+            "that corresponds to their role. Users that only inherit access from a higher level are not " +
+            "included. Fields available for sorting: 'username', 'firstName', 'lastName', 'email', " +
+            "'group'. NOTE: This endpoint supports exactly one sort field."
     tags = listOf("Repositories")
 
     request {
@@ -645,7 +656,6 @@ val getRepositoryUsers: RouteConfig.() -> Unit = {
                                     email = "johndoe@example.com"
                                 ),
                                 listOf(
-                                    UserGroup.READERS,
                                     UserGroup.WRITERS
                                 )
                             )
@@ -663,6 +673,10 @@ val getRepositoryUsers: RouteConfig.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The repository does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "Not exactly one sort field or an unsupported sort field was provided."
         }
     }
 }

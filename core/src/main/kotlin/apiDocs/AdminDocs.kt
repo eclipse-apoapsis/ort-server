@@ -121,7 +121,8 @@ val postUser: RouteConfig.() -> Unit = {
 
         // Note: Keycloak doesn't distinguish technical from logical errors; it just returns 500 for both.
         HttpStatusCode.InternalServerError to {
-            description = "A user with the same username already exists."
+            description = "The user could not be created, e.g. because a user with the same username already exists " +
+                    "or Keycloak is not available."
         }
 
         HttpStatusCode.BadRequest to {

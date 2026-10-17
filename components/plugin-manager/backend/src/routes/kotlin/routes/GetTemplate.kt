@@ -87,6 +87,10 @@ internal fun Route.getTemplate(
         HttpStatusCode.NotFound to {
             description = "The specified plugin template does not exist."
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "The specified plugin is not installed."
+        }
     }
 }, requireSuperuser()) {
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
