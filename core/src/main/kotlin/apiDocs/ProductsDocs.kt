@@ -74,7 +74,7 @@ val getProduct: RouteConfig.() -> Unit = {
         HttpStatusCode.OK to {
             description = "Success"
             jsonBody<Product> {
-                example("Create Product") {
+                example("Get Product") {
                     value = Product(id = 1, organizationId = 2, name = "My Product", description = "Description")
                 }
             }
@@ -304,8 +304,9 @@ val getProductVulnerabilities: RouteConfig.() -> Unit = {
 
         queryParameter<String>("rating") {
             description = "Defines the ratings to filter the results by. This is a comma-separated string with the" +
-                    " following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it" } + ". Add a " +
-                    "minus as the first item to exclude packages with the specified ratings, e.g. '-,HIGH'."
+                    " following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it'" } +
+                    " (ignoring case). Add a minus as the first item to exclude vulnerabilities with the specified " +
+                    "ratings, e.g. '-,HIGH'."
         }
 
         queryParameter<String>("identifier") {
@@ -329,6 +330,7 @@ val getProductVulnerabilities: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.OK to {
+            description = "Success"
             jsonBody<PagedSearchResponse<VulnerabilityWithStats, VulnerabilityForRunsFilters>> {
                 example("Get vulnerabilities for product") {
                     value = PagedSearchResponse(
@@ -420,6 +422,7 @@ val getProductRunStatistics: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.OK to {
+            description = "Success"
             jsonBody<OrtRunStatistics> {
                 example("Get run statistics across repositories of a product") {
                     value = OrtRunStatistics(

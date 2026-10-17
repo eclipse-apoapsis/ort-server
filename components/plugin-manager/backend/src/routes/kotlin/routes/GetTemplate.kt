@@ -38,7 +38,7 @@ internal fun Route.getTemplate(
     pluginTemplateService: PluginTemplateService
 ) = get("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
     operationId = "GetPluginTemplate"
-    summary = "Get a templates for a plugin"
+    summary = "Get a template for a plugin"
     description = "Retrieve the template with the given name for a specific plugin type and ID."
     tags = listOf("Plugins")
 
