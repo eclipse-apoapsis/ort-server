@@ -45,6 +45,7 @@ internal fun Route.getRunSnippetFindingSnippets(
     get("runs/{runId}/snippet-findings/{snippetFindingId}/snippets", {
         operationId = "getRunSnippetFindingSnippets"
         summary = "Get upstream snippets for a specific snippet finding in an ORT run"
+        description = "Supported sort fields are 'purl', 'score', and 'license'."
         tags = listOf("Runs")
 
         request {
@@ -87,6 +88,10 @@ internal fun Route.getRunSnippetFindingSnippets(
 
             HttpStatusCode.NotFound to {
                 description = "The snippet finding does not belong to the ORT run."
+            }
+
+            HttpStatusCode.BadRequest to {
+                description = "An unsupported sort field was provided."
             }
         }
     }, requireRunReadPermission(ortRunRepository)) {

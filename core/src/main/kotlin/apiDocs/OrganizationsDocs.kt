@@ -138,6 +138,10 @@ val postOrganization: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.Conflict to {
+            description = "An organization with the same name already exists."
+        }
     }
 }
 
@@ -195,6 +199,10 @@ val deleteOrganization: RouteConfig.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The organization does not exist."
+        }
+
+        HttpStatusCode.Conflict to {
+            description = "The organization still contains products."
         }
     }
 }
@@ -263,6 +271,10 @@ val postProduct: RouteConfig.() -> Unit = {
                     value = Product(id = 1, organizationId = 2, name = "My product", description = "Description")
                 }
             }
+        }
+
+        HttpStatusCode.Conflict to {
+            description = "A product with the same name already exists in the organization."
         }
     }
 }

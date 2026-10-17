@@ -51,6 +51,7 @@ internal fun Route.getRunDependencyGraph(
     get("runs/{runId}/dependency-graph", {
         operationId = "getRunDependencyGraph"
         summary = "Get the dependency graphs for an ORT run"
+        description = "Supported sort fields are 'name' and 'packageCount'."
         tags = listOf("Runs")
 
         request {
@@ -125,6 +126,10 @@ internal fun Route.getRunDependencyGraph(
 
             HttpStatusCode.NotFound to {
                 description = "No analyzer run exists for the ORT run."
+            }
+
+            HttpStatusCode.BadRequest to {
+                description = "An unsupported sort field was provided."
             }
         }
     }, requireRunReadPermission(ortRunRepository)) {

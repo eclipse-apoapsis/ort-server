@@ -69,6 +69,14 @@ internal fun Route.postProductSecret(secretService: SecretService) =
             HttpStatusCode.NotFound to {
                 description = "The product does not exist."
             }
+
+            HttpStatusCode.BadRequest to {
+                description = "The secret name is invalid."
+            }
+
+            HttpStatusCode.Conflict to {
+                description = "A secret with the same name already exists."
+            }
         }
     }, requirePermission(ProductPermission.WRITE_SECRETS)) {
         val productId = call.requireIdParameter("productId")

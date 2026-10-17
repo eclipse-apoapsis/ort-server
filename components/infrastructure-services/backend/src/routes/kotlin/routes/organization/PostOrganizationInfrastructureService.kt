@@ -75,6 +75,14 @@ internal fun Route.postOrganizationInfrastructureService(
                 }
             }
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "The infrastructure service name is invalid."
+        }
+
+        HttpStatusCode.Conflict to {
+            description = "An infrastructure service with the same name already exists."
+        }
     }
 }, requirePermission(OrganizationPermission.WRITE)) {
     val organizationId = call.requireIdParameter("organizationId")

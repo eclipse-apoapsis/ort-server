@@ -85,6 +85,10 @@ val getUsers: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "An unsupported sort field was provided."
+        }
     }
 }
 
@@ -118,6 +122,10 @@ val postUser: RouteConfig.() -> Unit = {
         // Note: Keycloak doesn't distinguish technical from logical errors; it just returns 500 for both.
         HttpStatusCode.InternalServerError to {
             description = "A user with the same username already exists."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The request body is invalid."
         }
     }
 }

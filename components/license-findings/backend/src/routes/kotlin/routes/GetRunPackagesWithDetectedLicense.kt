@@ -48,6 +48,7 @@ internal fun Route.getRunPackagesWithDetectedLicense(
     get("runs/{runId}/detected-licenses/{license}/packages", {
         operationId = "getRunPackagesWithDetectedLicense"
         summary = "Get packages containing a specific detected license for an ORT run"
+        description = "Supported sort fields are 'identifier' and 'purl'."
         tags = listOf("Runs")
 
         request {
@@ -93,7 +94,7 @@ internal fun Route.getRunPackagesWithDetectedLicense(
                 }
             }
             HttpStatusCode.BadRequest to {
-                description = "If 'identifierMatchType' has an unsupported value."
+                description = "If 'identifierMatchType' or the sort field has an unsupported value."
             }
         }
     }, requireRunReadPermission(ortRunRepository)) {

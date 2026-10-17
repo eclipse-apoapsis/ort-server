@@ -69,6 +69,14 @@ internal fun Route.postRepositorySecret(secretService: SecretService) =
             HttpStatusCode.NotFound to {
                 description = "The repository does not exist."
             }
+
+            HttpStatusCode.BadRequest to {
+                description = "The secret name is invalid."
+            }
+
+            HttpStatusCode.Conflict to {
+                description = "A secret with the same name already exists."
+            }
         }
     }, requirePermission(RepositoryPermission.WRITE_SECRETS)) {
         val repositoryId = call.requireIdParameter("repositoryId")

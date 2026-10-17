@@ -67,6 +67,14 @@ internal fun Route.postOrganizationSecret(secretService: SecretService) =
                     }
                 }
             }
+
+            HttpStatusCode.BadRequest to {
+                description = "The secret name is invalid."
+            }
+
+            HttpStatusCode.Conflict to {
+                description = "A secret with the same name already exists."
+            }
         }
     }, requirePermission(OrganizationPermission.WRITE_SECRETS)) {
         val organizationId = call.requireIdParameter("organizationId")
