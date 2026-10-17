@@ -19,12 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
@@ -65,6 +68,16 @@ class SecretRepositoryTest : StringSpec() {
             val dbEntry = secretRepository.getByIdAndName(organizationId, name)
 
             dbEntry shouldBe secret
+        }
+
+        "create should reject a secret with a name that already exists for the same hierarchy element" {
+            listOf(organizationId, productId, repositoryId).forAll { id ->
+                secretRepository.create("${path}first-$id", "duplicate", description, id)
+
+                shouldThrow<UniqueConstraintException> {
+                    secretRepository.create("${path}second-$id", "duplicate", description, id)
+                }
+            }
         }
 
         "update should update an organization secret in the database" {
