@@ -33,25 +33,6 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
-val runPermissionsSync: RouteConfig.() -> Unit = {
-    operationId = "runPermissionsSync"
-    summary = "Trigger the synchronization of Keycloak roles"
-    tags = listOf("Admin")
-
-    request {
-    }
-
-    response {
-        HttpStatusCode.Accepted to {
-            description = "Success."
-        }
-
-        HttpStatusCode.Unauthorized to {
-            description = "Unauth."
-        }
-    }
-}
-
 val getUsers: RouteConfig.() -> Unit = {
     operationId = "getUsers"
     summary = "Get users of the server"
