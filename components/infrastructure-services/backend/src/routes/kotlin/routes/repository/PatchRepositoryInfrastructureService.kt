@@ -83,6 +83,10 @@ internal fun Route.patchRepositoryInfrastructureService(
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository or the infrastructure service does not exist."
+        }
     }
 }, requirePermission(RepositoryPermission.WRITE)) {
     val repositoryId = call.requireIdParameter("repositoryId")

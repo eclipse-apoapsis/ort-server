@@ -58,6 +58,10 @@ internal fun Route.getProductSecret(secretService: SecretService) =
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The product or the secret does not exist."
+            }
         }
     }, requirePermission(ProductPermission.READ)) {
         val productId = ProductId(call.requireIdParameter("productId"))

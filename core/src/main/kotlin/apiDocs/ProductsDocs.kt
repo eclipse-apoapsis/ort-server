@@ -80,6 +80,10 @@ val getProduct: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
+        }
     }
 }
 
@@ -114,6 +118,10 @@ val patchProduct: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
+        }
     }
 }
 
@@ -131,6 +139,10 @@ val deleteProduct: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
         }
     }
 }
@@ -186,6 +198,10 @@ val getProductRepositories: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
+        }
     }
 }
 
@@ -224,6 +240,10 @@ val postRepository: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
         }
     }
 }
@@ -375,6 +395,10 @@ val getProductVulnerabilities: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
+        }
     }
 }
 
@@ -399,6 +423,10 @@ val getProductVulnerabilityAdvisors: RouteConfig.() -> Unit = {
                     value = listOf("NexusIQ", "OSV", "VulnerableCode")
                 }
             }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
         }
     }
 }
@@ -478,6 +506,10 @@ val getProductRunStatistics: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
+        }
     }
 }
 
@@ -527,6 +559,10 @@ val getProductUsers: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
         }
     }
 }
@@ -620,6 +656,10 @@ val postProductRuns: RouteConfig.() -> Unit = {
 
         HttpStatusCode.BadRequest to {
             description = "Invalid request, e.g., provided repository IDs do not belong to the product."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
         }
     }
 }

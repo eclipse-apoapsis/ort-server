@@ -118,6 +118,10 @@ val getRun: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
     }
 }
 
@@ -998,6 +1002,10 @@ val getRunStatistics: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
     }
 }
 
@@ -1027,6 +1035,10 @@ val getRunPackageLicenses: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
         }
     }
 }

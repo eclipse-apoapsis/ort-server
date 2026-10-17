@@ -51,6 +51,10 @@ internal fun Route.deleteOrganizationInfrastructureService(
         HttpStatusCode.NoContent to {
             description = "Success"
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The infrastructure service does not exist."
+        }
     }
 }, requirePermission(OrganizationPermission.WRITE)) {
     val orgId = call.requireIdParameter("organizationId")

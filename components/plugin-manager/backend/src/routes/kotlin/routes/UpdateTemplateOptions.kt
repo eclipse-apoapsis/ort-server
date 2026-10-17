@@ -87,6 +87,10 @@ internal fun Route.updateTemplateOptions(
         HttpStatusCode.BadRequest to {
             description = "The specified plugin is not installed or the template could not be updated."
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The template does not exist."
+        }
     }
 }, requireSuperuser()) {
     val userId = requirePrincipal().userId

@@ -51,6 +51,10 @@ internal fun Route.deleteRepositoryInfrastructureService(
         HttpStatusCode.NoContent to {
             description = "Success"
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository or the infrastructure service does not exist."
+        }
     }
 }, requirePermission(RepositoryPermission.WRITE)) {
     val repositoryId = call.requireIdParameter("repositoryId")

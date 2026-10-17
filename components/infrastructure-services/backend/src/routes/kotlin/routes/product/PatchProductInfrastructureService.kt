@@ -83,6 +83,10 @@ internal fun Route.patchProductInfrastructureService(
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product or the infrastructure service does not exist."
+        }
     }
 }, requirePermission(ProductPermission.WRITE)) {
     val productId = call.requireIdParameter("productId")

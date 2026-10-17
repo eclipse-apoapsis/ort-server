@@ -74,6 +74,10 @@ internal fun Route.patchOrganizationSecret(secretService: SecretService) =
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The secret does not exist."
+            }
         }
     }, requirePermission(OrganizationPermission.WRITE_SECRETS)) {
         val organizationId = OrganizationId(call.requireIdParameter("organizationId"))

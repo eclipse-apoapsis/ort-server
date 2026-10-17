@@ -59,6 +59,10 @@ internal fun Route.getOrganizationSecret(secretService: SecretService) =
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The secret does not exist."
+            }
         }
     }, requirePermission(OrganizationPermission.READ)) {
         val organizationId = OrganizationId(call.requireIdParameter("organizationId"))

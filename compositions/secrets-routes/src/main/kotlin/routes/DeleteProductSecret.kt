@@ -54,6 +54,10 @@ internal fun Route.deleteProductSecret(
         HttpStatusCode.NoContent to {
             description = "Success"
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product or the secret does not exist."
+        }
     }
 }, requirePermission(ProductPermission.WRITE_SECRETS)) {
     val productId = ProductId(call.requireIdParameter("productId"))
