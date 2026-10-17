@@ -143,13 +143,5 @@ class GetRunDetectedLicensesIntegrationTest : LicenseFindingIntegrationTest({
                 )
             }
         }
-
-        "return 404 for an unknown run" {
-            licenseFindingTestApplication { client ->
-                val response = client.get("/runs/999999/detected-licenses")
-
-                response.status shouldBe HttpStatusCode.NotFound
-            }
-        }
     }
 })

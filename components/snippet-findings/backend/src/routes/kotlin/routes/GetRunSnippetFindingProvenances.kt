@@ -90,11 +90,13 @@ internal fun Route.getRunSnippetFindingProvenances(
             HttpStatusCode.BadRequest to {
                 description = "An unsupported sort field was provided."
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The ORT run does not exist."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")
-
-        ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
         val result = service.getProvenancesForRun(
             ortRunId = runId,

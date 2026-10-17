@@ -97,18 +97,5 @@ class GetRunDetectedLicensesForIdentifierIntegrationTest : LicenseFindingIntegra
                 response.body<List<String>>().shouldBeEmpty()
             }
         }
-
-        "return 404 for an unknown run" {
-            val identifier = URLEncoder.encode(
-                seeded.artifactIdentifier.toCoordinates(),
-                StandardCharsets.UTF_8
-            )
-
-            licenseFindingTestApplication { client ->
-                val response = client.get("/runs/999999/detected-licenses/identifiers/$identifier")
-
-                response.status shouldBe HttpStatusCode.NotFound
-            }
-        }
     }
 })

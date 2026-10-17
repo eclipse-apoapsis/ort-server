@@ -68,6 +68,21 @@ class DependencyGraphAuthorizationTest : AbstractAuthorizationTest({
             }
         }
 
+        "respond with NotFound for an unknown run" {
+            authorizationTestApplication(
+                routes = {
+                    dependencyGraphRoutes(
+                        service,
+                        dbExtension.fixtures.ortRunRepository,
+                        dbExtension.fixtures.analyzerJobRepository,
+                        dbExtension.fixtures.analyzerRunRepository
+                    )
+                }
+            ) { _, testUserClient ->
+                testUserClient.get("/runs/999999/dependency-graph") shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
         "require the reader role on the run's repository" {
             requestShouldRequireRole(
                 routes = {

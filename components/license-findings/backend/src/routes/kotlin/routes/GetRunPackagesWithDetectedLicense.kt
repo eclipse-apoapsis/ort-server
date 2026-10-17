@@ -96,6 +96,10 @@ internal fun Route.getRunPackagesWithDetectedLicense(
             HttpStatusCode.BadRequest to {
                 description = "If 'identifierMatchType' or the sort field has an unsupported value."
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The ORT run does not exist."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val identifierFilter = call.parameters["identifier"]?.let { value ->

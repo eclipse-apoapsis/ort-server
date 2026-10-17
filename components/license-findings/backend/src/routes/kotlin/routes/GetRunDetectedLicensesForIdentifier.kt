@@ -56,11 +56,13 @@ internal fun Route.getRunDetectedLicensesForIdentifier(
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The ORT run does not exist."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")
-
-        ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
         val licenses = service.getDetectedLicensesForIdentifier(
             ortRunId = runId,

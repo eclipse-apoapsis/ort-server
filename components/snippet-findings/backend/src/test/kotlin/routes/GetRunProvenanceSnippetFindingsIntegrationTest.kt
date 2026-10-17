@@ -87,16 +87,6 @@ class GetRunProvenanceSnippetFindingsIntegrationTest : SnippetFindingIntegration
             }
         }
 
-        "return 404 when run does not exist" {
-            snippetFindingTestApplication { client ->
-                val response = client.get(
-                    "/runs/999999/snippet-findings/provenances/${seeded.provenanceId}/findings"
-                )
-
-                response.status shouldBe HttpStatusCode.NotFound
-            }
-        }
-
         "return 404 when provenance does not belong to the given run" {
             snippetFindingTestApplication { client ->
                 val response = client.get(

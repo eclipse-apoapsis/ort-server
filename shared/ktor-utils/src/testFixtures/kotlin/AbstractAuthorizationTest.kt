@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.Authorizat
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.configureAuthentication
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
@@ -136,6 +137,9 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
                         call.respond(HttpStatusCode.Forbidden)
                     }
                     exception<EntityNotFoundException> { call, _ ->
+                        call.respond(HttpStatusCode.NotFound)
+                    }
+                    exception<InvalidHierarchyIdException> { call, _ ->
                         call.respond(HttpStatusCode.NotFound)
                     }
                 }
