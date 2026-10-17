@@ -23,7 +23,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import kotlin.time.Clock
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
@@ -76,7 +76,7 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                                 ortRunId = 1042L,
                                 ortRunIndex = 42L,
                                 revision = "a1b2c3d4",
-                                createdAt = Clock.System.now(),
+                                createdAt = Instant.parse("2024-01-01T00:00:00Z"),
                                 packageId = Identifier(
                                     type = "Maven",
                                     namespace = "foo",
@@ -96,7 +96,7 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                                 ortRunId = 1042L,
                                 ortRunIndex = 42L,
                                 revision = "a1b2c3d4",
-                                createdAt = Clock.System.now(),
+                                createdAt = Instant.parse("2024-01-01T00:00:00Z"),
                                 packageId = null,
                                 purl = "pkg:maven/foo/bar@1.0.0"
                             )

@@ -62,8 +62,8 @@ internal fun Route.getRepositorySecrets(secretService: SecretService) =
                     example("Get all secrets of a repository") {
                         value = PagedResponse(
                             listOf(
-                                Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1"),
-                                Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
+                                Secret(name = "token-npm-repo-1", description = "Access token for NPM Repo 1"),
+                                Secret(name = "token-maven-repo-1", description = "Access token for Maven Repo 1")
                             ),
                             PagingData(
                                 limit = 20,

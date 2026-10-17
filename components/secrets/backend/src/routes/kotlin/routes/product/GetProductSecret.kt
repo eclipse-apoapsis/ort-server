@@ -54,7 +54,7 @@ internal fun Route.getProductSecret(secretService: SecretService) =
                 description = "Success"
                 jsonBody<Secret> {
                     example("Get Secret") {
-                        value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
+                        value = Secret(name = "token-npm-repo-1", description = "Access token for NPM Repo 1")
                     }
                 }
             }
