@@ -65,7 +65,7 @@ internal fun Route.setServerSettingByKey(db: Database) = post("settings/server/{
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The server setting key is invalid."
+            description = "The server setting key or the request body is invalid."
         }
     }
 }, requireSuperuser()) {

@@ -58,6 +58,10 @@ internal fun Route.deleteRepositorySecret(
         HttpStatusCode.NotFound to {
             description = "The repository or the secret does not exist."
         }
+
+        HttpStatusCode.Conflict to {
+            description = "The secret is still used by infrastructure services."
+        }
     }
 }, requirePermission(RepositoryPermission.WRITE_SECRETS)) {
     val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))

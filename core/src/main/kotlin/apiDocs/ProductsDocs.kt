@@ -245,6 +245,10 @@ val postRepository: RouteConfig.() -> Unit = {
         HttpStatusCode.NotFound to {
             description = "The product does not exist."
         }
+
+        HttpStatusCode.Conflict to {
+            description = "A repository with the same URL and name already exists in the product."
+        }
     }
 }
 
@@ -579,7 +583,9 @@ private val minimalJobConfigurations = JobConfigurations(
 val postProductRuns: RouteConfig.() -> Unit = {
     operationId = "postProductRuns"
     summary = "Create ORT runs for repositories under a product"
-    description = "Create ORT runs for all repositories under a product or specific repositories"
+    description = "Create ORT runs for all repositories under a product. To create runs only for specific " +
+            "repositories, set 'repositoryIds'. To rerun only the repositories whose latest ORT run failed, set " +
+            "'repositoryFailedIds'."
     tags = listOf("Products")
 
     request {
@@ -600,6 +606,14 @@ val postProductRuns: RouteConfig.() -> Unit = {
                     revision = "main",
                     jobConfigs = minimalJobConfigurations,
                     repositoryIds = listOf(1, 2)
+                )
+            }
+
+            example("Rerun ORT runs for repositories whose latest run failed") {
+                value = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = minimalJobConfigurations,
+                    repositoryFailedIds = listOf(1, 2)
                 )
             }
         }
@@ -655,11 +669,21 @@ val postProductRuns: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.BadRequest to {
-            description = "Invalid request, e.g., provided repository IDs do not belong to the product."
+            description = "Invalid request, e.g., provided repository IDs do not belong to the product or the plugin " +
+                    "configuration is invalid."
         }
 
         HttpStatusCode.NotFound to {
             description = "The product does not exist."
+        }
+
+        HttpStatusCode.Forbidden to {
+            description = "The 'keepAliveWorker' flag was set, which is only allowed for superusers."
+        }
+
+        HttpStatusCode.Conflict to {
+            description = "Some of the repositories in 'repositoryFailedIds' do not have a latest ORT run with " +
+                    "status FAILED."
         }
     }
 }

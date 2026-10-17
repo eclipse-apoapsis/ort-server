@@ -462,6 +462,14 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
         HttpStatusCode.NotFound to {
             description = "The repository does not exist."
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "The plugin configuration is invalid."
+        }
+
+        HttpStatusCode.Forbidden to {
+            description = "The 'keepAliveWorker' flag was set, which is only allowed for superusers."
+        }
     }
 }
 

@@ -45,6 +45,7 @@ internal fun Route.getRunProvenanceSnippetFindings(
     get("runs/{runId}/snippet-findings/provenances/{provenanceId}/findings", {
         operationId = "getRunProvenanceSnippetFindings"
         summary = "Get snippet findings for a specific package provenance in an ORT run"
+        description = "Supported sort fields are 'path' and 'snippetCount'."
         tags = listOf("Runs")
 
         request {
@@ -85,6 +86,10 @@ internal fun Route.getRunProvenanceSnippetFindings(
 
             HttpStatusCode.NotFound to {
                 description = "The provenance does not belong to the ORT run."
+            }
+
+            HttpStatusCode.BadRequest to {
+                description = "An unsupported sort field was provided."
             }
         }
     }, requireRunReadPermission(ortRunRepository)) {

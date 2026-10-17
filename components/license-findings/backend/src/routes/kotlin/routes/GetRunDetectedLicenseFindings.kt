@@ -45,6 +45,7 @@ internal fun Route.getRunDetectedLicenseFindings(
     get("runs/{runId}/detected-licenses/{license}/packages/{identifier}/findings", {
         operationId = "getRunDetectedLicenseFindings"
         summary = "Get file-level findings for a specific license and package in an ORT run"
+        description = "Supported sort fields are 'path', 'startLine', 'endLine', and 'score'."
         tags = listOf("Runs")
 
         request {
@@ -76,6 +77,10 @@ internal fun Route.getRunDetectedLicenseFindings(
                         )
                     }
                 }
+            }
+
+            HttpStatusCode.BadRequest to {
+                description = "An unsupported sort field was provided."
             }
         }
     }, requireRunReadPermission(ortRunRepository)) {

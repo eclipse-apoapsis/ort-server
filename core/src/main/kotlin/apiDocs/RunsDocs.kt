@@ -313,6 +313,7 @@ val getRunIssues: RouteConfig.() -> Unit = {
 val getRunVulnerabilities: RouteConfig.() -> Unit = {
     operationId = "getRunVulnerabilities"
     summary = "Get the vulnerabilities found in an ORT run"
+    description = "Supported sort fields are 'rating', 'externalId', 'identifier', and 'purl'."
     tags = listOf("Runs")
 
     request {
@@ -427,6 +428,10 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The ORT run does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "An unsupported sort field was provided."
         }
     }
 }

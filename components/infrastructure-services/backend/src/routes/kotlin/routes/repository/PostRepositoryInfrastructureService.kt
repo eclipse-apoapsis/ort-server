@@ -79,6 +79,14 @@ internal fun Route.postRepositoryInfrastructureService(
         HttpStatusCode.NotFound to {
             description = "The repository does not exist."
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "The infrastructure service name is invalid."
+        }
+
+        HttpStatusCode.Conflict to {
+            description = "An infrastructure service with the same name already exists."
+        }
     }
 }, requirePermission(RepositoryPermission.WRITE)) {
     val repositoryId = call.requireIdParameter("repositoryId")
