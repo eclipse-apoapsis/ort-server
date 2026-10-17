@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerP
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 internal fun Route.getSuperuser() = get("authorization/superuser", {
     operationId = "getSuperuser"
@@ -39,14 +40,14 @@ internal fun Route.getSuperuser() = get("authorization/superuser", {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            body<Boolean> {
+            jsonBody<Boolean> {
                 description = "Whether the current user is a superuser."
             }
         }
     }
 }, superuserChecker()) {
     val isSuperuser = requirePrincipal().effectiveRole.isSuperuser
-    call.respond(HttpStatusCode.OK, isSuperuser.toString())
+    call.respond(HttpStatusCode.OK, isSuperuser)
 }
 
 /**
