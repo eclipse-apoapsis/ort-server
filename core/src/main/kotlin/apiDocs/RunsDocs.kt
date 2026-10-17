@@ -184,7 +184,7 @@ val getRunLogs: RouteConfig.() -> Unit = {
 
         queryParameter<String>("level") {
             description = "The log level; can be one of " +
-                    LogLevel.entries.joinToString { "'$it'" } + " (ignoring case)." +
+                    LogLevel.entries.joinToString { "'$it'" } + " (ignoring case). " +
                     "Only logs of this level or higher are retrieved. Defaults to 'INFO' if missing."
         }
 
@@ -214,8 +214,7 @@ val getRunIssues: RouteConfig.() -> Unit = {
     operationId = "getRunIssues"
     summary = "Get the issues of an ORT run"
     description = "Supported sort fields are 'timestamp', 'source', 'message', 'severity', 'affectedPath', " +
-            "'identifier', 'purl', 'status', and 'worker'. Package ID tables use 'identifier' or 'purl'; status, " +
-            "severity, and source can also be sorted."
+            "'identifier', 'purl', 'status', and 'worker'."
     tags = listOf("Runs")
 
     request {
@@ -334,8 +333,9 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
 
         queryParameter<String>("rating") {
             description = "Defines the ratings to filter the results by. This is a comma-separated string with the " +
-                    "following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it" } + ". Add a " +
-                    "minus as the first item to exclude packages with the specified ratings, e.g. '-,HIGH'."
+                    "following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it'" } +
+                    " (ignoring case). Add a minus as the first item to exclude vulnerabilities with the specified " +
+                    "ratings, e.g. '-,HIGH'."
         }
 
         queryParameter<String>("identifier") {
@@ -998,7 +998,7 @@ val getRunStatistics: RouteConfig.() -> Unit = {
 val getRunPackageLicenses: RouteConfig.() -> Unit = {
     operationId = "getRunPackageLicenses"
     summary = "Get the declared licenses for packages found in an ORT run"
-    description = "The response contains independently deduplicated and alphabetically sorted processed and " +
+    description = "The response contains independently deduplicated and case-insensitively sorted processed and " +
             "unmapped declared licenses."
     tags = listOf("Runs")
 

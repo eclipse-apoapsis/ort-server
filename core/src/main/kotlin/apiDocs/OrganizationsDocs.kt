@@ -321,7 +321,7 @@ val getOrganizationVulnerabilities: RouteConfig.() -> Unit = {
     operationId = "getOrganizationVulnerabilities"
     summary = "Get vulnerabilities from an organization"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in an " +
-            " organization."
+            "organization."
     tags = listOf("Organizations")
 
     request {
@@ -333,8 +333,9 @@ val getOrganizationVulnerabilities: RouteConfig.() -> Unit = {
 
         queryParameter<String>("rating") {
             description = "Defines the ratings to filter the results by. This is a comma-separated string with the" +
-                    " following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it" } + ". Add a " +
-                    "minus as the first item to exclude packages with the specified ratings, e.g. '-,HIGH'."
+                    " following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it'" } +
+                    " (ignoring case). Add a minus as the first item to exclude vulnerabilities with the specified " +
+                    "ratings, e.g. '-,HIGH'."
         }
 
         queryParameter<String>("identifier") {
@@ -358,6 +359,7 @@ val getOrganizationVulnerabilities: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.OK to {
+            description = "Success"
             jsonBody<PagedSearchResponse<VulnerabilityWithStats, VulnerabilityForRunsFilters>> {
                 example("Get vulnerabilities for organization") {
                     value = PagedSearchResponse(
@@ -449,6 +451,7 @@ val getOrganizationRunStatistics: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.OK to {
+            description = "Success"
             jsonBody<OrtRunStatistics> {
                 example("Get run statistics across repositories of an organization") {
                     value = OrtRunStatistics(
