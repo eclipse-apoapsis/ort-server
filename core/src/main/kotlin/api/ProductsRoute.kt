@@ -481,11 +481,15 @@ fun Route.products() = route("products/{productId}") {
             val repositoryIds = when {
                 createOrtRun.repositoryIds.isNotEmpty() -> {
                     val productRepoIds = productService.getRepositoryIdsForProduct(productId)
-                    require(createOrtRun.repositoryIds.all { it in productRepoIds }) {
-                        """
-                        The following repository IDs do not belong to product $productId: 
-                        ${createOrtRun.repositoryIds.filter { it !in productRepoIds }}
-                        """.trimIndent()
+                    val repoIdsNotInProduct = createOrtRun.repositoryIds.filter { it !in productRepoIds }
+
+                    if (repoIdsNotInProduct.isNotEmpty()) {
+                        call.respondError(
+                            HttpStatusCode.BadRequest,
+                            message = "The repositories do not belong to product $productId.",
+                            cause = "Invalid repository IDs: ${repoIdsNotInProduct.joinToString()}"
+                        )
+                        return@post
                     }
                     createOrtRun.repositoryIds
                 }
