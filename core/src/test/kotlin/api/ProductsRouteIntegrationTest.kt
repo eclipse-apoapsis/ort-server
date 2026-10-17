@@ -2581,6 +2581,48 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'BadRequest' if repository IDs do not belong to the product" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val otherProductId = createProduct(name = "other-product").id
+                val repositoryId = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo1.git",
+                    productId = productId,
+                    name = "repo1",
+                    description = "description"
+                ).id
+                val otherRepositoryId = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo2.git",
+                    productId = otherProductId,
+                    name = "repo2",
+                    description = "description"
+                ).id
+
+                val createOrtRun = PostRepositoryRun(
+                    revision = "main",
+                    path = "",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = null,
+                    labels = emptyMap(),
+                    environmentConfigPath = null,
+                    repositoryIds = listOf(repositoryId, otherRepositoryId)
+                )
+
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+
+                body.message shouldBe "The repositories do not belong to product $productId."
+                body.cause shouldBe "Invalid repository IDs: $otherRepositoryId"
+            }
+        }
+
         "return 'Conflict' when 'repositoryFailedIds' is used and the latest run for a repository did not fail" {
             integrationTestApplication {
                 val productId = createProduct().id
