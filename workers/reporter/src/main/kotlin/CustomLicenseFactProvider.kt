@@ -65,7 +65,7 @@ internal class CustomLicenseFactProvider(
         val directoryPrefix = "${licenseTextDir.path}/"
         runBlocking {
             configManager.listFiles(configurationContext, licenseTextDir)
-                .map { it.path.removePrefix(directoryPrefix) }
+                .map { it.path.substringAfterLast(directoryPrefix) }
                 .also { logger.debug("Found custom license texts: {}.", it) }
         }
     }
