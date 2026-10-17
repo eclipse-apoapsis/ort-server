@@ -82,6 +82,10 @@ internal fun Route.getRunDetectedLicenseFindings(
             HttpStatusCode.BadRequest to {
                 description = "An unsupported sort field was provided."
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The ORT run does not exist."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val result = service.getLicenseFindingsForRun(

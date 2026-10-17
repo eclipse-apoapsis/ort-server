@@ -19,7 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.components.snippetfindings.routes
 
+import io.kotest.matchers.shouldBe
+
 import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingService
@@ -65,6 +68,16 @@ class SnippetFindingAuthorizationTest : AbstractAuthorizationTest({
                 hierarchyId = hierarchyId
             ) {
                 get("/runs/$ortRunId/snippet-findings/provenances")
+            }
+        }
+
+        "respond with NotFound for an unknown run" {
+            authorizationTestApplication(
+                routes = {
+                    snippetFindingRoutes(service, ortRunRepository)
+                }
+            ) { _, testUserClient ->
+                testUserClient.get("/runs/999999/snippet-findings/provenances").status shouldBe HttpStatusCode.NotFound
             }
         }
     }

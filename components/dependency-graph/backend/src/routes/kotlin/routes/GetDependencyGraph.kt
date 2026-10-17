@@ -125,7 +125,7 @@ internal fun Route.getRunDependencyGraph(
             }
 
             HttpStatusCode.NotFound to {
-                description = "No analyzer run exists for the ORT run."
+                description = "The ORT run does not exist, or no analyzer run exists for it."
             }
 
             HttpStatusCode.BadRequest to {

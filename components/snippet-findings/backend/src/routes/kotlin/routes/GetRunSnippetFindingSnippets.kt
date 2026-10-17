@@ -87,7 +87,7 @@ internal fun Route.getRunSnippetFindingSnippets(
             }
 
             HttpStatusCode.NotFound to {
-                description = "The snippet finding does not belong to the ORT run."
+                description = "The ORT run does not exist, or the snippet finding does not belong to it."
             }
 
             HttpStatusCode.BadRequest to {
@@ -97,8 +97,6 @@ internal fun Route.getRunSnippetFindingSnippets(
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")
         val snippetFindingId = call.requireIdParameter("snippetFindingId")
-
-        ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
         if (!service.hasSnippetFindingForRun(runId, snippetFindingId)) {
             return@get call.respond(HttpStatusCode.NotFound)

@@ -113,13 +113,5 @@ class GetRunSnippetFindingProvenancesIntegrationTest : SnippetFindingIntegration
                 body.data.none { it.id == seeded.otherProvenanceId } shouldBe true
             }
         }
-
-        "return 404 when run does not exist" {
-            snippetFindingTestApplication { client ->
-                val response = client.get("/runs/999999/snippet-findings/provenances")
-
-                response.status shouldBe HttpStatusCode.NotFound
-            }
-        }
     }
 })

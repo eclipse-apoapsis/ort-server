@@ -85,7 +85,7 @@ internal fun Route.getRunProvenanceSnippetFindings(
             }
 
             HttpStatusCode.NotFound to {
-                description = "The provenance does not belong to the ORT run."
+                description = "The ORT run does not exist, or the provenance does not belong to it."
             }
 
             HttpStatusCode.BadRequest to {
@@ -95,8 +95,6 @@ internal fun Route.getRunProvenanceSnippetFindings(
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")
         val provenanceId = call.requireIdParameter("provenanceId")
-
-        ortRunRepository.get(runId) ?: return@get call.respond(HttpStatusCode.NotFound)
 
         if (!service.hasProvenanceForRun(runId, provenanceId)) {
             return@get call.respond(HttpStatusCode.NotFound)

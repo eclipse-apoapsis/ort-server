@@ -19,7 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.components.licensefindings.routes
 
+import io.kotest.matchers.shouldBe
+
 import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -68,6 +71,16 @@ class LicenseFindingAuthorizationTest : AbstractAuthorizationTest({
                 hierarchyId = hierarchyId
             ) {
                 get("/runs/$ortRunId/detected-licenses")
+            }
+        }
+
+        "respond with NotFound for an unknown run" {
+            authorizationTestApplication(
+                routes = {
+                    licenseFindingRoutes(service, ortRunRepository)
+                }
+            ) { _, testUserClient ->
+                testUserClient.get("/runs/999999/detected-licenses").status shouldBe HttpStatusCode.NotFound
             }
         }
     }
