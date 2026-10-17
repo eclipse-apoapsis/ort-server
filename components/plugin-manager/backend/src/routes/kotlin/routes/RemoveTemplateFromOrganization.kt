@@ -58,7 +58,7 @@ internal fun Route.removeTemplateFromOrganization(
             required = true
         }
 
-        queryParameter<String>("organizationId") {
+        queryParameter<Long>("organizationId") {
             description = "The ID of the organization from which the template should be removed."
             required = true
         }

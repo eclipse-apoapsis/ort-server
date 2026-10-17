@@ -32,7 +32,6 @@ import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
 internal fun Route.getAvailableRepositorySecrets(
     repositoryService: RepositoryService,
@@ -49,7 +48,6 @@ internal fun Route.getAvailableRepositorySecrets(
         pathParameter<Long>("repositoryId") {
             description = "The ID of the repository."
         }
-        standardListQueryParameters()
     }
 
     response {

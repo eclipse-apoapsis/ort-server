@@ -130,6 +130,7 @@ val deleteUser: RouteConfig.() -> Unit = {
     request {
         queryParameter<String>("username") {
             description = "The username of the user to delete."
+            required = true
         }
     }
 

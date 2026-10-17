@@ -297,12 +297,13 @@ val deleteOrganizationRoleFromUser: RouteConfig.() -> Unit = {
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
-        pathParameter<String>("role") {
+        pathParameter<OrganizationRole>("role") {
             description = "The role to remove from the user."
         }
 
         queryParameter<String>("username") {
             description = "The username of the user."
+            required = true
         }
     }
 

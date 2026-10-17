@@ -47,7 +47,7 @@ internal fun Route.deleteRuleViolationResolution(
         tags = listOf("Resolutions")
 
         request {
-            pathParameter<String>("repositoryId") {
+            pathParameter<Long>("repositoryId") {
                 description = "The ID of the repository the rule violation belongs to."
                 required = true
             }

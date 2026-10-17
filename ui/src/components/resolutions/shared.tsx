@@ -379,7 +379,7 @@ export function ResolutionForm({
       if (mode === 'create') {
         await issueCreateMutation.mutateAsync({
           path: {
-            repositoryId: context.repositoryId,
+            repositoryId: Number.parseInt(context.repositoryId),
           },
           body: {
             comment: values.comment,
@@ -390,7 +390,7 @@ export function ResolutionForm({
       } else {
         await issueUpdateMutation.mutateAsync({
           path: {
-            repositoryId: context.repositoryId,
+            repositoryId: Number.parseInt(context.repositoryId),
             messageHash: context.identifier,
           },
           body: {
@@ -403,7 +403,7 @@ export function ResolutionForm({
       if (mode === 'create') {
         await ruleViolationCreateMutation.mutateAsync({
           path: {
-            repositoryId: context.repositoryId,
+            repositoryId: Number.parseInt(context.repositoryId),
           },
           body: {
             comment: values.comment,
@@ -414,7 +414,7 @@ export function ResolutionForm({
       } else {
         await ruleViolationUpdateMutation.mutateAsync({
           path: {
-            repositoryId: context.repositoryId,
+            repositoryId: Number.parseInt(context.repositoryId),
             messageHash: context.identifier,
           },
           body: {
@@ -427,7 +427,7 @@ export function ResolutionForm({
       if (mode === 'create') {
         await vulnerabilityCreateMutation.mutateAsync({
           path: {
-            repositoryId: context.repositoryId,
+            repositoryId: Number.parseInt(context.repositoryId),
             externalId: context.identifier,
           },
           body: values as PostVulnerabilityResolution,
@@ -435,7 +435,7 @@ export function ResolutionForm({
       } else {
         await vulnerabilityUpdateMutation.mutateAsync({
           path: {
-            repositoryId: context.repositoryId,
+            repositoryId: Number.parseInt(context.repositoryId),
             externalId: context.identifier,
           },
           body: {
