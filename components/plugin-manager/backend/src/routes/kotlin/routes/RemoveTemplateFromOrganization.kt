@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -67,6 +68,12 @@ internal fun Route.removeTemplateFromOrganization(
     response {
         HttpStatusCode.OK to {
             description = "The template was successfully removed from the organization."
+            body<String> {
+                mediaTypes = setOf(ContentType.Text.Plain)
+                example("Success message") {
+                    value = "Template removed from organization successfully."
+                }
+            }
         }
 
         HttpStatusCode.NotFound to {

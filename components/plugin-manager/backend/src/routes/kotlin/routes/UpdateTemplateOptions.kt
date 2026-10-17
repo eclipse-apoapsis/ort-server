@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -75,6 +76,12 @@ internal fun Route.updateTemplateOptions(
     response {
         HttpStatusCode.OK to {
             description = "The options were successfully updated."
+            body<String> {
+                mediaTypes = setOf(ContentType.Text.Plain)
+                example("Success message") {
+                    value = "Template options updated successfully."
+                }
+            }
         }
 
         HttpStatusCode.BadRequest to {

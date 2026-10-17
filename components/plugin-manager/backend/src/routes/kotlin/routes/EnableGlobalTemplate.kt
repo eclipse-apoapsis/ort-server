@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -60,6 +61,12 @@ internal fun Route.enableGlobalTemplate(
     response {
         HttpStatusCode.OK to {
             description = "Successfully enabled the global plugin template."
+            body<String> {
+                mediaTypes = setOf(ContentType.Text.Plain)
+                example("Success message") {
+                    value = "Global plugin template enabled successfully."
+                }
+            }
         }
 
         HttpStatusCode.BadRequest to {
