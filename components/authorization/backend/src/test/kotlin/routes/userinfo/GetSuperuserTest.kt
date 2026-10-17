@@ -22,9 +22,11 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes.userinfo
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.shouldBe
 
+import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
@@ -52,7 +54,8 @@ class GetSuperuserTest : AbstractAuthorizationTest({
 
                 val response = client.get("/authorization/superuser")
                 response shouldHaveStatus HttpStatusCode.OK
-                response.bodyAsText() shouldBe "true"
+                response.contentType()?.withoutParameters() shouldBe ContentType.Application.Json
+                response.body<Boolean>() shouldBe true
             }
         }
 
@@ -67,7 +70,8 @@ class GetSuperuserTest : AbstractAuthorizationTest({
 
                 val response = client.get("/authorization/superuser")
                 response shouldHaveStatus HttpStatusCode.OK
-                response.bodyAsText() shouldBe "false"
+                response.contentType()?.withoutParameters() shouldBe ContentType.Application.Json
+                response.body<Boolean>() shouldBe false
             }
         }
 
