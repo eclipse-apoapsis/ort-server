@@ -198,6 +198,12 @@ val getRunLogs: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success. The response body contains a Zip archive with the selected log files."
+            header<String>("Content-Type") {
+                description = "The content type is set to 'application/zip'."
+            }
+            header<String>("Content-Disposition") {
+                description = "Contains the suggested file name of the archive."
+            }
         }
 
         HttpStatusCode.NotFound to {

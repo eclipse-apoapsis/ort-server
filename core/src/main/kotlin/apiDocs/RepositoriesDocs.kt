@@ -416,7 +416,7 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
     }
 
     response {
-        HttpStatusCode.OK to {
+        HttpStatusCode.Created to {
             description = "Success"
             jsonBody<OrtRun> {
                 example("Create ORT run") {

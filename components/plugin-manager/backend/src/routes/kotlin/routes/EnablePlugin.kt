@@ -53,7 +53,7 @@ internal fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plug
     }
 
     response {
-        HttpStatusCode.OK to {
+        HttpStatusCode.Accepted to {
             description = "The plugin was enabled successfully."
         }
 

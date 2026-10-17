@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -75,6 +76,12 @@ internal fun Route.createTemplate(
     response {
         HttpStatusCode.OK to {
             description = "The template was successfully created."
+            body<String> {
+                mediaTypes = setOf(ContentType.Text.Plain)
+                example("Success message") {
+                    value = "Template created successfully."
+                }
+            }
         }
 
         HttpStatusCode.BadRequest to {

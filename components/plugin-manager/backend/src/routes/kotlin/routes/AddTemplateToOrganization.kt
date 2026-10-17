@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.onOk
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -70,6 +71,12 @@ internal fun Route.addTemplateToOrganization(
     response {
         HttpStatusCode.OK to {
             description = "The template was successfully added to the organization."
+            body<String> {
+                mediaTypes = setOf(ContentType.Text.Plain)
+                example("Success message") {
+                    value = "Template added to organization successfully."
+                }
+            }
         }
 
         HttpStatusCode.NotFound to {
