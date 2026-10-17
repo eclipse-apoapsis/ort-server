@@ -51,6 +51,10 @@ internal fun Route.deleteProductInfrastructureService(
         HttpStatusCode.NoContent to {
             description = "Success"
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product or the infrastructure service does not exist."
+        }
     }
 }, requirePermission(ProductPermission.WRITE)) {
     val prodId = call.requireIdParameter("productId")

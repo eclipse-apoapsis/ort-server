@@ -73,6 +73,10 @@ val getOrganization: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The organization does not exist."
+        }
     }
 }
 
@@ -166,6 +170,10 @@ val patchOrganization: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The organization does not exist."
+        }
     }
 }
 
@@ -183,6 +191,10 @@ val deleteOrganization: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The organization does not exist."
         }
     }
 }

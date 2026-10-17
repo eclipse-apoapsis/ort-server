@@ -83,6 +83,10 @@ internal fun Route.patchOrganizationInfrastructureService(
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The infrastructure service does not exist."
+        }
     }
 }, requirePermission(OrganizationPermission.WRITE)) {
     val organizationId = call.requireIdParameter("organizationId")

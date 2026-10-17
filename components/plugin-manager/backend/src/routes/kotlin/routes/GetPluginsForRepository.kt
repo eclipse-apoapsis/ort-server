@@ -107,6 +107,10 @@ internal fun Route.getPluginsForRepository(
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
+        }
     }
 }, requirePermission(RepositoryPermission.READ)) {
     val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))

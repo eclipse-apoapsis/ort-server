@@ -71,6 +71,10 @@ internal fun Route.patchRepositorySecret(secretService: SecretService) =
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The repository or the secret does not exist."
+            }
         }
     }, requirePermission(RepositoryPermission.WRITE_SECRETS)) {
         val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))

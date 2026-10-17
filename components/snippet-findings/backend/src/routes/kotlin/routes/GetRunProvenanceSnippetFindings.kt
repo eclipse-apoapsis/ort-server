@@ -82,6 +82,10 @@ internal fun Route.getRunProvenanceSnippetFindings(
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The provenance does not belong to the ORT run."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")

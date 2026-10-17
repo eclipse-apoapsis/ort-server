@@ -242,6 +242,10 @@ val getRepository: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
+        }
     }
 }
 
@@ -286,6 +290,10 @@ val patchRepository: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
+        }
     }
 }
 
@@ -303,6 +311,10 @@ val deleteRepository: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.NoContent to {
             description = "Success"
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
         }
     }
 }
@@ -382,6 +394,10 @@ val getRepositoryRuns: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
+        }
     }
 }
 
@@ -442,6 +458,10 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
+        }
     }
 }
 
@@ -487,6 +507,10 @@ val getRepositoryRun: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository or the ORT run does not exist."
         }
     }
 }
@@ -627,6 +651,10 @@ val getRepositoryUsers: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
         }
     }
 }

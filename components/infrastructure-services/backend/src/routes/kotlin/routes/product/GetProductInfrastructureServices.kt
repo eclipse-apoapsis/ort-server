@@ -87,6 +87,10 @@ internal fun Route.getProductInfrastructureServices(
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The product does not exist."
+        }
     }
 }, requirePermission(ProductPermission.READ)) {
     val prodId = call.requireIdParameter("productId")

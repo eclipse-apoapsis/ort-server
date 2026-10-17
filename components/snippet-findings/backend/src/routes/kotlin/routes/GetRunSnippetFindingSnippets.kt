@@ -84,6 +84,10 @@ internal fun Route.getRunSnippetFindingSnippets(
                     }
                 }
             }
+
+            HttpStatusCode.NotFound to {
+                description = "The snippet finding does not belong to the ORT run."
+            }
         }
     }, requireRunReadPermission(ortRunRepository)) {
         val runId = call.requireIdParameter("runId")

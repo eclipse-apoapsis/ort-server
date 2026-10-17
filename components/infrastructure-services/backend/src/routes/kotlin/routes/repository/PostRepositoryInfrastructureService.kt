@@ -75,6 +75,10 @@ internal fun Route.postRepositoryInfrastructureService(
                 }
             }
         }
+
+        HttpStatusCode.NotFound to {
+            description = "The repository does not exist."
+        }
     }
 }, requirePermission(RepositoryPermission.WRITE)) {
     val repositoryId = call.requireIdParameter("repositoryId")
