@@ -97,7 +97,8 @@ val patchProduct: RouteConfig.() -> Unit = {
             description = "The product's ID."
         }
         jsonBody<PatchProduct> {
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            description = "Set the values that should be updated. Omitted values are not changed. To delete the " +
+                    "description, set it explicitly to null."
             example("Update Product") {
                 value = PatchProduct(name = "Update Product".asPresent(), description = "Updated product".asPresent())
             }
@@ -280,7 +281,11 @@ val putProductRoleToUser: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.NotFound to {
-            description = "Product or role not found."
+            description = "The product or the user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The role is invalid."
         }
     }
 }
@@ -288,6 +293,8 @@ val putProductRoleToUser: RouteConfig.() -> Unit = {
 val deleteProductRoleFromUser: RouteConfig.() -> Unit = {
     operationId = "deleteProductRoleFromUser"
     summary = "Remove a product role from a user"
+    description = "Remove the role that the user has on the product. The role in the path must be " +
+            "a valid role, but it is not compared with the role that is actually assigned."
     tags = listOf("Products")
 
     request {
@@ -310,7 +317,11 @@ val deleteProductRoleFromUser: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.NotFound to {
-            description = "Product or role not found."
+            description = "The product or the user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The role is invalid."
         }
     }
 }
@@ -520,10 +531,10 @@ val getProductRunStatistics: RouteConfig.() -> Unit = {
 val getProductUsers: RouteConfig.() -> Unit = {
     operationId = "getProductUsers"
     summary = "Get all users for a product"
-    description = "Get all users that have access rights for a product, including the user privileges (groups) " +
-            "the user has within the product. Fields available for sorting: 'username', 'firstName', " +
-            "'lastName', 'email', 'group'. NOTE: This endpoint supports only one sort field. All fields other than " +
-            " the first one are ignored."
+    description = "Get all users that have a role assigned directly on a product, including the group " +
+            "that corresponds to their role. Users that only inherit access from a higher level are not " +
+            "included. Fields available for sorting: 'username', 'firstName', 'lastName', 'email', " +
+            "'group'. NOTE: This endpoint supports exactly one sort field."
     tags = listOf("Products")
 
     request {
@@ -549,7 +560,6 @@ val getProductUsers: RouteConfig.() -> Unit = {
                                     email = "johndoe@example.com"
                                 ),
                                 listOf(
-                                    UserGroup.READERS,
                                     UserGroup.WRITERS
                                 )
                             )
@@ -567,6 +577,10 @@ val getProductUsers: RouteConfig.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The product does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "Not exactly one sort field or an unsupported sort field was provided."
         }
     }
 }

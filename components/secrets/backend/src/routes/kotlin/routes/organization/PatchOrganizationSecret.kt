@@ -60,7 +60,7 @@ internal fun Route.patchOrganizationSecret(secretService: SecretService) =
                         description = "New access token for Maven Repo 1".asPresent()
                     )
                 }
-                description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+                description = "Set the values that should be updated. Omitted values are not changed."
             }
         }
 

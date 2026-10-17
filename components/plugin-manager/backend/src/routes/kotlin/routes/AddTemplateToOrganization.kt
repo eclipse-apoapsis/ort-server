@@ -80,11 +80,12 @@ internal fun Route.addTemplateToOrganization(
         }
 
         HttpStatusCode.NotFound to {
-            description = "The specified plugin, plugin template, or organization does not exist."
+            description = "The template or the organization does not exist."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The template is already assigned to the organization."
+            description = "The specified plugin is not installed, the template was deleted, or the template is " +
+                    "already assigned to the organization."
         }
     }
 }, requireSuperuser()) {

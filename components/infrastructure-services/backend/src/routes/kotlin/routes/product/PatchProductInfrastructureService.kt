@@ -63,7 +63,8 @@ internal fun Route.patchProductInfrastructureService(
                     credentialsTypes = setOf(CredentialsType.NETRC_FILE).asPresent()
                 )
             }
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            description = "Set the values that should be updated. Omitted values are not changed. To delete the " +
+                    "description, set it explicitly to null."
         }
     }
 

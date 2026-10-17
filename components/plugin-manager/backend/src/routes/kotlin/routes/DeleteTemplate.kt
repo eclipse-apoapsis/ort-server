@@ -69,11 +69,11 @@ internal fun Route.deleteTemplate(
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed."
+            description = "The specified plugin is not installed or the template was already deleted."
         }
 
         HttpStatusCode.NotFound to {
-            description = "The specified plugin or template was not found."
+            description = "The template does not exist."
         }
     }
 }, requireSuperuser()) {

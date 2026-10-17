@@ -77,11 +77,12 @@ internal fun Route.removeTemplateFromOrganization(
         }
 
         HttpStatusCode.NotFound to {
-            description = "The specified plugin, plugin template, or organization does not exist."
+            description = "The template does not exist."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The template is not assigned to the organization."
+            description = "The specified plugin is not installed, the template was deleted, or the template is " +
+                    "not assigned to the organization."
         }
     }
 }, requireSuperuser()) {

@@ -155,7 +155,8 @@ val patchOrganization: RouteConfig.() -> Unit = {
             description = "The organization's ID."
         }
         jsonBody<PatchOrganization> {
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+            description = "Set the values that should be updated. Omitted values are not changed. To delete the " +
+                    "description, set it explicitly to null."
             example("Update Organization") {
                 value = PatchOrganization(
                     name = "My updated Organization".asPresent(),
@@ -307,7 +308,11 @@ val putOrganizationRoleToUser: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.NotFound to {
-            description = "Organization or role not found."
+            description = "The organization or the user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The role is invalid."
         }
     }
 }
@@ -315,6 +320,8 @@ val putOrganizationRoleToUser: RouteConfig.() -> Unit = {
 val deleteOrganizationRoleFromUser: RouteConfig.() -> Unit = {
     operationId = "deleteOrganizationRoleFromUser"
     summary = "Remove an organization role from a user"
+    description = "Remove the role that the user has on the organization. The role in the path must be " +
+            "a valid role, but it is not compared with the role that is actually assigned."
     tags = listOf("Organizations")
 
     request {
@@ -337,7 +344,11 @@ val deleteOrganizationRoleFromUser: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.NotFound to {
-            description = "Organization or role not found."
+            description = "The organization or the user does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The role is invalid."
         }
     }
 }
@@ -535,10 +546,10 @@ val getOrganizationRunStatistics: RouteConfig.() -> Unit = {
 val getOrganizationUsers: RouteConfig.() -> Unit = {
     operationId = "getOrganizationUsers"
     summary = "Get all users for an organization"
-    description = "Get all users that have access rights for an organization, including the user privileges (groups) " +
-            "the user has within the organization. Fields available for sorting: 'username', 'firstName', " +
-            "'lastName', 'email', 'group'. NOTE: This endpoint supports only one sort field. All fields other than " +
-            " the first one are ignored."
+    description = "Get all users that have a role assigned directly on an organization, including the group " +
+            "that corresponds to their role. Users that only inherit access from a higher level are not " +
+            "included. Fields available for sorting: 'username', 'firstName', 'lastName', 'email', " +
+            "'group'. NOTE: This endpoint supports exactly one sort field."
     tags = listOf("Organizations")
 
     request {
@@ -564,7 +575,6 @@ val getOrganizationUsers: RouteConfig.() -> Unit = {
                                     email = "johndoe@example.com"
                                 ),
                                 listOf(
-                                    UserGroup.READERS,
                                     UserGroup.WRITERS
                                 )
                             )
@@ -578,6 +588,10 @@ val getOrganizationUsers: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "Not exactly one sort field or an unsupported sort field was provided."
         }
     }
 }

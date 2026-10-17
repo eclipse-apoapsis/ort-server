@@ -39,7 +39,8 @@ import org.jetbrains.exposed.v1.jdbc.Database
 internal fun Route.setServerSettingByKey(db: Database) = post("settings/server/{key}", {
     operationId = "SetServerSettingByKey"
     summary = "Set the server setting for the provided key"
-    description = "Set the value and isEnabled properties for a server setting key."
+    description = "Set the value and isEnabled properties for a server setting key. If the value is null, the " +
+            "default value of the setting is stored."
     tags = listOf("Settings")
 
     request {
