@@ -1,0 +1,117 @@
+.pipeline {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto
+    minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline li {
+  margin: 0;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ort-border);
+  border-radius: var(--ort-radius-md);
+  background-color: var(--ort-surface);
+  box-shadow: var(--ort-shadow-sm);
+}
+
+.stageName {
+  margin-bottom: 0.375rem;
+  font-size: 1.0625rem;
+}
+
+/* #495560 on white is 7.6:1, #ccced0 on #22272d 10.5:1. */
+.optional {
+  position: absolute;
+  top: 1.25rem;
+  right: 1rem;
+  padding: 0.0625rem 0.5rem;
+  border: 1px dashed var(--ort-border-strong);
+  border-radius: 999px;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stageDescription {
+  margin: 0;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.connector {
+  display: flex;
+  justify-content: center;
+  color: var(--ort-border-strong);
+  font-size: 1.25rem;
+}
+
+.parallel {
+  position: relative;
+  padding: 1.75rem 0.5rem 0.5rem;
+  border: 1px dashed var(--ort-border-strong);
+  border-radius: calc(var(--ort-radius-md) + 0.5rem);
+}
+
+.parallelLabel {
+  position: absolute;
+  top: 0.375rem;
+  left: 0;
+  right: 0;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.parallelStages {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Below desktop width the pipeline flows from top to bottom. */
+@media screen and (max-width: 1199px) {
+  .pipeline {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 40rem;
+    margin: 0 auto;
+  }
+
+  .stage {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .connector {
+    transform: rotate(90deg);
+  }
+}
+
+@media screen and (min-width: 640px) and (max-width: 1199px) {
+  .parallelStages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .parallelStages .stage {
+    flex-direction: column;
+  }
+}

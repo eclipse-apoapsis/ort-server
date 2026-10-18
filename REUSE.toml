@@ -211,6 +211,11 @@ SPDX-FileCopyrightText = "2017 The ORT Project Authors (see <https://github.com/
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "website/src/components/Homepage/carbonIcons.ts"
+SPDX-FileCopyrightText = "IBM Corp. (see <https://github.com/carbon-design-system/carbon>)"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "ui/src/assets/cyclonedx-logo*.svg"
 SPDX-FileCopyrightText = "2018 OWASP Foundation, Inc (see <https://cyclonedx.org/about/branding/>)"
 SPDX-License-Identifier = "CC-BY-ND-4.0"

@@ -1,0 +1,64 @@
+/* Three cards in the first row, two wider cards in the second. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  grid-column: span 2;
+  margin: 0;
+  padding: 1.75rem;
+  border: 1px solid var(--ort-border);
+  border-radius: var(--ort-radius-md);
+  background-color: var(--ort-surface);
+  box-shadow: var(--ort-shadow-sm);
+}
+
+.card:nth-child(n + 4) {
+  grid-column: span 3;
+}
+
+.title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.1875rem;
+}
+
+.description {
+  margin: 0;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.6;
+}
+
+.logo {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+@media screen and (max-width: 996px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card,
+  .card:nth-child(n + 4) {
+    grid-column: span 1;
+  }
+
+  .card:first-child {
+    grid-column: span 2;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card:first-child {
+    grid-column: span 1;
+  }
+}

@@ -1,0 +1,125 @@
+.background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora {
+  position: absolute;
+  inset: -10%;
+  animation: drift 24s ease-in-out infinite alternate;
+}
+
+/* Color fields mostly behind the screenshot on the right. */
+.side .aurora {
+  background:
+    radial-gradient(
+      36rem 26rem at 78% 22%,
+      rgba(190, 52, 89, var(--ort-aurora-strength)),
+      transparent 70%
+    ),
+    radial-gradient(
+      30rem 24rem at 98% 78%,
+      rgba(99, 76, 175, var(--ort-aurora-strength)),
+      transparent 70%
+    ),
+    radial-gradient(
+      30rem 20rem at 52% 100%,
+      rgba(38, 165, 161, var(--ort-aurora-strength)),
+      transparent 70%
+    ),
+    radial-gradient(
+      28rem 18rem at 0% 0%,
+      rgba(190, 52, 89, calc(var(--ort-aurora-strength) * 0.4)),
+      transparent 70%
+    );
+}
+
+/* Color fields in the corners, around centered content. */
+.center .aurora {
+  background:
+    radial-gradient(
+      30rem 20rem at 8% 15%,
+      rgba(190, 52, 89, var(--ort-aurora-strength)),
+      transparent 70%
+    ),
+    radial-gradient(
+      30rem 20rem at 95% 90%,
+      rgba(99, 76, 175, var(--ort-aurora-strength)),
+      transparent 70%
+    ),
+    radial-gradient(
+      24rem 16rem at 92% 5%,
+      rgba(38, 165, 161, calc(var(--ort-aurora-strength) * 0.8)),
+      transparent 70%
+    );
+}
+
+.graph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * The graph stays faint behind the content, so that it never competes with
+ * the text.
+ */
+.side .graph {
+  mask-image:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.35) 0%,
+      rgba(0, 0, 0, 0.45) 35%,
+      #000 65%
+    ),
+    linear-gradient(180deg, #000 55%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.center .graph {
+  mask-image: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.3) 25%,
+    #000 75%
+  );
+}
+
+.edges path {
+  fill: none;
+  stroke-opacity: var(--ort-graph-edge-opacity);
+  stroke-width: 1.25;
+}
+
+.node {
+  fill: var(--ort-graph-node);
+}
+
+.onColor .edges path {
+  stroke-opacity: 0.3;
+}
+
+.onColor .node {
+  fill: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-3%, 2%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora {
+    animation: none;
+  }
+
+  .packet {
+    display: none;
+  }
+}
