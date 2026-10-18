@@ -23,13 +23,36 @@
   --ifm-color-content: #333b43;
   --ifm-color-content-secondary: #495560;
   --ifm-heading-color: #333b43;
+  /* Infima leaves the light background transparent. */
+  --ifm-background-color: #ffffff;
 
   --ifm-font-family-base:
     'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu,
     Cantarell, 'Noto Sans', sans-serif;
   --ifm-heading-font-weight: 700;
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-code-background: #f5f5f5;
+  --ifm-code-padding-horizontal: 0.35rem;
+  --ifm-code-border-radius: 4px;
+  --docusaurus-highlighted-code-line-bg: rgba(51, 59, 67, 0.08);
+  --ifm-table-stripe-background: rgba(51, 59, 67, 0.03);
+
+  /*
+   * Neutral greys from the slate palette instead of Infima's blue-greys. Infima
+   * derives its emphasis colors from this scale and reverses it in dark mode.
+   * #5b646d (700) on white is 6.0:1.
+   */
+  --ifm-color-gray-0: #ffffff;
+  --ifm-color-gray-100: #f5f5f5;
+  --ifm-color-gray-200: #e1e2e3;
+  --ifm-color-gray-300: #ccced0;
+  --ifm-color-gray-400: #b2b5b8;
+  --ifm-color-gray-500: #979b9f;
+  --ifm-color-gray-600: #7d8185;
+  --ifm-color-gray-700: #5b646d;
+  --ifm-color-gray-800: #333b43;
+  --ifm-color-gray-900: #22272d;
+  --ifm-color-gray-1000: #1b1f24;
 
   /* Design tokens shared by custom components. */
   --ort-accent-teal: #26a5a1;
@@ -38,6 +61,7 @@
   --ort-accent-purple-text: #634caf; /* 6.6:1 on white. */
   --ort-accent-purple-soft: #e7e4f3;
   --ort-primary-soft: #f2e1e6;
+  --ort-primary-on-soft: #a22c4c; /* 5.4:1 on --ort-primary-soft. */
   --ort-surface: #ffffff;
   --ort-surface-alt: #fbf6f7;
   --ort-surface-raised: #ffffff;
@@ -56,7 +80,8 @@
   --ort-aurora-strength: 0.3;
 }
 
-[data-theme='dark'] {
+/* `html` is needed to override Infima's dark mode text colors. */
+html[data-theme='dark'] {
   /*
    * In dark mode the primary color is lightened so that it stays readable:
    * #e07a96 on the page background #1b1f24 is 5.8:1, on the surfaces #20252b
@@ -79,7 +104,9 @@
   --ifm-background-color: #1b1f24;
   --ifm-background-surface-color: #22272d;
   --ifm-navbar-background-color: #1b1f24;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-code-background: #2a3037;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
+  --ifm-table-stripe-background: rgba(255, 255, 255, 0.03);
 
   --ort-accent-teal: #66cbc8;
   --ort-accent-teal-text: #66cbc8; /* 8.6:1 on #1b1f24. */
@@ -87,6 +114,7 @@
   --ort-accent-purple-text: #9d8dcb; /* 5.6:1 on #1b1f24. */
   --ort-accent-purple-soft: rgba(99, 76, 175, 0.22);
   --ort-primary-soft: rgba(190, 52, 89, 0.18);
+  --ort-primary-on-soft: #e07a96; /* 5.1:1 on --ort-primary-soft. */
   --ort-surface: #22272d;
   --ort-surface-alt: #20252b;
   --ort-surface-raised: #2a3037;
@@ -151,7 +179,357 @@ h3 {
   border-top: 1px solid var(--ort-border);
 }
 
+/* The light mode primary focus ring is only 2.7:1 on the dark footer. */
+.footer--dark :focus-visible {
+  outline-color: #e07a96;
+}
+
 /* Prevent the page from scrolling behind an open modal dialog. */
 html:has(dialog[open]) {
   overflow: hidden;
+}
+
+/* Docs and API pages */
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/*
+ * Content links are underlined, because the link color alone differs too
+ * little from the text color (2.1:1, WCAG asks for 3:1).
+ */
+.markdown a:is(:not([class]), [class='']) {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--ifm-transition-fast);
+}
+
+.markdown a:is(:not([class]), [class='']):hover {
+  text-decoration-color: currentColor;
+}
+
+.markdown :not(pre) > code {
+  border-color: var(--ort-border);
+}
+
+/* Code blocks and tables get the card shape used on the homepage. */
+.markdown .theme-code-block {
+  /* The inner code area uses these radii, they have to fit inside the border. */
+  --ifm-code-border-radius: calc(var(--ort-radius-md) - 1px);
+  --ifm-pre-border-radius: calc(var(--ort-radius-md) - 1px);
+  border: 1px solid var(--ort-border);
+  border-radius: var(--ort-radius-md);
+  box-shadow: none;
+}
+
+.markdown table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--ort-border);
+  border-radius: var(--ort-radius-md);
+}
+
+.markdown th,
+.markdown td {
+  border: 0;
+  border-bottom: 1px solid var(--ort-border);
+  border-left: 1px solid var(--ort-border);
+}
+
+.markdown tr > :first-child {
+  border-left: 0;
+}
+
+.markdown tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.markdown thead th {
+  background-color: var(--ort-surface-alt);
+}
+
+/* Cell backgrounds are not clipped by the table, so round the corner cells. */
+.markdown thead tr:first-child > :first-child {
+  border-top-left-radius: calc(var(--ort-radius-md) - 1px);
+}
+
+.markdown thead tr:first-child > :last-child {
+  border-top-right-radius: calc(var(--ort-radius-md) - 1px);
+}
+
+.markdown tbody tr:last-child > :first-child {
+  border-bottom-left-radius: calc(var(--ort-radius-md) - 1px);
+}
+
+.markdown tbody tr:last-child > :last-child {
+  border-bottom-right-radius: calc(var(--ort-radius-md) - 1px);
+}
+
+/*
+ * Infima displays tables as blocks so that wide tables can scroll, which makes
+ * them only as wide as their content. On larger screens, tables fill the full
+ * width and long cell content wraps instead.
+ */
+@media (min-width: 768px) {
+  .markdown table {
+    display: table;
+    width: 100%;
+  }
+
+  .markdown td {
+    overflow-wrap: anywhere;
+  }
+}
+
+/*
+ * Admonitions: tinted background with a thin accent bar. Titles are at least
+ * 5.3:1 and body text at least 9.9:1 against the tinted backgrounds.
+ */
+.alert.theme-admonition {
+  --ifm-alert-foreground-color: var(--ort-admonition-title);
+  border: 1px solid var(--ort-admonition-border);
+  border-left: 3px solid var(--ort-admonition-accent);
+  border-radius: var(--ort-radius-md);
+  background-color: var(--ort-admonition-background);
+  box-shadow: none;
+}
+
+.theme-admonition [class*='admonitionHeading'] {
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+}
+
+.theme-admonition [class*='admonitionContent'] {
+  color: var(--ifm-color-content);
+}
+
+.theme-admonition-note {
+  --ort-admonition-accent: #7d8185;
+  --ort-admonition-title: #495560;
+}
+
+.theme-admonition-tip {
+  --ort-admonition-accent: #00a400;
+  --ort-admonition-title: #007300;
+}
+
+.theme-admonition-info {
+  --ort-admonition-accent: #3b8ba5;
+  --ort-admonition-title: #2d6b80;
+}
+
+.theme-admonition-warning,
+.theme-admonition-caution {
+  --ort-admonition-accent: #ffba00;
+  --ort-admonition-title: #805400;
+}
+
+.theme-admonition-danger {
+  --ort-admonition-accent: #fa383e;
+  --ort-admonition-title: #af272b;
+}
+
+.theme-admonition {
+  --ort-admonition-background: color-mix(
+    in srgb,
+    var(--ort-admonition-accent) 10%,
+    var(--ifm-background-color)
+  );
+  --ort-admonition-border: color-mix(
+    in srgb,
+    var(--ort-admonition-accent) 30%,
+    var(--ifm-background-color)
+  );
+}
+
+[data-theme='dark'] .theme-admonition {
+  --ort-admonition-background: color-mix(
+    in srgb,
+    var(--ort-admonition-accent) 12%,
+    var(--ifm-background-color)
+  );
+}
+
+[data-theme='dark'] .theme-admonition-note {
+  --ort-admonition-title: #ccced0;
+}
+
+[data-theme='dark'] .theme-admonition-tip {
+  --ort-admonition-title: #80d280;
+}
+
+[data-theme='dark'] .theme-admonition-info {
+  --ort-admonition-accent: #54c7ec;
+  --ort-admonition-title: #7fd3f0;
+}
+
+[data-theme='dark'] .theme-admonition-warning,
+[data-theme='dark'] .theme-admonition-caution {
+  --ort-admonition-title: #ffdd80;
+}
+
+[data-theme='dark'] .theme-admonition-danger {
+  --ort-admonition-title: #fd9c9f;
+}
+
+/* Navbar: a hairline instead of the shadow and a translucent, blurred backdrop. */
+.navbar {
+  border-bottom: 1px solid var(--ort-border);
+  background-color: transparent;
+  box-shadow: none;
+}
+
+/*
+ * The backdrop is a pseudo-element, because a backdrop-filter on the navbar
+ * itself would break the fixed positioning of the mobile sidebar inside it.
+ */
+.navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: color-mix(
+    in srgb,
+    var(--ifm-navbar-background-color) 85%,
+    transparent
+  );
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
+@media (min-width: 997px) {
+  .navbar__inner .navbar__link--active {
+    position: relative;
+  }
+
+  /* Underline aligned with the bottom edge of the navbar. */
+  .navbar__inner .navbar__link--active::after {
+    content: '';
+    position: absolute;
+    right: 0.75rem;
+    bottom: calc((100% - var(--ifm-navbar-height)) / 2);
+    left: 0.75rem;
+    height: 2px;
+    border-radius: 2px;
+    background-color: var(--ifm-color-primary);
+  }
+}
+
+/* The search shortcut hint was 1.5:1, #5b646d on white is 6.0:1. */
+.navbar kbd {
+  border: 1px solid var(--ort-border-strong);
+  background: var(--ort-surface);
+  box-shadow: none;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Search results: palette greys, #5b646d on white is 6.0:1. */
+:root {
+  --search-local-modal-background: var(--ifm-color-emphasis-100);
+  --search-local-muted-color: var(--ifm-color-emphasis-700);
+}
+
+/* The selected result has white text, which fails on the light dark-mode primary. */
+html[data-theme='dark']
+  [class*='dropdownMenu_']
+  [class*='suggestion_'][class*='cursor_'] {
+  background-color: #be3459;
+}
+
+/* Sidebar */
+.menu {
+  font-size: 0.9375rem;
+}
+
+.menu__link {
+  border-radius: var(--ort-radius-sm);
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: var(--ort-primary-soft);
+  box-shadow: inset 3px 0 0 var(--ifm-color-primary);
+  color: var(--ort-primary-on-soft);
+  font-weight: 600;
+}
+
+/* Table of contents */
+.table-of-contents {
+  font-size: 0.875rem;
+}
+
+.table-of-contents__left-border {
+  border-left: 0;
+}
+
+.table-of-contents__link {
+  display: block;
+  padding-left: 0.625rem;
+  border-left: 2px solid var(--ort-border);
+  color: var(--ifm-color-content-secondary);
+}
+
+.table-of-contents__link:hover {
+  color: var(--ifm-color-content);
+}
+
+.table-of-contents__link--active,
+.table-of-contents__link--active:hover {
+  border-left-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* Previous and next page cards, matching the homepage cards. */
+.pagination-nav__link {
+  position: relative;
+  top: 0;
+  border-color: var(--ort-border);
+  border-radius: var(--ort-radius-md);
+  background-color: var(--ort-surface);
+  box-shadow: var(--ort-shadow-sm);
+  transition:
+    top var(--ifm-transition-fast),
+    border-color var(--ifm-transition-fast),
+    box-shadow var(--ifm-transition-fast);
+}
+
+.pagination-nav__link:hover {
+  top: -2px;
+  border-color: var(--ort-border-strong);
+  box-shadow: var(--ort-shadow-md);
+}
+
+.pagination-nav__sublabel {
+  color: var(--ifm-color-content-secondary);
+}
+
+.pagination-nav__link--prev .pagination-nav__label::before {
+  content: '← ';
+}
+
+.pagination-nav__link--next .pagination-nav__label::after {
+  content: ' →';
+}
+
+.theme-edit-this-page {
+  color: var(--ifm-color-content-secondary);
+}
+
+.theme-edit-this-page:hover {
+  color: var(--ifm-color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown a:is(:not([class]), [class='']),
+  .pagination-nav__link {
+    transition: none;
+  }
+
+  .pagination-nav__link:hover {
+    top: 0;
+  }
 }

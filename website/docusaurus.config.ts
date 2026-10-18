@@ -1,7 +1,8 @@
 import type * as Preset from '@docusaurus/preset-classic';
 import type { Config } from '@docusaurus/types';
 import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs';
-import { themes as prismThemes } from 'prism-react-renderer';
+
+import { darkCodeTheme, lightCodeTheme } from './src/prismThemes';
 
 const config: Config = {
   title: 'ORT Server',
@@ -105,6 +106,48 @@ const config: Config = {
 
   themeConfig: {
     image: 'img/social-card.png',
+    mermaid: {
+      options: {
+        fontFamily: "'Inter Variable', system-ui, sans-serif",
+        // Mermaid scopes these rules to each diagram, so they override its
+        // theme colors with the site's palette in both light and dark mode.
+        themeCSS: `
+          .actor, .labelBox, .activation0, .activation1, .activation2,
+          .node rect, .node polygon, .node circle, .node path {
+            fill: var(--ort-surface-alt);
+            stroke: var(--ort-border-strong);
+          }
+          .cluster rect {
+            fill: var(--ort-surface);
+            stroke: var(--ort-border);
+          }
+          text.actor, text.actor > tspan, .messageText, .labelText,
+          .labelText > tspan, .loopText, .loopText > tspan, .noteText,
+          .noteText > tspan, .nodeLabel, .edgeLabel, .label text {
+            fill: var(--ifm-color-content);
+            color: var(--ifm-color-content);
+          }
+          .actor-line, .loopLine {
+            stroke: var(--ort-border-strong);
+          }
+          .messageLine0, .messageLine1, .flowchart-link {
+            stroke: var(--ifm-color-content-secondary);
+          }
+          marker path, .arrowheadPath {
+            fill: var(--ifm-color-content-secondary);
+            stroke: var(--ifm-color-content-secondary);
+          }
+          .note {
+            fill: var(--ort-primary-soft);
+            stroke: var(--ifm-color-primary);
+          }
+          .edgeLabel, .edgeLabel rect {
+            background-color: var(--ifm-background-color);
+            fill: var(--ifm-background-color);
+          }
+        `,
+      },
+    },
     navbar: {
       title: 'ORT Server',
       logo: {
@@ -206,8 +249,8 @@ const config: Config = {
                   Built with <a href="https://docusaurus.io">Docusaurus</a>.`,
     },
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      theme: lightCodeTheme,
+      darkTheme: darkCodeTheme,
     },
   } satisfies Preset.ThemeConfig,
 };
