@@ -42,7 +42,7 @@ dependencies {
     testImplementation(libs.kotest.extensions.testcontainers)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.testContainers.floci)
+    testImplementation(libs.testContainers.floci.aws)
 
     testFixturesRuntimeOnly(libs.testContainers)
 }
