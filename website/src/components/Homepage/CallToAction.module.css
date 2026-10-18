@@ -19,6 +19,11 @@
   position: relative;
 }
 
+/* The primary focus ring has no contrast on the gradient, white has 5.5:1. */
+.band :focus-visible {
+  outline-color: #ffffff;
+}
+
 .title {
   margin-bottom: 0.75rem;
   color: #ffffff;
