@@ -48,5 +48,5 @@ dependencies {
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainers)
-    testImplementation(libs.testContainers.floci)
+    testImplementation(libs.testContainers.floci.aws)
 }
