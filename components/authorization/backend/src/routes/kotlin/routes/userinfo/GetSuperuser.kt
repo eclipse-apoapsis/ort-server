@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 
-internal fun Route.getSuperuser() = get("/authorization/superuser", {
+internal fun Route.getSuperuser() = get("authorization/superuser", {
     operationId = "getSuperuser"
     summary = "Check if the current user is a superuser"
     tags = listOf("Authorization")

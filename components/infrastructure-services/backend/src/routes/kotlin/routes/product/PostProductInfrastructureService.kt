@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 internal fun Route.postProductInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = post("/products/{productId}/infrastructure-services", {
+) = post("products/{productId}/infrastructure-services", {
     operationId = "postProductInfrastructureService"
     summary = "Create an infrastructure service for a product"
     tags = listOf("Products")

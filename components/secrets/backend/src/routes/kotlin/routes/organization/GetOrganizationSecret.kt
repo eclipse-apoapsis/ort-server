@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.getOrganizationSecret(secretService: SecretService) =
-    get("/organizations/{organizationId}/secrets/{secretName}", {
+    get("organizations/{organizationId}/secrets/{secretName}", {
         operationId = "getOrganizationSecret"
         summary = "Get details of a secret of an organization"
         tags = listOf("Organizations")

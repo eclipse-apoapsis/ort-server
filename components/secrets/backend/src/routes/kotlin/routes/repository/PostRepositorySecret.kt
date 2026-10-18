@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 internal fun Route.postRepositorySecret(secretService: SecretService) =
-    post("/repositories/{repositoryId}/secrets", {
+    post("repositories/{repositoryId}/secrets", {
         operationId = "postRepositorySecret"
         summary = "Create a secret for a repository"
         tags = listOf("Repositories")

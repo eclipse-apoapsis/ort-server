@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.addTemplateToOrganization(
     pluginTemplateService: PluginTemplateService
-) = post("/admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/addToOrganization", {
+) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/addToOrganization", {
     operationId = "AddTemplateToOrganization"
     summary = "Add a plugin template to an organization"
     description = "Add a template to an organization. Only one template for a plugin can be assigned to an " +

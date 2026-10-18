@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParamete
 internal fun Route.getAvailableRepositorySecrets(
     repositoryService: RepositoryService,
     secretService: SecretService
-) = get("/repositories/{repositoryId}/availableSecrets", {
+) = get("repositories/{repositoryId}/availableSecrets", {
     operationId = "getAvailableRepositorySecrets"
     summary = "Get all available secrets for a repository"
     description = "Get all secrets that are available in the context of the provided repository. In addition to " +

@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.getRepositorySecret(secretService: SecretService) =
-    get("/repositories/{repositoryId}/secrets/{secretName}", {
+    get("repositories/{repositoryId}/secrets/{secretName}", {
         operationId = "getRepositorySecret"
         summary = "Get details of a secret of a repository"
         tags = listOf("Repositories")

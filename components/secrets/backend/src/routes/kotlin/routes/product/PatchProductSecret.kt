@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.patchProductSecret(secretService: SecretService) =
-    patch("/products/{productId}/secrets/{secretName}", {
+    patch("products/{productId}/secrets/{secretName}", {
         operationId = "patchProductSecret"
         summary = "Update a secret of a product"
         tags = listOf("Products")

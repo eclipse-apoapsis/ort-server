@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.getOrganizationInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = get("/organizations/{organizationId}/infrastructure-services/{serviceName}", {
+) = get("organizations/{organizationId}/infrastructure-services/{serviceName}", {
     operationId = "getOrganizationInfrastructureService"
     summary = "Get an infrastructure service for an organization"
     tags = listOf("Organizations")

@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
 internal fun Route.getProductSecrets(secretService: SecretService) =
-    get("/products/{productId}/secrets", {
+    get("products/{productId}/secrets", {
         operationId = "getProductSecrets"
         summary = "Get all secrets of a specific product"
         tags = listOf("Products")
