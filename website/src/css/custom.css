@@ -114,7 +114,7 @@ html[data-theme='dark'] {
   --ort-accent-purple-text: #9d8dcb; /* 5.6:1 on #1b1f24. */
   --ort-accent-purple-soft: rgba(99, 76, 175, 0.22);
   --ort-primary-soft: rgba(190, 52, 89, 0.18);
-  --ort-primary-on-soft: #e07a96; /* 5.1:1 on --ort-primary-soft. */
+  --ort-primary-on-soft: #eaa4b7; /* 6.0:1 on --ort-primary-soft over panels. */
   --ort-surface: #22272d;
   --ort-surface-alt: #20252b;
   --ort-surface-raised: #2a3037;
@@ -530,6 +530,290 @@ html[data-theme='dark']
   }
 
   .pagination-nav__link:hover {
+    top: 0;
+  }
+}
+
+/* API reference */
+
+/*
+ * Colors for HTTP methods and status codes. The text colors are at least
+ * 5.2:1 against the tinted badge backgrounds in both themes.
+ */
+html[data-theme] {
+  --ort-get: #2d6b80;
+  --ort-get-accent: #3b8ba5;
+  --ort-post: #007300;
+  --ort-post-accent: #00a400;
+  --ort-put: #805400;
+  --ort-put-accent: #ffba00;
+  --ort-patch: #634caf;
+  --ort-patch-accent: #634caf;
+  --ort-delete: #af272b;
+  --ort-delete-accent: #fa383e;
+  --ort-badge-tint: 12%;
+
+  /* #af272b on white is 6.7:1, #2d6b80 is 6.0:1. */
+  --openapi-required: var(--ort-delete);
+  --openapi-nullable: var(--ort-get);
+  --openapi-card-border-radius: var(--ort-radius-md);
+  --openapi-card-background-color: var(--ifm-color-emphasis-100);
+  --openapi-explorer-border-color: var(--ort-border);
+  --openapi-code-tab-border-color: var(--ort-border-strong);
+}
+
+html[data-theme='dark'] {
+  --ort-get: #7fd3f0;
+  --ort-get-accent: #54c7ec;
+  --ort-post: #80d280;
+  --ort-put: #ffdd80;
+  --ort-patch: #b3a7dd;
+  --ort-delete: #fd9c9f;
+  --ort-badge-tint: 16%;
+}
+
+.api-method.get,
+.openapi__method-endpoint .badge--primary,
+.openapi-tabs__response-code-item.info {
+  --ort-method: var(--ort-get);
+  --ort-method-accent: var(--ort-get-accent);
+  --ort-method-label: 'GET';
+}
+
+.api-method.post,
+.openapi__method-endpoint .badge--success,
+.openapi-tabs__response-code-item.success {
+  --ort-method: var(--ort-post);
+  --ort-method-accent: var(--ort-post-accent);
+  --ort-method-label: 'POST';
+}
+
+.api-method.put,
+.openapi__method-endpoint .badge--info {
+  --ort-method: var(--ort-put);
+  --ort-method-accent: var(--ort-put-accent);
+  --ort-method-label: 'PUT';
+}
+
+.api-method.patch,
+.openapi__method-endpoint .badge--warning {
+  --ort-method: var(--ort-patch);
+  --ort-method-accent: var(--ort-patch-accent);
+  --ort-method-label: 'PATCH';
+}
+
+.api-method.delete,
+.openapi__method-endpoint .badge--danger,
+.openapi-tabs__response-code-item.danger {
+  --ort-method: var(--ort-delete);
+  --ort-method-accent: var(--ort-delete-accent);
+  --ort-method-label: 'DELETE';
+  --ort-method-short-label: 'DEL';
+}
+
+/* Soft method badges in the page header, the sidebar and on tag pages. */
+.openapi__method-endpoint .badge,
+.menu__list-item.api-method > .menu__link::before,
+.theme-doc-card-container.api-method .theme-doc-card-icon::before {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--ort-method-accent) 35%,
+      var(--ifm-background-color)
+    );
+  border-radius: var(--ort-radius-sm);
+  background-color: color-mix(
+    in srgb,
+    var(--ort-method-accent) var(--ort-badge-tint),
+    var(--ifm-background-color)
+  );
+  color: var(--ort-method);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.menu__list-item.api-method > .menu__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+/* Compact badges in the sidebar, wide enough for "PATCH". */
+.menu__list-item.api-method > .menu__link::before {
+  content: var(--ort-method-short-label, var(--ort-method-label));
+  width: 2.375rem;
+  margin-top: 0.125rem;
+  padding: 0.25rem 0.125rem;
+  font-size: 0.625rem;
+  letter-spacing: 0;
+}
+
+/* The badge takes space, so show the full operation name instead of 2 lines. */
+.menu__list-item.api-method > .menu__link > [class*='linkLabel_'] {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+/* Tag pages: a method badge instead of the generic page icon. */
+.theme-doc-card-container.api-method .theme-doc-card-icon {
+  font-size: 0;
+}
+
+.theme-doc-card-container.api-method .theme-doc-card-icon::before {
+  content: var(--ort-method-label);
+  margin-right: 0.5rem;
+  vertical-align: 0.2em;
+}
+
+/* Cards on tag and category pages, matching the homepage cards. */
+.theme-doc-card-container {
+  position: relative;
+  top: 0;
+  border: 1px solid var(--ort-border);
+  border-radius: var(--ort-radius-md);
+  background-color: var(--ort-surface);
+  box-shadow: var(--ort-shadow-sm);
+  transition:
+    top var(--ifm-transition-fast),
+    border-color var(--ifm-transition-fast),
+    box-shadow var(--ifm-transition-fast);
+}
+
+.theme-doc-card-container:hover {
+  top: -2px;
+  border-color: var(--ort-border-strong);
+  box-shadow: var(--ort-shadow-md);
+}
+
+.theme-doc-card-title.text--truncate {
+  overflow: visible;
+  white-space: normal;
+}
+
+/* Endpoint header with method badge and path. */
+.openapi__method-endpoint {
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ort-border);
+  border-radius: var(--ort-radius-md);
+  background-color: var(--ort-surface-alt);
+}
+
+.openapi__method-endpoint .badge {
+  font-size: 0.75rem;
+}
+
+.openapi__method-endpoint-path {
+  margin-left: 0;
+  color: var(--ifm-color-content);
+  font-size: 0.875rem;
+}
+
+/* Response status tabs use the same soft colors as the method badges. */
+.tabs .openapi-tabs__response-code-item,
+.tabs .openapi-tabs__response-code-item:not(.active) {
+  border-radius: var(--ort-radius-sm);
+  color: var(--ifm-color-emphasis-700);
+  opacity: 1;
+}
+
+.tabs .openapi-tabs__response-code-item:is(.success, .danger, .info).active {
+  border-color: color-mix(
+    in srgb,
+    var(--ort-method-accent) 35%,
+    var(--ifm-background-color)
+  );
+  background-color: color-mix(
+    in srgb,
+    var(--ort-method-accent) var(--ort-badge-tint),
+    var(--ifm-background-color)
+  );
+  color: var(--ort-method);
+}
+
+/* Media type and schema tabs as soft crimson pills. */
+.tabs .openapi-tabs__mime-item,
+.tabs .openapi-tabs__schema-item {
+  border-radius: 999px;
+}
+
+.tabs .openapi-tabs__mime-item.active,
+.tabs .openapi-tabs__schema-item.active {
+  border-color: color-mix(
+    in srgb,
+    var(--ifm-color-primary) 35%,
+    var(--ifm-background-color)
+  );
+  background-color: var(--ort-primary-soft);
+  color: var(--ort-primary-on-soft);
+}
+
+/* Request and response panels on the right, in the card style. */
+.openapi-explorer__request-form,
+.openapi-explorer__response-container,
+.openapi-security__summary-container {
+  border: 1px solid var(--ort-border);
+  box-shadow: none;
+}
+
+.openapi-explorer__request-form:hover,
+.openapi-explorer__response-container:hover {
+  box-shadow: var(--ort-shadow-md);
+}
+
+.openapi-security__summary-container {
+  border-radius: var(--ort-radius-md);
+}
+
+.openapi-tabs__code-container .openapi-tabs__code-item {
+  border-radius: var(--ort-radius-sm);
+}
+
+.openapi-tabs__code-container .openapi-tabs__code-item.active {
+  border-color: var(--ifm-color-primary);
+  background-color: var(--ort-primary-soft);
+  box-shadow: none;
+}
+
+.openapi-explorer__form-item-input {
+  border: 1px solid var(--ort-border-strong);
+  border-radius: var(--ort-radius-sm);
+}
+
+.openapi-explorer__form-item-input:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+}
+
+/* API landing page */
+.theme-doc-version-badge {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--ort-border);
+  border-radius: 999px;
+  background-color: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-700);
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 500;
+}
+
+.openapi__heading {
+  margin-bottom: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-doc-card-container {
+    transition: none;
+  }
+
+  .theme-doc-card-container:hover {
     top: 0;
   }
 }
