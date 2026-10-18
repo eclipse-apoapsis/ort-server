@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.patchOrganizationInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = patch("/organizations/{organizationId}/infrastructure-services/{serviceName}", {
+) = patch("organizations/{organizationId}/infrastructure-services/{serviceName}", {
     operationId = "patchOrganizationInfrastructureService"
     summary = "Update an infrastructure service for an organization"
     tags = listOf("Organizations")

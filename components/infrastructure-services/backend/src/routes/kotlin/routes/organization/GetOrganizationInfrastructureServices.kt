@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParamete
 
 internal fun Route.getOrganizationInfrastructureServices(
     infrastructureServiceService: InfrastructureServiceService
-) = get("/organizations/{organizationId}/infrastructure-services", {
+) = get("organizations/{organizationId}/infrastructure-services", {
     operationId = "getOrganizationInfrastructureServices"
     summary = "List all infrastructure services of an organization"
     tags = listOf("Organizations")

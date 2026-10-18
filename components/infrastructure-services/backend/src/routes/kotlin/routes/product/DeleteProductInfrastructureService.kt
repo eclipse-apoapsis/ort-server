@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.deleteProductInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = delete("/products/{productId}/infrastructure-services/{serviceName}", {
+) = delete("products/{productId}/infrastructure-services/{serviceName}", {
     operationId = "deleteProductInfrastructureService"
     summary = "Delete an infrastructure service from a product"
     tags = listOf("Products")

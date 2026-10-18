@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.deleteOrganizationInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = delete("/organizations/{organizationId}/infrastructure-services/{serviceName}", {
+) = delete("organizations/{organizationId}/infrastructure-services/{serviceName}", {
     operationId = "deleteOrganizationInfrastructureService"
     summary = "Delete an infrastructure service from an organization"
     tags = listOf("Organizations")

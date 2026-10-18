@@ -44,7 +44,7 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
-internal fun Route.getUserInfo() = get("/authorization/userinfo", {
+internal fun Route.getUserInfo() = get("authorization/userinfo", {
     operationId = "getUserInfo"
     summary = "Return information about the current user including the permissions on the current hierarchy level."
     tags = listOf("Authorization")

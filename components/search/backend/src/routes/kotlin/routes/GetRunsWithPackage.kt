@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 @Suppress("LongMethod")
 internal fun Route.getRunsWithPackage(searchService: SearchService) =
-    get("/search/package", {
+    get("search/package", {
         operationId = "getRunsWithPackage"
         summary = "Return ORT runs containing a package, possibly scoped by organization, product, or repository"
         tags = listOf("Search")
