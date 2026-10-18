@@ -2,29 +2,156 @@
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
  * work well for content-centric websites.
+ *
+ * Colors are based on the ORT Server design palette. Contrast ratios noted in
+ * comments refer to WCAG 2 and were checked against the respective background.
  */
 
-/* You can override the default Infima variables here. */
+@import '@fontsource-variable/inter';
+
 :root {
-  --ifm-color-primary: #a72145;
-  --ifm-color-primary-dark: #c4758a;
-  --ifm-color-primary-darker: #d05576;
-  --ifm-color-primary-darkest: #a72145;
-  --ifm-color-primary-light: #e9cdd5;
-  --ifm-color-primary-lighter: #f2e1e6;
-  --ifm-color-primary-lightest: #fbf6f7;
+  /* Primary: crimson. #be3459 on white is 5.5:1, white on #be3459 is 5.5:1. */
+  --ifm-color-primary: #be3459;
+  --ifm-color-primary-dark: #ab2f50;
+  --ifm-color-primary-darker: #a22c4c;
+  --ifm-color-primary-darkest: #85243e;
+  --ifm-color-primary-light: #cb4065;
+  --ifm-color-primary-lighter: #cd496d;
+  --ifm-color-primary-lightest: #d56683;
+
+  /* Text: slate. #333b43 on white is 11.4:1, #495560 is 7.6:1. */
+  --ifm-color-content: #333b43;
+  --ifm-color-content-secondary: #495560;
+  --ifm-heading-color: #333b43;
+
+  --ifm-font-family-base:
+    'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu,
+    Cantarell, 'Noto Sans', sans-serif;
+  --ifm-heading-font-weight: 700;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Design tokens shared by custom components. */
+  --ort-accent-teal: #26a5a1;
+  --ort-accent-teal-text: #1e8480; /* 4.5:1 on white. */
+  --ort-accent-teal-soft: #e2f2f1;
+  --ort-accent-purple-text: #634caf; /* 6.6:1 on white. */
+  --ort-accent-purple-soft: #e7e4f3;
+  --ort-primary-soft: #f2e1e6;
+  --ort-surface: #ffffff;
+  --ort-surface-alt: #fbf6f7;
+  --ort-surface-raised: #ffffff;
+  --ort-border: #e1e2e3;
+  --ort-border-strong: #ccced0;
+  --ort-radius-sm: 6px;
+  --ort-radius-md: 12px;
+  --ort-radius-lg: 20px;
+  --ort-shadow-sm:
+    0 1px 2px rgba(51, 59, 67, 0.06), 0 1px 3px rgba(51, 59, 67, 0.08);
+  --ort-shadow-md:
+    0 4px 12px rgba(51, 59, 67, 0.08), 0 2px 4px rgba(51, 59, 67, 0.06);
+  --ort-shadow-lg: 0 24px 48px -12px rgba(51, 59, 67, 0.25);
+  --ort-graph-edge-opacity: 0.38;
+  --ort-graph-node: rgba(51, 59, 67, 0.28);
+  --ort-aurora-strength: 0.3;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #a72145;
-  --ifm-color-primary-dark: #c4758a;
-  --ifm-color-primary-darker: #d05576;
-  --ifm-color-primary-darkest: #a72145;
-  --ifm-color-primary-light: #e9cdd5;
-  --ifm-color-primary-lighter: #f2e1e6;
-  --ifm-color-primary-lightest: #fbf6f7;
+  /*
+   * In dark mode the primary color is lightened so that it stays readable:
+   * #e07a96 on the page background #1b1f24 is 5.8:1, on the surfaces #20252b
+   * and #22272d at least 5.3:1. Avoid primary text on #333b43 (4.0:1).
+   */
+  --ifm-color-primary: #e07a96;
+  --ifm-color-primary-dark: #d95e80;
+  --ifm-color-primary-darker: #d65075;
+  --ifm-color-primary-darkest: #c42e57;
+  --ifm-color-primary-light: #e796ac;
+  --ifm-color-primary-lighter: #eaa4b7;
+  --ifm-color-primary-lightest: #f4ced8;
+
+  /* Text: #e1e2e3 on #1b1f24 is 12.8:1, #ccced0 is 10.5:1. */
+  --ifm-color-content: #e1e2e3;
+  --ifm-color-content-secondary: #ccced0;
+  --ifm-heading-color: #f5f5f5;
+
+  /* Slate backgrounds instead of the default near-black. */
+  --ifm-background-color: #1b1f24;
+  --ifm-background-surface-color: #22272d;
+  --ifm-navbar-background-color: #1b1f24;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  --ort-accent-teal: #66cbc8;
+  --ort-accent-teal-text: #66cbc8; /* 8.6:1 on #1b1f24. */
+  --ort-accent-teal-soft: rgba(38, 165, 161, 0.16);
+  --ort-accent-purple-text: #9d8dcb; /* 5.6:1 on #1b1f24. */
+  --ort-accent-purple-soft: rgba(99, 76, 175, 0.22);
+  --ort-primary-soft: rgba(190, 52, 89, 0.18);
+  --ort-surface: #22272d;
+  --ort-surface-alt: #20252b;
+  --ort-surface-raised: #2a3037;
+  --ort-border: #333b43;
+  --ort-border-strong: #495560;
+  --ort-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ort-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --ort-shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+  --ort-graph-edge-opacity: 0.6;
+  --ort-graph-node: rgba(255, 255, 255, 0.28);
+  --ort-aurora-strength: 0.28;
+}
+
+/*
+ * Filled primary elements with white text keep the saturated crimson in dark
+ * mode, because white on the lightened primary fails contrast.
+ * White on #be3459 is 5.5:1, on #ab2f50 6.5:1.
+ */
+[data-theme='dark'] .button--primary:not(.button--outline) {
+  --ifm-button-background-color: #be3459;
+  --ifm-button-border-color: #be3459;
+  --ifm-button-color: #ffffff;
+}
+
+[data-theme='dark'] .button--primary:not(.button--outline):hover {
+  --ifm-button-background-color: #ab2f50;
+  --ifm-button-border-color: #ab2f50;
+}
+
+[data-theme='dark'] .badge--primary {
+  --ifm-badge-background-color: #be3459;
+}
+
+/* The OpenAPI theme uses light primary shades behind white text. */
+button.openapi-explorer__request-btn,
+button.openapi-explorer__request-btn:active {
+  background-color: #be3459;
+}
+
+button.openapi-explorer__request-btn:hover {
+  background-color: #ab2f50;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+/*
+ * The footer uses the dark style in both themes, so links need the light
+ * primary tint there: #e07a96 on #22272d is 5.3:1.
+ */
+.footer--dark {
+  --ifm-footer-background-color: #22272d;
+  --ifm-link-color: #e07a96;
+  --ifm-link-hover-color: #eaa4b7;
+}
+
+[data-theme='dark'] .footer--dark {
+  --ifm-footer-background-color: #15191d;
+  border-top: 1px solid var(--ort-border);
+}
+
+/* Prevent the page from scrolling behind an open modal dialog. */
+html:has(dialog[open]) {
+  overflow: hidden;
 }

@@ -1,0 +1,127 @@
+.tour {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.tabList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid transparent;
+  border-left: 3px solid var(--ort-border);
+  border-radius: 0 var(--ort-radius-md) var(--ort-radius-md) 0;
+  background: none;
+  color: var(--ifm-color-content);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--ifm-transition-fast),
+    border-color var(--ifm-transition-fast);
+}
+
+.tab:hover {
+  background-color: var(--ifm-hover-overlay);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.tabSelected,
+.tabSelected:hover {
+  border-color: var(--ort-border);
+  border-left-color: var(--ifm-color-primary);
+  background-color: var(--ort-surface-alt);
+}
+
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tabSelected .tabLabel {
+  color: var(--ifm-color-primary);
+}
+
+.tabIcon {
+  font-size: 1.125rem;
+}
+
+.tabTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.tabDescription {
+  margin: 0;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.panelCaption {
+  display: none;
+}
+
+/* On small screens the tabs become a horizontally scrollable row. */
+@media screen and (max-width: 996px) {
+  .tour {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .tabList {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--ort-border);
+    border-radius: 999px;
+  }
+
+  .tabSelected,
+  .tabSelected:hover {
+    border-color: var(--ifm-color-primary);
+  }
+
+  .tab .tabTitle,
+  .tab .tabDescription {
+    display: none;
+  }
+
+  .panelCaption {
+    display: block;
+    margin-bottom: 1.25rem;
+  }
+
+  .panelCaption .tabTitle {
+    margin-bottom: 0.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab {
+    transition: none;
+  }
+}

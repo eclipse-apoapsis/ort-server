@@ -1,0 +1,124 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 0 6rem;
+  background: linear-gradient(
+    180deg,
+    var(--ort-surface-alt) 0%,
+    var(--ifm-background-color) 100%
+  );
+  border-bottom: 1px solid var(--ort-border);
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+  margin: 0 0 1.5rem;
+  padding: 0.375rem 1rem 0.375rem 0.625rem;
+  border: 1px solid var(--ort-border-strong);
+  border-radius: 999px;
+  background-color: var(--ort-surface);
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.eyebrowLogo {
+  width: auto;
+  height: 1.5rem;
+}
+
+.eyebrowName {
+  color: var(--ifm-heading-color);
+  font-weight: 700;
+}
+
+.eyebrowDivider {
+  width: 1px;
+  height: 1em;
+  background-color: var(--ort-border-strong);
+}
+
+/* --ort-primary-on-soft is 7.0:1 on white and 7.5:1 on #22272d. */
+.eyebrowProject {
+  color: var(--ort-primary-on-soft);
+  font-weight: 600;
+}
+
+.title {
+  margin-bottom: 1.25rem;
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+/* Both gradient ends meet text contrast on the page background. */
+.highlight {
+  background: linear-gradient(
+    90deg,
+    var(--ifm-color-primary),
+    var(--ort-accent-purple-text)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  max-width: 34rem;
+  margin-bottom: 2rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.screenshot {
+  width: calc(100% + 4rem);
+  transform: perspective(2000px) rotateY(-4deg);
+  transform-origin: left center;
+  transition: transform 400ms ease-out;
+}
+
+.screenshot:hover,
+.screenshot:focus-within {
+  transform: perspective(2000px) rotateY(0deg);
+}
+
+/* On phones the chip only fits on one line without "Open source". */
+@media screen and (max-width: 480px) {
+  .eyebrowOpenSource {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 996px) {
+  .hero {
+    padding: 3.5rem 0 4rem;
+  }
+
+  .inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .screenshot {
+    width: 100%;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screenshot {
+    transition: none;
+  }
+}
