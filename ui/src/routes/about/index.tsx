@@ -23,6 +23,7 @@ import { ExternalLink } from 'lucide-react';
 import { Fragment } from 'react';
 
 import { getVersionsOptions } from '@/api/@tanstack/react-query.gen';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ORT_SERVER_GITHUB_RELEASES_BASE_URL } from '@/lib/constants';
@@ -106,8 +107,11 @@ export const About = () => {
             >
               osc-cli-linux-x64
             </a>
-            <div className='text-muted-foreground font-semibold'>
-              macOS (ARM64)
+            <div className='text-muted-foreground flex items-center gap-2 font-semibold whitespace-nowrap'>
+              macOS
+              <Badge variant='secondary' className='mt-0.5 px-1.5 font-mono'>
+                ARM64
+              </Badge>
             </div>
             <a
               href={`${baseUrl}/osc-cli-macos-arm64.tar.gz`}
@@ -117,8 +121,11 @@ export const About = () => {
             >
               osc-cli-macos-arm64
             </a>
-            <div className='text-muted-foreground font-semibold'>
-              macOS (x64)
+            <div className='text-muted-foreground flex items-center gap-2 font-semibold whitespace-nowrap'>
+              macOS
+              <Badge variant='secondary' className='mt-0.5 px-1.5 font-mono'>
+                x64
+              </Badge>
             </div>
             <a
               href={`${baseUrl}/osc-cli-macos-x64.tar.gz`}
