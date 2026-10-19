@@ -42,7 +42,9 @@ import { PluginList } from './plugin-list';
 import { PluginListItem } from './plugin-list-item';
 import { PluginOptionMarkers } from './plugin-option-markers';
 import { PluginSettings } from './plugin-settings';
+import { ResetToDefaultsButton } from './reset-to-defaults-button';
 import { SelectAllCheckbox } from './select-all-checkbox';
+import type { DefaultPluginSelection } from './types';
 import { fieldPath } from './utils';
 
 type PluginMultiSelectFieldProps<
@@ -77,6 +79,11 @@ type PluginMultiSelectFieldProps<
    * configured order, for example of default plugins or of a rerun, is visible.
    */
   enableReordering?: boolean;
+  /**
+   * The plugins that are selected by default. When provided, a button is shown that
+   * replaces the current selection with these plugins.
+   */
+  defaultSelection?: DefaultPluginSelection;
   className?: string;
 };
 
@@ -120,6 +127,7 @@ const PluginMultiSelectFieldContent = <
   plugins,
   secrets,
   enableReordering = false,
+  defaultSelection,
   className,
 }: PluginMultiSelectFieldProps<TFieldValues, TName> & {
   field: ControllerRenderProps<TFieldValues, TName>;
@@ -178,6 +186,15 @@ const PluginMultiSelectFieldContent = <
     if (!selected) expansion.setAllExpanded(false);
   };
 
+  // Collapse the plugins that are disabled by resetting the selection.
+  const resetToDefaults = (defaults: DefaultPluginSelection) => {
+    const defaultIds = new Set(defaults.pluginIds);
+    selection.resetToDefaults(defaults);
+    expansion.setExpandedIds(
+      expansion.expandedIds.filter((pluginId) => defaultIds.has(pluginId))
+    );
+  };
+
   // Render one plugin, with its settings if it has any. They are only rendered while the
   // plugin is expanded.
   const renderItem = (
@@ -233,12 +250,19 @@ const PluginMultiSelectFieldContent = <
             state={selection.allState}
             onChange={setAllSelected}
           />
-          {expandableIds.length > 0 && (
-            <ExpandAllButton
-              allExpanded={expansion.allExpanded}
-              onChange={expansion.setAllExpanded}
-            />
-          )}
+          <div className='flex items-center gap-2'>
+            {defaultSelection && (
+              <ResetToDefaultsButton
+                onClick={() => resetToDefaults(defaultSelection)}
+              />
+            )}
+            {expandableIds.length > 0 && (
+              <ExpandAllButton
+                allExpanded={expansion.allExpanded}
+                onChange={expansion.setAllExpanded}
+              />
+            )}
+          </div>
         </div>
       }
     >

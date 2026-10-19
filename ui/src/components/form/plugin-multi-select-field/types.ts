@@ -23,6 +23,12 @@ import type { PreconfiguredPluginOption } from '@/api';
 
 export type ScannerScope = 'both' | 'packages' | 'projects';
 
+/** The plugins that are selected by default, with their scanner scopes if the plugins have scopes. */
+export type DefaultPluginSelection = {
+  pluginIds: readonly string[];
+  scannerScopes?: Readonly<Record<string, ScannerScope>>;
+};
+
 /** The props shared by the inputs that edit the value of one plugin option. */
 export type OptionInputProps = {
   field: ControllerRenderProps;

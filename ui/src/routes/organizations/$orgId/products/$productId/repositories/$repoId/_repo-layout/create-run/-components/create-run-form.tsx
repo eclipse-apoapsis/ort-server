@@ -169,6 +169,7 @@ export const CreateRunForm = ({
     packageManagerPlugins
   );
 
+  // The plugins selected by default, independent of a rerun, to which the plugin lists can be reset.
   const defaultPluginSelections = useMemo(
     () => getDefaultPluginSelections(defaultPlugins, pluginGroups),
     [defaultPlugins, pluginGroups]
@@ -637,6 +638,7 @@ export const CreateRunForm = ({
               >
                 <AnalyzerFields
                   form={form}
+                  defaultPluginSelections={defaultPluginSelections}
                   value='analyzer'
                   onToggle={() => toggleAccordionOpen('analyzer')}
                   isSuperuser={isSuperuser}
@@ -649,6 +651,7 @@ export const CreateRunForm = ({
                 />
                 <AdvisorFields
                   form={form}
+                  defaultPluginSelections={defaultPluginSelections}
                   value='advisor'
                   onToggle={() => toggleAccordionOpen('advisor')}
                   advisorPlugins={advisorPlugins}
@@ -657,6 +660,7 @@ export const CreateRunForm = ({
                 />
                 <ScannerFields
                   form={form}
+                  defaultPluginSelections={defaultPluginSelections}
                   value='scanner'
                   onToggle={() => toggleAccordionOpen('scanner')}
                   scannerPlugins={scannerPlugins}
@@ -665,6 +669,7 @@ export const CreateRunForm = ({
                 />
                 <EvaluatorFields
                   form={form}
+                  defaultPluginSelections={defaultPluginSelections}
                   value='evaluator'
                   onToggle={() => toggleAccordionOpen('evaluator')}
                   isSuperuser={isSuperuser}
@@ -675,6 +680,7 @@ export const CreateRunForm = ({
                 />
                 <ReporterFields
                   form={form}
+                  defaultPluginSelections={defaultPluginSelections}
                   value='reporter'
                   onToggle={() => toggleAccordionOpen('reporter')}
                   reporterPlugins={reporterPlugins}

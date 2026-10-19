@@ -50,7 +50,10 @@ import {
   RepositoryPermissions,
 } from '@/lib/permissions.ts';
 import { cn } from '@/lib/utils';
-import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import {
+  CreateRunFormValues,
+  DefaultPluginSelections,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import { EnvironmentDefinitionsFields } from './environment-definitions';
 
 type AnalyzerFieldsProps = {
@@ -66,6 +69,8 @@ type AnalyzerFieldsProps = {
     product: ProductPermissions | undefined;
     repository: RepositoryPermissions | undefined;
   };
+  /** The plugins that are selected by default, to which the plugin lists can be reset. */
+  defaultPluginSelections: DefaultPluginSelections;
 };
 
 export const AnalyzerFields = ({
@@ -77,6 +82,7 @@ export const AnalyzerFields = ({
   packageManagerPlugins,
   pluginSecrets,
   permissions,
+  defaultPluginSelections,
 }: AnalyzerFieldsProps) => {
   const { orgId, productId, repoId } = useParams({ strict: false });
   const {
@@ -322,6 +328,9 @@ export const AnalyzerFields = ({
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.analyzer.packageManagers'
+            defaultSelection={{
+              pluginIds: defaultPluginSelections.packageManagers,
+            }}
             configName='jobConfigs.analyzer.packageManagerConfig'
             mustRunAfterName='jobConfigs.analyzer.packageManagerMustRunAfter'
             label='Enabled package managers'
@@ -337,6 +346,9 @@ export const AnalyzerFields = ({
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.analyzer.packageCurationProviders'
+            defaultSelection={{
+              pluginIds: defaultPluginSelections.packageCurationProviders,
+            }}
             configName='jobConfigs.analyzer.packageCurationProviderConfig'
             label='Package curation providers'
             description={

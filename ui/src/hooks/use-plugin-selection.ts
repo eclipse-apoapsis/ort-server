@@ -29,6 +29,7 @@ import type {
 } from 'react-hook-form';
 
 import type { PreconfiguredPluginDescriptor } from '@/api';
+import type { DefaultPluginSelection } from '@/components/form/plugin-multi-select-field/types';
 import {
   fieldPath,
   getPluginsInDisplayOrder,
@@ -134,6 +135,29 @@ export function usePluginSelection<
     if (selected) plugins.forEach((plugin) => applyEnabled(plugin.id));
   };
 
+  // Select the given default plugins instead of the current selection, with their default scanner
+  // scopes. The display order is reset, so that the order of the defaults is shown. Unlike
+  // `setAllSelected`, this marks the field as dirty, so that the selection is kept if the
+  // available plugins change.
+  const resetToDefaults = (defaultSelection: DefaultPluginSelection) => {
+    setPluginOrder(undefined);
+    form.setValue(
+      field.name,
+      [...defaultSelection.pluginIds] as FieldPathValue<TFieldValues, TName>,
+      { shouldDirty: true }
+    );
+
+    defaultSelection.pluginIds.forEach((pluginId) => {
+      const scope = defaultSelection.scannerScopes?.[pluginId];
+
+      if (scannerScopeName && scope) {
+        setPluginValue(scannerScopeName, pluginId, scope);
+      } else {
+        applyEnabled(pluginId);
+      }
+    });
+  };
+
   // Move a plugin within the sortable list and store the selection in the new order.
   const reorder = (fromIndex: number, toIndex: number) => {
     const nextPluginOrder = moveItem(
@@ -161,6 +185,7 @@ export function usePluginSelection<
     isSelected: (pluginId: string) => selectedPluginIdSet.has(pluginId),
     setSelected,
     setAllSelected,
+    resetToDefaults,
     reorder,
     allState,
   };

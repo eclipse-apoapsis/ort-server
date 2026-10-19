@@ -18,5 +18,5 @@
  */
 
 export { PluginMultiSelectField } from './plugin-multi-select-field';
-export type { ScannerScope } from './types';
+export type { DefaultPluginSelection, ScannerScope } from './types';
 export { ADMIN_SECRET_VALUE } from './utils';

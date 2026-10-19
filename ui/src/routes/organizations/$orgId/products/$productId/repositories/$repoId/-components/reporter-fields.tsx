@@ -34,7 +34,10 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import {
+  CreateRunFormValues,
+  DefaultPluginSelections,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type ReporterFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
@@ -44,6 +47,8 @@ type ReporterFieldsProps = {
   isSuperuser: boolean;
   packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
   secrets: Secret[];
+  /** The plugins that are selected by default, to which the plugin lists can be reset. */
+  defaultPluginSelections: DefaultPluginSelections;
 };
 
 export const ReporterFields = ({
@@ -54,6 +59,7 @@ export const ReporterFields = ({
   isSuperuser,
   packageConfigurationProviderPlugins,
   secrets,
+  defaultPluginSelections,
 }: ReporterFieldsProps) => {
   const evaluatorEnabled = useWatch({
     control: form.control,
@@ -83,6 +89,7 @@ export const ReporterFields = ({
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.reporter.formats'
+            defaultSelection={{ pluginIds: defaultPluginSelections.reporters }}
             configName='jobConfigs.reporter.config'
             label='Report formats'
             description={
@@ -95,6 +102,10 @@ export const ReporterFields = ({
             <PluginMultiSelectField
               form={form}
               name='jobConfigs.reporter.packageConfigurationProviders'
+              defaultSelection={{
+                pluginIds:
+                  defaultPluginSelections.packageConfigurationProviders,
+              }}
               configName='jobConfigs.reporter.packageConfigurationProviderConfig'
               label='Package configuration providers'
               description={
