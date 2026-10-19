@@ -85,7 +85,14 @@ export function getManagedResolutionContext(
     };
   }
 
-  return context.itemType === 'vulnerability' ? context : undefined;
+  if (
+    context.itemType === 'vulnerability' &&
+    displayItem.resolution.source === 'SERVER'
+  ) {
+    return context;
+  }
+
+  return undefined;
 }
 
 function getResolutionIdentityKey(
