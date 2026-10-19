@@ -48,8 +48,6 @@ import { RepositoryRunsTable } from '@/routes/organizations/$orgId/products/$pro
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-const defaultPageSize = useTablePrefsStore.getState().runPageSize;
-
 const RepositoryRunsComponent = () => {
   const runPageSize = useTablePrefsStore((state) => state.runPageSize);
   const params = Route.useParams();
@@ -183,6 +181,12 @@ export const Route = createFileRoute(
     params,
     deps: { page, pageSize },
   }) => {
+    // Read the default page size from the store at loader time so the
+    // prefetched query key matches the component, which reads the same
+    // (live) preference. A module-level snapshot would go stale after the
+    // user changes their page-size preference during the session.
+    const limit = pageSize || useTablePrefsStore.getState().runPageSize;
+
     await Promise.allSettled([
       queryClient.prefetchQuery({
         ...getRepositoryOptions({
@@ -193,8 +197,8 @@ export const Route = createFileRoute(
         ...getRepositoryRunsOptions({
           path: { repositoryId: Number.parseInt(params.repoId) },
           query: {
-            limit: pageSize || defaultPageSize,
-            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+            limit,
+            offset: page ? (page - 1) * limit : 0,
             sort: '-index',
           },
         }),
