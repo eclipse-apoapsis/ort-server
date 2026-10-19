@@ -27,11 +27,11 @@ import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.toErrorIfNull
 import com.github.michaelbull.result.toResultOr
-import com.github.michaelbull.result.tryFold
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.transaction
@@ -210,6 +210,28 @@ class PluginTemplateService(
             }
     }
 
+    /**
+     * Return the plugins that are available for the organization with the given [organizationId], together with the
+     * template that applies to them for this organization. Disabled plugins are excluded, and restricted plugins are
+     * only included if a template applies to them. If [organizationId] is `null`, the plugins that can be made
+     * available to any organization are returned: Restricted plugins are included, because they can be made available
+     * to organizations by templates, and no templates are returned.
+     */
+    internal suspend fun getAvailablePlugins(organizationId: OrganizationId?): List<AvailablePlugin> = db.transaction {
+        val templates = organizationId?.let { GetPluginTemplatesForOrganizationQuery(it).execute() }.orEmpty()
+            .associateBy { it.pluginType to it.pluginId }
+
+        pluginService.getPlugins()
+            .filter { it.availability != PluginAvailability.DISABLED }
+            .mapNotNull { plugin ->
+                val template = templates[plugin.type to plugin.id]
+
+                AvailablePlugin(plugin, template).takeUnless {
+                    organizationId != null && plugin.availability == PluginAvailability.RESTRICTED && template == null
+                }
+            }
+    }
+
     internal suspend fun getPluginsForRepository(
         repositoryId: RepositoryId,
         context: ResolvedConfigContext
@@ -219,70 +241,62 @@ class PluginTemplateService(
 
         val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
-        pluginService.getPlugins().filter { it.availability != PluginAvailability.DISABLED }
-            .tryFold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
-                getTemplateForOrganization(plugin.type, plugin.id, organizationId).map { template ->
-                    if (plugin.availability == PluginAvailability.RESTRICTED && template == null) {
-                        acc
-                    } else {
-                        acc + PreconfiguredPluginDescriptor(
-                            id = plugin.id,
-                            type = plugin.type,
-                            displayName = plugin.displayName,
-                            summary = plugin.summary,
-                            description = plugin.description,
-                            options = plugin.options.map { option ->
-                                val templateOption = template?.options?.find { it.option == option.name }
+        val plugins = getAvailablePlugins(organizationId).map { (plugin, template) ->
+            PreconfiguredPluginDescriptor(
+                id = plugin.id,
+                type = plugin.type,
+                displayName = plugin.displayName,
+                summary = plugin.summary,
+                description = plugin.description,
+                options = plugin.options.map { option ->
+                    val templateOption = template?.options?.find { it.option == option.name }
 
-                                val defaultValue = when (option.type) {
-                                    PluginOptionType.SECRET -> {
-                                        // Do not expose the name of config secrets used by admins. Return a placeholder
-                                        // instead, so that users can see that there is a default value. Also ignore the
-                                        // default value of the option, because secret options should never have default
-                                        // values, and if they had, they would not work with the way the server handles
-                                        // secret options.
-                                        if (templateOption?.value != null) ADMIN_SECRET_PLACEHOLDER else null
-                                    }
+                    val defaultValue = when (option.type) {
+                        PluginOptionType.SECRET -> {
+                            // Do not expose the name of config secrets used by admins. Return a placeholder instead,
+                            // so that users can see that there is a default value. Also ignore the default value of
+                            // the option, because secret options should never have default values, and if they had,
+                            // they would not work with the way the server handles secret options.
+                            if (templateOption?.value != null) ADMIN_SECRET_PLACEHOLDER else null
+                        }
 
-                                    else -> templateOption?.value ?: option.defaultValue
-                                }
-
-                                PreconfiguredPluginOption(
-                                    name = option.name,
-                                    description = option.description,
-                                    type = option.type,
-                                    enumEntries = option.enumEntries,
-                                    defaultValue = defaultValue,
-                                    isFixed = templateOption?.isFinal == true,
-                                    isNullable = option.isNullable,
-                                    isRequired = option.isRequired
-                                )
-                            }
-                        )
+                        else -> templateOption?.value ?: option.defaultValue
                     }
-                }
-            }.map { plugins ->
-                val replacedReporterPlugins = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
 
-                // Drop all plugins for which a report definition exists.
-                val filteredPlugins = plugins.filter {
-                    it.type != PluginType.REPORTER || it.id.lowercase() !in replacedReporterPlugins
-                }
-
-                // Create one plugin for each report definition
-                val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
-                    PreconfiguredPluginDescriptor(
-                        id = name,
-                        type = PluginType.REPORTER,
-                        displayName = name,
-                        summary = definition.description,
-                        description = null,
-                        options = emptyList()
+                    PreconfiguredPluginOption(
+                        name = option.name,
+                        description = option.description,
+                        type = option.type,
+                        enumEntries = option.enumEntries,
+                        defaultValue = defaultValue,
+                        isFixed = templateOption?.isFinal == true,
+                        isNullable = option.isNullable,
+                        isRequired = option.isRequired
                     )
                 }
+            )
+        }
 
-                filteredPlugins + pluginsFromReportDefinitions
-            }
+        val replacedReporterPlugins = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
+
+        // Drop all plugins for which a report definition exists.
+        val filteredPlugins = plugins.filter {
+            it.type != PluginType.REPORTER || it.id.lowercase() !in replacedReporterPlugins
+        }
+
+        // Create one plugin for each report definition
+        val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
+            PreconfiguredPluginDescriptor(
+                id = name,
+                type = PluginType.REPORTER,
+                displayName = name,
+                summary = definition.description,
+                description = null,
+                options = emptyList()
+            )
+        }
+
+        Ok(filteredPlugins + pluginsFromReportDefinitions)
     }
 
     /** Return the plugin template with the given [templateName], [pluginType], and [pluginId]. */
@@ -625,6 +639,9 @@ class PluginTemplateService(
         return Ok(pluginId)
     }
 }
+
+/** A plugin that is available for an organization, together with the [template] that applies to it, if any. */
+internal data class AvailablePlugin(val plugin: PluginDescriptor, val template: PluginTemplate?)
 
 sealed interface TemplateError {
     val message: String
