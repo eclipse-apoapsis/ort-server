@@ -129,7 +129,6 @@ const AnalyzerFieldsHarness = () => {
           packageCurationProviderPlugins={packageCurationProviderPlugins}
           packageManagerPlugins={packageManagerPlugins}
           pluginSecrets={secrets}
-          isRerun={false}
           permissions={permissions}
         />
       </Accordion>
@@ -167,7 +166,6 @@ const testCases: JobFieldsTestCase[] = [
           packageConfigurationProviderPlugins
         }
         secrets={secrets}
-        isRerun={false}
       />
     ),
   },
@@ -199,7 +197,6 @@ const testCases: JobFieldsTestCase[] = [
           packageConfigurationProviderPlugins
         }
         secrets={secrets}
-        isRerun={false}
       />
     ),
   },
@@ -278,7 +275,6 @@ describe('create run job fields', () => {
               packageConfigurationProviderPlugins
             }
             secrets={secrets}
-            isRerun={false}
           />
         </Accordion>
       ),
@@ -322,7 +318,6 @@ describe('create run job fields', () => {
             packageCurationProviderPlugins={packageCurationProviderPlugins}
             packageManagerPlugins={packageManagerPlugins}
             pluginSecrets={secrets}
-            isRerun={false}
             permissions={permissions}
           />
         </Accordion>

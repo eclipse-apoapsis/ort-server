@@ -40,14 +40,12 @@ type Options = {
   defaultValues?: Partial<FormValues>;
   withScannerScope?: boolean;
   enableReordering?: boolean;
-  showSelectedPluginsFirst?: boolean;
 };
 
 const renderSelection = ({
   defaultValues = {},
   withScannerScope = false,
   enableReordering = false,
-  showSelectedPluginsFirst = false,
 }: Options = {}) => {
   const { result } = renderHook(() => {
     const form = useForm<FormValues>({
@@ -68,7 +66,6 @@ const renderSelection = ({
       plugins,
       scannerScopeName: withScannerScope ? 'scopes' : undefined,
       enableReordering,
-      showSelectedPluginsFirst,
     });
 
     return { form, selection };
@@ -95,13 +92,16 @@ describe('usePluginSelection', () => {
       expect(selection().isSelected('B')).toBe(false);
     });
 
-    it('stores the selection in display order with reordering', () => {
-      const { selection, values } = renderSelection({ enableReordering: true });
+    it('adds a selected plugin after the other selected plugins with reordering', () => {
+      const { selection, values, displayOrder } = renderSelection({
+        enableReordering: true,
+      });
 
       act(() => selection().setSelected('C', true));
       act(() => selection().setSelected('A', true));
 
-      expect(values().plugins).toEqual(['A', 'C']);
+      expect(values().plugins).toEqual(['C', 'A']);
+      expect(displayOrder()).toEqual(['C', 'A', 'B']);
     });
 
     it('removes a disabled plugin from the selection', () => {
@@ -147,7 +147,6 @@ describe('usePluginSelection', () => {
     it('enables all plugins in their original order and sets missing scopes', () => {
       const { selection, values } = renderSelection({
         withScannerScope: true,
-        showSelectedPluginsFirst: true,
         defaultValues: { plugins: ['C'], scopes: { C: 'projects' } },
       });
 
@@ -160,7 +159,6 @@ describe('usePluginSelection', () => {
     it('enables all plugins in display order with reordering', () => {
       const { selection, values } = renderSelection({
         enableReordering: true,
-        showSelectedPluginsFirst: true,
         defaultValues: { plugins: ['C'] },
       });
 
@@ -198,7 +196,7 @@ describe('usePluginSelection', () => {
         defaultValues: { plugins: ['A', 'C'] },
       });
 
-      act(() => selection().reorder(2, 0));
+      act(() => selection().reorder(1, 0));
 
       expect(displayOrder()).toEqual(['C', 'A', 'B']);
       expect(values().plugins).toEqual(['C', 'A']);
@@ -219,7 +217,7 @@ describe('usePluginSelection', () => {
   });
 
   describe('display order', () => {
-    it('keeps the original order by default', () => {
+    it('keeps the original order without reordering', () => {
       const { displayOrder } = renderSelection({
         defaultValues: { plugins: ['C', 'A'] },
       });
@@ -227,9 +225,9 @@ describe('usePluginSelection', () => {
       expect(displayOrder()).toEqual(['A', 'B', 'C']);
     });
 
-    it('shows selected plugins first in selection order', () => {
+    it('shows selected plugins first in selection order with reordering', () => {
       const { displayOrder } = renderSelection({
-        showSelectedPluginsFirst: true,
+        enableReordering: true,
         defaultValues: { plugins: ['C', 'A'] },
       });
 
