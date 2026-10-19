@@ -48,15 +48,20 @@ export interface SidebarNavProps {
 }
 
 export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
+  // A section is shown only if it is not hidden itself and has at least one visible entry.
+  const isSectionVisible = (section: SidebarNavProps['sections'][number]) =>
+    section.visible !== false &&
+    section.items.some((item) => item.visible !== false);
+
   // Helper function to determine if there are any visible sections after the given index.
   const visibleRemainingSections = (index: number) =>
-    sections.slice(index + 1).some((section) => section.visible !== false);
+    sections.slice(index + 1).some(isSectionVisible);
 
   return (
     <nav className={cn('w-full', className)} {...props}>
       <div className='flex flex-col items-start'>
         {sections.map((section) => {
-          if (section.visible === false) {
+          if (!isSectionVisible(section)) {
             return null;
           }
           const index = sections.indexOf(section);
