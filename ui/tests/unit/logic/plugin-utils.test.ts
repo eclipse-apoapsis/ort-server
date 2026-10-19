@@ -317,6 +317,44 @@ it('reconstructScannerSelection rebuilds scanner scopes for rerun values', () =>
   });
 });
 
+it('reconstructScannerSelection keeps an empty list of project scanners', () => {
+  const defaults = {
+    scanners: ['ScanCode'],
+    scannerScopes: {
+      ScanCode: 'both' as const,
+    },
+  };
+
+  const result = reconstructScannerSelection(['ScanCode'], [], defaults);
+
+  expect(result).toEqual({
+    scanners: ['ScanCode'],
+    scannerScopes: {
+      ScanCode: 'packages',
+    },
+  });
+});
+
+it('reconstructScannerSelection uses the default package scanners if scanners are not set', () => {
+  const defaults = {
+    scanners: ['ScanCode', 'SCANOSS'],
+    scannerScopes: {
+      ScanCode: 'packages' as const,
+      SCANOSS: 'projects' as const,
+    },
+  };
+
+  const result = reconstructScannerSelection(null, ['FossID'], defaults);
+
+  expect(result).toEqual({
+    scanners: ['ScanCode', 'FossID'],
+    scannerScopes: {
+      ScanCode: 'packages',
+      FossID: 'projects',
+    },
+  });
+});
+
 it('mergePluginConfigs converts rerun options to form value types', () => {
   const plugins = [
     createPluginDescriptor({

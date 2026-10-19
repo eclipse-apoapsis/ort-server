@@ -279,7 +279,7 @@ describe('CreateRunForm', () => {
         },
       });
     });
-    expect(preview(payload).jobConfigs.scanner).not.toHaveProperty('scanners');
+    expect(preview(payload).jobConfigs.scanner.scanners).toEqual([]);
     expect(preview(payload).jobConfigs.advisor).not.toHaveProperty('config');
     await user.click(screen.getByRole('button', { name: 'Advisor' }));
     await user.click(screen.getByRole('button', { name: /^OSV/ }));
@@ -420,7 +420,7 @@ describe('CreateRunForm', () => {
           skipExcluded: true,
           enabledPackageManagers,
           packageManagerOptions: undefined,
-          packageCurationProviders: undefined,
+          packageCurationProviders: [],
           keepAliveWorker: undefined,
           keepAlivePhases: undefined,
         },
@@ -617,7 +617,7 @@ describe('CreateRunForm', () => {
           }),
           advisor: expect.objectContaining({ advisors: [], config: undefined }),
           scanner: expect.objectContaining({
-            scanners: undefined,
+            scanners: [],
             config: undefined,
           }),
         }),
@@ -690,17 +690,17 @@ describe('CreateRunForm', () => {
         jobConfigs: expect.objectContaining({
           analyzer: expect.objectContaining({
             enabledPackageManagers: ['Maven', 'Unmanaged'],
-            packageCurationProviders: undefined,
+            packageCurationProviders: [],
             packageManagerOptions: undefined,
           }),
           advisor: expect.objectContaining({ advisors: [], config: undefined }),
           scanner: expect.objectContaining({
-            scanners: undefined,
+            scanners: [],
             projectScanners: undefined,
             config: undefined,
           }),
           evaluator: expect.objectContaining({
-            packageConfigurationProviders: undefined,
+            packageConfigurationProviders: [],
           }),
           reporter: expect.objectContaining({
             formats: [],
