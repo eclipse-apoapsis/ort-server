@@ -61,7 +61,6 @@ type AnalyzerFieldsProps = {
   packageCurationProviderPlugins: PreconfiguredPluginDescriptor[];
   packageManagerPlugins: PreconfiguredPluginDescriptor[];
   pluginSecrets: Secret[];
-  isRerun: boolean;
   permissions: {
     organization: OrganizationPermissions | undefined;
     product: ProductPermissions | undefined;
@@ -77,7 +76,6 @@ export const AnalyzerFields = ({
   packageCurationProviderPlugins,
   packageManagerPlugins,
   pluginSecrets,
-  isRerun,
   permissions,
 }: AnalyzerFieldsProps) => {
   const { orgId, productId, repoId } = useParams({ strict: false });
@@ -351,7 +349,6 @@ export const AnalyzerFields = ({
             plugins={packageCurationProviderPlugins}
             secrets={pluginSecrets}
             enableReordering
-            showSelectedPluginsFirst={isRerun}
           />
           {isSuperuser && (
             <FormField

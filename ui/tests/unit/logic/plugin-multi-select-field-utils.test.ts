@@ -37,23 +37,11 @@ describe('getPluginsInDisplayOrder', () => {
     { id: 'OrtConfig' },
   ];
 
-  it('keeps plugins in their original order by default', () => {
-    expect(
-      getPluginsInDisplayOrder(
-        plugins,
-        ['DefaultFile', 'ClearlyDefined'],
-        false
-      ).map((plugin) => plugin.id)
-    ).toEqual(['ClearlyDefined', 'DefaultFile', 'OrtConfig']);
-  });
-
   it('shows enabled plugins first in payload order for an existing selection', () => {
     expect(
-      getPluginsInDisplayOrder(
-        plugins,
-        ['DefaultFile', 'ClearlyDefined'],
-        true
-      ).map((plugin) => plugin.id)
+      getPluginsInDisplayOrder(plugins, ['DefaultFile', 'ClearlyDefined']).map(
+        (plugin) => plugin.id
+      )
     ).toEqual(['DefaultFile', 'ClearlyDefined', 'OrtConfig']);
   });
 
@@ -62,7 +50,6 @@ describe('getPluginsInDisplayOrder', () => {
       getPluginsInDisplayOrder(
         plugins,
         ['DefaultFile', 'ClearlyDefined'],
-        false,
         ['OrtConfig', 'DefaultFile', 'ClearlyDefined']
       ).map((plugin) => plugin.id)
     ).toEqual(['OrtConfig', 'DefaultFile', 'ClearlyDefined']);

@@ -108,7 +108,6 @@ type FieldOptions = {
   withScannerScope?: boolean;
   withMustRunAfter?: boolean;
   enableReordering?: boolean;
-  showSelectedPluginsFirst?: boolean;
   resolver?: Resolver<FieldFormValues>;
 };
 
@@ -119,7 +118,6 @@ const renderField = ({
   withScannerScope = false,
   withMustRunAfter = false,
   enableReordering = false,
-  showSelectedPluginsFirst = false,
   resolver,
 }: FieldOptions = {}) => {
   let form: UseFormReturn<FieldFormValues> | undefined;
@@ -149,7 +147,6 @@ const renderField = ({
             plugins={plugins}
             secrets={[]}
             enableReordering={enableReordering}
-            showSelectedPluginsFirst={showSelectedPluginsFirst}
           />
           <button type='submit'>Submit</button>
         </form>
@@ -213,14 +210,15 @@ describe('PluginMultiSelectField', () => {
     expect(getValues().plugins).toEqual(['C', 'A']);
   });
 
-  it('stores the selection in display order with reordering', async () => {
+  it('adds a selected plugin after the other selected plugins with reordering', async () => {
     const user = userEvent.setup();
     const getValues = renderField({ enableReordering: true });
 
     await user.click(pluginCheckbox('Plugin C'));
     await user.click(pluginCheckbox('Plugin A'));
 
-    expect(getValues().plugins).toEqual(['A', 'C']);
+    expect(getValues().plugins).toEqual(['C', 'A']);
+    expect(renderedPluginNames()).toEqual(['Plugin C', 'Plugin A', 'Plugin B']);
   });
 
   describe('scanner scope', () => {
@@ -305,7 +303,6 @@ describe('PluginMultiSelectField', () => {
       const user = userEvent.setup();
       const getValues = renderField({
         enableReordering: true,
-        showSelectedPluginsFirst: true,
         defaultValues: { plugins: ['C'] },
       });
 
@@ -342,7 +339,6 @@ describe('PluginMultiSelectField', () => {
     it('renders selected plugins first in payload order with reordering', () => {
       renderField({
         enableReordering: true,
-        showSelectedPluginsFirst: true,
         defaultValues: { plugins: ['C', 'A'] },
       });
 
@@ -355,7 +351,6 @@ describe('PluginMultiSelectField', () => {
 
     it('keeps the original order without reordering', () => {
       renderField({
-        showSelectedPluginsFirst: true,
         defaultValues: { plugins: ['C', 'A'] },
       });
 
@@ -785,7 +780,7 @@ describe('PluginMultiSelectField', () => {
       await user.click(enableCheckbox('Required Plugin'));
       await user.click(enableCheckbox('Flag Plugin'));
 
-      expect(values().plugins).toEqual(['Flag', 'Required']);
+      expect(values().plugins).toEqual(['Required', 'Flag']);
     });
   });
 });

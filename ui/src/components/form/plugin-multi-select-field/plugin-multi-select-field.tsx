@@ -72,15 +72,11 @@ type PluginMultiSelectFieldProps<
   /**
    * Enable drag-and-drop reordering for plugins. In this mode, all plugins are
    * displayed in a sortable list and selected plugins are stored in the same
-   * order in which they appear in the list.
+   * order in which they appear in the list. Until the user reorders the list,
+   * the selected plugins are shown first in their form value order, so that a
+   * configured order, for example of default plugins or of a rerun, is visible.
    */
   enableReordering?: boolean;
-  /**
-   * Show selected plugins first in their form value order before the user has
-   * reordered the list. This is intended for reruns, where an existing payload
-   * order should be reflected in the UI.
-   */
-  showSelectedPluginsFirst?: boolean;
   className?: string;
 };
 
@@ -124,7 +120,6 @@ const PluginMultiSelectFieldContent = <
   plugins,
   secrets,
   enableReordering = false,
-  showSelectedPluginsFirst = false,
   className,
 }: PluginMultiSelectFieldProps<TFieldValues, TName> & {
   field: ControllerRenderProps<TFieldValues, TName>;
@@ -135,7 +130,6 @@ const PluginMultiSelectFieldContent = <
     plugins,
     scannerScopeName,
     enableReordering,
-    showSelectedPluginsFirst,
   });
   // A plugin has settings to show if it has options, or if the field has a scanner scope or
   // must-run-after list for it.
@@ -255,9 +249,7 @@ const PluginMultiSelectFieldContent = <
         className='flex flex-col gap-2'
       >
         <PluginList
-          // Only a sortable list shows the display order; a static list keeps the
-          // original order, even with `showSelectedPluginsFirst`.
-          plugins={enableReordering ? selection.pluginsInDisplayOrder : plugins}
+          plugins={selection.pluginsInDisplayOrder}
           enableReordering={enableReordering}
           renderItem={renderItem}
           onReorder={selection.reorder}

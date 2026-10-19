@@ -27,10 +27,14 @@ export const ADMIN_SECRET_VALUE = '__admin_secret__';
 export const UNDEFINED_ENUM_VALUE = '__undefined_enum__';
 export const UNDEFINED_SECRET_VALUE = '__undefined_secret__';
 
+/**
+ * Return the plugins in the order in which they are displayed. This is the given `pluginOrder` if the user has
+ * reordered the plugins. Otherwise, the selected plugins are shown first in the order of `selectedPluginIds`,
+ * followed by the other plugins in their original order.
+ */
 export function getPluginsInDisplayOrder<T extends { id: string }>(
   plugins: readonly T[],
   selectedPluginIds: readonly string[],
-  showSelectedPluginsFirst: boolean,
   pluginOrder?: readonly string[]
 ) {
   const pluginsById = new Map(plugins.map((plugin) => [plugin.id, plugin]));
@@ -39,13 +43,10 @@ export function getPluginsInDisplayOrder<T extends { id: string }>(
   const selectedPluginIdsInPayloadOrder = selectedPluginIds.filter((pluginId) =>
     pluginsById.has(pluginId)
   );
-  const fallbackPluginOrder = showSelectedPluginsFirst
-    ? [
-        ...selectedPluginIdsInPayloadOrder,
-        ...pluginIds.filter((pluginId) => !selectedPluginIdSet.has(pluginId)),
-      ]
-    : pluginIds;
-  const orderedPluginIds = pluginOrder ?? fallbackPluginOrder;
+  const orderedPluginIds = pluginOrder ?? [
+    ...selectedPluginIdsInPayloadOrder,
+    ...pluginIds.filter((pluginId) => !selectedPluginIdSet.has(pluginId)),
+  ];
   const pluginOrderSet = new Set(orderedPluginIds);
 
   return [
