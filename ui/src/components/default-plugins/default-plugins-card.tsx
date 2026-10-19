@@ -99,12 +99,9 @@ export const DefaultPluginsCard = ({
     ),
   ];
   // Selected plugins are only shown first if their order matters.
-  const pluginsInDisplayOrder = getPluginsInDisplayOrder(
-    plugins,
-    selectedPluginIds,
-    isOrdered,
-    draft?.pluginOrder
-  );
+  const pluginsInDisplayOrder = isOrdered
+    ? getPluginsInDisplayOrder(plugins, selectedPluginIds, draft?.pluginOrder)
+    : plugins;
   const pluginOrder = pluginsInDisplayOrder.map((plugin) => plugin.id);
 
   // Store the selection in display order. A selection equal to the defaults is no local change.

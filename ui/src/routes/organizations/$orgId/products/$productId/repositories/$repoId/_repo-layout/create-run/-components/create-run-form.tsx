@@ -111,7 +111,6 @@ export const CreateRunForm = ({
   secrets,
 }: CreateRunFormProps) => {
   const [isTest, setIsTest] = useState(false);
-  const isRerun = rerun !== null;
   const [openAccordions, setOpenAccordions] = useState<AccordionSection[]>([]);
   // A run must not be created without knowing which plugins are available.
   const pluginsUnavailable = pluginsLoading || pluginsLoadFailed;
@@ -642,7 +641,6 @@ export const CreateRunForm = ({
                   }
                   packageManagerPlugins={packageManagerPlugins}
                   pluginSecrets={secrets}
-                  isRerun={isRerun}
                   permissions={permissions}
                 />
                 <AdvisorFields
@@ -670,7 +668,6 @@ export const CreateRunForm = ({
                     packageConfigurationProviderPlugins
                   }
                   secrets={secrets}
-                  isRerun={isRerun}
                 />
                 <ReporterFields
                   form={form}
@@ -682,7 +679,6 @@ export const CreateRunForm = ({
                     packageConfigurationProviderPlugins
                   }
                   secrets={secrets}
-                  isRerun={isRerun}
                 />
                 <NotifierFields
                   form={form}

@@ -45,10 +45,11 @@ type UsePluginSelectionArgs<
   plugins: readonly PreconfiguredPluginDescriptor[];
   /** The field holding the scanner scope of each plugin, if the plugins have scopes. */
   scannerScopeName?: TName;
-  /** Store the selection in display order instead of the order in which it was made. */
+  /**
+   * Store the selection in display order instead of the order in which it was made. Selected
+   * plugins are shown first, in selection order, until the user reorders the list.
+   */
   enableReordering: boolean;
-  /** Show selected plugins first, in selection order, until the user reorders the list. */
-  showSelectedPluginsFirst: boolean;
 };
 
 /**
@@ -66,18 +67,15 @@ export function usePluginSelection<
   plugins,
   scannerScopeName,
   enableReordering,
-  showSelectedPluginsFirst,
 }: UsePluginSelectionArgs<TFieldValues, TName>) {
   const [pluginOrder, setPluginOrder] = useState<string[]>();
 
   const selectedPluginIds = (field.value ?? []) as string[];
   const selectedPluginIdSet = new Set(selectedPluginIds);
-  const pluginsInDisplayOrder = getPluginsInDisplayOrder(
-    plugins,
-    selectedPluginIds,
-    showSelectedPluginsFirst,
-    pluginOrder
-  );
+  // Only a sortable list has a display order of its own; a static list keeps the original order.
+  const pluginsInDisplayOrder = enableReordering
+    ? getPluginsInDisplayOrder(plugins, selectedPluginIds, pluginOrder)
+    : plugins;
 
   // Order the given plugin ids by their position in the list.
   const inDisplayOrder = (selectedIds: ReadonlySet<string>) =>
@@ -119,9 +117,8 @@ export function usePluginSelection<
 
   // Enable or disable all plugins at once.
   const setAllSelected = (selected: boolean) => {
-    const orderedPlugins = enableReordering ? pluginsInDisplayOrder : plugins;
     const nextSelectedPluginIds = selected
-      ? orderedPlugins.map((plugin) => plugin.id)
+      ? pluginsInDisplayOrder.map((plugin) => plugin.id)
       : [];
 
     // TName only points at `string[]` fields, so the cast is safe. Unlike `setSelected`,
