@@ -94,6 +94,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthori
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -778,6 +779,51 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 run.jobConfigs.ruleSet shouldBe ruleSet
 
                 run.ortServerVersion shouldBe ORT_SERVER_VERSION
+            }
+        }
+
+        "store the resolved config context" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+                val jobConfigContext = "testContext"
+
+                val createRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = ApiJobConfigurations(),
+                    jobConfigContext = jobConfigContext
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+
+                val run = ortRunRepository.listForRepository(createdRepository.id).data.single()
+                run.jobConfigContext shouldBe jobConfigContext
+                run.resolvedJobConfigContext shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX +
+                        jobConfigContext
+            }
+        }
+
+        "respond with BadRequest if the config context cannot be resolved" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val createRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = ApiJobConfigurations(),
+                    jobConfigContext = ConfigFileProviderFactoryForTesting.ERROR_VALUE
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.body<ErrorResponse>().message shouldBe "Could not resolve the config context."
+
+                ortRunRepository.listForRepository(createdRepository.id).data should beEmpty()
             }
         }
 

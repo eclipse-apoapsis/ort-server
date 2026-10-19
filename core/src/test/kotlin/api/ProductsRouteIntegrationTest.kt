@@ -30,6 +30,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -90,6 +91,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthori
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration as ModelAdvisorJobConfiguration
@@ -2167,6 +2169,73 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
                 repositoryIdsSpecific should containExactlyInAnyOrder(repository1Id)
+            }
+        }
+
+        "store the resolved config context for all created runs" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repositoryIds = listOf("repo1", "repo2").map { name ->
+                    productService.createRepository(
+                        type = RepositoryType.GIT,
+                        url = "https://example.com/$name.git",
+                        productId = productId,
+                        name = name,
+                        description = null
+                    ).id
+                }
+                val jobConfigContext = "testContext"
+
+                val createOrtRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = jobConfigContext
+                )
+
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+
+                val runs = response.body<List<OrtRun>>().map { run ->
+                    dbExtension.fixtures.ortRunRepository.get(run.id).shouldNotBeNull()
+                }
+
+                runs.map { it.repositoryId } should containExactlyInAnyOrder(repositoryIds)
+                runs.forAll {
+                    it.jobConfigContext shouldBe jobConfigContext
+                    it.resolvedJobConfigContext shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX +
+                            jobConfigContext
+                }
+            }
+        }
+
+        "respond with BadRequest if the config context cannot be resolved" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repositoryId = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo.git",
+                    productId = productId,
+                    name = "repo",
+                    description = null
+                ).id
+
+                val createOrtRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = ConfigFileProviderFactoryForTesting.ERROR_VALUE
+                )
+
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.body<ErrorResponse>().message shouldBe "Could not resolve the config context."
+
+                dbExtension.fixtures.ortRunRepository.listForRepository(repositoryId).data should beEmpty()
             }
         }
 

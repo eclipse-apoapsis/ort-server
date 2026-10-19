@@ -124,9 +124,39 @@ class ConfigWorkerIntegrationTest : WordSpec({
         )
     }
 
+    /**
+     * Create an ORT run with the given [configContext] resolved, as it is done when a run is created via the API.
+     */
+    suspend fun createOrtRun(
+        configContext: String = "",
+        jobConfigurations: JobConfigurations = fixtures.jobConfigurations,
+        labels: Map<String, String> = mapOf("label key" to "label value")
+    ) = fixtures.createOrtRun(
+        jobConfigurations = jobConfigurations,
+        jobConfigContext = configContext.ifEmpty { null },
+        labels = labels,
+        resolvedJobConfigContext = ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX + configContext
+    )
+
     "run" should {
+        "fail if the config context was not resolved when the run was created" {
+            val ortRun = fixtures.createOrtRun(jobConfigContext = "src/test/resources/successful-validation-script")
+
+            val result = configWorker.run(ortRun.id)
+
+            result.shouldBeInstanceOf<RunResult.Failed> {
+                it.error should beInstanceOf<IllegalStateException>()
+                it.error.message shouldContain "was not resolved"
+            }
+
+            fixtures.ortRunRepository.get(ortRun.id).shouldNotBeNull {
+                resolvedJobConfigContext should beNull()
+                resolvedJobConfigs should beNull()
+            }
+        }
+
         "succeed if no admin config and validation script files exist" {
-            val ortRunId = fixtures.ortRun.id
+            val ortRunId = createOrtRun().id
 
             val result = configWorker.run(ortRunId)
 
@@ -140,8 +170,8 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "apply a successful validation script" {
-            val ortRun = fixtures.createOrtRun(
-                jobConfigContext = "src/test/resources/successful-validation-script",
+            val ortRun = createOrtRun(
+                configContext = "src/test/resources/successful-validation-script",
                 labels = mapOf("default" to "label")
             )
 
@@ -172,8 +202,8 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "apply a failing validation script" {
-            val ortRun = fixtures.createOrtRun(
-                jobConfigContext = "src/test/resources/failing-validation-script",
+            val ortRun = createOrtRun(
+                configContext = "src/test/resources/failing-validation-script",
                 labels = mapOf("default" to "label")
             )
 
@@ -202,7 +232,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "validate the admin config if no validation script exists" {
-            val ortRun = fixtures.createOrtRun(
+            val ortRun = createOrtRun(
                 jobConfigurations = JobConfigurations(ruleSet = "non-existing")
             )
 
@@ -224,8 +254,8 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "validate the admin config if a validation script exists" {
-            val ortRun = fixtures.createOrtRun(
-                jobConfigContext = "src/test/resources/successful-validation-script",
+            val ortRun = createOrtRun(
+                configContext = "src/test/resources/successful-validation-script",
                 jobConfigurations = JobConfigurations(ruleSet = "non-existing")
             )
 
@@ -248,8 +278,8 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "fail if there is an exception during validation" {
-            val ortRun = fixtures.createOrtRun(
-                jobConfigContext = "src/test/resources/not-compiling-validation-script"
+            val ortRun = createOrtRun(
+                configContext = "src/test/resources/not-compiling-validation-script"
             )
 
             val result = configWorker.run(ortRun.id)
@@ -268,7 +298,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "resolve the default package managers if none were configured" {
-            val ortRun = fixtures.createOrtRun(
+            val ortRun = createOrtRun(
                 jobConfigurations = JobConfigurations(
                     analyzer = AnalyzerJobConfiguration(
                         enabledPackageManagers = null
@@ -289,7 +319,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "not overwrite the configured package managers" {
-            val ortRun = fixtures.createOrtRun(
+            val ortRun = createOrtRun(
                 jobConfigurations = JobConfigurations(
                     analyzer = AnalyzerJobConfiguration(
                         enabledPackageManagers = listOf("Gradle", "Maven")
@@ -310,7 +340,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "store the job configurations produced by the plugin templates" {
-            val ortRun = fixtures.createOrtRun(
+            val ortRun = createOrtRun(
                 jobConfigurations = JobConfigurations(
                     advisor = AdvisorJobConfiguration(advisors = listOf("OSV"))
                 )
@@ -331,8 +361,8 @@ class ConfigWorkerIntegrationTest : WordSpec({
         }
 
         "apply the plugin templates before the validation script" {
-            val ortRun = fixtures.createOrtRun(
-                jobConfigContext = "src/test/resources/successful-validation-script",
+            val ortRun = createOrtRun(
+                configContext = "src/test/resources/successful-validation-script",
                 jobConfigurations = JobConfigurations(
                     advisor = AdvisorJobConfiguration(advisors = listOf("OSV"))
                 )

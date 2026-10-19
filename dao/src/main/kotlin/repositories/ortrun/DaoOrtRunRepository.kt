@@ -98,7 +98,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         labels: Map<String, String>,
         traceId: String?,
         environmentConfigPath: String?,
-        userDisplayName: UserDisplayName?
+        userDisplayName: UserDisplayName?,
+        resolvedJobConfigContext: String?
     ): OrtRun = db.transaction {
         val maxIndex = OrtRunsTable.index.max()
         val lastIndex = OrtRunsTable
@@ -117,6 +118,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.createdAt = Clock.System.now().toDatabasePrecision()
             this.jobConfigs = jobConfigs
             this.jobConfigContext = jobConfigContext
+            this.resolvedJobConfigContext = resolvedJobConfigContext
             this.status = OrtRunStatus.CREATED
             this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
             this.traceId = traceId

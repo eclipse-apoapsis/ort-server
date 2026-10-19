@@ -453,7 +453,7 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
                         labels = mapOf("label key" to "label value"),
                         issues = emptyList(),
                         jobConfigContext = null,
-                        resolvedJobConfigContext = null,
+                        resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
                         traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
                     )
                 }
@@ -465,7 +465,7 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The plugin configuration is invalid."
+            description = "The plugin configuration is invalid or the config context cannot be resolved."
         }
 
         HttpStatusCode.Forbidden to {
