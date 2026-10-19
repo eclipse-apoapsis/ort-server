@@ -43,13 +43,6 @@ export const renderInteractiveWithRouter = (
   }: RenderInteractiveWithRouterOptions
 ) => {
   const routes = routerOptions.routes ?? [{ path: '/' }];
-  const router = createTestRouter({
-    ...routerOptions,
-    routes: routes.map((route) => ({
-      ...route,
-      component: route.component ?? (() => ui),
-    })),
-  });
   const queryClient = withQueryClient
     ? new QueryClient({
         defaultOptions: {
@@ -58,6 +51,17 @@ export const renderInteractiveWithRouter = (
         },
       })
     : undefined;
+  const router = createTestRouter({
+    ...routerOptions,
+    routes: routes.map((route) => ({
+      ...route,
+      component: route.component ?? (() => ui),
+    })),
+    // The loaders of the application read the query client from the context, as they do there.
+    context: queryClient
+      ? { queryClient, ...routerOptions.context }
+      : routerOptions.context,
+  });
 
   if (queryClient) {
     testQueryClients.add(queryClient);
