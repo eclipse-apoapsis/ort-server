@@ -143,7 +143,7 @@ export function formValuesToPayload(
         const allScanners = values.jobConfigs.scanner.scanners;
         const scopes = values.jobConfigs.scanner.scannerScopes;
         // When any scanner is set to 'packages' or 'projects', both lists must be
-        // populated explicitly (because an empty projectScanners means "all scanners
+        // populated explicitly (because an unset projectScanners means "all scanners
         // scan everything"). Scanners set to 'both' (or with no explicit scope) must
         // therefore appear in *both* lists whenever the override is active.
         const hasProjectScannerOverride = allScanners.some(
@@ -167,14 +167,9 @@ export function formValuesToPayload(
           skipExcluded: values.jobConfigs.scanner.skipExcluded,
           keepAliveWorker:
             values.jobConfigs.scanner.keepAliveWorker || undefined,
-          // When the projectScanners override is active but no scanners scan packages,
-          // send an explicit empty array so the backend does not fall back to its
-          // default ["ScanCode"] (which it applies when the field is absent/null).
-          scanners: hasProjectScannerOverride
-            ? packageScanners
-            : packageScanners.length > 0
-              ? packageScanners
-              : undefined,
+          // Always send the package scanners, even if the list is empty, because the
+          // backend applies the default scanners if the field is absent.
+          scanners: packageScanners,
           projectScanners,
           config: createPluginPayload(
             values.jobConfigs.scanner.config,
