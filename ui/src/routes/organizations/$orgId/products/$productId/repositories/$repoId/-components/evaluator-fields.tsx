@@ -34,7 +34,10 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import {
+  CreateRunFormValues,
+  DefaultPluginSelections,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type EvaluatorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
@@ -43,6 +46,8 @@ type EvaluatorFieldsProps = {
   isSuperuser: boolean;
   packageConfigurationProviderPlugins: PreconfiguredPluginDescriptor[];
   secrets: Secret[];
+  /** The plugins that are selected by default, to which the plugin lists can be reset, if known. */
+  defaultPluginSelections?: DefaultPluginSelections;
 };
 
 export const EvaluatorFields = ({
@@ -52,6 +57,7 @@ export const EvaluatorFields = ({
   isSuperuser,
   packageConfigurationProviderPlugins,
   secrets,
+  defaultPluginSelections,
 }: EvaluatorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -76,6 +82,9 @@ export const EvaluatorFields = ({
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.evaluator.packageConfigurationProviders'
+            defaultPluginIds={
+              defaultPluginSelections?.packageConfigurationProviders
+            }
             configName='jobConfigs.evaluator.packageConfigurationProviderConfig'
             label='Package configuration providers'
             description={

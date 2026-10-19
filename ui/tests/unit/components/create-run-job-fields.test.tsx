@@ -26,7 +26,10 @@ import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import { describe, expect, it } from 'vitest';
 
 import { Accordion } from '@/components/ui/accordion';
-import type { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import {
+  getDefaultPluginSelections,
+  type CreateRunFormValues,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 import {
   AdvisorFields,
   AnalyzerFields,
@@ -103,6 +106,14 @@ const formDefaultValues = createFormDefaultValues({
   isSuperuser: true,
 });
 const onToggle = () => {};
+const defaultPluginSelections = getDefaultPluginSelections([], {
+  advisorPlugins,
+  scannerPlugins,
+  reporterPlugins,
+  packageCurationProviderPlugins: [],
+  packageConfigurationProviderPlugins,
+  packageManagerPlugins,
+});
 
 type JobFieldsTestCase = {
   name: string;
@@ -121,6 +132,7 @@ const AnalyzerFieldsHarness = () => {
       <Accordion type='multiple' defaultValue={['analyzer']}>
         <AnalyzerFields
           form={form}
+          defaultPluginSelections={defaultPluginSelections}
           value='analyzer'
           onToggle={onToggle}
           isSuperuser
@@ -142,6 +154,7 @@ const testCases: JobFieldsTestCase[] = [
     render: (form) => (
       <AdvisorFields
         form={form}
+        defaultPluginSelections={defaultPluginSelections}
         value='advisor'
         onToggle={onToggle}
         advisorPlugins={advisorPlugins}
@@ -157,6 +170,7 @@ const testCases: JobFieldsTestCase[] = [
     render: (form) => (
       <EvaluatorFields
         form={form}
+        defaultPluginSelections={defaultPluginSelections}
         value='evaluator'
         onToggle={onToggle}
         isSuperuser
@@ -187,6 +201,7 @@ const testCases: JobFieldsTestCase[] = [
     render: (form) => (
       <ReporterFields
         form={form}
+        defaultPluginSelections={defaultPluginSelections}
         value='reporter'
         onToggle={onToggle}
         reporterPlugins={reporterPlugins}
@@ -205,6 +220,7 @@ const testCases: JobFieldsTestCase[] = [
     render: (form) => (
       <ScannerFields
         form={form}
+        defaultPluginSelections={defaultPluginSelections}
         value='scanner'
         onToggle={onToggle}
         scannerPlugins={scannerPlugins}
@@ -289,6 +305,7 @@ describe('create run job fields', () => {
       (form) => (
         <EvaluatorFields
           form={form}
+          defaultPluginSelections={defaultPluginSelections}
           value='evaluator'
           onToggle={onToggle}
           isSuperuser
@@ -312,6 +329,7 @@ describe('create run job fields', () => {
         <Accordion type='multiple' defaultValue={['reporter']}>
           <ReporterFields
             form={form}
+            defaultPluginSelections={defaultPluginSelections}
             value='reporter'
             onToggle={onToggle}
             reporterPlugins={reporterPlugins}
@@ -357,6 +375,7 @@ describe('create run job fields', () => {
         <Accordion type='multiple' defaultValue={['analyzer']}>
           <AnalyzerFields
             form={form}
+            defaultPluginSelections={defaultPluginSelections}
             value='analyzer'
             onToggle={onToggle}
             isSuperuser

@@ -34,7 +34,10 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import {
+  CreateRunFormValues,
+  DefaultPluginSelections,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type ScannerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
@@ -43,6 +46,8 @@ type ScannerFieldsProps = {
   scannerPlugins: PreconfiguredPluginDescriptor[];
   secrets: Secret[];
   isSuperuser: boolean;
+  /** The plugins that are selected by default, to which the plugin lists can be reset, if known. */
+  defaultPluginSelections?: DefaultPluginSelections;
 };
 
 export const ScannerFields = ({
@@ -52,6 +57,7 @@ export const ScannerFields = ({
   scannerPlugins,
   secrets,
   isSuperuser,
+  defaultPluginSelections,
 }: ScannerFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -119,6 +125,8 @@ export const ScannerFields = ({
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.scanner.scanners'
+            defaultPluginIds={defaultPluginSelections?.scanners}
+            defaultScannerScopes={defaultPluginSelections?.scannerScopes}
             configName='jobConfigs.scanner.config'
             scannerScopeName='jobConfigs.scanner.scannerScopes'
             label='Enabled scanners'

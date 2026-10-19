@@ -42,7 +42,9 @@ import { PluginList } from './plugin-list';
 import { PluginListItem } from './plugin-list-item';
 import { PluginOptionMarkers } from './plugin-option-markers';
 import { PluginSettings } from './plugin-settings';
+import { ResetToDefaultsButton } from './reset-to-defaults-button';
 import { SelectAllCheckbox } from './select-all-checkbox';
+import type { ScannerScope } from './types';
 import { fieldPath } from './utils';
 
 type PluginMultiSelectFieldProps<
@@ -77,6 +79,13 @@ type PluginMultiSelectFieldProps<
    * configured order, for example of default plugins or of a rerun, is visible.
    */
   enableReordering?: boolean;
+  /**
+   * The plugins that are selected by default. When provided, a button is shown that
+   * replaces the current selection with these plugins.
+   */
+  defaultPluginIds?: readonly string[];
+  /** The default scanner scopes of the default plugins, if the plugins have scopes. */
+  defaultScannerScopes?: Readonly<Record<string, ScannerScope>>;
   className?: string;
 };
 
@@ -120,6 +129,8 @@ const PluginMultiSelectFieldContent = <
   plugins,
   secrets,
   enableReordering = false,
+  defaultPluginIds,
+  defaultScannerScopes,
   className,
 }: PluginMultiSelectFieldProps<TFieldValues, TName> & {
   field: ControllerRenderProps<TFieldValues, TName>;
@@ -178,6 +189,15 @@ const PluginMultiSelectFieldContent = <
     if (!selected) expansion.setAllExpanded(false);
   };
 
+  // Collapse the plugins that are disabled by resetting the selection.
+  const resetToDefaults = (defaultIds: readonly string[]) => {
+    const defaultIdSet = new Set(defaultIds);
+    selection.resetToDefaults(defaultIds, defaultScannerScopes);
+    expansion.setExpandedIds(
+      expansion.expandedIds.filter((pluginId) => defaultIdSet.has(pluginId))
+    );
+  };
+
   // Render one plugin, with its settings if it has any. They are only rendered while the
   // plugin is expanded.
   const renderItem = (
@@ -233,12 +253,19 @@ const PluginMultiSelectFieldContent = <
             state={selection.allState}
             onChange={setAllSelected}
           />
-          {expandableIds.length > 0 && (
-            <ExpandAllButton
-              allExpanded={expansion.allExpanded}
-              onChange={expansion.setAllExpanded}
-            />
-          )}
+          <div className='flex items-center gap-2'>
+            {defaultPluginIds && (
+              <ResetToDefaultsButton
+                onClick={() => resetToDefaults(defaultPluginIds)}
+              />
+            )}
+            {expandableIds.length > 0 && (
+              <ExpandAllButton
+                allExpanded={expansion.allExpanded}
+                onChange={expansion.setAllExpanded}
+              />
+            )}
+          </div>
         </div>
       }
     >

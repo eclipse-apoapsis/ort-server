@@ -68,12 +68,16 @@ const renderSelection = ({
       enableReordering,
     });
 
-    return { form, selection };
+    // Read the dirty fields during rendering to subscribe to them.
+    const { dirtyFields } = form.formState;
+
+    return { form, selection, dirtyFields };
   });
 
   return {
     selection: () => result.current.selection,
     values: () => result.current.form.getValues(),
+    dirtyFields: () => result.current.dirtyFields,
     displayOrder: () =>
       result.current.selection.pluginsInDisplayOrder.map((plugin) => plugin.id),
   };
@@ -186,6 +190,34 @@ describe('usePluginSelection', () => {
         C: 'projects',
       });
       expect(values().mustRunAfter).toEqual({ A: ['B'], C: ['A'] });
+    });
+  });
+
+  describe('resetToDefaults', () => {
+    it('marks the selection and the changed scanner scopes as dirty', () => {
+      const { selection, values, dirtyFields } = renderSelection({
+        withScannerScope: true,
+        defaultValues: { plugins: ['C'], scopes: { A: 'packages', C: 'both' } },
+      });
+
+      act(() =>
+        selection().resetToDefaults(['A', 'B'], {
+          A: 'packages',
+          B: 'projects',
+        })
+      );
+
+      expect(values().plugins).toEqual(['A', 'B']);
+      expect(values().scopes).toEqual({
+        A: 'packages',
+        B: 'projects',
+        C: 'both',
+      });
+      // A's scope equals its default value, so it is not dirty.
+      expect(dirtyFields()).toEqual({
+        plugins: true,
+        scopes: { B: true },
+      });
     });
   });
 

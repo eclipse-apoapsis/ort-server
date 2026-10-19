@@ -93,7 +93,7 @@ type CreateRunPermissions = {
 export type CreateRunFormProps = {
   /**
    * The plugins that are enabled by default for each plugin type. If they are not available, no
-   * plugins are selected by default.
+   * plugins are selected by default, and the plugin lists cannot be reset to the defaults.
    */
   defaultPlugins?: DefaultPlugins[];
   isSubmitting: boolean;
@@ -172,10 +172,15 @@ export const CreateRunForm = ({
     packageManagerPlugins
   );
 
+  // The plugins selected by default, independent of a rerun.
   const defaultPluginSelections = useMemo(
     () => getDefaultPluginSelections(defaultPlugins ?? [], pluginGroups),
     [defaultPlugins, pluginGroups]
   );
+  // The plugin lists can only be reset to the defaults if they could be loaded.
+  const resettablePluginSelections = defaultPlugins
+    ? defaultPluginSelections
+    : undefined;
 
   // `values` lets React Hook Form update untouched fields when the plugins change.
   // Memoize them so unrelated form renders do not trigger a reset.
@@ -640,6 +645,7 @@ export const CreateRunForm = ({
               >
                 <AnalyzerFields
                   form={form}
+                  defaultPluginSelections={resettablePluginSelections}
                   value='analyzer'
                   onToggle={() => toggleAccordionOpen('analyzer')}
                   isSuperuser={isSuperuser}
@@ -652,6 +658,7 @@ export const CreateRunForm = ({
                 />
                 <AdvisorFields
                   form={form}
+                  defaultPluginSelections={resettablePluginSelections}
                   value='advisor'
                   onToggle={() => toggleAccordionOpen('advisor')}
                   advisorPlugins={advisorPlugins}
@@ -660,6 +667,7 @@ export const CreateRunForm = ({
                 />
                 <ScannerFields
                   form={form}
+                  defaultPluginSelections={resettablePluginSelections}
                   value='scanner'
                   onToggle={() => toggleAccordionOpen('scanner')}
                   scannerPlugins={scannerPlugins}
@@ -668,6 +676,7 @@ export const CreateRunForm = ({
                 />
                 <EvaluatorFields
                   form={form}
+                  defaultPluginSelections={resettablePluginSelections}
                   value='evaluator'
                   onToggle={() => toggleAccordionOpen('evaluator')}
                   isSuperuser={isSuperuser}
@@ -678,6 +687,7 @@ export const CreateRunForm = ({
                 />
                 <ReporterFields
                   form={form}
+                  defaultPluginSelections={resettablePluginSelections}
                   value='reporter'
                   onToggle={() => toggleAccordionOpen('reporter')}
                   reporterPlugins={reporterPlugins}

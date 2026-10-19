@@ -427,6 +427,9 @@ describe('CreateRunForm', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Advisor' }));
     expect(screen.getByLabelText('Enable OSV')).not.toBeChecked();
+    expect(
+      screen.queryByRole('button', { name: 'Reset to defaults' })
+    ).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Create' }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
