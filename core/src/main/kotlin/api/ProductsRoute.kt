@@ -441,7 +441,8 @@ fun Route.products() = route("products/{productId}") {
                 pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
                     pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
                 },
-                organizationId = OrganizationId(product.organizationId)
+                organizationId = OrganizationId(product.organizationId),
+                context = resolvedJobConfigContext
             )
 
             if (!validationResult.isValid) {

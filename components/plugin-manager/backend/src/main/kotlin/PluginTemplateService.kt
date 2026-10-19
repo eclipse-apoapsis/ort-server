@@ -392,11 +392,14 @@ class PluginTemplateService(
 
     /**
      * Validate the provided [pluginConfigs] against the admin configuration for the provided
-     * [organization][organizationId].
+     * [organization][organizationId]. Reporters can also be referenced by the names of the report definitions from
+     * the admin configuration of the given config [context]. In this case, the reporter plugin used by the report
+     * definition is validated.
      */
     suspend fun validatePluginConfigs(
         pluginConfigs: Map<PluginType, Map<String, ResolvablePluginConfig>>,
-        organizationId: OrganizationId
+        organizationId: OrganizationId,
+        context: ResolvedConfigContext
     ): PluginConfigValidationResult {
         validateOrganizationExists(organizationId).onErr { error ->
             return PluginConfigValidationResult(listOf(error.message))
@@ -405,8 +408,20 @@ class PluginTemplateService(
         val plugins = pluginService.getPlugins()
         val errors = mutableListOf<String>()
 
+        val reporterConfig = if (pluginConfigs[PluginType.REPORTER].isNullOrEmpty()) {
+            null
+        } else {
+            adminConfigService.loadAdminConfig(context).reporterConfig
+        }
+
         pluginConfigs.forEach { (pluginType, configs) ->
-            configs.forEach { (pluginId, config) ->
+            configs.forEach { (configuredId, config) ->
+                val pluginId = if (pluginType == PluginType.REPORTER) {
+                    reporterConfig?.getReportDefinition(configuredId)?.pluginId ?: configuredId
+                } else {
+                    configuredId
+                }
+
                 val descriptor = plugins.singleOrNull {
                     it.type == pluginType && it.id == normalizePluginId(pluginType, pluginId)
                 }

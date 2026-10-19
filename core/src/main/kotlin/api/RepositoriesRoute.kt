@@ -191,7 +191,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
                         pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
                     },
-                    organizationId = OrganizationId(it.organizationId)
+                    organizationId = OrganizationId(it.organizationId),
+                    context = resolvedJobConfigContext
                 )
 
                 if (!validationResult.isValid) {
