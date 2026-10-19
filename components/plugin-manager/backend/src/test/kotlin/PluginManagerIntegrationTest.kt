@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import com.github.michaelbull.result.get
+
 import com.typesafe.config.ConfigFactory
 
 import io.ktor.client.HttpClient
@@ -28,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the plugin-manager routes. */
@@ -37,6 +40,7 @@ abstract class PluginManagerIntegrationTest(
 ) : AbstractIntegrationTest({}) {
     lateinit var adminConfigService: AdminConfigService
     lateinit var configManager: ConfigManager
+    lateinit var defaultPluginsService: DefaultPluginsService
     lateinit var eventStore: PluginEventStore
     lateinit var pluginService: PluginService
     lateinit var pluginTemplateService: PluginTemplateService
@@ -62,15 +66,30 @@ abstract class PluginManagerIntegrationTest(
                 dbExtension.fixtures.repositoryRepository,
                 adminConfigService
             )
+            defaultPluginsService = DefaultPluginsService(
+                dbExtension.db,
+                DefaultPluginsEventStore(dbExtension.db),
+                pluginService,
+                pluginTemplateService,
+                dbExtension.fixtures.organizationRepository,
+                adminConfigService,
+                configManager
+            )
         }
 
         body()
     }
 
+    /** Return the default plugins of the given [category] for the given [organizationId] or the global defaults. */
+    suspend fun getDefaultPlugins(organizationId: OrganizationId?, category: DefaultPluginsCategory): DefaultPlugins =
+        defaultPluginsService.getAllDefaultPlugins(organizationId).get().orEmpty().single { it.category == category }
+
     fun pluginManagerTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { pluginManagerRoutes(configManager, eventStore, pluginService, pluginTemplateService) },
+        routes = {
+            pluginManagerRoutes(configManager, defaultPluginsService, eventStore, pluginService, pluginTemplateService)
+        },
         block = block
     )
 }

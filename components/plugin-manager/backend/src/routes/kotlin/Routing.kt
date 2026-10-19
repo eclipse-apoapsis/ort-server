@@ -28,18 +28,22 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.disableGlo
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.disablePlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enableGlobalTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enablePlugin
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getGlobalDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getInstalledPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForRepository
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplates
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.removeTemplateFromOrganization
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.resetGlobalDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.restrictPlugin
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.setGlobalDefaultPlugins
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.updateTemplateOptions
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 /** Add routes for all plugin-manager endpoints. */
 fun Route.pluginManagerRoutes(
     configManager: ConfigManager,
+    defaultPluginsService: DefaultPluginsService,
     eventStore: PluginEventStore,
     pluginService: PluginService,
     pluginTemplateService: PluginTemplateService
@@ -51,11 +55,14 @@ fun Route.pluginManagerRoutes(
     disablePlugin(eventStore)
     enableGlobalTemplate(pluginTemplateService)
     enablePlugin(eventStore)
+    getGlobalDefaultPlugins(defaultPluginsService)
     getInstalledPlugins(pluginService)
     getPluginsForRepository(configManager, pluginTemplateService)
     getTemplate(pluginTemplateService)
     getTemplates(pluginTemplateService)
     removeTemplateFromOrganization(pluginTemplateService)
+    resetGlobalDefaultPlugins(defaultPluginsService)
     restrictPlugin(eventStore)
+    setGlobalDefaultPlugins(defaultPluginsService)
     updateTemplateOptions(pluginTemplateService)
 }
