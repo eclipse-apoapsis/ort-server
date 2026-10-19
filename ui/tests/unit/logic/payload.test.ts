@@ -185,7 +185,7 @@ describe('formValuesToPayload', () => {
     ]);
   });
 
-  it('omits package configuration providers if none are selected', () => {
+  it('sends an empty list of package configuration providers if none are selected', () => {
     const values = createFormValues();
     values.jobConfigs.evaluator.packageConfigurationProviders = [];
     values.jobConfigs.evaluator.packageConfigurationProviderConfig = {
@@ -208,15 +208,16 @@ describe('formValuesToPayload', () => {
 
     const payload = formValuesToPayload(values, []);
 
-    expect(
-      payload.jobConfigs.evaluator?.packageConfigurationProviders
-    ).toBeUndefined();
+    expect(payload.jobConfigs.evaluator?.packageConfigurationProviders).toEqual(
+      []
+    );
+    // The reporter uses the providers of the evaluator.
     expect(
       payload.jobConfigs.reporter?.packageConfigurationProviders
     ).toBeUndefined();
   });
 
-  it('omits package curation providers if none are selected', () => {
+  it('sends an empty list of package curation providers if none are selected', () => {
     const values = createFormValues();
     values.jobConfigs.analyzer.packageCurationProviders = [];
     values.jobConfigs.analyzer.packageCurationProviderConfig = {
@@ -230,9 +231,7 @@ describe('formValuesToPayload', () => {
 
     const payload = formValuesToPayload(values, []);
 
-    expect(
-      payload.jobConfigs.analyzer?.packageCurationProviders
-    ).toBeUndefined();
+    expect(payload.jobConfigs.analyzer?.packageCurationProviders).toEqual([]);
   });
 
   it('omits reporter package configuration providers when evaluator is enabled', () => {

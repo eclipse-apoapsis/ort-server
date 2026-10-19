@@ -238,9 +238,11 @@ export function mergePluginConfigs(
  * the API's `scanners` and `projectScanners` fields.
  *
  * API semantics:
- * - If `projectScanners` is null/empty, `scanners` scan both projects and packages.
+ * - If `projectScanners` is null, `scanners` scan both projects and packages.
  * - Otherwise `scanners` scan packages only, and `projectScanners` scan projects only.
- *   A scanner appearing in both lists scans both.
+ *   A scanner appearing in both lists scans both. An empty `projectScanners` disables
+ *   project scanning.
+ * - If `scanners` is null, the default package scanners are used.
  */
 export function reconstructScannerSelection(
   apiScanners: string[] | null | undefined,
@@ -253,8 +255,7 @@ export function reconstructScannerSelection(
   scanners: string[];
   scannerScopes: Record<string, 'both' | 'packages' | 'projects'>;
 } {
-  const hasProjectScannerOverride =
-    apiProjectScanners != null && apiProjectScanners.length > 0;
+  const hasProjectScannerOverride = apiProjectScanners != null;
 
   if (!apiScanners && !hasProjectScannerOverride) {
     return {
@@ -263,13 +264,19 @@ export function reconstructScannerSelection(
     };
   }
 
+  const packageScanners =
+    apiScanners ??
+    baseDefaults.scanners.filter(
+      (id) => baseDefaults.scannerScopes[id] !== 'projects'
+    );
+
   const allScannerIds = Array.from(
-    new Set([...(apiScanners ?? []), ...(apiProjectScanners ?? [])])
+    new Set([...packageScanners, ...(apiProjectScanners ?? [])])
   );
 
   const scannerScopes: Record<string, 'both' | 'packages' | 'projects'> = {};
   for (const id of allScannerIds) {
-    const inScanners = apiScanners?.includes(id) ?? false;
+    const inScanners = packageScanners.includes(id);
     const inProjectScanners = apiProjectScanners?.includes(id) ?? false;
     if (!hasProjectScannerOverride) {
       scannerScopes[id] = 'both';
@@ -440,15 +447,15 @@ export function createPluginPayload(
 
 /**
  * Convert selected provider plugins and their configuration to the payload format expected by the back-end.
+ * An empty selection results in an empty list, because the back-end applies the default providers if the list is
+ * absent.
  */
 export function createProviderPluginPayload(
   config: Record<string, unknown> | undefined,
   enabledPlugins: string[],
   plugins: PreconfiguredPluginDescriptor[],
   pluginType: PluginType
-): ProviderPluginConfiguration[] | undefined {
-  if (enabledPlugins.length === 0) return undefined;
-
+): ProviderPluginConfiguration[] {
   const pluginPayload = createPluginPayload(
     config,
     enabledPlugins,
