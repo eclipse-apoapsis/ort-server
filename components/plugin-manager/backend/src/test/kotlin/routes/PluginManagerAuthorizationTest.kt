@@ -24,11 +24,14 @@ import com.typesafe.config.ConfigFactory
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.DefaultPluginsService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -45,6 +48,7 @@ import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactor
 
 class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
     lateinit var configManager: ConfigManager
+    lateinit var defaultPluginsService: DefaultPluginsService
     lateinit var pluginEventStore: PluginEventStore
     lateinit var pluginService: PluginService
     lateinit var pluginTemplateService: PluginTemplateService
@@ -64,17 +68,33 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
         pluginEventStore = PluginEventStore(dbExtension.db)
         pluginService = PluginService(dbExtension.db)
+        val adminConfigService = AdminConfigService(configManager)
         pluginTemplateService = PluginTemplateService(
             dbExtension.db,
             PluginTemplateEventStore(dbExtension.db),
             pluginService,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.repositoryRepository,
-            AdminConfigService(configManager)
+            adminConfigService
+        )
+        defaultPluginsService = DefaultPluginsService(
+            dbExtension.db,
+            DefaultPluginsEventStore(dbExtension.db),
+            pluginService,
+            pluginTemplateService,
+            dbExtension.fixtures.organizationRepository,
+            adminConfigService,
+            configManager
         )
     }
 
-    fun Route.routes() = pluginManagerRoutes(configManager, pluginEventStore, pluginService, pluginTemplateService)
+    fun Route.routes() = pluginManagerRoutes(
+        configManager,
+        defaultPluginsService,
+        pluginEventStore,
+        pluginService,
+        pluginTemplateService
+    )
 
     "AddTemplateToOrganization" should {
         "require the superuser role" {
@@ -142,6 +162,16 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetGlobalDefaultPlugins" should {
+        "require the superuser role" {
+            requestShouldRequireSuperuser(
+                routes = { routes() }
+            ) {
+                get("/admin/plugins/defaults")
+            }
+        }
+    }
+
     "GetInstalledPlugins" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
@@ -188,6 +218,17 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "ResetGlobalDefaultPlugins" should {
+        "require the superuser role" {
+            requestShouldRequireSuperuser(
+                routes = { routes() },
+                successStatus = HttpStatusCode.NoContent
+            ) {
+                delete("/admin/plugins/defaults/$pluginType")
+            }
+        }
+    }
+
     "RestrictPlugin" should {
         "require the superuser role" {
             requestShouldRequireSuperuser(
@@ -195,6 +236,19 @@ class PluginManagerAuthorizationTest : AbstractAuthorizationTest({
                 successStatus = HttpStatusCode.Accepted
             ) {
                 post("/admin/plugins/$pluginType/$pluginId/restrict")
+            }
+        }
+    }
+
+    "SetGlobalDefaultPlugins" should {
+        "require the superuser role" {
+            requestShouldRequireSuperuser(
+                routes = { routes() },
+                successStatus = HttpStatusCode.NoContent
+            ) {
+                put("/admin/plugins/defaults/$pluginType") {
+                    setBody(listOf(pluginId))
+                }
             }
         }
     }
