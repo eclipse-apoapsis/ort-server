@@ -49,6 +49,9 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePer
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepository
@@ -85,9 +88,12 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.koin.ktor.ext.inject
 
+import org.ossreviewtoolkit.utils.common.collectMessages
+
 @Suppress("LongMethod")
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val authorizationService by inject<AuthorizationService>()
+    val configManager by inject<ConfigManager>()
     val orchestratorService by inject<OrchestratorService>()
     val ortRunService by inject<OrtRunService>()
     val pluginTemplateService by inject<PluginTemplateService>()
@@ -166,6 +172,20 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     UserDisplayName(principal.userId, principal.username, principal.fullName)
                 }
 
+                // Resolve the config context now, so that the configuration of the run cannot change later.
+                val resolvedJobConfigContext = try {
+                    configManager.resolveContext(
+                        createOrtRun.jobConfigContext?.let(::RequestedConfigContext) ?: RequestedConfigContext.EMPTY
+                    )
+                } catch (e: ConfigException) {
+                    call.respondError(
+                        HttpStatusCode.BadRequest,
+                        message = "Could not resolve the config context.",
+                        cause = e.collectMessages()
+                    )
+                    return@post
+                }
+
                 // Validate the plugin configuration.
                 val validationResult = pluginTemplateService.validatePluginConfigs(
                     pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
@@ -202,7 +222,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                         createOrtRun.jobConfigContext,
                         createOrtRun.labels,
                         createOrtRun.environmentConfigPath,
-                        userDisplayName
+                        userDisplayName,
+                        resolvedJobConfigContext.name
                     ).mapToApi(Jobs())
                 )
             } ?: call.respond(HttpStatusCode.NotFound)

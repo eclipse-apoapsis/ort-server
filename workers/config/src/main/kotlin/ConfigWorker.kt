@@ -23,7 +23,6 @@ import kotlin.coroutines.cancellation.CancellationException
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -73,15 +72,13 @@ class ConfigWorker(
         logger.info("Running config worker for run '$ortRunId'.")
 
         contextFactory.withContext(ortRunId) { context ->
-            val jobConfigContext = context.ortRun.jobConfigContext?.let(::RequestedConfigContext)
-                ?: RequestedConfigContext.EMPTY
-            val resolvedJobConfigContext = context.configManager.resolveContext(jobConfigContext)
-
-            logger.info(
-                "Provided configuration context '{}' was resolved to '{}'.",
-                context.ortRun.jobConfigContext,
-                resolvedJobConfigContext.name
+            val resolvedJobConfigContext = ResolvedConfigContext(
+                checkNotNull(context.ortRun.resolvedJobConfigContext) {
+                    "The config context of ORT run '$ortRunId' was not resolved when the run was created."
+                }
             )
+
+            logger.info("Using the configuration context '{}'.", resolvedJobConfigContext.name)
 
             // Apply the plugin templates before the validation script runs so that the script can override any value
             // an administrator has configured.
@@ -95,7 +92,7 @@ class ConfigWorker(
                 onFailure = ::createPluginTemplateFailure
             )
 
-            storeResult(ortRunId, resolvedJobConfigContext, validationResult)
+            storeResult(ortRunId, validationResult)
 
             when (validationResult) {
                 is ConfigValidationResultSuccess -> RunResult.Success
@@ -130,7 +127,7 @@ class ConfigWorker(
                 VALIDATION_SCRIPT_PATH
             )
             val validationScriptRunner = ValidationScriptRunner(
-                createValidationWorkerContext(context, resolvedJobConfigContext, baseConfigs)
+                createValidationWorkerContext(context, baseConfigs)
             )
 
             validationScriptRunner.runScript(validationScript).also {
@@ -196,7 +193,6 @@ class ConfigWorker(
 
     private suspend fun storeResult(
         ortRunId: Long,
-        resolvedJobConfigContext: ResolvedConfigContext,
         validationResult: ConfigValidationResult
     ) {
         val labels: OptionalValue<Map<String, String>>
@@ -218,7 +214,6 @@ class ConfigWorker(
             ortRunRepository.update(
                 id = ortRunId,
                 resolvedJobConfigs = resolvedJobConfigs,
-                resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent(),
                 issues = validationResult.optionalIssues,
                 labels = labels
             )
@@ -226,26 +221,16 @@ class ConfigWorker(
     }
 
     /**
-     * Create a [WorkerContext] that delegates to the given [context], but returns the provided
-     * [resolvedJobConfigContext] and [baseConfigs]. This is needed because the [WorkerContext.ortRun] object contained
-     * in the original [WorkerContext] does not have the resolved configuration context yet; it is updated at the end
-     * of the worker execution. However, the config validation script needs the right configuration context. The
-     * [baseConfigs] override ensures the script sees the pre-resolved job configurations, including the values
-     * contributed by the plugin templates.
+     * Create a [WorkerContext] that delegates to the given [context], but returns the provided [baseConfigs] as the
+     * job configurations of the [WorkerContext.ortRun]. This ensures the validation script sees the pre-resolved job
+     * configurations, including the values contributed by the plugin templates.
      */
-    private fun createValidationWorkerContext(
-        context: WorkerContext,
-        resolvedJobConfigContext: ResolvedConfigContext,
-        baseConfigs: JobConfigurations
-    ): WorkerContext {
-        val runWithConfigContext = context.ortRun.copy(
-            resolvedJobConfigContext = resolvedJobConfigContext.name,
-            jobConfigs = baseConfigs
-        )
+    private fun createValidationWorkerContext(context: WorkerContext, baseConfigs: JobConfigurations): WorkerContext {
+        val runWithBaseConfigs = context.ortRun.copy(jobConfigs = baseConfigs)
 
         return object : WorkerContext by context {
             override val ortRun: OrtRun
-                get() = runWithConfigContext
+                get() = runWithBaseConfigs
         }
     }
 }

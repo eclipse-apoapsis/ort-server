@@ -655,7 +655,7 @@ val postProductRuns: RouteConfig.() -> Unit = {
                             labels = mapOf("label key" to "label value"),
                             issues = emptyList(),
                             jobConfigContext = null,
-                            resolvedJobConfigContext = null,
+                            resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
                             traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
                         ),
                         OrtRun(
@@ -674,7 +674,7 @@ val postProductRuns: RouteConfig.() -> Unit = {
                             labels = mapOf("label key" to "label value"),
                             issues = emptyList(),
                             jobConfigContext = null,
-                            resolvedJobConfigContext = null,
+                            resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
                             traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
                         )
                     )
@@ -683,8 +683,8 @@ val postProductRuns: RouteConfig.() -> Unit = {
         }
 
         HttpStatusCode.BadRequest to {
-            description = "Invalid request, e.g., provided repository IDs do not belong to the product or the plugin " +
-                    "configuration is invalid."
+            description = "Invalid request, e.g., provided repository IDs do not belong to the product, the " +
+                    "plugin configuration is invalid, or the config context cannot be resolved."
         }
 
         HttpStatusCode.NotFound to {

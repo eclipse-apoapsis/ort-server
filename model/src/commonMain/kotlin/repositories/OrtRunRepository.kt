@@ -39,7 +39,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 @Suppress("TooManyFunctions")
 interface OrtRunRepository {
     /**
-     * Create an ORT run.
+     * Create an ORT run. The [resolvedJobConfigContext] is the result of resolving the requested [jobConfigContext]
+     * and determines the configuration used by the run.
      */
     suspend fun create(
         repositoryId: Long,
@@ -50,7 +51,8 @@ interface OrtRunRepository {
         labels: Map<String, String>,
         traceId: String?,
         environmentConfigPath: String?,
-        userDisplayName: UserDisplayName? = null
+        userDisplayName: UserDisplayName? = null,
+        resolvedJobConfigContext: String? = null
     ): OrtRun
 
     /**

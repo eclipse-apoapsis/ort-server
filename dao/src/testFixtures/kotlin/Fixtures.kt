@@ -152,7 +152,8 @@ class Fixtures(private val db: Database) {
         revision: String = "revision",
         jobConfigurations: JobConfigurations = this.jobConfigurations,
         jobConfigContext: String? = null,
-        labels: Map<String, String> = mapOf("label key" to "label value")
+        labels: Map<String, String> = mapOf("label key" to "label value"),
+        resolvedJobConfigContext: String? = null
     ) = ortRunRepository.create(
         repositoryId,
         revision,
@@ -161,7 +162,8 @@ class Fixtures(private val db: Database) {
         jobConfigContext,
         labels,
         traceId = "trace-this-run0",
-        environmentConfigPath = "path/to/env.yml"
+        environmentConfigPath = "path/to/env.yml",
+        resolvedJobConfigContext = resolvedJobConfigContext
     )
 
     suspend fun createAnalyzerJob(

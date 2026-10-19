@@ -152,6 +152,25 @@ class DaoOrtRunRepositoryTest : WordSpec({
             )
         }
 
+        "store the resolved config context" {
+            val createdOrtRun = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                "someConfigContext",
+                labelsMap,
+                traceId = null,
+                null,
+                resolvedJobConfigContext = "resolvedConfigContext"
+            )
+
+            ortRunRepository.get(createdOrtRun.id) shouldNotBeNull {
+                jobConfigContext shouldBe "someConfigContext"
+                resolvedJobConfigContext shouldBe "resolvedConfigContext"
+            }
+        }
+
         "create sequential indexes for different repositories" {
             val otherRepository = dbExtension.fixtures.createRepository(url = "https://example.com/repo2.git")
 

@@ -48,7 +48,9 @@ class OrchestratorService(
     private val orchestratorSender by lazy { MessageSenderFactory.createSender(OrchestratorEndpoint, configManager) }
 
     /**
-     * Create an ORT run in the database and notify the Orchestrator to handle this run.
+     * Create an ORT run in the database and notify the Orchestrator to handle this run. The
+     * [resolvedJobConfigContext] is the result of resolving the requested [jobConfigContext] and determines the
+     * configuration used by the run.
      */
     suspend fun createOrtRun(
         repositoryId: Long,
@@ -58,7 +60,8 @@ class OrchestratorService(
         jobConfigContext: String?,
         labels: Map<String, String>?,
         environmentConfigPath: String?,
-        userDisplayName: UserDisplayName?
+        userDisplayName: UserDisplayName?,
+        resolvedJobConfigContext: String
     ): OrtRun {
         val traceId = MDC.get("traceId")
 
@@ -73,7 +76,8 @@ class OrchestratorService(
                 labels.orEmpty(),
                 traceId = traceId,
                 environmentConfigPath = environmentConfigPath,
-                userDisplayName = userDisplayName
+                userDisplayName = userDisplayName,
+                resolvedJobConfigContext = resolvedJobConfigContext
             )
         }
 
