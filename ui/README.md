@@ -91,8 +91,6 @@ Coverage is disabled for ordinary test runs. The coverage command prints stateme
 Reports include untested TypeScript and TSX source files, but exclude generated API code, the generated route tree, and type declarations.
 Generated reports are ignored by version control, ESLint, and Prettier. No coverage threshold is enforced.
 
-See the [initial coverage baseline](tests/coverage-baseline.md) for the recorded results, exclusions, and limitations.
-
 ### Coverage in pull requests
 
 The "UI Coverage" workflow measures UI test coverage for every pull request, and the "Report UI Coverage" workflow posts the result as a comment on it once "UI Coverage" has finished.
