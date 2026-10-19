@@ -34,7 +34,10 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+import {
+  CreateRunFormValues,
+  DefaultPluginSelections,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type AdvisorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
@@ -43,6 +46,8 @@ type AdvisorFieldsProps = {
   advisorPlugins: PreconfiguredPluginDescriptor[];
   secrets: Secret[];
   isSuperuser: boolean;
+  /** The plugins that are selected by default, to which the plugin lists can be reset, if known. */
+  defaultPluginSelections?: DefaultPluginSelections;
 };
 
 export const AdvisorFields = ({
@@ -52,6 +57,7 @@ export const AdvisorFields = ({
   advisorPlugins,
   secrets,
   isSuperuser,
+  defaultPluginSelections,
 }: AdvisorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -97,6 +103,7 @@ export const AdvisorFields = ({
           <PluginMultiSelectField
             form={form}
             name='jobConfigs.advisor.advisors'
+            defaultPluginIds={defaultPluginSelections?.advisors}
             configName='jobConfigs.advisor.config'
             label='Enabled advisors'
             description={<>Select the advisors enabled for this run.</>}

@@ -25,10 +25,12 @@ import type {
   FieldPathValue,
   FieldValues,
   Path,
+  SetValueConfig,
   UseFormReturn,
 } from 'react-hook-form';
 
 import type { PreconfiguredPluginDescriptor } from '@/api';
+import type { ScannerScope } from '@/components/form/plugin-multi-select-field';
 import {
   fieldPath,
   getPluginsInDisplayOrder,
@@ -84,10 +86,16 @@ export function usePluginSelection<
       .filter((pluginId) => selectedIds.has(pluginId));
 
   // Set a plugin's entry in a field that holds one value per plugin.
-  const setPluginValue = (base: string, pluginId: string, value: unknown) =>
+  const setPluginValue = (
+    base: string,
+    pluginId: string,
+    value: unknown,
+    options?: SetValueConfig
+  ) =>
     form.setValue(
       fieldPath<TFieldValues>(base, pluginId),
-      value as FieldPathValue<TFieldValues, Path<TFieldValues>>
+      value as FieldPathValue<TFieldValues, Path<TFieldValues>>,
+      options
     );
 
   // Give a newly enabled plugin the default scanner scope, unless it already has one.
@@ -131,6 +139,34 @@ export function usePluginSelection<
     if (selected) plugins.forEach((plugin) => applyEnabled(plugin.id));
   };
 
+  // Select the given default plugins instead of the current selection, with their default scanner
+  // scopes. The display order is reset, so that the order of the defaults is shown. Unlike
+  // `setAllSelected`, this marks the selection and the scopes as dirty, so that they are kept
+  // together if the available plugins change.
+  const resetToDefaults = (
+    defaultPluginIds: readonly string[],
+    defaultScannerScopes?: Readonly<Record<string, ScannerScope>>
+  ) => {
+    setPluginOrder(undefined);
+    form.setValue(
+      field.name,
+      [...defaultPluginIds] as FieldPathValue<TFieldValues, TName>,
+      { shouldDirty: true }
+    );
+
+    defaultPluginIds.forEach((pluginId) => {
+      const scope = defaultScannerScopes?.[pluginId];
+
+      if (scannerScopeName && scope) {
+        setPluginValue(scannerScopeName, pluginId, scope, {
+          shouldDirty: true,
+        });
+      } else {
+        applyEnabled(pluginId);
+      }
+    });
+  };
+
   // Move a plugin within the sortable list and store the selection in the new order.
   const reorder = (fromIndex: number, toIndex: number) => {
     const nextPluginOrder = moveItem(
@@ -158,6 +194,7 @@ export function usePluginSelection<
     isSelected: (pluginId: string) => selectedPluginIdSet.has(pluginId),
     setSelected,
     setAllSelected,
+    resetToDefaults,
     reorder,
     allState,
   };

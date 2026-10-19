@@ -31,7 +31,10 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import type { PreconfiguredPluginDescriptor } from '@/api';
-import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field';
+import {
+  PluginMultiSelectField,
+  type ScannerScope,
+} from '@/components/form/plugin-multi-select-field';
 import { createPluginDescriptor } from '../fixtures/create-run';
 
 type TwoFieldsFormValues = {
@@ -108,6 +111,8 @@ type FieldOptions = {
   withScannerScope?: boolean;
   withMustRunAfter?: boolean;
   enableReordering?: boolean;
+  defaultPluginIds?: string[];
+  defaultScannerScopes?: Record<string, ScannerScope>;
   resolver?: Resolver<FieldFormValues>;
 };
 
@@ -118,6 +123,8 @@ const renderField = ({
   withScannerScope = false,
   withMustRunAfter = false,
   enableReordering = false,
+  defaultPluginIds,
+  defaultScannerScopes,
   resolver,
 }: FieldOptions = {}) => {
   let form: UseFormReturn<FieldFormValues> | undefined;
@@ -147,6 +154,8 @@ const renderField = ({
             plugins={plugins}
             secrets={[]}
             enableReordering={enableReordering}
+            defaultPluginIds={defaultPluginIds}
+            defaultScannerScopes={defaultScannerScopes}
           />
           <button type='submit'>Submit</button>
         </form>
@@ -267,6 +276,74 @@ describe('PluginMultiSelectField', () => {
     await user.click(pluginCheckbox('Plugin A'));
 
     expect(getValues().mustRunAfter.A).toEqual(['B']);
+  });
+
+  describe('reset to defaults button', () => {
+    const resetButton = () =>
+      screen.queryByRole('button', { name: 'Reset to defaults' });
+
+    it('is not shown without a default selection', () => {
+      renderField();
+
+      expect(resetButton()).not.toBeInTheDocument();
+    });
+
+    it('replaces the selection with the default plugins', async () => {
+      const user = userEvent.setup();
+      const getValues = renderField({
+        defaultValues: { plugins: ['A', 'C'] },
+        defaultPluginIds: ['B', 'C'],
+      });
+
+      await user.click(resetButton()!);
+
+      expect(getValues().plugins).toEqual(['B', 'C']);
+      expect(pluginCheckbox('Plugin A')).not.toBeChecked();
+      expect(pluginCheckbox('Plugin B')).toBeChecked();
+    });
+
+    it('selects the default plugins after all plugins were disabled', async () => {
+      const user = userEvent.setup();
+      const getValues = renderField({
+        defaultPluginIds: ['A'],
+      });
+
+      await user.click(resetButton()!);
+
+      expect(getValues().plugins).toEqual(['A']);
+    });
+
+    it('shows the default plugins in their order with reordering', async () => {
+      const user = userEvent.setup();
+      const getValues = renderField({
+        enableReordering: true,
+        defaultPluginIds: ['C', 'A'],
+      });
+
+      await user.click(resetButton()!);
+
+      expect(getValues().plugins).toEqual(['C', 'A']);
+      expect(renderedPluginNames()).toEqual([
+        'Plugin C',
+        'Plugin A',
+        'Plugin B',
+      ]);
+    });
+
+    it('restores the default scanner scopes', async () => {
+      const user = userEvent.setup();
+      const getValues = renderField({
+        withScannerScope: true,
+        defaultValues: { plugins: ['A'], scopes: { A: 'both' } },
+        defaultPluginIds: ['A', 'B'],
+        defaultScannerScopes: { A: 'projects' },
+      });
+
+      await user.click(resetButton()!);
+
+      expect(getValues().plugins).toEqual(['A', 'B']);
+      expect(getValues().scopes).toEqual({ A: 'projects', B: 'both' });
+    });
   });
 
   describe('select-all checkbox', () => {
