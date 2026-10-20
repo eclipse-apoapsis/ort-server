@@ -248,15 +248,17 @@ class PluginTemplateService(
 
     /**
      * Return the plugins available for the organization with the given [organizationId] using the admin configuration
-     * from the given config [context]. Disabled plugins and restricted plugins without a template for the organization
-     * are excluded. The default values of the plugin options are taken from the templates for the organization. The
-     * report definitions from the admin configuration are added as reporters and replace the reporters they use, if
-     * these reporters are available.
+     * from the given config [context], or an error if the organization does not exist. Disabled plugins and restricted
+     * plugins without a template for the organization are excluded. The default values of the plugin options are taken
+     * from the templates for the organization. The report definitions from the admin configuration are added as
+     * reporters and replace the reporters they use, if these reporters are available.
      */
     internal suspend fun getPluginsForOrganization(
         organizationId: OrganizationId,
         context: ResolvedConfigContext
     ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
+        validateOrganizationExists(organizationId).onErr { return@transaction it.toErr() }
+
         val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
         val plugins = getAvailablePlugins(organizationId).withReportDefinitions(reportDefinitions)
