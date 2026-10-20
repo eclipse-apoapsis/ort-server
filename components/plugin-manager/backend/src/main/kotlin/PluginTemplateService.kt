@@ -250,7 +250,8 @@ class PluginTemplateService(
      * Return the plugins available for the organization with the given [organizationId] using the admin configuration
      * from the given config [context]. Disabled plugins and restricted plugins without a template for the organization
      * are excluded. The default values of the plugin options are taken from the templates for the organization. The
-     * report definitions from the admin configuration are added as reporters and replace the reporters they use.
+     * report definitions from the admin configuration are added as reporters and replace the reporters they use, if
+     * these reporters are available.
      */
     internal suspend fun getPluginsForOrganization(
         organizationId: OrganizationId,
@@ -258,30 +259,10 @@ class PluginTemplateService(
     ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
         val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
-        val plugins = getAvailablePlugins(organizationId).map { (plugin, template) ->
-            plugin.toPreconfiguredPluginDescriptor(template)
-        }
+        val plugins = getAvailablePlugins(organizationId).withReportDefinitions(reportDefinitions)
+            .map { (plugin, template) -> plugin.toPreconfiguredPluginDescriptor(template) }
 
-        val replacedReporterPlugins = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
-
-        // Drop all plugins for which a report definition exists.
-        val filteredPlugins = plugins.filter {
-            it.type != PluginType.REPORTER || it.id.lowercase() !in replacedReporterPlugins
-        }
-
-        // Create one plugin for each report definition
-        val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
-            PreconfiguredPluginDescriptor(
-                id = name,
-                type = PluginType.REPORTER,
-                displayName = name,
-                summary = definition.description,
-                description = null,
-                options = emptyList()
-            )
-        }
-
-        Ok(filteredPlugins + pluginsFromReportDefinitions)
+        Ok(plugins)
     }
 
     /** Return the plugin template with the given [templateName], [pluginType], and [pluginId]. */

@@ -463,5 +463,22 @@ class GetPluginsForRepositoryIntegrationTest : PluginManagerIntegrationTest({
                 }
             }
         }
+
+        "not include report definitions using a disabled reporter" {
+            pluginManagerTestApplication { client ->
+                client.post("/admin/plugins/${PluginType.REPORTER}/PdfTemplate/disable")
+
+                val configPath = "src/test/resources/config"
+                val response = client.get("/repositories/${repositoryId.value}/plugins?configContext=$configPath")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val reporterIds = response.body<List<PreconfiguredPluginDescriptor>>()
+                    .filter { it.type == PluginType.REPORTER }
+                    .map { it.id }
+
+                reporterIds shouldNotContain "customTemplate"
+                reporterIds shouldNotContain "PdfTemplate"
+            }
+        }
     }
 })
