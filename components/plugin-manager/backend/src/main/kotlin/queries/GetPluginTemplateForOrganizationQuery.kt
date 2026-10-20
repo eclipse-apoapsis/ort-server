@@ -52,16 +52,7 @@ internal class GetPluginTemplateForOrganizationQuery(
                 .andWhere { PluginTemplatesReadModel.isGlobal eq true }
                 .singleOrNull()
 
-        return template?.let {
-            PluginTemplate(
-                name = it[PluginTemplatesReadModel.name],
-                pluginType = it[PluginTemplatesReadModel.pluginType],
-                pluginId = it[PluginTemplatesReadModel.pluginId],
-                options = it[PluginTemplatesReadModel.pluginOptions],
-                isGlobal = it[PluginTemplatesReadModel.isGlobal],
-                organizationIds = it[PluginTemplatesReadModel.organizationIds]
-            )
-        }
+        return template?.toPluginTemplate()
     }
 }
 

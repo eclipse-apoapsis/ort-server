@@ -36,14 +36,5 @@ internal class GetPluginTemplatesQuery(val pluginType: PluginType, val pluginId:
             .where { PluginTemplatesReadModel.pluginType eq pluginType }
             .andWhere { PluginTemplatesReadModel.pluginId eq pluginId }
             .orderBy(PluginTemplatesReadModel.name, order = SortOrder.ASC)
-            .map {
-                PluginTemplate(
-                    name = it[PluginTemplatesReadModel.name],
-                    pluginType = it[PluginTemplatesReadModel.pluginType],
-                    pluginId = it[PluginTemplatesReadModel.pluginId],
-                    options = it[PluginTemplatesReadModel.pluginOptions],
-                    isGlobal = it[PluginTemplatesReadModel.isGlobal],
-                    organizationIds = it[PluginTemplatesReadModel.organizationIds]
-                )
-            }
+            .map { it.toPluginTemplate() }
 }
