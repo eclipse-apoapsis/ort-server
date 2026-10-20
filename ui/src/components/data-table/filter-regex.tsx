@@ -44,7 +44,14 @@ export function FilterRegex({
   setFilterValue,
 }: FilterRegexProps) {
   const [value, setValue] = useState(initialValue);
+  const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
   const [filterOpen, setFilterOpen] = useState(false);
+
+  // Synchronize the local state with the external filter value during render (derived state pattern).
+  if (prevInitialValue !== initialValue) {
+    setPrevInitialValue(initialValue);
+    setValue(initialValue);
+  }
 
   const evaluateRegex = () => {
     const isValid = regexSchema.safeParse({ value }).success;
