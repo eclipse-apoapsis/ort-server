@@ -70,6 +70,35 @@ describe('FilterText', () => {
 });
 
 describe('FilterRegex', () => {
+  it.each(['f', ''])(
+    'shows an externally changed filter value of "%s" when reopened',
+    async (filterValue) => {
+      const user = userEvent.setup();
+      const setFilterValue = vi.fn();
+      const { rerender } = render(
+        <FilterRegex filterValue='f' setFilterValue={setFilterValue} />
+      );
+
+      await openFilter(user);
+      await user.type(screen.getByRole('textbox'), 'ast{Enter}');
+      expect(setFilterValue).toHaveBeenCalledWith('fast');
+      rerender(
+        <FilterRegex filterValue='fast' setFilterValue={setFilterValue} />
+      );
+
+      // Simulate browser navigation changing the filter without a remount.
+      rerender(
+        <FilterRegex
+          filterValue={filterValue}
+          setFilterValue={setFilterValue}
+        />
+      );
+      await openFilter(user);
+
+      expect(screen.getByRole('textbox')).toHaveValue(filterValue);
+    }
+  );
+
   it('passes the typed expression to the latest handler', async () => {
     const user = userEvent.setup();
     const first = vi.fn();
