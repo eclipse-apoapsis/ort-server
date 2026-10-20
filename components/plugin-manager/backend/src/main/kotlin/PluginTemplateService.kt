@@ -225,40 +225,7 @@ class PluginTemplateService(
                     if (plugin.availability == PluginAvailability.RESTRICTED && template == null) {
                         acc
                     } else {
-                        acc + PreconfiguredPluginDescriptor(
-                            id = plugin.id,
-                            type = plugin.type,
-                            displayName = plugin.displayName,
-                            summary = plugin.summary,
-                            description = plugin.description,
-                            options = plugin.options.map { option ->
-                                val templateOption = template?.options?.find { it.option == option.name }
-
-                                val defaultValue = when (option.type) {
-                                    PluginOptionType.SECRET -> {
-                                        // Do not expose the name of config secrets used by admins. Return a placeholder
-                                        // instead, so that users can see that there is a default value. Also ignore the
-                                        // default value of the option, because secret options should never have default
-                                        // values, and if they had, they would not work with the way the server handles
-                                        // secret options.
-                                        if (templateOption?.value != null) ADMIN_SECRET_PLACEHOLDER else null
-                                    }
-
-                                    else -> templateOption?.value ?: option.defaultValue
-                                }
-
-                                PreconfiguredPluginOption(
-                                    name = option.name,
-                                    description = option.description,
-                                    type = option.type,
-                                    enumEntries = option.enumEntries,
-                                    defaultValue = defaultValue,
-                                    isFixed = templateOption?.isFinal == true,
-                                    isNullable = option.isNullable,
-                                    isRequired = option.isRequired
-                                )
-                            }
-                        )
+                        acc + plugin.toPreconfiguredPluginDescriptor(template)
                     }
                 }
             }.map { plugins ->
@@ -625,6 +592,45 @@ class PluginTemplateService(
         return Ok(pluginId)
     }
 }
+
+/**
+ * Convert this [PluginDescriptor] to a [PreconfiguredPluginDescriptor], using the values from the given [template] as
+ * the default values of the plugin options.
+ */
+private fun PluginDescriptor.toPreconfiguredPluginDescriptor(template: PluginTemplate?) =
+    PreconfiguredPluginDescriptor(
+        id = id,
+        type = type,
+        displayName = displayName,
+        summary = summary,
+        description = description,
+        options = options.map { option ->
+            val templateOption = template?.options?.find { it.option == option.name }
+
+            val defaultValue = when (option.type) {
+                PluginOptionType.SECRET -> {
+                    // Do not expose the name of config secrets used by admins. Return a placeholder instead, so that
+                    // users can see that there is a default value. Also ignore the default value of the option,
+                    // because secret options should never have default values, and if they had, they would not work
+                    // with the way the server handles secret options.
+                    if (templateOption?.value != null) ADMIN_SECRET_PLACEHOLDER else null
+                }
+
+                else -> templateOption?.value ?: option.defaultValue
+            }
+
+            PreconfiguredPluginOption(
+                name = option.name,
+                description = option.description,
+                type = option.type,
+                enumEntries = option.enumEntries,
+                defaultValue = defaultValue,
+                isFixed = templateOption?.isFinal == true,
+                isNullable = option.isNullable,
+                isRequired = option.isRequired
+            )
+        }
+    )
 
 sealed interface TemplateError {
     val message: String
