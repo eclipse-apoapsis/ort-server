@@ -22,7 +22,11 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.queries
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplatesReadModel
 
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryBuilder
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.longLiteral
 
 /** Convert this row of the [PluginTemplatesReadModel] to a [PluginTemplate]. */
 internal fun ResultRow.toPluginTemplate() =
@@ -34,3 +38,15 @@ internal fun ResultRow.toPluginTemplate() =
         isGlobal = this[PluginTemplatesReadModel.isGlobal],
         organizationIds = this[PluginTemplatesReadModel.organizationIds]
     )
+
+/** Return a condition that is true if this value is contained in the given [arrayColumn]. */
+internal infix fun Long.inArray(arrayColumn: Expression<List<Long>>): Op<Boolean> =
+    object : Op<Boolean>() {
+        override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+            queryBuilder.append("(")
+            queryBuilder.append(longLiteral(this@inArray))
+            queryBuilder.append(" = ANY(")
+            queryBuilder.append(arrayColumn)
+            queryBuilder.append("))")
+        }
+    }
