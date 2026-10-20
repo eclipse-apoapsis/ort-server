@@ -32,6 +32,7 @@ import com.github.michaelbull.result.tryFold
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
 import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.transaction
@@ -207,6 +208,28 @@ class PluginTemplateService(
                         createdBy = userId
                     )
                 )
+            }
+    }
+
+    /**
+     * Return the plugins that are available for the organization with the given [organizationId], together with the
+     * template that applies to them for this organization. Disabled plugins are excluded, and restricted plugins are
+     * only included if a template applies to them. If [organizationId] is `null`, the plugins that can be made
+     * available to any organization are returned: Restricted plugins are included, because they can be made available
+     * to organizations by templates, and no templates are returned.
+     */
+    internal suspend fun getAvailablePlugins(organizationId: OrganizationId?): List<AvailablePlugin> = db.transaction {
+        val templates = organizationId?.let { GetPluginTemplatesForOrganizationQuery(it).execute() }.orEmpty()
+            .associateBy { it.pluginType to it.pluginId }
+
+        pluginService.getPlugins()
+            .filter { it.availability != PluginAvailability.DISABLED }
+            .mapNotNull { plugin ->
+                val template = templates[plugin.type to plugin.id]
+
+                AvailablePlugin(plugin, template).takeUnless {
+                    organizationId != null && plugin.availability == PluginAvailability.RESTRICTED && template == null
+                }
             }
     }
 
@@ -592,6 +615,9 @@ class PluginTemplateService(
         return Ok(pluginId)
     }
 }
+
+/** A plugin that is available for an organization, together with the [template] that applies to it, if any. */
+internal data class AvailablePlugin(val plugin: PluginDescriptor, val template: PluginTemplate?)
 
 /**
  * Convert this [PluginDescriptor] to a [PreconfiguredPluginDescriptor], using the values from the given [template] as
