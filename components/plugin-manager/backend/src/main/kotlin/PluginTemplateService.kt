@@ -27,7 +27,6 @@ import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.toErrorIfNull
 import com.github.michaelbull.result.toResultOr
-import com.github.michaelbull.result.tryFold
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
@@ -242,37 +241,30 @@ class PluginTemplateService(
 
         val reportDefinitions = adminConfigService.loadAdminConfig(context).reporterConfig.resolvedReportDefinitions
 
-        pluginService.getPlugins().filter { it.availability != PluginAvailability.DISABLED }
-            .tryFold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
-                getTemplateForOrganization(plugin.type, plugin.id, organizationId).map { template ->
-                    if (plugin.availability == PluginAvailability.RESTRICTED && template == null) {
-                        acc
-                    } else {
-                        acc + plugin.toPreconfiguredPluginDescriptor(template)
-                    }
-                }
-            }.map { plugins ->
-                val replacedReporterPlugins = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
+        val plugins = getAvailablePlugins(organizationId).map { (plugin, template) ->
+            plugin.toPreconfiguredPluginDescriptor(template)
+        }
 
-                // Drop all plugins for which a report definition exists.
-                val filteredPlugins = plugins.filter {
-                    it.type != PluginType.REPORTER || it.id.lowercase() !in replacedReporterPlugins
-                }
+        val replacedReporterPlugins = reportDefinitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
 
-                // Create one plugin for each report definition
-                val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
-                    PreconfiguredPluginDescriptor(
-                        id = name,
-                        type = PluginType.REPORTER,
-                        displayName = name,
-                        summary = definition.description,
-                        description = null,
-                        options = emptyList()
-                    )
-                }
+        // Drop all plugins for which a report definition exists.
+        val filteredPlugins = plugins.filter {
+            it.type != PluginType.REPORTER || it.id.lowercase() !in replacedReporterPlugins
+        }
 
-                filteredPlugins + pluginsFromReportDefinitions
-            }
+        // Create one plugin for each report definition
+        val pluginsFromReportDefinitions = reportDefinitions.map { (name, definition) ->
+            PreconfiguredPluginDescriptor(
+                id = name,
+                type = PluginType.REPORTER,
+                displayName = name,
+                summary = definition.description,
+                description = null,
+                options = emptyList()
+            )
+        }
+
+        Ok(filteredPlugins + pluginsFromReportDefinitions)
     }
 
     /** Return the plugin template with the given [templateName], [pluginType], and [pluginId]. */
