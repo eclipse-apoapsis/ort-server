@@ -24,7 +24,11 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
@@ -78,6 +82,60 @@ class PluginTemplateServiceTest : WordSpec({
             organizationId,
             configManager.resolveContext(RequestedConfigContext(REPORT_DEFINITIONS_CONTEXT))
         )
+
+    suspend fun createTemplate(name: String, pluginType: PluginType, pluginId: String) =
+        service.create(name, pluginType, pluginId, "user", emptyList()).isOk shouldBe true
+
+    suspend fun availablePlugin(organizationId: OrganizationId?, pluginType: PluginType, pluginId: String) =
+        service.getAvailablePlugins(organizationId).singleOrNull {
+            it.plugin.type == pluginType && it.plugin.id == pluginId
+        }
+
+    "getAvailablePlugins()" should {
+        "exclude disabled plugins" {
+            pluginEventStore.appendEvent(PluginEvent(PluginType.ADVISOR, "OSV", 1, PluginDisabled, "user"))
+
+            service.getAvailablePlugins(organizationId).map { it.plugin.id } shouldNotContain "OSV"
+            service.getAvailablePlugins(null).map { it.plugin.id } shouldNotContain "OSV"
+        }
+
+        "exclude restricted plugins without a template for the organization" {
+            pluginEventStore.appendEvent(PluginEvent(PluginType.ADVISOR, "OSV", 1, PluginRestricted, "user"))
+
+            availablePlugin(organizationId, PluginType.ADVISOR, "OSV") should beNull()
+        }
+
+        "include restricted plugins if no organization is given" {
+            pluginEventStore.appendEvent(PluginEvent(PluginType.ADVISOR, "OSV", 1, PluginRestricted, "user"))
+
+            service.getAvailablePlugins(null).map { it.plugin.id } shouldContain "OSV"
+        }
+
+        "include restricted plugins with a global template" {
+            pluginEventStore.appendEvent(PluginEvent(PluginType.ADVISOR, "OSV", 1, PluginRestricted, "user"))
+            createTemplate("global", PluginType.ADVISOR, "OSV")
+            service.enableGlobal("global", PluginType.ADVISOR, "OSV", "user").isOk shouldBe true
+
+            availablePlugin(organizationId, PluginType.ADVISOR, "OSV")?.template?.name shouldBe "global"
+        }
+
+        "prefer the template assigned to the organization over the global template" {
+            createTemplate("global", PluginType.ADVISOR, "OSV")
+            service.enableGlobal("global", PluginType.ADVISOR, "OSV", "user").isOk shouldBe true
+            createTemplate("organization", PluginType.ADVISOR, "OSV")
+            service.addOrganization("organization", PluginType.ADVISOR, "OSV", organizationId, "user").isOk shouldBe
+                    true
+
+            availablePlugin(organizationId, PluginType.ADVISOR, "OSV")?.template?.name shouldBe "organization"
+        }
+
+        "not return templates if no organization is given" {
+            createTemplate("global", PluginType.ADVISOR, "OSV")
+            service.enableGlobal("global", PluginType.ADVISOR, "OSV", "user").isOk shouldBe true
+
+            availablePlugin(null, PluginType.ADVISOR, "OSV")?.template should beNull()
+        }
+    }
 
     "validatePluginConfigs()" should {
         "accept installed reporters" {
