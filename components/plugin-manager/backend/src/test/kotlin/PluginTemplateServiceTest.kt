@@ -19,8 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import com.github.michaelbull.result.get
+
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
@@ -204,6 +207,86 @@ class PluginTemplateServiceTest : WordSpec({
                 context
             ).errors shouldBeSingleton {
                 it shouldContain "is set to a fixed value"
+            }
+        }
+    }
+
+    "templates stored with a different spelling of the plugin ID" should {
+        val serverUrlOption = PluginOptionTemplate(
+            option = "serverUrl",
+            type = PluginOptionType.STRING,
+            value = "https://osv.example.com",
+            isFinal = true
+        )
+
+        // Simulate a template that was stored with a different spelling of the plugin ID, e.g. by an older ORT
+        // version.
+        suspend fun createLegacyTemplate(name: String) {
+            val eventStore = PluginTemplateEventStore(dbExtension.db)
+            eventStore.appendEvent(
+                PluginTemplateEvent(name, PluginType.ADVISOR, "osv", 1, OptionsUpdated(listOf(serverUrlOption)), "user")
+            )
+            eventStore.appendEvent(PluginTemplateEvent(name, PluginType.ADVISOR, "osv", 2, GlobalEnabled, "user"))
+        }
+
+        "be found" {
+            createLegacyTemplate("legacy")
+
+            service.getTemplateForOrganization(PluginType.ADVISOR, "OSV", organizationId).get()?.name shouldBe
+                    "legacy"
+            service.getTemplates(PluginType.ADVISOR, "OSV").get()?.map { it.name } shouldBe listOf("legacy")
+            availablePlugin(organizationId, PluginType.ADVISOR, "OSV")?.template?.name shouldBe "legacy"
+        }
+
+        "be enforced when validating plugin configs" {
+            createLegacyTemplate("legacy")
+
+            val result = service.validatePluginConfigs(
+                mapOf(
+                    PluginType.ADVISOR to mapOf(
+                        "OSV" to ResolvablePluginConfig(mapOf("serverUrl" to "https://other.example.com"), emptyMap())
+                    )
+                ),
+                organizationId,
+                configManager.resolveContext(RequestedConfigContext(REPORT_DEFINITIONS_CONTEXT))
+            )
+
+            result.errors shouldBeSingleton {
+                it shouldContain "is set to a fixed value"
+            }
+        }
+
+        "be updated using the current spelling" {
+            createLegacyTemplate("legacy")
+
+            service.disableGlobal("legacy", PluginType.ADVISOR, "OSV", "user").isOk shouldBe true
+
+            service.getTemplateForOrganization(PluginType.ADVISOR, "OSV", organizationId).get() should beNull()
+            service.getTemplates(PluginType.ADVISOR, "OSV").get()?.map { it.pluginId } shouldBe listOf("OSV")
+        }
+
+        "prevent creating a template with the same name" {
+            createLegacyTemplate("legacy")
+
+            service.create("legacy", PluginType.ADVISOR, "OSV", "user", emptyList()).isOk shouldBe false
+        }
+
+        "prevent another global template" {
+            createLegacyTemplate("legacy")
+            createTemplate("new", PluginType.ADVISOR, "OSV")
+
+            service.enableGlobal("new", PluginType.ADVISOR, "OSV", "user").isOk shouldBe false
+        }
+
+        "prevent another template for the same organization" {
+            createLegacyTemplate("legacy")
+            PluginTemplateEventStore(dbExtension.db).appendEvent(
+                PluginTemplateEvent("legacy", PluginType.ADVISOR, "osv", 3, OrganizationAdded(organizationId), "user")
+            )
+            createTemplate("new", PluginType.ADVISOR, "OSV")
+
+            shouldThrowAny {
+                service.addOrganization("new", PluginType.ADVISOR, "OSV", organizationId, "user")
             }
         }
     }

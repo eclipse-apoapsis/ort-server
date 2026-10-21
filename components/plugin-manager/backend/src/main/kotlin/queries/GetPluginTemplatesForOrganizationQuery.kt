@@ -43,7 +43,7 @@ internal class GetPluginTemplatesForOrganizationQuery(val organizationId: Organi
                         (PluginTemplatesReadModel.isGlobal eq true)
             }
             .map { it.toPluginTemplate() }
-            .groupBy { it.pluginType to it.pluginId }
+            .groupBy { it.pluginType to it.pluginId.lowercase() }
             .map { (_, templates) ->
                 templates.find { organizationId.value in it.organizationIds } ?: templates.first()
             }

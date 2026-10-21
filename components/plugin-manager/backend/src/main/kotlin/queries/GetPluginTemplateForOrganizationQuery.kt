@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.Query
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
@@ -38,13 +39,13 @@ internal class GetPluginTemplateForOrganizationQuery(
         val template = PluginTemplatesReadModel
             .selectAll()
             .where { PluginTemplatesReadModel.pluginType eq pluginType }
-            .andWhere { PluginTemplatesReadModel.pluginId eq pluginId }
+            .andWhere { PluginTemplatesReadModel.pluginId.lowerCase() eq pluginId.lowercase() }
             .andWhere { organizationId.value inArray PluginTemplatesReadModel.organizationIds }
             .singleOrNull()
             ?: PluginTemplatesReadModel
                 .selectAll()
                 .where { PluginTemplatesReadModel.pluginType eq pluginType }
-                .andWhere { PluginTemplatesReadModel.pluginId eq pluginId }
+                .andWhere { PluginTemplatesReadModel.pluginId.lowerCase() eq pluginId.lowercase() }
                 .andWhere { PluginTemplatesReadModel.isGlobal eq true }
                 .singleOrNull()
 
