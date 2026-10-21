@@ -97,7 +97,12 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                                 ortRunIndex = 42L,
                                 revision = "a1b2c3d4",
                                 createdAt = Instant.parse("2024-01-01T00:00:00Z"),
-                                packageId = null,
+                                packageId = Identifier(
+                                    type = "Maven",
+                                    namespace = "foo",
+                                    name = "bar",
+                                    version = "1.0.0"
+                                ),
                                 purl = "pkg:maven/foo/bar@1.0.0"
                             )
                         )

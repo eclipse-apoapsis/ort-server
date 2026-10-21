@@ -425,7 +425,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
             }
         }
 
-        "return packageId as null and purl as non-null for purl search" {
+        "return packageId and purl for purl search" {
             val fixtures = dbExtension.fixtures
             val packageIdentifier = identifierFor("purl-response")
             createRunWithPackageForPurlSearch(
@@ -443,7 +443,7 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
                 val body = response.body<List<RunWithPackage>>()
                 body.shouldBeSingleton {
-                    it.packageId.shouldBeNull()
+                    it.packageId shouldBe packageIdentifier.toApiIdentifier()
                     it.purl shouldBe packageIdentifier.toPurl()
                 }
             }

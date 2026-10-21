@@ -56,7 +56,7 @@ suspend fun createRunWithPackage(
 
 /**
  * Create a run with a package and add a PURL curation for it.
- * Returns the RunWithPackage with the curated PURL in the purl field (for PURL search testing).
+ * Returns the RunWithPackage with the package identifier and the curated PURL (for PURL search testing).
  */
 suspend fun createRunWithCuratedPurl(
     fixtures: Fixtures,
@@ -87,14 +87,14 @@ suspend fun createRunWithCuratedPurl(
         ortRunIndex = ortRun.index,
         revision = ortRun.revision,
         createdAt = ortRun.createdAt,
-        packageId = null,
+        packageId = pkgId.toApiIdentifier(),
         purl = curatedPurl
     )
 }
 
 /**
  * Create a run with a package for PURL search testing (without curation).
- * Returns the RunWithPackage with the original PURL in the purl field.
+ * Returns the RunWithPackage with the package identifier and the original PURL.
  */
 suspend fun createRunWithPackageForPurlSearch(
     fixtures: Fixtures,
@@ -112,7 +112,7 @@ suspend fun createRunWithPackageForPurlSearch(
         ortRunIndex = ortRun.index,
         revision = ortRun.revision,
         createdAt = ortRun.createdAt,
-        packageId = null,
+        packageId = pkgId.toApiIdentifier(),
         purl = pkgId.toPurl()
     )
 }
