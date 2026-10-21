@@ -44,7 +44,10 @@ internal class AdvisorRunner {
             logger.error("The following advisors could not be resolved: {}.", invalidAdvisors)
         }
 
-        val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
+        // Plugin IDs are case-insensitive, so normalize the keys of the plugin configs to the IDs of the advisors.
+        val pluginConfigs = context.resolvePluginConfigSecrets(config.config).mapKeys { (advisor, _) ->
+            AdviceProviderFactory.ALL[advisor]?.descriptor?.id ?: advisor
+        }
         val advisorConfig = AdvisorConfiguration(
             config.skipExcluded,
             pluginConfigs.mapValues { it.value.mapToOrt() }
