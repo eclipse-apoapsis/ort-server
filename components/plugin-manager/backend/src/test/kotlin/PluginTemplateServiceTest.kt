@@ -177,5 +177,34 @@ class PluginTemplateServiceTest : WordSpec({
                 it shouldContain "'PdfTemplate' is is disabled for this organization"
             }
         }
+
+        "not check the options of report definitions against final template options" {
+            val themeOption = PluginOptionTemplate(
+                option = "pdfThemeFile",
+                type = PluginOptionType.STRING,
+                value = "theme.yml",
+                isFinal = true
+            )
+            service.create("global", PluginType.REPORTER, "PdfTemplate", "user", listOf(themeOption)).isOk shouldBe
+                    true
+            service.enableGlobal("global", PluginType.REPORTER, "PdfTemplate", "user").isOk shouldBe true
+
+            val config = ResolvablePluginConfig(mapOf("pdfThemeFile" to "other.yml"), emptyMap())
+            val context = configManager.resolveContext(RequestedConfigContext(REPORT_DEFINITIONS_CONTEXT))
+
+            service.validatePluginConfigs(
+                mapOf(PluginType.REPORTER to mapOf("customTemplate" to config)),
+                organizationId,
+                context
+            ).errors should beEmpty()
+
+            service.validatePluginConfigs(
+                mapOf(PluginType.REPORTER to mapOf("PdfTemplate" to config)),
+                organizationId,
+                context
+            ).errors shouldBeSingleton {
+                it shouldContain "is set to a fixed value"
+            }
+        }
     }
 })
