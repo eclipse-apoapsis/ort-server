@@ -183,6 +183,58 @@ class ExtensionsTest : WordSpec({
             )
         }
 
+        "match plugin IDs and plugin configurations ignoring case" {
+            val config = PluginConfig(options = mapOf("option" to "value"), secrets = emptyMap())
+            val createOrtRun = PostRepositoryRun(
+                revision = "revision",
+                jobConfigs = JobConfigurations(
+                    analyzer = AnalyzerJobConfiguration(
+                        enabledPackageManagers = listOf("npm", "Yarn"),
+                        disabledPackageManagers = listOf("yarn"),
+                        packageManagerOptions = mapOf(
+                            "NPM" to PackageManagerConfiguration(options = config.options)
+                        )
+                    ),
+                    advisor = AdvisorJobConfiguration(
+                        advisors = listOf("ossindex"),
+                        config = mapOf("OSSIndex" to config)
+                    ),
+                    scanner = ScannerJobConfiguration(
+                        scanners = listOf("scancode"),
+                        projectScanners = listOf("ScanCode"),
+                        config = mapOf("SCANCODE" to config)
+                    ),
+                    reporter = ReporterJobConfiguration(
+                        formats = listOf("webapp"),
+                        config = mapOf("WebApp" to config)
+                    )
+                )
+            )
+
+            createOrtRun.getPluginConfigs() should containExactly(
+                PluginType.PACKAGE_MANAGER to mapOf("NPM" to config),
+                PluginType.ADVISOR to mapOf("ossindex" to config),
+                PluginType.SCANNER to mapOf("scancode" to config),
+                PluginType.REPORTER to mapOf("webapp" to config)
+            )
+        }
+
+        "match plugin IDs with special Unicode characters ignoring case" {
+            val config = PluginConfig(options = mapOf("option" to "value"), secrets = emptyMap())
+            val createOrtRun = PostRepositoryRun(
+                revision = "revision",
+                jobConfigs = JobConfigurations(
+                    // The long s (U+017F) only matches 's' when ignoring case, but not when comparing lowercase
+                    // strings.
+                    advisor = AdvisorJobConfiguration(advisors = listOf("O\u017FV"), config = mapOf("OSV" to config))
+                )
+            )
+
+            createOrtRun.getPluginConfigs() should containExactly(
+                PluginType.ADVISOR to mapOf("O\u017FV" to config)
+            )
+        }
+
         "ignore package configuration providers from reporter job if evaluator job is configured" {
             val createOrtRun = PostRepositoryRun(
                 revision = "revision",
