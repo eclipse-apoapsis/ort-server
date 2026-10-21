@@ -29,7 +29,11 @@ import { Route as OrganizationRoute } from '@/routes/organizations/$orgId/search
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
-import { getColumnTexts, hierarchyLevels } from '../fixtures/table';
+import {
+  getColumnTexts,
+  getLinkTarget,
+  hierarchyLevels,
+} from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
   runs: vi.fn(),
@@ -245,4 +249,29 @@ describe('package search pages', () => {
       );
     }
   );
+
+  it('links a package found by PURL to its ORT ID', async () => {
+    useUserSettingsStore.setState({
+      packageIdType: packageIdTypeSchema.enum.PURL,
+    });
+    const ortId = 'Maven:org.example:library-1:1.0';
+
+    renderSearch('?pkgId=example');
+
+    expect(
+      getLinkTarget(
+        await screen.findByRole('link', {
+          name: 'pkg:maven/org.example/library-1@1.0',
+        })
+      )
+    ).toEqual({
+      pathname: '/organizations/1/products/2/repositories/3/runs/1/packages',
+      search: {
+        pkgId: ortId,
+        pkgIdType: 'ORT_ID',
+        pkgIdMatchType: 'exact',
+        marked: ortId,
+      },
+    });
+  });
 });

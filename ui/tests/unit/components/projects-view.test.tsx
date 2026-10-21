@@ -75,7 +75,8 @@ const getProjectsPage = (query: ProjectsQuery = {}) => {
   });
 };
 
-const renderProjects = () => renderRunPage(ProjectsComponent, 'projects');
+const renderProjects = (search = '') =>
+  renderRunPage(ProjectsComponent, 'projects', search);
 
 const findDefinitionFile = (name: string) =>
   screen.findByText(`${name}/pom.xml`);
@@ -129,5 +130,41 @@ describe('projects table', () => {
     expect(
       screen.queryByText('Description of project-2')
     ).not.toBeInTheDocument();
+  });
+
+  it('finds a linked project by an exact match and opens it', async () => {
+    const projectId = 'Maven:com.example:filtered-2:1.0';
+
+    renderProjects(
+      `?${new URLSearchParams({ projectId, projectIdMatchType: 'exact', marked: projectId })}`
+    );
+
+    expect(await screen.findByText('Description of filtered-2')).toBeVisible();
+    expect(
+      screen.queryByText('Description of filtered-1')
+    ).not.toBeInTheDocument();
+    expect(mocks.projects.mock.calls.at(-1)?.[0].query).toMatchObject({
+      identifier: projectId,
+      identifierMatchType: 'exact',
+    });
+  });
+
+  it('keeps the exact match of a link when the unchanged filter loses focus', async () => {
+    const projectId = 'Maven:com.example:filtered-2:1.0';
+
+    const { router, user } = renderProjects(
+      `?${new URLSearchParams({ projectId, projectIdMatchType: 'exact', marked: projectId })}`
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Project ID' }));
+    await user.click(screen.getByRole('textbox'));
+    await user.tab();
+
+    expect(router.state.location.search).toMatchObject({
+      projectId,
+      projectIdMatchType: 'exact',
+      marked: projectId,
+    });
+    expect(screen.getByText('Description of filtered-2')).toBeVisible();
   });
 });

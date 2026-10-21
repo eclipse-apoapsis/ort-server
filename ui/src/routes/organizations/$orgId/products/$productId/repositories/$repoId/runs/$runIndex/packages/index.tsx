@@ -87,6 +87,7 @@ import {
   isDirectDependencySearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
+  packageIdMatchTypeSearchParameterSchema,
   PackageIdType,
   packageIdTypeSchema,
   paginationSearchParameterSchema,
@@ -393,6 +394,10 @@ const PackagesComponent = () => {
       : search.isDirectDependency === 'true';
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const packageIdFilterType = search.pkgIdType ?? packageIdType;
+  const exactIdentifierMatch =
+    !!packageId &&
+    search.pkgIdMatchType === 'exact' &&
+    packageIdFilterType === packageIdTypeSchema.enum.ORT_ID;
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -430,11 +435,19 @@ const PackagesComponent = () => {
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
         ...getPackageIdFilter(packageId, packageIdFilterType),
+        identifierMatchType: exactIdentifierMatch ? 'exact' : undefined,
         declaredLicense: declaredLicense?.join(','),
         isDirectDependency,
       },
     }),
   });
+
+  // A link finds its package by ORT ID. Show the PURL of the found package in
+  // the filter instead if the user has chosen to see PURLs.
+  const shownPackageId =
+    exactIdentifierMatch && packageIdType === packageIdTypeSchema.enum.PURL
+      ? packages.data[0]?.purl || packageId
+      : packageId;
 
   const columns = columnHelper.columns([
     // Leftmost action column.
@@ -521,12 +534,17 @@ const PackagesComponent = () => {
           filter: {
             filterVariant: 'text',
             setFilterValue: (value: string | undefined) => {
+              // The filter also reports an unchanged value, for example on
+              // blur, which must not end an exact match.
+              if (value === shownPackageId) return;
               navigate({
                 search: {
                   ...search,
                   page: 1,
                   pkgId: value,
                   pkgIdType: packageIdType,
+                  pkgIdMatchType: undefined,
+                  marked: undefined,
                 },
               });
             },
@@ -602,7 +620,7 @@ const PackagesComponent = () => {
         expanded: expanded,
         columnFilters: [
           { id: 'isDirectDependency', value: search.isDirectDependency },
-          { id: columnId, value: packageId },
+          { id: columnId, value: shownPackageId },
           { id: 'processedDeclaredLicense', value: declaredLicense },
         ],
         // Always hide the columns that are used for filtering/sorting only.
@@ -616,6 +634,7 @@ const PackagesComponent = () => {
       onExpandedChange: setExpanded,
       getRowCanExpand: () => true,
       manualPagination: true,
+      getRowId: (row) => identifierToString(row.identifier),
     },
     selectNoTableState
   );
@@ -681,6 +700,7 @@ export const Route = createFileRoute(
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
+    ...packageIdMatchTypeSearchParameterSchema.shape,
     ...declaredLicenseSearchParameterSchema.shape,
     ...isDirectDependencySearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,

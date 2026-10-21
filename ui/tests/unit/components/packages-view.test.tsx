@@ -45,6 +45,11 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   getRunPackages: mocks.packages,
 }));
 
+vi.mock('@/components/licenses', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/components/licenses')>()),
+  LicensesAccordion: () => null,
+}));
+
 const createPackage = (name: string, publishedAt?: string | null): Package => ({
   authors: [],
   binaryArtifact: { url: '', hashValue: '', hashAlgorithm: '' },
@@ -85,6 +90,16 @@ const servePackages = (...packages: Package[]) =>
 
 const lastPackagesQuery = () =>
   mocks.packages.mock.calls.at(-1)?.[0].query as PackagesQuery;
+
+const target = createPackage('target');
+const targetId = 'Maven:org.example:target:1.0';
+// The search of a link to the target package.
+const linkSearch = `?${new URLSearchParams({
+  pkgId: targetId,
+  pkgIdType: 'ORT_ID',
+  pkgIdMatchType: 'exact',
+  marked: targetId,
+})}`;
 
 describe('packages view', () => {
   beforeEach(() => {
@@ -190,5 +205,95 @@ describe('packages view', () => {
       offset: 0,
       sort: 'identifier,-publishedAt',
     });
+  });
+
+  it('finds a linked package by an exact match and opens it, even if it is not the first row', async () => {
+    servePackages(createPackage('other'), target);
+
+    renderPackages(linkSearch);
+
+    expect(await screen.findByText(target.purl!)).toBeVisible();
+    expect(
+      screen.queryByText('pkg:maven/org.example/other@1.0')
+    ).not.toBeInTheDocument();
+    expect(lastPackagesQuery()).toMatchObject({
+      identifier: targetId,
+      identifierMatchType: 'exact',
+    });
+  });
+
+  it('shows the PURL of a linked package in the filter if PURLs are shown', async () => {
+    useUserSettingsStore.setState({
+      packageIdType: packageIdTypeSchema.enum.PURL,
+    });
+    servePackages(target);
+
+    const { user } = renderPackages(linkSearch);
+
+    await user.click(await screen.findByRole('button', { name: 'Package ID' }));
+
+    expect(screen.getByRole('textbox')).toHaveValue(target.purl);
+  });
+
+  it('keeps the exact match of a link when the unchanged filter loses focus', async () => {
+    useUserSettingsStore.setState({
+      packageIdType: packageIdTypeSchema.enum.PURL,
+    });
+    servePackages(target);
+
+    const { router, user } = renderPackages(linkSearch);
+
+    await user.click(await screen.findByRole('button', { name: 'Package ID' }));
+    await user.click(screen.getByRole('textbox'));
+    await user.tab();
+
+    expect(router.state.location.search).toMatchObject({
+      pkgId: targetId,
+      pkgIdType: 'ORT_ID',
+      pkgIdMatchType: 'exact',
+      marked: targetId,
+    });
+    expect(lastPackagesQuery()).toMatchObject({
+      identifier: targetId,
+      identifierMatchType: 'exact',
+    });
+  });
+
+  it('keeps the exact match of a link when paging', async () => {
+    servePackages(target);
+
+    const { user } = renderPackages(linkSearch);
+
+    await user.click(
+      await screen.findByRole('link', { name: 'Go to next page' })
+    );
+
+    await waitFor(() =>
+      expect(lastPackagesQuery()).toMatchObject({
+        offset: 10,
+        identifier: targetId,
+        identifierMatchType: 'exact',
+      })
+    );
+  });
+
+  it('searches by substring again when the filter of a link is edited', async () => {
+    servePackages(target);
+
+    const { router, user } = renderPackages(`${linkSearch}&page=2`);
+
+    await user.click(await screen.findByRole('button', { name: 'Package ID' }));
+    await user.clear(screen.getByRole('textbox'));
+    await user.type(screen.getByRole('textbox'), 'target{Enter}');
+
+    await waitFor(() =>
+      expect(router.state.location.search).toEqual({
+        page: 1,
+        pkgId: 'target',
+        pkgIdType: 'ORT_ID',
+      })
+    );
+    expect(lastPackagesQuery()).toMatchObject({ identifier: 'target' });
+    expect(lastPackagesQuery()?.identifierMatchType).toBeUndefined();
   });
 });

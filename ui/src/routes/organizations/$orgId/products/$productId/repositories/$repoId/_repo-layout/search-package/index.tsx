@@ -41,6 +41,7 @@ import {
 } from '@/helpers/handle-multisort';
 import {
   comparePackageIds,
+  getExactPackageLinkSearch,
   getPackageIdString,
 } from '@/helpers/identifier-conversion';
 import {
@@ -118,10 +119,11 @@ function SearchPackageComponent() {
               repoId: row.original.repositoryId.toString(),
               runIndex: row.original.ortRunIndex.toString(),
             }}
-            search={{
-              pkgId: id || undefined,
-              marked: '0',
-            }}
+            search={
+              row.original.packageId
+                ? getExactPackageLinkSearch(row.original.packageId)
+                : { pkgId: id || undefined }
+            }
           >
             <BreakableString text={id} />
           </Link>

@@ -281,7 +281,8 @@ describe('independent detected-license tables', () => {
     expect(defaultParseSearch(target.search)).toEqual({
       pkgId: firstId,
       pkgIdType: packageIdTypeSchema.enum.ORT_ID,
-      marked: '0',
+      pkgIdMatchType: 'exact',
+      marked: firstId,
     });
   });
 
