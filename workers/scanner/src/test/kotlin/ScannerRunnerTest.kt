@@ -167,6 +167,29 @@ class ScannerRunnerTest : WordSpec({
             }
         }
 
+        "match the plugin configs with the scanners ignoring case" {
+            val scanCodeFactory = mockScannerWrapperFactory("ScanCode")
+            mockScannerWrapperAll(listOf(scanCodeFactory))
+
+            val scanCodeConfig = ResolvablePluginConfig(options = mapOf("option" to "value"), secrets = emptyMap())
+            val jobConfig = ScannerJobConfiguration(
+                scanners = listOf("scancode"),
+                config = mapOf("SCANCODE" to scanCodeConfig)
+            )
+
+            val resolvedPluginConfig = mapOf("SCANCODE" to PluginConfig(scanCodeConfig.options, emptyMap()))
+            val context = mockContext(jobConfig, resolvedPluginConfig)
+            val result = runner.run(context, OrtResult.EMPTY, jobConfig, 0L)
+
+            verify(exactly = 2) {
+                scanCodeFactory.create(PluginConfig(scanCodeConfig.options, emptyMap()).mapToOrt())
+            }
+
+            result.scannerRun.config.scanners shouldBe mapOf(
+                "ScanCode" to PluginConfig(scanCodeConfig.options, emptyMap()).mapToOrt()
+            )
+        }
+
         "throw an exception if no scanner run was created" {
             val factory = mockScannerWrapperFactory("ScanCode")
             mockScannerWrapperAll(listOf(factory))
@@ -280,7 +303,8 @@ private fun mockScannerWrapperFactory(scannerName: String) =
 
 private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory>) {
     mockkObject(ScannerWrapperFactory)
-    every { ScannerWrapperFactory.ALL } returns scanners.associateByTo(sortedMapOf()) { it.descriptor.id }
+    every { ScannerWrapperFactory.ALL } returns
+        scanners.associateByTo(sortedMapOf(String.CASE_INSENSITIVE_ORDER)) { it.descriptor.id }
 }
 
 /**
