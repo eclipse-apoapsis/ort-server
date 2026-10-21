@@ -45,6 +45,10 @@ internal fun List<AvailablePlugin>.withReportDefinitions(
                 description = null,
                 availability = reporter.plugin.availability
             ),
+            // Templates are intentionally not applied to report definitions: Report definitions are fully controlled by
+            // administrators, and their options currently have to be set by the parameter validation script. Templates
+            // for report definitions are not implemented, because the available report definitions depend on the
+            // config context.
             template = null
         )
     }
