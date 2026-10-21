@@ -1162,6 +1162,122 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'BadRequest' if plugin configs differ only in the case of the plugin ID" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val installedPlugins = pluginService.getPlugins()
+
+                val pluginType = PluginType.ADVISOR
+                val plugin = installedPlugins.first { it.type == pluginType && it.id == "VulnerableCode" }
+                val pluginId = plugin.id
+                val pluginOption = plugin.options.first { it.name == "serverUrl" }
+
+                // Create a plugin template with a final option.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test") {
+                    setBody(
+                        listOf(
+                            PluginOptionTemplate(
+                                option = pluginOption.name,
+                                type = pluginOption.type,
+                                value = "https://example.org",
+                                isFinal = true
+                            )
+                        )
+                    )
+                }
+
+                // Make the plugin template globally active.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test/enableGlobal")
+
+                // Create a run trying to overwrite the final option with a differently spelled config key.
+                val createRun = PostRepositoryRun(
+                    "main",
+                    null,
+                    ApiJobConfigurations(
+                        advisor = AdvisorJobConfiguration(
+                            advisors = listOf(pluginId),
+                            config = mapOf(
+                                pluginId to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://example.org"),
+                                    secrets = emptyMap()
+                                ),
+                                pluginId.lowercase() to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://new.example.org"),
+                                    secrets = emptyMap()
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.bodyAsText() shouldContain "multiple times with different spellings"
+            }
+        }
+
+        "respond with 'BadRequest' if plugin configs only match ignoring case due to special Unicode characters" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val installedPlugins = pluginService.getPlugins()
+
+                val pluginType = PluginType.ADVISOR
+                val plugin = installedPlugins.first { it.type == pluginType && it.id == "OSV" }
+                val pluginId = plugin.id
+                val pluginOption = plugin.options.first { it.name == "serverUrl" }
+
+                // Create a plugin template with a final option.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test") {
+                    setBody(
+                        listOf(
+                            PluginOptionTemplate(
+                                option = pluginOption.name,
+                                type = pluginOption.type,
+                                value = "https://example.org",
+                                isFinal = true
+                            )
+                        )
+                    )
+                }
+
+                // Make the plugin template globally active.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test/enableGlobal")
+
+                // Create a run trying to overwrite the final option with a config key using a long s (U+017F).
+                val createRun = PostRepositoryRun(
+                    "main",
+                    null,
+                    ApiJobConfigurations(
+                        advisor = AdvisorJobConfiguration(
+                            advisors = listOf(pluginId),
+                            config = mapOf(
+                                pluginId to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://example.org"),
+                                    secrets = emptyMap()
+                                ),
+                                pluginId.replace("S", "\u017F") to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://new.example.org"),
+                                    secrets = emptyMap()
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.bodyAsText() shouldContain "multiple times with different spellings"
+            }
+        }
+
         val keepAliveJobConfigs = ApiJobConfigurations().let {
             listOf(
                 it.copy(

@@ -60,6 +60,10 @@ private val emptyPluginConfig = PluginConfig(options = emptyMap(), secrets = emp
  * Get all [PluginConfig]s from a [PostRepositoryRun] object. The result is a map from [PluginType]s to maps of plugin
  * IDs to [PluginConfig]s. Some job configs allow to enable plugins without additional configuration, in this case an
  * empty [PluginConfig] is used as the value for the plugin ID in the map.
+ *
+ * As plugin IDs are case-insensitive, only the first of multiple plugin configs whose keys differ only in case is
+ * returned. Therefore, such configs must be rejected using [getAmbiguousPluginConfigErrors] before validating the
+ * result of this function.
  */
 fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> =
     buildMap {

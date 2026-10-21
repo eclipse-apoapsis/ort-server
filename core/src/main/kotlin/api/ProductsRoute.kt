@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postProductRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putProductRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
+import org.eclipse.apoapsis.ortserver.core.utils.getAmbiguousPluginConfigErrors
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
@@ -432,6 +433,17 @@ fun Route.products() = route("products/{productId}") {
                     HttpStatusCode.BadRequest,
                     message = "Could not resolve the config context.",
                     cause = e.collectMessages()
+                )
+                return@post
+            }
+
+            // Reject ambiguous plugin configurations, as they could be used to bypass the validation.
+            val ambiguousPluginConfigErrors = createOrtRun.getAmbiguousPluginConfigErrors()
+            if (ambiguousPluginConfigErrors.isNotEmpty()) {
+                call.respondError(
+                    HttpStatusCode.BadRequest,
+                    message = "Invalid plugin configuration.",
+                    cause = ambiguousPluginConfigErrors.joinToString(separator = "\n")
                 )
                 return@post
             }

@@ -2407,6 +2407,64 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'BadRequest' if plugin configs differ only in the case of the plugin ID" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                val installedPlugins = pluginService.getPlugins()
+
+                val pluginType = PluginType.ADVISOR
+                val plugin = installedPlugins.first { it.type == pluginType && it.id == "VulnerableCode" }
+                val pluginId = plugin.id
+                val pluginOption = plugin.options.first { it.name == "serverUrl" }
+
+                // Create a plugin template with a final option.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test") {
+                    setBody(
+                        listOf(
+                            PluginOptionTemplate(
+                                option = pluginOption.name,
+                                type = pluginOption.type,
+                                value = "https://example.org",
+                                isFinal = true
+                            )
+                        )
+                    )
+                }
+
+                // Make the plugin template globally active.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test/enableGlobal")
+
+                // Create a run trying to overwrite the final option with a differently spelled config key.
+                val createRun = PostRepositoryRun(
+                    "main",
+                    null,
+                    JobConfigurations(
+                        advisor = AdvisorJobConfiguration(
+                            advisors = listOf(pluginId),
+                            config = mapOf(
+                                pluginId to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://example.org"),
+                                    secrets = emptyMap()
+                                ),
+                                pluginId.lowercase() to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://new.example.org"),
+                                    secrets = emptyMap()
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.bodyAsText() shouldContain "multiple times with different spellings"
+            }
+        }
+
         val keepAliveJobConfigs = JobConfigurations().let {
             listOf(
                 it.copy(analyzer = AnalyzerJobConfiguration(keepAliveWorker = true)),

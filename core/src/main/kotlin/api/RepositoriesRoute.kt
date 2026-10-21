@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepositoryRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
+import org.eclipse.apoapsis.ortserver.core.utils.getAmbiguousPluginConfigErrors
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
@@ -182,6 +183,17 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                         HttpStatusCode.BadRequest,
                         message = "Could not resolve the config context.",
                         cause = e.collectMessages()
+                    )
+                    return@post
+                }
+
+                // Reject ambiguous plugin configurations, as they could be used to bypass the validation.
+                val ambiguousPluginConfigErrors = createOrtRun.getAmbiguousPluginConfigErrors()
+                if (ambiguousPluginConfigErrors.isNotEmpty()) {
+                    call.respondError(
+                        HttpStatusCode.BadRequest,
+                        message = "Invalid plugin configuration.",
+                        cause = ambiguousPluginConfigErrors.joinToString(separator = "\n")
                     )
                     return@post
                 }
