@@ -72,7 +72,10 @@ class ScannerRunner(
         config: ScannerJobConfiguration,
         scannerRunId: Long
     ): OrtScannerResult {
-        val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
+        // Plugin IDs are case-insensitive, so normalize the keys of the plugin configs to the IDs of the scanners.
+        val pluginConfigs = context.resolvePluginConfigSecrets(config.config).mapKeys { (scanner, _) ->
+            ScannerWrapperFactory.ALL[scanner]?.descriptor?.id ?: scanner
+        }
 
         // If the submodule fetch strategy is set to TOP_LEVEL_ONLY, for git use a plugin config that prevents that
         // submodules are fetched recursively.
