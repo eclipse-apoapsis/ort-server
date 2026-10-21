@@ -1,113 +1,186 @@
-# Hardening the Analyzer against malicious Input
+# Securing the Analyzer
 
-This document describes a way how to configure the Analyzer worker to offer a reduced attack vector against malicious code in build scripts to be analyzed.
+To determine the dependencies of a project, the Analyzer worker invokes the project's package managers.
+Many package managers execute build scripts from the analyzed repository, so the Analyzer runs code that ORT Server does not control.
+If that code is malicious, it can read everything that is available in its environment.
 
-## Problem
+This guide describes how to run the Analyzer in a way that keeps infrastructure credentials, such as the database password or the credentials for the secret storage, out of reach of build scripts.
 
-When invoking package managers to analyze the dependencies of a project, it is not possible to prevent the execution of external code in all cases. For some package managers, build scripts are just code that gets executed; and even if this code comes from trusted sources (within the same company), there is always the danger that malicious code gets in that can do harm. Recent examples have shown that supply chain attacks become more and more sophisticated in their attempts to steal passwords and gather sensible information. This makes the environment in which the Analyzer operates especially insecure. Therefore, it is important to protected credentials as far as possible.
+:::info
+This setup requires the [Kubernetes Transport](../infrastructure/transport/kubernetes.md).
+:::
 
-Before starting the analysis, the Analyzer sets up configuration files for the supported package managers with the credentials required for the current run. These are needed to download package metadata from private repositories. Therefore, the affected credentials must be present during the Analyzer run. The good thing is that - depending on the configuration of the project - only the subset of infrastructure services can be exposed that is actually used by the current repository. This is a factor to limit the impact of a successful attack.
+## How It Works
 
-What is problematic in the default configuration is the fact that also all infrastructure credentials are accessible in some form. To obtain the credentials for the package manager configuration files, the Analyzer needs to interact with the secret storage which stores the customer credentials. It also needs the credentials to the database to persist the generated results. In which form these credentials are made available, depends on the concrete implementation of the secrets manager in use. In addition, there are different implementations for secret stores as well. (ORT Server supports abstractions over concrete infrastructure components, so that it can be adapted to a specific target environment. Unfortunately, this flexibility does not make it easier to harden it against potential attacks.) The infrastructure secrets may be stored for instance in a file mounted at a specific path into the local filesystem. With infrastructure secrets being available in the Analyzer environment, there is a chance for malicious code executed during the analysis phase to obtain such secrets and by that get access to potentially critical infrastructure components.
+By default, the Analyzer worker performs all of its work in a single container.
+This container needs infrastructure credentials to read the job from the database, to resolve secrets, and to store the results.
+As a consequence, these credentials are also available while build scripts are running.
 
-## Solution Idea
+To avoid this, the Analyzer worker can split a job into three phases.
+Each phase runs in its own container of the Analyzer pod and receives only the credentials it needs:
 
-The component that interacts with package managers - and is therefore exposed to potential malicious code - is ORT's [Analyzer](https://oss-review-toolkit.org/ort/docs/tools/analyzer) to which the Analyzer worker delegates. To do its work, this component needs a certain set of credentials to access dependencies and their metadata from private repositories - but not more. Especially, infrastructure components like the database or the secret store are not needed for the actual analysis after all package manager configuration files have been set up.
+| Phase       | Container                       | Tasks                                                                                                  | Requires access to                      |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| Preparation | `analyzerinit` (init container) | Reads the job, clones the repository, resolves secrets, and creates the package manager configuration. | Database, secret storage, configuration |
+| Analysis    | `analyzer-main`                 | Runs the ORT Analyzer, which invokes the package managers and executes build scripts.                  | None of the infrastructure credentials  |
+| Result      | `analyzerresult`                | Waits for the analysis to finish and stores the results in the database.                               | Database, configuration                 |
 
-Therefore, the idea is to split the Analyzer worker into multiple phases:
+The containers exchange data through an `emptyDir` volume that is mounted at `/mnt/exchange` in all three containers.
 
-- A preparation phase that sets up the environment for the actual analysis.
-- An analysis phase that executes the actual analysis by invoking the ORT Analyzer component.
-- A result phase that collects the analysis results and persists them to the database.
+:::note
+The analysis container still has access to the credentials that the analyzed repository needs to download dependencies, for example, credentials for a private package registry.
+The preparation phase writes them to the package manager configuration files.
+Only the credentials for the [infrastructure services](../../user-guide/concepts/external-services.md) used by the repository are included.
+:::
 
-These phases can now be executed sequentially with different configurations to limit the set of credentials available in each phase to the required minimum. When deployed on Kubernetes (which is the recommended target platform for a production ORT Server deployment), the single phases can run in different containers in the Analyzer pod. In this setup, each container can be configured with exactly the secrets and services it needs. To exchange data between the phases, a shared volume can be used. ORT Server supports such a setup by providing the following features:
+## What You Need to Configure
 
-- The Analyzer worker can be instructed to run in a specific phase. This is done by passing specific parameters to the container entrypoint that select the phase and define the path to a shared volume for data exchange.
-- The [Kubernetes Transport](../infrastructure/transport/kubernetes.md) implementation supports the required configuration options to construct an Analyzer pod running in multiple containers. For instance, it allows defining multiple containers, configuring the arguments to pass to the containers' entrypoints, declaring volumes of different types and how to mount them into the containers.
+Running the phases in separate containers does not by itself remove infrastructure credentials from the analysis container.
+Kubernetes provides credentials to a container in two ways, and you must restrict both:
 
-The remaining part of this document describes how to achieve a secured Analyzer execution on Kubernetes based on this idea in detail.
+- **Mounted files:**
+  By default, every volume that is configured for the Analyzer is mounted into all containers of the pod, including the analysis container.
+  To restrict a volume to the preparation and result containers, give it a name and assign it only to those containers.
+- **Environment variables:**
+  By default, the Kubernetes Transport copies all environment variables of the Orchestrator into the Analyzer containers.
+  To restrict the variables the analysis container receives, define an allowlist.
 
-## Implementation
+Which of the two applies to your deployment depends on how you provide infrastructure credentials.
+If you pass them as environment variables, which requires `allowSecretsFromConfig` to be enabled (the default), the allowlist protects them.
+If you provide them as files, for example, through a mounted Kubernetes secret or persistent volume claim, only named volume mounts protect them.
+Review both, as most deployments use a combination of the two.
 
-_Note: ORT Server can be configured to use different secret storage implementations. Therefore, this section cannot provide detailed settings for this part of the configuration. It will focus on the concrete steps to secure the Analyzer worker and give general guidelines about which secrets need to be made available in which phase._
+:::warning
+If you enable the phases without restricting volume mounts and environment variables, the Analyzer works as before, but the analysis container still has access to all infrastructure credentials.
+:::
 
-The full configuration of the pod for the Analyzer worker is located in the deployment manifest for the _Orchestrator_. Here, a larger number of environment variables are defined that are evaluated by the Kubernetes Transport implementation and determine various aspects of the pod. If not noted otherwise, the code fragments shown below represent such variable definitions and therefore need to be placed into the `env:` section of the deployment manifest for Orchestrator. (To simplify the description, the variable values are provided explicitly; it is typically good practice to define them in a `values.yaml` file.)
+## Configuring the Helm Chart
 
-Compared to the default configuration which runs the Analyzer worker in a single container, the following changes are required for a multiphase setup:
+If you deploy ORT Server with the [ORT Server Helm chart](https://github.com/eclipse-apoapsis/helm-charts), configure the phases with the following values:
 
-### Declare the shared volume
+| Value                                                               | Description                                                                                                                           |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `transport.kubernetes.analyzer.phases.enabled`                      | Runs the Analyzer in three phases. Enabled by default.                                                                                |
+| `transport.kubernetes.analyzer.phases.preparationVolumeMounts`      | Names of the volume mounts to add to the preparation container.                                                                       |
+| `transport.kubernetes.analyzer.phases.resultVolumeMounts`           | Names of the volume mounts to add to the result container.                                                                            |
+| `transport.kubernetes.analyzer.phases.analysisEnvironmentAllowlist` | Names of the environment variables that the analysis container inherits. The default is an empty list, so no variables are inherited. |
 
-The different phases of the Analyzer worker exchange data via files written to a shared volume. This is a Kubernetes volume of type `emptyDir`. This volume and its mount path has to be declared for the Kubernetes Transport, which is done via the `ANALYZER_MOUNT_EMPTY_DIRS` environment variable in the following way:
+The chart creates the exchange volume and configures the containers automatically.
+You only need to make sure that volumes containing infrastructure credentials are not mounted into the analysis container:
 
-```yaml
-- name: ANALYZER_MOUNT_EMPTY_DIRS
-  value: 'exchange->/mnt/exchange'
-```
+1. In `transport.kubernetes.analyzer.mountSecrets` and `transport.kubernetes.analyzer.mountPvcs`, prefix each mount that contains infrastructure credentials with a name followed by `=`.
+2. Add the name to `preparationVolumeMounts`, `resultVolumeMounts`, or both, depending on which phases need the volume.
+   If you are not sure, add it to both lists.
+   This does not affect the protection of the analysis phase.
+3. If the analysis requires specific environment variables from the Orchestrator, for example, to configure the log format or a proxy, add their names to `analysisEnvironmentAllowlist`.
+   Do not add variables that contain infrastructure credentials.
 
-Based on this declaration, the Kubernetes Transport will create a volume named `exchange` of type `emptyDir` and mount it into all containers of the Analyzer pod at the path `/mnt/exchange`.
-
-### Declare the containers for the different phases
-
-In the multiphase setup, the main container (which is created automatically by the Kubernetes Transport) runs the _analysis_ phase. Now two additional containers have to be declared for the _preparation_ and _result_ phases. For this purpose, the transport supports the `ADDITIONAL_CONTAINERS` variable, which is expected to contain a comma-separated list of the names for the additional containers to create. Further properties of these containers can then be set via environment variables that are prefixed with the container name.
-
-The container for the preparation phase should be an [init container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/). Kubernetes then ensures that this container runs before the other containers. The following fragment shows the declaration of the containers for the preparation and result phases:
-
-```yaml
-- name: ANALYZER_ADDITIONAL_CONTAINERS
-  value: 'analyzerinit,analyzerresult'
-- name: ANALYZERINIT_INIT_CONTAINER
-  value: 'true'
-```
-
-Both containers require access to infrastructure secrets. How this is configured depends on the concrete implementation of the secret store in use. As an example, we assume that the secret store expects a Kubernetes secret to be mounted into the container at a specific path. This would require one variable with a named secret volume declaration and further variables for the two containers in which to mount the volume:
-
-```yaml
-- name: ANALYZER_MOUNT_SECRETS
-  value: 'secrets=ort-server-secrets->/mnt/secrets|secrets'
-- name: ANALYZERINIT_VOLUME_MOUNTS
-  value: 'secrets'
-- name: ANALYZERRESULT_VOLUME_MOUNTS
-  value: 'secrets'
-```
-
-This declaration basically states that a secret volume named `secrets` is created from the Kubernetes secret `ort-server-secrets` and mounted into the preparation and result containers at the path `/mnt/secrets`. _Note: It is important to use a named volume declaration here; volumes without a name are mounted into all containers of the pod, which would make the secrets available in the analysis phase as well._
-
-### Limit inherited environment variables in the analysis phase
-
-The Kubernetes Transport also copies environment variables from the Orchestrator into Analyzer pod containers. These variables can contain infrastructure credentials in some setups. Set `ANALYZER_ENVIRONMENT_ALLOWLIST` on the Orchestrator to limit the inherited variables in the **main container**, which runs the analysis phase:
-
-```yaml
-- name: ANALYZER_ENVIRONMENT_ALLOWLIST
-  value: ''
-```
-
-Choose the names needed by your analysis setup. The list matches exact environment variable names after the transport's Analyzer prefix mapping; for example, an Orchestrator variable named `ANALYZER_HOME` becomes `HOME`, so list `HOME` to pass that mapped value. If the setting is absent, the main container inherits the Orchestrator environment as before. If it is set to an empty string, it inherits none of those variables. In either case, the transport supplies the generated `traceId`, `runId`, and `payload` variables needed to receive the job message.
-
-The preparation phase writes the resolved dependency repository credentials and package manager configuration to the shared exchange volume for the analysis phase. Those credentials are still available to access private dependencies; the allowlist controls only variables inherited from the Orchestrator.
-
-### Configure the entrypoints for the containers
-
-The three containers defined for the Analyzer pod are all using the same container image for the Analyzer worker. The final step of the secure Analyzer configuration is to tell the containers via command line arguments which phase they should run and where to find the shared volume for data exchange.
-
-The default setup does not require any command line arguments to be passed to the container entrypoint. In this case, the main Java class of the Analyzer worker is executed. When command line arguments are passed, the configuration becomes more complex. In the container, the properties `commands` and `args` need to be set:
-
-- `commands` points to the shell allowing the execution of arbitrary commands.
-- `args` contains the command(s) to be executed by the shell, which is the Java launcher with the classpath, the main class, and the command line arguments for the main class. Fortunately, the classpath and the main class do not have to be crafted manually; there are files generated during the build of the container image that contain these values and can be referenced from the command line.
-
-The following fragment shows the part of the configuration concerned with the command line arguments for the three containers:
+The following example mounts the Kubernetes secret `ort-server-secrets` into the preparation and result containers only, and passes the `LOG_FORMAT` variable to the analysis container:
 
 ```yaml
-- name: ANALYZER_COMMANDS
-  value: '/bin/sh'
-- name: ANALYZER_ARGS
-  value: "-c \"exec java $JAVA_OPTS -cp $( cat /app/jib-classpath-file ) @/app/jib-main-class-file\ analysis /mnt/exchange /mnt/exchange/sync/ready\""
-- name: ANALYZERINIT_ARGS
-  value: "-c \"exec java $JAVA_OPTS -cp $( cat /app/jib-classpath-file ) @/app/jib-main-class-file\ preparation /mnt/exchange\""
-- name: ANALYZERRESULT_ARGS
-  value: "-c \"/etc/analyzer_scripts/await.sh /mnt/exchange/sync/ready && exec java $JAVA_OPTS -cp $( cat /app/jib-classpath-file ) @/app/jib-main-class-file\ result /mnt/exchange\""
+transport:
+  kubernetes:
+    analyzer:
+      mountSecrets: 'secrets=ort-server-secrets->/mnt/secrets'
+      phases:
+        enabled: true
+        preparationVolumeMounts:
+          - secrets
+        resultVolumeMounts:
+          - secrets
+        analysisEnvironmentAllowlist:
+          - LOG_FORMAT
 ```
 
-This configuration tells the three containers which phase to execute and where to find the shared volume for data exchange - by constructing the `java` command from the classpath and main class files and passing the corresponding command line arguments. It also addresses the issue that the result phase should not start before the analysis phase has finished. This is not directly supported by Kubernetes; therefore, the Analyzer container image contains a small shell script `await.sh` that waits for a specific file to be created in the shared volume. The analysis phase creates this file when it has finished, which then allows the result phase to start.
+Mounts without a name, such as `ort-server-secrets->/mnt/secrets`, are added to all three containers.
+Use unnamed mounts only for data that does not need protection, for example, custom CA certificates.
 
-Using this configuration, the logs of the Analyzer pod will show three invocations of the entry point. The log output includes the current phase and the command line arguments provided.
-From the outside, no difference in the behavior of the Analyzer worker can be observed.
+## Configuring the Orchestrator Manually
+
+If you do not use the Helm chart, configure the Analyzer pod through environment variables in the deployment manifest of the Orchestrator.
+The Kubernetes Transport evaluates these variables when it creates the Analyzer pod.
+For a description of the underlying options, see the [Kubernetes Transport](../infrastructure/transport/kubernetes.md) documentation.
+
+The following example shows a complete configuration.
+It assumes that the infrastructure credentials are stored in the Kubernetes secret `ort-server-secrets`:
+
+```yaml
+env:
+  # Declare the volume for exchanging data between the phases.
+  - name: ANALYZER_MOUNT_EMPTY_DIRS
+    value: 'exchange->/mnt/exchange'
+
+  # Declare the containers for the preparation and result phases.
+  # The main container runs the analysis phase.
+  - name: ANALYZER_ADDITIONAL_CONTAINERS
+    value: 'analyzerinit,analyzerresult'
+  - name: ANALYZERINIT_INIT_CONTAINER
+    value: 'true'
+
+  # Mount the infrastructure credentials into the preparation and result containers only.
+  - name: ANALYZER_MOUNT_SECRETS
+    value: 'secrets=ort-server-secrets->/mnt/secrets'
+  - name: ANALYZERINIT_VOLUME_MOUNTS
+    value: 'secrets'
+  - name: ANALYZERRESULT_VOLUME_MOUNTS
+    value: 'secrets'
+
+  # Do not pass any environment variables of the Orchestrator to the analysis container.
+  - name: ANALYZER_ENVIRONMENT_ALLOWLIST
+    value: ''
+
+  # Select the phase that each container runs.
+  - name: ANALYZER_COMMANDS
+    value: '/bin/sh'
+  - name: ANALYZER_ARGS
+    value: '-c "exec java $JAVA_OPTS -cp $(cat /app/jib-classpath-file) @/app/jib-main-class-file analysis /mnt/exchange /mnt/exchange/sync/ready"'
+  - name: ANALYZERINIT_ARGS
+    value: '-c "exec java $JAVA_OPTS -cp $(cat /app/jib-classpath-file) @/app/jib-main-class-file preparation /mnt/exchange"'
+  - name: ANALYZERRESULT_ARGS
+    value: '-c "/etc/analyzer_scripts/await.sh /mnt/exchange/sync/ready && exec java $JAVA_OPTS -cp $(cat /app/jib-classpath-file) @/app/jib-main-class-file result /mnt/exchange"'
+```
+
+Adapt the example to your deployment as follows:
+
+- **Volume mounts:**
+  Name every entry in `ANALYZER_MOUNT_SECRETS` and `ANALYZER_MOUNT_PVCS` that contains infrastructure credentials, and reference the names in `ANALYZERINIT_VOLUME_MOUNTS` and `ANALYZERRESULT_VOLUME_MOUNTS`.
+  Both variables take a comma-separated list of names.
+  Do not reference these names in `ANALYZER_VOLUME_MOUNTS`, which configures the analysis container.
+- **Environment allowlist:**
+  `ANALYZER_ENVIRONMENT_ALLOWLIST` takes a comma-separated list of variable names.
+  The names refer to the variables as they appear in the Analyzer container, after the Orchestrator's `ANALYZER_` prefix has been removed.
+  For example, to pass the value of the Orchestrator variable `ANALYZER_HOME`, add `HOME` to the list.
+  An empty value passes no variables.
+  If the variable is not defined at all, all variables are passed.
+  The variables that the transport needs to deliver the job to the container are always set.
+- **Paths and commands:**
+  Keep the commands and arguments as shown.
+  If you change the mount path of the exchange volume, update all arguments that refer to `/mnt/exchange` accordingly.
+
+The allowlist applies only to the analysis container.
+The preparation and result containers inherit all environment variables of the Orchestrator, as they require the infrastructure credentials.
+
+## Verifying the Setup
+
+After deploying the configuration, start an ORT run and inspect the Analyzer pod while the run is in progress:
+
+1. List the containers of the pod and verify that it contains the init container `analyzerinit` and the containers `analyzer-main` and `analyzerresult`:
+
+   ```shell
+   kubectl get pod <analyzer-pod> -o jsonpath='{.spec.initContainers[*].name} {.spec.containers[*].name}'
+   ```
+
+2. Verify that the analysis container has no volume mounts that contain infrastructure credentials:
+
+   ```shell
+   kubectl get pod <analyzer-pod> -o jsonpath='{.spec.containers[?(@.name=="analyzer-main")].volumeMounts}'
+   ```
+
+3. Verify that the analysis container has no environment variables that contain infrastructure credentials:
+
+   ```shell
+   kubectl get pod <analyzer-pod> -o jsonpath='{.spec.containers[?(@.name=="analyzer-main")].env[*].name}'
+   ```
+
+The log of each container states which phase it runs.
+Apart from that, the results of an ORT run are the same as with the single-container setup.
