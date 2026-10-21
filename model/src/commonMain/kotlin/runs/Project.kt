@@ -37,7 +37,7 @@ data class Project(
 
 /** Object containing values to filter a project listing with. */
 data class ProjectFilters(
-    /** Substring filter for the full project identifier. Null if not set. */
+    /** Substring or exact filter for the full project identifier. Null if not set. */
     val identifier: FilterOperatorAndValue<String>? = null,
 
     /** Set of displayed declared license values to filter with. Null if not set. */

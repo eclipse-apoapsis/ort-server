@@ -513,6 +513,30 @@ class PackageServiceTest : WordSpec() {
                 }
             }
 
+            "only match the full identifier when filtering by an exact identifier" {
+                val target = Identifier("Maven", "com.example", "core", "1.0")
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(target),
+                        fixtures.generatePackage(target.copy(version = "1.0.1")),
+                        fixtures.generatePackage(target.copy(version = "1.0-SNAPSHOT"))
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        identifier = FilterOperatorAndValue(
+                            ComparisonOperator.EQUALS,
+                            "Maven:com.example:core:1.0"
+                        )
+                    )
+                )
+
+                results.data.shouldBeSingleton { it.identifier shouldBe target.mapToApi() }
+                results.totalCount shouldBe 1
+            }
+
             "use case insensitive filtering for purl and identifier filtering" {
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(

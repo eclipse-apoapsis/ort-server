@@ -50,7 +50,7 @@ data class Package(
  * Object containing values to filter a packages listing with.
  */
 data class PackageFilters(
-    /** Substring filter for identifier. Null if not set. */
+    /** Substring or exact filter for the full identifier. Null if not set. */
     val identifier: FilterOperatorAndValue<String>? = null,
 
     /** Substring filter for purl. Null if not set. */

@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.ProjectFilters
@@ -66,7 +67,7 @@ class ProjectService(private val db: Database) {
             .where { AnalyzerJobsTable.ortRunId eq ortRunId }
 
         filters.identifier?.let { filter ->
-            require(filter.operator == ComparisonOperator.ILIKE) {
+            require(filter.operator == ComparisonOperator.ILIKE || filter.operator == ComparisonOperator.EQUALS) {
                 "Unsupported operator for identifier filter: ${filter.operator}"
             }
 
@@ -80,7 +81,7 @@ class ProjectService(private val db: Database) {
                 IdentifiersTable.version
             )
 
-            query.andWhere { identifierExpression.applyILike(filter.value) }
+            query.andWhere { identifierExpression.applyFilter(filter.operator, filter.value) }
         }
 
         filters.declaredLicense?.let { filter ->
