@@ -112,6 +112,28 @@ class ProjectServiceTest : WordSpec() {
                 result.totalCount shouldBe 1
             }
 
+            "only match the full identifier when filtering by an exact identifier" {
+                val target = Identifier("Maven", "com.example", "core", "1.0")
+                val ortRunId = createAnalyzerRunWithProjects(
+                    linkedSetOf(
+                        createProject(target.copy(version = "1.0.1")),
+                        createProject(target.copy(version = "1.0-SNAPSHOT")),
+                        createProject(target)
+                    )
+                ).id
+
+                val result = service.listForOrtRunId(
+                    ortRunId,
+                    parameters = ListQueryParameters(limit = 1),
+                    filters = ProjectFilters(
+                        identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "Maven:com.example:core:1.0")
+                    )
+                )
+
+                result.data.shouldBeSingleton { it.identifier shouldBe target }
+                result.totalCount shouldBe 1
+            }
+
             "filter definition file paths by a case-insensitive substring" {
                 val ortRunId = createAnalyzerRunWithProjects(
                     setOf(
@@ -217,7 +239,6 @@ class ProjectServiceTest : WordSpec() {
                 val ortRunId = createAnalyzerRunWithProjects(setOf(createProject(identifier("project")))).id
 
                 listOf(
-                    ProjectFilters(identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "project")),
                     ProjectFilters(declaredLicense = FilterOperatorAndValue(ComparisonOperator.ILIKE, setOf("MIT"))),
                     ProjectFilters(definitionFilePath = FilterOperatorAndValue(ComparisonOperator.EQUALS, "pom.xml"))
                 ).forEach { filters ->

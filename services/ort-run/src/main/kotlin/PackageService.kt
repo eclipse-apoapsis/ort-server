@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Res
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -97,7 +98,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             val curationsMap by lazy { CuratedPackagesTable.getForOrtRunId(ortRunId) }
 
             filters.identifier?.let { filter ->
-                require(filter.operator == ComparisonOperator.ILIKE) {
+                require(filter.operator == ComparisonOperator.ILIKE || filter.operator == ComparisonOperator.EQUALS) {
                     "Unsupported operator for identifier filter: ${filter.operator}"
                 }
 
@@ -113,7 +114,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                     IdentifiersTable.version
                 )
 
-                query.andWhere { identifierConcat.applyILike(filter.value) }
+                query.andWhere { identifierConcat.applyFilter(filter.operator, filter.value) }
             }
 
             filters.purl?.let { filter ->
