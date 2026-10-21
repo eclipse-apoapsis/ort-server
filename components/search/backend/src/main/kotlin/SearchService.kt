@@ -198,7 +198,7 @@ private fun findByIdentifier(
 }
 
 /**
- * Find runs by PURL using curated PURL resolution.
+ * Find runs by PURL using curated PURL resolution. Return the identifier of the matching package as well.
  */
 private fun findByPurl(
     purl: String,
@@ -212,8 +212,14 @@ private fun findByPurl(
         generateHierarchyCondition(level, ids, filter)
     }
 
-    return query.select(OrtRunsTable.columns + effectivePurl).where(whereClause).map { row ->
+    return query.select(OrtRunsTable.columns + IdentifiersTable.columns + effectivePurl).where(whereClause).map { row ->
         val ortRun = OrtRunDao.wrapRow(row).mapToModel()
+        val packageId = Identifier(
+            type = row[IdentifiersTable.type],
+            namespace = row[IdentifiersTable.namespace],
+            name = row[IdentifiersTable.name],
+            version = row[IdentifiersTable.version]
+        )
 
         RunWithPackage(
             organizationId = ortRun.organizationId,
@@ -223,7 +229,7 @@ private fun findByPurl(
             ortRunIndex = ortRun.index,
             revision = ortRun.revision,
             createdAt = ortRun.createdAt,
-            packageId = null,
+            packageId = packageId,
             purl = row[effectivePurl]
         )
     }

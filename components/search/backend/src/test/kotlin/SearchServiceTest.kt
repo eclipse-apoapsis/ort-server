@@ -298,7 +298,7 @@ class SearchServiceTest : WordSpec({
             result should beEmpty()
         }
 
-        "return purl field and null packageId for PURL search" {
+        "return purl and packageId fields for PURL search" {
             val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
             createRunWithPackageForPurlSearch(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
             val expectedPurl = pkgId.toPurl()
@@ -307,7 +307,7 @@ class SearchServiceTest : WordSpec({
 
             result.shouldBeSingleton {
                 it.purl shouldBe expectedPurl
-                it.packageId should beNull()
+                it.packageId shouldBe pkgId.toApiIdentifier()
             }
         }
 
