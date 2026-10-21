@@ -91,13 +91,18 @@ it.each([
     purl,
     linkText: purl,
     table: 'packages',
-    search: { pkgId: purl, pkgIdType: 'PURL', marked: '0' },
+    search: {
+      pkgId: id,
+      pkgIdType: 'ORT_ID',
+      pkgIdMatchType: 'exact',
+      marked: id,
+    },
   },
   {
     purl: null,
     linkText: id,
     table: 'projects',
-    search: { projectId: id, marked: id },
+    search: { projectId: id, projectIdMatchType: 'exact', marked: id },
   },
 ])(
   'links an issue with PURL $purl to $table',

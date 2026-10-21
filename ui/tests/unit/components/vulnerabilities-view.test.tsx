@@ -90,7 +90,8 @@ it('links a vulnerability for a package with an empty PURL by its ORT ID', async
     search: {
       pkgId: id,
       pkgIdType: packageIdTypeSchema.enum.ORT_ID,
-      marked: '0',
+      pkgIdMatchType: 'exact',
+      marked: id,
     },
   });
 });

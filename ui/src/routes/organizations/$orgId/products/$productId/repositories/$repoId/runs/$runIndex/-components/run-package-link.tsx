@@ -27,7 +27,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  getExactPackageLinkSearch,
+  identifierToString,
+} from '@/helpers/identifier-conversion';
 import { packageIdTypeSchema, type PackageIdType } from '@/schemas';
 
 type RunPackageLinkProps = {
@@ -47,6 +50,8 @@ type RunPackageLinkProps = {
 
 // Links a finding of a run to its package in the packages table, or to its
 // project in the projects table, and offers to copy the shown identifier.
+// The link finds the package or project by an exact match of its ORT ID,
+// whichever identifier is shown.
 export const RunPackageLink = ({
   identifier,
   purl,
@@ -72,7 +77,11 @@ export const RunPackageLink = ({
               className='text-left font-semibold text-blue-400 hover:underline'
               to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects'
               params={params}
-              search={{ projectId: id, marked: id }}
+              search={{
+                projectId: id,
+                projectIdMatchType: 'exact',
+                marked: id,
+              }}
             >
               <BreakableString text={id} />
             </Link>
@@ -81,7 +90,11 @@ export const RunPackageLink = ({
               className='text-left font-semibold text-blue-400 hover:underline'
               to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
               params={params}
-              search={{ pkgId: id, pkgIdType: idType, marked: '0' }}
+              search={
+                identifier
+                  ? getExactPackageLinkSearch(identifier)
+                  : { pkgId: id, pkgIdType: idType }
+              }
             >
               <BreakableString text={id} />
             </Link>

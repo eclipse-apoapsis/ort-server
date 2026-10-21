@@ -69,6 +69,7 @@ import {
   markedSearchParameterSchema,
   paginationSearchParameterSchema,
   projectIdentifierSearchParameterSchema,
+  projectIdMatchTypeSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
 
@@ -304,6 +305,10 @@ const ProjectsComponent = () => {
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(sortBy),
         identifier: projectIdentifier,
+        identifierMatchType:
+          projectIdentifier && search.projectIdMatchType === 'exact'
+            ? 'exact'
+            : undefined,
         declaredLicense: declaredLicense?.join(','),
         definitionFilePath,
       },
@@ -368,8 +373,17 @@ const ProjectsComponent = () => {
           filter: {
             filterVariant: 'text',
             setFilterValue: (value: string | undefined) => {
+              // The filter also reports an unchanged value, for example on
+              // blur, which must not end an exact match.
+              if (value === search.projectId) return;
               navigate({
-                search: { ...search, page: 1, projectId: value },
+                search: {
+                  ...search,
+                  page: 1,
+                  projectId: value,
+                  projectIdMatchType: undefined,
+                  marked: undefined,
+                },
               });
             },
           },
@@ -527,6 +541,7 @@ export const Route = createFileRoute(
     ...definitionFilePathSearchParameterSchema.shape,
     ...paginationSearchParameterSchema.shape,
     ...projectIdentifierSearchParameterSchema.shape,
+    ...projectIdMatchTypeSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),

@@ -38,6 +38,14 @@ const identifier = {
 const ortId = identifierToString(identifier);
 const purl = 'pkg:maven/com.example/library@1.0';
 const runPath = '/organizations/1/products/2/repositories/3/runs/4';
+// Every package link finds the package by an exact match of its ORT ID and
+// opens it, whichever identifier it shows.
+const packageSearch = {
+  pkgId: ortId,
+  pkgIdType: 'ORT_ID',
+  pkgIdMatchType: 'exact',
+  marked: ortId,
+};
 
 const renderLink = ({
   linkPurl,
@@ -70,7 +78,7 @@ describe('RunPackageLink', () => {
       linkProjectWhenPurlIsNull: false,
       linkText: purl,
       pathname: `${runPath}/packages`,
-      search: { pkgId: purl, pkgIdType: 'PURL', marked: '0' },
+      search: packageSearch,
     },
     {
       case: 'the ORT ID when the PURL is empty',
@@ -79,7 +87,7 @@ describe('RunPackageLink', () => {
       linkProjectWhenPurlIsNull: false,
       linkText: ortId,
       pathname: `${runPath}/packages`,
-      search: { pkgId: ortId, pkgIdType: 'ORT_ID', marked: '0' },
+      search: packageSearch,
     },
     {
       case: 'the ORT ID when ORT IDs are shown',
@@ -88,7 +96,7 @@ describe('RunPackageLink', () => {
       linkProjectWhenPurlIsNull: false,
       linkText: ortId,
       pathname: `${runPath}/packages`,
-      search: { pkgId: ortId, pkgIdType: 'ORT_ID', marked: '0' },
+      search: packageSearch,
     },
     {
       case: 'the project when a missing PURL means a project',
@@ -97,7 +105,7 @@ describe('RunPackageLink', () => {
       linkProjectWhenPurlIsNull: true,
       linkText: ortId,
       pathname: `${runPath}/projects`,
-      search: { projectId: ortId, marked: ortId },
+      search: { projectId: ortId, projectIdMatchType: 'exact', marked: ortId },
     },
     {
       case: 'the package when a missing PURL does not mean a project',
@@ -106,7 +114,7 @@ describe('RunPackageLink', () => {
       linkProjectWhenPurlIsNull: false,
       linkText: ortId,
       pathname: `${runPath}/packages`,
-      search: { pkgId: ortId, pkgIdType: 'ORT_ID', marked: '0' },
+      search: packageSearch,
     },
   ])('links $case', async ({ linkText, pathname, search, ...props }) => {
     renderLink(props);
