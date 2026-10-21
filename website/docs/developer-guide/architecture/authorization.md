@@ -1,210 +1,250 @@
 # Authorization
 
-This document describes how authorization is implemented in the ORT Server.
+This document describes how ORT Server controls access to its resources, and how to use the authorization component when implementing new features.
 
-## Keycloak
+## Overview
 
-The ORT Server is integrated with [Keycloak](https://www.keycloak.org/) for identity and access management.
-Therefore, all roles and permissions are managed by Keycloak, and the server defines which roles and permissions exist.
-Keycloak itself knows only roles, therefore, all roles and permissions described below will be represented by roles in Keycloak.
+ORT Server separates authentication from authorization:
 
-## Entities
+- **Authentication** is handled by [Keycloak](https://www.keycloak.org/).
+  Clients authenticate using [OpenID Connect](https://openid.net/developers/how-connect-works/) and send the resulting JSON Web Token (JWT) with each request.
+  Keycloak also stores the user accounts.
+- **Authorization** is handled by ORT Server itself.
+  The roles assigned to users are stored in the ORT Server database, and ORT Server evaluates them for each request.
 
-This section summarizes the entities that are relevant to the access management.
+Keycloak does not store any roles, permissions, or groups for ORT Server.
+Users are identified by their username, which ORT Server reads from the `preferred_username` claim of the JWT.
 
-### Permission
-
-A permission to perform a specific action or access a resource on the ORT Server.
-It is implemented as a role in Keycloak.
-
-### Role
-
-A role is a group of permissions. It is implemented as a composite role in Keycloak.
-
-### User
-
-A single user that can log in to the ORT Server.
-A user can have assigned roles or be member of groups.
-
-### Group
-
-A group of users that can have assigned roles.
-All users in the group inherit all roles from the group.
-
-## Specification
-
-This specifies the available groups, roles, and permissions for organizations, products, and repositories in the ORT Server.
-
-Organizations are a root entity used for grouping content in the ORT Server.
-Each organization can have multiple products, and each product can have multiple repositories.
-A repository represents a VCS repository, for example, a Git repository on GitHub.
-
-For each of those entities, the ORT Server defines a set of fine-grained permissions which are grouped into reader, writer, and admin roles.
-For each role, the ORT Server creates a group in Keycloak which makes it easier to manage the users that are assigned to the roles.
-
-For now, the ORT Server supports a static role concept which might later be extended to support the customization of roles and permissions assigned to them.
-It is possible to edit roles and groups in Keycloak, but the ORT Server needs to know the meaning of those roles and groups, so manual changes in Keycloak can lead to unexpected results.
-Therefore, the ORT Server performs an automatic [synchronization](#keycloak-synchronization) of roles and groups.
-
-Please note that the roles and permissions below are not complete and serve just as examples.
-The currently defined roles and permissions can be looked up in the [enum classes](https://github.com/eclipse-apoapsis/ort-server/tree/main/model/src/commonMain/kotlin/authorization) where they are defined.
-
-### Organizations
-
-#### Permissions
-
-| Name                | Function                                 | Name in Keycloak                           |
-| ------------------- | ---------------------------------------- | ------------------------------------------ |
-| READ                | Read organization details                | permission*organization*$id_read           |
-| WRITE               | Write organization details               | permission*organization*$id_write          |
-| READ_PRODUCTS       | Read list of products                    | permission*organization*$id_read_products  |
-| CREATE_PRODUCT      | Create a new product in the organization | permission*organization*$id_create_product |
-| DELETE_ORGANIZATION | Delete the organization                  | permission*organization*$id_delete         |
-
-#### Roles
-
-| Name   | Permissions                                | Name in Keycloak             | Group name in Keycloak    |
-| ------ | ------------------------------------------ | ---------------------------- | ------------------------- |
-| Reader | READ, READ_PRODUCTS                        | role*organization*$id_reader | ORGANIZATION\_$id_READERS |
-| Writer | READ, READ_PRODUCTS, WRITE, CREATE_PRODUCT | role*organization*$id_writer | ORGANIZATION\_$id_WRITERS |
-| Admin  | \*                                         | role*organization*$id_admin  | ORGANIZATION\_$id_ADMINS  |
-
-### Products
-
-#### Permissions
-
-| Name              | Function                               | Name in Keycloak                         |
-| ----------------- | -------------------------------------- | ---------------------------------------- |
-| READ              | Read product details                   | permission*product*$id_read              |
-| WRITE             | Write product details                  | permission*product*$id_write             |
-| READ_REPOSITORIES | Read list of repositories              | permission*product*$id_read_repositories |
-| CREATE_REPOSITORY | Create a new repository in the product | permission*product*$id_create_repository |
-| DELETE_PRODUCT    | Delete the product                     | permission*product*$id_delete            |
-
-#### Roles
-
-| Name   | Permissions                                | Name in Keycloak        | Group name in Keycloak |
-| ------ | ------------------------------------------ | ----------------------- | ---------------------- |
-| Reader | READ, READ_REPOSITORIES                    | role*product*$id_reader | PRODUCT\_$id_READERS   |
-| Writer | READ, READ_REPOSITORIES, CREATE_REPOSITORY | role*product*$id_writer | PRODUCT\_$id_WRITERS   |
-| Admin  | \*                                         | role*product*$id_admin  | PRODUCT\_$id_ADMINS    |
-
-### Repositories
-
-#### Permissions
-
-| Name              | Function                                 | Name in Keycloak                          |
-| ----------------- | ---------------------------------------- | ----------------------------------------- |
-| READ              | Read repository details                  | permission*repository*$id_read            |
-| WRITE             | Write repository details                 | permission*repository*$id_write           |
-| READ_ORT_RUNS     | Read scan results                        | permission*repository*$id_read_ort_runs   |
-| TRIGGER_ORT_RUN   | Trigger a new ORT run for the repository | permission*repository*$id_trigger_ort_run |
-| DELETE_REPOSITORY | Delete the repository                    | permission*repository*$id_delete          |
-
-#### Roles
-
-| Name   | Permissions                    | Name in Keycloak           | Group name in Keycloak  |
-| ------ | ------------------------------ | -------------------------- | ----------------------- |
-| Reader | READ, READ_SCANS               | role*repository*$id_reader | REPOSITORY\_$id_READERS |
-| Writer | READ, READ_SCANS, TRIGGER_SCAN | role*repository*$id_writer | REPOSITORY\_$id_WRITERS |
-| Admin  | \*                             | role*repository*$id_admin  | REPOSITORY\_$id_ADMINS  |
-
-### Superuser
-
-In addition to the roles and permissions defined above, the ORT Server also creates a "superuser" role and a "SUPERUSERS" group which can be used for server administrators.
-Users with the "superuser" role have access to all resources.
+## Concepts
 
 ### Hierarchy
 
-The roles defined above are also hierarchical, that means that, for example, the reader role for an organization includes reader roles for all products in the organization, and the reader role for a product includes reader roles for all repositories in the product.
+Resources in ORT Server are organized in a hierarchy of organizations, products, and repositories.
+Each organization contains products, and each product contains repositories.
+Access rights are defined on the elements of this hierarchy.
 
-The idea behind this is to simplify checking for access permissions in the backend, because there are often multiple roles that can give access to a resource.
-For example, an organization administrator is also an administrator for all products in the organization.
-So, when performing an action on a product that requires admin permissions, the backend would have to check if the user is either an administrator for the product or an administrator for the organization.
-With the hierarchical concept, it only needs to check for the specific permission because the organization administrator role contains all product administrator roles and therefore also all permissions for all products within the organization.
+### Permissions
 
-### Examples
+A permission allows a user to perform a specific action on a hierarchy element.
+Permissions are defined separately for each hierarchy level.
 
-Below is a list of the roles and permissions for the following setup:
+**Organization permissions:**
 
-- Organization 1
-  - Product 1
-    - Repository 1
+| Permission               | Allows the user to                                          |
+| ------------------------ | ----------------------------------------------------------- |
+| `READ`                   | Read the organization details.                              |
+| `WRITE`                  | Change the organization details.                            |
+| `WRITE_SECRETS`          | Manage the secrets of the organization.                     |
+| `MANAGE_GROUPS`          | Assign roles on the organization.                           |
+| `MANAGE_DEFAULT_PLUGINS` | Manage the plugins enabled by default for the organization. |
+| `READ_PRODUCTS`          | List the products of the organization.                      |
+| `CREATE_PRODUCT`         | Create products in the organization.                        |
+| `DELETE`                 | Delete the organization.                                    |
 
-#### Roles
+**Product permissions:**
 
-| Name                            | Permissions                                                                                                                                                                          | Contained Roles                 |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
-| role_organization_1_reader      | permission_organization_1_read, permission_organization_1_read_products                                                                                                              | role_product_1_reader           |
-| role_organization_1_writer      | permission_organization_1_read, permission_organization_1_read_products, permission_organization_1_write, permission_organization_1_create_product                                   | role_product_1_writer           |
-| role_organization_1_admin       | permission_organization_1_read, permission_organization_1_read_products, permission_organization_1_write, permission_organization_1_create_product, permission_organization_1_delete | role_product_1_admin            |
-| role_product_1_reader           | permission_product_1_read, permission_product_1_read_repositories                                                                                                                    | role_repository_1_reader        |
-| role_product_1_writer           | permission_product_1_read, permission_product_1_read_repositories, permission_product_1_write, permission_product_1_create_repository                                                | role_repository_1_writer        |
-| product1_administrator          | permission_product_1_read, permission_product_1_read_repositories, permission_product_1_write, permission_product_1_create_repository, permission_product_1_delete                   | role_repository_1_administrator |
-| role_repository_1_reader        | permission_repository_1_read, permission_repository_1_read_ort_runs                                                                                                                  |                                 |
-| role_repository_1_writer        | permission_repository_1_read, permission_repository_1_read_ort_runs, permission_repository_1_writer, permission_repository_1_trigger_ort_run                                         |                                 |
-| role_repository_1_administrator | permission_repository_1_read, permission_repository_1_read_ort_runs, permission_repository_1_writer, permission_repository_1_trigger_ort_run, permission_repository_1_delete         |                                 |
+| Permission          | Allows the user to                                    |
+| ------------------- | ----------------------------------------------------- |
+| `READ`              | Read the product details.                             |
+| `WRITE`             | Change the product details.                           |
+| `WRITE_SECRETS`     | Manage the secrets of the product.                    |
+| `MANAGE_GROUPS`     | Assign roles on the product.                          |
+| `READ_REPOSITORIES` | List the repositories of the product.                 |
+| `CREATE_REPOSITORY` | Create repositories in the product.                   |
+| `TRIGGER_ORT_RUN`   | Trigger ORT runs for the repositories of the product. |
+| `DELETE`            | Delete the product.                                   |
 
-#### Groups
+**Repository permissions:**
 
-| Name                   | Contained Role             |
-| ---------------------- | -------------------------- |
-| ORGANIZATION_1_READERS | role_organization_1_reader |
-| ORGANIZATION_1_WRITERS | role_organization_1_writer |
-| ORGANIZATION_1_ADMINS  | role_organization_1_admin  |
-| PRODUCT_1_READERS      | role_product_1_reader      |
-| PRODUCT_1_WRITERS      | role_product_1_writer      |
-| PRODUCT_1_ADMINS       | role_product_1_admin       |
-| REPOSITORY_1_READERS   | role_repository_1_reader   |
-| REPOSITORY_1_WRITERS   | role_repository_1_writer   |
-| REPOSITORY_1_ADMINS    | role_repository_1_admin    |
+| Permission           | Allows the user to                            |
+| -------------------- | --------------------------------------------- |
+| `READ`               | Read the repository details.                  |
+| `WRITE`              | Change the repository details.                |
+| `WRITE_SECRETS`      | Manage the secrets of the repository.         |
+| `MANAGE_GROUPS`      | Assign roles on the repository.               |
+| `MANAGE_RESOLUTIONS` | Manage the resolutions of the repository.     |
+| `READ_ORT_RUNS`      | Read the ORT runs of the repository.          |
+| `TRIGGER_ORT_RUN`    | Trigger ORT runs for the repository.          |
+| `DELETE`             | Delete the repository or one of its ORT runs. |
 
-## Authentication
+### Roles
 
-Authentication is implemented using [OpenID Connect](https://openid.net/developers/how-connect-works/) (also see the [Keycloak specific docs](https://www.keycloak.org/docs/latest/securing_apps/#_oidc)).
+Permissions are not assigned to users directly.
+Instead, users are assigned one of three roles on a hierarchy element: `READER`, `WRITER`, or `ADMIN`.
+Each role grants a fixed set of permissions:
 
-The client roles of a user are not read from the JWT token, but are requested using the Keycloak API.
-This has the benefit that all role changes in Keycloak are recognized immediately, not only when an access token is refreshed.
-Another benefit is that the client roles do not have to be contained in the access token which makes it smaller.
+| Role     | Permissions on the assigned element                                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `READER` | Read access: `READ` and the permission to list child elements or ORT runs.                                                                             |
+| `WRITER` | All `READER` permissions, plus `WRITE`, `WRITE_SECRETS`, creating child elements, and triggering ORT runs. On repositories, also `MANAGE_RESOLUTIONS`. |
+| `ADMIN`  | All permissions, including `MANAGE_GROUPS`, `MANAGE_DEFAULT_PLUGINS`, and `DELETE`.                                                                    |
 
-An alternative to using the Keycloak API would have been to use the [userinfo endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo).
-However, the implementation would have been more complex because access to the API was already implemented for the role and group management.
+A user can have at most one role on each hierarchy element.
+Assigning a new role on an element replaces the previous one.
 
-### Keycloak Configuration
+The roles cannot be customized.
+They are defined as enums in the authorization component, see [Implementation](#implementation).
 
-The JWT token created by Keycloak must contain the audience configured in the `jwt.audience` configuration property of the [core module](https://github.com/eclipse-apoapsis/ort-server/blob/main/core/src/main/resources/application.conf).
-For this, it is required to add an audience mapper to the client scope that adds the name of the audience to the JWT token.
+### Inheritance
 
-By default, Keycloak creates a "roles" client scope that includes a "client roles" token mapper which adds all client roles of a user to the JWT token.
-This can lead to very large JWT tokens if a user has many roles assigned, therefore, this mapper should be configured to not add the client roles to the access token.
+Roles affect not only the element they are assigned on, but also other levels of the hierarchy.
+The following rules apply:
 
-## Access Management
+- **Roles are inherited downwards.**
+  A role on an organization grants the same role on all its products and repositories.
+  A role on a product grants the same role on all its repositories.
+  For example, a user with the `WRITER` role on an organization has write access to all repositories of that organization.
+- **Roles on lower levels can extend inherited permissions, but cannot restrict them.**
+  For example, a user with the `WRITER` role on a product can be an `ADMIN` of one of its repositories.
+  A `READER` role on that repository, however, has no effect, because the user already inherits the `WRITER` role.
+- **Roles on lower levels grant read access to the parent elements.**
+  A user with any role on a repository can read the parent product and organization.
+  This implicit read access does not inherit downwards: it does not grant access to the other products and repositories of the organization.
 
-While roles and groups should not be manually edited in Keycloak, the Keycloak UI is currently the only place where users can be granted permissions.
-This might later be changed by introducing API endpoints to manage permissions, or by implementing a UI for this.
+### Superusers
 
-To manage user access, users should be added to the groups created for the entities.
-For example, to give a user read access to the organization with the id "1", the user should be added to the group "ORGANIZATION_1_READERS".
-Assigning roles directly to users is not recommended because the role definitions could change with any update of the ORT Server, for example, by adding or removing permissions, or changing which permissions belong to a role.
-If a user is added to a group, the ORT Server [ensures](#keycloak-synchronization) that the group always has the correct roles and permissions assigned.
+A superuser has all permissions on all hierarchy elements.
+Some operations require superuser rights, for example, creating organizations, managing users, and setting the `keepAliveWorker` flag for ORT runs.
 
-Please note that it is possible to configure a prefix for group names, so the actual group names could be different to those used in this documentation.
-For example, if the group name prefix is set to "PREFIX\_", the group from the previous paragraph would be called "PREFIX_ORGANIZATION_1_READERS".
-The prefix option is useful in a testing setup where multiple instances of the ORT Server share the same Keycloak realm.
+Internally, superuser rights are stored as an assignment of the organization `ADMIN` role on the wildcard hierarchy ID `CompoundHierarchyId.WILDCARD`.
 
-## Keycloak Synchronization
+## Implementation
 
-The ORT Server automatically synchronizes the defined roles and permissions with the roles and groups in Keycloak.
-Currently, this happens when the core module is started.
-This might later be extended by triggering synchronization periodically or by adding an endpoint to trigger synchronization manually.
+The authorization logic is located in the [`components/authorization`](https://github.com/eclipse-apoapsis/ort-server/tree/main/components/authorization) module:
 
-Synchronization is required because:
+- `api-model` contains the roles, permissions, and user information as exposed by the REST API.
+- `backend` contains the role and permission definitions, the services, and the Ktor integration.
 
-- The role and permission definitions could have changed when upgrading to a newer version of the ORT Server.
-- The roles and groups could have been manually changed in Keycloak, leading to unexpected results.
+The most important classes are:
 
-During synchronization, the ORT Server verifies that:
+| Class                                                                 | Purpose                                                                                 |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `OrganizationPermission`, `ProductPermission`, `RepositoryPermission` | Define the permissions on each hierarchy level.                                         |
+| `OrganizationRole`, `ProductRole`, `RepositoryRole`                   | Define the roles and the permissions they grant on all levels.                          |
+| `RoleAssignmentsTable`                                                | Stores the role assignments in the `role_assignments` database table.                   |
+| `AuthorizationService`                                                | Checks permissions, manages role assignments, and creates filters for database queries. |
+| `HierarchyPermissions`                                                | Implements the [inheritance rules](#inheritance).                                       |
+| `EffectiveRole`                                                       | Holds the permissions of a user on a specific hierarchy element.                        |
+| `UserService`                                                         | Manages the user accounts in Keycloak.                                                  |
+| `OrtServerPrincipal`                                                  | Represents the authenticated user of a request, including the effective role.           |
 
-- All permissions for all hierarchy entities (organizations, products, and repositories) are represented by roles in Keycloak.
-- All roles for all hierarchy entities are represented by composite roles in Keycloak and have the correct child roles assigned.
-- All roles for all hierarchy entities are represented by groups in Keycloak and have the correct roles assigned.
+### Authentication
+
+`configureAuthentication()` sets up the Ktor JWT authentication.
+It validates the token against the issuer and the JSON Web Key Set configured in the `jwt` section of the [core configuration](https://github.com/eclipse-apoapsis/ort-server/blob/main/core/src/main/resources/application.conf).
+The token must contain the audience configured in `jwt.audience`.
+In Keycloak, add an audience mapper to the client scope to include it.
+
+For each authenticated request, ORT Server creates an `OrtServerPrincipal`.
+If the route requires a permission, the principal also contains the `EffectiveRole` of the user on the requested hierarchy element.
+
+### Protecting Routes
+
+To protect a route, pass an `AuthorizationChecker` to the route function.
+The authorization component provides overloads of the Ktor route functions `get`, `post`, `put`, `patch`, and `delete` that accept a checker.
+Create checkers with the following functions:
+
+- `requirePermission(permission)` checks a permission on the hierarchy element identified by the path parameter `organizationId`, `productId`, or `repositoryId`, depending on the type of the permission.
+- `requireSuperuser()` checks that the user is a superuser.
+
+Within the route handler, `call.ortServerPrincipal.effectiveRole` provides the permissions of the user and the ID of the hierarchy element.
+For example:
+
+```kotlin
+route("repositories/{repositoryId}") {
+    delete(deleteRepository, requirePermission(RepositoryPermission.DELETE)) {
+        val effectiveRole = call.ortServerPrincipal.effectiveRole
+        // ...
+    }
+}
+```
+
+The check results in the following HTTP status codes:
+
+| Situation                                           | Status code        |
+| --------------------------------------------------- | ------------------ |
+| The request does not contain a valid token.         | `401 Unauthorized` |
+| The user does not have the required permission.     | `403 Forbidden`    |
+| The hierarchy element from the path does not exist. | `404 Not Found`    |
+
+:::warning
+Use the hierarchy ID from `effectiveRole.elementId` for further authorization calls.
+The `AuthorizationService` functions that accept a `CompoundHierarchyId` do not verify that the contained IDs belong together.
+Passing an ID constructed from unverified request parameters can grant access to elements the user is not allowed to access.
+:::
+
+### Filtering Lists
+
+Endpoints that return lists of hierarchy elements, such as all organizations a user can access, cannot check a single element.
+Instead, they use the standard route functions without a checker, and filter the query results:
+
+1. Call `AuthorizationService.filterHierarchyIds()` with the user ID and the required role or permissions.
+   The function returns a `HierarchyFilter` that describes all elements the user can access, taking the [inheritance rules](#inheritance) into account.
+   For superusers, it returns a wildcard filter.
+2. Pass the filter to the repository function that performs the query.
+   The DAO layer converts it into a database condition with `HierarchyFilter.apply()`.
+
+For an example, see `OrganizationService.listOrganizationsForUser()`.
+
+### Managing Role Assignments
+
+Use `AuthorizationService` to change role assignments:
+
+- `assignRole()` assigns a role to a user on a hierarchy element.
+- `removeAssignment()` removes the role of a user on a hierarchy element.
+- `removeAssignments()` removes all role assignments on a hierarchy element, and optionally on its child elements.
+  For example, `RepositoryService` calls it when a repository is moved to another product, because the inherited roles change.
+- `removeUserAssignments()` removes all role assignments of a user.
+  `UserService.deleteUser()` calls it before deleting a user.
+
+When a hierarchy element is deleted, the database removes its role assignments automatically.
+
+The following role assignments are created automatically:
+
+- The creator of a product receives the `ADMIN` role on the product.
+- The creator of a repository receives the `ADMIN` role on the repository.
+
+The REST API provides the following endpoints to manage roles, relative to the base path `/api/v1`:
+
+| Endpoint                                                       | Required permission          |
+| -------------------------------------------------------------- | ---------------------------- |
+| `PUT`, `DELETE` `/organizations/{organizationId}/roles/{role}` | Organization `MANAGE_GROUPS` |
+| `PUT`, `DELETE` `/products/{productId}/roles/{role}`           | Product `MANAGE_GROUPS`      |
+| `PUT`, `DELETE` `/repositories/{repositoryId}/roles/{role}`    | Repository `MANAGE_GROUPS`   |
+| `PUT`, `DELETE` `/admin/users/{username}/superuser`            | Superuser                    |
+
+### Exposing Permissions to the UI
+
+The endpoint `GET /api/v1/authorization/userinfo` returns the permissions of the current user on the hierarchy element identified by the query parameters `organizationId`, `productId`, or `repositoryId`, and whether the user is a superuser.
+The UI uses this information to show or hide actions.
+It provides the components in `ui/src/components/authorization` for this purpose.
+
+:::note
+Hiding an action in the UI does not protect it.
+Every endpoint must perform its own authorization check.
+:::
+
+### Testing
+
+To test the authorization of an endpoint, derive the test class from `AbstractAuthorizationTest` in `shared/ktor-utils`.
+It provides a database and a Keycloak instance, and the following helper functions:
+
+- `requestShouldRequireAuthentication()` verifies that a request fails without a valid token.
+- `requestShouldRequireRole()` verifies that a request requires a specific role on a hierarchy element.
+- `requestShouldRequireSuperuser()` verifies that a request requires superuser rights.
+
+## Migration from Keycloak-Based Authorization
+
+Earlier versions of ORT Server stored roles and permissions as roles and groups in Keycloak.
+When the core service starts and the `role_assignments` table is empty, `RolesToDbMigration` copies the existing assignments to the database:
+
+- Members of the groups for organizations, products, and repositories, such as `ORGANIZATION_1_READERS`, receive the corresponding role.
+- Members of the `SUPERUSERS` group become superusers.
+
+The migration considers the group name prefix configured for Keycloak.
+After the migration, ORT Server no longer reads or updates these groups.
+
+:::note
+The migration also runs on a new installation, because the `role_assignments` table is empty.
+As a result, the members of the `SUPERUSERS` group in Keycloak become the initial superusers.
+:::
