@@ -219,12 +219,13 @@ class PluginTemplateService(
      */
     internal suspend fun getAvailablePlugins(organizationId: OrganizationId?): List<AvailablePlugin> = db.transaction {
         val templates = organizationId?.let { GetPluginTemplatesForOrganizationQuery(it).execute() }.orEmpty()
-            .associateBy { it.pluginType to it.pluginId }
+            .associateBy { it.pluginType to it.pluginId.lowercase() }
 
         pluginService.getPlugins()
             .filter { it.availability != PluginAvailability.DISABLED }
             .mapNotNull { plugin ->
-                val template = templates[plugin.type to plugin.id]
+                // Plugin IDs are case-insensitive, and their spelling can change between ORT versions.
+                val template = templates[plugin.type to plugin.id.lowercase()]
 
                 AvailablePlugin(plugin, template).takeUnless {
                     organizationId != null && plugin.availability == PluginAvailability.RESTRICTED && template == null

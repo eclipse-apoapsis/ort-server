@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.Query
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
@@ -38,7 +39,7 @@ internal class GetPluginTemplateQuery(
             .selectAll()
             .where { PluginTemplatesReadModel.name eq templateName }
             .andWhere { PluginTemplatesReadModel.pluginType eq pluginType }
-            .andWhere { PluginTemplatesReadModel.pluginId eq pluginId }
+            .andWhere { PluginTemplatesReadModel.pluginId.lowerCase() eq pluginId.lowercase() }
             .singleOrNull()
             ?.let {
                 PluginTemplate(
