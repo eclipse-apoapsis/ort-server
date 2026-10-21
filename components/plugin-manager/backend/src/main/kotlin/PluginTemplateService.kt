@@ -374,7 +374,8 @@ class PluginTemplateService(
      * Validate the provided [pluginConfigs] against the admin configuration for the provided
      * [organization][organizationId]. Reporters can also be referenced by the names of the report definitions from
      * the admin configuration of the given config [context]. In this case, the reporter plugin used by the report
-     * definition is validated.
+     * definition is validated, but the options are not checked against the final options of a template for this
+     * plugin, because templates are not applied to report definitions.
      */
     suspend fun validatePluginConfigs(
         pluginConfigs: Map<PluginType, Map<String, ResolvablePluginConfig>>,
@@ -396,11 +397,9 @@ class PluginTemplateService(
 
         pluginConfigs.forEach { (pluginType, configs) ->
             configs.forEach { (configuredId, config) ->
-                val pluginId = if (pluginType == PluginType.REPORTER) {
-                    reporterConfig?.getReportDefinition(configuredId)?.pluginId ?: configuredId
-                } else {
-                    configuredId
-                }
+                val reportDefinition = reporterConfig?.takeIf { pluginType == PluginType.REPORTER }
+                    ?.getReportDefinition(configuredId)
+                val pluginId = reportDefinition?.pluginId ?: configuredId
 
                 val descriptor = plugins.singleOrNull {
                     it.type == pluginType && it.id == normalizePluginId(pluginType, pluginId)
@@ -445,7 +444,10 @@ class PluginTemplateService(
                         else -> value
                     }
 
-                    if (templateOption?.isFinal == true && configValue != templateOption.value) {
+                    // Templates are not applied to report definitions, so their final options do not apply either.
+                    if (reportDefinition == null && templateOption?.isFinal == true &&
+                        configValue != templateOption.value
+                    ) {
                         errors += "The plugin option '$option' for the plugin with type '$pluginType' and ID " +
                                 "'$pluginId' is set to a fixed value by the server administrators and cannot be" +
                                 " changed."
