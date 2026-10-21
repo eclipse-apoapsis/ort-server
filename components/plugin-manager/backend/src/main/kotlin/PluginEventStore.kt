@@ -27,16 +27,20 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.upsert
 
 class PluginEventStore(private val db: Database) {
     private suspend fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.transaction {
         PluginEvents.selectAll()
-            .where { PluginEvents.pluginType eq pluginType and (PluginEvents.pluginId eq pluginId) }
+            .where {
+                // Plugin IDs are case-insensitive, and their spelling can change between ORT versions.
+                PluginEvents.pluginType eq pluginType and (PluginEvents.pluginId.lowerCase() eq pluginId.lowercase())
+            }
             .orderBy(PluginEvents.version)
             .map { it.toPluginEvent() }
     }
@@ -61,30 +65,24 @@ class PluginEventStore(private val db: Database) {
         Plugin().applyAll(loadEvents(pluginType, pluginId))
 
     private suspend fun updateReadModel(pluginEvent: PluginEvent): Unit = db.transaction {
-        when (pluginEvent.payload) {
-            is PluginDisabled -> {
-                PluginsReadModel.upsert {
-                    it[pluginType] = pluginEvent.pluginType
-                    it[pluginId] = pluginEvent.pluginId
-                    it[availability] = PluginAvailability.DISABLED
-                }
-            }
+        val newAvailability = when (pluginEvent.payload) {
+            is PluginDisabled -> PluginAvailability.DISABLED
+            is PluginEnabled -> PluginAvailability.ENABLED
+            is PluginRestricted -> PluginAvailability.RESTRICTED
+        }
 
-            is PluginEnabled -> {
-                PluginsReadModel.upsert {
-                    it[pluginType] = pluginEvent.pluginType
-                    it[pluginId] = pluginEvent.pluginId
-                    it[availability] = PluginAvailability.ENABLED
-                }
-            }
+        // Plugin IDs are case-insensitive, and their spelling can change between ORT versions. Therefore, remove the
+        // entries for the plugin ignoring case, so that the read model contains a single entry using the current
+        // spelling.
+        PluginsReadModel.deleteWhere {
+            (PluginsReadModel.pluginType eq pluginEvent.pluginType) and
+                    (PluginsReadModel.pluginId.lowerCase() eq pluginEvent.pluginId.lowercase())
+        }
 
-            is PluginRestricted -> {
-                PluginsReadModel.upsert {
-                    it[pluginType] = pluginEvent.pluginType
-                    it[pluginId] = pluginEvent.pluginId
-                    it[availability] = PluginAvailability.RESTRICTED
-                }
-            }
+        PluginsReadModel.insert {
+            it[pluginType] = pluginEvent.pluginType
+            it[pluginId] = pluginEvent.pluginId
+            it[availability] = newAvailability
         }
     }
 

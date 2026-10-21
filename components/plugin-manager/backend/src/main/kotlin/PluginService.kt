@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.transaction
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -42,7 +43,7 @@ class PluginService(private val db: Database) {
             PluginsReadModel.select(PluginsReadModel.availability)
                 .where {
                     PluginsReadModel.pluginType eq pluginType and
-                            (PluginsReadModel.pluginId eq normalizedPluginId)
+                            (PluginsReadModel.pluginId.lowerCase() eq normalizedPluginId.lowercase())
                 }
                 .firstOrNull()?.get(PluginsReadModel.availability) ?: PluginAvailability.ENABLED
         }
@@ -65,12 +66,13 @@ class PluginService(private val db: Database) {
                 val pluginId = it[PluginsReadModel.pluginId]
                 val availability = it[PluginsReadModel.availability]
 
-                pluginInfo.getOrPut(pluginType) { mutableMapOf() }[pluginId] = availability
+                // Plugin IDs are case-insensitive, and their spelling can change between ORT versions.
+                pluginInfo.getOrPut(pluginType) { mutableMapOf() }[pluginId.lowercase()] = availability
             }
         }
 
         fun pluginAvailability(pluginType: PluginType, pluginId: String) =
-            pluginInfo[pluginType]?.get(pluginId) ?: PluginAvailability.ENABLED
+            pluginInfo[pluginType]?.get(pluginId.lowercase()) ?: PluginAvailability.ENABLED
 
         val advisors = getInstalledPlugins(PluginType.ADVISOR).map {
             it.mapToApi(PluginType.ADVISOR, pluginAvailability(PluginType.ADVISOR, it.id))
