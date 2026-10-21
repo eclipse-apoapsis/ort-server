@@ -22,10 +22,16 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.transaction
+
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
@@ -71,6 +77,22 @@ class PluginServiceTest : WordSpec({
 
             pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.RESTRICTED
         }
+
+        "match stored plugin IDs ignoring case" {
+            // Simulate events stored with a different spelling of the plugin ID, e.g. by an older ORT version.
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId.lowercase(), 1, PluginDisabled, "user"))
+
+            pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.DISABLED
+            pluginEventStore.getPlugin(pluginType, pluginId).version shouldBe 1
+
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 2, PluginRestricted, "user"))
+
+            pluginService.getAvailability(pluginType, pluginId) shouldBe PluginAvailability.RESTRICTED
+            dbExtension.db.transaction {
+                PluginsReadModel.selectAll().where { PluginsReadModel.pluginType eq pluginType }
+                    .map { it[PluginsReadModel.pluginId] }
+            } should containExactly(pluginId)
+        }
     }
 
     "isInstalled" should {
@@ -107,6 +129,13 @@ class PluginServiceTest : WordSpec({
                 .availability shouldBe PluginAvailability.RESTRICTED
 
             pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 2, PluginDisabled, "user"))
+
+            pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }
+                .availability shouldBe PluginAvailability.DISABLED
+        }
+
+        "return the availability of a plugin stored with a different spelling of the plugin ID" {
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId.uppercase(), 1, PluginDisabled, "user"))
 
             pluginService.getPlugins().single { it.type == pluginType && it.id == pluginId }
                 .availability shouldBe PluginAvailability.DISABLED
