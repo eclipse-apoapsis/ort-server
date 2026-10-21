@@ -53,6 +53,21 @@ export function getPackageIdString(
     : identifierToString(pkg.packageId);
 }
 
+/**
+ * Return the search parameters of a link to the packages table of a run that finds the package with the given
+ * identifier by an exact match and opens its row.
+ */
+export function getExactPackageLinkSearch(identifier: Identifier) {
+  const pkgId = identifierToString(identifier);
+
+  return {
+    pkgId,
+    pkgIdType: packageIdTypeSchema.enum.ORT_ID,
+    pkgIdMatchType: 'exact' as const,
+    marked: pkgId,
+  };
+}
+
 /** Return an API query filter for a package identifier of the given type. */
 export function getPackageIdFilter(
   packageId: string | undefined,
