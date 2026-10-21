@@ -33,29 +33,44 @@ A repository represents a VCS repository, for example, a Git repository on GitHu
 - secrets
 - runs
 
-## Users
+## Users and Roles
 
-To manage user rights, they can be assigned roles directly (see also [Authorization](../../developer-guide/architecture/authorization.md)) or indirectly by being members of a group.
+Access to organizations, products, and repositories is controlled by roles.
+A user can be assigned one role on each organization, product, or repository.
+Assigning a new role replaces the previous role of the user on that entity.
 
-### Groups
+For technical details, see the [Authorization](../../developer-guide/architecture/authorization.md) documentation.
 
-Groups have assigned roles. Users in the group inherit all roles from the group.
-Each group contains the roles of its child entity, e.g. the _readers_ group on product level also contains the _readers_ group for the child repositories.
+### Available Roles
 
-#### Readers
-
-Users in the _readers_ group can see the details of an entity and the child entities.
-On repository level, they can see ORT run results.
-
-#### Writers
-
-Users in the _writers_ group have the roles of the _readers_ group.
-Additionally, they can manage secrets and infrastructure services and create child entities.
-On product and repository levels, they can trigger new ORT runs.
-
-#### Admins
-
-Users in the _admins_ group have the roles of the _writers_ group.
-Additionally, they can manage user groups and delete the entity.
+| Role       | Allows the user to                                                                                                                                                                            |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Reader** | View the entity and its child entities. On repositories, view the results of ORT runs.                                                                                                        |
+| **Writer** | Everything a reader can do. Additionally, edit the entity, manage secrets and infrastructure services, create child entities, and trigger ORT runs. On repositories, also manage resolutions. |
+| **Admin**  | Everything a writer can do. Additionally, assign roles to other users and delete the entity. On organizations, also manage the plugins that are enabled by default.                           |
 
 A user who creates a product or repository automatically becomes an admin of it.
+
+### How Roles Apply to Child Entities
+
+Roles apply to the entity they are assigned on and to all its child entities:
+
+- A role on an organization applies to all products and repositories of the organization.
+- A role on a product applies to all repositories of the product.
+
+A role on a child entity can extend the rights a user has from a parent entity, but cannot reduce them.
+For example, a writer of a product can be made an admin of one of its repositories.
+Assigning the reader role on that repository has no effect, because the user is already a writer of it through the product.
+
+A user with a role on a product or repository can also view its parent entities.
+This does not give the user access to the other products and repositories of the organization.
+
+### Managing Roles
+
+Admins assign roles on the _Users_ page of an organization, product, or repository.
+
+### Superusers
+
+Superusers are administrators of the ORT Server instance.
+They have all rights on all entities.
+Only superusers can create organizations and manage user accounts.
