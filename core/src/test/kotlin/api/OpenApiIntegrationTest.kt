@@ -30,12 +30,16 @@ import io.ktor.client.statement.bodyAsText
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.plugins.configureOpenApi
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason as ModelLicenseFindingCurationReason
+import org.eclipse.apoapsis.ortserver.shared.apimodel.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
@@ -66,6 +70,29 @@ class OpenApiIntegrationTest : WordSpec({
                 license["name"].shouldBeInstanceOf<JsonPrimitive>().content shouldBe "Apache-2.0"
                 license["url"].shouldBeInstanceOf<JsonPrimitive>().content shouldBe
                         "https://www.apache.org/licenses/LICENSE-2.0"
+            }
+        }
+
+        "contain the license finding curation reasons" {
+            ortServerTestApplication(
+                config = TestConfig.Test,
+                additionalConfigs = mapOf("jwt.issuer" to "https://example.org")
+            ) {
+                application { configureOpenApi() }
+
+                val response = createJsonClient().get("/swagger-ui/api.json")
+
+                response shouldHaveStatus 200
+
+                val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val schemas = json["components"].shouldNotBeNull().jsonObject["schemas"].shouldNotBeNull().jsonObject
+                val reasonSchema = schemas["LicenseFindingCurationReason"].shouldNotBeNull().jsonObject
+
+                reasonSchema["type"].shouldBeInstanceOf<JsonPrimitive>().content shouldBe "string"
+                reasonSchema["enum"].shouldNotBeNull().jsonArray.map { it.jsonPrimitive.content } shouldBe
+                        LicenseFindingCurationReason.entries.map { it.name }
+                LicenseFindingCurationReason.entries.map { it.name } shouldBe
+                        ModelLicenseFindingCurationReason.entries.map { it.name }
             }
         }
     }
