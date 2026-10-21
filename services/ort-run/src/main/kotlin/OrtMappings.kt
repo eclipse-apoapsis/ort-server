@@ -62,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
@@ -150,6 +151,7 @@ import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason as OrtIssueResolutionReason
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
+import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason as OrtLicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
@@ -320,9 +322,18 @@ fun OrtLicenseFindingCuration.mapToModel() = LicenseFindingCuration(
     lineCount = lineCount,
     detectedLicense = detectedLicense?.toString(),
     concludedLicense = concludedLicense.toString(),
-    reason = reason.name,
+    reason = reason.mapToModel(),
     comment = comment
 )
+
+fun OrtLicenseFindingCurationReason.mapToModel() = when (this) {
+    OrtLicenseFindingCurationReason.CODE -> LicenseFindingCurationReason.CODE
+    OrtLicenseFindingCurationReason.DATA_OF -> LicenseFindingCurationReason.DATA_OF
+    OrtLicenseFindingCurationReason.DOCUMENTATION_OF -> LicenseFindingCurationReason.DOCUMENTATION_OF
+    OrtLicenseFindingCurationReason.INCORRECT -> LicenseFindingCurationReason.INCORRECT
+    OrtLicenseFindingCurationReason.NOT_DETECTED -> LicenseFindingCurationReason.NOT_DETECTED
+    OrtLicenseFindingCurationReason.REFERENCE -> LicenseFindingCurationReason.REFERENCE
+}
 
 fun OrtLicenseSource.mapToModel() = when (this) {
     OrtLicenseSource.CONCLUDED -> LicenseSource.CONCLUDED

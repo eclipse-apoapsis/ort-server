@@ -19,7 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
+import org.eclipse.apoapsis.ortserver.dao.utils.enumerationByName
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
@@ -40,7 +42,7 @@ object LicenseFindingCurationsTable : LongIdTable("license_finding_curations") {
     val lineCount = integer("line_count").nullable()
     val detectedLicense = text("detected_license").nullable()
     val concludedLicense = text("concluded_license")
-    val reason = text("reason")
+    val reason = enumerationByName<LicenseFindingCurationReason>("reason")
     val comment = text("comment")
 }
 

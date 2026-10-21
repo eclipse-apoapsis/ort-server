@@ -25,6 +25,6 @@ data class LicenseFindingCuration(
     val lineCount: Int? = null,
     val detectedLicense: String? = null,
     val concludedLicense: String,
-    val reason: String,
+    val reason: LicenseFindingCurationReason,
     val comment: String = ""
 )

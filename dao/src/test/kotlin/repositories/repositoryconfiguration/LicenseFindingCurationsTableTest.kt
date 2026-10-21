@@ -26,6 +26,7 @@ import io.kotest.matchers.should
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 
@@ -37,7 +38,7 @@ class LicenseFindingCurationsTableTest : StringSpec({
             val id = LicenseFindingCurationsTable.insertAndGetId {
                 it[path] = "somePath"
                 it[concludedLicense] = "BSD-3-Clause"
-                it[reason] = "INCORRECT"
+                it[reason] = LicenseFindingCurationReason.INCORRECT
                 it[comment] = "just for testing"
                 it[startLines] = "47,invalid,start,lines,11"
             }

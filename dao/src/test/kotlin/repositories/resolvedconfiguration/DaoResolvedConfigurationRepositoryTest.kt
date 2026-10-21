@@ -68,6 +68,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
@@ -1254,7 +1255,7 @@ private val packageConfiguration2 = PackageConfiguration(
             path = "README.md",
             startLines = listOf(1),
             concludedLicense = "Apache-2.0",
-            reason = "INCORRECT"
+            reason = LicenseFindingCurationReason.INCORRECT
         )
     )
 )

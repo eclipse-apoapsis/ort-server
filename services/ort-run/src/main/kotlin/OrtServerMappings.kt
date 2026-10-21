@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
@@ -358,9 +359,18 @@ fun LicenseFindingCuration.mapToOrt() = OrtLicenseFindingCuration(
     lineCount = lineCount,
     detectedLicense = detectedLicense?.toSpdx(),
     concludedLicense = concludedLicense.toSpdx(),
-    reason = OrtLicenseFindingCurationReason.valueOf(reason),
+    reason = reason.mapToOrt(),
     comment = comment
 )
+
+fun LicenseFindingCurationReason.mapToOrt() = when (this) {
+    LicenseFindingCurationReason.CODE -> OrtLicenseFindingCurationReason.CODE
+    LicenseFindingCurationReason.DATA_OF -> OrtLicenseFindingCurationReason.DATA_OF
+    LicenseFindingCurationReason.DOCUMENTATION_OF -> OrtLicenseFindingCurationReason.DOCUMENTATION_OF
+    LicenseFindingCurationReason.INCORRECT -> OrtLicenseFindingCurationReason.INCORRECT
+    LicenseFindingCurationReason.NOT_DETECTED -> OrtLicenseFindingCurationReason.NOT_DETECTED
+    LicenseFindingCurationReason.REFERENCE -> OrtLicenseFindingCurationReason.REFERENCE
+}
 
 fun LicenseSource.mapToOrt() = when (this) {
     LicenseSource.CONCLUDED -> OrtLicenseSource.CONCLUDED

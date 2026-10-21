@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
@@ -498,7 +499,7 @@ class OrtServerMappingsTest : WordSpec({
                 lineCount = 2,
                 detectedLicense = "LicenseRef-detected1",
                 concludedLicense = "LicenseRef-detected1-concluded",
-                reason = "INCORRECT",
+                reason = LicenseFindingCurationReason.INCORRECT,
                 comment = "Test license finding curation."
             )
 
