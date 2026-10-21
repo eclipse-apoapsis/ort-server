@@ -17,16 +17,9 @@
  * License-Filename: LICENSE
  */
 
-const LICENSE_FINDING_CURATION_REASONS = [
-  'CODE',
-  'DATA_OF',
-  'DOCUMENTATION_OF',
-  'INCORRECT',
-  'NOT_DETECTED',
-  'REFERENCE',
-] as const;
+import { zLicenseFindingCurationReason } from '@/api/zod.gen';
 
-const REASON_PLACEHOLDER = LICENSE_FINDING_CURATION_REASONS.join('|');
+const REASON_PLACEHOLDER = zLicenseFindingCurationReason.options.join('|');
 
 type LicenseFindingCurationTemplateOptions = {
   id: string;
