@@ -131,6 +131,35 @@ class AdvisorRunnerTest : WordSpec({
                 )
             }
         }
+
+        "match the plugin configs with the advisors ignoring case" {
+            val osvFactory = mockAdviceProviderFactory("OSV")
+            mockAdvisorAll(listOf(osvFactory))
+
+            val osvConfig = ResolvablePluginConfig(options = mapOf("option" to "value"), secrets = emptyMap())
+            val jobConfig = AdvisorJobConfiguration(advisors = listOf("osv"), config = mapOf("Osv" to osvConfig))
+
+            val resolvedPluginConfig = mapOf("Osv" to PluginConfig(osvConfig.options, emptyMap()))
+            val context = mockContext(jobConfig, resolvedPluginConfig)
+
+            val result = runner.run(
+                context,
+                OrtResult.EMPTY.copy(
+                    analyzer = AnalyzerRun.EMPTY.copy(
+                        result = AnalyzerResult.EMPTY.copy(packages = setOf(Package.EMPTY))
+                    )
+                ),
+                jobConfig
+            )
+
+            verify(exactly = 1) {
+                osvFactory.create(PluginConfig(osvConfig.options, emptyMap()).mapToOrt())
+            }
+
+            result.advisor.shouldNotBeNull().config shouldBe AdvisorConfiguration(
+                advisors = mapOf("OSV" to PluginConfig(osvConfig.options, emptyMap()).mapToOrt())
+            )
+        }
     }
 })
 
@@ -149,7 +178,8 @@ private fun mockAdviceProviderFactory(adviceProviderName: String) =
 
 private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory>) {
     mockkObject(AdviceProviderFactory)
-    every { AdviceProviderFactory.ALL } returns adviceProviders.associateByTo(sortedMapOf()) { it.descriptor.id }
+    every { AdviceProviderFactory.ALL } returns
+        adviceProviders.associateByTo(sortedMapOf(String.CASE_INSENSITIVE_ORDER)) { it.descriptor.id }
 }
 
 /**
