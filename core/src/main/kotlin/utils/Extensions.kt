@@ -65,20 +65,21 @@ fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConf
     buildMap {
         jobConfigs.advisor?.let { jobConfig ->
             val allAdvisors = jobConfig.advisors + jobConfig.config?.keys.orEmpty()
-            put(PluginType.ADVISOR, allAdvisors.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
+            put(PluginType.ADVISOR, allAdvisors.associateWithConfigIgnoringCase(jobConfig.config) { it })
         }
 
         jobConfigs.analyzer.let { jobConfig ->
-            val allPackageManagers = jobConfig.packageManagerOptions?.keys.orEmpty() +
-                    jobConfig.enabledPackageManagers.orEmpty() -
-                    jobConfig.disabledPackageManagers.orEmpty()
+            val disabledPackageManagers = jobConfig.disabledPackageManagers.orEmpty()
+            val configuredPackageManagers =
+                jobConfig.packageManagerOptions?.keys.orEmpty() + jobConfig.enabledPackageManagers.orEmpty()
+            val allPackageManagers = configuredPackageManagers.filterNot { packageManager ->
+                disabledPackageManagers.any { it.equals(packageManager, ignoreCase = true) }
+            }
 
             put(
                 PluginType.PACKAGE_MANAGER,
-                allPackageManagers.associateWith { packageManager ->
-                    jobConfig.packageManagerOptions?.get(packageManager)?.options?.let {
-                        PluginConfig(it, emptyMap())
-                    } ?: emptyPluginConfig
+                allPackageManagers.associateWithConfigIgnoringCase(jobConfig.packageManagerOptions) { config ->
+                    config.options?.let { PluginConfig(it, emptyMap()) } ?: emptyPluginConfig
                 }
             )
 
@@ -99,7 +100,7 @@ fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConf
             val allScanners = jobConfig.scanners.orEmpty() +
                     jobConfig.projectScanners.orEmpty() +
                     jobConfig.config?.keys.orEmpty()
-            put(PluginType.SCANNER, allScanners.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
+            put(PluginType.SCANNER, allScanners.associateWithConfigIgnoringCase(jobConfig.config) { it })
         }
 
         jobConfigs.evaluator?.let { jobConfig ->
@@ -118,7 +119,7 @@ fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConf
 
         jobConfigs.reporter?.let { jobConfig ->
             val allReporters = jobConfig.formats + jobConfig.config?.keys.orEmpty()
-            put(PluginType.REPORTER, allReporters.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
+            put(PluginType.REPORTER, allReporters.associateWithConfigIgnoringCase(jobConfig.config) { it })
 
             // Ignore package configuration providers if the evaluator job is configured, because then the reporter
             // worker ignores that part of the configuration.
@@ -197,3 +198,21 @@ fun ApplicationCall.vulnerabilityForRunsFilters(): VulnerabilityForRunsFilters =
     externalId = vulnerabilityExternalIdFilter(),
     advisors = vulnerabilityAdvisorFilter()
 )
+
+/**
+ * Associate the plugin IDs in this collection with the [PluginConfig]s created by [transform] from the matching
+ * entries in [configs]. As plugin IDs are case-insensitive, IDs that differ only in case are treated as the same
+ * plugin, keeping the spelling of the first occurrence, and the [configs] are looked up ignoring case. Plugins without
+ * a config get an empty [PluginConfig].
+ */
+private fun <T> Collection<String>.associateWithConfigIgnoringCase(
+    configs: Map<String, T>?,
+    transform: (T) -> PluginConfig
+): Map<String, PluginConfig> {
+    val distinctPluginIds = sortedSetOf(String.CASE_INSENSITIVE_ORDER)
+
+    return filter { distinctPluginIds.add(it) }.associateWith { pluginId ->
+        configs?.entries?.find { it.key.equals(pluginId, ignoreCase = true) }?.value?.let(transform)
+            ?: emptyPluginConfig
+    }
+}
