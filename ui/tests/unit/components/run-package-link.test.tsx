@@ -52,7 +52,7 @@ const renderLink = ({
   packageIdType,
   linkProjectWhenPurlIsNull,
 }: {
-  linkPurl: string | null;
+  linkPurl: string | null | undefined;
   packageIdType: PackageIdType;
   linkProjectWhenPurlIsNull?: boolean;
 }) =>
@@ -101,6 +101,15 @@ describe('RunPackageLink', () => {
     {
       case: 'the project when a missing PURL means a project',
       linkPurl: null,
+      packageIdType: packageIdTypeSchema.enum.PURL,
+      linkProjectWhenPurlIsNull: true,
+      linkText: ortId,
+      pathname: `${runPath}/projects`,
+      search: { projectId: ortId, projectIdMatchType: 'exact', marked: ortId },
+    },
+    {
+      case: 'the project when the API leaves out the PURL',
+      linkPurl: undefined,
       packageIdType: packageIdTypeSchema.enum.PURL,
       linkProjectWhenPurlIsNull: true,
       linkText: ortId,

@@ -66,7 +66,8 @@ export const RunPackageLink = ({
   const idType = shownPurl
     ? packageIdTypeSchema.enum.PURL
     : packageIdTypeSchema.enum.ORT_ID;
-  const linksProject = linkProjectWhenPurlIsNull && purl === null;
+  // The API leaves out a PURL that is null, so it arrives as undefined.
+  const linksProject = linkProjectWhenPurlIsNull && purl == null;
 
   return (
     <>
