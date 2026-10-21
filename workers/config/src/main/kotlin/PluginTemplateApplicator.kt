@@ -51,6 +51,10 @@ class PluginTemplateApplicator(
      * Resolve the default package managers and apply the plugin templates applicable to [organizationId] to
      * [jobConfigs], and return the updated [JobConfigurations]. Only plugins that are configured to run are considered,
      * plugins that are not installed are ignored. Throws an [IllegalStateException] if a template lookup fails.
+     *
+     * Templates are intentionally not applied to report definitions: Report definitions are fully controlled by
+     * administrators, and their options currently have to be set by the parameter validation script. Templates for
+     * report definitions are not implemented, because the available report definitions depend on the config context.
      */
     suspend fun applyTemplates(jobConfigs: JobConfigurations, organizationId: OrganizationId): JobConfigurations {
         val configs = jobConfigs.withDefaultPackageManagers(organizationId)
@@ -114,6 +118,11 @@ class PluginTemplateApplicator(
     private fun getActiveScanners(jobConfigs: JobConfigurations) =
         jobConfigs.scanner?.scanners.orEmpty() + jobConfigs.scanner?.projectScanners.orEmpty()
 
+    /**
+     * Return the report formats configured in [jobConfigs]. Formats that refer to report definitions are not mapped
+     * to the reporter plugins used by these definitions, so they are dropped by [normalizePluginIds] on purpose,
+     * because templates are not applied to report definitions (see [applyTemplates]).
+     */
     private fun getActiveReporters(jobConfigs: JobConfigurations) = jobConfigs.reporter?.formats.orEmpty()
 
     /** Return the IDs of the package managers that are enabled in [jobConfigs], excluding the disabled ones. */
@@ -137,7 +146,8 @@ class PluginTemplateApplicator(
 
 /**
  * Map the given [pluginIds] to the matching [installedPluginIds], ignoring case. IDs without a matching installed
- * plugin are dropped because there cannot be a template for them.
+ * plugin are dropped because there cannot be a template for them. This also applies to the names of report
+ * definitions, which intentionally do not get templates applied.
  */
 private fun normalizePluginIds(installedPluginIds: List<String>, pluginIds: Collection<String>): Set<String> =
     pluginIds.mapNotNullTo(mutableSetOf()) { pluginId ->
