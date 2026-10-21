@@ -236,8 +236,18 @@ export const packageIdSearchParameterSchema = z.object({
   packageId: z.string().optional(),
 });
 
+// Links that name one package set this to find it by an exact match of its identifier.
+export const packageIdMatchTypeSearchParameterSchema = z.object({
+  pkgIdMatchType: z.literal('exact').optional(),
+});
+
 export const projectIdentifierSearchParameterSchema = z.object({
   projectId: z.string().optional(),
+});
+
+// Links that name one project set this to find it by an exact match of its identifier.
+export const projectIdMatchTypeSearchParameterSchema = z.object({
+  projectIdMatchType: z.literal('exact').optional(),
 });
 
 export const definitionFilePathSearchParameterSchema = z.object({
