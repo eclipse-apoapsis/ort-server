@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
@@ -268,7 +269,7 @@ private val licenseFindingCuration = LicenseFindingCuration(
     lineCount = 5,
     detectedLicense = "MIT",
     concludedLicense = "license1 OR license2",
-    reason = "INCORRECT",
+    reason = LicenseFindingCurationReason.INCORRECT,
     comment = "Test license finding curation"
 )
 
