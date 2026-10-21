@@ -50,6 +50,7 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
+import org.eclipse.apoapsis.ortserver.shared.apimodel.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
@@ -165,6 +166,9 @@ fun Application.configureOpenApi() {
                     .withTitle(TitleType.OPENAPI_SIMPLE)
                     .compileReferencingRoot(pathType = RefType.OPENAPI_SIMPLE)
             }
+
+            // No route refers to this enum, but the UI needs it in the generated client.
+            schema<LicenseFindingCurationReason>("LicenseFindingCurationReason")
         }
 
         examples {
