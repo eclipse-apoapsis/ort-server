@@ -2516,6 +2516,48 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter packages by an exact identifier if requested" {
+            integrationTestApplication {
+                val target = Identifier("Maven", "com.example", "core", "1.0")
+                val ortRun = createRunWithPackages(
+                    setOf(
+                        dbExtension.fixtures.generatePackage(target),
+                        dbExtension.fixtures.generatePackage(target.copy(version = "1.0.1")),
+                        dbExtension.fixtures.generatePackage(target.copy(version = "1.0-SNAPSHOT"))
+                    )
+                )
+
+                suspend fun getPackages(vararg parameters: Pair<String, String>) =
+                    superuserClient.get("/api/v1/runs/${ortRun.id}/packages") {
+                        url { parameters.forEach { (name, value) -> this.parameters.append(name, value) } }
+                    }.also { it shouldHaveStatus HttpStatusCode.OK }
+                        .body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                val exact = getPackages("identifier" to "Maven:com.example:core:1.0", "identifierMatchType" to "exact")
+                exact.data.map { it.identifier } should containExactly(target.mapToApi())
+                exact.pagination.totalCount shouldBe 1
+                exact.filters shouldBe PackageFilters(
+                    identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "Maven:com.example:core:1.0")
+                )
+
+                val substring = getPackages("identifier" to "Maven:com.example:core:1.0")
+                substring.pagination.totalCount shouldBe 3
+                substring.filters shouldBe PackageFilters(
+                    identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "Maven:com.example:core:1.0")
+                )
+            }
+        }
+
+        "reject an unsupported identifier match type" {
+            integrationTestApplication {
+                val ortRun = createRunWithPackages(emptySet())
+
+                superuserClient.get(
+                    "/api/v1/runs/${ortRun.id}/packages?identifier=core&identifierMatchType=regex"
+                ) shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
         "require RepositoryPermission.READ_ORT_RUNS" {
             val run = ortRunRepository.create(
                 repositoryId,
@@ -2678,6 +2720,35 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         setOf(processedLicense, "MIT")
                     ),
                     definitionFilePath = FilterOperatorAndValue(ComparisonOperator.ILIKE, "apps/")
+                )
+            }
+        }
+
+        "filter projects by an exact identifier if requested" {
+            integrationTestApplication {
+                val target = Identifier("Maven", "com.example", "core", "1.0")
+                val ortRun = createRunWithProjects(
+                    linkedSetOf(
+                        dbExtension.fixtures.getProject(target.copy(version = "1.0.1")),
+                        dbExtension.fixtures.getProject(target.copy(version = "1.0-SNAPSHOT")),
+                        dbExtension.fixtures.getProject(target)
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects") {
+                    url {
+                        parameters.append("identifier", "Maven:com.example:core:1.0")
+                        parameters.append("identifierMatchType", "exact")
+                    }
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val projects = response.body<PagedSearchResponse<ApiProject, ProjectFilters>>()
+
+                projects.data.map { it.identifier.version } should containExactly("1.0")
+                projects.pagination.totalCount shouldBe 1
+                projects.filters shouldBe ProjectFilters(
+                    identifier = FilterOperatorAndValue(ComparisonOperator.EQUALS, "Maven:com.example:core:1.0")
                 )
             }
         }

@@ -82,6 +82,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityExternalIdFilter
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityIdentifierFilter
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityPurlFilter
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityRatingFilter
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.LogLevel
@@ -568,16 +569,35 @@ private fun ApplicationCall.severityFilter(): FilterOperatorAndValue<Set<Severit
  */
 private fun ApplicationCall.packageFilters(): PackageFilters =
     PackageFilters(
-        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        identifier = identifierFilter(),
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         declaredLicense = declaredLicense(),
         isDirectDependency = parameters["isDirectDependency"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
+/**
+ * Extract the filter for the full identifier from this [ApplicationCall]. The 'identifierMatchType' parameter selects
+ * a case-insensitive substring match ('substring', the default) or case-sensitive equality ('exact').
+ */
+private fun ApplicationCall.identifierFilter(): FilterOperatorAndValue<String>? =
+    parameters["identifier"]?.let { value ->
+        val operator = when (val matchType = parameters["identifierMatchType"] ?: "substring") {
+            "substring" -> ComparisonOperator.ILIKE
+
+            "exact" -> ComparisonOperator.EQUALS
+
+            else -> throw QueryParametersException(
+                "Unsupported 'identifierMatchType' value '$matchType'. Supported values are 'substring' and 'exact'."
+            )
+        }
+
+        FilterOperatorAndValue(operator, value)
+    }
+
 /** Extract the project filters from this [ApplicationCall]. */
 private fun ApplicationCall.projectFilters(): ProjectFilters =
     ProjectFilters(
-        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        identifier = identifierFilter(),
         declaredLicense = stringSetFilter("declaredLicense"),
         definitionFilePath = parameters["definitionFilePath"]?.let {
             FilterOperatorAndValue(ComparisonOperator.ILIKE, it)

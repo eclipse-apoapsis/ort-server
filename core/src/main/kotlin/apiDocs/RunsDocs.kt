@@ -639,7 +639,12 @@ val getRunPackages: RouteConfig.() -> Unit = {
 
         queryParameter<String>("identifier") {
             description = "Defines an ORT package identifier for which the packages are to be retrieved. This uses a " +
-                    "case-insensitive substring match."
+                    "case-insensitive substring match by default."
+        }
+
+        queryParameter<String>("identifierMatchType") {
+            description = "How to match the identifier filter: 'substring' performs a case-insensitive substring " +
+                    "match (the default), while 'exact' performs case-sensitive equality."
         }
 
         queryParameter<String>("purl") {
@@ -755,6 +760,10 @@ val getRunPackages: RouteConfig.() -> Unit = {
         HttpStatusCode.NotFound to {
             description = "The ORT run does not exist."
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "If 'identifierMatchType' or the sort field has an unsupported value."
+        }
     }
 }
 
@@ -771,7 +780,12 @@ val getRunProjects: RouteConfig.() -> Unit = {
 
         queryParameter<String>("identifier") {
             description = "Defines an ORT project identifier to filter the results by. Uses a case-insensitive " +
-                    "substring match against the full ORT coordinates."
+                    "substring match against the full ORT coordinates by default."
+        }
+
+        queryParameter<String>("identifierMatchType") {
+            description = "How to match the identifier filter: 'substring' performs a case-insensitive substring " +
+                    "match (the default), while 'exact' performs case-sensitive equality."
         }
 
         queryParameter<String>("declaredLicense") {
@@ -832,6 +846,10 @@ val getRunProjects: RouteConfig.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The ORT run does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "If 'identifierMatchType' or the sort field has an unsupported value."
         }
     }
 }
