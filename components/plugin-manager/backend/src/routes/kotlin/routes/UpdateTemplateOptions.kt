@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.updateTemplateOptions(
     pluginTemplateService: PluginTemplateService
 ) = put("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
-    operationId = "UpdatePluginTemplateOptions"
+    operationId = "updatePluginTemplateOptions"
     summary = "Update the options of a plugin template"
     description = "Update the options of a plugin template."
     tags = listOf("Plugins")

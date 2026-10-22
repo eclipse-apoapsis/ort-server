@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.core.api.Liveness
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 val getLiveness: RouteConfig.() -> Unit = {
-    operationId = "GetLiveness"
+    operationId = "getLiveness"
     summary = "Get the health of the ORT server"
     tags = listOf("Health")
 

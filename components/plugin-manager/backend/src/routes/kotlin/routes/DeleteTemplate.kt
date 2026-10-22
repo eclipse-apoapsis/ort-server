@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.deleteTemplate(
     pluginTemplateService: PluginTemplateService
 ) = delete("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
-    operationId = "DeletePluginTemplate"
+    operationId = "deletePluginTemplate"
     summary = "Delete a plugin template"
     description = "Delete a plugin template for a specific plugin. This will remove the template and its configuration."
     tags = listOf("Plugins")

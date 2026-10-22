@@ -39,7 +39,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 internal fun Route.setOrganizationDefaultPlugins(
     defaultPluginsService: DefaultPluginsService
 ) = put("organizations/{organizationId}/plugins/defaults/{category}", {
-    operationId = "SetOrganizationDefaultPlugins"
+    operationId = "setOrganizationDefaultPlugins"
     summary = "Set the default plugins of a category for an organization"
     description = "Set the plugins of a category that are enabled by default for an organization. This overrides " +
             "the global defaults. Only plugins that are available for the organization can be used. For plugin " +

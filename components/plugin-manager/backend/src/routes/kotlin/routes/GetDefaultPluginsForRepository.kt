@@ -41,7 +41,7 @@ internal fun Route.getDefaultPluginsForRepository(
     configManager: ConfigManager,
     defaultPluginsService: DefaultPluginsService
 ) = get("repositories/{repositoryId}/plugins/defaults", {
-    operationId = "GetDefaultPluginsForRepository"
+    operationId = "getDefaultPluginsForRepository"
     summary = "Get the default plugins for a repository"
     description = "Get the plugins that are enabled by default for runs of a specific repository for all " +
             "categories. The defaults of the repository's organization are used, falling back to the global " +

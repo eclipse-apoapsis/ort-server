@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.disableGlobalTemplate(
     pluginTemplateService: PluginTemplateService
 ) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/disableGlobal", {
-    operationId = "DisableGlobalPluginTemplate"
+    operationId = "disableGlobalPluginTemplate"
     summary = "Disable a global plugin template"
     description = "Disable a global plugin template for a specific plugin. This will disable the template globally, " +
             "but it can still be used in organization-specific configurations."

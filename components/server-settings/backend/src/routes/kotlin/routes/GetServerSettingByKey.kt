@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.jetbrains.exposed.v1.jdbc.Database
 
 internal fun Route.getServerSettingByKey(db: Database) = get("settings/server/{key}", {
-    operationId = "GetServerSettingByKey"
+    operationId = "getServerSettingByKey"
     summary = "Get the server setting for the provided key"
     description = "Get the value and isEnabled properties for a server setting. If the setting was never stored, " +
             "the default value is returned and the setting is disabled. A disabled setting that was stored before " +

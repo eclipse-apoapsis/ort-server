@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 internal fun Route.setGlobalDefaultPlugins(
     defaultPluginsService: DefaultPluginsService
 ) = put("admin/plugins/defaults/{category}", {
-    operationId = "SetGlobalDefaultPlugins"
+    operationId = "setGlobalDefaultPlugins"
     summary = "Set the global default plugins of a category"
     description = "Set the plugins of a category that are enabled by default, unless an organization configures " +
             "its own defaults. For plugin types where the order matters, like package curation providers and " +
