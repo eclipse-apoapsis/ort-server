@@ -24,7 +24,6 @@ import {
   getProductUsersQueryKey,
 } from '@/api/@tanstack/react-query.gen';
 import { deleteProductRoleFromUser, putProductRoleToUser } from '@/api/sdk.gen';
-import { mapUserGroupToProductRole } from '@/helpers/role-helpers.ts';
 import { UsersTable } from '@/routes/organizations/$orgId/-components/users-table';
 
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/users');
@@ -40,7 +39,6 @@ export const ProductUsersTable = () => {
         getProductUsersOptions({ path: { productId }, query })
       }
       usersQueryKey={getProductUsersQueryKey({ path: { productId } })}
-      mapGroupToRole={mapUserGroupToProductRole}
       assignRole={(username, role) =>
         putProductRoleToUser({
           path: { productId, role },

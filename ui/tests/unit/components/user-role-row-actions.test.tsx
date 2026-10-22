@@ -23,25 +23,25 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { UserGroup, UserWithGroups } from '@/api';
 import { UserRoleRowActions } from '@/components/ui/user-role-row-actions';
+import type { UserWithRole } from '@/helpers/role-helpers';
 import {
   selectNoTableState,
   useAppTable,
   type AppColumnDef,
 } from '@/hooks/use-app-table';
 
-const columns: AppColumnDef<UserWithGroups>[] = [];
+const columns: AppColumnDef<UserWithRole>[] = [];
 
 type UserRoleRowActionsHarnessProps = {
-  groups: UserGroup[];
+  role: UserWithRole['role'];
   onAssignAdminRole?: () => Promise<void>;
   onAssignWriterRole?: () => Promise<void>;
   onAssignReaderRole?: () => Promise<void>;
 };
 
 const UserRoleRowActionsHarness = ({
-  groups,
+  role,
   onAssignAdminRole = async () => {},
   onAssignWriterRole = async () => {},
   onAssignReaderRole = async () => {},
@@ -49,7 +49,7 @@ const UserRoleRowActionsHarness = ({
   const table = useAppTable(
     {
       columns,
-      data: [{ groups, user: { username: 'test-user' } }],
+      data: [{ role, user: { username: 'test-user' } }],
     },
     selectNoTableState
   );
@@ -67,14 +67,14 @@ const UserRoleRowActionsHarness = ({
 
 describe('UserRoleRowActions', () => {
   it.each([
-    ['ADMINS', 'Assign ADMIN role'],
-    ['WRITERS', 'Assign WRITER role'],
-    ['READERS', 'Assign READER role'],
+    ['ADMIN', 'Assign ADMIN role'],
+    ['WRITER', 'Assign WRITER role'],
+    ['READER', 'Assign READER role'],
   ] as const)(
-    'does not offer a role represented by %s',
-    async (group, label) => {
+    'does not offer the %s role the user already has',
+    async (role, label) => {
       const user = userEvent.setup();
-      render(<UserRoleRowActionsHarness groups={[group]} />);
+      render(<UserRoleRowActionsHarness role={role} />);
 
       await user.click(screen.getByRole('button'));
 
@@ -89,7 +89,7 @@ describe('UserRoleRowActions', () => {
     const onAssignWriterRole = vi.fn().mockResolvedValue(undefined);
     render(
       <UserRoleRowActionsHarness
-        groups={[]}
+        role='READER'
         onAssignWriterRole={onAssignWriterRole}
       />
     );
@@ -98,9 +98,6 @@ describe('UserRoleRowActions', () => {
 
     expect(
       screen.getByRole('menuitem', { name: 'Assign ADMIN role' })
-    ).toBeVisible();
-    expect(
-      screen.getByRole('menuitem', { name: 'Assign READER role' })
     ).toBeVisible();
 
     await user.click(

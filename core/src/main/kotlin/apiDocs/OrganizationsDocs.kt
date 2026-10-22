@@ -34,8 +34,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithOrganizationRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
@@ -546,10 +545,10 @@ val getOrganizationRunStatistics: RouteConfig.() -> Unit = {
 val getOrganizationUsers: RouteConfig.() -> Unit = {
     operationId = "getOrganizationUsers"
     summary = "Get all users for an organization"
-    description = "Get all users that have a role assigned directly on an organization, including the group " +
-            "that corresponds to their role. Users that only inherit access from a higher level are not " +
-            "included. Fields available for sorting: 'username', 'firstName', 'lastName', 'email', " +
-            "'group'. NOTE: This endpoint supports exactly one sort field."
+    description = "Get all users that have a role assigned directly on an organization, including their role. " +
+            "Users that only inherit access from a higher level are not included. Fields available for " +
+            "sorting: 'username', 'firstName', 'lastName', 'email', 'role'. NOTE: This endpoint supports " +
+            "exactly one sort field."
     tags = listOf("Organizations")
 
     request {
@@ -563,20 +562,18 @@ val getOrganizationUsers: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<UserWithGroups>> {
+            jsonBody<PagedResponse<UserWithOrganizationRole>> {
                 example("Get users for organization") {
                     value = PagedResponse(
                         listOf(
-                            UserWithGroups(
+                            UserWithOrganizationRole(
                                 User(
                                     username = "jdoe",
                                     firstName = "John",
                                     lastName = "Doe",
                                     email = "johndoe@example.com"
                                 ),
-                                listOf(
-                                    UserGroup.WRITERS
-                                )
+                                OrganizationRole.WRITER
                             )
                         ),
                         PagingData(

@@ -27,10 +27,10 @@ import {
 } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import type { AxiosError } from 'axios';
-import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
+import { FileOutput } from 'lucide-react';
 import { z } from 'zod';
 
-import { PagedResponseUserWithGroups, UserGroup, UserWithGroups } from '@/api';
+import type { PagingData } from '@/api';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserRoleRowActions } from '@/components/ui/user-role-row-actions.tsx';
+import { getRoleIcon, type UserWithRole } from '@/helpers/role-helpers.ts';
 import {
   createAppColumnHelper,
   selectNoTableState,
@@ -55,27 +56,34 @@ type Role = z.infer<typeof roleSchema>;
 
 type UsersQuery = { limit: number; offset: number; sort: string };
 
-type UsersTableProps<TQueryKey extends QueryKey> = {
+type UsersPage<TUser extends UserWithRole> = {
+  data: TUser[];
+  pagination: PagingData;
+};
+
+type UsersTableProps<TUser extends UserWithRole, TQueryKey extends QueryKey> = {
   // The hierarchy level the users belong to, as named in the texts of the table.
   level: 'organization' | 'product' | 'repository';
   // The options of the query for one page of the users of the level.
   usersOptions: (
     query: UsersQuery
   ) => UseQueryOptions<
-    PagedResponseUserWithGroups,
+    UsersPage<TUser>,
     AxiosError<DefaultError>,
-    PagedResponseUserWithGroups,
+    UsersPage<TUser>,
     TQueryKey
   >;
   // The key shared by the queries for all pages of the users of the level.
   usersQueryKey: QueryKey;
-  mapGroupToRole: (group: UserGroup) => Role;
   assignRole: (username: string, role: Role) => Promise<unknown>;
   removeRole: (username: string, role: Role) => Promise<unknown>;
 };
 
-type UserActionsProps = Omit<UsersTableProps<QueryKey>, 'usersOptions'> & {
-  row: AppRow<UserWithGroups>;
+type UserActionsProps = Omit<
+  UsersTableProps<UserWithRole, QueryKey>,
+  'usersOptions'
+> & {
+  row: AppRow<UserWithRole>;
 };
 
 const capitalize = (text: string) =>
@@ -85,7 +93,6 @@ const UserActions = ({
   row,
   level,
   usersQueryKey,
-  mapGroupToRole,
   assignRole,
   removeRole,
 }: UserActionsProps) => {
@@ -108,7 +115,7 @@ const UserActions = ({
   const { mutateAsync: remove, isPending: isRemoveRolePending } = useMutation({
     mutationFn: (role: Role) => removeRole(username, role),
     onSuccess(_response, role) {
-      // The users query is invalidated after all roles have been removed.
+      // The users query is invalidated after the user has been removed.
       toast.info('Remove Role', {
         description: `Role ${role} removed from user "${username}" successfully.`,
       });
@@ -118,12 +125,10 @@ const UserActions = ({
     },
   });
 
-  // Remove the user from the level by removing all assigned roles.
+  // Remove the user from the level by removing the assigned role.
   async function removeFromLevel() {
     try {
-      await Promise.all(
-        row.original.groups.map((group) => remove(mapGroupToRole(group)))
-      );
+      await remove(row.original.role);
       // Upon successful removal of the user, invalidate the users query
       // to refresh the data in the table.
       queryClient.invalidateQueries({ queryKey: usersQueryKey });
@@ -173,7 +178,7 @@ const UserActions = ({
   );
 };
 
-const columnHelper = createAppColumnHelper<UserWithGroups>();
+const columnHelper = createAppColumnHelper<UserWithRole>();
 
 const createColumns = (actions: Omit<UserActionsProps, 'row'>) =>
   columnHelper.columns([
@@ -193,34 +198,16 @@ const createColumns = (actions: Omit<UserActionsProps, 'row'>) =>
       header: 'Email address',
       cell: ({ row }) => <>{row.original.user.email}</>,
     }),
-    columnHelper.accessor('groups', {
+    columnHelper.accessor('role', {
       header: 'Role',
-      cell: ({ row }) => {
-        const groups = row.original.groups;
-        let IconComponent;
-        let effectiveRole;
-        if (groups.includes('ADMINS')) {
-          IconComponent = Shield;
-          effectiveRole = 'ADMIN';
-        } else if (groups.includes('WRITERS')) {
-          IconComponent = Pen;
-          effectiveRole = 'WRITER';
-        } else if (groups.includes('READERS')) {
-          IconComponent = Eye;
-          effectiveRole = 'READER';
-        } else {
-          return <>{groups.join(' ')}</>;
-        }
-
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <IconComponent size={16} />
-            </TooltipTrigger>
-            <TooltipContent>{effectiveRole}</TooltipContent>
-          </Tooltip>
-        );
-      },
+      cell: ({ row }) => (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {getRoleIcon(row.original.role)}
+          </TooltipTrigger>
+          <TooltipContent>{row.original.role}</TooltipContent>
+        </Tooltip>
+      ),
     }),
     columnHelper.display({
       id: 'actions',
@@ -231,15 +218,18 @@ const createColumns = (actions: Omit<UserActionsProps, 'row'>) =>
   ]);
 
 // The users of an organization, a product or a repository, with actions to change their roles.
-export const UsersTable = <TQueryKey extends QueryKey>({
+export const UsersTable = <
+  TUser extends UserWithRole,
+  TQueryKey extends QueryKey,
+>({
   usersOptions,
   ...actions
-}: UsersTableProps<TQueryKey>) => {
+}: UsersTableProps<TUser, TQueryKey>) => {
   const search = useSearch({ strict: false });
   const { page = 1, pageSize = 10 } = search;
   const pageIndex = page - 1;
 
-  const { data: usersWithGroups } = useQuery(
+  const { data: usersWithRoles } = useQuery(
     usersOptions({
       limit: pageSize,
       offset: pageIndex * pageSize,
@@ -249,10 +239,10 @@ export const UsersTable = <TQueryKey extends QueryKey>({
 
   const table = useAppTable(
     {
-      data: usersWithGroups?.data || [],
+      data: usersWithRoles?.data || [],
       columns: createColumns(actions),
       pageCount: Math.ceil(
-        (usersWithGroups?.pagination.totalCount ?? 0) / pageSize
+        (usersWithRoles?.pagination.totalCount ?? 0) / pageSize
       ),
       manualPagination: true, // Using server-side pagination
       state: {

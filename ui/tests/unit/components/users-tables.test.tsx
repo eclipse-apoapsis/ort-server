@@ -22,7 +22,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { UserGroup, UserWithGroups } from '@/api';
+import type { UserWithRole } from '@/helpers/role-helpers';
 import { RepositoryUsersTable } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/-components/repository-users-table';
 import { ProductUsersTable } from '@/routes/organizations/$orgId/products/$productId/users/-components/product-users-table';
 import { OrganizationUsersTable } from '@/routes/organizations/$orgId/users/-components/organization-users-table';
@@ -77,20 +77,23 @@ const levels = [
   },
 ];
 
-const createUser = (username: string, groups: UserGroup[]): UserWithGroups => ({
+const createUser = (
+  username: string,
+  role: UserWithRole['role']
+): UserWithRole => ({
   user: {
     username,
     firstName: `First ${username}`,
     lastName: `Last ${username}`,
     email: `${username}@example.com`,
   },
-  groups,
+  role,
 });
 
 const users = [
-  createUser('admin', ['ADMINS']),
-  createUser('writer', ['WRITERS', 'READERS']),
-  createUser('me', ['ADMINS']),
+  createUser('admin', 'ADMIN'),
+  createUser('writer', 'WRITER'),
+  createUser('me', 'ADMIN'),
 ];
 
 const renderUsers = (level: (typeof levels)[number], search = '') =>
@@ -174,7 +177,7 @@ describe('users tables', () => {
     );
   });
 
-  it('removes all roles of a user after confirming the username, then refreshes the users', async () => {
+  it('removes the role of a user after confirming the username, then refreshes the users', async () => {
     const { user } = renderUsers(organizationLevel);
 
     await screen.findByText('writer');
@@ -188,7 +191,12 @@ describe('users tables', () => {
     await waitFor(() =>
       expect(organizationLevel.users).toHaveBeenCalledTimes(2)
     );
-    expect(organizationLevel.remove).toHaveBeenCalledTimes(2);
+    expect(organizationLevel.remove).toHaveBeenCalledOnce();
+    expect(organizationLevel.remove).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: { ...organizationLevel.hierarchyId, role: 'WRITER' },
+      })
+    );
   });
 
   it('does not let the signed-in user change their own roles', async () => {
@@ -224,14 +232,12 @@ describe('users tables', () => {
     await user.type(screen.getByRole('textbox'), 'writer');
     await user.click(deleteButton);
 
-    await waitFor(() => expect(level.remove).toHaveBeenCalledTimes(2));
-    for (const role of ['WRITER', 'READER']) {
-      expect(level.remove).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { ...level.hierarchyId, role },
-          query: { username: 'writer' },
-        })
-      );
-    }
+    await waitFor(() => expect(level.remove).toHaveBeenCalledOnce());
+    expect(level.remove).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: { ...level.hierarchyId, role: 'WRITER' },
+        query: { username: 'writer' },
+      })
+    );
   });
 });

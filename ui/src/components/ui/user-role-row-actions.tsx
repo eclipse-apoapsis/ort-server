@@ -19,7 +19,6 @@
 
 import { Eye, Pen, Shield } from 'lucide-react';
 
-import { UserGroup, UserWithGroups } from '@/api';
 import { EllipsisIconButton } from '@/components/ellipsis-icon-button.tsx';
 import {
   DropdownMenu,
@@ -27,13 +26,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
+import type { UserWithRole } from '@/helpers/role-helpers.ts';
 import type { AppRow } from '@/hooks/use-app-table';
 
 type UserRoleRowActionsProps = {
-  row: AppRow<UserWithGroups>;
-  onAssignAdminRole: (user: UserWithGroups) => Promise<void>;
-  onAssignWriterRole: (user: UserWithGroups) => Promise<void>;
-  onAssignReaderRole: (user: UserWithGroups) => Promise<void>;
+  row: AppRow<UserWithRole>;
+  onAssignAdminRole: (user: UserWithRole) => Promise<void>;
+  onAssignWriterRole: (user: UserWithRole) => Promise<void>;
+  onAssignReaderRole: (user: UserWithRole) => Promise<void>;
   disabled: boolean;
 };
 
@@ -50,8 +50,8 @@ export function UserRoleRowActions({
   onAssignReaderRole,
   ...nativeButtonAttributes // From standard HTML button attributes
 }: UserRoleRowActionsProps) {
-  const userWithGroups: UserWithGroups = row.original;
-  const groups: UserGroup[] = row.original.groups;
+  const userWithRole: UserWithRole = row.original;
+  const { role } = row.original;
 
   return (
     <DropdownMenu>
@@ -60,8 +60,8 @@ export function UserRoleRowActions({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent side='bottom' align='end'>
-        {!groups.includes('ADMINS') && (
-          <DropdownMenuItem onSelect={() => onAssignAdminRole(userWithGroups)}>
+        {role !== 'ADMIN' && (
+          <DropdownMenuItem onSelect={() => onAssignAdminRole(userWithRole)}>
             <div className='flex items-center gap-x-2'>
               <span>Assign ADMIN role</span>
               <Shield size={16} />
@@ -69,8 +69,8 @@ export function UserRoleRowActions({
           </DropdownMenuItem>
         )}
 
-        {!groups.includes('WRITERS') && (
-          <DropdownMenuItem onSelect={() => onAssignWriterRole(userWithGroups)}>
+        {role !== 'WRITER' && (
+          <DropdownMenuItem onSelect={() => onAssignWriterRole(userWithRole)}>
             <div className='flex items-center gap-x-2'>
               <span>Assign WRITER role</span>
               <Pen size={16} />
@@ -78,8 +78,8 @@ export function UserRoleRowActions({
           </DropdownMenuItem>
         )}
 
-        {!groups.includes('READERS') && (
-          <DropdownMenuItem onSelect={() => onAssignReaderRole(userWithGroups)}>
+        {role !== 'READER' && (
+          <DropdownMenuItem onSelect={() => onAssignReaderRole(userWithRole)}>
             <div className='flex items-center gap-x-2'>
               <span>Assign READER role</span>
               <Eye size={16} />

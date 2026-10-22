@@ -41,8 +41,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithProductRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
@@ -531,10 +530,10 @@ val getProductRunStatistics: RouteConfig.() -> Unit = {
 val getProductUsers: RouteConfig.() -> Unit = {
     operationId = "getProductUsers"
     summary = "Get all users for a product"
-    description = "Get all users that have a role assigned directly on a product, including the group " +
-            "that corresponds to their role. Users that only inherit access from a higher level are not " +
-            "included. Fields available for sorting: 'username', 'firstName', 'lastName', 'email', " +
-            "'group'. NOTE: This endpoint supports exactly one sort field."
+    description = "Get all users that have a role assigned directly on a product, including their role. " +
+            "Users that only inherit access from a higher level are not included. Fields available for " +
+            "sorting: 'username', 'firstName', 'lastName', 'email', 'role'. NOTE: This endpoint supports " +
+            "exactly one sort field."
     tags = listOf("Products")
 
     request {
@@ -548,20 +547,18 @@ val getProductUsers: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<UserWithGroups>> {
+            jsonBody<PagedResponse<UserWithProductRole>> {
                 example("Get users for product") {
                     value = PagedResponse(
                         listOf(
-                            UserWithGroups(
+                            UserWithProductRole(
                                 User(
                                     username = "jdoe",
                                     firstName = "John",
                                     lastName = "Doe",
                                     email = "johndoe@example.com"
                                 ),
-                                listOf(
-                                    UserGroup.WRITERS
-                                )
+                                ProductRole.WRITER
                             )
                         ),
                         PagingData(

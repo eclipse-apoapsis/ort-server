@@ -30,16 +30,19 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithRepositoryRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole as ModelRepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationException
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.ortServerPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
@@ -52,8 +55,8 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateSer
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
-import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
-import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
+import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.mapToApi
+import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRun
@@ -313,10 +316,15 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
             val users = authorizationService.listUsers(call.ortServerPrincipal.effectiveRole.elementId)
-                .mapToApi(userService) { it.assignedAt.level == HierarchyLevel.REPOSITORY }
+                .mapToApi(userService, { it.assignedAt.level == HierarchyLevel.REPOSITORY }) { user, role ->
+                    UserWithRepositoryRole(user, (role as ModelRepositoryRole).mapToApi())
+                }
 
             call.respond(
-                PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
+                PagedResponse(
+                    users.sortAndPage(pagingOptions, { it.user }, { it.role }),
+                    pagingOptions.toPagingData(users.size.toLong())
+                )
             )
         }
     }

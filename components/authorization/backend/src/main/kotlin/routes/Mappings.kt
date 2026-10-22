@@ -31,8 +31,6 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPer
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole as ModelProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission as ModelRepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole as ModelRepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
-import org.eclipse.apoapsis.ortserver.model.UserGroup
 
 fun OrganizationRole.mapToModel() = when (this) {
     OrganizationRole.READER -> ModelOrganizationRole.READER
@@ -85,13 +83,20 @@ fun ModelRepositoryPermission.mapToApi() = when (this) {
     ModelRepositoryPermission.DELETE -> RepositoryPermission.DELETE
 }
 
-/**
- * Map this [Role] to a [UserGroup] which is required by the endpoint for querying user / role information.
- */
-fun Role.mapToGroup(): UserGroup =
-    when (name) {
-        "READER" -> UserGroup.READERS
-        "WRITER" -> UserGroup.WRITERS
-        "ADMIN" -> UserGroup.ADMINS
-        else -> throw IllegalArgumentException("Cannot map role '$name' to a user group.")
-    }
+fun ModelOrganizationRole.mapToApi() = when (this) {
+    ModelOrganizationRole.READER -> OrganizationRole.READER
+    ModelOrganizationRole.WRITER -> OrganizationRole.WRITER
+    ModelOrganizationRole.ADMIN -> OrganizationRole.ADMIN
+}
+
+fun ModelProductRole.mapToApi() = when (this) {
+    ModelProductRole.READER -> ProductRole.READER
+    ModelProductRole.WRITER -> ProductRole.WRITER
+    ModelProductRole.ADMIN -> ProductRole.ADMIN
+}
+
+fun ModelRepositoryRole.mapToApi() = when (this) {
+    ModelRepositoryRole.READER -> RepositoryRole.READER
+    ModelRepositoryRole.WRITER -> RepositoryRole.WRITER
+    ModelRepositoryRole.ADMIN -> RepositoryRole.ADMIN
+}

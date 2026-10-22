@@ -37,6 +37,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.components.authorization.authorizationApiModel)
                 api(projects.shared.apiModel)
 
                 api(libs.konform)
