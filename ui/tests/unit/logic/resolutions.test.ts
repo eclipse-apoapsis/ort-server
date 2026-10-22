@@ -84,13 +84,38 @@ it('getResolutionAccordionDefaultValue expands resolutions by default when an is
 it('getResolutionAccordionLabel returns an item-specific label', () => {
   const issue = createIssue();
   const ruleViolation = createRuleViolation();
-  const vulnerability = createVulnerability();
+  const vulnerability = createVulnerability({
+    resolutions: [],
+    unappliedResolutions: [],
+  });
 
-  expect(getResolutionAccordionLabel(issue)).toBe('Resolve issue');
-  expect(getResolutionAccordionLabel(ruleViolation)).toBe(
+  expect(getResolutionAccordionLabel(issue, true)).toBe('Resolve issue');
+  expect(getResolutionAccordionLabel(ruleViolation, true)).toBe(
     'Resolve rule violation'
   );
-  expect(getResolutionAccordionLabel(vulnerability)).toBe(
+  expect(getResolutionAccordionLabel(vulnerability, true)).toBe(
     'Resolve vulnerability'
   );
+});
+
+it('getResolutionAccordionLabel does not offer to resolve without the permission to manage resolutions', () => {
+  expect(getResolutionAccordionLabel(createVulnerability(), false)).toBe(
+    'Resolutions'
+  );
+});
+
+it('getResolutionAccordionLabel does not offer to resolve an item that has resolutions', () => {
+  const issue = createIssue({
+    resolutions: [
+      {
+        message: 'Issue message',
+        reason: 'BUILD_TOOL_ISSUE',
+        comment: 'Resolved on the server',
+        source: 'SERVER',
+        isDeleted: false,
+      },
+    ],
+  });
+
+  expect(getResolutionAccordionLabel(issue, true)).toBe('Resolutions');
 });
