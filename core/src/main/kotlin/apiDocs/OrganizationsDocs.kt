@@ -112,6 +112,10 @@ val getOrganizations: RouteConfig.() -> Unit = {
                 }
             }
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "The filter is not a valid regular expression."
+        }
     }
 }
 
@@ -243,6 +247,10 @@ val getOrganizationProducts: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The filter is not a valid regular expression."
         }
     }
 }

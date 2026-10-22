@@ -199,6 +199,10 @@ val getProductRepositories: RouteConfig.() -> Unit = {
             }
         }
 
+        HttpStatusCode.BadRequest to {
+            description = "The filter is not a valid regular expression."
+        }
+
         HttpStatusCode.NotFound to {
             description = "The product does not exist."
         }

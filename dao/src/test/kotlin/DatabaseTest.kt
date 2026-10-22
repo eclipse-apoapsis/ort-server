@@ -26,6 +26,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.koin.KoinExtension
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 import kotlin.coroutines.cancellation.CancellationException
@@ -35,10 +36,12 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesti
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.TEST_DB_SCHEMA
+import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 import org.koin.dsl.module
@@ -160,6 +163,15 @@ class DatabaseTest : KoinTest, WordSpec() {
                         throw CancellationException("Test cancellation")
                     }
                 }
+            }
+
+            "map an invalid regular expression to a QueryParametersException" {
+                val result = dbExtension.db.transactionCatching {
+                    OrganizationsTable.selectAll().where { OrganizationsTable.name.applyIRegex("(") }.toList()
+                }
+
+                result.exceptionOrNull().shouldBeInstanceOf<QueryParametersException>()
+                    .message shouldBe "invalid regular expression: parentheses () not balanced"
             }
 
             "propagate Error" {
