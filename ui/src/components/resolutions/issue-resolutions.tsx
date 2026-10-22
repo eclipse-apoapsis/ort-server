@@ -28,9 +28,14 @@ import {
   hasIssueResolutionActivity,
   ItemWithResolutions,
 } from '@/helpers/resolutions';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
-import { ResolutionCard, ResolutionForm } from './shared';
+import {
+  ResolutionCard,
+  ResolutionForm,
+  ResolutionPermissionNote,
+} from './shared';
 import {
   getDisplayItems,
   getManagedResolutionContext,
@@ -56,7 +61,12 @@ export function IssueResolutions({
     repositoryId,
     runId,
   };
-  const displayItems = getDisplayItems(item, true);
+  const { isAllowed } = useRepositoryPermission(
+    Number.parseInt(repositoryId),
+    'MANAGE_RESOLUTIONS'
+  );
+  const canManage = isAllowed ?? false;
+  const displayItems = getDisplayItems(item, canManage);
   const hasAnyResolution = hasIssueResolutionActivity(item);
 
   const { mutateAsync: deleteResolution } = useMutation({
@@ -100,7 +110,13 @@ export function IssueResolutions({
           />
         );
       })}
-      {!hasAnyResolution && (
+      {isAllowed === false && (
+        <ResolutionPermissionNote
+          itemType={createContext.itemType}
+          hasResolutions={displayItems.length > 0}
+        />
+      )}
+      {canManage && !hasAnyResolution && (
         <ResolutionForm
           context={createContext}
           mode='create'

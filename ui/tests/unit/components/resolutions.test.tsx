@@ -26,8 +26,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   AppliedVulnerabilityResolution,
   IssueResolutionReason,
+  RepositoryPermission,
   ResolutionSource,
   RuleViolationResolutionReason,
+  UserInfo,
 } from '@/api';
 import {
   getRunIssuesQueryKey,
@@ -56,10 +58,20 @@ const mocks = vi.hoisted(() => ({
   deleteVulnerabilityResolution: vi.fn(),
 }));
 
+const getUserInfo = vi.hoisted(() => vi.fn());
+
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
   ...mocks,
+  getUserInfo,
 }));
+
+const grantRepositoryPermissions = (
+  repositoryPermissions: RepositoryPermission[]
+) =>
+  getUserInfo.mockResolvedValue({
+    data: { isSuperuser: false, repositoryPermissions } as Partial<UserInfo>,
+  });
 
 vi.mock('@/lib/toast', () => ({
   toast: { info: vi.fn() },
@@ -193,6 +205,12 @@ const renderResolutions = (
   return { ...result, queryClient };
 };
 
+// Wait until the permissions of the user are known, so that controls depending on them have settled.
+const permissionsLoaded = async (queryClient: QueryClient) => {
+  await waitFor(() => expect(getUserInfo).toHaveBeenCalled());
+  await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+};
+
 const isInvalidated = (queryClient: QueryClient, key: QueryKey) =>
   queryClient.getQueryState(key)?.isInvalidated;
 
@@ -227,6 +245,8 @@ describe('Resolutions', () => {
     for (const mutation of Object.values(mocks)) {
       mutation.mockResolvedValue({ data: undefined });
     }
+
+    grantRepositoryPermissions(['READ', 'MANAGE_RESOLUTIONS']);
   });
 
   it.each(itemTypes)(
@@ -292,10 +312,9 @@ describe('Resolutions', () => {
       const { queryClient, user } = renderResolutions(item);
 
       await user.click(
-        (await findResolutionCard(item.resolutions![0]!.reason)).getByRole(
-          'button',
-          { name: 'Delete' }
-        )
+        await (
+          await findResolutionCard(item.resolutions![0]!.reason)
+        ).findByRole('button', { name: 'Delete' })
       );
       const dialog = await screen.findByRole('alertdialog');
       await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
@@ -321,6 +340,41 @@ describe('Resolutions', () => {
 
       expect(await screen.findByText(source)).toBeVisible();
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    }
+  );
+
+  it.each(itemTypes)(
+    'does not offer to create a resolution of $label without the permission to manage resolutions',
+    async ({ unresolved }) => {
+      grantRepositoryPermissions(['READ']);
+      const { queryClient } = renderResolutions(unresolved());
+
+      await permissionsLoaded(queryClient);
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Create resolution' })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/has no resolutions\. Resolving it requires/)
+      ).toBeVisible();
+    }
+  );
+
+  it.each(itemTypes)(
+    'does not offer to change a resolution of $label without the permission to manage resolutions',
+    async ({ resolved }) => {
+      grantRepositoryPermissions(['READ']);
+      const item = resolved();
+      const { queryClient } = renderResolutions(item);
+
+      expect(
+        await screen.findByText(item.resolutions![0]!.reason)
+      ).toBeVisible();
+      await permissionsLoaded(queryClient);
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/^Changing the resolutions of this .+ requires/)
+      ).toBeVisible();
     }
   );
 

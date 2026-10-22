@@ -489,6 +489,36 @@ export function ResolutionForm({
 
   return <CardContent>{formContent}</CardContent>;
 }
+
+const ITEM_TYPE_LABELS: Record<ManagedResolutionContext['itemType'], string> = {
+  issue: 'issue',
+  'rule-violation': 'rule violation',
+  vulnerability: 'vulnerability',
+};
+
+type ResolutionPermissionNoteProps = {
+  itemType: ManagedResolutionContext['itemType'];
+  hasResolutions: boolean;
+};
+
+/**
+ * Tell users who cannot manage resolutions why they are not offered to create or change one.
+ */
+export function ResolutionPermissionNote({
+  itemType,
+  hasResolutions,
+}: ResolutionPermissionNoteProps) {
+  const label = ITEM_TYPE_LABELS[itemType];
+
+  return (
+    <p className='text-muted-foreground text-sm'>
+      {hasResolutions
+        ? `Changing the resolutions of this ${label} requires the permission to manage resolutions in this repository.`
+        : `This ${label} has no resolutions. Resolving it requires the permission to manage resolutions in this repository.`}
+    </p>
+  );
+}
+
 type ResolutionCardProps = {
   displayItem: ResolutionDisplayItem;
   editingKey: string | null;
