@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateSer
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.handleTemplateResult
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.getTemplate(
@@ -43,7 +44,7 @@ internal fun Route.getTemplate(
     tags = listOf("Plugins")
 
     request {
-        pathParameter<String>("pluginType") {
+        pathParameter<PluginType>("pluginType") {
             description = "The type of the plugin to retrieve templates for."
             required = true
         }
@@ -89,11 +90,11 @@ internal fun Route.getTemplate(
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed."
+            description = "The specified plugin is not installed. An invalid plugin type also results in this status."
         }
     }
 }, requireSuperuser()) {
-    val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
+    val pluginType = call.requireEnumParameter<PluginType>("pluginType")
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
 

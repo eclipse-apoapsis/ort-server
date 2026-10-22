@@ -33,6 +33,7 @@ import {
   createPluginTemplateMutation,
   getPluginTemplatesQueryKey,
 } from '@/api/@tanstack/react-query.gen';
+import { zPluginType } from '@/api/zod.gen';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -250,5 +251,11 @@ const CreateTemplate = () => {
 export const Route = createFileRoute(
   '/admin/plugins/$pluginType/$pluginId/create-template/'
 )({
+  params: {
+    parse: (params) => ({
+      ...params,
+      pluginType: zPluginType.parse(params.pluginType),
+    }),
+  },
   component: CreateTemplate,
 });

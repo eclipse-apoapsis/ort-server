@@ -35,6 +35,7 @@ import {
   getPluginTemplatesQueryKey,
   updatePluginTemplateOptionsMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { zPluginType } from '@/api/zod.gen';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button';
 import {
@@ -242,6 +243,12 @@ const EditTemplate = () => {
 export const Route = createFileRoute(
   '/admin/plugins/$pluginType/$pluginId/edit-template/$templateName/'
 )({
+  params: {
+    parse: (params) => ({
+      ...params,
+      pluginType: zPluginType.parse(params.pluginType),
+    }),
+  },
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.ensureQueryData({
       ...getPluginTemplateOptions({
