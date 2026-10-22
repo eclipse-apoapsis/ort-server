@@ -54,6 +54,8 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+import org.postgresql.util.PSQLException
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(DataSource::class.java)
@@ -194,6 +196,13 @@ internal fun <T> Result<T>.mapExceptions(): Result<T> =
     recoverCatching {
         if (it is ExposedSQLException) {
             when (it.sqlState) {
+                PostgresErrorCodes.INVALID_REGULAR_EXPRESSION.value -> {
+                    throw QueryParametersException(
+                        (it.cause as? PSQLException)?.serverErrorMessage?.message ?: "Invalid regular expression.",
+                        it
+                    )
+                }
+
                 PostgresErrorCodes.UNIQUE_CONSTRAINT_VIOLATION.value -> {
                     throw UniqueConstraintException("Unique constraint violation: ${it.message}.", it)
                 }

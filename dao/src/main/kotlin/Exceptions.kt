@@ -30,6 +30,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * Enum for PostgreSQL exception states, see https://www.postgresql.org/docs/10/errcodes-appendix.html.
  */
 enum class PostgresErrorCodes(val value: String) {
+    INVALID_REGULAR_EXPRESSION("2201B"),
     UNIQUE_CONSTRAINT_VIOLATION("23505")
 }
 
