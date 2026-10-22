@@ -26,13 +26,16 @@ import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 
+import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
@@ -95,10 +98,13 @@ class AddTemplateToOrganizationIntegrationTest : PluginManagerIntegrationTest({
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, OrganizationId(1), "test-user")
 
-                client.post(
+                val response = client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1" +
                             "/addToOrganization?organizationId=$organizationId"
-                ) shouldHaveStatus HttpStatusCode.BadRequest
+                )
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.body<ErrorResponse>().message shouldStartWith "The organization with ID"
             }
         }
 
