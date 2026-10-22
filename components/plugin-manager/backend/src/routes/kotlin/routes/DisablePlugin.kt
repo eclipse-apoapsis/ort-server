@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
-    operationId = "DisablePlugin"
+    operationId = "disablePlugin"
     summary = "Disable an ORT plugin globally"
     description = "Disable an ORT plugin globally to make it generally unavailable."
     tags = listOf("Plugins")

@@ -41,7 +41,7 @@ internal fun Route.getPluginsForOrganization(
     configManager: ConfigManager,
     pluginTemplateService: PluginTemplateService
 ) = get("organizations/{organizationId}/plugins", {
-    operationId = "GetPluginsForOrganization"
+    operationId = "getPluginsForOrganization"
     summary = "Get available plugins for an organization"
     description = "Get a list of all available plugins for a specific organization."
     tags = listOf("Organizations")

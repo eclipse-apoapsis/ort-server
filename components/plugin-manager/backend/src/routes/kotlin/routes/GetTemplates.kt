@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.getTemplates(
     pluginTemplateService: PluginTemplateService
 ) = get("admin/plugins/{pluginType}/{pluginId}/templates", {
-    operationId = "GetPluginTemplates"
+    operationId = "getPluginTemplates"
     summary = "Get all templates for a plugin"
     description = "Retrieve the templates for a specific plugin type and ID."
     tags = listOf("Plugins")

@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 internal fun Route.getGlobalDefaultPlugins(
     defaultPluginsService: DefaultPluginsService
 ) = get("admin/plugins/defaults", {
-    operationId = "GetGlobalDefaultPlugins"
+    operationId = "getGlobalDefaultPlugins"
     summary = "Get the global default plugins"
     description = "Get the plugins that are enabled by default for all categories, unless an organization " +
             "configures its own defaults. If no global defaults are configured for a category, the built-in " +

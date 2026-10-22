@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/enable", {
-    operationId = "EnablePlugin"
+    operationId = "enablePlugin"
     summary = "Enable an ORT plugin globally"
     description = "Enable an ORT plugin globally to make it generally available to all organizations."
     tags = listOf("Plugins")

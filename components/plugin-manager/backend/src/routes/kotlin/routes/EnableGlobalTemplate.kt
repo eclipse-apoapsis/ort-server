@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.enableGlobalTemplate(
     pluginTemplateService: PluginTemplateService
 ) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/enableGlobal", {
-    operationId = "EnableGlobalPluginTemplate"
+    operationId = "enableGlobalPluginTemplate"
     summary = "Enable a global plugin template"
     description = "Enable a global plugin template for a specific plugin. This will enable the template globally for " +
             "all organizations, but it can still be overwritten by organization-specific templates."

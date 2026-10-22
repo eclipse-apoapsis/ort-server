@@ -42,7 +42,7 @@ internal fun Route.getPluginsForRepository(
     configManager: ConfigManager,
     pluginTemplateService: PluginTemplateService
 ) = get("repositories/{repositoryId}/plugins", {
-    operationId = "GetPluginsForRepository"
+    operationId = "getPluginsForRepository"
     summary = "Get available plugins for a repository"
     description = "Get a list of all available plugins for a specific repository."
     tags = listOf("Repositories")

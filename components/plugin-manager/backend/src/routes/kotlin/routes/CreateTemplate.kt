@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.createTemplate(
     pluginTemplateService: PluginTemplateService
 ) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
-    operationId = "CreatePluginTemplate"
+    operationId = "createPluginTemplate"
     summary = "Create a new plugin template"
     description = "Create a new plugin template."
     tags = listOf("Plugins")

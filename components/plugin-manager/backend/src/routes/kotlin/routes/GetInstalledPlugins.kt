@@ -34,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins", {
-    operationId = "GetInstalledPlugins"
+    operationId = "getInstalledPlugins"
     summary = "Get installed ORT plugins"
     description = "Get a list with detailed information about all installed ORT plugins."
     tags = listOf("Plugins")

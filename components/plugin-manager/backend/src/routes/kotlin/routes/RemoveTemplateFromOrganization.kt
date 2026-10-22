@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.removeTemplateFromOrganization(
     pluginTemplateService: PluginTemplateService
 ) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/removeFromOrganization", {
-    operationId = "RemoveTemplateFromOrganization"
+    operationId = "removeTemplateFromOrganization"
     summary = "Remove a plugin template from an organization"
     description = "Remove a plugin template from an organization. If any global templates are enabled for the " +
             "plugin, they will now apply to the organization."

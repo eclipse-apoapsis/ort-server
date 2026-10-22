@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.restrictPlugin(eventStore: PluginEventStore) =
     post("admin/plugins/{pluginType}/{pluginId}/restrict", {
-        operationId = "RestrictPlugin"
+        operationId = "restrictPlugin"
         summary = "Restrict an ORT plugin to organizations with a template"
         description = "Restrict an ORT plugin to make it available only to organizations that have a plugin " +
                 "template assigned."

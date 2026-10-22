@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 internal fun Route.resetOrganizationDefaultPlugins(
     defaultPluginsService: DefaultPluginsService
 ) = delete("organizations/{organizationId}/plugins/defaults/{category}", {
-    operationId = "ResetOrganizationDefaultPlugins"
+    operationId = "resetOrganizationDefaultPlugins"
     summary = "Reset the default plugins of a category for an organization"
     description = "Reset the default plugins of a category for an organization, so that the global defaults are " +
             "used."
