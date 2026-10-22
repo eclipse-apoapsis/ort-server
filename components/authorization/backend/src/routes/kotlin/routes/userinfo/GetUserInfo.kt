@@ -43,6 +43,8 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 internal fun Route.getUserInfo() = get("authorization/userinfo", {
     operationId = "getUserInfo"
@@ -85,15 +87,12 @@ internal fun Route.getUserInfo() = get("authorization/userinfo", {
             }
         }
         HttpStatusCode.BadRequest to {
-            description = "If more than one query parameter determining the hierarchy is specified."
+            description = "If more than one query parameter determining the hierarchy is specified or an ID is invalid."
         }
     }
 }, userInfoChecker()) {
     if (listOf(ORGANIZATION_PARAM, PRODUCT_PARAM, REPOSITORY_PARAM).mapNotNull { call.queryParameters[it] }.size > 1) {
-        call.respond(
-            HttpStatusCode.BadRequest,
-            "Only one parameter for the hierarchy may be provided."
-        )
+        call.respondError(HttpStatusCode.BadRequest, "Only one parameter for the hierarchy may be provided.")
         return@get
     }
 
@@ -171,11 +170,18 @@ private fun userInfoChecker(): AuthorizationChecker =
             userId: String,
             call: ApplicationCall
         ): EffectiveRole {
-            val hierarchyId = call.request.queryParameters[REPOSITORY_PARAM]?.let { RepositoryId(it.toLong()) }
-                ?: call.request.queryParameters[PRODUCT_PARAM]?.let { ProductId(it.toLong()) }
-                ?: call.request.queryParameters[ORGANIZATION_PARAM]?.let { OrganizationId(it.toLong()) }
+            val hierarchyId = call.optionalIdParameter(REPOSITORY_PARAM)?.let(::RepositoryId)
+                ?: call.optionalIdParameter(PRODUCT_PARAM)?.let(::ProductId)
+                ?: call.optionalIdParameter(ORGANIZATION_PARAM)?.let(::OrganizationId)
 
             return hierarchyId?.let { id -> service.getEffectiveRole(userId, id) }
                 ?: service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD)
         }
     }
+
+/**
+ * Return the ID query parameter with the given [name] or *null* if it is absent. Throw an exception if the parameter
+ * is not a valid ID.
+ */
+private fun ApplicationCall.optionalIdParameter(name: String): Long? =
+    request.queryParameters[name]?.let { requireIdParameter(name) }

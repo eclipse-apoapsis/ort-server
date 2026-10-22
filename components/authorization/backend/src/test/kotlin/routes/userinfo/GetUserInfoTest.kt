@@ -216,6 +216,14 @@ class GetUserInfoTest : AbstractAuthorizationTest({
                 response shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
+
+        "return 400 if a hierarchy ID is invalid" {
+            authorizationTestApplication(routes = { authorizationRoutes() }) { _, client ->
+                val response = client.get("/authorization/userinfo?repositoryId=abc")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
     }
 })
 
