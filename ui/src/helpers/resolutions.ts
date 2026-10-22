@@ -124,7 +124,14 @@ export function getResolutionAccordionDefaultValue(item: ItemWithResolutions) {
   return ['details'];
 }
 
-export function getResolutionAccordionLabel(item: ItemWithResolutions) {
+export function getResolutionAccordionLabel(
+  item: ItemWithResolutions,
+  canManage: boolean
+) {
+  if (!canManage || hasResolutionActivity(item)) {
+    return 'Resolutions';
+  }
+
   if (isVulnerabilityItem(item)) {
     return 'Resolve vulnerability';
   }

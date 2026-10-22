@@ -72,6 +72,7 @@ import {
   useAppTable,
 } from '@/hooks/use-app-table';
 import type { AppRow } from '@/hooks/use-app-table';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
@@ -161,6 +162,10 @@ const RuleViolationCard = ({
 
 const RuleViolationsComponent = () => {
   const params = Route.useParams();
+  const { isAllowed: canManageResolutions } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'MANAGE_RESOLUTIONS'
+  );
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
@@ -396,7 +401,10 @@ const RuleViolationsComponent = () => {
       >
         <AccordionItem value='resolutions'>
           <AccordionTrigger className='font-semibold'>
-            {getResolutionAccordionLabel(ruleViolation)}
+            {getResolutionAccordionLabel(
+              ruleViolation,
+              canManageResolutions !== false
+            )}
           </AccordionTrigger>
           <AccordionContent>
             <Resolutions

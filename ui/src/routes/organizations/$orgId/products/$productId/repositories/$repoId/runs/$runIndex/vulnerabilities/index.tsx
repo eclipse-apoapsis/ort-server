@@ -88,6 +88,7 @@ import {
   useAppTable,
 } from '@/hooks/use-app-table';
 import type { AppRow } from '@/hooks/use-app-table';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
 import { toastError } from '@/lib/toast';
 import {
@@ -182,6 +183,10 @@ const VulnerabilityCard = ({
 
 const VulnerabilitiesComponent = () => {
   const params = Route.useParams();
+  const { isAllowed: canManageResolutions } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'MANAGE_RESOLUTIONS'
+  );
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const pageIndex = search.page ? search.page - 1 : 0;
@@ -486,7 +491,10 @@ const VulnerabilitiesComponent = () => {
         </AccordionItem>
         <AccordionItem value='resolutions'>
           <AccordionTrigger className='font-semibold'>
-            {getResolutionAccordionLabel(row.original)}
+            {getResolutionAccordionLabel(
+              row.original,
+              canManageResolutions !== false
+            )}
           </AccordionTrigger>
           <AccordionContent>
             <Resolutions
