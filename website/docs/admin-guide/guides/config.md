@@ -6,6 +6,7 @@ It also shortly describes the configuration mechanism in place.
 :::note
 In this context, the term _configuration_ refers to the static configuration of an ORT Server deployment, such as database settings, service credentials, etc.
 It does not cover the configuration of single ORT runs that can be specified by users when triggering a run.
+Settings that apply to all ORT runs, such as rule sets, report definitions, and notification servers, are defined in the [admin configuration](admin-config.md).
 :::
 
 ## Configuration Mechanism
