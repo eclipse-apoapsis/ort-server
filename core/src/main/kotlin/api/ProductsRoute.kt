@@ -180,7 +180,7 @@ fun Route.products() = route("products/{productId}") {
 
     route("roles") {
         route("{role}") {
-            put(putProductRoleToUser, requirePermission(ProductPermission.MANAGE_GROUPS)) {
+            put(putProductRoleToUser, requirePermission(ProductPermission.MANAGE_ROLES)) {
                 val user = call.receive<Username>()
                 val productId = call.requireIdParameter("productId")
                 val role = call.requireEnumParameter<ProductRole>("role").mapToModel()
@@ -199,7 +199,7 @@ fun Route.products() = route("products/{productId}") {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            delete(deleteProductRoleFromUser, requirePermission(ProductPermission.MANAGE_GROUPS)) {
+            delete(deleteProductRoleFromUser, requirePermission(ProductPermission.MANAGE_ROLES)) {
                 val productId = call.requireIdParameter("productId")
                 call.requireEnumParameter<ProductRole>("role")
                 val username = call.requireParameter("username")

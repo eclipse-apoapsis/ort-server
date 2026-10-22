@@ -835,7 +835,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "require OrganizationPermission.MANAGE_GROUPS for method '${method.value}'" {
+            "require OrganizationPermission.MANAGE_ROLES for method '${method.value}'" {
                 val createdOrg = createOrganization()
                 val user = Username(TEST_USER.username.value)
 
