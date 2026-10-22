@@ -193,7 +193,7 @@ fun Route.organizations() = route("organizations") {
 
         route("roles") {
             route("{role}") {
-                put(putOrganizationRoleToUser, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
+                put(putOrganizationRoleToUser, requirePermission(OrganizationPermission.MANAGE_ROLES)) {
                     val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
                     val role = call.requireEnumParameter<OrganizationRole>("role").mapToModel()
@@ -218,7 +218,7 @@ fun Route.organizations() = route("organizations") {
                     }
                 }
 
-                delete(deleteOrganizationRoleFromUser, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
+                delete(deleteOrganizationRoleFromUser, requirePermission(OrganizationPermission.MANAGE_ROLES)) {
                     val organizationId = call.requireIdParameter("organizationId")
                     val username = call.requireParameter("username")
                     call.requireEnumParameter<OrganizationRole>("role")

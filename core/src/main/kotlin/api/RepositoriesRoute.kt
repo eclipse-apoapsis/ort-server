@@ -268,7 +268,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
 
     route("roles") {
         route("{role}") {
-            put(putRepositoryRoleToUser, requirePermission(RepositoryPermission.MANAGE_GROUPS)) {
+            put(putRepositoryRoleToUser, requirePermission(RepositoryPermission.MANAGE_ROLES)) {
                 val user = call.receive<Username>()
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val role = call.requireEnumParameter<RepositoryRole>("role").mapToModel()
@@ -287,7 +287,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            delete(deleteRepositoryRoleFromUser, requirePermission(RepositoryPermission.MANAGE_GROUPS)) {
+            delete(deleteRepositoryRoleFromUser, requirePermission(RepositoryPermission.MANAGE_ROLES)) {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 call.requireEnumParameter<RepositoryRole>("role")
                 val username = call.requireParameter("username")

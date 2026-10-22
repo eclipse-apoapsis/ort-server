@@ -56,7 +56,7 @@ fun ModelOrganizationPermission.mapToApi() = when (this) {
     ModelOrganizationPermission.READ -> OrganizationPermission.READ
     ModelOrganizationPermission.WRITE -> OrganizationPermission.WRITE
     ModelOrganizationPermission.WRITE_SECRETS -> OrganizationPermission.WRITE_SECRETS
-    ModelOrganizationPermission.MANAGE_GROUPS -> OrganizationPermission.MANAGE_GROUPS
+    ModelOrganizationPermission.MANAGE_ROLES -> OrganizationPermission.MANAGE_GROUPS
     ModelOrganizationPermission.MANAGE_DEFAULT_PLUGINS -> OrganizationPermission.MANAGE_DEFAULT_PLUGINS
     ModelOrganizationPermission.READ_PRODUCTS -> OrganizationPermission.READ_PRODUCTS
     ModelOrganizationPermission.CREATE_PRODUCT -> OrganizationPermission.CREATE_PRODUCT
@@ -67,7 +67,7 @@ fun ModelProductPermission.mapToApi() = when (this) {
     ModelProductPermission.READ -> ProductPermission.READ
     ModelProductPermission.WRITE -> ProductPermission.WRITE
     ModelProductPermission.WRITE_SECRETS -> ProductPermission.WRITE_SECRETS
-    ModelProductPermission.MANAGE_GROUPS -> ProductPermission.MANAGE_GROUPS
+    ModelProductPermission.MANAGE_ROLES -> ProductPermission.MANAGE_GROUPS
     ModelProductPermission.READ_REPOSITORIES -> ProductPermission.READ_REPOSITORIES
     ModelProductPermission.CREATE_REPOSITORY -> ProductPermission.CREATE_REPOSITORY
     ModelProductPermission.TRIGGER_ORT_RUN -> ProductPermission.TRIGGER_ORT_RUN
@@ -78,7 +78,7 @@ fun ModelRepositoryPermission.mapToApi() = when (this) {
     ModelRepositoryPermission.READ -> RepositoryPermission.READ
     ModelRepositoryPermission.WRITE -> RepositoryPermission.WRITE
     ModelRepositoryPermission.WRITE_SECRETS -> RepositoryPermission.WRITE_SECRETS
-    ModelRepositoryPermission.MANAGE_GROUPS -> RepositoryPermission.MANAGE_GROUPS
+    ModelRepositoryPermission.MANAGE_ROLES -> RepositoryPermission.MANAGE_GROUPS
     ModelRepositoryPermission.MANAGE_RESOLUTIONS -> RepositoryPermission.MANAGE_RESOLUTIONS
     ModelRepositoryPermission.READ_ORT_RUNS -> RepositoryPermission.READ_ORT_RUNS
     ModelRepositoryPermission.TRIGGER_ORT_RUN -> RepositoryPermission.TRIGGER_ORT_RUN

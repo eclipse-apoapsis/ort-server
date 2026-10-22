@@ -239,10 +239,10 @@ class AuthorizedRoutesTest : WordSpec() {
 
             "support POST with an organization permission" {
                 runAuthorizationTest(
-                    OrganizationPermission.MANAGE_GROUPS,
+                    OrganizationPermission.MANAGE_ROLES,
                     routeBuilder = {
                         route("test/{organizationId}") {
-                            post(testDocs, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
+                            post(testDocs, requirePermission(OrganizationPermission.MANAGE_ROLES)) {
                                 call.principal<OrtServerPrincipal>().shouldNotBeNull {
                                     username shouldBe USERNAME
                                 }
@@ -412,12 +412,12 @@ class AuthorizedRoutesTest : WordSpec() {
 
             "support POST with a path" {
                 runAuthorizationTest(
-                    OrganizationPermission.MANAGE_GROUPS,
+                    OrganizationPermission.MANAGE_ROLES,
                     routeBuilder = {
                         post(
                             "test/{organizationId}",
                             testDocs,
-                            requirePermission(OrganizationPermission.MANAGE_GROUPS)
+                            requirePermission(OrganizationPermission.MANAGE_ROLES)
                         ) {
                             call.principal<OrtServerPrincipal>().shouldNotBeNull {
                                 username shouldBe USERNAME
@@ -543,7 +543,7 @@ class AuthorizedRoutesTest : WordSpec() {
                     service,
                     routeBuilder = {
                         route("test/{organizationId}") {
-                            patch(testDocs, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
+                            patch(testDocs, requirePermission(OrganizationPermission.MANAGE_ROLES)) {
                                 call.respond(HttpStatusCode.OK)
                             }
                         }
