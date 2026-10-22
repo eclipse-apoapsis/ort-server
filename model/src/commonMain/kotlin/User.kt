@@ -35,12 +35,3 @@ data class User(
     /** The mail address of the user. */
     val email: String? = null
 )
-
-/**
- * Enum class representing user groups (privilege level).
- */
-enum class UserGroup {
-    READERS,
-    WRITERS,
-    ADMINS
-}
