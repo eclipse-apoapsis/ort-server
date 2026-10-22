@@ -220,10 +220,12 @@ const renderSubComponent = ({
   row,
   packageIdType,
   runId,
+  params,
 }: {
   row: AppRow<Package>;
   packageIdType?: PackageIdType;
   runId: number;
+  params: ReturnType<typeof Route.useParams>;
 }) => {
   const pkg = row.original;
   const hasCurations = pkg.curations.length > 0;
@@ -350,6 +352,7 @@ const renderSubComponent = ({
           <DependencyPaths
             pkg={pkg}
             pkgIdType={packageIdType}
+            params={params}
             className='flex flex-col gap-2'
           />
         </div>
@@ -605,6 +608,15 @@ const PackagesComponent = () => {
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}
   );
+  // A link to another package on this page, such as one in a dependency path,
+  // keeps the page mounted, so open the newly marked row here.
+  const [openedMarked, setOpenedMarked] = useState(search.marked);
+  if (search.marked !== openedMarked) {
+    setOpenedMarked(search.marked);
+    if (search.marked && expanded !== true) {
+      setExpanded({ ...expanded, [search.marked]: true });
+    }
+  }
 
   const table = useAppTable(
     {
@@ -663,7 +675,12 @@ const PackagesComponent = () => {
         <DataTableCards
           table={table}
           renderSubComponent={({ row }) =>
-            renderSubComponent({ row, packageIdType, runId: ortRun.id })
+            renderSubComponent({
+              row,
+              packageIdType,
+              runId: ortRun.id,
+              params,
+            })
           }
           setCurrentPageOptions={(currentPage) => {
             return {

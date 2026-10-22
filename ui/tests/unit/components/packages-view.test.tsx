@@ -28,7 +28,7 @@ import { Route } from '@/routes/organizations/$orgId/products/$productId/reposit
 import { packageIdTypeSchema } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 import { renderRunPage } from '../fixtures/finding-tables';
-import { pageOf } from '../fixtures/table';
+import { getLinkTarget, pageOf } from '../fixtures/table';
 
 type PackagesQuery = GetRunPackagesData['query'];
 
@@ -220,6 +220,52 @@ describe('packages view', () => {
       identifier: targetId,
       identifierMatchType: 'exact',
     });
+  });
+
+  it('links the project and the packages of a dependency path to their rows', async () => {
+    const middle = createPackage('middle');
+    const middleId = 'Maven:org.example:middle:1.0';
+    const projectId = 'Gradle:org.example:project:1.0';
+    servePackages(middle, {
+      ...target,
+      shortestDependencyPaths: [
+        {
+          projectIdentifier: {
+            type: 'Gradle',
+            namespace: 'org.example',
+            name: 'project',
+            version: '1.0',
+          },
+          scope: 'compile',
+          path: [middle.identifier],
+        },
+      ],
+    });
+
+    const { user } = renderPackages(linkSearch);
+
+    expect(
+      getLinkTarget(await screen.findByRole('link', { name: projectId }))
+    ).toEqual({
+      pathname: '/organizations/1/products/2/repositories/3/runs/4/projects',
+      search: { projectId, projectIdMatchType: 'exact', marked: projectId },
+    });
+
+    const middleLink = screen.getByRole('link', { name: middleId });
+
+    expect(getLinkTarget(middleLink)).toEqual({
+      pathname: '/organizations/1/products/2/repositories/3/runs/4/packages',
+      search: {
+        pkgId: middleId,
+        pkgIdType: 'ORT_ID',
+        pkgIdMatchType: 'exact',
+        marked: middleId,
+      },
+    });
+
+    await user.click(middleLink);
+
+    expect(await screen.findByText(middle.purl!)).toBeVisible();
   });
 
   it('shows the PURL of a linked package in the filter if PURLs are shown', async () => {
