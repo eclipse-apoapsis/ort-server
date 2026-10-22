@@ -148,9 +148,13 @@ val deleteUser: RouteConfig.() -> Unit = {
             description = "Successfully deleted the user and all their role assignments."
         }
 
+        HttpStatusCode.NotFound to {
+            description = "The user does not exist."
+        }
+
         HttpStatusCode.InternalServerError to {
             description = """
-                The user does not exist, or removing their role assignments or deleting the user failed.
+                Removing the role assignments of the user or deleting the user failed.
                 If user deletion fails after role removal, the user may remain without role assignments.
             """.trimIndent()
         }

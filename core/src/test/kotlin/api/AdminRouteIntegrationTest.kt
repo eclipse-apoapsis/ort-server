@@ -288,7 +288,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with an internal error if the user doesn't exist" {
+        "respond with NotFound if the user doesn't exist" {
             integrationTestApplication {
                 superuserClient.delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
@@ -297,7 +297,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
                     parameter("username", TEST_USER.username.value)
                 }
 
-                response shouldHaveStatus HttpStatusCode.InternalServerError
+                response shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
