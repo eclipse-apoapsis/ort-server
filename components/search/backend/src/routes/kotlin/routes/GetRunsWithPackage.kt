@@ -111,7 +111,8 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
             }
             HttpStatusCode.BadRequest to {
                 description = "If more than one scope parameter (organizationId, productId, repositoryId) is " +
-                    "specified, or if neither/both 'identifier' and 'purl' are provided."
+                    "specified, a scope parameter is not a valid ID, or if neither/both 'identifier' and 'purl' " +
+                    "are provided."
             }
         }
     }, requireScopedReadPermission()) {
