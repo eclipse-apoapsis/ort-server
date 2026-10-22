@@ -45,7 +45,7 @@ internal fun Route.setGlobalDefaultPlugins(
     tags = listOf("Plugins")
 
     request {
-        pathParameter<String>("category") {
+        pathParameter<DefaultPluginsCategory>("category") {
             description = "The category of the default plugins, for example 'ADVISOR' or 'PROJECT_SCANNER'."
             required = true
         }

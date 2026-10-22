@@ -48,7 +48,7 @@ internal fun Route.resetOrganizationDefaultPlugins(
             description = "The organization's ID."
         }
 
-        pathParameter<String>("category") {
+        pathParameter<DefaultPluginsCategory>("category") {
             description = "The category of the default plugins, for example 'ADVISOR' or 'PROJECT_SCANNER'."
             required = true
         }
