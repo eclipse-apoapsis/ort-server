@@ -53,9 +53,9 @@ const mocks = vi.hoisted(() => ({
   postRuleViolationResolutionForRepository: vi.fn(),
   patchRuleViolationResolutionForRepository: vi.fn(),
   deleteRuleViolationResolutionForRepository: vi.fn(),
-  postVulnerabilityResolution: vi.fn(),
-  patchVulnerabilityResolution: vi.fn(),
-  deleteVulnerabilityResolution: vi.fn(),
+  postVulnerabilityResolutionForRepository: vi.fn(),
+  patchVulnerabilityResolutionForRepository: vi.fn(),
+  deleteVulnerabilityResolutionForRepository: vi.fn(),
 }));
 
 const getUserInfo = vi.hoisted(() => vi.fn());
@@ -176,11 +176,11 @@ const itemTypes = [
         unappliedResolutions: [],
       }),
     reason: 'NOT_A_VULNERABILITY',
-    create: mocks.postVulnerabilityResolution,
+    create: mocks.postVulnerabilityResolutionForRepository,
     createPath: { repositoryId: 3, externalId: 'CVE-0000-0000' },
     createBody: {},
-    patch: mocks.patchVulnerabilityResolution,
-    remove: mocks.deleteVulnerabilityResolution,
+    patch: mocks.patchVulnerabilityResolutionForRepository,
+    remove: mocks.deleteVulnerabilityResolutionForRepository,
     resolutionPath: { repositoryId: 3, externalId: 'CVE-0000-0000' },
   },
 ];

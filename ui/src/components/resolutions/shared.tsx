@@ -29,10 +29,10 @@ import {
   getRunVulnerabilitiesQueryKey,
   patchIssueResolutionForRepositoryMutation,
   patchRuleViolationResolutionForRepositoryMutation,
-  patchVulnerabilityResolutionMutation,
+  patchVulnerabilityResolutionForRepositoryMutation,
   postIssueResolutionForRepositoryMutation,
   postRuleViolationResolutionForRepositoryMutation,
-  postVulnerabilityResolutionMutation,
+  postVulnerabilityResolutionForRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
 import {
   IssueResolutionReason,
@@ -285,7 +285,7 @@ export function ResolutionForm({
   });
 
   const vulnerabilityCreateMutation = useMutation({
-    ...postVulnerabilityResolutionMutation(),
+    ...postVulnerabilityResolutionForRepositoryMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
         queryKey: getRunVulnerabilitiesQueryKey({
@@ -307,7 +307,7 @@ export function ResolutionForm({
     },
   });
   const vulnerabilityUpdateMutation = useMutation({
-    ...patchVulnerabilityResolutionMutation(),
+    ...patchVulnerabilityResolutionForRepositoryMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
         queryKey: getRunVulnerabilitiesQueryKey({
