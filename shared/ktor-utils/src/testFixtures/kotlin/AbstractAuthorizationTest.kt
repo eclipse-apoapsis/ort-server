@@ -85,9 +85,10 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
     val dbExtension = DatabaseTestExtension()
     val keycloakExtension = KeycloakTestExtension()
 
-    // The "extension()" and "install()" functions cannot be used above because of
-    // https://github.com/kotest/kotest/issues/3555.
-    // TODO: Check if this is fixed once Kotest 6 is released.
+    // Do not use the "extension()" or "install()" functions above: Extensions registered that way run after overridden
+    // callback functions like "beforeEach()" (see https://github.com/kotest/kotest/issues/3555), so the database would
+    // not be initialized yet. Extensions declared via this property run before both overridden callback functions and
+    // callbacks registered via the DSL.
     override val extensions: List<Extension> = listOf(dbExtension, keycloakExtension)
 
     val keycloak = keycloakExtension.mount {

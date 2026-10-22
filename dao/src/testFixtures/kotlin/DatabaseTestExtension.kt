@@ -52,9 +52,10 @@ import org.testcontainers.postgresql.PostgreSQLContainer
  *  test, a cleanup is performed, so that every test sees a fresh database.
  *
  * The execution order of lifecycle callbacks in Kotest depends on the way the extension is installed and the test class
- * implements the callbacks. To ensure that the database migrations have already been performed, do not override the
- * callback functions like `suspend fun beforeEach` but use the DSL functions like `beforeEach {}` instead. For details
- * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
+ * implements the callbacks. To ensure that the database migrations have already been performed, either declare the
+ * extension by overriding the `extensions` property of the spec, or, if it is installed via `extension()` or
+ * `install()`, do not override the callback functions like `suspend fun beforeEach` but use the DSL functions like
+ * `beforeEach {}` instead. For details see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
 open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
     internal val postgres = PostgreSQLContainer(Images.POSTGRES).apply {
