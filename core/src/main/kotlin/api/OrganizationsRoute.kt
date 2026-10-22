@@ -33,12 +33,15 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithOrganizationRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole as ModelOrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
@@ -47,8 +50,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePer
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
-import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
-import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
+import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.mapToApi
+import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganization
@@ -441,9 +444,14 @@ fun Route.organizations() = route("organizations") {
                 val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
                 val users = authorizationService.listUsers(orgId)
-                    .mapToApi(userService) { it.assignedAt.level == HierarchyLevel.ORGANIZATION }
+                    .mapToApi(userService, { it.assignedAt.level == HierarchyLevel.ORGANIZATION }) { user, role ->
+                        UserWithOrganizationRole(user, (role as ModelOrganizationRole).mapToApi())
+                    }
                 call.respond(
-                    PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
+                    PagedResponse(
+                        users.sortAndPage(pagingOptions, { it.user }, { it.role }),
+                        pagingOptions.toPagingData(users.size.toLong())
+                    )
                 )
             }
         }

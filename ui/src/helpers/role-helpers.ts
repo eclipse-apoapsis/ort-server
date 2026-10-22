@@ -21,52 +21,19 @@ import { Eye, Pen, Shield } from 'lucide-react';
 import { createElement, type JSX } from 'react';
 import { z } from 'zod';
 
-import {
+import type {
   OrganizationRole,
   ProductRole,
   RepositoryRole,
-  UserGroup,
+  User,
 } from '@/api';
 import { roleSchema } from '@/schemas';
 
-// These helpers bridge the inconsistent generated list response and role
-// mutation contracts until the API uses role terminology consistently.
-
-export const mapUserGroupToOrganizationRole = (
-  group: UserGroup
-): OrganizationRole => {
-  switch (group) {
-    case 'READERS':
-      return 'READER';
-    case 'WRITERS':
-      return 'WRITER';
-    case 'ADMINS':
-      return 'ADMIN';
-  }
-};
-
-export const mapUserGroupToProductRole = (group: UserGroup): ProductRole => {
-  switch (group) {
-    case 'READERS':
-      return 'READER';
-    case 'WRITERS':
-      return 'WRITER';
-    case 'ADMINS':
-      return 'ADMIN';
-  }
-};
-
-export const mapUserGroupToRepositoryRole = (
-  group: UserGroup
-): RepositoryRole => {
-  switch (group) {
-    case 'READERS':
-      return 'READER';
-    case 'WRITERS':
-      return 'WRITER';
-    case 'ADMINS':
-      return 'ADMIN';
-  }
+// A user with the role assigned to them on an organization, a product or a
+// repository.
+export type UserWithRole = {
+  user: User;
+  role: OrganizationRole | ProductRole | RepositoryRole;
 };
 
 export const getRoleIcon = (role: z.infer<typeof roleSchema>): JSX.Element => {

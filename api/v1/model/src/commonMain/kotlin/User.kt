@@ -21,6 +21,10 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
+
 /**
  * Response object for a user.
  */
@@ -40,31 +44,39 @@ data class User(
 )
 
 /**
- * User group (privilege level) for repositories, products or organizations.
- */
-enum class UserGroup(private val rank: Int) {
-    /** READER privilege */
-    READERS(1),
-
-    /** WRITER privilege */
-    WRITERS(2),
-
-    /** ADMIN privilege */
-    ADMINS(3);
-
-    fun getRank() = rank
-}
-
-/**
- * Response object for a user containing groups that user belongs to.
+ * Response object for a user containing the role of the user on an organization.
  */
 @Serializable
-data class UserWithGroups(
+data class UserWithOrganizationRole(
     /** User object */
     val user: User,
 
-    /** List of groups user belongs to */
-    val groups: List<UserGroup>
+    /** The role of the user on the organization */
+    val role: OrganizationRole
+)
+
+/**
+ * Response object for a user containing the role of the user on a product.
+ */
+@Serializable
+data class UserWithProductRole(
+    /** User object */
+    val user: User,
+
+    /** The role of the user on the product */
+    val role: ProductRole
+)
+
+/**
+ * Response object for a user containing the role of the user on a repository.
+ */
+@Serializable
+data class UserWithRepositoryRole(
+    /** User object */
+    val user: User,
+
+    /** The role of the user on the repository */
+    val role: RepositoryRole
 )
 
 /**

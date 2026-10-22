@@ -27,7 +27,6 @@ import {
   deleteRepositoryRoleFromUser,
   putRepositoryRoleToUser,
 } from '@/api/sdk.gen';
-import { mapUserGroupToRepositoryRole } from '@/helpers/role-helpers.ts';
 import { UsersTable } from '@/routes/organizations/$orgId/-components/users-table';
 
 const routeApi = getRouteApi(
@@ -45,7 +44,6 @@ export const RepositoryUsersTable = () => {
         getRepositoryUsersOptions({ path: { repositoryId }, query })
       }
       usersQueryKey={getRepositoryUsersQueryKey({ path: { repositoryId } })}
-      mapGroupToRole={mapUserGroupToRepositoryRole}
       assignRole={(username, role) =>
         putRepositoryRoleToUser({
           path: { repositoryId, role },

@@ -56,8 +56,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithRepositoryRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
@@ -627,10 +626,10 @@ val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
 val getRepositoryUsers: RouteConfig.() -> Unit = {
     operationId = "getRepositoryUsers"
     summary = "Get all users for a repository"
-    description = "Get all users that have a role assigned directly on a repository, including the group " +
-            "that corresponds to their role. Users that only inherit access from a higher level are not " +
-            "included. Fields available for sorting: 'username', 'firstName', 'lastName', 'email', " +
-            "'group'. NOTE: This endpoint supports exactly one sort field."
+    description = "Get all users that have a role assigned directly on a repository, including their role. " +
+            "Users that only inherit access from a higher level are not included. Fields available for " +
+            "sorting: 'username', 'firstName', 'lastName', 'email', 'role'. NOTE: This endpoint supports " +
+            "exactly one sort field."
     tags = listOf("Repositories")
 
     request {
@@ -644,20 +643,18 @@ val getRepositoryUsers: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            jsonBody<PagedResponse<UserWithGroups>> {
+            jsonBody<PagedResponse<UserWithRepositoryRole>> {
                 example("Get users for repository") {
                     value = PagedResponse(
                         listOf(
-                            UserWithGroups(
+                            UserWithRepositoryRole(
                                 User(
                                     username = "jdoe",
                                     firstName = "John",
                                     lastName = "Doe",
                                     email = "johndoe@example.com"
                                 ),
-                                listOf(
-                                    UserGroup.WRITERS
-                                )
+                                RepositoryRole.WRITER
                             )
                         ),
                         PagingData(

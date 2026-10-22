@@ -76,8 +76,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiReposito
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithProductRole as ApiUserWithProductRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -1988,13 +1987,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        ApiUserWithGroups(
+                        ApiUserWithProductRole(
                             ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),
-                            listOf(ApiUserGroup.ADMINS)
+                            ApiProductRole.ADMIN
                         ),
-                        ApiUserWithGroups(
+                        ApiUserWithProductRole(
                             ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
-                            listOf(ApiUserGroup.READERS)
+                            ApiProductRole.READER
                         )
                     ),
                     PagingData(
@@ -2013,7 +2012,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse<ApiUserWithGroups>(
+                response shouldHaveBody PagedResponse<ApiUserWithProductRole>(
                     emptyList(),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -2048,9 +2047,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        ApiUserWithGroups(
+                        ApiUserWithProductRole(
                             ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
-                            listOf(ApiUserGroup.READERS)
+                            ApiProductRole.READER
                         )
                     ),
                     PagingData(

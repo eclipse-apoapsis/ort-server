@@ -32,12 +32,15 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithProductRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole as ModelProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.ortServerPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
@@ -50,8 +53,8 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateSer
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
-import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
-import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
+import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.mapToApi
+import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProduct
@@ -529,10 +532,15 @@ fun Route.products() = route("products/{productId}") {
             val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
             val users = authorizationService.listUsers(call.ortServerPrincipal.effectiveRole.elementId)
-                .mapToApi(userService) { it.assignedAt.level == HierarchyLevel.PRODUCT }
+                .mapToApi(userService, { it.assignedAt.level == HierarchyLevel.PRODUCT }) { user, role ->
+                    UserWithProductRole(user, (role as ModelProductRole).mapToApi())
+                }
 
             call.respond(
-                PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
+                PagedResponse(
+                    users.sortAndPage(pagingOptions, { it.user }, { it.role }),
+                    pagingOptions.toPagingData(users.size.toLong())
+                )
             )
         }
     }

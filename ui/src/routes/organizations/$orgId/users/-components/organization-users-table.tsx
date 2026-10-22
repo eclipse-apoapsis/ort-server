@@ -27,7 +27,6 @@ import {
   deleteOrganizationRoleFromUser,
   putOrganizationRoleToUser,
 } from '@/api/sdk.gen';
-import { mapUserGroupToOrganizationRole } from '@/helpers/role-helpers.ts';
 import { UsersTable } from '@/routes/organizations/$orgId/-components/users-table';
 
 const routeApi = getRouteApi('/organizations/$orgId/users');
@@ -43,7 +42,6 @@ export const OrganizationUsersTable = () => {
         getOrganizationUsersOptions({ path: { organizationId }, query })
       }
       usersQueryKey={getOrganizationUsersQueryKey({ path: { organizationId } })}
-      mapGroupToRole={mapUserGroupToOrganizationRole}
       assignRole={(username, role) =>
         putOrganizationRoleToUser({
           path: { organizationId, role },

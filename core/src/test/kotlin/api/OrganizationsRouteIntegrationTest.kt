@@ -60,8 +60,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
-import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithOrganizationRole as ApiUserWithOrganizationRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -2180,13 +2179,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        ApiUserWithGroups(
+                        ApiUserWithOrganizationRole(
                             ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),
-                            listOf(ApiUserGroup.ADMINS)
+                            ApiOrganizationRole.ADMIN
                         ),
-                        ApiUserWithGroups(
+                        ApiUserWithOrganizationRole(
                             ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
-                            listOf(ApiUserGroup.READERS)
+                            ApiOrganizationRole.READER
                         )
                     ),
                     PagingData(
@@ -2220,9 +2219,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        ApiUserWithGroups(
+                        ApiUserWithOrganizationRole(
                             ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
-                            listOf(ApiUserGroup.READERS)
+                            ApiOrganizationRole.READER
                         )
                     ),
                     PagingData(
@@ -2242,7 +2241,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/organizations/$orgId/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse<ApiUserWithGroups>(
+                response shouldHaveBody PagedResponse<ApiUserWithOrganizationRole>(
                     emptyList(),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -2281,9 +2280,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        ApiUserWithGroups(
+                        ApiUserWithOrganizationRole(
                             ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),
-                            listOf(ApiUserGroup.WRITERS)
+                            ApiOrganizationRole.WRITER
                         )
                     ),
                     PagingData(
