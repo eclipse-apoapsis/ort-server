@@ -93,6 +93,10 @@ fun Route.admin() = route("admin") {
 
         delete(deleteUser, requireSuperuser()) {
             val username = call.requireParameter("username")
+
+            runCatching { userService.getUserById(username) }
+                .getOrElse { return@delete call.respond(HttpStatusCode.NotFound) }
+
             userService.deleteUser(username)
 
             call.respond(HttpStatusCode.NoContent)
