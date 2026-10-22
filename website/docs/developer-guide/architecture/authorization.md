@@ -35,7 +35,7 @@ Permissions are defined separately for each hierarchy level.
 | `READ`                   | Read the organization details.                              |
 | `WRITE`                  | Change the organization details.                            |
 | `WRITE_SECRETS`          | Manage the secrets of the organization.                     |
-| `MANAGE_GROUPS`          | Assign roles on the organization.                           |
+| `MANAGE_ROLES`           | Assign roles on the organization.                           |
 | `MANAGE_DEFAULT_PLUGINS` | Manage the plugins enabled by default for the organization. |
 | `READ_PRODUCTS`          | List the products of the organization.                      |
 | `CREATE_PRODUCT`         | Create products in the organization.                        |
@@ -48,7 +48,7 @@ Permissions are defined separately for each hierarchy level.
 | `READ`              | Read the product details.                             |
 | `WRITE`             | Change the product details.                           |
 | `WRITE_SECRETS`     | Manage the secrets of the product.                    |
-| `MANAGE_GROUPS`     | Assign roles on the product.                          |
+| `MANAGE_ROLES`      | Assign roles on the product.                          |
 | `READ_REPOSITORIES` | List the repositories of the product.                 |
 | `CREATE_REPOSITORY` | Create repositories in the product.                   |
 | `TRIGGER_ORT_RUN`   | Trigger ORT runs for the repositories of the product. |
@@ -61,7 +61,7 @@ Permissions are defined separately for each hierarchy level.
 | `READ`               | Read the repository details.                  |
 | `WRITE`              | Change the repository details.                |
 | `WRITE_SECRETS`      | Manage the secrets of the repository.         |
-| `MANAGE_GROUPS`      | Assign roles on the repository.               |
+| `MANAGE_ROLES`       | Assign roles on the repository.               |
 | `MANAGE_RESOLUTIONS` | Manage the resolutions of the repository.     |
 | `READ_ORT_RUNS`      | Read the ORT runs of the repository.          |
 | `TRIGGER_ORT_RUN`    | Trigger ORT runs for the repository.          |
@@ -77,7 +77,7 @@ Each role grants a fixed set of permissions:
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `READER` | Read access: `READ` and the permission to list child elements or ORT runs.                                                                             |
 | `WRITER` | All `READER` permissions, plus `WRITE`, `WRITE_SECRETS`, creating child elements, and triggering ORT runs. On repositories, also `MANAGE_RESOLUTIONS`. |
-| `ADMIN`  | All permissions, including `MANAGE_GROUPS`, `MANAGE_DEFAULT_PLUGINS`, and `DELETE`.                                                                    |
+| `ADMIN`  | All permissions, including `MANAGE_ROLES`, `MANAGE_DEFAULT_PLUGINS`, and `DELETE`.                                                                     |
 
 A user can have at most one role on each hierarchy element.
 Assigning a new role on an element replaces the previous one.
@@ -206,12 +206,12 @@ The following role assignments are created automatically:
 
 The REST API provides the following endpoints to manage roles, relative to the base path `/api/v1`:
 
-| Endpoint                                                       | Required permission          |
-| -------------------------------------------------------------- | ---------------------------- |
-| `PUT`, `DELETE` `/organizations/{organizationId}/roles/{role}` | Organization `MANAGE_GROUPS` |
-| `PUT`, `DELETE` `/products/{productId}/roles/{role}`           | Product `MANAGE_GROUPS`      |
-| `PUT`, `DELETE` `/repositories/{repositoryId}/roles/{role}`    | Repository `MANAGE_GROUPS`   |
-| `PUT`, `DELETE` `/admin/users/{username}/superuser`            | Superuser                    |
+| Endpoint                                                       | Required permission         |
+| -------------------------------------------------------------- | --------------------------- |
+| `PUT`, `DELETE` `/organizations/{organizationId}/roles/{role}` | Organization `MANAGE_ROLES` |
+| `PUT`, `DELETE` `/products/{productId}/roles/{role}`           | Product `MANAGE_ROLES`      |
+| `PUT`, `DELETE` `/repositories/{repositoryId}/roles/{role}`    | Repository `MANAGE_ROLES`   |
+| `PUT`, `DELETE` `/admin/users/{username}/superuser`            | Superuser                   |
 
 ### Exposing Permissions to the UI
 

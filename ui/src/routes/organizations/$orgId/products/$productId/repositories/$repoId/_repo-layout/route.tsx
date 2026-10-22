@@ -70,7 +70,7 @@ const RepoLayout = () => {
           title: 'Users',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
           icon: () => <User className='h-4 w-4' />,
-          visible: repositoryPermissions?.includes('MANAGE_GROUPS'),
+          visible: repositoryPermissions?.includes('MANAGE_ROLES'),
         },
         {
           title: 'Settings',

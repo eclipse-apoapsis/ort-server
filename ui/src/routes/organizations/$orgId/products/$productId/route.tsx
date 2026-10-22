@@ -98,7 +98,7 @@ const Layout = () => {
           title: 'Users',
           to: '/organizations/$orgId/products/$productId/users',
           icon: () => <User className='h-4 w-4' />,
-          visible: productPermissions?.includes('MANAGE_GROUPS'),
+          visible: productPermissions?.includes('MANAGE_ROLES'),
         },
         {
           title: 'Settings',

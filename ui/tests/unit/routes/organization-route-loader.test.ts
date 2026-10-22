@@ -77,7 +77,7 @@ describe('/organizations/$orgId layout loader', () => {
 
     expect(context.breadcrumbs.organization).toBe('Acme');
     expect(context.permissions.organization?.includes('WRITE')).toBe(true);
-    expect(context.permissions.organization?.includes('MANAGE_GROUPS')).toBe(
+    expect(context.permissions.organization?.includes('MANAGE_ROLES')).toBe(
       false
     );
   });
