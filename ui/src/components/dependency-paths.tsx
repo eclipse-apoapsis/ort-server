@@ -17,25 +17,41 @@
  * License-Filename: LICENSE
  */
 
+import { Link } from '@tanstack/react-router';
 import { MoveRight } from 'lucide-react';
 
 import { Package, ShortestDependencyPath } from '@/api';
 import {
+  getExactPackageLinkSearch,
   identifierToPurl,
   identifierToString,
 } from '@/helpers/identifier-conversion.ts';
 import { cn } from '@/lib/utils';
 import { PackageIdType, packageIdTypeSchema } from '@/schemas';
 
+type RunParams = {
+  orgId: string;
+  productId: string;
+  repoId: string;
+  runIndex: string;
+};
+
 type DependencyPathsProps = {
   pkg: Package;
   pkgIdType?: PackageIdType;
+  params: RunParams;
   className?: string;
 };
 
+const linkClassName = 'text-left text-blue-400 hover:underline';
+
+// Shows the shortest paths from the projects of a run to a package. The
+// project and the packages on the way link to their rows in the projects and
+// packages tables of the run.
 export const DependencyPaths = ({
   pkg,
   pkgIdType,
+  params,
   className,
 }: DependencyPathsProps) => {
   return (
@@ -46,6 +62,7 @@ export const DependencyPaths = ({
             shortestPath={path}
             pkg={pkg}
             pkgIdType={pkgIdType}
+            params={params}
             className='ml-2'
           />
         </div>
@@ -58,27 +75,47 @@ const DependencyPath = ({
   shortestPath,
   pkg,
   pkgIdType,
+  params,
   className,
 }: {
   shortestPath: ShortestDependencyPath;
   pkg: Package;
   pkgIdType?: PackageIdType;
+  params: RunParams;
   className: string;
 }) => {
+  const projectId = identifierToString(shortestPath.projectIdentifier);
+
   return (
     <div className={cn('flex flex-wrap gap-x-2 align-middle', className)}>
-      <div>{identifierToString(shortestPath.projectIdentifier)}</div>
+      <Link
+        className={linkClassName}
+        to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects'
+        params={params}
+        search={{
+          projectId,
+          projectIdMatchType: 'exact',
+          marked: projectId,
+        }}
+      >
+        {projectId}
+      </Link>
       <div className='text-muted-foreground'>
         (scope '{shortestPath.scope}')
       </div>
       {shortestPath.path.map((path, index) => (
         <div className='flex flex-wrap gap-x-2 align-middle' key={index}>
           <MoveRight size={20} />
-          <div>
+          <Link
+            className={linkClassName}
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+            params={params}
+            search={getExactPackageLinkSearch(path)}
+          >
             {pkgIdType === packageIdTypeSchema.enum.ORT_ID
               ? identifierToString(path)
               : identifierToPurl(path)}
-          </div>
+          </Link>
         </div>
       ))}
       <div className='flex flex-wrap gap-x-2 align-middle'>
