@@ -29,7 +29,7 @@ function RepositoryUsersGuard() {
   return (
     <RequireRepositoryPermission
       repositoryId={Number.parseInt(repoId)}
-      permission='MANAGE_GROUPS'
+      permission='MANAGE_ROLES'
     >
       <Outlet />
     </RequireRepositoryPermission>

@@ -29,7 +29,7 @@ function ProductUsersGuard() {
   return (
     <RequireProductPermission
       productId={Number.parseInt(productId)}
-      permission='MANAGE_GROUPS'
+      permission='MANAGE_ROLES'
     >
       <Outlet />
     </RequireProductPermission>

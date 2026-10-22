@@ -29,7 +29,7 @@ function OrganizationUsersGuard() {
   return (
     <RequireOrganizationPermission
       organizationId={Number.parseInt(orgId)}
-      permission='MANAGE_GROUPS'
+      permission='MANAGE_ROLES'
     >
       <Outlet />
     </RequireOrganizationPermission>
