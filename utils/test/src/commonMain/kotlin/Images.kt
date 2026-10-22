@@ -30,5 +30,5 @@ object Images {
     const val KEYCLOAK = "quay.io/keycloak/keycloak:26.8.1"
     const val POSTGRES = "postgres:18.6"
     const val RABBITMQ = "rabbitmq:4.4.0"
-    const val VAULT = "hashicorp/vault:2.2.0"
+    const val VAULT = "hashicorp/vault:2.2.1"
 }
