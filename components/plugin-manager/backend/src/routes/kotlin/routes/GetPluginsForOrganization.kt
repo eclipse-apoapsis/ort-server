@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.handleTemplateRes
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 internal fun Route.getPluginsForOrganization(
@@ -61,47 +62,49 @@ internal fun Route.getPluginsForOrganization(
         HttpStatusCode.OK to {
             description = "A list of plugins available for the organization."
 
-            body<List<PreconfiguredPluginDescriptor>> {
-                listOf(
-                    PreconfiguredPluginDescriptor(
-                        id = "VulnerableCode",
-                        type = PluginType.ADVISOR,
-                        displayName = "VulnerableCode",
-                        summary = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
-                        description = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
-                        options = listOf(
-                            PreconfiguredPluginOption(
-                                name = "serverUrl",
-                                description = "The base URL of the VulnerableCode REST API.",
-                                type = PluginOptionType.STRING,
-                                enumEntries = null,
-                                defaultValue = "https://public.vulnerablecode.io/api/",
-                                isFixed = true,
-                                isNullable = false,
-                                isRequired = false
+            jsonBody<List<PreconfiguredPluginDescriptor>> {
+                example("Get plugins for an organization") {
+                    value = listOf(
+                        PreconfiguredPluginDescriptor(
+                            id = "VulnerableCode",
+                            type = PluginType.ADVISOR,
+                            displayName = "VulnerableCode",
+                            summary = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
+                            description = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
+                            options = listOf(
+                                PreconfiguredPluginOption(
+                                    name = "serverUrl",
+                                    description = "The base URL of the VulnerableCode REST API.",
+                                    type = PluginOptionType.STRING,
+                                    enumEntries = null,
+                                    defaultValue = "https://public.vulnerablecode.io/api/",
+                                    isFixed = true,
+                                    isNullable = false,
+                                    isRequired = false
+                                )
                             )
-                        )
-                    ),
-                    PreconfiguredPluginDescriptor(
-                        id = "NPM",
-                        type = PluginType.PACKAGE_MANAGER,
-                        displayName = "NPM",
-                        summary = "The Node package manager for Node.js.",
-                        description = "The Node package manager for Node.js.",
-                        options = listOf(
-                            PreconfiguredPluginOption(
-                                name = "legacyPeerDeps",
-                                description = "If true, the '--legacy-peer-deps' flag is passed to NPM.",
-                                type = PluginOptionType.BOOLEAN,
-                                enumEntries = null,
-                                defaultValue = "false",
-                                isFixed = false,
-                                isNullable = false,
-                                isRequired = false
+                        ),
+                        PreconfiguredPluginDescriptor(
+                            id = "NPM",
+                            type = PluginType.PACKAGE_MANAGER,
+                            displayName = "NPM",
+                            summary = "The Node package manager for Node.js.",
+                            description = "The Node package manager for Node.js.",
+                            options = listOf(
+                                PreconfiguredPluginOption(
+                                    name = "legacyPeerDeps",
+                                    description = "If true, the '--legacy-peer-deps' flag is passed to NPM.",
+                                    type = PluginOptionType.BOOLEAN,
+                                    enumEntries = null,
+                                    defaultValue = "false",
+                                    isFixed = false,
+                                    isNullable = false,
+                                    isRequired = false
+                                )
                             )
                         )
                     )
-                )
+                }
             }
         }
 
