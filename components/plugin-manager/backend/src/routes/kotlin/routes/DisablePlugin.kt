@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
@@ -41,7 +42,7 @@ internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plu
     tags = listOf("Plugins")
 
     request {
-        pathParameter<String>("pluginType") {
+        pathParameter<PluginType>("pluginType") {
             description = "The type of the plugin to disable."
             required = true
         }
@@ -64,9 +65,13 @@ internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plu
         HttpStatusCode.NotModified to {
             description = "The plugin is already disabled."
         }
+
+        HttpStatusCode.BadRequest to {
+            description = "The plugin type is invalid."
+        }
     }
 }, requireSuperuser()) {
-    val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
+    val pluginType = call.requireEnumParameter<PluginType>("pluginType")
     val pluginId = normalizePluginId(pluginType, call.requireParameter("pluginId"))
 
     if (pluginId == null) {

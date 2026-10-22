@@ -53,6 +53,14 @@ class DisablePluginIntegrationTest : PluginManagerIntegrationTest({
             }
         }
 
+        "return BadRequest if the plugin type is invalid" {
+            pluginManagerTestApplication { client ->
+                val pluginId = VulnerableCodeFactory.descriptor.id
+
+                client.post("/admin/plugins/UNKNOWN/$pluginId/disable") shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
         "return NotModified if the plugin was already disabled" {
             pluginManagerTestApplication { client ->
                 val pluginType = PluginType.ADVISOR

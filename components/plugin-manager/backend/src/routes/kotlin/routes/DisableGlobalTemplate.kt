@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSup
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.handleTemplateResult
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.disableGlobalTemplate(
@@ -42,7 +43,7 @@ internal fun Route.disableGlobalTemplate(
     tags = listOf("Plugins")
 
     request {
-        pathParameter<String>("pluginType") {
+        pathParameter<PluginType>("pluginType") {
             description = "The type of the plugin this template is for."
             required = true
         }
@@ -70,7 +71,8 @@ internal fun Route.disableGlobalTemplate(
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed or the template could not be disabled."
+            description = "The specified plugin is not installed or the template could not be disabled. An invalid " +
+                    "plugin type also results in this status."
         }
 
         HttpStatusCode.NotFound to {
@@ -79,7 +81,7 @@ internal fun Route.disableGlobalTemplate(
     }
 }, requireSuperuser()) {
     val userId = requirePrincipal().userId
-    val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
+    val pluginType = call.requireEnumParameter<PluginType>("pluginType")
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
 

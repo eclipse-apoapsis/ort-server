@@ -129,7 +129,10 @@ const template: PluginTemplate = {
   options: storedOptions,
 };
 
-const pluginPath = { pluginType: 'ADVISOR', pluginId: 'VulnerableCode' };
+const pluginPath = {
+  pluginType: 'ADVISOR' as const,
+  pluginId: 'VulnerableCode',
+};
 const templatesKey = getPluginTemplatesQueryKey({ path: pluginPath });
 
 // The page the pages navigate to, which the tests only need to exist.

@@ -34,6 +34,7 @@ import {
   getPluginTemplatesQueryKey,
   removeTemplateFromOrganizationMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { zPluginType } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
@@ -501,6 +502,12 @@ const PluginTemplatesComponent = () => {
 };
 
 export const Route = createFileRoute('/admin/plugins/$pluginType/$pluginId/')({
+  params: {
+    parse: (params) => ({
+      ...params,
+      pluginType: zPluginType.parse(params.pluginType),
+    }),
+  },
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
       ...getPluginTemplatesOptions({
