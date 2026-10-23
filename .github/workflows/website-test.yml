@@ -30,3 +30,7 @@ jobs:
     - name: Test build
       working-directory: website
       run: pnpm build
+
+    - name: Type check
+      working-directory: website
+      run: pnpm typecheck
