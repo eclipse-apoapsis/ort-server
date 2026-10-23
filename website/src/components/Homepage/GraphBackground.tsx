@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type JSX } from 'react';
 
 import styles from './GraphBackground.module.css';
 

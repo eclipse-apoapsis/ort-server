@@ -1,6 +1,6 @@
 import Heading from '@theme/Heading';
 import clsx from 'clsx';
-import { Fragment } from 'react';
+import { Fragment, type JSX } from 'react';
 
 import Icon, { type IconName } from './Icon';
 import styles from './Pipeline.module.css';

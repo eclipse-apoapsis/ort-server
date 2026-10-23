@@ -2,6 +2,7 @@ import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import Heading from '@theme/Heading';
 import clsx from 'clsx';
+import type { JSX } from 'react';
 
 import GraphBackground from './GraphBackground';
 import styles from './Hero.module.css';

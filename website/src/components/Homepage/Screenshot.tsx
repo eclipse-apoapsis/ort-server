@@ -1,7 +1,7 @@
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import ThemedImage from '@theme/ThemedImage';
 import clsx from 'clsx';
-import { useRef, type MouseEvent, type SyntheticEvent } from 'react';
+import { useRef, type JSX, type MouseEvent, type SyntheticEvent } from 'react';
 
 import Icon from './Icon';
 import styles from './Screenshot.module.css';

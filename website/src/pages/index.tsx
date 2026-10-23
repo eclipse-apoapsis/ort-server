@@ -7,6 +7,7 @@ import Pipeline from '@site/src/components/Homepage/Pipeline';
 import Platform from '@site/src/components/Homepage/Platform';
 import ProductTour from '@site/src/components/Homepage/ProductTour';
 import Layout from '@theme/Layout';
+import type { JSX } from 'react';
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
