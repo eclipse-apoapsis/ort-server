@@ -1,5 +1,6 @@
 import Link from '@docusaurus/Link';
 import clsx from 'clsx';
+import type { JSX } from 'react';
 
 import styles from './CallToAction.module.css';
 import GraphBackground from './GraphBackground';

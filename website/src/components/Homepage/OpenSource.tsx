@@ -2,6 +2,7 @@ import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import Heading from '@theme/Heading';
 import clsx from 'clsx';
+import type { JSX } from 'react';
 
 import Icon from './Icon';
 import styles from './OpenSource.module.css';

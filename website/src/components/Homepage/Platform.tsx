@@ -1,6 +1,7 @@
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import Heading from '@theme/Heading';
 import clsx from 'clsx';
+import type { JSX } from 'react';
 
 import Icon, { type IconName } from './Icon';
 import styles from './Platform.module.css';

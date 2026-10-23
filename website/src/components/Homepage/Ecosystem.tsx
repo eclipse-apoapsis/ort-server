@@ -1,6 +1,7 @@
 import Link from '@docusaurus/Link';
 import Heading from '@theme/Heading';
 import clsx from 'clsx';
+import type { JSX } from 'react';
 
 import styles from './Ecosystem.module.css';
 import Icon, { type IconName } from './Icon';

@@ -1,3 +1,5 @@
+import type { JSX } from 'react';
+
 import { carbonIcons } from './carbonIcons';
 
 export type IconName = keyof typeof carbonIcons;

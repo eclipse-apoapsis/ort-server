@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useRef, useState, type JSX, type KeyboardEvent } from 'react';
 
 import Icon, { type IconName } from './Icon';
 import styles from './ProductTour.module.css';
