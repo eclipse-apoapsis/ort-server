@@ -74,6 +74,7 @@ RUN --mount=type=cache,target=/var/cache,sharing=locked \
     && sudo apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     ca-certificates \
+    cmake \
     coreutils \
     curl \
     dirmngr \
