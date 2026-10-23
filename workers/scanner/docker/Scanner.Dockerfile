@@ -61,7 +61,7 @@ ARG LICENSEE_VERSION=10.1.0
 # renovate: datasource=github-releases depName=getprovenant/provenant extractVersion=^v(?<version>.*)$
 ARG PROVENANT_VERSION=1.0.15
 # renovate: datasource=ruby-version depName=ruby
-ARG RUBY_VERSION=4.0.8
+ARG RUBY_VERSION=4.0.9
 # renovate: datasource=pypi depName=scancode-toolkit
 ARG SCANCODE_VERSION=32.5.0
 
