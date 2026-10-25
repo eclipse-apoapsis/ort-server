@@ -49,8 +49,15 @@ This information is required by some storage products, for instance by Azure Sto
 Since the size of the data cannot be obtained easily from the passed in stream, it has to be provided explicitly.
 
 The interface defines further operations to remove an entry from the storage and to check whether an entry with a given key exists.
-For the time being, there is no operation to list all existing keys.
 The expectation is that each use case implemented with a storage defines a specific convention how to construct keys and how they are supposed to be interpreted.
+
+With the `list()` operation, the entries of a storage whose keys start with a given prefix can be enumerated.
+It returns metadata about the entries, such as their keys, sizes, and modification times, without reading their data.
+This can be used for administrative purposes, for instance to find and delete entries that are no longer needed.
+Note that listing a storage can be expensive, depending on the implementation and the number of entries.
+
+Since a listing returns all entries visible to the storage implementation, different use cases should not share the same storage location.
+For example, use a dedicated namespace for the database implementation, a dedicated bucket or key prefix for S3, and a dedicated container for Azure Blob Storage.
 
 There are a few further assumptions taken by the abstraction layer implementation to simplify concrete implementations of the `StorageProvider` interface:
 

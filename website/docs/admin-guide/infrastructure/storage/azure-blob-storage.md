@@ -26,6 +26,9 @@ This option is mutually exclusive with `azureBlobStorageAccountName`.
 The name of the container to use for storing the blobs.
 The container must exist before the storage provider is used.
 
+As this implementation does not support a key prefix, use a dedicated container for each storage.
+Otherwise, listing one storage also returns the entries of the other storages.
+
 ## Authentication
 
 This storage implementation uses the official Azure SDK for Java.
@@ -33,3 +36,6 @@ The SDK supports multiple authentication methods and automatically detects which
 See the [documentation](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme?view=azure-java-stable#credential-classes) for supported authentication methods.
 
 When deploying ORT Server to [Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/), the recommended way is to use [workload identities](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview).
+
+The identity used to access the storage account requires permissions to read, write, delete, and list blobs in the container.
+The built-in [Storage Blob Data Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/storage#storage-blob-data-contributor) role grants all of these permissions.
