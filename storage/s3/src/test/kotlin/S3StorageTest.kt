@@ -39,10 +39,18 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.testcontainers.TestContainerSpecExtension
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.mockk
+
+import kotlinx.coroutines.flow.toList
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.storage.Key
@@ -271,6 +279,53 @@ class S3StorageTest : WordSpec({
 
             storage.delete(key) shouldBe true
             storage.containsKey(key) shouldBe false
+        }
+    }
+
+    "list" should {
+        "return information about the objects with the given prefix" {
+            val storage = floci.createStorage()
+            storage.write(Key("dir|entry1"), "data1", "text/plain")
+            storage.write(Key("dir|entry2"), "more data")
+            storage.write(Key("other|entry3"), "other data")
+
+            val entries = storage.list("dir|").toList()
+
+            entries.map { it.key to it.length } should containExactlyInAnyOrder(
+                Key("dir|entry1") to 5L,
+                Key("dir|entry2") to 9L
+            )
+            entries.forEach { it.lastModified shouldNot beNull() }
+        }
+
+        "return all objects if no prefix is provided" {
+            val storage = floci.createStorage()
+            storage.write(Key("entry1"), "data1")
+            storage.write(Key("entry2"), "data2")
+
+            storage.list().toList().map { it.key } should containExactlyInAnyOrder(Key("entry1"), Key("entry2"))
+        }
+
+        "return an empty flow if there are no matching objects" {
+            val storage = floci.createStorage()
+            storage.write(Key("entry"), "data")
+
+            storage.list("nonExisting").toList() should beEmpty()
+        }
+
+        "remove the key prefix and ignore objects without it" {
+            s3Client.putObject {
+                body = ByteStream.fromString("unrelated")
+                bucket = TEST_BUCKET_NAME
+                key = "unrelatedObject"
+            }
+
+            val storage = floci.createStorage(keyPrefix = "prefix")
+            storage.write(Key("dir|entry"), "data")
+
+            storage.list().toList().shouldBeSingleton { it.key shouldBe Key("dir|entry") }
+            storage.list("dir").toList().shouldBeSingleton { it.key shouldBe Key("dir|entry") }
+            storage.list("unrelated").toList() should beEmpty()
         }
     }
 })

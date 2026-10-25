@@ -23,7 +23,10 @@ import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.deleteObject
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.HeadObjectRequest
+import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
+import aws.sdk.kotlin.services.s3.model.Object
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
+import aws.sdk.kotlin.services.s3.paginators.listObjectsV2Paginated
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToFile
@@ -36,9 +39,14 @@ import kotlin.io.encoding.Base64
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
+import kotlin.time.Instant
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
+import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
 import org.ossreviewtoolkit.utils.common.calculateHash
@@ -116,9 +124,46 @@ class S3StorageProvider(
         false
     }
 
+    /**
+     * List the objects in the S3 bucket whose keys start with the given [prefix]. If a key prefix is configured, it is
+     * removed from the returned keys, and objects without this prefix are ignored.
+     */
+    override fun list(prefix: String): Flow<StorageEntryInfo> = flow {
+        val request = ListObjectsV2Request {
+            bucket = bucketName
+            this.prefix = prefixKey(Key(prefix))
+        }
+
+        s3Client.listObjectsV2Paginated(request).collect { response ->
+            response.contents.orEmpty().forEach { obj ->
+                obj.toStorageEntryInfo()?.let { emit(it) }
+            }
+        }
+    }
+
     private fun prefixKey(key: Key) = when {
         keyPrefix != null -> "$keyPrefix|${key.key}"
         else -> key.key
+    }
+
+    /**
+     * Convert this [Object] to a [StorageEntryInfo]. Return *null* if the key of the object does not have the
+     * configured key prefix.
+     */
+    private fun Object.toStorageEntryInfo(): StorageEntryInfo? =
+        key?.let(::unprefixKey)?.let { unprefixedKey ->
+            StorageEntryInfo(
+                key = Key(unprefixedKey),
+                length = size ?: 0L,
+                contentType = null,
+                lastModified = lastModified?.let { Instant.fromEpochSeconds(it.epochSeconds, it.nanosecondsOfSecond) }
+            )
+        }
+
+    /** Remove the configured key prefix from the given [key]. Return *null* if the key does not have this prefix. */
+    private fun unprefixKey(key: String): String? = when {
+        keyPrefix != null -> key.removePrefix("$keyPrefix|").takeIf { it.length < key.length }
+        else -> key
     }
 }
 
