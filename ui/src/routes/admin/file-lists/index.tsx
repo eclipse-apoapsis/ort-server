@@ -22,8 +22,10 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   getFileListsOptions,
   getFileListsQueryKey,
+  getFileListStatisticsOptions,
+  getFileListStatisticsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
-import { deleteFileList } from '@/api/sdk.gen';
+import { deleteFileList, getFileListStatistics } from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   loadProvenanceFiles,
@@ -34,7 +36,8 @@ import {
 import { adminProvenanceFilesSearchParameterSchema } from '@/schemas';
 
 const fileListsConfig: ProvenanceFilesConfig<
-  ReturnType<typeof getFileListsQueryKey>
+  ReturnType<typeof getFileListsQueryKey>,
+  ReturnType<typeof getFileListStatisticsQueryKey>
 > = {
   title: 'File Lists',
   description:
@@ -44,6 +47,12 @@ const fileListsConfig: ProvenanceFilesConfig<
   filesQueryOptions: (query) => getFileListsOptions({ query }),
   filesQueryKey: getFileListsQueryKey(),
   deleteFile: (id) => deleteFileList({ path: { id }, throwOnError: true }),
+  statisticsQueryOptions: () => getFileListStatisticsOptions(),
+  refreshStatistics: () =>
+    getFileListStatistics({
+      query: { refresh: true },
+      throwOnError: true,
+    }).then(({ data }) => data),
 };
 
 const FileListsComponent = () => (
