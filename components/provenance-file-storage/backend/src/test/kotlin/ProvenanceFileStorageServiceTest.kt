@@ -184,6 +184,21 @@ class ProvenanceFileStorageServiceTest : WordSpec({
         }
     }
 
+    "statistics" should {
+        "compute the statistics for all files of the requested type" {
+            val (archiveStorage, _) = createFakeStorage(repoA, repoB)
+            val (listStorage, _) = createFakeStorage(artifact)
+            val now = Instant.fromEpochSeconds(5000)
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage, FixedClock(now))
+
+            val statistics = service.statistics(ProvenanceFileType.FILE_ARCHIVE)
+
+            statistics.snapshotTime shouldBe now
+            statistics.totalCount shouldBe 2
+            statistics.totalSizeInBytes shouldBe 400
+        }
+    }
+
     "delete" should {
         "delete an existing file" {
             val (archiveStorage, archiveProvider) = createFakeStorage(repoA, repoB)

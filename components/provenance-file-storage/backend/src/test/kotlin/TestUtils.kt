@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.provenancefilestorage
 
 import java.io.InputStream
 
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 import kotlinx.coroutines.flow.Flow
@@ -78,3 +79,8 @@ internal fun artifactEntry(url: String, hash: String, size: Long, lastModified: 
         contentType = null,
         lastModified = lastModified
     )
+
+/** A [Clock] that always returns the given [now] time. */
+internal class FixedClock(var now: Instant) : Clock {
+    override fun now(): Instant = now
+}
