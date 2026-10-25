@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services.ortrun
+package org.eclipse.apoapsis.ortserver.components.provenancefilestorage
 
 import com.typesafe.config.ConfigFactory
 

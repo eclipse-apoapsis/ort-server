@@ -17,22 +17,18 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services.ortrun
+package org.eclipse.apoapsis.ortserver.components.provenancefilestorage
 
 import java.io.InputStream
 
-import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
-import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.KnownProvenance
-import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.utils.ProvenanceFileStorage
-import org.ossreviewtoolkit.scanner.Scanner
 
 /**
  * An implementation of [ProvenanceFileStorage] which is used to store file lists as binary data using the provided
- * [storage]. This class is internally used by the [Scanner].
+ * [storage]. This class is internally used by the ORT scanner.
  */
 class OrtServerFileListStorage(
     /** The underlying [Storage] for persisting file lists. */
@@ -44,26 +40,17 @@ class OrtServerFileListStorage(
 
         /** The content type used when writing data to the [storage]. */
         private const val CONTENT_TYPE = "application/octet-stream"
-
-        /** Generate the storage [Key] for the given [provenance]. */
-        private fun generateKey(provenance: KnownProvenance): Key =
-            with(provenance) {
-                when (this) {
-                    is ArtifactProvenance -> Key("source-artifact|${sourceArtifact.url}|${sourceArtifact.hash}")
-                    is RepositoryProvenance -> Key("vcs|${vcsInfo.type}|${vcsInfo.url}|$resolvedRevision")
-                }
-            }
     }
 
     override suspend fun getData(provenance: KnownProvenance): InputStream? {
-        val key = generateKey(provenance)
+        val key = provenance.toStorageKey()
         return if (storage.containsKey(key)) storage.read(key).data else null
     }
 
     override suspend fun hasData(provenance: KnownProvenance): Boolean =
-        storage.containsKey(generateKey(provenance))
+        storage.containsKey(provenance.toStorageKey())
 
     override suspend fun putData(provenance: KnownProvenance, data: InputStream, size: Long) {
-        storage.write(generateKey(provenance), data, size, CONTENT_TYPE)
+        storage.write(provenance.toStorageKey(), data, size, CONTENT_TYPE)
     }
 }

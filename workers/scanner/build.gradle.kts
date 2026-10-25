@@ -36,6 +36,7 @@ group = "org.eclipse.apoapsis.ortserver.workers"
 dependencies {
     implementation(projects.components.adminConfig.adminConfigBackend)
     implementation(projects.components.authorization.authorizationBackend)
+    implementation(projects.components.provenanceFileStorage.provenanceFileStorageBackend)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
