@@ -41,7 +41,6 @@ dependencies {
     api(projects.model)
     api(projects.secrets.secretsSpi)
     api(projects.shared.authenticator)
-    api(projects.storage.storageSpi)
     api(projects.transport.transportSpi)
     api(projects.utils.logging)
 
@@ -52,6 +51,7 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.services.ortRunService)
     implementation(projects.shared.coroutines)
+    implementation(projects.storage.storageSpi)
     implementation(projects.utils.config)
 
     implementation(libs.kaml)
@@ -66,7 +66,6 @@ dependencies {
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))
-    testImplementation(testFixtures(projects.storage.storageSpi))
 
     testImplementation(libs.jsonSchemaValidator)
     testImplementation(libs.koin.test)
