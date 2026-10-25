@@ -23,7 +23,12 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.longs.shouldBeLessThan
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import java.sql.Connection
@@ -31,6 +36,8 @@ import java.sql.SQLException
 
 import kotlin.math.abs
 import kotlin.time.Clock
+
+import kotlinx.coroutines.flow.toList
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -196,6 +203,52 @@ class DatabaseStorageTest : WordSpec({
                     manager.open(oid)
                 }
             }
+        }
+    }
+
+    "list" should {
+        "return information about the entries with the given prefix" {
+            val storage = createStorage(dbExtension.db)
+            storage.write(Key("dir|entry1"), "data1", "text/plain")
+            storage.write(Key("dir|entry2"), "more data")
+            storage.write(Key("other|entry3"), "other data")
+
+            val entries = storage.list("dir|").toList()
+
+            entries.map { Triple(it.key, it.length, it.contentType) } should containExactlyInAnyOrder(
+                Triple(Key("dir|entry1"), 5L, "text/plain"),
+                Triple(Key("dir|entry2"), 9L, null)
+            )
+
+            entries.forEach { entry ->
+                val lastModified = entry.lastModified.shouldNotBeNull()
+                abs((Clock.System.now() - lastModified).inWholeMilliseconds) shouldBeLessThan 3000
+            }
+        }
+
+        "return all entries if no prefix is provided" {
+            val storage = createStorage(dbExtension.db)
+            storage.write(Key("entry1"), "data1")
+            storage.write(Key("entry2"), "data2")
+
+            storage.list().toList().map { it.key } should containExactlyInAnyOrder(Key("entry1"), Key("entry2"))
+        }
+
+        "treat wildcard characters in the prefix literally" {
+            val storage = createStorage(dbExtension.db)
+            storage.write(Key("a%_b|entry"), "data")
+            storage.write(Key("axyb|entry"), "data")
+
+            storage.list("a%_b").toList().shouldBeSingleton { it.key shouldBe Key("a%_b|entry") }
+        }
+
+        "not return entries from other namespaces" {
+            val otherStorage = createStorage(dbExtension.db, namespace = "otherNamespace")
+            otherStorage.write(Key("otherEntry"), "data")
+
+            val storage = createStorage(dbExtension.db)
+
+            storage.list().toList() should beEmpty()
         }
     }
 })

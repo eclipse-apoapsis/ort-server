@@ -23,16 +23,25 @@ import java.io.InputStream
 
 import kotlin.time.Clock
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
+import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
+import org.jetbrains.exposed.v1.core.LikePattern
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
+import org.jetbrains.exposed.v1.jdbc.select
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by a database table using PostgreSQL's large
@@ -78,6 +87,26 @@ class DatabaseStorageProvider(
 
     override suspend fun delete(key: Key): Boolean = db.transaction {
         deleteKey(key)
+    }
+
+    override fun list(prefix: String): Flow<StorageEntryInfo> = flow {
+        val entries = db.transaction {
+            StorageTable.select(StorageTable.key, StorageTable.size, StorageTable.contentType, StorageTable.createdAt)
+                .where {
+                    (StorageTable.namespace eq namespace) and
+                            (StorageTable.key like (LikePattern.ofLiteral(prefix) + "%"))
+                }
+                .map {
+                    StorageEntryInfo(
+                        key = Key(it[StorageTable.key]),
+                        length = it[StorageTable.size],
+                        contentType = it[StorageTable.contentType],
+                        lastModified = it[StorageTable.createdAt]
+                    )
+                }
+        }
+
+        emitAll(entries.asFlow())
     }
 
     /**
