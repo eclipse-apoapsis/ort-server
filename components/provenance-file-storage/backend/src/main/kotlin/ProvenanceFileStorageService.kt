@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.provenancefilestorage
 
+import kotlin.time.Clock
+
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 
@@ -50,7 +52,10 @@ class ProvenanceFileStorageService(
     private val fileArchiveStorage: Storage,
 
     /** The storage for file lists. */
-    private val fileListStorage: Storage
+    private val fileListStorage: Storage,
+
+    /** The clock used to determine the time of a listing. */
+    private val clock: Clock = Clock.System
 ) {
     /**
      * Return the files of the given [type] whose URL, revision, hash, or key contains the given [filter] (ignoring
@@ -70,6 +75,12 @@ class ProvenanceFileStorageService(
         val page = files.sortedWith(comparator).drop(offset.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()).take(limit)
 
         return ListQueryResult(page, parameters.copy(limit = limit, offset = offset), files.size.toLong())
+    }
+
+    /** Return [ProvenanceFileStatistics] about all files of the given [type]. */
+    suspend fun statistics(type: ProvenanceFileType): ProvenanceFileStatistics {
+        val snapshotTime = clock.now()
+        return computeStatistics(loadFiles(type), snapshotTime)
     }
 
     /**
