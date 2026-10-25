@@ -26,10 +26,14 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.components.provenancefilestorage"
 
 dependencies {
+    api(projects.components.provenanceFileStorage.provenanceFileStorageApiModel)
+    api(projects.model)
     api(projects.storage.storageSpi)
 
     api(libs.koin.core)
     api(ortLibs.model)
+
+    implementation(projects.dao)
 
     testImplementation(testFixtures(projects.storage.storageSpi))
 
