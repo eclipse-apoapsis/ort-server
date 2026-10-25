@@ -28,6 +28,7 @@ group = "org.eclipse.apoapsis.ortserver.components.provenancefilestorage"
 dependencies {
     api(projects.storage.storageSpi)
 
+    api(libs.koin.core)
     api(ortLibs.model)
 
     testImplementation(testFixtures(projects.storage.storageSpi))

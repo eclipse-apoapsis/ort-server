@@ -50,6 +50,8 @@ import org.eclipse.apoapsis.ortserver.components.projections.ProjectionConfig
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionRegistry
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionService
 import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.OrtServerFileListStorage
+import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.fileListStorageQualifier
+import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.provenanceFileStorageModule
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
@@ -117,7 +119,6 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RunVulnerabilitiesProjectionBuilder
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
-import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -135,6 +136,7 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
  * integration tests, the [database][db] from the testcontainer and an [authorizationService] can be provided directly.
  */
 fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationService: AuthorizationService?) = module {
+    includes(provenanceFileStorageModule)
     includes(reportStorageModule)
 
     single { config }
@@ -192,9 +194,8 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(SecretStorage::createStorage)
 
     single {
-        val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get(), get())
         FileListResolver(
-            OrtServerFileListStorage(storage),
+            OrtServerFileListStorage(get(fileListStorageQualifier)),
             DefaultProvenanceDownloader(DownloaderConfiguration(), DefaultWorkingTreeCache())
         )
     }
