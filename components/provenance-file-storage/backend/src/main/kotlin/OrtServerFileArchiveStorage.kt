@@ -35,7 +35,7 @@ class OrtServerFileArchiveStorage(
     private val storage: Storage
 ) : ProvenanceFileStorage {
     companion object {
-        /** The storage type used for reports. */
+        /** The storage type used for file archives. */
         const val STORAGE_TYPE = "fileArchiveStorage"
 
         /** The content type used when writing data to the [storage]. */
