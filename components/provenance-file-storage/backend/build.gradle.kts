@@ -35,9 +35,21 @@ dependencies {
 
     implementation(projects.dao)
 
+    routesImplementation(projects.components.authorization.authorizationBackend)
+    routesImplementation(projects.shared.apiMappings)
+    routesImplementation(projects.shared.apiModel)
+    routesImplementation(projects.shared.ktorUtils)
+
+    routesImplementation(ktorLibs.server.core)
+    routesImplementation(libs.ktor.openApi)
+
+    testImplementation(testFixtures(projects.shared.ktorUtils))
     testImplementation(testFixtures(projects.storage.storageSpi))
 
+    testImplementation(ktorLibs.serialization.kotlinx.json)
+    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.ktor)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
     testImplementation(libs.typesafeConfig)

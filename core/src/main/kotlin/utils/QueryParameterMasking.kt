@@ -45,6 +45,7 @@ internal val LOGGED_QUERY_PARAMETERS = setOf(
     "productId",
     "purl",
     "rating",
+    "refresh",
     "repositoryId",
     "resolved",
     "returnPurl",
