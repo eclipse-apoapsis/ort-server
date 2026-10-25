@@ -45,6 +45,9 @@ internal class FakeStorageProvider(entries: Collection<StorageEntryInfo> = empty
     var listCount = 0
         private set
 
+    /** An optional exception to throw when deleting an entry, to simulate a failing storage. */
+    var deleteFailure: Exception? = null
+
     override suspend fun read(key: Key): StorageEntry = throw UnsupportedOperationException()
 
     override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
@@ -53,7 +56,10 @@ internal class FakeStorageProvider(entries: Collection<StorageEntryInfo> = empty
 
     override suspend fun contains(key: Key): Boolean = key in entries
 
-    override suspend fun delete(key: Key): Boolean = entries.remove(key) != null
+    override suspend fun delete(key: Key): Boolean {
+        deleteFailure?.let { throw it }
+        return entries.remove(key) != null
+    }
 
     override fun list(prefix: String): Flow<StorageEntryInfo> {
         listCount++

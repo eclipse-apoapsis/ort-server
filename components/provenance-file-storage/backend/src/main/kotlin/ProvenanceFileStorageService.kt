@@ -45,7 +45,8 @@ enum class ProvenanceFileType {
 /**
  * A service for managing the files that are stored per provenance, i.e. file archives and file lists. As the
  * underlying storages only support listing all entries, the complete listing is loaded and filtering, sorting, and
- * paging are done in memory.
+ * paging are done in memory. To avoid listing a storage for each request, the listings are cached for a while; see
+ * [ProvenanceFileSnapshotCache].
  */
 class ProvenanceFileStorageService(
     /** The storage for file archives. */
@@ -55,20 +56,28 @@ class ProvenanceFileStorageService(
     private val fileListStorage: Storage,
 
     /** The clock used to determine the time of a listing. */
-    private val clock: Clock = Clock.System
+    clock: Clock = Clock.System
 ) {
+    /** The caches for the listings of the storages. */
+    private val caches = ProvenanceFileType.entries.associateWith { type ->
+        ProvenanceFileSnapshotCache(clock) { loadFiles(type) }
+    }
+
     /**
      * Return the files of the given [type] whose URL, revision, hash, or key contains the given [filter] (ignoring
      * case), sorted and paged according to the given [parameters]. Supported sort fields are `url`, `sizeInBytes`,
-     * and `lastModified`.
+     * and `lastModified`. If [refresh] is *true*, the storage is listed again instead of using a cached listing.
      */
     suspend fun list(
         type: ProvenanceFileType,
         filter: String?,
-        parameters: ListQueryParameters
+        parameters: ListQueryParameters,
+        refresh: Boolean = false
     ): ListQueryResult<ProvenanceFile> {
         val comparator = createComparator(parameters.sortFields)
-        val files = loadFiles(type).filter { file -> filter.isNullOrBlank() || file.matches(filter) }
+        val files = caches.getValue(type).get(refresh).files.filter { file ->
+            filter.isNullOrBlank() || file.matches(filter)
+        }
 
         val offset = parameters.offset ?: 0L
         val limit = parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT
@@ -77,17 +86,19 @@ class ProvenanceFileStorageService(
         return ListQueryResult(page, parameters.copy(limit = limit, offset = offset), files.size.toLong())
     }
 
-    /** Return [ProvenanceFileStatistics] about all files of the given [type]. */
-    suspend fun statistics(type: ProvenanceFileType): ProvenanceFileStatistics {
-        val snapshotTime = clock.now()
-        return computeStatistics(loadFiles(type), snapshotTime)
-    }
+    /**
+     * Return [ProvenanceFileStatistics] about all files of the given [type]. If [refresh] is *true*, the storage is
+     * listed again instead of using a cached listing.
+     */
+    suspend fun statistics(type: ProvenanceFileType, refresh: Boolean = false): ProvenanceFileStatistics =
+        caches.getValue(type).get(refresh).statistics
 
     /**
      * Delete the file of the given [type] that is stored under the given [key]. Return *true* if the file existed and
      * was deleted, or *false* if it did not exist.
      */
-    suspend fun delete(type: ProvenanceFileType, key: Key): Boolean = storageFor(type).delete(key)
+    suspend fun delete(type: ProvenanceFileType, key: Key): Boolean =
+        storageFor(type).delete(key).also { caches.getValue(type).remove(key) }
 
     /** Load all files of the given [type] from the corresponding storage. */
     private suspend fun loadFiles(type: ProvenanceFileType): List<ProvenanceFile> =

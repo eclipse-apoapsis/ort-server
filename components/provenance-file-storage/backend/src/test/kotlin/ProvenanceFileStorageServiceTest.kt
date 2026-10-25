@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
+import org.eclipse.apoapsis.ortserver.storage.StorageException
 
 class ProvenanceFileStorageServiceTest : WordSpec({
     val repoA = vcsEntry("https://example.org/a.git", "rev1", 100, Instant.fromEpochSeconds(3000))
@@ -181,6 +182,77 @@ class ProvenanceFileStorageServiceTest : WordSpec({
                     ListQueryParameters(sortFields = listOf(OrderField("unknown", OrderDirection.ASCENDING)))
                 )
             }
+        }
+    }
+
+    "caching" should {
+        "reuse the listing of a storage for subsequent requests" {
+            val (archiveStorage, archiveProvider) = createFakeStorage(repoA, repoB)
+            val (listStorage, _) = createFakeStorage()
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage)
+
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters(limit = 1))
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters(limit = 1, offset = 1))
+            service.statistics(ProvenanceFileType.FILE_ARCHIVE)
+
+            archiveProvider.listCount shouldBe 1
+        }
+
+        "list the storage again if a refresh is requested" {
+            val (archiveStorage, archiveProvider) = createFakeStorage(repoA)
+            val (listStorage, _) = createFakeStorage()
+            val clock = FixedClock(Instant.fromEpochSeconds(1000))
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage, clock)
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters.DEFAULT)
+
+            archiveProvider.entries[repoB.key] = repoB
+            clock.now = Instant.fromEpochSeconds(1001)
+
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters.DEFAULT, refresh = true)
+                .totalCount shouldBe 2
+            service.statistics(ProvenanceFileType.FILE_ARCHIVE).totalCount shouldBe 2
+            archiveProvider.listCount shouldBe 2
+        }
+
+        "reflect deletions without listing the storage again" {
+            val (archiveStorage, archiveProvider) = createFakeStorage(repoA, repoB)
+            val (listStorage, _) = createFakeStorage()
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage)
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters.DEFAULT)
+
+            service.delete(ProvenanceFileType.FILE_ARCHIVE, repoA.key)
+
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters.DEFAULT)
+                .data.shouldBeSingleton { it.key shouldBe repoB.key.key }
+            service.statistics(ProvenanceFileType.FILE_ARCHIVE).totalCount shouldBe 1
+            archiveProvider.listCount shouldBe 1
+        }
+
+        "keep the cached listing if a deletion fails" {
+            val (archiveStorage, archiveProvider) = createFakeStorage(repoA, repoB)
+            val (listStorage, _) = createFakeStorage()
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage)
+            service.list(ProvenanceFileType.FILE_ARCHIVE, null, ListQueryParameters.DEFAULT)
+            archiveProvider.deleteFailure = IllegalStateException("Test exception: Access denied.")
+
+            shouldThrow<StorageException> {
+                service.delete(ProvenanceFileType.FILE_ARCHIVE, repoA.key)
+            }
+
+            service.statistics(ProvenanceFileType.FILE_ARCHIVE).totalCount shouldBe 2
+            archiveProvider.listCount shouldBe 1
+        }
+
+        "use separate caches for the storages" {
+            val (archiveStorage, archiveProvider) = createFakeStorage(repoA)
+            val (listStorage, listProvider) = createFakeStorage(repoB)
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage)
+
+            service.statistics(ProvenanceFileType.FILE_ARCHIVE)
+            service.statistics(ProvenanceFileType.FILE_LIST)
+
+            archiveProvider.listCount shouldBe 1
+            listProvider.listCount shouldBe 1
         }
     }
 
