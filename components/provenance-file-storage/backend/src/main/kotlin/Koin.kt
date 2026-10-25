@@ -24,10 +24,15 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
+/** The qualifier for the [Storage] of file archives. */
+val fileArchiveStorageQualifier = named(OrtServerFileArchiveStorage.STORAGE_TYPE)
+
 /** The qualifier for the [Storage] of file lists. */
 val fileListStorageQualifier = named(OrtServerFileListStorage.STORAGE_TYPE)
 
-/** A Koin module providing the [Storage] for file lists. */
+/** A Koin module providing the [Storage]s for file archives and file lists, and the [ProvenanceFileStorageService]. */
 val provenanceFileStorageModule = module {
+    single(fileArchiveStorageQualifier) { Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get(), get()) }
     single(fileListStorageQualifier) { Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get(), get()) }
+    single { ProvenanceFileStorageService(get(fileArchiveStorageQualifier), get(fileListStorageQualifier)) }
 }
