@@ -24,12 +24,22 @@ import com.azure.core.util.Context
 import com.azure.storage.blob.BlobContainerClient
 import com.azure.storage.blob.models.BlobHttpHeaders
 import com.azure.storage.blob.models.BlobRequestConditions
+import com.azure.storage.blob.models.ListBlobsOptions
 import com.azure.storage.blob.options.BlobParallelUploadOptions
 
 import java.io.InputStream
 
+import kotlin.time.toKotlinInstant
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+
+import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
+import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
 class AzureBlobStorageProvider(private val blobContainerClient: BlobContainerClient) : StorageProvider {
@@ -58,4 +68,20 @@ class AzureBlobStorageProvider(private val blobContainerClient: BlobContainerCli
     override suspend fun contains(key: Key): Boolean = blobContainerClient.getBlobClient(key.key).exists()
 
     override suspend fun delete(key: Key): Boolean = blobContainerClient.getBlobClient(key.key).deleteIfExists()
+
+    override fun list(prefix: String): Flow<StorageEntryInfo> = flow {
+        val options = ListBlobsOptions().setPrefix(prefix.takeUnless { it.isEmpty() })
+
+        // The iterable fetches further pages lazily while being iterated over.
+        blobContainerClient.listBlobs(options, /* timeout = */ null).forEach { blob ->
+            emit(
+                StorageEntryInfo(
+                    key = Key(blob.name),
+                    length = blob.properties.contentLength ?: 0L,
+                    contentType = blob.properties.contentType,
+                    lastModified = blob.properties.lastModified?.toInstant()?.toKotlinInstant()
+                )
+            )
+        }
+    }.flowOn(Dispatchers.Virtual)
 }

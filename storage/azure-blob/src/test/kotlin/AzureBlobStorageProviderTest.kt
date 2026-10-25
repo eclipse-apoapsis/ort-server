@@ -26,7 +26,14 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.testcontainers.TestContainerSpecExtension
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+
+import kotlinx.coroutines.flow.toList
 
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
@@ -134,6 +141,38 @@ class AzureBlobStorageProviderTest : WordSpec({
             storage.write(Key("test"), "Hello, World!", "application/octet-stream")
 
             storage.containsKey(Key("test")) shouldBe true
+        }
+    }
+
+    "list" should {
+        "return information about the objects with the given prefix" {
+            val storage = Storage(AzureBlobStorageProvider(containerClient))
+            storage.write(Key("dir|entry1"), "data1", "text/plain")
+            storage.write(Key("dir|entry2"), "more data", "application/octet-stream")
+            storage.write(Key("other|entry3"), "other data")
+
+            val entries = storage.list("dir|").toList()
+
+            entries.map { Triple(it.key, it.length, it.contentType) } should containExactlyInAnyOrder(
+                Triple(Key("dir|entry1"), 5L, "text/plain"),
+                Triple(Key("dir|entry2"), 9L, "application/octet-stream")
+            )
+            entries.forEach { it.lastModified shouldNot beNull() }
+        }
+
+        "return all objects if no prefix is provided" {
+            val storage = Storage(AzureBlobStorageProvider(containerClient))
+            storage.write(Key("entry1"), "data1")
+            storage.write(Key("entry2"), "data2")
+
+            storage.list().toList().map { it.key } should containExactlyInAnyOrder(Key("entry1"), Key("entry2"))
+        }
+
+        "return an empty flow if there are no matching objects" {
+            val storage = Storage(AzureBlobStorageProvider(containerClient))
+            storage.write(Key("entry"), "data")
+
+            storage.list("nonExisting").toList() should beEmpty()
         }
     }
 })

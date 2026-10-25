@@ -33,6 +33,7 @@ dependencies {
 
     api(libs.azure.storage.blob)
 
+    implementation(projects.shared.coroutines)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
