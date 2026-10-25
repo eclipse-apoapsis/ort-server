@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.components.dependencygraph.dependencyGraph
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.licensefindings.licenseFindingRoutes
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
+import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.provenanceFileStorageRoutes
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.resolutionRoutes
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
@@ -72,6 +73,7 @@ fun Application.configureRouting() {
                     organizations()
                     pluginManagerRoutes(get(), get(), get(), get(), get())
                     products()
+                    provenanceFileStorageRoutes(get())
                     repositories()
                     resolutionRoutes(get(), get(), get())
                     runs()
