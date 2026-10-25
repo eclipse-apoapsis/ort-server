@@ -64,9 +64,7 @@ interface StorageProvider {
      * Return a [Flow] with information about all entries in this storage whose keys start with the given [prefix].
      * The entries are returned in no specific order. Their keys are relative to this storage, i.e. they do not
      * contain any internal prefixes used by the implementation. Note that listing a storage may be an expensive
-     * operation, depending on the implementation and the number of entries. Providers should override this
-     * function, as the default implementation throws an [UnsupportedOperationException].
+     * operation, depending on the implementation and the number of entries.
      */
-    fun list(prefix: String = ""): Flow<StorageEntryInfo> =
-        throw UnsupportedOperationException("Listing entries is not supported by ${javaClass.simpleName}.")
+    fun list(prefix: String = ""): Flow<StorageEntryInfo>
 }
