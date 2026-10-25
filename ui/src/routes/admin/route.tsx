@@ -19,10 +19,12 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
+  Archive,
   Blocks,
   Building2,
   Eye,
   FilePen,
+  FileText,
   FolderGit2,
   ListChecks,
   ListVideo,
@@ -101,6 +103,21 @@ const Layout = () => {
           title: 'Default Plugins',
           to: '/admin/plugins/defaults',
           icon: () => <ListChecks className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Scanner Artifacts',
+      items: [
+        {
+          title: 'File Archives',
+          to: '/admin/file-archives',
+          icon: () => <Archive className='h-4 w-4' />,
+        },
+        {
+          title: 'File Lists',
+          to: '/admin/file-lists',
+          icon: () => <FileText className='h-4 w-4' />,
         },
       ],
     },

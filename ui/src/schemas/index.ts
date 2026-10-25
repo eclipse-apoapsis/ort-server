@@ -200,6 +200,29 @@ export type AdminUsersSearchParameters = z.infer<
   typeof adminUsersSearchParameterSchema
 >;
 
+export const adminProvenanceFileSortFieldSchema = z.enum([
+  'url',
+  'sizeInBytes',
+  'lastModified',
+]);
+
+export const adminProvenanceFilesSearchParameterSchema = z.object({
+  ...paginationSearchParameterSchema.shape,
+  filter: z.string().trim().optional(),
+  sortBy: z
+    .array(
+      z.object({
+        id: adminProvenanceFileSortFieldSchema,
+        desc: z.boolean(),
+      })
+    )
+    .optional(),
+});
+
+export type AdminProvenanceFilesSearchParameters = z.infer<
+  typeof adminProvenanceFilesSearchParameterSchema
+>;
+
 export const packageSortingSearchParameterSchema = z.object({
   packageSortBy: z
     .array(
