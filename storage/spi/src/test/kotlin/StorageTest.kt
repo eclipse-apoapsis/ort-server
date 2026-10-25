@@ -24,7 +24,9 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -32,6 +34,8 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.mockk
 
 import java.io.ByteArrayInputStream
+
+import kotlinx.coroutines.flow.toList
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataArray
@@ -225,6 +229,43 @@ class StorageTest : WordSpec({
 
             shouldThrow<StorageException> {
                 storage.delete(Key(ERROR_KEY))
+            }
+        }
+    }
+
+    "list" should {
+        "return information about the entries with the given prefix" {
+            val storage = createStorage()
+            storage.write(Key("dir|entry1"), "data1", CONTENT_TYPE)
+            storage.write(Key("dir|entry2"), "more data", CONTENT_TYPE)
+            storage.write(Key("other|entry3"), "other data", CONTENT_TYPE)
+
+            storage.list("dir|").toList() should containExactlyInAnyOrder(
+                StorageEntryInfo(Key("dir|entry1"), 5L, CONTENT_TYPE, null),
+                StorageEntryInfo(Key("dir|entry2"), 9L, CONTENT_TYPE, null)
+            )
+        }
+
+        "return all entries if no prefix is provided" {
+            val storage = createStorage()
+            storage.write(Key("entry1"), "data1")
+            storage.write(Key("entry2"), "data2")
+
+            storage.list().toList().map { it.key } should containExactlyInAnyOrder(Key("entry1"), Key("entry2"))
+        }
+
+        "return an empty flow if there are no matching entries" {
+            val storage = createStorage()
+            storage.write(Key("entry"), "data")
+
+            storage.list("nonExisting").toList() should beEmpty()
+        }
+
+        "handle exceptions thrown by the provider" {
+            val storage = createStorage()
+
+            shouldThrow<StorageException> {
+                storage.list(ERROR_KEY).toList()
             }
         }
     }

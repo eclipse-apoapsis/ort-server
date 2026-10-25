@@ -23,6 +23,9 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -114,6 +117,14 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
                 storage -= key
 
                 return entry != null
+            }
+
+            override fun list(prefix: String): Flow<StorageEntryInfo> {
+                if (errorKey in prefix) throw IOException("Test exception from StorageProviderFactoryForTesting.")
+
+                return storage.filterKeys { it.key.startsWith(prefix) }.map { (key, entry) ->
+                    StorageEntryInfo(key, entry.length, entry.contentType, lastModified = null)
+                }.asFlow()
             }
 
             /** Check whether [key] should trigger an exception. Otherwise, return the associated [Entry]. */

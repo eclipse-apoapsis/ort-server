@@ -23,6 +23,10 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.ServiceLoader
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.supervisorScope
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -129,6 +133,15 @@ class Storage(
      * [StorageException] if this operation fails.
      */
     suspend fun delete(key: Key): Boolean = wrapException { provider.delete(key) }
+
+    /**
+     * Return a [Flow] with information about all entries in this storage whose keys start with the given [prefix].
+     * Exceptions thrown by the provider while collecting the [Flow] are mapped to [StorageException]s.
+     */
+    fun list(prefix: String = ""): Flow<StorageEntryInfo> =
+        flow { emitAll(provider.list(prefix)) }.catch { e ->
+            throw StorageException("Exception from StorageProvider.", e)
+        }
 
     /** Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s. */
     private suspend fun <T> wrapException(block: suspend StorageProvider.() -> T): T =
