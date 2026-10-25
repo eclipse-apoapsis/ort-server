@@ -89,6 +89,7 @@ dependencies {
         }
     }
     implementation(projects.components.projections.projectionsBackend)
+    implementation(projects.components.provenanceFileStorage.provenanceFileStorageBackend)
     implementation(projects.components.reportStorage.reportStorageBackend)
     implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.components.resolutions.resolutionsBackend) {

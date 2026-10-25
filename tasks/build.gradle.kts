@@ -37,6 +37,7 @@ dependencies {
     api(projects.services.ortRunService)
 
     implementation(projects.clients.keycloak)
+    implementation(projects.components.provenanceFileStorage.provenanceFileStorageBackend)
     implementation(projects.components.reportStorage.reportStorageBackend)
     implementation(projects.dao)
     implementation(projects.shared.coroutines)

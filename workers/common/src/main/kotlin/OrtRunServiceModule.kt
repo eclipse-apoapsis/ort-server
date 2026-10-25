@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
+import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
@@ -53,7 +54,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRe
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
-import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.koin.core.module.Module

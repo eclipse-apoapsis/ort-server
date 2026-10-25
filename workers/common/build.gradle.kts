@@ -48,6 +48,7 @@ dependencies {
     api(libs.koin.core)
     api(ortLibs.model)
 
+    implementation(projects.components.provenanceFileStorage.provenanceFileStorageBackend)
     implementation(projects.dao)
     implementation(projects.services.ortRunService)
     implementation(projects.shared.coroutines)

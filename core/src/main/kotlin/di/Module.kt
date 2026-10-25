@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.components.projections.ProjectionBuilder
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionConfig
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionRegistry
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionService
+import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
@@ -111,7 +112,6 @@ import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
-import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
 import org.eclipse.apoapsis.ortserver.services.ortrun.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
