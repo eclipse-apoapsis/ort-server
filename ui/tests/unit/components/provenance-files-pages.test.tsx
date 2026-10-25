@@ -22,7 +22,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ProvenanceFile } from '@/api';
+import type { ProvenanceFile, ProvenanceFileStatistics } from '@/api';
 import { Route as FileArchivesRoute } from '@/routes/admin/file-archives';
 import { Route as FileListsRoute } from '@/routes/admin/file-lists';
 import { adminProvenanceFilesSearchParameterSchema } from '@/schemas';
@@ -34,6 +34,8 @@ const mocks = vi.hoisted(() => ({
   getFileLists: vi.fn(),
   deleteFileArchive: vi.fn(),
   deleteFileList: vi.fn(),
+  getFileArchiveStatistics: vi.fn(),
+  getFileListStatistics: vi.fn(),
   toastInfo: vi.fn(),
   toastError: vi.fn(),
 }));
@@ -44,6 +46,8 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   getFileLists: mocks.getFileLists,
   deleteFileArchive: mocks.deleteFileArchive,
   deleteFileList: mocks.deleteFileList,
+  getFileArchiveStatistics: mocks.getFileArchiveStatistics,
+  getFileListStatistics: mocks.getFileListStatistics,
 }));
 
 vi.mock('@/lib/toast', () => ({
@@ -58,6 +62,7 @@ const pages = [
     route: FileArchivesRoute,
     getFiles: mocks.getFileArchives,
     deleteFile: mocks.deleteFileArchive,
+    getStatistics: mocks.getFileArchiveStatistics,
   },
   {
     name: 'file lists',
@@ -65,6 +70,7 @@ const pages = [
     route: FileListsRoute,
     getFiles: mocks.getFileLists,
     deleteFile: mocks.deleteFileList,
+    getStatistics: mocks.getFileListStatistics,
   },
 ];
 
@@ -80,6 +86,20 @@ const createFile = (index: number): ProvenanceFile => ({
 });
 
 const files = [createFile(1), createFile(2)];
+
+/** Create statistics about the given number of VCS files. */
+const createStatistics = (count: number): ProvenanceFileStatistics => ({
+  snapshotTime: '2026-01-01T12:00:00Z',
+  totalCount: count,
+  totalSizeInBytes: 1024 * count,
+  averageSizeInBytes: 1024,
+  byKind: [{ kind: 'VCS', count, sizeInBytes: 1024 * count }],
+  topUrls: [],
+});
+
+/** The calls of the given statistics mock that listed the storage again. */
+const refreshCalls = (getStatistics: typeof mocks.getFileArchiveStatistics) =>
+  getStatistics.mock.calls.filter(([options]) => options?.query?.refresh);
 
 const renderPage = (page: (typeof pages)[number]) => {
   const Component = page.route.options.component!;
@@ -113,6 +133,7 @@ describe.each(pages)('the $name page', (page) => {
     vi.clearAllMocks();
     page.getFiles.mockResolvedValue(pageOf(files, { limit: 20 }));
     page.deleteFile.mockResolvedValue({ data: undefined });
+    page.getStatistics.mockResolvedValue({ data: createStatistics(2) });
   });
 
   it('deletes the selected file after confirmation and fetches the files again', async () => {
@@ -124,6 +145,7 @@ describe.each(pages)('the $name page', (page) => {
       expect.objectContaining({ path: { id: 'file-2' } })
     );
     await waitFor(() => expect(page.getFiles).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(page.getStatistics).toHaveBeenCalledTimes(2));
     expect(mocks.toastInfo).toHaveBeenCalledOnce();
     expect(mocks.toastError).not.toHaveBeenCalled();
   });
@@ -158,6 +180,69 @@ describe.each(pages)('the $name page', (page) => {
       )
     );
     expect(mocks.toastInfo).not.toHaveBeenCalled();
+    expect(page.getFiles).toHaveBeenCalledOnce();
+  });
+
+  it('shows the size per kind of provenance', async () => {
+    renderPage(page);
+
+    expect(await screen.findByText(/VCS: 2 \(.+\)/)).toBeInTheDocument();
+  });
+
+  it('lists the storage again on refresh and uses the returned statistics', async () => {
+    const { user } = renderPage(page);
+    await screen.findByText(/VCS: 2 /);
+    page.getStatistics.mockResolvedValue({ data: createStatistics(7) });
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    expect(await screen.findByText(/VCS: 7 /)).toBeInTheDocument();
+    await waitFor(() => expect(page.getFiles).toHaveBeenCalledTimes(2));
+    expect(refreshCalls(page.getStatistics)).toHaveLength(1);
+    // The statistics are only requested on loading the page and on the refresh.
+    expect(page.getStatistics).toHaveBeenCalledTimes(2);
+  });
+
+  it('fetches the files again only after the storage has been listed again', async () => {
+    const { user } = renderPage(page);
+    await screen.findByText(/VCS: 2 /);
+    let finishRefresh: () => void = () => {};
+    page.getStatistics.mockReturnValue(
+      new Promise((resolve) => {
+        finishRefresh = () => resolve({ data: createStatistics(7) });
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled()
+    );
+    expect(page.getFiles).toHaveBeenCalledOnce();
+
+    finishRefresh();
+
+    await waitFor(() => expect(page.getFiles).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled()
+    );
+  });
+
+  it('shows an error and enables the button again if the refresh fails', async () => {
+    const { user } = renderPage(page);
+    await screen.findByText(/VCS: 2 /);
+    page.getStatistics.mockRejectedValue(new Error('Access denied.'));
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    await waitFor(() =>
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        `Refreshing the ${page.name} failed.`,
+        expect.any(Error)
+      )
+    );
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled();
+    expect(screen.getByText(/VCS: 2 /)).toBeInTheDocument();
     expect(page.getFiles).toHaveBeenCalledOnce();
   });
 });

@@ -22,8 +22,10 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   getFileArchivesOptions,
   getFileArchivesQueryKey,
+  getFileArchiveStatisticsOptions,
+  getFileArchiveStatisticsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
-import { deleteFileArchive } from '@/api/sdk.gen';
+import { deleteFileArchive, getFileArchiveStatistics } from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   loadProvenanceFiles,
@@ -34,7 +36,8 @@ import {
 import { adminProvenanceFilesSearchParameterSchema } from '@/schemas';
 
 const fileArchivesConfig: ProvenanceFilesConfig<
-  ReturnType<typeof getFileArchivesQueryKey>
+  ReturnType<typeof getFileArchivesQueryKey>,
+  ReturnType<typeof getFileArchiveStatisticsQueryKey>
 > = {
   title: 'File Archives',
   description:
@@ -44,6 +47,12 @@ const fileArchivesConfig: ProvenanceFilesConfig<
   filesQueryOptions: (query) => getFileArchivesOptions({ query }),
   filesQueryKey: getFileArchivesQueryKey(),
   deleteFile: (id) => deleteFileArchive({ path: { id }, throwOnError: true }),
+  statisticsQueryOptions: () => getFileArchiveStatisticsOptions(),
+  refreshStatistics: () =>
+    getFileArchiveStatistics({
+      query: { refresh: true },
+      throwOnError: true,
+    }).then(({ data }) => data),
 };
 
 const FileArchivesComponent = () => (

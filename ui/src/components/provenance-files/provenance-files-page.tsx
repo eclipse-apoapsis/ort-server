@@ -24,8 +24,9 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
+import { ProvenanceFileStatistics } from '@/api';
 import {
   Card,
   CardContent,
@@ -37,6 +38,7 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import { toast, toastError } from '@/lib/toast';
 import { AdminProvenanceFilesSearchParameters } from '@/schemas';
+import { ProvenanceFileStatisticsView } from './provenance-file-statistics';
 import {
   ProvenanceFilesConfig,
   provenanceFilesDefaultPageSize,
@@ -44,9 +46,12 @@ import {
 } from './provenance-files-route';
 import { ProvenanceFilesTable } from './provenance-files-table';
 
-type ProvenanceFilesPageProps<TFilesQueryKey extends QueryKey> = {
+type ProvenanceFilesPageProps<
+  TFilesQueryKey extends QueryKey,
+  TStatisticsQueryKey extends QueryKey,
+> = {
   /** The configuration for the type of files shown on the page. */
-  config: ProvenanceFilesConfig<TFilesQueryKey>;
+  config: ProvenanceFilesConfig<TFilesQueryKey, TStatisticsQueryKey>;
   /** The current search parameters of the page. */
   search: AdminProvenanceFilesSearchParameters;
 };
@@ -54,16 +59,24 @@ type ProvenanceFilesPageProps<TFilesQueryKey extends QueryKey> = {
 /**
  * A page to manage stored provenance files, such as file archives or file lists.
  */
-export const ProvenanceFilesPage = <TFilesQueryKey extends QueryKey>({
+export const ProvenanceFilesPage = <
+  TFilesQueryKey extends QueryKey,
+  TStatisticsQueryKey extends QueryKey,
+>({
   config,
   search,
-}: ProvenanceFilesPageProps<TFilesQueryKey>) => {
+}: ProvenanceFilesPageProps<TFilesQueryKey, TStatisticsQueryKey>) => {
   const { title, description, thingName, to } = config;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: files } = useSuspenseQuery({
     ...config.filesQueryOptions(toProvenanceFilesQuery(search)),
+    staleTime: routePrefetchStaleTime,
+  });
+
+  const { data: statistics } = useSuspenseQuery({
+    ...config.statisticsQueryOptions(),
     staleTime: routePrefetchStaleTime,
   });
 
@@ -74,6 +87,9 @@ export const ProvenanceFilesPage = <TFilesQueryKey extends QueryKey>({
         description: `The ${thingName} was deleted successfully.`,
       });
       queryClient.invalidateQueries({ queryKey: config.filesQueryKey });
+      queryClient.invalidateQueries({
+        queryKey: config.statisticsQueryOptions().queryKey,
+      });
     },
     onError(error) {
       toastError(error.message, error);
@@ -87,6 +103,27 @@ export const ProvenanceFilesPage = <TFilesQueryKey extends QueryKey>({
     [deleteFile]
   );
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // The refresh returns the new statistics, so they are stored directly instead of fetching them again. Only the files
+  // have to be fetched again, after the storage has been listed again.
+  const refresh = async () => {
+    setIsRefreshing(true);
+
+    try {
+      const refreshedStatistics = await config.refreshStatistics();
+      queryClient.setQueryData<ProvenanceFileStatistics>(
+        config.statisticsQueryOptions().queryKey,
+        refreshedStatistics
+      );
+      await queryClient.invalidateQueries({ queryKey: config.filesQueryKey });
+    } catch (error) {
+      toastError(`Refreshing the ${thingName}s failed.`, error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const filterBy = (filter: string | undefined) =>
     navigate({ to, search: { ...search, page: 1, filter } });
 
@@ -96,7 +133,13 @@ export const ProvenanceFilesPage = <TFilesQueryKey extends QueryKey>({
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className='flex flex-col gap-6'>
+        <ProvenanceFileStatisticsView
+          statistics={statistics}
+          onRefresh={refresh}
+          isRefreshing={isRefreshing}
+          onFilter={filterBy}
+        />
         <ProvenanceFilesTable
           files={files.data}
           totalCount={files.pagination.totalCount}

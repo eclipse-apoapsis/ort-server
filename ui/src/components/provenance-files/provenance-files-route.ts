@@ -25,7 +25,11 @@ import type {
 } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import type { GetFileArchivesData, PagedResponseProvenanceFile } from '@/api';
+import type {
+  GetFileArchivesData,
+  PagedResponseProvenanceFile,
+  ProvenanceFileStatistics,
+} from '@/api';
 import { convertToBackendSorting } from '@/helpers/handle-multisort';
 import { routePrefetchStaleTime } from '@/lib/query-client';
 import type { AdminProvenanceFilesSearchParameters } from '@/schemas';
@@ -46,7 +50,10 @@ type GeneratedQueryOptions<
  * The configuration of a page to manage a type of stored provenance files, such as file archives or file lists. It
  * provides the texts of the page and the API functions for this type of files.
  */
-export type ProvenanceFilesConfig<TFilesQueryKey extends QueryKey> = {
+export type ProvenanceFilesConfig<
+  TFilesQueryKey extends QueryKey,
+  TStatisticsQueryKey extends QueryKey,
+> = {
   /** The title of the page. */
   title: string;
   /** A description of the files shown at the top of the page. */
@@ -63,6 +70,13 @@ export type ProvenanceFilesConfig<TFilesQueryKey extends QueryKey> = {
   filesQueryKey: QueryKey;
   /** Delete the file with the given ID. */
   deleteFile: (id: string) => Promise<unknown>;
+  /** Return the options of the query for the statistics about all files. */
+  statisticsQueryOptions: () => GeneratedQueryOptions<
+    ProvenanceFileStatistics,
+    TStatisticsQueryKey
+  >;
+  /** Let the server list the storage again instead of using its cached listing, and return the new statistics. */
+  refreshStatistics: () => Promise<ProvenanceFileStatistics>;
 };
 
 /** Convert the given search parameters of a page to the query parameters of the endpoint that lists the files. */
@@ -90,13 +104,22 @@ export const provenanceFilesLoaderDeps = ({
 }) => ({ page, pageSize, sortBy, filter });
 
 /** Load the data of a page with the given [config] for the given search parameters [deps]. */
-export const loadProvenanceFiles = async <TFilesQueryKey extends QueryKey>(
+export const loadProvenanceFiles = async <
+  TFilesQueryKey extends QueryKey,
+  TStatisticsQueryKey extends QueryKey,
+>(
   queryClient: QueryClient,
-  config: ProvenanceFilesConfig<TFilesQueryKey>,
+  config: ProvenanceFilesConfig<TFilesQueryKey, TStatisticsQueryKey>,
   deps: AdminProvenanceFilesSearchParameters
 ) => {
-  await queryClient.ensureQueryData({
-    ...config.filesQueryOptions(toProvenanceFilesQuery(deps)),
-    staleTime: routePrefetchStaleTime,
-  });
+  await Promise.all([
+    queryClient.ensureQueryData({
+      ...config.filesQueryOptions(toProvenanceFilesQuery(deps)),
+      staleTime: routePrefetchStaleTime,
+    }),
+    queryClient.ensureQueryData({
+      ...config.statisticsQueryOptions(),
+      staleTime: routePrefetchStaleTime,
+    }),
+  ]);
 };
