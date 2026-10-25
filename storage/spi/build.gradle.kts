@@ -34,8 +34,7 @@ dependencies {
     implementation(projects.utils.config)
 
     api(libs.exposed.jdbc)
-
-    implementation(libs.kotlinx.coroutines)
+    api(libs.kotlinx.coroutines)
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.runner.junit5)
