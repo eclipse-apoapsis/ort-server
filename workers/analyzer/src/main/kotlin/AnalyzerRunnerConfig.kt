@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerPhase
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 
 /**
  * The configuration for the [AnalyzerRunner], containing the parts of [AnalyzerJobConfiguration] that are required to
@@ -57,5 +58,11 @@ data class AnalyzerRunnerConfig(
     val keepAliveWorker: Boolean,
 
     /** See [AnalyzerJobConfiguration.keepAlivePhases]. */
-    val keepAlivePhases: Set<AnalyzerPhase>
+    val keepAlivePhases: Set<AnalyzerPhase>,
+
+    /**
+     * The includes and excludes requested for the run, which are added to those from the repository configuration
+     * file.
+     */
+    val includesExcludes: RunIncludesExcludes? = null
 )

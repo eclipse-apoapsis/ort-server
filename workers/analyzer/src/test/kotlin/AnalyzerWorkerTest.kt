@@ -77,6 +77,9 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsR
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
@@ -1196,10 +1199,14 @@ class AnalyzerWorkerTest : StringSpec({
         )
         val job = analyzerJob.copy(configuration = jobConfig)
 
+        val includesExcludes = RunIncludesExcludes(
+            paths = PathIncludesExcludes(excludes = listOf(PathExclude("test/**", "TEST_OF")))
+        )
+
         val ortRunService = mockk<OrtRunService> {
             coEvery { getAnalyzerJob(any()) } returns job
             coEvery { getHierarchyForOrtRun(any()) } returns hierarchy
-            coEvery { getOrtRun(any()) } returns ortRun
+            coEvery { getOrtRun(any()) } returns ortRun.copy(includesExcludes = includesExcludes)
             coEvery { startAnalyzerJob(any()) } returns job
             coEvery { updateResolvedRevision(any(), any()) } just runs
         }
@@ -1300,6 +1307,7 @@ class AnalyzerWorkerTest : StringSpec({
             runnerConfig.enabledPackageManagers shouldContainExactlyInAnyOrder listOf("Maven")
             runnerConfig.keepAliveWorker shouldBe true
             runnerConfig.keepAlivePhases shouldContainOnly EnumSet.of(AnalyzerPhaseEnum.ANALYSIS)
+            runnerConfig.includesExcludes shouldBe includesExcludes
 
             runId shouldBe ortRun.id
         }
