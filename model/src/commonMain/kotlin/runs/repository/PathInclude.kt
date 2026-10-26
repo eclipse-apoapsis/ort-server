@@ -19,9 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
+import kotlinx.serialization.Serializable
+
 /**
  * Represents a pattern defining paths that should be included.
  */
+@Serializable
 data class PathInclude(
     /** A pattern specifying the paths to include. */
     val pattern: String,
