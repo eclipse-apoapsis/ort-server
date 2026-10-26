@@ -152,6 +152,8 @@ import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfiguration
 import org.ossreviewtoolkit.model.config.PathInclude
 import org.ossreviewtoolkit.model.config.PathIncludeReason
+import org.ossreviewtoolkit.model.config.ScopeInclude
+import org.ossreviewtoolkit.model.config.ScopeIncludeReason
 import org.ossreviewtoolkit.model.config.VcsMatcher
 import org.ossreviewtoolkit.utils.common.gibibytes
 import org.ossreviewtoolkit.utils.spdxexpression.SpdxExpression
@@ -1982,11 +1984,16 @@ private val pathInclude = PathInclude(
     reason = PathIncludeReason.OTHER,
     comment = "Test path include."
 )
-private val includes = Includes(listOf(pathInclude))
+private val scopeInclude = ScopeInclude(
+    pattern = "compile",
+    reason = ScopeIncludeReason.SOURCE_OF,
+    comment = "Test scope include."
+)
+private val includes = Includes(listOf(pathInclude), listOf(scopeInclude))
 
 /**
- * A repository configuration that contains path includes to test that the includes are correctly processed by the
- * service under test.
+ * A repository configuration that contains path and scope includes to test that the includes are correctly processed
+ * by the service under test.
  */
 private val repositoryConfigurationWithIncludes = OrtTestData.repository.config.copy(includes = includes)
 
