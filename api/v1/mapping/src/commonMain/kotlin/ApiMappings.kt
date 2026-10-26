@@ -57,7 +57,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExclude as ApiPathExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathInclude as ApiPathInclude
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
@@ -72,6 +75,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViola
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters as ApiRuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExclude as ApiScopeExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeInclude as ApiScopeInclude
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as ApiShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
@@ -149,8 +154,15 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
@@ -927,3 +939,27 @@ fun ApiVulnerabilityForRunsFilters.mapToModel() = VulnerabilityForRunsFilters(
     externalId = externalId?.mapToModel { it },
     advisors = advisors?.mapToModel { it }
 )
+
+fun ApiPathInclude.mapToModel() = PathInclude(pattern, reason.name, comment.orEmpty())
+
+fun ApiPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment.orEmpty())
+
+fun ApiScopeInclude.mapToModel() = ScopeInclude(pattern, reason.name, comment.orEmpty())
+
+fun ApiScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment.orEmpty())
+
+/**
+ * Map the optional [paths][PostRepositoryRun.paths] and [scopes][PostRepositoryRun.scopes] of this request to the
+ * includes and excludes requested for the run, or return *null* if the request contains none.
+ */
+fun PostRepositoryRun.mapIncludesExcludesToModel(): RunIncludesExcludes? =
+    RunIncludesExcludes(
+        paths = PathIncludesExcludes(
+            includes = paths?.includes.orEmpty().map(ApiPathInclude::mapToModel),
+            excludes = paths?.excludes.orEmpty().map(ApiPathExclude::mapToModel)
+        ),
+        scopes = ScopeIncludesExcludes(
+            includes = scopes?.includes.orEmpty().map(ApiScopeInclude::mapToModel),
+            excludes = scopes?.excludes.orEmpty().map(ApiScopeExclude::mapToModel)
+        )
+    ).takeUnless { it == RunIncludesExcludes() }
