@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
@@ -201,6 +202,12 @@ private val scopeExclude = ScopeExclude(
     comment = "Test scope exclude."
 )
 
+private val scopeInclude = ScopeInclude(
+    pattern = "scope2",
+    reason = "SOURCE_OF",
+    comment = "Test scope include."
+)
+
 private val issueResolution = IssueResolution(
     message = "issue message",
     reason = IssueResolutionReason.CANT_FIX_ISSUE,
@@ -318,7 +325,8 @@ private val repositoryConfig = RepositoryConfiguration(
         scopes = listOf(scopeExclude)
     ),
     includes = Includes(
-        paths = listOf(pathInclude)
+        paths = listOf(pathInclude),
+        scopes = listOf(scopeInclude)
     ),
     resolutions = Resolutions(
         issues = listOf(issueResolution),

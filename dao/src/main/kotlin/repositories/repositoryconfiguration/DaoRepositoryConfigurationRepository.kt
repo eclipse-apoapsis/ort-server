@@ -64,6 +64,7 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
             this.pathExcludes = mapAndDeduplicate(excludes.paths, PathExcludeDao::getOrPut)
             this.scopeExcludes = mapAndDeduplicate(excludes.scopes, ScopeExcludeDao::getOrPut)
             this.pathIncludes = mapAndDeduplicate(includes.paths, PathIncludeDao::getOrPut)
+            this.scopeIncludes = mapAndDeduplicate(includes.scopes, ScopeIncludeDao::getOrPut)
             this.issueResolutions = mapAndDeduplicate(resolutions.issues, IssueResolutionDao::getOrPut)
             this.ruleViolationResolutions =
                 mapAndDeduplicate(resolutions.ruleViolations, RuleViolationResolutionDao::getOrPut)
