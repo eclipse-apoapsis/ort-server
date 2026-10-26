@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
@@ -50,7 +51,8 @@ class OrchestratorService(
     /**
      * Create an ORT run in the database and notify the Orchestrator to handle this run. The
      * [resolvedJobConfigContext] is the result of resolving the requested [jobConfigContext] and determines the
-     * configuration used by the run.
+     * configuration used by the run. The [includesExcludes] are applied in addition to those from the repository
+     * configuration file.
      */
     suspend fun createOrtRun(
         repositoryId: Long,
@@ -61,7 +63,8 @@ class OrchestratorService(
         labels: Map<String, String>?,
         environmentConfigPath: String?,
         userDisplayName: UserDisplayName?,
-        resolvedJobConfigContext: String
+        resolvedJobConfigContext: String,
+        includesExcludes: RunIncludesExcludes? = null
     ): OrtRun {
         val traceId = MDC.get("traceId")
 
@@ -77,7 +80,8 @@ class OrchestratorService(
                 traceId = traceId,
                 environmentConfigPath = environmentConfigPath,
                 userDisplayName = userDisplayName,
-                resolvedJobConfigContext = resolvedJobConfigContext
+                resolvedJobConfigContext = resolvedJobConfigContext,
+                includesExcludes = includesExcludes
             )
         }
 

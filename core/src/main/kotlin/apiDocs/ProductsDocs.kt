@@ -624,6 +624,15 @@ val postProductRuns: RouteConfig.() -> Unit = {
                 )
             }
 
+            example("Create ORT runs for all repositories with includes and excludes") {
+                value = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = minimalJobConfigurations,
+                    paths = examplePathIncludesExcludes,
+                    scopes = exampleScopeIncludesExcludes
+                )
+            }
+
             example("Rerun ORT runs for repositories whose latest run failed") {
                 value = PostRepositoryRun(
                     revision = "main",

@@ -190,7 +190,19 @@ data class PostRepositoryRun(
     /**
      * The IDs of the repositories for this run that failed.
      */
-    val repositoryFailedIds: List<Long> = emptyList()
+    val repositoryFailedIds: List<Long> = emptyList(),
+
+    /**
+     * The optional includes and excludes for paths, applied in addition to those from the repository configuration
+     * file.
+     */
+    val paths: PathIncludesExcludes? = null,
+
+    /**
+     * The optional includes and excludes for scopes, applied in addition to those from the repository configuration
+     * file.
+     */
+    val scopes: ScopeIncludesExcludes? = null
 )
 
 enum class OrtRunStatus {

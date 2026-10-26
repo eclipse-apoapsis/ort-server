@@ -45,6 +45,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExcludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
@@ -53,6 +58,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExcludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
@@ -67,6 +75,21 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
+
+internal val examplePathIncludesExcludes = PathIncludesExcludes(
+    includes = listOf(
+        PathInclude(pattern = "src/**", reason = PathIncludeReason.SOURCE_OF, comment = "The source code.")
+    ),
+    excludes = listOf(
+        PathExclude(pattern = "docs/**", reason = PathExcludeReason.DOCUMENTATION_OF, comment = "The documentation.")
+    )
+)
+
+internal val exampleScopeIncludesExcludes = ScopeIncludesExcludes(
+    excludes = listOf(
+        ScopeExclude(pattern = "test.*", reason = ScopeExcludeReason.TEST_DEPENDENCY_OF, comment = "Test scopes.")
+    )
+)
 
 internal val fullJobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(
@@ -425,7 +448,9 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
                     jobConfigs = fullJobConfigurations,
                     labels = mapOf("label key" to "label value"),
                     path = "optional VCS sub-path",
-                    jobConfigContext = "optional context"
+                    jobConfigContext = "optional context",
+                    paths = examplePathIncludesExcludes,
+                    scopes = exampleScopeIncludesExcludes
                 )
             }
         }

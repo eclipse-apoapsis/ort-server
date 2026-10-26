@@ -45,8 +45,10 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
 
 import io.mockk.mockk
 
@@ -73,6 +75,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExclude as ApiPathExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExcludeReason as ApiPathExcludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathInclude as ApiPathInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludeReason as ApiPathIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludesExcludes as ApiPathIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
@@ -81,6 +88,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExclude as ApiScopeExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExcludeReason as ApiScopeExcludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeInclude as ApiScopeInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludeReason as ApiScopeIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludesExcludes as ApiScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithRepositoryRole as ApiUserWithRepositoryRole
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
@@ -107,6 +119,13 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -802,6 +821,68 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 run.jobConfigContext shouldBe jobConfigContext
                 run.resolvedJobConfigContext shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX +
                         jobConfigContext
+            }
+        }
+
+        "store the requested includes and excludes" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val createRun = PostRepositoryRun(
+                    revision = "main",
+                    jobConfigs = ApiJobConfigurations(),
+                    paths = ApiPathIncludesExcludes(
+                        includes = listOf(ApiPathInclude("src/**", ApiPathIncludeReason.SOURCE_OF)),
+                        excludes = listOf(ApiPathExclude("docs/**", ApiPathExcludeReason.DOCUMENTATION_OF, "Docs."))
+                    ),
+                    scopes = ApiScopeIncludesExcludes(
+                        includes = listOf(ApiScopeInclude("compile", ApiScopeIncludeReason.SOURCE_OF)),
+                        excludes = listOf(ApiScopeExclude("test.*", ApiScopeExcludeReason.TEST_DEPENDENCY_OF))
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+
+                val run = ortRunRepository.listForRepository(createdRepository.id).data.single()
+                run.includesExcludes shouldBe RunIncludesExcludes(
+                    paths = PathIncludesExcludes(
+                        includes = listOf(PathInclude("src/**", "SOURCE_OF", "")),
+                        excludes = listOf(PathExclude("docs/**", "DOCUMENTATION_OF", "Docs."))
+                    ),
+                    scopes = ScopeIncludesExcludes(
+                        includes = listOf(ScopeInclude("compile", "SOURCE_OF", "")),
+                        excludes = listOf(ScopeExclude("test.*", "TEST_DEPENDENCY_OF", ""))
+                    )
+                )
+            }
+        }
+
+        "respond with BadRequest if an include or exclude has an unknown reason" {
+            integrationTestApplication {
+                val createdRepository = createRepository()
+
+                val response = superuserClient.post("/api/v1/repositories/${createdRepository.id}/runs") {
+                    setBody(
+                        TextContent(
+                            """
+                            {
+                              "revision": "main",
+                              "jobConfigs": {},
+                              "paths": { "excludes": [{ "pattern": "docs/**", "reason": "UNKNOWN_REASON" }] }
+                            }
+                            """.trimIndent(),
+                            ContentType.Application.Json
+                        )
+                    )
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                ortRunRepository.listForRepository(createdRepository.id).data should beEmpty()
             }
         }
 

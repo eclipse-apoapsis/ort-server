@@ -25,6 +25,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapIncludesExcludesToModel
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
@@ -523,7 +524,8 @@ fun Route.products() = route("products/{productId}") {
                     createOrtRun.labels,
                     createOrtRun.environmentConfigPath,
                     userDisplayName,
-                    resolvedJobConfigContext.name
+                    resolvedJobConfigContext.name,
+                    createOrtRun.mapIncludesExcludesToModel()
                 ).mapToApi(Jobs())
             }
 
