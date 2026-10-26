@@ -58,7 +58,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPac
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PathExclude as ApiPathExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExcludeReason as ApiPathExcludeReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.PathInclude as ApiPathInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludeReason as ApiPathIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludesExcludes as ApiPathIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
@@ -76,7 +79,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters as ApiRu
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExclude as ApiScopeExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExcludeReason as ApiScopeExcludeReason
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeInclude as ApiScopeInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludeReason as ApiScopeIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludesExcludes as ApiScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as ApiShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
@@ -452,7 +458,9 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         environmentConfigPath = environmentConfigPath,
         traceId = traceId,
         userDisplayName = userDisplayName?.mapToApi(),
-        ortServerVersion = ortServerVersion
+        ortServerVersion = ortServerVersion,
+        paths = includesExcludes?.paths?.mapToApi(),
+        scopes = includesExcludes?.scopes?.mapToApi()
     )
 
 fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
@@ -947,6 +955,36 @@ fun ApiPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment.orEm
 fun ApiScopeInclude.mapToModel() = ScopeInclude(pattern, reason.name, comment.orEmpty())
 
 fun ApiScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment.orEmpty())
+
+fun PathInclude.mapToApi() =
+    ApiPathInclude(pattern, ApiPathIncludeReason.valueOf(reason), comment.takeUnless { it.isEmpty() })
+
+fun PathExclude.mapToApi() =
+    ApiPathExclude(pattern, ApiPathExcludeReason.valueOf(reason), comment.takeUnless { it.isEmpty() })
+
+fun ScopeInclude.mapToApi() =
+    ApiScopeInclude(pattern, ApiScopeIncludeReason.valueOf(reason), comment.takeUnless { it.isEmpty() })
+
+fun ScopeExclude.mapToApi() =
+    ApiScopeExclude(pattern, ApiScopeExcludeReason.valueOf(reason), comment.takeUnless { it.isEmpty() })
+
+/**
+ * Map these includes and excludes requested for a run to the API, or return *null* if there are none.
+ */
+fun PathIncludesExcludes.mapToApi(): ApiPathIncludesExcludes? =
+    ApiPathIncludesExcludes(
+        includes = includes.map(PathInclude::mapToApi),
+        excludes = excludes.map(PathExclude::mapToApi)
+    ).takeUnless { it == ApiPathIncludesExcludes() }
+
+/**
+ * Map these includes and excludes requested for a run to the API, or return *null* if there are none.
+ */
+fun ScopeIncludesExcludes.mapToApi(): ApiScopeIncludesExcludes? =
+    ApiScopeIncludesExcludes(
+        includes = includes.map(ScopeInclude::mapToApi),
+        excludes = excludes.map(ScopeExclude::mapToApi)
+    ).takeUnless { it == ApiScopeIncludesExcludes() }
 
 /**
  * Map the optional [paths][PostRepositoryRun.paths] and [scopes][PostRepositoryRun.scopes] of this request to the
