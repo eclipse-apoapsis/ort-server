@@ -55,6 +55,7 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var pathExcludes by PathExcludeDao via RepositoryConfigurationsPathExcludes
     var pathIncludes by PathIncludeDao via RepositoryConfigurationsPathIncludes
     var scopeExcludes by ScopeExcludeDao via RepositoryConfigurationsScopeExcludesTable
+    var scopeIncludes by ScopeIncludeDao via RepositoryConfigurationsScopeIncludesTable
     var curations by PackageCurationDao via RepositoryConfigurationsPackageCurationsTable
     var licenseFindingCurations by LicenseFindingCurationDao via RepositoryConfigurationsLicenseFindingCurationsTable
     var packageConfigurations by PackageConfigurationDao via RepositoryConfigurationsPackageConfigurationsTable
@@ -71,7 +72,8 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
             scopes = scopeExcludes.map(ScopeExcludeDao::mapToModel)
         ),
         includes = Includes(
-            paths = pathIncludes.map(PathIncludeDao::mapToModel)
+            paths = pathIncludes.map(PathIncludeDao::mapToModel),
+            scopes = scopeIncludes.map(ScopeIncludeDao::mapToModel)
         ),
         resolutions = Resolutions(
             issues = issueResolutions.map(IssueResolutionDao::mapToModel),
