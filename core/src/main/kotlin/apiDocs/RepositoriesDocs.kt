@@ -478,7 +478,9 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
                         issues = emptyList(),
                         jobConfigContext = null,
                         resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
-                        traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
+                        traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7",
+                        paths = examplePathIncludesExcludes,
+                        scopes = exampleScopeIncludesExcludes
                     )
                 }
             }
@@ -536,7 +538,9 @@ val getRepositoryRun: RouteConfig.() -> Unit = {
                         jobConfigContext = null,
                         resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
                         traceId = "35b67725-a85b-4cc3-b2a4-60fd914634e7",
-                        environmentConfigPath = null
+                        environmentConfigPath = null,
+                        paths = examplePathIncludesExcludes,
+                        scopes = exampleScopeIncludesExcludes
                     )
                 }
             }

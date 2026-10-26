@@ -142,7 +142,19 @@ data class OrtRun(
     /**
      * The version of the ORT Server that was active when this run was created.
      */
-    val ortServerVersion: String? = null
+    val ortServerVersion: String? = null,
+
+    /**
+     * The includes and excludes for paths requested when this run was created, applied in addition to those from the
+     * repository configuration file.
+     */
+    val paths: PathIncludesExcludes? = null,
+
+    /**
+     * The includes and excludes for scopes requested when this run was created, applied in addition to those from the
+     * repository configuration file.
+     */
+    val scopes: ScopeIncludesExcludes? = null
 )
 
 /**

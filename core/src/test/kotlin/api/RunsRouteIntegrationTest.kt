@@ -89,9 +89,19 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStat
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExclude as ApiPathExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathExcludeReason as ApiPathExcludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathInclude as ApiPathInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludeReason as ApiPathIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.PathIncludesExcludes as ApiPathIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProjectFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExclude as ApiScopeExclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeExcludeReason as ApiScopeExcludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeInclude as ApiScopeInclude
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludeReason as ApiScopeIncludeReason
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScopeIncludesExcludes as ApiScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
@@ -146,9 +156,16 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -525,6 +542,47 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 val expectedBody = run.mapToApi(Jobs()).copy(issues = listOf(issue))
                 response shouldHaveBody expectedBody
+            }
+        }
+
+        "return the includes and excludes requested for the run" {
+            integrationTestApplication {
+                val run = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    null,
+                    labelsMap,
+                    traceId = "t1",
+                    null,
+                    includesExcludes = RunIncludesExcludes(
+                        paths = PathIncludesExcludes(
+                            includes = listOf(PathInclude("src/**", "SOURCE_OF", "Sources.")),
+                            excludes = listOf(PathExclude("docs/**", "DOCUMENTATION_OF", ""))
+                        ),
+                        scopes = ScopeIncludesExcludes(
+                            includes = listOf(ScopeInclude("compile", "SOURCE_OF", "")),
+                            excludes = listOf(ScopeExclude("test.*", "TEST_DEPENDENCY_OF", "Tests."))
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                with(response.body<ApiOrtRun>()) {
+                    paths shouldBe ApiPathIncludesExcludes(
+                        includes = listOf(ApiPathInclude("src/**", ApiPathIncludeReason.SOURCE_OF, "Sources.")),
+                        excludes = listOf(ApiPathExclude("docs/**", ApiPathExcludeReason.DOCUMENTATION_OF))
+                    )
+                    scopes shouldBe ApiScopeIncludesExcludes(
+                        includes = listOf(ApiScopeInclude("compile", ApiScopeIncludeReason.SOURCE_OF)),
+                        excludes = listOf(
+                            ApiScopeExclude("test.*", ApiScopeExcludeReason.TEST_DEPENDENCY_OF, "Tests.")
+                        )
+                    )
+                }
             }
         }
 
