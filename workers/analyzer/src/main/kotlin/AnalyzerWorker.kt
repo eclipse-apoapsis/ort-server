@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
@@ -158,7 +159,7 @@ internal class AnalyzerWorker(
         return PrepareResult(
             downloadResult.directory,
             environment,
-            job.configuration.toRunnerConfig(context)
+            job.configuration.toRunnerConfig(context, ortRun.includesExcludes)
         )
     }
 
@@ -315,9 +316,13 @@ internal suspend fun OrtRunService.getValidOrtRun(job: AnalyzerJob): OrtRun =
 
 /**
  * Create an [AnalyzerRunnerConfig] from this [AnalyzerJobConfiguration] to be used to analyze the current project.
- * Use the given [context] to resolve the secrets in the plugin configuration.
+ * Use the given [context] to resolve the secrets in the plugin configuration, and add the [includesExcludes] requested
+ * for the run.
  */
-private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerContext): AnalyzerRunnerConfig =
+private suspend fun AnalyzerJobConfiguration.toRunnerConfig(
+    context: WorkerContext,
+    includesExcludes: RunIncludesExcludes?
+): AnalyzerRunnerConfig =
     AnalyzerRunnerConfig(
         skipExcluded = skipExcluded,
         allowDynamicVersions = allowDynamicVersions,
@@ -327,7 +332,8 @@ private suspend fun AnalyzerJobConfiguration.toRunnerConfig(context: WorkerConte
         repositoryConfigPath = repositoryConfigPath,
         packageCurationProviders = context.resolveProviderPluginConfigSecrets(packageCurationProviders.orEmpty()),
         keepAliveWorker = keepAliveWorker,
-        keepAlivePhases = keepAlivePhases
+        keepAlivePhases = keepAlivePhases,
+        includesExcludes = includesExcludes
     )
 
 /**

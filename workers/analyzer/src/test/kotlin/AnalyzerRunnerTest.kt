@@ -26,7 +26,9 @@ import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -55,6 +57,10 @@ import java.time.Instant
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeIncludesExcludes
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 
@@ -88,6 +94,8 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolution
 import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.ScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason
+import org.ossreviewtoolkit.model.config.ScopeInclude
+import org.ossreviewtoolkit.model.config.ScopeIncludeReason
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason
 import org.ossreviewtoolkit.model.readValue
@@ -270,6 +278,46 @@ class AnalyzerRunnerTest : WordSpec({
 
             result.shouldNotBeNull()
             result.projects.map { it.id } should containExactly(Identifier("Unmanaged::project"))
+        }
+
+        "add the includes and excludes requested for the run to those from the repository configuration file" {
+            val runPathExclude = PathExclude(
+                pattern = "**/run",
+                reason = PathExcludeReason.EXAMPLE_OF,
+                comment = "A path exclude requested for the run."
+            )
+            val runScopeInclude = ScopeInclude(
+                pattern = "compile",
+                reason = ScopeIncludeReason.SOURCE_OF,
+                comment = "A scope include requested for the run."
+            )
+            val config = testRunnerConfig.copy(
+                includesExcludes = RunIncludesExcludes(
+                    paths = PathIncludesExcludes(excludes = listOf(runPathExclude.mapToModel())),
+                    scopes = ScopeIncludesExcludes(includes = listOf(runScopeInclude.mapToModel()))
+                )
+            )
+
+            val repositoryConfig = run(config = config).repository.config
+
+            repositoryConfig.excludes.paths.map { it.pattern } should containExactly("**/path", "**/run")
+            repositoryConfig.excludes.scopes.map { it.pattern } should containExactly("test.*")
+            repositoryConfig.includes.scopes should containExactly(runScopeInclude)
+        }
+
+        "skip a project excluded by a path exclude requested for the run" {
+            val config = testRunnerConfig.copy(
+                includesExcludes = RunIncludesExcludes(
+                    paths = PathIncludesExcludes(
+                        excludes = listOf(
+                            PathExclude(pattern = "pom.xml", reason = PathExcludeReason.EXAMPLE_OF).mapToModel()
+                        )
+                    )
+                )
+            )
+
+            run().getProjects().shouldNotBeEmpty()
+            run(config = config).getProjects().shouldBeEmpty()
         }
 
         "start a forked process if custom environment variables are provided" {
