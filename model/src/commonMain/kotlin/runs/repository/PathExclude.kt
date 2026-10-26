@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class PathExclude(
     val pattern: String,
     val reason: String,

@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -99,7 +100,8 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         traceId: String?,
         environmentConfigPath: String?,
         userDisplayName: UserDisplayName?,
-        resolvedJobConfigContext: String?
+        resolvedJobConfigContext: String?,
+        includesExcludes: RunIncludesExcludes?
     ): OrtRun = db.transaction {
         val maxIndex = OrtRunsTable.index.max()
         val lastIndex = OrtRunsTable
@@ -125,6 +127,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.environmentConfigPath = environmentConfigPath
             this.userDisplayName = UserDisplayNameDao.insertOrUpdate(userDisplayName)
             this.ortServerVersion = ORT_SERVER_VERSION
+            this.includesExcludes = includesExcludes
         }.mapToModel()
     }
 

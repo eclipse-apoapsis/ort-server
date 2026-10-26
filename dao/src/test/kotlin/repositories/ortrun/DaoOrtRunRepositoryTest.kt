@@ -56,6 +56,13 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeInclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -168,6 +175,35 @@ class DaoOrtRunRepositoryTest : WordSpec({
             ortRunRepository.get(createdOrtRun.id) shouldNotBeNull {
                 jobConfigContext shouldBe "someConfigContext"
                 resolvedJobConfigContext shouldBe "resolvedConfigContext"
+            }
+        }
+
+        "store the requested includes and excludes" {
+            val includesExcludes = RunIncludesExcludes(
+                paths = PathIncludesExcludes(
+                    includes = listOf(PathInclude("src/**", "SOURCE_OF", "The sources.")),
+                    excludes = listOf(PathExclude("test/**", "TEST_OF", "The tests."))
+                ),
+                scopes = ScopeIncludesExcludes(
+                    includes = listOf(ScopeInclude("compile", "SOURCE_OF")),
+                    excludes = listOf(ScopeExclude("test.*", "TEST_DEPENDENCY_OF", "Test scopes."))
+                )
+            )
+
+            val createdOrtRun = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = null,
+                null,
+                includesExcludes = includesExcludes
+            )
+
+            ortRunRepository.get(createdOrtRun.id) shouldNotBeNull {
+                this.includesExcludes shouldBe includesExcludes
             }
         }
 

@@ -24,6 +24,7 @@ import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 @Serializable
@@ -161,7 +162,13 @@ data class OrtRun(
     /**
      * The version of the ORT Server that was active when this run was created.
      */
-    val ortServerVersion: String? = null
+    val ortServerVersion: String? = null,
+
+    /**
+     * The path and scope includes and excludes requested for this run in addition to those from the repository
+     * configuration file, or *null* if none were requested.
+     */
+    val includesExcludes: RunIncludesExcludes? = null
 )
 
 enum class OrtRunStatus(

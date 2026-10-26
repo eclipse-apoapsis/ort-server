@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -40,7 +41,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 interface OrtRunRepository {
     /**
      * Create an ORT run. The [resolvedJobConfigContext] is the result of resolving the requested [jobConfigContext]
-     * and determines the configuration used by the run.
+     * and determines the configuration used by the run. The [includesExcludes] are applied in addition to those from
+     * the repository configuration file.
      */
     suspend fun create(
         repositoryId: Long,
@@ -52,7 +54,8 @@ interface OrtRunRepository {
         traceId: String?,
         environmentConfigPath: String?,
         userDisplayName: UserDisplayName? = null,
-        resolvedJobConfigContext: String? = null
+        resolvedJobConfigContext: String? = null,
+        includesExcludes: RunIncludesExcludes? = null
     ): OrtRun
 
     /**

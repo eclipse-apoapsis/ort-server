@@ -18,9 +18,12 @@
  */
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
+import kotlinx.serialization.Serializable
+
 /**
  * Represents a pattern defining scopes that should be included.
  */
+@Serializable
 data class ScopeInclude(
     /** A pattern specifying the scopes to include. */
     val pattern: String,
