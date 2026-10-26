@@ -77,6 +77,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.ScopeInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.SpdxLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsMatcher
@@ -164,6 +165,7 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolution as OrtRuleViola
 import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason as OrtRuleViolationResolutionReason
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
+import org.ossreviewtoolkit.model.config.ScopeInclude as OrtScopeInclude
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
 import org.ossreviewtoolkit.model.config.VulnerabilityResolutionReason as OrtVulnerabilityResolutionReason
@@ -288,7 +290,8 @@ fun OrtExcludes.mapToModel() = Excludes(
 fun OrtIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 
 fun OrtIncludes.mapToModel() = Includes(
-    paths = paths.map(OrtPathInclude::mapToModel)
+    paths = paths.map(OrtPathInclude::mapToModel),
+    scopes = scopes.map(OrtScopeInclude::mapToModel)
 )
 
 fun OrtIssueResolution.mapToModel(source: ResolutionSource) = IssueResolution(
@@ -612,6 +615,8 @@ fun OrtScanSummary.mapToModel() =
     )
 
 fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern = pattern, reason = reason.name, comment = comment)
+
+fun OrtScopeInclude.mapToModel() = ScopeInclude(pattern = pattern, reason = reason.name, comment = comment)
 
 fun OrtSeverity.mapToModel() = when (this) {
     OrtSeverity.ERROR -> Severity.ERROR
