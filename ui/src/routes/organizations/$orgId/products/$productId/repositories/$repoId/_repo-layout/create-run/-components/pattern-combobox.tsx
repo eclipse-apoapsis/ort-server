@@ -42,6 +42,7 @@ import {
   type IncludeExcludeKind,
 } from './includes-excludes';
 import {
+  describeEffect,
   getSuggestionGroups,
   type ProjectSuggestions,
 } from './project-suggestions';
@@ -99,7 +100,7 @@ export const PatternCombobox = ({
   const allGroups = getSuggestionGroups(kind, projectSuggestions);
   const groups = allGroups
     .map((group) => ({
-      heading: group.heading,
+      ...group,
       presets: group.presets.filter((preset) =>
         [group.heading, preset.label, preset.pattern].some((text) =>
           text.toLowerCase().includes(query)
@@ -180,6 +181,15 @@ export const PatternCombobox = ({
                 {group.presets.map((preset) => {
                   const selected =
                     findEntry(preset.direction, preset.pattern) >= 0;
+                  const effect =
+                    projectSuggestions && !group.hideEffects
+                      ? describeEffect(
+                          kind,
+                          preset.direction,
+                          preset.pattern,
+                          projectSuggestions
+                        )
+                      : undefined;
 
                   return (
                     <CommandItem
@@ -201,6 +211,11 @@ export const PatternCombobox = ({
                           <code className='text-muted-foreground font-mono text-xs break-all'>
                             {preset.pattern}
                           </code>
+                        )}
+                        {effect && (
+                          <span className='text-muted-foreground text-xs'>
+                            {effect.text}
+                          </span>
                         )}
                       </span>
                     </CommandItem>

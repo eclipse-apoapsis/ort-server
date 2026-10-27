@@ -890,4 +890,27 @@ describe('CreateRunForm', () => {
       'Scopes in run #12',
     ]);
   });
+
+  it('warns when the excludes leave no scope of the last analyzed run', async () => {
+    const { user } = renderCreateRunForm(vi.fn(), {
+      projectSuggestions: getProjectSuggestions({
+        runIndex: 12,
+        projects: [
+          createProject({ type: 'NPM', scopeNames: ['devDependencies'] }),
+        ],
+        capped: false,
+      }),
+    });
+
+    await user.click(await screen.findByRole('button', { name: /^Scopes/ }));
+    await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
+    // The first one is suggested for the NPM project found.
+    await user.click(
+      screen.getAllByRole('option', { name: /^Development dependencies/ })[0]!
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This pattern would exclude the only scope found in run #12, leaving no dependencies to analyze.'
+    );
+  });
 });

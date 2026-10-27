@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { TrashIcon } from 'lucide-react';
+import { TrashIcon, TriangleAlert } from 'lucide-react';
 import { useFieldArray, UseFormReturn, useWatch } from 'react-hook-form';
 
 import { InlineCode } from '@/components/typography.tsx';
@@ -43,15 +43,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useDebounce } from '@/hooks/use-debounce';
 import {
   formatReason,
   getReasonOptions,
   guessReason,
   type IncludeExcludeDirection,
+  type IncludeExcludeEntry,
   type IncludeExcludeKind,
 } from './includes-excludes';
 import { PatternCombobox } from './pattern-combobox';
-import type { ProjectSuggestions } from './project-suggestions';
+import {
+  countRemaining,
+  describeEffect,
+  describeRun,
+  type ProjectSuggestions,
+} from './project-suggestions';
 import type { CreateRunFormValues } from './run-schema';
 
 type IncludesExcludesSectionProps = {
@@ -108,6 +115,9 @@ const texts = {
       </>
     ),
     includeNote: 'Only scopes matching an include are analyzed.',
+    leavesNothingLabel: 'These patterns exclude all scopes',
+    leavesNothing: (total: number, inRun: string) =>
+      `exclude ${total === 1 ? 'the only scope' : `all ${total} scopes`} found ${inRun}, leaving no dependencies to analyze.`,
   },
   paths: {
     title: 'Paths',
@@ -118,6 +128,9 @@ const texts = {
       </>
     ),
     includeNote: 'Only paths matching an include are analyzed.',
+    leavesNothingLabel: 'These patterns exclude all projects',
+    leavesNothing: (total: number, inRun: string) =>
+      `exclude ${total === 1 ? 'the only project' : `all ${total} projects`} found ${inRun}, leaving nothing to analyze.`,
   },
 } as const;
 
@@ -158,6 +171,12 @@ const IncludesExcludesItem = ({
     control: form.control,
   });
   const entries = useWatch({ control: form.control, name: kind });
+  // Wait for typing to stop before warning, so that a half-typed pattern does not flash a warning.
+  const debouncedEntries = useDebounce(entries, 300);
+  const remaining =
+    projectSuggestions &&
+    countRemaining(kind, debouncedEntries, projectSuggestions);
+  const leavesNothing = remaining?.remaining === 0;
 
   const excluded = entries.filter((e) => e.direction === 'exclude').length;
   const included = entries.length - excluded;
@@ -198,6 +217,12 @@ const IncludesExcludesItem = ({
             {' · '}
             {summary}
           </span>
+          {leavesNothing && (
+            <TriangleAlert
+              aria-label={texts[kind].leavesNothingLabel}
+              className='text-traffic-light-yellow ml-2 inline size-4 align-text-bottom'
+            />
+          )}
         </span>
       </AccordionTrigger>
       <AccordionContent className='@container flex flex-col gap-3'>
@@ -216,6 +241,12 @@ const IncludesExcludesItem = ({
         )}
         {fields.map((field, index) => {
           const direction = entries[index]?.direction ?? field.direction;
+          // The rows move up when one is removed, so the debounced entries are used only once they
+          // have caught up.
+          const debouncedEntry =
+            debouncedEntries.length === entries.length
+              ? debouncedEntries[index]
+              : undefined;
 
           return (
             <div
@@ -260,6 +291,13 @@ const IncludesExcludesItem = ({
                       <Input {...field} className='font-mono' />
                     </FormControl>
                     <FormMessage />
+                    {projectSuggestions && debouncedEntry && (
+                      <MatchCount
+                        kind={kind}
+                        entry={debouncedEntry}
+                        suggestions={projectSuggestions}
+                      />
+                    )}
                   </FormItem>
                 )}
               />
@@ -315,6 +353,23 @@ const IncludesExcludesItem = ({
         {included > 0 && (
           <div className='text-sm text-gray-500'>{texts[kind].includeNote}</div>
         )}
+        {leavesNothing && projectSuggestions && (
+          <div
+            role='alert'
+            className='border-traffic-light-yellow flex items-start gap-2 rounded-md border px-3 py-2 text-sm'
+          >
+            <TriangleAlert className='text-traffic-light-yellow mt-0.5 size-4 shrink-0' />
+            <span>
+              {entries.length === 1
+                ? 'This pattern would '
+                : 'Together, these patterns would '}
+              {texts[kind].leavesNothing(
+                remaining.total,
+                describeRun(projectSuggestions)
+              )}
+            </span>
+          </div>
+        )}
         <PatternCombobox
           kind={kind}
           entries={entries}
@@ -326,5 +381,36 @@ const IncludesExcludesItem = ({
         />
       </AccordionContent>
     </AccordionItem>
+  );
+};
+
+type MatchCountProps = {
+  kind: IncludeExcludeKind;
+  entry: Pick<IncludeExcludeEntry, 'direction' | 'pattern'>;
+  suggestions: ProjectSuggestions;
+};
+
+/**
+ * Show what the include or exclude of an entry would do to the scopes, or to the projects, of the
+ * last analyzed run. A pattern that matches nothing is not an error, as the next run may differ.
+ */
+const MatchCount = ({ kind, entry, suggestions }: MatchCountProps) => {
+  const effect = describeEffect(
+    kind,
+    entry.direction,
+    entry.pattern,
+    suggestions
+  );
+
+  if (!effect) return null;
+
+  // An entry that excludes everything on its own is marked, so that it can be found in the list.
+  return effect.leavesNothing ? (
+    <p className='flex items-start gap-1 text-xs font-medium'>
+      <TriangleAlert className='text-traffic-light-yellow size-3.5 shrink-0' />
+      {effect.text}
+    </p>
+  ) : (
+    <p className='text-muted-foreground text-xs'>{effect.text}</p>
   );
 };
