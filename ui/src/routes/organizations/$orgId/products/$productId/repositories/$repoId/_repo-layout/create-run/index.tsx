@@ -41,7 +41,15 @@ import { ApiError } from '@/lib/api-error';
 import { runCreated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
 import { buildRecentRun, useHomeRecentRunActions } from '@/providers/home-data';
+import {
+  analyzedRunProjectsOptions,
+  type AnalyzedRunProjects,
+} from './-components/analyzed-run-projects';
 import { CreateRunForm } from './-components/create-run-form';
+import { getProjectSuggestions } from './-components/project-suggestions';
+
+const selectProjectSuggestions = (projects: AnalyzedRunProjects | null) =>
+  projects && getProjectSuggestions(projects);
 
 const CreateRunPage = () => {
   const navigate = useNavigate();
@@ -66,6 +74,16 @@ const CreateRunPage = () => {
     pluginsError,
     defaultPluginsError,
   } = useCreateRunPlugins(Number.parseInt(params.repoId), configContext);
+
+  // The suggestions for includes and excludes work without the projects, so a failure to load
+  // them only leaves out the suggestions based on them.
+  const projectSuggestions = useQuery({
+    ...analyzedRunProjectsOptions(
+      Number.parseInt(params.repoId),
+      ortRun?.data ?? null
+    ),
+    select: selectProjectSuggestions,
+  });
 
   useEffect(() => {
     if (pluginsError) toastError('Unable to load plugins', pluginsError);
@@ -169,6 +187,8 @@ const CreateRunPage = () => {
       plugins={plugins}
       pluginsLoading={pluginsLoading}
       pluginsLoadFailed={pluginsError !== null}
+      projectSuggestions={projectSuggestions.data}
+      projectSuggestionsLoading={projectSuggestions.isPending}
       rerun={ortRun?.data ?? null}
       secrets={secrets.data ?? []}
     />
@@ -207,6 +227,10 @@ export const Route = createFileRoute(
     );
     void context.queryClient.prefetchQuery(
       createRunDefaultPluginsOptions(repositoryId, configContext)
+    );
+    // Also start loading the projects that the suggestions for includes and excludes are based on.
+    void context.queryClient.prefetchQuery(
+      analyzedRunProjectsOptions(repositoryId, ortRun?.data ?? null)
     );
 
     const secrets = await getAvailableRepositorySecrets({

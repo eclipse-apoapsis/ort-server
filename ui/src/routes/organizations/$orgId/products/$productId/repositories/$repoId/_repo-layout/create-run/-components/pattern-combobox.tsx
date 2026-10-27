@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Check, PlusIcon } from 'lucide-react';
+import { Check, Loader2, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -34,16 +34,17 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import {
-  getPresetGroups,
-  type IncludeExcludePreset,
-} from './include-exclude-presets';
+import type { IncludeExcludePreset } from './include-exclude-presets';
 import {
   guessReason,
   type IncludeExcludeDirection,
   type IncludeExcludeEntry,
   type IncludeExcludeKind,
 } from './includes-excludes';
+import {
+  getSuggestionGroups,
+  type ProjectSuggestions,
+} from './project-suggestions';
 
 type PatternComboboxProps = {
   kind: IncludeExcludeKind;
@@ -51,6 +52,9 @@ type PatternComboboxProps = {
   entries: IncludeExcludeEntry[];
   onAdd: (entry: IncludeExcludeEntry) => void;
   onRemove: (index: number) => void;
+  /** The suggestions from the projects of the last analyzed run, null if there is no such run. */
+  projectSuggestions?: ProjectSuggestions | null;
+  projectSuggestionsLoading?: boolean;
 };
 
 const texts = {
@@ -69,8 +73,9 @@ const texts = {
 } as const;
 
 /**
- * A button that opens a list for adding includes and excludes, either from suggestions grouped by
- * package manager or from a typed pattern. Picking a suggestion adds it, or removes it again if it
+ * A button that opens a list for adding includes and excludes, either from suggestions or from a
+ * typed pattern. The suggestions for the package managers and the scopes or directories found in
+ * the last analyzed run come first. Picking a suggestion adds it, or removes it again if it
  * is already in the list, and keeps the list open, so that several can be picked in a row.
  */
 export const PatternCombobox = ({
@@ -78,6 +83,8 @@ export const PatternCombobox = ({
   entries,
   onAdd,
   onRemove,
+  projectSuggestions,
+  projectSuggestionsLoading = false,
 }: PatternComboboxProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -89,11 +96,12 @@ export const PatternCombobox = ({
       (entry) => entry.direction === direction && entry.pattern.trim() === value
     );
 
-  const groups = getPresetGroups(kind)
+  const allGroups = getSuggestionGroups(kind, projectSuggestions);
+  const groups = allGroups
     .map((group) => ({
-      label: group.label,
-      presets: group[kind].filter((preset) =>
-        [group.label, preset.label, preset.pattern].some((text) =>
+      heading: group.heading,
+      presets: group.presets.filter((preset) =>
+        [group.heading, preset.label, preset.pattern].some((text) =>
           text.toLowerCase().includes(query)
         )
       ),
@@ -103,8 +111,8 @@ export const PatternCombobox = ({
   // A typed pattern is offered in each direction that no suggestion has it in.
   const customDirections = (['exclude', 'include'] as const).filter(
     (direction) =>
-      !getPresetGroups(kind).some((group) =>
-        group[kind].some(
+      !allGroups.some((group) =>
+        group.presets.some(
           (preset) =>
             preset.direction === direction && preset.pattern === pattern
         )
@@ -161,8 +169,14 @@ export const PatternCombobox = ({
             onValueChange={setSearch}
           />
           <CommandList className='max-h-[360px]'>
+            {projectSuggestionsLoading && (
+              <div className='text-muted-foreground flex items-center gap-2 px-3 py-2 text-sm'>
+                <Loader2 size={16} className='animate-spin' />
+                Reading the projects of the last run...
+              </div>
+            )}
             {groups.map((group) => (
-              <CommandGroup key={group.label} heading={group.label}>
+              <CommandGroup key={group.heading} heading={group.heading}>
                 {group.presets.map((preset) => {
                   const selected =
                     findEntry(preset.direction, preset.pattern) >= 0;
@@ -170,7 +184,7 @@ export const PatternCombobox = ({
                   return (
                     <CommandItem
                       key={`${preset.direction}:${preset.pattern}`}
-                      value={`${group.label}:${preset.direction}:${preset.pattern}`}
+                      value={`${group.heading}:${preset.direction}:${preset.pattern}`}
                       onSelect={() => togglePreset(preset)}
                       className='items-start'
                     >
@@ -181,10 +195,13 @@ export const PatternCombobox = ({
                         )}
                       />
                       <span className='flex min-w-0 flex-col'>
-                        <span>{preset.label}</span>
-                        <code className='text-muted-foreground font-mono text-xs break-all'>
-                          {preset.pattern}
-                        </code>
+                        <span className='break-all'>{preset.label}</span>
+                        {/* A scope found in a run is labelled with its name, which is its pattern. */}
+                        {preset.pattern !== preset.label && (
+                          <code className='text-muted-foreground font-mono text-xs break-all'>
+                            {preset.pattern}
+                          </code>
+                        )}
                       </span>
                     </CommandItem>
                   );

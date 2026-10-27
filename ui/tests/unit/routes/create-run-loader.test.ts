@@ -53,15 +53,16 @@ describe('create run loader', () => {
 
     expect(result).toEqual({ ortRun: null, secrets: { data: [] } });
     expect(getRepositoryRun).not.toHaveBeenCalled();
-    expect(prefetchQuery).toHaveBeenCalledTimes(2);
+    expect(prefetchQuery).toHaveBeenCalledTimes(3);
     const requests = prefetchQuery.mock.calls.map(([options]) =>
       getQueryKeyRequest(options)
     );
     expect(requests.map((request) => request._id)).toEqual([
       'getPluginsForRepository',
       'getDefaultPluginsForRepository',
+      'analyzedRunProjects',
     ]);
-    requests.forEach((request) => {
+    requests.slice(0, 2).forEach((request) => {
       expect(request.path).toEqual({ repositoryId: 3 });
       expect(request.query).toBeUndefined();
     });
@@ -91,9 +92,12 @@ describe('create run loader', () => {
     expect(requests.map((request) => request._id)).toEqual([
       'getPluginsForRepository',
       'getDefaultPluginsForRepository',
+      'analyzedRunProjects',
     ]);
-    requests.forEach((request) =>
-      expect(request.query).toEqual({ configContext: 'ctx' })
-    );
+    requests
+      .slice(0, 2)
+      .forEach((request) =>
+        expect(request.query).toEqual({ configContext: 'ctx' })
+      );
   });
 });

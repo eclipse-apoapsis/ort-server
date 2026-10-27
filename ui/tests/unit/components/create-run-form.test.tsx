@@ -24,13 +24,18 @@ import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { OrtRun, PreconfiguredPluginDescriptor } from '@/api';
-import { CreateRunForm } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/create-run-form';
+import {
+  CreateRunForm,
+  type CreateRunFormProps,
+} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/create-run-form';
+import { getProjectSuggestions } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/project-suggestions';
 import {
   createDefaultPlugins,
   createOrtRun,
   createPermissions,
   createPluginDescriptor,
   createPluginSecrets,
+  createProject,
 } from '../fixtures/create-run';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
@@ -86,7 +91,10 @@ const secrets = createPluginSecrets();
 const createRunPath =
   '/organizations/1/products/2/repositories/3/create-run' as const;
 
-const renderCreateRunForm = (onSubmit = vi.fn()) => ({
+const renderCreateRunForm = (
+  onSubmit = vi.fn(),
+  props: Partial<CreateRunFormProps> = {}
+) => ({
   onSubmit,
   ...renderInteractiveWithRouter(
     <CreateRunForm
@@ -98,6 +106,7 @@ const renderCreateRunForm = (onSubmit = vi.fn()) => ({
       plugins={[advisorPlugin, scannerPlugin, ...packageManagerPlugins]}
       rerun={rerun}
       secrets={secrets}
+      {...props}
     />,
     {
       path: createRunPath,
@@ -856,5 +865,29 @@ describe('CreateRunForm', () => {
     await user.click(getPreset());
 
     expect(screen.queryByLabelText('Pattern')).toBeNull();
+  });
+
+  it('suggests the presets and scopes of the projects of the last analyzed run first', async () => {
+    const { user } = renderCreateRunForm(vi.fn(), {
+      projectSuggestions: getProjectSuggestions({
+        runIndex: 12,
+        projects: [
+          createProject({ type: 'NPM', scopeNames: ['devDependencies'] }),
+        ],
+        capped: false,
+      }),
+    });
+
+    await user.click(await screen.findByRole('button', { name: /^Scopes/ }));
+    await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
+
+    const headings = Array.from(
+      document.querySelectorAll('[cmdk-group-heading]'),
+      (heading) => heading.textContent
+    );
+    expect(headings.slice(0, 2)).toEqual([
+      'Suggested for NPM',
+      'Scopes in run #12',
+    ]);
   });
 });

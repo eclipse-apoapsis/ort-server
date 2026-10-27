@@ -51,6 +51,7 @@ import {
   type IncludeExcludeKind,
 } from './includes-excludes';
 import { PatternCombobox } from './pattern-combobox';
+import type { ProjectSuggestions } from './project-suggestions';
 import type { CreateRunFormValues } from './run-schema';
 
 type IncludesExcludesSectionProps = {
@@ -58,6 +59,9 @@ type IncludesExcludesSectionProps = {
   /** The open accordion items of the form; the items of this section are "scopes" and "paths". */
   openItems: string[];
   onOpenItemsChange: (openItems: string[]) => void;
+  /** The suggestions from the projects of the last analyzed run, null if there is no such run. */
+  projectSuggestions?: ProjectSuggestions | null;
+  projectSuggestionsLoading?: boolean;
 };
 
 /** The section of the create run form for the path and scope includes and excludes of a run. */
@@ -65,6 +69,8 @@ export const IncludesExcludesSection = ({
   form,
   openItems,
   onOpenItemsChange,
+  projectSuggestions,
+  projectSuggestionsLoading,
 }: IncludesExcludesSectionProps) => (
   <>
     <h3 className='mt-4'>Includes and excludes</h3>
@@ -79,8 +85,15 @@ export const IncludesExcludesSection = ({
       value={openItems}
       onValueChange={onOpenItemsChange}
     >
-      <IncludesExcludesItem form={form} kind='scopes' />
-      <IncludesExcludesItem form={form} kind='paths' />
+      {(['scopes', 'paths'] as const).map((kind) => (
+        <IncludesExcludesItem
+          key={kind}
+          form={form}
+          kind={kind}
+          projectSuggestions={projectSuggestions}
+          projectSuggestionsLoading={projectSuggestionsLoading}
+        />
+      ))}
     </Accordion>
   </>
 );
@@ -130,9 +143,16 @@ const directionLabels: Record<IncludeExcludeDirection, string> = {
 type IncludesExcludesItemProps = {
   form: UseFormReturn<CreateRunFormValues>;
   kind: IncludeExcludeKind;
+  projectSuggestions?: ProjectSuggestions | null;
+  projectSuggestionsLoading?: boolean;
 };
 
-const IncludesExcludesItem = ({ form, kind }: IncludesExcludesItemProps) => {
+const IncludesExcludesItem = ({
+  form,
+  kind,
+  projectSuggestions,
+  projectSuggestionsLoading,
+}: IncludesExcludesItemProps) => {
   const { fields, append, remove } = useFieldArray({
     name: kind,
     control: form.control,
@@ -301,6 +321,8 @@ const IncludesExcludesItem = ({ form, kind }: IncludesExcludesItemProps) => {
           // Keep the focus in the list of suggestions, so that it stays open.
           onAdd={(entry) => append(entry, { shouldFocus: false })}
           onRemove={remove}
+          projectSuggestions={projectSuggestions}
+          projectSuggestionsLoading={projectSuggestionsLoading}
         />
       </AccordionContent>
     </AccordionItem>
