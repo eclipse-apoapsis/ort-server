@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { antGlobToRegex } from '@/lib/ant-glob';
 import { escapeRegex } from '@/lib/regex';
 import type { AnalyzedRunProjects } from './analyzed-run-projects';
 import {
@@ -24,7 +25,13 @@ import {
   type IncludeExcludePreset,
   type IncludeExcludePresetGroup,
 } from './include-exclude-presets';
-import { guessReason, type IncludeExcludeKind } from './includes-excludes';
+import {
+  guessReason,
+  toJavaScriptRegex,
+  type IncludeExcludeDirection,
+  type IncludeExcludeEntry,
+  type IncludeExcludeKind,
+} from './includes-excludes';
 
 /** What the projects of an analyzed run suggest as includes and excludes. */
 export type ProjectSuggestions = {
@@ -45,6 +52,8 @@ export type ProjectSuggestions = {
 export type SuggestionGroup = {
   heading: string;
   presets: IncludeExcludePreset[];
+  /** Whether to leave out what each suggestion would do, as for scopes that only match themselves. */
+  hideEffects?: boolean;
 };
 
 // Android projects have a scope per build variant, such as "releaseRuntimeClasspath" or, with
@@ -133,6 +142,55 @@ export const getProjectSuggestions = ({
   };
 };
 
+/** Name the run the suggestions are based on, as in "in run #12". */
+export const describeRun = ({ runIndex, capped }: ProjectSuggestions) =>
+  capped ? `in the first projects of run #${runIndex}` : `in run #${runIndex}`;
+
+/**
+ * Count how many of the scope names, or of the projects, found in the analyzed run are left after
+ * applying all the given includes and excludes, the same way as ORT does: a scope pattern must
+ * match the whole scope name, and a path pattern is an Ant-style glob matched against the
+ * definition files. What matches an exclude is excluded, and if there are includes, so is what
+ * matches none of them. Entries with an empty or invalid pattern are ignored. Returns undefined if
+ * no entry can be applied or if the run has nothing to count.
+ */
+export const countRemaining = (
+  kind: IncludeExcludeKind,
+  entries: Pick<IncludeExcludeEntry, 'direction' | 'pattern'>[],
+  suggestions: ProjectSuggestions
+): { remaining: number; total: number } | undefined => {
+  const regexes = entries.flatMap((entry) => {
+    const regex = toRegex(kind, entry.pattern);
+    return regex ? [{ direction: entry.direction, regex }] : [];
+  });
+  const values = getValues(kind, suggestions);
+  if (regexes.length === 0 || values.length === 0) return undefined;
+
+  const includes = regexes.filter((entry) => entry.direction === 'include');
+  const excludes = regexes.filter((entry) => entry.direction === 'exclude');
+  const isKept = (value: string) =>
+    (includes.length === 0 ||
+      includes.some(({ regex }) => regex.test(value))) &&
+    !excludes.some(({ regex }) => regex.test(value));
+
+  return { remaining: values.filter(isKept).length, total: values.length };
+};
+
+const toRegex = (kind: IncludeExcludeKind, pattern: string) => {
+  const trimmed = pattern.trim();
+  if (trimmed === '') return undefined;
+  if (kind === 'paths') return antGlobToRegex(trimmed);
+
+  const regex = toJavaScriptRegex(trimmed);
+  return regex && new RegExp(`^(?:${regex.source})$`, regex.flags);
+};
+
+const getValues = (
+  kind: IncludeExcludeKind,
+  suggestions: ProjectSuggestions
+) =>
+  kind === 'scopes' ? suggestions.scopeNames : suggestions.definitionFilePaths;
+
 const appliesTo = (
   group: IncludeExcludePresetGroup,
   suggestions: ProjectSuggestions
@@ -176,9 +234,7 @@ export const getSuggestionGroups = (
   const typeNames = suggestions.projectTypes.map((type) =>
     type === 'Gradle' && suggestions.android ? 'Gradle (Android)' : type
   );
-  const inRun = suggestions.capped
-    ? `in the first projects of run #${suggestions.runIndex}`
-    : `in run #${suggestions.runIndex}`;
+  const inRun = describeRun(suggestions);
 
   return [
     {
@@ -199,6 +255,7 @@ export const getSuggestionGroups = (
       ? {
           heading: `Scopes ${inRun}`,
           presets: suggestions.scopeNames.map(toScopePreset),
+          hideEffects: true,
         }
       : {
           heading: `Directories ${inRun}`,
@@ -206,4 +263,49 @@ export const getSuggestionGroups = (
         },
     ...others.map(toGroup),
   ].filter((group) => group.presets.length > 0);
+};
+
+const countedItems = {
+  scopes: ['scope', 'scopes'],
+  paths: ['project', 'projects'],
+} as const;
+
+/**
+ * Describe what an include or exclude would do to the scopes, or to the projects, found in the
+ * analyzed run, such as "Would exclude 3 of the 40 scopes found in run #12", and tell whether it
+ * leaves nothing of them. Returns undefined if nothing can be counted for the pattern.
+ *
+ * A path exclude applies to all files below the path, not only to projects, and only the
+ * definition files of the projects are known here. So a path exclude that excludes no project is
+ * not described, as it may still exclude other files.
+ */
+export const describeEffect = (
+  kind: IncludeExcludeKind,
+  direction: IncludeExcludeDirection,
+  pattern: string,
+  suggestions: ProjectSuggestions
+): { text: string; leavesNothing: boolean } | undefined => {
+  const count = countRemaining(kind, [{ direction, pattern }], suggestions);
+  if (!count) return undefined;
+
+  const matched =
+    direction === 'exclude' ? count.total - count.remaining : count.remaining;
+  if (kind === 'paths' && direction === 'exclude' && matched === 0) {
+    return undefined;
+  }
+
+  const [singular, plural] = countedItems[kind];
+  const verb =
+    direction === 'exclude'
+      ? 'Would exclude'
+      : matched === 0
+        ? 'Would keep'
+        : 'Would keep only';
+  const amount = matched === 0 ? 'none' : matched;
+  const items = count.total === 1 ? singular : plural;
+
+  return {
+    text: `${verb} ${amount} of the ${count.total} ${items} found ${describeRun(suggestions)}`,
+    leavesNothing: count.remaining === 0,
+  };
 };

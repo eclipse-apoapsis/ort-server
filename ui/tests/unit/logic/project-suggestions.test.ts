@@ -20,6 +20,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  countRemaining,
+  describeEffect,
   getProjectSuggestions,
   getSuggestionGroups,
 } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/project-suggestions';
@@ -116,5 +118,113 @@ describe('getSuggestionGroups', () => {
     const groups = getSuggestionGroups('scopes', null);
 
     expect(groups.at(0)?.heading).toBe('Gradle (Android)');
+  });
+});
+
+describe('describeEffect', () => {
+  const suggestions = suggestionsFor(
+    createProject({ scopeNames: ['test', 'testRuntimeClasspath', 'compile'] })
+  );
+
+  it('describes what an exclude or an include would do in the analyzed run', () => {
+    expect(describeEffect('scopes', 'exclude', 'test.*', suggestions)).toEqual({
+      text: 'Would exclude 2 of the 3 scopes found in run #12',
+      leavesNothing: false,
+    });
+    expect(
+      describeEffect('scopes', 'include', 'compile', suggestions)?.text
+    ).toBe('Would keep only 1 of the 3 scopes found in run #12');
+    expect(describeEffect('scopes', 'include', 'runtime', suggestions)).toEqual(
+      {
+        text: 'Would keep none of the 3 scopes found in run #12',
+        leavesNothing: true,
+      }
+    );
+  });
+
+  it('matches a scope pattern against the whole scope name', () => {
+    expect(describeEffect('scopes', 'exclude', 'test', suggestions)?.text).toBe(
+      'Would exclude 1 of the 3 scopes found in run #12'
+    );
+  });
+
+  it('applies Java flags at the start of a scope pattern', () => {
+    expect(
+      describeEffect('scopes', 'exclude', '(?i)TEST.*', suggestions)?.text
+    ).toBe('Would exclude 2 of the 3 scopes found in run #12');
+  });
+
+  it('describes a path exclude only if it excludes projects', () => {
+    const paths = suggestionsFor(
+      createProject({ definitionFilePath: 'pom.xml' }),
+      createProject({ definitionFilePath: 'samples/app/pom.xml' })
+    );
+
+    expect(describeEffect('paths', 'exclude', 'samples/**', paths)?.text).toBe(
+      'Would exclude 1 of the 2 projects found in run #12'
+    );
+    // The path may still hold files that are not part of any project.
+    expect(
+      describeEffect('paths', 'exclude', 'src/tests/**', paths)
+    ).toBeUndefined();
+    expect(describeEffect('paths', 'include', 'src/**', paths)?.text).toBe(
+      'Would keep none of the 2 projects found in run #12'
+    );
+  });
+});
+
+describe('countRemaining', () => {
+  const suggestions = suggestionsFor(
+    createProject({
+      definitionFilePath: 'app/pom.xml',
+      scopeNames: ['compile', 'test', 'provided'],
+    }),
+    createProject({ definitionFilePath: 'samples/pom.xml' })
+  );
+
+  it('counts what is left after all excludes together', () => {
+    expect(
+      countRemaining(
+        'scopes',
+        [
+          { direction: 'exclude', pattern: 'test' },
+          { direction: 'exclude', pattern: 'compile|provided' },
+        ],
+        suggestions
+      )
+    ).toEqual({ remaining: 0, total: 3 });
+  });
+
+  it('excludes what matches no include', () => {
+    expect(
+      countRemaining(
+        'paths',
+        [{ direction: 'include', pattern: 'src/**' }],
+        suggestions
+      )
+    ).toEqual({ remaining: 0, total: 2 });
+    expect(
+      countRemaining(
+        'paths',
+        [
+          { direction: 'include', pattern: '**' },
+          { direction: 'exclude', pattern: 'samples/**' },
+        ],
+        suggestions
+      )
+    ).toEqual({ remaining: 1, total: 2 });
+  });
+
+  it('ignores entries with an empty or invalid pattern', () => {
+    expect(
+      countRemaining(
+        'scopes',
+        [
+          { direction: 'exclude', pattern: '' },
+          { direction: 'exclude', pattern: 'test(' },
+        ],
+        suggestions
+      )
+    ).toBeUndefined();
   });
 });
