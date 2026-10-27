@@ -42,6 +42,7 @@ import { EvaluatorJobDetails } from './-components/evaluator-job-details';
 import { JobTitle } from './-components/job-title';
 import { NotifierJobDetails } from './-components/notifier-job-details';
 import { ReporterJobDetails } from './-components/reporter-job-details';
+import { RunIncludesExcludes } from './-components/run-includes-excludes';
 import { ScannerJobDetails } from './-components/scanner-job-details';
 
 const jobSections = [
@@ -159,6 +160,7 @@ const ConfigComponent = () => {
               </div>
             );
           })()}
+          <RunIncludesExcludes scopes={ortRun.scopes} paths={ortRun.paths} />
         </CardContent>
       </Card>
       <Card>
