@@ -24,6 +24,7 @@ import { PreconfiguredPluginDescriptor } from '@/api';
 import { zAnalyzerPhase } from '@/api/zod.gen';
 import { environmentDefinitionsSchema } from '@/lib/types';
 import { environmentVariableSchema, keyValueSchema } from './form-primitives';
+import { createIncludesExcludesSchema } from './includes-excludes';
 import {
   createPluginConfigSchema,
   validateRequiredPluginOptions,
@@ -74,6 +75,8 @@ export const createRunFormSchema = (
   return z.object({
     revision: z.string(),
     path: z.string(),
+    scopes: createIncludesExcludesSchema('scopes'),
+    paths: createIncludesExcludesSchema('paths'),
     jobConfigs: z
       .object({
         analyzer: z

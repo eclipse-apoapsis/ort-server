@@ -22,12 +22,15 @@ import {
   AnalyzerJobConfiguration,
   EvaluatorJobConfiguration,
   NotifierJobConfiguration,
+  PathIncludesExcludes,
   PostRepositoryRun,
   PreconfiguredPluginDescriptor,
   ReporterJobConfiguration,
   ScannerJobConfiguration,
+  ScopeIncludesExcludes,
 } from '@/api';
 import { convertArrayToMap } from './form-primitives';
+import { formEntriesToIncludesExcludes } from './includes-excludes';
 import {
   createPackageManagerPayload,
   createPluginPayload,
@@ -257,6 +260,8 @@ export function formValuesToPayload(
   return {
     revision: values.revision,
     path: values.path,
+    scopes: formEntriesToIncludesExcludes<ScopeIncludesExcludes>(values.scopes),
+    paths: formEntriesToIncludesExcludes<PathIncludesExcludes>(values.paths),
     jobConfigs: {
       analyzer: analyzerConfig,
       advisor: advisorConfig,

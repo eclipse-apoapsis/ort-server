@@ -677,3 +677,40 @@ it('keeps empty provider lists from reruns', () => {
   expect(jobConfigs.evaluator.packageConfigurationProviders).toEqual([]);
   expect(jobConfigs.reporter.packageConfigurationProviders).toEqual([]);
 });
+
+it('takes the includes and excludes from reruns, excludes first', () => {
+  const ortRun = createOrtRun({
+    scopes: {
+      includes: [{ pattern: 'releaseRuntimeClasspath', reason: 'SOURCE_OF' }],
+      excludes: [
+        { pattern: 'test.*', reason: 'TEST_DEPENDENCY_OF', comment: 'Tests' },
+      ],
+    },
+    paths: { excludes: [{ pattern: 'docs/**', reason: 'DOCUMENTATION_OF' }] },
+  });
+
+  const defaults = createFormDefaultValues({ ortRun });
+
+  expect(defaults.scopes).toEqual([
+    {
+      direction: 'exclude',
+      pattern: 'test.*',
+      reason: 'TEST_DEPENDENCY_OF',
+      comment: 'Tests',
+    },
+    {
+      direction: 'include',
+      pattern: 'releaseRuntimeClasspath',
+      reason: 'SOURCE_OF',
+      comment: '',
+    },
+  ]);
+  expect(defaults.paths).toEqual([
+    {
+      direction: 'exclude',
+      pattern: 'docs/**',
+      reason: 'DOCUMENTATION_OF',
+      comment: '',
+    },
+  ]);
+});

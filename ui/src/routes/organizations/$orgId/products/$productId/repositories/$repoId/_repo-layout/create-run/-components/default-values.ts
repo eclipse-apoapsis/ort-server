@@ -26,6 +26,7 @@ import type {
 import type { ScannerScope } from '@/components/form/plugin-multi-select-field';
 import { environmentDefinitionsSchema } from '@/lib/types';
 import { convertMapToArray } from './form-primitives';
+import { includesExcludesToFormEntries } from './includes-excludes';
 import {
   getPluginDefaultValues,
   mergePluginConfigs,
@@ -180,6 +181,8 @@ export function defaultValues(
   const baseDefaults: CreateRunFormValues = {
     revision: '',
     path: '',
+    scopes: [],
+    paths: [],
     jobConfigs: {
       analyzer: {
         enabled: true,
@@ -265,6 +268,8 @@ export function defaultValues(
     ? {
         revision: ortRun.revision || baseDefaults.revision,
         path: ortRun.path || baseDefaults.path,
+        scopes: includesExcludesToFormEntries(ortRun.scopes),
+        paths: includesExcludesToFormEntries(ortRun.paths),
         jobConfigs: {
           analyzer: {
             enabled: baseDefaults.jobConfigs.analyzer.enabled,
