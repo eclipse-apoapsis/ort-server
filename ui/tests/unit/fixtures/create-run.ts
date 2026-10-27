@@ -23,6 +23,7 @@ import type {
   OrtRun,
   PreconfiguredPluginDescriptor,
   ProductPermission,
+  Project,
   RepositoryPermission,
   Secret,
 } from '@/api';
@@ -179,3 +180,19 @@ export const createOrtRun = (overrides: DeepPartial<OrtRun> = {}): OrtRun =>
     labels: {},
     ...overrides,
   }) as unknown as OrtRun;
+
+/** Builds a {@link Project} for tests that only read its type, definition file and scope names. */
+export const createProject = ({
+  type = 'Maven',
+  definitionFilePath = 'pom.xml',
+  scopeNames = [],
+}: {
+  type?: string;
+  definitionFilePath?: string;
+  scopeNames?: string[];
+} = {}): Project =>
+  ({
+    identifier: { type, namespace: '', name: 'project', version: '1.0' },
+    definitionFilePath,
+    scopeNames,
+  }) as unknown as Project;

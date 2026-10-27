@@ -76,6 +76,7 @@ import {
 import { IncludesExcludesSection } from './includes-excludes-section';
 import { formValuesToPayload } from './payload';
 import { UNMANAGED_PACKAGE_MANAGER_ID } from './plugin-utils';
+import type { ProjectSuggestions } from './project-suggestions';
 import {
   createRunFormSchema,
   flattenErrors,
@@ -112,6 +113,12 @@ export type CreateRunFormProps = {
   plugins: PreconfiguredPluginDescriptor[];
   pluginsLoading?: boolean;
   pluginsLoadFailed?: boolean;
+  /**
+   * The suggestions for includes and excludes from the projects of the last analyzed run of the
+   * repository. Null if there is no such run, undefined if they are not available.
+   */
+  projectSuggestions?: ProjectSuggestions | null;
+  projectSuggestionsLoading?: boolean;
   rerun: OrtRun | null;
   secrets: Secret[];
 };
@@ -126,6 +133,8 @@ export const CreateRunForm = ({
   plugins,
   pluginsLoading = false,
   pluginsLoadFailed = false,
+  projectSuggestions,
+  projectSuggestionsLoading = false,
   rerun,
   secrets,
 }: CreateRunFormProps) => {
@@ -642,6 +651,8 @@ export const CreateRunForm = ({
               onOpenItemsChange={(value) =>
                 setOpenAccordions(value as AccordionSection[])
               }
+              projectSuggestions={projectSuggestions}
+              projectSuggestionsLoading={projectSuggestionsLoading}
             />
 
             <h3 className='mt-4'>Enable and configure jobs</h3>
