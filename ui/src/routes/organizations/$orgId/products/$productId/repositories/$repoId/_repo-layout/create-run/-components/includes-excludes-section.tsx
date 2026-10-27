@@ -295,7 +295,13 @@ const IncludesExcludesItem = ({ form, kind }: IncludesExcludesItemProps) => {
         {included > 0 && (
           <div className='text-sm text-gray-500'>{texts[kind].includeNote}</div>
         )}
-        <PatternCombobox kind={kind} onAdd={append} />
+        <PatternCombobox
+          kind={kind}
+          entries={entries}
+          // Keep the focus in the list of suggestions, so that it stays open.
+          onAdd={(entry) => append(entry, { shouldFocus: false })}
+          onRemove={remove}
+        />
       </AccordionContent>
     </AccordionItem>
   );

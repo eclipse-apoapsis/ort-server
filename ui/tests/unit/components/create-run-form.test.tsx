@@ -770,7 +770,7 @@ describe('CreateRunForm', () => {
     await user.click(await screen.findByRole('button', { name: /^Scopes/ }));
     await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
     await user.type(
-      screen.getByPlaceholderText('Type a regular expression'),
+      screen.getByPlaceholderText(/type a regular expression/),
       'test.*'
     );
     await user.click(
@@ -803,7 +803,7 @@ describe('CreateRunForm', () => {
     await user.click(scopes);
     await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
     await user.type(
-      screen.getByPlaceholderText('Type a regular expression'),
+      screen.getByPlaceholderText(/type a regular expression/),
       'runtime'
     );
     await user.click(
@@ -815,5 +815,46 @@ describe('CreateRunForm', () => {
     expect(await screen.findAllByText('Choose a reason.')).not.toHaveLength(0);
     expect(scopes).toHaveAttribute('aria-expanded', 'true');
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('offers a typed pattern in the direction that no suggestion has', async () => {
+    const { user } = renderCreateRunForm();
+
+    await user.click(await screen.findByRole('button', { name: /^Scopes/ }));
+    await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
+    // The Maven and SBT suggestions exclude "test".
+    await user.type(
+      screen.getByPlaceholderText(/type a regular expression/),
+      'test'
+    );
+
+    expect(
+      screen.getByRole('option', { name: 'Include only scopes matching test' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', { name: 'Exclude scopes matching test' })
+    ).toBeNull();
+  });
+
+  it('adds a suggested pattern with its reason and removes it when picked again', async () => {
+    const { user } = renderCreateRunForm();
+
+    await user.click(await screen.findByRole('button', { name: /^Scopes/ }));
+    await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
+    const getPreset = () =>
+      screen.getByRole('option', { name: /^Unit and instrumented tests/ });
+    await user.click(getPreset());
+
+    expect(screen.getByLabelText('Pattern')).toHaveValue(
+      '.*(UnitTest|AndroidTest).*'
+    );
+    expect(screen.getByLabelText('Reason')).toHaveTextContent(
+      'Test dependency of'
+    );
+
+    // The list stays open, so that the same preset can be picked again to remove it.
+    await user.click(getPreset());
+
+    expect(screen.queryByLabelText('Pattern')).toBeNull();
   });
 });

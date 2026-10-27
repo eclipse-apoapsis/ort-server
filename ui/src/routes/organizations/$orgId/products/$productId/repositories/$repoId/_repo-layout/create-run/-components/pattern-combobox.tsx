@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { PlusIcon } from 'lucide-react';
+import { Check, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import {
+  getPresetGroups,
+  type IncludeExcludePreset,
+} from './include-exclude-presets';
 import {
   guessReason,
   type IncludeExcludeDirection,
@@ -42,31 +47,85 @@ import {
 
 type PatternComboboxProps = {
   kind: IncludeExcludeKind;
+  /** The entries in the list, to mark the presets that are already in it. */
+  entries: IncludeExcludeEntry[];
   onAdd: (entry: IncludeExcludeEntry) => void;
+  onRemove: (index: number) => void;
 };
 
 const texts = {
   scopes: {
     button: 'Add scope pattern',
-    placeholder: 'Type a regular expression',
+    placeholder: 'Search suggestions or type a regular expression',
     exclude: 'Exclude scopes matching',
     include: 'Include only scopes matching',
   },
   paths: {
     button: 'Add path pattern',
-    placeholder: 'Type a glob pattern',
+    placeholder: 'Search suggestions or type a glob pattern',
     exclude: 'Exclude paths matching',
     include: 'Include only paths matching',
   },
 } as const;
 
-/** A button that opens a list for adding an include or exclude from a typed pattern. */
-export const PatternCombobox = ({ kind, onAdd }: PatternComboboxProps) => {
+/**
+ * A button that opens a list for adding includes and excludes, either from suggestions grouped by
+ * package manager or from a typed pattern. Picking a suggestion adds it, or removes it again if it
+ * is already in the list, and keeps the list open, so that several can be picked in a row.
+ */
+export const PatternCombobox = ({
+  kind,
+  entries,
+  onAdd,
+  onRemove,
+}: PatternComboboxProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const pattern = search.trim();
+  const query = pattern.toLowerCase();
 
-  const add = (direction: IncludeExcludeDirection) => {
+  const findEntry = (direction: IncludeExcludeDirection, value: string) =>
+    entries.findIndex(
+      (entry) => entry.direction === direction && entry.pattern.trim() === value
+    );
+
+  const groups = getPresetGroups(kind)
+    .map((group) => ({
+      label: group.label,
+      presets: group[kind].filter((preset) =>
+        [group.label, preset.label, preset.pattern].some((text) =>
+          text.toLowerCase().includes(query)
+        )
+      ),
+    }))
+    .filter((group) => group.presets.length > 0);
+
+  // A typed pattern is offered in each direction that no suggestion has it in.
+  const customDirections = (['exclude', 'include'] as const).filter(
+    (direction) =>
+      !getPresetGroups(kind).some((group) =>
+        group[kind].some(
+          (preset) =>
+            preset.direction === direction && preset.pattern === pattern
+        )
+      )
+  );
+
+  const togglePreset = (preset: IncludeExcludePreset) => {
+    const index = findEntry(preset.direction, preset.pattern);
+    if (index >= 0) {
+      onRemove(index);
+    } else {
+      onAdd({
+        direction: preset.direction,
+        pattern: preset.pattern,
+        reason: preset.reason,
+        comment: '',
+      });
+    }
+  };
+
+  const addCustom = (direction: IncludeExcludeDirection) => {
     onAdd({
       direction,
       pattern,
@@ -92,7 +151,7 @@ export const PatternCombobox = ({ kind, onAdd }: PatternComboboxProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className='w-[420px] max-w-[calc(100vw-2rem)] p-0'
+        className='w-[460px] max-w-[calc(100vw-2rem)] p-0'
         align='start'
       >
         <Command shouldFilter={false}>
@@ -100,20 +159,45 @@ export const PatternCombobox = ({ kind, onAdd }: PatternComboboxProps) => {
             placeholder={texts[kind].placeholder}
             value={search}
             onValueChange={setSearch}
-            className='font-mono'
           />
-          <CommandList>
-            {pattern === '' ? (
-              <div className='text-muted-foreground px-3 py-4 text-sm'>
-                Type a pattern to add it.
-              </div>
-            ) : (
+          <CommandList className='max-h-[360px]'>
+            {groups.map((group) => (
+              <CommandGroup key={group.label} heading={group.label}>
+                {group.presets.map((preset) => {
+                  const selected =
+                    findEntry(preset.direction, preset.pattern) >= 0;
+
+                  return (
+                    <CommandItem
+                      key={`${preset.direction}:${preset.pattern}`}
+                      value={`${group.label}:${preset.direction}:${preset.pattern}`}
+                      onSelect={() => togglePreset(preset)}
+                      className='items-start'
+                    >
+                      <Check
+                        className={cn(
+                          'mt-0.5 h-4 w-4 shrink-0',
+                          selected ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                      <span className='flex min-w-0 flex-col'>
+                        <span>{preset.label}</span>
+                        <code className='text-muted-foreground font-mono text-xs break-all'>
+                          {preset.pattern}
+                        </code>
+                      </span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            ))}
+            {pattern !== '' && customDirections.length > 0 && (
               <CommandGroup heading='Custom pattern'>
-                {(['exclude', 'include'] as const).map((direction) => (
+                {customDirections.map((direction) => (
                   <CommandItem
                     key={direction}
-                    value={direction}
-                    onSelect={() => add(direction)}
+                    value={`custom:${direction}`}
+                    onSelect={() => addCustom(direction)}
                   >
                     <span className='min-w-0 break-all'>
                       {texts[kind][direction]}{' '}
