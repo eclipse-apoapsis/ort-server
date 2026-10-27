@@ -73,6 +73,7 @@ import {
   getDefaultPluginSelections,
   type PluginGroups,
 } from './default-values';
+import { IncludesExcludesSection } from './includes-excludes-section';
 import { formValuesToPayload } from './payload';
 import { UNMANAGED_PACKAGE_MANAGER_ID } from './plugin-utils';
 import {
@@ -82,7 +83,14 @@ import {
 } from './run-schema';
 
 type AccordionSection =
-  'analyzer' | 'advisor' | 'scanner' | 'evaluator' | 'reporter' | 'notifier';
+  | 'scopes'
+  | 'paths'
+  | 'analyzer'
+  | 'advisor'
+  | 'scanner'
+  | 'evaluator'
+  | 'reporter'
+  | 'notifier';
 
 type CreateRunPermissions = {
   organization: OrganizationPermissions | undefined;
@@ -352,6 +360,12 @@ export const CreateRunForm = ({
     // Determine which accordions contain errors
     const accordionsWithErrors: AccordionSection[] = [];
 
+    if (errors.scopes) {
+      accordionsWithErrors.push('scopes');
+    }
+    if (errors.paths) {
+      accordionsWithErrors.push('paths');
+    }
     if (errors.jobConfigs?.analyzer) {
       accordionsWithErrors.push('analyzer');
     }
@@ -621,6 +635,14 @@ export const CreateRunForm = ({
               Add label
               <PlusIcon className='ml-1 h-4 w-4' />
             </Button>
+
+            <IncludesExcludesSection
+              form={form}
+              openItems={openAccordions}
+              onOpenItemsChange={(value) =>
+                setOpenAccordions(value as AccordionSection[])
+              }
+            />
 
             <h3 className='mt-4'>Enable and configure jobs</h3>
             <div className='text-sm text-gray-500'>

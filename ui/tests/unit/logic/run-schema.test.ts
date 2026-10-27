@@ -260,4 +260,112 @@ describe('createRunFormSchema', () => {
       'sbtVersion',
     ]);
   });
+
+  describe('includes and excludes', () => {
+    const schema = createRunFormSchema(
+      [],
+      [],
+      [],
+      [],
+      [packageConfigurationProviderPlugin],
+      []
+    );
+
+    const issuePaths = (formData: ReturnType<typeof createValidFormData>) =>
+      schema.safeParse(formData).error?.issues.map((issue) => issue.path);
+
+    it('accepts valid entries', () => {
+      const formData = createValidFormData();
+      formData.scopes = [
+        {
+          direction: 'exclude',
+          pattern: 'test.*',
+          reason: 'TEST_DEPENDENCY_OF',
+          comment: '',
+        },
+        {
+          direction: 'include',
+          pattern: 'test.*',
+          reason: 'SOURCE_OF',
+          comment: '',
+        },
+      ];
+      formData.paths = [
+        {
+          direction: 'exclude',
+          pattern: '[docs/**',
+          reason: 'OTHER',
+          comment: '',
+        },
+      ];
+
+      expect(schema.safeParse(formData).success).toBe(true);
+    });
+
+    it('rejects a scope pattern that is not a valid regular expression', () => {
+      const formData = createValidFormData();
+      formData.scopes = [
+        {
+          direction: 'exclude',
+          pattern: 'test(',
+          reason: 'TEST_DEPENDENCY_OF',
+          comment: '',
+        },
+      ];
+
+      expect(issuePaths(formData)).toContainEqual(['scopes', 0, 'pattern']);
+    });
+
+    it('accepts Java flags at the start of a scope pattern', () => {
+      const formData = createValidFormData();
+      formData.scopes = [
+        {
+          direction: 'exclude',
+          pattern: '(?i)test.*',
+          reason: 'TEST_DEPENDENCY_OF',
+          comment: '',
+        },
+      ];
+
+      expect(schema.safeParse(formData).success).toBe(true);
+    });
+
+    it('rejects an empty pattern', () => {
+      const formData = createValidFormData();
+      formData.paths = [
+        { direction: 'exclude', pattern: ' ', reason: 'OTHER', comment: '' },
+      ];
+
+      expect(issuePaths(formData)).toContainEqual(['paths', 0, 'pattern']);
+    });
+
+    it('rejects a pattern that is already in the list', () => {
+      const formData = createValidFormData();
+      formData.paths = [
+        {
+          direction: 'exclude',
+          pattern: 'docs/**',
+          reason: 'OTHER',
+          comment: '',
+        },
+        {
+          direction: 'exclude',
+          pattern: 'docs/** ',
+          reason: 'DOCUMENTATION_OF',
+          comment: '',
+        },
+      ];
+
+      expect(issuePaths(formData)).toEqual([['paths', 1, 'pattern']]);
+    });
+
+    it('rejects a scope exclude without a reason', () => {
+      const formData = createValidFormData();
+      formData.scopes = [
+        { direction: 'exclude', pattern: 'runtime', reason: '', comment: '' },
+      ];
+
+      expect(issuePaths(formData)).toContainEqual(['scopes', 0, 'reason']);
+    });
+  });
 });

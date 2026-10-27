@@ -763,4 +763,57 @@ describe('CreateRunForm', () => {
     expect(within(packageManagers).getByText('Maven')).toBeVisible();
     expect(within(packageManagers).queryByText('Unmanaged')).toBeNull();
   });
+
+  it('submits a scope exclude added from a typed pattern', async () => {
+    const { onSubmit, user } = renderCreateRunForm();
+
+    await user.click(await screen.findByRole('button', { name: /^Scopes/ }));
+    await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
+    await user.type(
+      screen.getByPlaceholderText('Type a regular expression'),
+      'test.*'
+    );
+    await user.click(
+      screen.getByRole('option', { name: 'Exclude scopes matching test.*' })
+    );
+
+    expect(screen.getByLabelText('Pattern')).toHaveValue('test.*');
+    expect(screen.getByRole('button', { name: /^Scopes/ })).toHaveTextContent(
+      '1 excluded'
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Advisor' }));
+    await user.type(screen.getByLabelText(/serverUrl/), 'https://osv.dev');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scopes: {
+          excludes: [{ pattern: 'test.*', reason: 'TEST_DEPENDENCY_OF' }],
+          includes: [],
+        },
+      })
+    );
+  });
+
+  it('opens the scopes when one of their entries is invalid', async () => {
+    const { onSubmit, user } = renderCreateRunForm();
+    const scopes = await screen.findByRole('button', { name: /^Scopes/ });
+
+    await user.click(scopes);
+    await user.click(screen.getByRole('button', { name: 'Add scope pattern' }));
+    await user.type(
+      screen.getByPlaceholderText('Type a regular expression'),
+      'runtime'
+    );
+    await user.click(
+      screen.getByRole('option', { name: 'Exclude scopes matching runtime' })
+    );
+    await user.click(scopes);
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(await screen.findAllByText('Choose a reason.')).not.toHaveLength(0);
+    expect(scopes).toHaveAttribute('aria-expanded', 'true');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
 });

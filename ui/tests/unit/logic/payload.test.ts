@@ -381,4 +381,54 @@ describe('formValuesToPayload', () => {
 
     expect(payload.jobConfigs.analyzer?.packageManagerOptions).toBeUndefined();
   });
+
+  it('splits includes and excludes and drops empty comments', () => {
+    const values = createFormValues();
+    values.scopes = [
+      {
+        direction: 'exclude',
+        pattern: ' test.* ',
+        reason: 'TEST_DEPENDENCY_OF',
+        comment: '',
+      },
+      {
+        direction: 'include',
+        pattern: 'releaseRuntimeClasspath',
+        reason: 'SOURCE_OF',
+        comment: 'Only the shipped code',
+      },
+    ];
+    values.paths = [
+      {
+        direction: 'exclude',
+        pattern: 'docs/**',
+        reason: 'DOCUMENTATION_OF',
+        comment: '',
+      },
+    ];
+
+    const payload = formValuesToPayload(values, []);
+
+    expect(payload.scopes).toEqual({
+      excludes: [{ pattern: 'test.*', reason: 'TEST_DEPENDENCY_OF' }],
+      includes: [
+        {
+          pattern: 'releaseRuntimeClasspath',
+          reason: 'SOURCE_OF',
+          comment: 'Only the shipped code',
+        },
+      ],
+    });
+    expect(payload.paths).toEqual({
+      excludes: [{ pattern: 'docs/**', reason: 'DOCUMENTATION_OF' }],
+      includes: [],
+    });
+  });
+
+  it('omits includes and excludes when there are none', () => {
+    const payload = formValuesToPayload(createFormValues(), []);
+
+    expect(payload.scopes).toBeUndefined();
+    expect(payload.paths).toBeUndefined();
+  });
 });
