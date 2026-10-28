@@ -88,6 +88,17 @@ export type DefaultPluginSelections = {
   reporters: string[];
 };
 
+/** The selections used for the form values until the default plugins are loaded. */
+const NO_DEFAULT_PLUGIN_SELECTIONS: DefaultPluginSelections = {
+  packageManagers: [],
+  packageCurationProviders: [],
+  advisors: [],
+  scanners: [],
+  scannerScopes: {},
+  packageConfigurationProviders: [],
+  reporters: [],
+};
+
 /**
  * Get the plugins that are selected by default in the create run form from the given default
  * plugins, ignoring those that are not available.
@@ -136,7 +147,7 @@ export function getDefaultPluginSelections(
 /**
  * Get the default values for the create run form. The form can be provided with a previously run
  * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults,
- * which select the given default plugins.
+ * which select the given default plugins, or no plugins if they are not loaded yet.
  */
 export function defaultValues(
   ortRun: OrtRun | null,
@@ -149,7 +160,7 @@ export function defaultValues(
     packageManagerPlugins,
   }: PluginGroups,
   isSuperuser: boolean,
-  defaultSelections: DefaultPluginSelections
+  defaultSelections: DefaultPluginSelections = NO_DEFAULT_PLUGIN_SELECTIONS
 ): CreateRunFormValues {
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
   const scannerPluginDefaultValues = getPluginDefaultValues(scannerPlugins);
