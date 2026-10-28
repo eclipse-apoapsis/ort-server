@@ -17,6 +17,14 @@
 
 excludes:
   paths:
+  - pattern: "gradlew*"
+    reason: "BUILD_TOOL_OF"
+    comment: >-
+      The gradlew file is the Gradle wrapper script.
+  - pattern: "gradle/**"
+    reason: "BUILD_TOOL_OF"
+    comment: >-
+      The gradle directory contains the Gradle wrapper configuration.
   - pattern: "buildSrc/**"
     reason: "BUILD_TOOL_OF"
     comment: >-
