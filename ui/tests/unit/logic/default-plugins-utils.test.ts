@@ -21,6 +21,12 @@ import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 
 import {
+  getDefaultPluginsForRepositoryQueryKey,
+  getGlobalDefaultPluginsQueryKey,
+  getOrganizationDefaultPluginsQueryKey,
+  getPluginsForOrganizationQueryKey,
+} from '@/api/@tanstack/react-query.gen';
+import {
   getUnavailablePlugins,
   invalidateDefaultPlugins,
   normalizePluginIds,
@@ -102,10 +108,10 @@ describe('invalidateDefaultPlugins', () => {
   it('invalidates the default plugins of all levels, but no other queries', async () => {
     const queryClient = new QueryClient();
     const keys = [
-      [{ _id: 'getGlobalDefaultPlugins' }],
-      [{ _id: 'getOrganizationDefaultPlugins', path: { organizationId: 1 } }],
-      [{ _id: 'getDefaultPluginsForRepository', path: { repositoryId: 2 } }],
-      [{ _id: 'getPluginsForOrganization', path: { organizationId: 1 } }],
+      getGlobalDefaultPluginsQueryKey(),
+      getOrganizationDefaultPluginsQueryKey({ path: { organizationId: 1 } }),
+      getDefaultPluginsForRepositoryQueryKey({ path: { repositoryId: 2 } }),
+      getPluginsForOrganizationQueryKey({ path: { organizationId: 1 } }),
     ];
     keys.forEach((key) => queryClient.setQueryData(key, []));
 
