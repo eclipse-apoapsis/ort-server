@@ -29,13 +29,6 @@ import {
   moveItem,
 } from '@/components/form/plugin-multi-select-field/utils';
 
-/** Unsaved changes of the default plugins. */
-type Draft = {
-  pluginIds: string[];
-  /** The display order of all plugins, which is kept so that plugins do not move when selected. */
-  pluginOrder: string[];
-};
-
 type UseDefaultPluginsSelectionArgs = {
   /** The type of the plugins in the category. */
   pluginType: PluginType;
@@ -55,8 +48,11 @@ export function useDefaultPluginsSelection({
   availablePlugins,
 }: UseDefaultPluginsSelectionArgs) {
   // Without local changes, the current defaults are selected.
-  const [draft, setDraft] = useState<Draft>();
-  const selectedPluginIds = draft?.pluginIds ?? defaultPluginIds;
+  const [draftPluginIds, setDraftPluginIds] = useState<string[]>();
+  // The display order is kept apart from the local changes, so that plugins can be arranged
+  // before they are selected, and do not move when they are selected.
+  const [displayOrder, setDisplayOrder] = useState<string[]>();
+  const selectedPluginIds = draftPluginIds ?? defaultPluginIds;
   const selectedPluginIdSet = new Set(selectedPluginIds);
 
   // Unavailable plugins are shown if they are configured or still selected.
@@ -68,9 +64,22 @@ export function useDefaultPluginsSelection({
       availablePlugins
     ),
   ];
+  // A display order that shows the selected plugins in another order than they are saved in, for
+  // example after the defaults changed, is not used.
+  const isDisplayOrderValid =
+    displayOrder !== undefined &&
+    !pluginIdsDiffer(
+      displayOrder.filter((id) => selectedPluginIdSet.has(id)),
+      selectedPluginIds,
+      true
+    );
   // Selected plugins are only shown first if their order matters.
   const pluginsInDisplayOrder = isOrdered
-    ? getPluginsInDisplayOrder(plugins, selectedPluginIds, draft?.pluginOrder)
+    ? getPluginsInDisplayOrder(
+        plugins,
+        selectedPluginIds,
+        isDisplayOrderValid ? displayOrder : undefined
+      )
     : plugins;
   const pluginOrder = pluginsInDisplayOrder.map((plugin) => plugin.id);
 
@@ -78,9 +87,10 @@ export function useDefaultPluginsSelection({
   const change = (nextPluginOrder: string[], selected: ReadonlySet<string>) => {
     const pluginIds = nextPluginOrder.filter((id) => selected.has(id));
 
-    setDraft(
+    setDisplayOrder(nextPluginOrder);
+    setDraftPluginIds(
       pluginIdsDiffer(pluginIds, defaultPluginIds, isOrdered)
-        ? { pluginIds, pluginOrder: nextPluginOrder }
+        ? pluginIds
         : undefined
     );
   };
@@ -106,10 +116,13 @@ export function useDefaultPluginsSelection({
     pluginsInDisplayOrder,
     selectedPluginIds,
     isSelected: (pluginId: string) => selectedPluginIdSet.has(pluginId),
-    hasChanges: draft !== undefined,
+    hasChanges: draftPluginIds !== undefined,
     setSelected,
     reorder,
-    /** Drop the local changes, so that the current defaults are selected again. */
-    discard: () => setDraft(undefined),
+    /** Drop the local changes and the display order, so that the current defaults are shown again. */
+    discard: () => {
+      setDraftPluginIds(undefined);
+      setDisplayOrder(undefined);
+    },
   };
 }
