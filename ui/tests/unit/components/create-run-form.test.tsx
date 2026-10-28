@@ -350,13 +350,12 @@ describe('CreateRunForm', () => {
       true
     );
     const button = await screen.findByRole('button', {
-      name: 'Plugins loading...',
+      name: 'Loading available plugins...',
     });
     expect(button).toBeDisabled();
     expect(within(button).queryByText('Creating run...')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Create' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Advisor' })).toBeNull();
-    expect(screen.getByText('Loading available plugins...')).toBeVisible();
     expect(screen.getByRole('switch', { name: 'Show payload' })).toBeDisabled();
 
     await user.type(screen.getByLabelText('Revision'), 'feature');
@@ -399,13 +398,13 @@ describe('CreateRunForm', () => {
       }
     );
 
-    expect(
-      await screen.findByText('The plugins could not be loaded.')
-    ).toBeVisible();
+    const button = await screen.findByRole('button', {
+      name: 'The plugins could not be loaded',
+    });
+    expect(button).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Create' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Advisor' })).toBeNull();
     expect(screen.getByRole('switch', { name: 'Show payload' })).toBeDisabled();
-    const button = screen.getByRole('button', { name: 'Create' });
-    expect(button).toBeDisabled();
 
     await user.type(screen.getByLabelText('Revision'), 'feature');
     await user.click(button);

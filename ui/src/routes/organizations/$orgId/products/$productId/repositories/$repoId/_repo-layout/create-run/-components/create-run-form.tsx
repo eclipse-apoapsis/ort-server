@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
+import { Loader2, PlusIcon, TrashIcon, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -657,16 +657,7 @@ export const CreateRunForm = ({
             <div className='text-sm text-gray-500'>
               Configure the jobs to be included in the run.
             </div>
-            {pluginsLoading ? (
-              <div className='text-muted-foreground flex items-center gap-2 text-sm'>
-                <Loader2 size={16} className='animate-spin' />
-                Loading available plugins...
-              </div>
-            ) : pluginsLoadFailed ? (
-              <div className='text-destructive text-sm'>
-                The plugins could not be loaded.
-              </div>
-            ) : (
+            {pluginsUnavailable ? null : (
               <Accordion
                 type='multiple'
                 value={openAccordions}
@@ -755,7 +746,15 @@ export const CreateRunForm = ({
                 disabled={isSubmitting || pluginsUnavailable}
               >
                 {pluginsLoading ? (
-                  'Plugins loading...'
+                  <>
+                    <Loader2 size={16} className='animate-spin' />
+                    Loading available plugins...
+                  </>
+                ) : pluginsLoadFailed ? (
+                  <>
+                    <TriangleAlert size={16} />
+                    The plugins could not be loaded
+                  </>
                 ) : isSubmitting ? (
                   <>
                     <span className='sr-only'>Creating run...</span>
