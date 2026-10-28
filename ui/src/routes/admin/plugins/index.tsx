@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { PluginAvailability, PluginDescriptor } from '@/api';
@@ -28,6 +28,7 @@ import {
   getInstalledPluginsQueryKey,
   restrictPluginMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { PluginAvailabilityToggle } from '@/components/plugin-availability-toggle';
 import {
@@ -44,7 +45,7 @@ import {
   CardTitle,
 } from '@/components/ui/card.tsx';
 import { ApiError } from '@/lib/api-error';
-import { queryClient } from '@/lib/query-client.ts';
+import { queryClient, routePrefetchStaleTime } from '@/lib/query-client.ts';
 import { toast, toastError } from '@/lib/toast';
 
 type PluginListProps = {
@@ -162,23 +163,23 @@ const PluginList = ({
 };
 
 const PluginsComponent = () => {
-  const { data: plugins } = useQuery({
+  const { data: plugins } = useSuspenseQuery({
     ...getInstalledPluginsOptions(),
+    staleTime: routePrefetchStaleTime,
   });
 
-  const advisors = plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
-  const packageConfigurationProviders =
-    plugins?.filter(
-      (plugin) => plugin.type === 'PACKAGE_CONFIGURATION_PROVIDER'
-    ) || [];
-  const packageCurationProviders =
-    plugins?.filter((plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER') ||
-    [];
-  const packageManagers =
-    plugins?.filter((plugin) => plugin.type === 'PACKAGE_MANAGER') || [];
-  const reporters =
-    plugins?.filter((plugin) => plugin.type === 'REPORTER') || [];
-  const scanners = plugins?.filter((plugin) => plugin.type === 'SCANNER') || [];
+  const advisors = plugins.filter((plugin) => plugin.type === 'ADVISOR');
+  const packageConfigurationProviders = plugins.filter(
+    (plugin) => plugin.type === 'PACKAGE_CONFIGURATION_PROVIDER'
+  );
+  const packageCurationProviders = plugins.filter(
+    (plugin) => plugin.type === 'PACKAGE_CURATION_PROVIDER'
+  );
+  const packageManagers = plugins.filter(
+    (plugin) => plugin.type === 'PACKAGE_MANAGER'
+  );
+  const reporters = plugins.filter((plugin) => plugin.type === 'REPORTER');
+  const scanners = plugins.filter((plugin) => plugin.type === 'SCANNER');
 
   return (
     <Accordion type='single' collapsible className='rounded-lg border'>
@@ -223,5 +224,12 @@ const PluginsComponent = () => {
 };
 
 export const Route = createFileRoute('/admin/plugins/')({
+  loader: async ({ context: { queryClient } }) => {
+    await queryClient.ensureQueryData({
+      ...getInstalledPluginsOptions(),
+      staleTime: routePrefetchStaleTime,
+    });
+  },
   component: PluginsComponent,
+  pendingComponent: LoadingIndicator,
 });

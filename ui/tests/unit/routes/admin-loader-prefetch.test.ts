@@ -141,18 +141,30 @@ describe('admin route loaders', () => {
     });
   });
 
-  it('awaits the plugin templates query before resolving', async () => {
+  it('awaits the installed plugins and plugin templates queries before resolving', async () => {
     const loader = AdminPluginTemplatesRoute.options.loader as unknown as (
       options: unknown
     ) => Promise<void>;
 
-    await expectLoaderToAwaitQuery(loader, 'prefetchQuery', {
-      deps: {},
-      params: {
-        pluginType: 'scanner',
-        pluginId: 'ScanCode',
+    const queryFn = await expectLoaderToAwaitQuery(
+      loader,
+      'prefetchQuery',
+      {
+        deps: {},
+        params: {
+          pluginType: 'scanner',
+          pluginId: 'ScanCode',
+        },
       },
-    });
+      2
+    );
+
+    expect(getQueryKeyRequest(queryFn.mock.calls[0]![0])._id).toBe(
+      'getInstalledPlugins'
+    );
+    expect(getQueryKeyRequest(queryFn.mock.calls[1]![0])._id).toBe(
+      'getPluginTemplates'
+    );
   });
 
   it('awaits the default plugins queries before resolving', async () => {
