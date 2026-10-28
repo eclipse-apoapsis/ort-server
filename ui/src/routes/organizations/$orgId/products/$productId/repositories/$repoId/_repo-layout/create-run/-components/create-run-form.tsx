@@ -101,8 +101,8 @@ type CreateRunPermissions = {
 
 export type CreateRunFormProps = {
   /**
-   * The plugins that are enabled by default for each plugin type. If they are not available, no
-   * plugins are selected by default, and the plugin lists cannot be reset to the defaults.
+   * The plugins that are enabled by default for each plugin type. They are undefined only while
+   * they are loading or if they could not be loaded, when creating a run is blocked.
    */
   defaultPlugins?: DefaultPlugins[];
   isSubmitting: boolean;
@@ -666,7 +666,7 @@ export const CreateRunForm = ({
               </div>
             ) : pluginsLoadFailed ? (
               <div className='text-destructive text-sm'>
-                The available plugins could not be loaded.
+                The plugins could not be loaded.
               </div>
             ) : (
               <Accordion

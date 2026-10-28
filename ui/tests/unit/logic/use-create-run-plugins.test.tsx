@@ -53,8 +53,9 @@ const mockDefaultPlugins = (defaultPlugins: DefaultPlugins[]) =>
     .mocked(getDefaultPluginsForRepository)
     .mockResolvedValue({ data: defaultPlugins } as DefaultPluginsResult);
 
+// The default plugins query retries once on its own, so let it retry without waiting.
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false } },
+  defaultOptions: { queries: { retry: false, retryDelay: 0 } },
 });
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -159,6 +160,7 @@ describe('useCreateRunPlugins', () => {
       expect(result.current).toMatchObject({
         plugins: [],
         pluginsLoading: false,
+        pluginsLoadFailed: true,
         pluginsError: error,
       })
     );
@@ -218,7 +220,7 @@ describe('useCreateRunPlugins', () => {
     );
   });
 
-  it('reports an error if the default plugins cannot be loaded without blocking the plugins', async () => {
+  it('reports the plugins as failed if the default plugins cannot be loaded', async () => {
     const error = new Error('Default plugins unavailable');
     vi.mocked(getDefaultPluginsForRepository).mockRejectedValue(error);
     vi.mocked(getPluginsForRepository).mockResolvedValue({
@@ -234,6 +236,7 @@ describe('useCreateRunPlugins', () => {
         plugins: [osv],
         defaultPlugins: undefined,
         pluginsLoading: false,
+        pluginsLoadFailed: true,
         pluginsError: null,
         defaultPluginsError: error,
       })

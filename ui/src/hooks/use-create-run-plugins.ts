@@ -47,18 +47,21 @@ export const createRunPluginsOptions = (
 export const createRunDefaultPluginsOptions = (
   repositoryId: number,
   configContext?: string
-) =>
-  getDefaultPluginsForRepositoryOptions({
+) => ({
+  ...getDefaultPluginsForRepositoryOptions({
     path: { repositoryId },
     query: configContext ? { configContext } : undefined,
-  });
+  }),
+  // Retry only once, so that a failure does not keep the form disabled for long.
+  retry: 1,
+});
 
 /**
  * Load the plugins available for creating a run and the plugins enabled by default. The plugins
  * are reported as loading until those for the given config context are available, also while
  * reloading them after a config context change. Meanwhile, the previous plugins are kept so that
- * the form does not lose its values. The default plugins are undefined if they could not be
- * loaded, which does not prevent creating a run.
+ * the form does not lose its values. The plugins are reported as failed if either the plugins or
+ * the default plugins could not be loaded.
  */
 export const useCreateRunPlugins = (
   repositoryId: number,
@@ -81,6 +84,8 @@ export const useCreateRunPlugins = (
       pluginsQuery.isPlaceholderData ||
       defaultPluginsQuery.isPending ||
       defaultPluginsQuery.isPlaceholderData,
+    pluginsLoadFailed:
+      pluginsQuery.error !== null || defaultPluginsQuery.error !== null,
     pluginsError: pluginsQuery.error,
     defaultPluginsError: defaultPluginsQuery.error,
   };
