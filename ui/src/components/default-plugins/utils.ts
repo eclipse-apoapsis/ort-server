@@ -26,6 +26,11 @@ import type {
   PluginType,
   PreconfiguredPluginDescriptor,
 } from '@/api';
+import {
+  getDefaultPluginsForRepositoryQueryKey,
+  getGlobalDefaultPluginsQueryKey,
+  getOrganizationDefaultPluginsQueryKey,
+} from '@/api/@tanstack/react-query.gen';
 
 /** The level on which default plugins are configured. */
 export type DefaultPluginsLevel = Exclude<DefaultPluginsSource, 'BUILT_IN'>;
@@ -193,12 +198,13 @@ export function pluginIdsDiffer(
   return a.some((pluginId) => !bSet.has(pluginId));
 }
 
-/** The ids of the queries for default plugins, see the generated query keys. */
+// The ids are taken from the generated query keys, so that renaming an operation breaks the build.
+// Only the ids are used, so the path parameters do not matter.
 const defaultPluginsQueryIds: readonly unknown[] = [
-  'getGlobalDefaultPlugins',
-  'getOrganizationDefaultPlugins',
-  'getDefaultPluginsForRepository',
-];
+  getGlobalDefaultPluginsQueryKey(),
+  getOrganizationDefaultPluginsQueryKey({ path: { organizationId: 0 } }),
+  getDefaultPluginsForRepositoryQueryKey({ path: { repositoryId: 0 } }),
+].map(([key]) => key._id);
 
 /**
  * Invalidate the default plugins of all levels, because changed defaults can be inherited by
