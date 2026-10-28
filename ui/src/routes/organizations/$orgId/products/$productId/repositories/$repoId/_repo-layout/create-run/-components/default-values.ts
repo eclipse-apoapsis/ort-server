@@ -37,36 +37,6 @@ import {
 } from './plugin-utils';
 import type { CreateRunFormValues } from './run-schema';
 
-/**
- * Get the selected scanners and their scopes from the default package and project scanners.
- */
-function getDefaultScannerSelection(
-  packageScanners: readonly string[],
-  projectScanners: readonly string[]
-): {
-  scanners: string[];
-  scannerScopes: Record<string, ScannerScope>;
-} {
-  const packageScannerSet = new Set(packageScanners);
-  const projectScannerSet = new Set(projectScanners);
-  const scanners = Array.from(
-    new Set([...packageScanners, ...projectScanners])
-  );
-
-  const getScope = (scanner: string) => {
-    if (!projectScannerSet.has(scanner)) return 'packages' as const;
-    if (!packageScannerSet.has(scanner)) return 'projects' as const;
-    return 'both' as const;
-  };
-
-  return {
-    scanners,
-    scannerScopes: Object.fromEntries(
-      scanners.map((scanner) => [scanner, getScope(scanner)])
-    ),
-  };
-}
-
 /** The plugins available in the create run form, grouped by plugin type. */
 export type PluginGroups = {
   advisorPlugins: PreconfiguredPluginDescriptor[];
@@ -119,9 +89,11 @@ export function getDefaultPluginSelections(
     ).filter((pluginId) => availablePluginIds.has(pluginId));
   };
 
-  const scannerSelection = getDefaultScannerSelection(
+  // Both scanner lists are always set, so the empty base defaults are never used.
+  const scannerSelection = reconstructScannerSelection(
     getDefaultPluginIds('SCANNER', pluginGroups.scannerPlugins),
-    getDefaultPluginIds('PROJECT_SCANNER', pluginGroups.scannerPlugins)
+    getDefaultPluginIds('PROJECT_SCANNER', pluginGroups.scannerPlugins),
+    { scanners: [], scannerScopes: {} }
   );
 
   return {
