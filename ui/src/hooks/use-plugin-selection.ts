@@ -49,7 +49,8 @@ type UsePluginSelectionArgs<
   scannerScopeName?: TName;
   /**
    * Store the selection in display order instead of the order in which it was made. Selected
-   * plugins are shown first, in selection order, until the user reorders the list.
+   * plugins are shown first, in selection order, when the list appears. The order is then kept
+   * when plugins are checked or unchecked, until the user drags a row or resets the list.
    */
   enableReordering: boolean;
 };
@@ -85,6 +86,13 @@ export function usePluginSelection<
       .map((plugin) => plugin.id)
       .filter((pluginId) => selectedIds.has(pluginId));
 
+  // Keep the current display order, so that checking a plugin does not move its row.
+  const keepDisplayOrder = () => {
+    if (enableReordering) {
+      setPluginOrder(pluginsInDisplayOrder.map((plugin) => plugin.id));
+    }
+  };
+
   // Set a plugin's entry in a field that holds one value per plugin.
   const setPluginValue = (
     base: string,
@@ -114,6 +122,7 @@ export function usePluginSelection<
       ? [...selectedPluginIds, pluginId]
       : selectedPluginIds.filter((id) => id !== pluginId);
 
+    keepDisplayOrder();
     field.onChange(
       enableReordering
         ? inDisplayOrder(new Set(nextSelectedPluginIds))
@@ -128,6 +137,8 @@ export function usePluginSelection<
     const nextSelectedPluginIds = selected
       ? pluginsInDisplayOrder.map((plugin) => plugin.id)
       : [];
+
+    keepDisplayOrder();
 
     // TName only points at `string[]` fields, so the cast is safe. Unlike `setSelected`,
     // this uses `form.setValue`, which does not mark the field as dirty or touched.
