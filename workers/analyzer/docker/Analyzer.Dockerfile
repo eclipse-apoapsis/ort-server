@@ -41,6 +41,7 @@ ARG HASKELL_STACK_VERSION=2.13.1
 ARG FNM_VERSION=1.38.1
 ARG NODEJS_VERSION=24.15.0
 ARG NUGET_INSPECTOR_VERSION=0.10.0
+ARG PHP_VERSION=8.3
 ARG PIP_VERSION=25.2.0
 ARG PYENV_GIT_TAG=v2.6.11
 ARG PYTHON_INSPECTOR_VERSION=0.15.2
@@ -491,6 +492,7 @@ FROM ort-base-image AS components
 
 ARG ABOM_VERSION
 ARG COMPOSER_VERSION
+ARG PHP_VERSION
 
 # Remove ort build scripts
 RUN sudo rm -rf /etc/analyzer_scripts
@@ -499,9 +501,11 @@ RUN sudo rm -rf /etc/analyzer_scripts
 RUN --mount=type=cache,target=/var/cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=tmpfs,target=/var/log \
+    curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c" | sudo gpg --dearmor -o /usr/share/keyrings/ondrej-php-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ondrej-php-keyring.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" | sudo tee /etc/apt/sources.list.d/ondrej-php.list && \
     sudo apt-get update && \
     DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
-        php \
+        php${PHP_VERSION}-cli \
         subversion
 
 ENV ABOM_HOME=/opt/abom
