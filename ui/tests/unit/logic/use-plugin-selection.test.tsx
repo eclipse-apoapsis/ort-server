@@ -96,7 +96,7 @@ describe('usePluginSelection', () => {
       expect(selection().isSelected('B')).toBe(false);
     });
 
-    it('adds a selected plugin after the other selected plugins with reordering', () => {
+    it('keeps the rows in place when plugins are checked with reordering', () => {
       const { selection, values, displayOrder } = renderSelection({
         enableReordering: true,
       });
@@ -104,8 +104,20 @@ describe('usePluginSelection', () => {
       act(() => selection().setSelected('C', true));
       act(() => selection().setSelected('A', true));
 
-      expect(values().plugins).toEqual(['C', 'A']);
+      expect(displayOrder()).toEqual(['A', 'B', 'C']);
+      expect(values().plugins).toEqual(['A', 'C']);
+    });
+
+    it('keeps the rows in place when a plugin is unchecked with reordering', () => {
+      const { selection, values, displayOrder } = renderSelection({
+        enableReordering: true,
+        defaultValues: { plugins: ['C', 'A'] },
+      });
+
+      act(() => selection().setSelected('C', false));
+
       expect(displayOrder()).toEqual(['C', 'A', 'B']);
+      expect(values().plugins).toEqual(['A']);
     });
 
     it('removes a disabled plugin from the selection', () => {
@@ -218,6 +230,17 @@ describe('usePluginSelection', () => {
         plugins: true,
         scopes: { B: true },
       });
+    });
+
+    it('shows the defaults first after a plugin was checked with reordering', () => {
+      const { selection, displayOrder } = renderSelection({
+        enableReordering: true,
+      });
+
+      act(() => selection().setSelected('B', true));
+      act(() => selection().resetToDefaults(['C', 'A']));
+
+      expect(displayOrder()).toEqual(['C', 'A', 'B']);
     });
   });
 

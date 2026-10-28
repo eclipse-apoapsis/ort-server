@@ -219,15 +219,15 @@ describe('PluginMultiSelectField', () => {
     expect(getValues().plugins).toEqual(['C', 'A']);
   });
 
-  it('adds a selected plugin after the other selected plugins with reordering', async () => {
+  it('keeps the rows in place when plugins are checked with reordering', async () => {
     const user = userEvent.setup();
     const getValues = renderField({ enableReordering: true });
 
     await user.click(pluginCheckbox('Plugin C'));
     await user.click(pluginCheckbox('Plugin A'));
 
-    expect(getValues().plugins).toEqual(['C', 'A']);
-    expect(renderedPluginNames()).toEqual(['Plugin C', 'Plugin A', 'Plugin B']);
+    expect(getValues().plugins).toEqual(['A', 'C']);
+    expect(renderedPluginNames()).toEqual(['Plugin A', 'Plugin B', 'Plugin C']);
   });
 
   describe('scanner scope', () => {
@@ -857,7 +857,7 @@ describe('PluginMultiSelectField', () => {
       await user.click(enableCheckbox('Required Plugin'));
       await user.click(enableCheckbox('Flag Plugin'));
 
-      expect(values().plugins).toEqual(['Required', 'Flag']);
+      expect(values().plugins).toEqual(['Flag', 'Required']);
     });
   });
 });
