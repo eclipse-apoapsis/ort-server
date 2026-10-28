@@ -404,6 +404,15 @@ export const CreateRunForm = ({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(submitForm, onValidationFailed)}
+          // Only the create button creates a run, not Enter in a text field.
+          onKeyDown={(event) => {
+            if (
+              event.key === 'Enter' &&
+              event.target instanceof HTMLInputElement
+            ) {
+              event.preventDefault();
+            }
+          }}
           className='space-y-8'
         >
           <CardContent>

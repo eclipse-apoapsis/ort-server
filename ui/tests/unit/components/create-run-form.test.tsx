@@ -468,6 +468,19 @@ describe('CreateRunForm', () => {
     });
   });
 
+  it('creates a run only from the create button, not with Enter in a text field', async () => {
+    const { onSubmit, user } = renderCreateRunForm();
+
+    await user.click(await screen.findByRole('button', { name: 'Advisor' }));
+    await user.type(screen.getByLabelText(/serverUrl/), 'https://osv.dev');
+    await user.type(screen.getByLabelText('Revision'), 'main{Enter}');
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+    expect(onSubmit.mock.calls[0]![0].revision).toBe('main');
+  });
+
   it('shows validation errors without submitting an invalid form', async () => {
     const { onSubmit, user } = renderCreateRunForm();
 
