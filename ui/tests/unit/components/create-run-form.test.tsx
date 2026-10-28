@@ -727,6 +727,43 @@ describe('CreateRunForm', () => {
     );
   });
 
+  it('clears the Gradle conflict when the package managers are reset to the defaults', async () => {
+    const gradleInspectorPlugin = createPluginDescriptor({
+      id: 'GradleInspector',
+      type: 'PACKAGE_MANAGER',
+      displayName: 'Gradle',
+    });
+    const { onSubmit, user } = renderCreateRunForm(vi.fn(), {
+      plugins: [
+        advisorPlugin,
+        scannerPlugin,
+        ...packageManagerPlugins,
+        gradleInspectorPlugin,
+      ],
+    });
+    const conflict =
+      '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.';
+
+    await user.click(await screen.findByRole('button', { name: 'Analyzer' }));
+    await user.click(screen.getByLabelText('Enable Gradle Legacy'));
+    await user.click(screen.getByLabelText('Enable Gradle'));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+    // The conflict is shown at the field and in the list of all errors.
+    expect(await screen.findAllByText(conflict)).toHaveLength(2);
+
+    const packageManagers = screen
+      .getByText('Enabled package managers')
+      .closest<HTMLElement>('[data-slot="form-item"]')!;
+    await user.click(
+      within(packageManagers).getByRole('button', { name: 'Reset to defaults' })
+    );
+
+    await waitFor(() =>
+      expect(screen.queryAllByText(conflict)).toHaveLength(0)
+    );
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('does not offer the always enabled "Unmanaged" package manager for selection', async () => {
     const { user } = renderCreateRunForm();
 

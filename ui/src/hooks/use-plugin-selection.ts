@@ -153,17 +153,14 @@ export function usePluginSelection<
   // Select the given default plugins instead of the current selection, with their default scanner
   // scopes. The display order is reset, so that the order of the defaults is shown. Unlike
   // `setAllSelected`, this marks the selection and the scopes as dirty, so that they are kept
-  // together if the available plugins change.
+  // together if the available plugins change. As when a plugin is checked, the selection is
+  // validated again after the form was submitted.
   const resetToDefaults = (
     defaultPluginIds: readonly string[],
     defaultScannerScopes?: Readonly<Record<string, ScannerScope>>
   ) => {
     setPluginOrder(undefined);
-    form.setValue(
-      field.name,
-      [...defaultPluginIds] as FieldPathValue<TFieldValues, TName>,
-      { shouldDirty: true }
-    );
+    field.onChange([...defaultPluginIds]);
 
     defaultPluginIds.forEach((pluginId) => {
       const scope = defaultScannerScopes?.[pluginId];
