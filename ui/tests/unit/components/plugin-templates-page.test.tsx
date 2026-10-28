@@ -35,6 +35,7 @@ import {
 import { pageOf } from '../fixtures/table';
 
 const mocks = vi.hoisted(() => ({
+  getInstalledPlugins: vi.fn(),
   getPluginTemplates: vi.fn(),
   getOrganizations: vi.fn(),
   getOrganization: vi.fn(),
@@ -45,20 +46,9 @@ const mocks = vi.hoisted(() => ({
   removeTemplateFromOrganization: vi.fn(),
 }));
 
-const loaderData = vi.hoisted(() => ({
-  plugins: [] as PluginDescriptor[],
-}));
-
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
   ...mocks,
-}));
-
-// The page reads the installed plugins from the loader of the plugins layout, which these tests
-// do not render.
-vi.mock('@tanstack/react-router', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
-  useLoaderData: () => loaderData,
 }));
 
 vi.mock('@/lib/toast', () => ({
@@ -156,7 +146,7 @@ describe('plugin templates page', () => {
         disconnect() {}
       }
     );
-    loaderData.plugins = [plugin];
+    mocks.getInstalledPlugins.mockResolvedValue({ data: [plugin] });
 
     mocks.getPluginTemplates.mockResolvedValue({ data: templates });
     mocks.getOrganizations.mockResolvedValue(

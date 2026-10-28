@@ -42,25 +42,15 @@ import {
 } from '../fixtures/router-harness';
 
 const mocks = vi.hoisted(() => ({
+  getInstalledPlugins: vi.fn(),
   getPluginTemplate: vi.fn(),
   createPluginTemplate: vi.fn(),
   updatePluginTemplateOptions: vi.fn(),
 }));
 
-const loaderData = vi.hoisted(() => ({
-  plugins: [] as PluginDescriptor[],
-}));
-
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
   ...mocks,
-}));
-
-// The pages read the installed plugins from the loader of the plugins layout, which these tests
-// do not render.
-vi.mock('@tanstack/react-router', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
-  useLoaderData: () => loaderData,
 }));
 
 vi.mock('@/lib/toast', () => ({
@@ -198,7 +188,7 @@ const expectRefreshedTemplates = async (
 describe('plugin template pages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    loaderData.plugins = [plugin];
+    mocks.getInstalledPlugins.mockResolvedValue({ data: [plugin] });
 
     mocks.getPluginTemplate.mockResolvedValue({ data: template });
     mocks.createPluginTemplate.mockResolvedValue({ data: template });
