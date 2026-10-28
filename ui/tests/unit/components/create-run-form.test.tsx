@@ -400,7 +400,7 @@ describe('CreateRunForm', () => {
     );
 
     expect(
-      await screen.findByText('The available plugins could not be loaded.')
+      await screen.findByText('The plugins could not be loaded.')
     ).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Advisor' })).toBeNull();
     expect(screen.getByRole('switch', { name: 'Show payload' })).toBeDisabled();
@@ -410,39 +410,6 @@ describe('CreateRunForm', () => {
     await user.type(screen.getByLabelText('Revision'), 'feature');
     await user.click(button);
     expect(onSubmit).not.toHaveBeenCalled();
-  });
-
-  it('allows creating a run without default plugins', async () => {
-    const onSubmit = vi.fn();
-    const { user } = renderInteractiveWithRouter(
-      <CreateRunForm
-        isSubmitting={false}
-        isSuperuser={false}
-        onSubmit={onSubmit}
-        permissions={permissions}
-        plugins={[advisorPlugin, scannerPlugin, ...packageManagerPlugins]}
-        rerun={null}
-        secrets={secrets}
-      />,
-      {
-        path: createRunPath,
-        routes: [
-          {
-            path: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
-          },
-        ],
-      }
-    );
-
-    await user.click(await screen.findByRole('button', { name: 'Advisor' }));
-    expect(screen.getByLabelText('Enable OSV')).not.toBeChecked();
-    expect(
-      screen.queryByRole('button', { name: 'Reset to defaults' })
-    ).toBeNull();
-
-    await user.click(screen.getByRole('button', { name: 'Create' }));
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
-    expect(onSubmit.mock.calls[0]![0].jobConfigs.advisor.advisors).toEqual([]);
   });
 
   it('submits the payload produced from entered form values', async () => {

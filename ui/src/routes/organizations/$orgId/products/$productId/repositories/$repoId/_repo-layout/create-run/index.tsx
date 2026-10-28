@@ -71,6 +71,7 @@ const CreateRunPage = () => {
     plugins,
     defaultPlugins,
     pluginsLoading,
+    pluginsLoadFailed,
     pluginsError,
     defaultPluginsError,
   } = useCreateRunPlugins(Number.parseInt(params.repoId), configContext);
@@ -186,7 +187,7 @@ const CreateRunPage = () => {
       permissions={permissions}
       plugins={plugins}
       pluginsLoading={pluginsLoading}
-      pluginsLoadFailed={pluginsError !== null}
+      pluginsLoadFailed={pluginsLoadFailed}
       projectSuggestions={projectSuggestions.data}
       projectSuggestionsLoading={projectSuggestions.isPending}
       rerun={ortRun?.data ?? null}
