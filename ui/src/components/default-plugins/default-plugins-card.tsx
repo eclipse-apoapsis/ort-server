@@ -19,15 +19,10 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
 
 import type { DefaultPlugins, PreconfiguredPluginDescriptor } from '@/api';
 import { PluginList } from '@/components/form/plugin-multi-select-field/plugin-list';
 import { PluginListItem } from '@/components/form/plugin-multi-select-field/plugin-list-item';
-import {
-  getPluginsInDisplayOrder,
-  moveItem,
-} from '@/components/form/plugin-multi-select-field/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,23 +33,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useDefaultPluginsSelection } from '@/hooks/use-default-plugins-selection';
 import { toast, toastError } from '@/lib/toast';
 import {
   getDefaultPluginsOriginLabel,
-  getUnavailablePlugins,
   invalidateDefaultPlugins,
   normalizePluginIds,
-  pluginIdsDiffer,
   type DefaultPluginsCategoryInfo,
   type DefaultPluginsLevel,
 } from './utils';
-
-/** Unsaved changes of the default plugins. */
-type Draft = {
-  pluginIds: string[];
-  /** The display order of all plugins, which is kept so that plugins do not move when selected. */
-  pluginOrder: string[];
-};
 
 type DefaultPluginsCardProps = {
   category: DefaultPluginsCategoryInfo;
@@ -84,51 +71,21 @@ export const DefaultPluginsCard = ({
     availablePlugins
   );
 
-  // Without local changes, the card always shows the current defaults.
-  const [draft, setDraft] = useState<Draft>();
-  const selectedPluginIds = draft?.pluginIds ?? defaultPluginIds;
-  const selectedPluginIdSet = new Set(selectedPluginIds);
-
-  // Unavailable plugins are shown if they are configured or still selected.
-  const plugins = [
-    ...availablePlugins,
-    ...getUnavailablePlugins(
-      pluginType,
-      [...new Set([...defaultPluginIds, ...selectedPluginIds])],
-      availablePlugins
-    ),
-  ];
-  // Selected plugins are only shown first if their order matters.
-  const pluginsInDisplayOrder = isOrdered
-    ? getPluginsInDisplayOrder(plugins, selectedPluginIds, draft?.pluginOrder)
-    : plugins;
-  const pluginOrder = pluginsInDisplayOrder.map((plugin) => plugin.id);
-
-  // Store the selection in display order. A selection equal to the defaults is no local change.
-  const change = (nextPluginOrder: string[], selected: ReadonlySet<string>) => {
-    const pluginIds = nextPluginOrder.filter((id) => selected.has(id));
-
-    setDraft(
-      pluginIdsDiffer(pluginIds, defaultPluginIds, isOrdered)
-        ? { pluginIds, pluginOrder: nextPluginOrder }
-        : undefined
-    );
-  };
-
-  const setSelected = (pluginId: string, selected: boolean) => {
-    const nextSelected = new Set(selectedPluginIdSet);
-
-    if (selected) {
-      nextSelected.add(pluginId);
-    } else {
-      nextSelected.delete(pluginId);
-    }
-
-    change(pluginOrder, nextSelected);
-  };
-
-  const reorder = (fromIndex: number, toIndex: number) =>
-    change(moveItem(pluginOrder, fromIndex, toIndex), selectedPluginIdSet);
+  const {
+    plugins,
+    pluginsInDisplayOrder,
+    selectedPluginIds,
+    isSelected,
+    hasChanges,
+    setSelected,
+    reorder,
+    discard,
+  } = useDefaultPluginsSelection({
+    pluginType,
+    isOrdered,
+    defaultPluginIds,
+    availablePlugins,
+  });
 
   // Saves the given plugin ids, or resets the defaults if they are null.
   const mutation = useMutation({
@@ -144,7 +101,7 @@ export const DefaultPluginsCard = ({
       // The card stays pending until the new defaults are loaded, so that the local changes are
       // only discarded when the saved defaults can be shown.
       await invalidateDefaultPlugins(queryClient);
-      setDraft(undefined);
+      discard();
     },
     onError: (error) => toastError(error.message, error),
   });
@@ -187,7 +144,7 @@ export const DefaultPluginsCard = ({
               <fieldset disabled={isPending}>
                 <PluginListItem
                   plugin={plugin}
-                  selected={selectedPluginIdSet.has(plugin.id)}
+                  selected={isSelected(plugin.id)}
                   onSelectedChange={(selected) =>
                     setSelected(plugin.id, selected)
                   }
@@ -202,8 +159,8 @@ export const DefaultPluginsCard = ({
         <Button
           type='button'
           variant='outline'
-          disabled={!draft || isPending}
-          onClick={() => setDraft(undefined)}
+          disabled={!hasChanges || isPending}
+          onClick={discard}
         >
           Discard Changes
         </Button>
@@ -219,7 +176,7 @@ export const DefaultPluginsCard = ({
         </Button>
         <Button
           type='button'
-          disabled={!(draft || !isCustomized) || isPending}
+          disabled={!(hasChanges || !isCustomized) || isPending}
           // Unavailable plugins are rejected by the backend, so they are removed when saving.
           onClick={() =>
             mutation.mutate(
