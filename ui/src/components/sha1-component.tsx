@@ -23,25 +23,45 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 type Sha1ComponentProps = {
   sha1: string;
+  // Turn the copy button off where the component sits inside a link, which a button must not.
+  copyable?: boolean;
+  // Turn the tooltip with the full SHA1 off where tooltips would crowd each other, like in a list.
+  withTooltip?: boolean;
+  className?: string;
 };
 
-export const Sha1Component = ({ sha1 }: Sha1ComponentProps) => {
+export const Sha1Component = ({
+  sha1,
+  copyable = true,
+  withTooltip = true,
+  className,
+}: Sha1ComponentProps) => {
   const shortSha1 = sha1.slice(0, 7);
   return (
-    <span className='inline-flex items-center font-mono'>
+    <span className={cn('inline-flex items-center font-mono', className)}>
       (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span>{shortSha1}</span>
-        </TooltipTrigger>
-        <TooltipContent>
-          <span className='font-mono'>SHA1: {sha1}</span>
-        </TooltipContent>
-      </Tooltip>
-      <CopyToClipboard copyText={sha1} className='h-5 pr-0 pl-1 align-middle' />
+      {withTooltip ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>{shortSha1}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span className='font-mono'>SHA1: {sha1}</span>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <span>{shortSha1}</span>
+      )}
+      {copyable && (
+        <CopyToClipboard
+          copyText={sha1}
+          className='h-5 pr-0 pl-1 align-middle'
+        />
+      )}
       )
     </span>
   );
