@@ -239,7 +239,7 @@ export const Header = () => {
 
   return (
     <header className='bg-background sticky top-0 z-50 flex h-16 justify-between gap-4 border-b px-4 md:px-6'>
-      <div className='flex flex-row items-center gap-4'>
+      <div className='flex min-w-0 flex-row items-center gap-4'>
         <nav className='hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
           <Tooltip>
             <TooltipTrigger>
@@ -285,7 +285,7 @@ export const Header = () => {
             </nav>
           </SheetContent>
         </Sheet>
-        <Breadcrumb>
+        <Breadcrumb className='min-w-0'>
           <BreadcrumbList className='gap-1 sm:gap-1'>
             {organizationMatch?.context &&
               organizationMatch.context.breadcrumbs.organization !==
@@ -320,7 +320,7 @@ export const Header = () => {
             {runMatch?.context && (
               <>
                 <BreadcrumbSeparator>/</BreadcrumbSeparator>
-                <Siblings entity='run' pathName={runMatch.pathname} />
+                <Siblings entity='run' />
               </>
             )}
           </BreadcrumbList>

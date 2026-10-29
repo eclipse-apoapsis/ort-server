@@ -39,14 +39,20 @@ import {
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
-import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
+import {
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { CommandItem } from '@/components/ui/command';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
 import { PagedResponse } from '@/lib/infinite-list';
 import { toSearchFilter } from '@/lib/regex';
+import { cn } from '@/lib/utils';
 
 type SiblingsProps = {
   entity: 'organization' | 'product' | 'repository' | 'run';
@@ -212,10 +218,49 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
   const currentRepoUrl = entity === 'repository' ? currentRepo?.url : undefined;
 
   return (
-    <BreadcrumbItem>
+    <BreadcrumbItem className='min-w-0 gap-0'>
+      {currentRepoUrl && (
+        <Button
+          variant='ghost'
+          className='size-6'
+          aria-label='Open the repository in a new tab'
+          asChild
+        >
+          <Link to={currentRepoUrl} target='_blank' rel='noopener noreferrer'>
+            <ExternalLink className='mx-0.5 h-3 w-3 text-blue-400' />
+          </Link>
+        </Button>
+      )}
+      {/* The page of a run is the deepest one the breadcrumbs lead to, so its breadcrumb is not a
+          link: it only opens the other runs of the repository, or shows the index if there are none. */}
+      {entity !== 'run' && (
+        <BreadcrumbLink
+          asChild
+          className={cn(
+            buttonVariants({ variant: 'ghost' }),
+            // Let a long name be cut short where the header has no room for it.
+            'h-6 min-w-0 shrink pr-0.5 pl-2 font-normal'
+          )}
+        >
+          <Link to={pathName} title={name}>
+            <span className='truncate'>{name}</span>
+          </Link>
+        </BreadcrumbLink>
+      )}
+      {entity === 'run' && runCount <= 1 && (
+        <BreadcrumbPage className='px-2'>{name}</BreadcrumbPage>
+      )}
       {entity === 'organization' && organizationCount > 1 && (
         <SearchableInfiniteList
-          trigger={<ChevronDown className='ml-1 size-4 cursor-pointer' />}
+          trigger={
+            <Button
+              variant='ghost'
+              className='size-6'
+              aria-label='Show the other organizations'
+            >
+              <ChevronDown className='mx-1 size-4 cursor-pointer' />
+            </Button>
+          }
           open={isOpen}
           onOpenChange={handleOpenChange}
           list={organizations}
@@ -245,7 +290,15 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
       )}
       {entity === 'product' && productCount > 1 && (
         <SearchableInfiniteList
-          trigger={<ChevronDown className='ml-1 size-4 cursor-pointer' />}
+          trigger={
+            <Button
+              variant='ghost'
+              className='size-6'
+              aria-label='Show the other products'
+            >
+              <ChevronDown className='mx-1 size-4 cursor-pointer' />
+            </Button>
+          }
           open={isOpen}
           onOpenChange={handleOpenChange}
           list={products}
@@ -278,7 +331,15 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
       )}
       {entity === 'repository' && repositoryCount > 1 && (
         <SearchableInfiniteList
-          trigger={<ChevronDown className='ml-1 size-4 cursor-pointer' />}
+          trigger={
+            <Button
+              variant='ghost'
+              className='size-6'
+              aria-label='Show the other repositories'
+            >
+              <ChevronDown className='mx-1 size-4 cursor-pointer' />
+            </Button>
+          }
           open={isOpen}
           onOpenChange={handleOpenChange}
           list={repositories}
@@ -317,7 +378,15 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
       {/* The runs of a repository cannot be filtered on the server, so this list has no search. */}
       {entity === 'run' && runCount > 1 && (
         <SearchableInfiniteList
-          trigger={<ChevronDown className='ml-1 size-4 cursor-pointer' />}
+          trigger={
+            <Button
+              variant='ghost'
+              className='h-6 gap-1 px-2 font-normal has-[>svg]:px-2'
+            >
+              {name}
+              <ChevronDown className='size-4' />
+            </Button>
+          }
           open={isOpen}
           onOpenChange={handleOpenChange}
           list={runs}
@@ -351,16 +420,6 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           emptyMessage='No runs found.'
           errorMessage='Failed to load runs'
         />
-      )}
-      <BreadcrumbLink asChild>
-        <Link to={pathName}>{name}</Link>
-      </BreadcrumbLink>
-      {currentRepoUrl && (
-        <Button variant='ghost' size='icon' className='h-4 w-4' asChild>
-          <Link to={currentRepoUrl} target='_blank' rel='noopener noreferrer'>
-            <ExternalLink className='h-3 w-3 text-blue-400' />
-          </Link>
-        </Button>
       )}
     </BreadcrumbItem>
   );
