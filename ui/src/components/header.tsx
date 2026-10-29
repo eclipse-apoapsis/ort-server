@@ -286,7 +286,7 @@ export const Header = () => {
           </SheetContent>
         </Sheet>
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className='gap-1 sm:gap-1'>
             {organizationMatch?.context &&
               organizationMatch.context.breadcrumbs.organization !==
                 undefined && (
@@ -298,7 +298,7 @@ export const Header = () => {
             {productMatch?.context && (
               <>
                 {organizationMatch?.context.breadcrumbs.organization !==
-                  undefined && <BreadcrumbSeparator />}
+                  undefined && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
                 <Siblings entity='product' pathName={productMatch.pathname} />
               </>
             )}
@@ -307,7 +307,7 @@ export const Header = () => {
                 {(organizationMatch?.context.breadcrumbs.organization !==
                   undefined ||
                   productMatch?.context.breadcrumbs.product !== undefined) && (
-                  <BreadcrumbSeparator />
+                  <BreadcrumbSeparator>/</BreadcrumbSeparator>
                 )}
                 <Siblings
                   entity='repository'
@@ -319,7 +319,7 @@ export const Header = () => {
             )}
             {runMatch?.context && (
               <>
-                <BreadcrumbSeparator />
+                <BreadcrumbSeparator>/</BreadcrumbSeparator>
                 <Siblings entity='run' pathName={runMatch.pathname} />
               </>
             )}
