@@ -27,6 +27,7 @@ import { Link, useParams, useRouter } from '@tanstack/react-router';
 import { Check, ChevronDown, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
+import type { OrtRunSummary } from '@/api';
 import {
   getOrganizationProductsInfiniteOptions,
   getOrganizationProductsOptions,
@@ -39,6 +40,8 @@ import {
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
+import { Sha1Component } from '@/components/sha1-component';
+import { TooltipIfTruncated } from '@/components/tooltip-if-truncated';
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -47,6 +50,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button-variants';
 import { CommandItem } from '@/components/ui/command';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  getStatusBackgroundColor,
+  getStatusClass,
+} from '@/helpers/get-status-class';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useInfiniteList } from '@/hooks/use-infinite-list';
 import { DROPDOWN_PAGE_SIZE } from '@/lib/constants';
@@ -60,10 +72,13 @@ type SiblingsProps = {
 };
 
 // To improve the performance of the siblings component, set a stale time of
-// 2 hours for all queries. This is because the entities (organizations, products,
-// repositories, runs) are not expected to change frequently. What keeps a stale
-// time this long honest is `@/lib/entity-cache`, which every mutation of these
-// entities calls to invalidate the lists shown here, the counts below included.
+// 2 hours for all queries but the list of runs. This is because the entities
+// (organizations, products, repositories, runs) are not expected to change
+// frequently. What keeps a stale time this long honest is `@/lib/entity-cache`,
+// which every mutation of these entities calls to invalidate the lists shown here,
+// the counts below included. The list of runs is the exception, as its entries show
+// a status and a resolved revision that the server changes while a run is in
+// progress, without any mutation in the UI to invalidate them.
 const staleTime = 2 * 60 * 60 * 1000;
 
 /**
@@ -97,6 +112,106 @@ function useTotalCount<
 
   return data ?? 0;
 }
+
+/**
+ * The tick that marks the entry of the page itself. The other entries keep its space, so that the
+ * text of all entries ends at the same place.
+ */
+const CurrentMark = ({ current }: { current: boolean }) => (
+  <Check className={cn('ml-auto size-4', !current && 'invisible')} />
+);
+
+/** An organization, product or repository in a dropdown, with its description below its name. */
+const EntityEntry = ({
+  name,
+  description,
+  current,
+}: {
+  name: string;
+  description?: string | null;
+  current: boolean;
+}) => (
+  <div className='flex w-full min-w-0 items-center gap-3'>
+    <div className='flex min-w-0 flex-col'>
+      <span className='truncate'>{name}</span>
+      {description && (
+        <span className='text-muted-foreground truncate text-xs'>
+          {description}
+        </span>
+      )}
+    </div>
+    <CurrentMark current={current} />
+  </div>
+);
+
+const isFullSha1 = (revision: string) => /^[0-9a-f]{40}$/i.test(revision);
+
+/**
+ * A run in a dropdown: its status and index, next to its time of creation above its revision.
+ */
+const RunEntry = ({
+  run,
+  current,
+}: {
+  run: OrtRunSummary;
+  current: boolean;
+}) => {
+  // A revision that is a commit already needs no resolved commit next to it, and is shortened like
+  // one.
+  const sha1 =
+    run.resolvedRevision && run.resolvedRevision !== run.revision
+      ? run.resolvedRevision
+      : undefined;
+  const revision = isFullSha1(run.revision)
+    ? run.revision.slice(0, 7)
+    : run.revision;
+
+  return (
+    <div className='grid w-full min-w-0 grid-cols-[auto_2rem_minmax(0,1fr)_auto] items-center gap-x-3 tabular-nums'>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={cn(
+              getStatusClass(run.status),
+              getStatusBackgroundColor(run.status),
+              'row-span-2 size-2.5'
+            )}
+          >
+            <span className='sr-only'>{run.status}</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{run.status}</TooltipContent>
+      </Tooltip>
+      <span className='row-span-2'>{run.index}</span>
+      <span className='text-muted-foreground text-xs'>
+        {new Date(run.createdAt).toLocaleString(undefined, {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+      </span>
+      <div className='row-span-2'>
+        <CurrentMark current={current} />
+      </div>
+      <div className='col-start-3 flex min-w-0 items-baseline gap-1 text-xs'>
+        <TooltipIfTruncated
+          text={revision}
+          className={cn('min-w-0', isFullSha1(run.revision) && 'font-mono')}
+        />
+        {sha1 && (
+          <Sha1Component
+            sha1={sha1}
+            copyable={false}
+            withTooltip={false}
+            className='text-muted-foreground shrink-0 text-[0.6875rem]'
+          />
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const Siblings = ({ entity, pathName }: SiblingsProps) => {
   const router = useRouter();
@@ -190,7 +305,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
       query: { limit: DROPDOWN_PAGE_SIZE, sort: '-index' },
     }),
     {
-      staleTime: staleTime,
+      staleTime: 0,
       enabled: entity === 'run' && isOpen && !!params.repoId,
     }
   );
@@ -272,12 +387,11 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 params={{ orgId: org.id.toString() }}
                 preload={false}
               >
-                <div className='grid w-full grid-cols-6 items-center gap-2'>
-                  <div className='col-span-5'>{org.name}</div>
-                  {org.id === Number(params.orgId) && (
-                    <Check className='ml-auto h-4 w-4' />
-                  )}
-                </div>
+                <EntityEntry
+                  name={org.name}
+                  description={org.description}
+                  current={org.id === Number(params.orgId)}
+                />
               </Link>
             </CommandItem>
           )}
@@ -313,12 +427,11 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 }}
                 preload={false}
               >
-                <div className='grid w-full grid-cols-6 items-center gap-2'>
-                  <div className='col-span-5'>{prod.name}</div>
-                  {prod.id === Number(params.productId) && (
-                    <Check className='ml-auto h-4 w-4' />
-                  )}
-                </div>
+                <EntityEntry
+                  name={prod.name}
+                  description={prod.description}
+                  current={prod.id === Number(params.productId)}
+                />
               </Link>
             </CommandItem>
           )}
@@ -359,12 +472,11 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 }}
                 preload={false}
               >
-                <div className='grid w-full grid-cols-6 items-center gap-2'>
-                  <div className='col-span-5'>{repo.name || repo.url}</div>
-                  {repo.id === Number(params.repoId) && (
-                    <Check className='ml-auto h-4 w-4' />
-                  )}
-                </div>
+                <EntityEntry
+                  name={repo.name || repo.url}
+                  description={repo.description}
+                  current={repo.id === Number(params.repoId)}
+                />
               </Link>
             </CommandItem>
           )}
@@ -407,16 +519,16 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 }}
                 preload={false}
               >
-                <div className='grid w-full grid-cols-6 items-center gap-2'>
-                  <div className='col-span-5'>{run.index}</div>
-                  {run.index === Number(params.runIndex) && (
-                    <Check className='ml-auto h-4 w-4' />
-                  )}
-                </div>
+                <RunEntry
+                  run={run}
+                  current={run.index === Number(params.runIndex)}
+                />
               </Link>
             </CommandItem>
           )}
           searchable={false}
+          // A fixed width, so that a long revision is cut short instead of widening the list.
+          className='w-80'
           emptyMessage='No runs found.'
           errorMessage='Failed to load runs'
         />
