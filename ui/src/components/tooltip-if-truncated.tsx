@@ -24,16 +24,21 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 type TooltipIfTruncatedProps = {
   text: string;
+  className?: string;
 };
 
 /**
  * Renders text truncated with an ellipsis, and shows a tooltip with the full
  * text only when the text is actually overflowing its container.
  */
-export const TooltipIfTruncated = ({ text }: TooltipIfTruncatedProps) => {
+export const TooltipIfTruncated = ({
+  text,
+  className,
+}: TooltipIfTruncatedProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -54,7 +59,10 @@ export const TooltipIfTruncated = ({ text }: TooltipIfTruncatedProps) => {
       <TooltipTrigger asChild>
         <div
           ref={ref}
-          className='overflow-hidden text-ellipsis whitespace-nowrap'
+          className={cn(
+            'overflow-hidden text-ellipsis whitespace-nowrap',
+            className
+          )}
         >
           {text}
         </div>
