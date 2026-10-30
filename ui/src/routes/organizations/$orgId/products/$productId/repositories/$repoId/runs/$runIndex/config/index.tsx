@@ -24,19 +24,24 @@ import { useState } from 'react';
 
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { PayloadView } from '@/components/payload-view';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { isJobExpandable } from '@/helpers/job-helpers';
 import { createRunPluginsOptions } from '@/hooks/use-create-run-plugins';
 import { jobSearchParameterSchema } from '@/schemas';
 import { jobSections } from './-components/config-utils';
 import { JobConfigurations } from './-components/job-configurations';
+import { runToPayload } from './-components/run-payload';
 import { RunSettings } from './-components/run-settings';
 
 const ConfigComponent = () => {
   const params = Route.useParams();
   const { job } = Route.useSearch();
   const [openSections, setOpenSections] = useState<string[]>(job ? [job] : []);
+  const [showPayload, setShowPayload] = useState(false);
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -102,6 +107,28 @@ const ConfigComponent = () => {
             openSections={openSections}
             onOpenSectionsChange={setOpenSections}
           />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <div className='flex items-center space-x-2'>
+            <Switch
+              id='show-payload'
+              checked={showPayload}
+              onCheckedChange={setShowPayload}
+            />
+            <Label className='text-muted-foreground' htmlFor='show-payload'>
+              Show payload
+            </Label>
+          </div>
+          {showPayload && (
+            <PayloadView
+              id='run-request'
+              title='Run request'
+              description='The request that created this run. You can copy it to trigger the same run via the API or CLI.'
+              payload={runToPayload(ortRun)}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
