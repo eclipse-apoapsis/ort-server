@@ -37,6 +37,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { jobConfigFields } from '@/lib/job-config-fields';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
 
 type NotifierFieldsProps = {
@@ -79,7 +80,9 @@ export const NotifierFields = ({
         <AccordionContent className='flex flex-col gap-6'>
           <div>
             <div>
-              <Label className='font-semibold'>Recipient addresses</Label>
+              <Label className='font-semibold'>
+                {jobConfigFields['notifier.recipientAddresses'].label}
+              </Label>
             </div>
             {fields.map((field, index) => (
               <div
@@ -133,11 +136,11 @@ export const NotifierFields = ({
               render={({ field }) => (
                 <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                   <div className='space-y-0.5'>
-                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormLabel>
+                      {jobConfigFields['notifier.keepAliveWorker'].label}
+                    </FormLabel>
                     <FormDescription>
-                      A flag to control whether the worker is kept alive for
-                      debugging purposes. This flag only has an effect if the
-                      ORT Server is deployed on Kubernetes.
+                      {jobConfigFields['notifier.keepAliveWorker'].description}
                     </FormDescription>
                   </div>
                   <FormControl>

@@ -34,6 +34,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { jobConfigFields } from '@/lib/job-config-fields';
 import {
   CreateRunFormValues,
   DefaultPluginSelections,
@@ -91,10 +92,8 @@ export const ReporterFields = ({
             name='jobConfigs.reporter.formats'
             defaultPluginIds={defaultPluginSelections?.reporters}
             configName='jobConfigs.reporter.config'
-            label='Report formats'
-            description={
-              <>Select the report formats to generate from the run.</>
-            }
+            label={jobConfigFields['reporter.formats'].label}
+            description={jobConfigFields['reporter.formats'].description}
             plugins={reporterPlugins}
             secrets={secrets}
           />
@@ -106,13 +105,12 @@ export const ReporterFields = ({
                 defaultPluginSelections?.packageConfigurationProviders
               }
               configName='jobConfigs.reporter.packageConfigurationProviderConfig'
-              label='Package configuration providers'
+              label={
+                jobConfigFields['reporter.packageConfigurationProviders'].label
+              }
               description={
-                <>
-                  Configure the package configuration providers to use.
-                  Providers higher in the list take precedence over lower
-                  providers. Change the order of providers via drag & drop.
-                </>
+                jobConfigFields['reporter.packageConfigurationProviders']
+                  .description
               }
               plugins={packageConfigurationProviderPlugins}
               secrets={secrets}
@@ -126,11 +124,11 @@ export const ReporterFields = ({
               render={({ field }) => (
                 <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                   <div className='space-y-0.5'>
-                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormLabel>
+                      {jobConfigFields['reporter.keepAliveWorker'].label}
+                    </FormLabel>
                     <FormDescription>
-                      A flag to control whether the worker is kept alive for
-                      debugging purposes. This flag only has an effect if the
-                      ORT Server is deployed on Kubernetes.
+                      {jobConfigFields['reporter.keepAliveWorker'].description}
                     </FormDescription>
                   </div>
                   <FormControl>
