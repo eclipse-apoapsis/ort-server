@@ -63,17 +63,23 @@ export type JobKey = keyof OrtRun['jobs'];
  * - `started`: the job has an entry in the run, whatever its status.
  * - `notStarted`: the job is configured but has no entry yet, because it is waiting or the run
  *   stopped earlier.
- * - `notEnabled`: the resolved configuration has no configuration for the job.
+ * - `notEnabled`: neither the request nor the resolved configuration has a configuration for
+ *   the job.
+ * - `removedByServer`: the request has a configuration for the job, but the server removed it
+ *   while resolving the configuration.
  * - `notRequested`: the configuration is not resolved and the request has no configuration
  *   for the job. The server could still add it while resolving.
  */
-export type JobState = 'started' | 'notStarted' | 'notEnabled' | 'notRequested';
+export type JobState =
+  'started' | 'notStarted' | 'notEnabled' | 'removedByServer' | 'notRequested';
 
 export const getJobState = (run: OrtRun, job: JobKey): JobState => {
   const jobConfigs = run.resolvedJobConfigs ?? run.jobConfigs;
 
   if (!jobConfigs[job]) {
-    return run.resolvedJobConfigs ? 'notEnabled' : 'notRequested';
+    if (!run.resolvedJobConfigs) return 'notRequested';
+
+    return run.jobConfigs[job] ? 'removedByServer' : 'notEnabled';
   }
 
   return run.jobs[job] ? 'started' : 'notStarted';
