@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import { Fragment } from 'react';
+
 import {
   AdvisorJob,
   AnalyzerJob,
@@ -28,6 +30,13 @@ import {
 import { RunDuration } from '@/components/run-duration';
 import { Badge } from '@/components/ui/badge';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { JobState } from '@/helpers/job-helpers';
+
+const stateTexts: Record<Exclude<JobState, 'started'>, string> = {
+  notStarted: 'Not started',
+  notEnabled: 'Not enabled for this run',
+  notRequested: 'Not requested',
+};
 
 type JobTitleProps = {
   title: string;
@@ -40,32 +49,59 @@ type JobTitleProps = {
     | NotifierJob
     | null
     | undefined;
+  state: JobState;
+  /** The parts of the one-line summary of the job's configuration. */
+  summary: string[];
 };
 
-export const JobTitle = ({ title, job }: JobTitleProps) => {
+/** A comma that only screen readers announce, so the parts of the title are read apart. */
+const Pause = () => <span className='sr-only'>, </span>;
+
+export const JobTitle = ({ title, job, state, summary }: JobTitleProps) => {
+  const stateText = state === 'started' ? undefined : stateTexts[state];
+
   return (
-    <div className='grid grid-cols-[6rem_auto_1fr] items-center gap-2'>
+    <div className='grid w-full grid-cols-[6rem_1fr] items-center gap-x-2 gap-y-1 sm:grid-cols-[6rem_auto_1fr]'>
       <span>{title}</span>
-      <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
-        {job?.status || 'NOT RUN'}
-      </Badge>
-      <span className='text-muted-foreground'>
-        {job?.startedAt &&
-          (job.finishedAt ? (
-            <span className='flex items-center gap-1'>
-              in
+      {stateText || !job ? (
+        <span className='text-muted-foreground font-normal'>
+          <Pause />
+          {stateText}
+        </span>
+      ) : (
+        <span className='flex flex-wrap items-center gap-2'>
+          <Pause />
+          <Badge className={`border ${getStatusBackgroundColor(job.status)}`}>
+            {job.status}
+          </Badge>
+          {job.startedAt && (
+            <span className='text-muted-foreground flex items-center gap-1 font-normal'>
+              <Pause />
+              {job.finishedAt ? 'in' : 'running for'}
               <RunDuration
                 createdAt={job.startedAt}
-                finishedAt={job.finishedAt}
+                finishedAt={job.finishedAt ?? undefined}
               />
             </span>
-          ) : (
-            <span className='flex items-center'>
-              (
-              <RunDuration createdAt={job.startedAt} finishedAt={undefined} />)
-            </span>
+          )}
+        </span>
+      )}
+      {summary.length > 0 && (
+        <span className='text-muted-foreground col-span-full font-normal sm:col-span-1 sm:border-l sm:pl-3'>
+          <Pause />
+          {summary.map((part, index) => (
+            <Fragment key={part}>
+              {index > 0 && (
+                <>
+                  <span aria-hidden> · </span>
+                  <span className='sr-only'>, </span>
+                </>
+              )}
+              {part}
+            </Fragment>
           ))}
-      </span>
+        </span>
+      )}
     </div>
   );
 };
