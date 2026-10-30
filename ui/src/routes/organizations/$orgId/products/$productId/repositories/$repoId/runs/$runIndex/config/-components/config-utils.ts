@@ -19,7 +19,11 @@
 
 import { createContext, useContext } from 'react';
 
-import { PluginType, PreconfiguredPluginDescriptor } from '@/api';
+import {
+  JobConfigurations,
+  PluginType,
+  PreconfiguredPluginDescriptor,
+} from '@/api';
 import { ENVIRONMENT_DEFINITION_SCHEMAS } from '@/lib/environment-definition-fields';
 import { JobConfigField, jobConfigFields } from '@/lib/job-config-fields';
 
@@ -33,6 +37,16 @@ export const jobSections = [
 ] as const;
 
 export type ConfigPath = (string | number)[];
+
+/**
+ * The settings of a job that have no effect for the run, which are not shown. The reporter uses
+ * the package configuration providers of the evaluator if the run has one, as on the create-run
+ * form.
+ */
+export const hiddenJobKeys = (jobConfigs: JobConfigurations, job: string) =>
+  job === 'reporter' && jobConfigs.evaluator
+    ? ['packageConfigurationProviders']
+    : [];
 
 type NamedValue = { name: string; value?: string | null; secretName?: string };
 

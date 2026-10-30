@@ -31,10 +31,12 @@ import { RunDuration } from '@/components/run-duration';
 import { Badge } from '@/components/ui/badge';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { JobState } from '@/helpers/job-helpers';
+import { ServerChangeLabel } from './config-fields';
 
 const stateTexts: Record<Exclude<JobState, 'started'>, string> = {
   notStarted: 'Not started',
   notEnabled: 'Not enabled for this run',
+  removedByServer: 'Removed by the server',
   notRequested: 'Not requested',
 };
 
@@ -52,12 +54,20 @@ type JobTitleProps = {
   state: JobState;
   /** The parts of the one-line summary of the job's configuration. */
   summary: string[];
+  /** Whether the server added the job while resolving the configuration. */
+  added?: boolean;
 };
 
 /** A comma that only screen readers announce, so the parts of the title are read apart. */
 const Pause = () => <span className='sr-only'>, </span>;
 
-export const JobTitle = ({ title, job, state, summary }: JobTitleProps) => {
+export const JobTitle = ({
+  title,
+  job,
+  state,
+  summary,
+  added,
+}: JobTitleProps) => {
   const stateText = state === 'started' ? undefined : stateTexts[state];
 
   return (
@@ -100,6 +110,12 @@ export const JobTitle = ({ title, job, state, summary }: JobTitleProps) => {
               {part}
             </Fragment>
           ))}
+        </span>
+      )}
+      {added && (
+        <span className='col-span-full'>
+          <Pause />
+          <ServerChangeLabel kind='added' />
         </span>
       )}
     </div>

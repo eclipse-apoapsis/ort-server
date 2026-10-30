@@ -27,6 +27,7 @@ import {
 import { ConfigGroup, ConfigList, ConfigRow } from './config-fields';
 import { ConfigValue, NoneValue } from './config-value';
 import { RunIncludesExcludes } from './run-includes-excludes';
+import { getServerChanges, ServerChangesContext } from './server-changes';
 
 type RunSettingsProps = {
   run: OrtRun;
@@ -46,55 +47,57 @@ export const RunSettings = ({ run }: RunSettingsProps) => {
   );
 
   return (
-    <ConfigList>
-      <ConfigRow {...runConfigFields.revision}>
-        <span className='inline-flex flex-wrap items-center gap-2'>
-          <span>{run.revision}</span>
-          {run.resolvedRevision && run.resolvedRevision !== run.revision && (
-            <Sha1Component sha1={run.resolvedRevision} />
-          )}
-        </span>
-      </ConfigRow>
-      <ConfigRow {...runConfigFields.path}>
-        <ConfigValue value={run.path} path={['path']} />
-      </ConfigRow>
-      <ConfigRow {...runConfigFields.jobConfigContext}>
-        {run.jobConfigContext || run.resolvedJobConfigContext ? (
+    <ServerChangesContext.Provider value={getServerChanges(run)}>
+      <ConfigList>
+        <ConfigRow {...runConfigFields.revision}>
           <span className='inline-flex flex-wrap items-center gap-2'>
-            {run.jobConfigContext && <span>{run.jobConfigContext}</span>}
-            {run.resolvedJobConfigContext &&
-              run.resolvedJobConfigContext !== run.jobConfigContext && (
-                <Sha1Component sha1={run.resolvedJobConfigContext} />
-              )}
+            <span>{run.revision}</span>
+            {run.resolvedRevision && run.resolvedRevision !== run.revision && (
+              <Sha1Component sha1={run.resolvedRevision} />
+            )}
           </span>
-        ) : (
-          <NoneValue />
-        )}
-      </ConfigRow>
-      <ConfigRow {...runConfigFields.environmentConfigPath}>
-        <ConfigValue
-          value={run.environmentConfigPath}
-          path={['environmentConfigPath']}
-        />
-      </ConfigRow>
-      <ConfigRow {...jobConfigFields.ruleSet}>
-        <ConfigValue value={jobConfigs.ruleSet} path={['ruleSet']} />
-      </ConfigRow>
-      <ConfigRow {...jobConfigFields.parameters}>
-        <ConfigValue value={jobConfigs.parameters} path={['parameters']} />
-      </ConfigRow>
-      <ConfigRow {...runConfigFields.labels}>
-        <ConfigValue value={run.labels} path={['labels']} />
-      </ConfigRow>
-      {hasIncludesExcludes ? (
-        <ConfigGroup {...includesExcludesField}>
-          <RunIncludesExcludes scopes={run.scopes} paths={run.paths} />
-        </ConfigGroup>
-      ) : (
-        <ConfigRow {...includesExcludesField}>
-          <NoneValue />
         </ConfigRow>
-      )}
-    </ConfigList>
+        <ConfigRow {...runConfigFields.path}>
+          <ConfigValue value={run.path} path={['path']} />
+        </ConfigRow>
+        <ConfigRow {...runConfigFields.jobConfigContext}>
+          {run.jobConfigContext || run.resolvedJobConfigContext ? (
+            <span className='inline-flex flex-wrap items-center gap-2'>
+              {run.jobConfigContext && <span>{run.jobConfigContext}</span>}
+              {run.resolvedJobConfigContext &&
+                run.resolvedJobConfigContext !== run.jobConfigContext && (
+                  <Sha1Component sha1={run.resolvedJobConfigContext} />
+                )}
+            </span>
+          ) : (
+            <NoneValue />
+          )}
+        </ConfigRow>
+        <ConfigRow {...runConfigFields.environmentConfigPath}>
+          <ConfigValue
+            value={run.environmentConfigPath}
+            path={['environmentConfigPath']}
+          />
+        </ConfigRow>
+        <ConfigRow {...jobConfigFields.ruleSet} path={['ruleSet']}>
+          <ConfigValue value={jobConfigs.ruleSet} path={['ruleSet']} />
+        </ConfigRow>
+        <ConfigRow {...jobConfigFields.parameters} path={['parameters']}>
+          <ConfigValue value={jobConfigs.parameters} path={['parameters']} />
+        </ConfigRow>
+        <ConfigRow {...runConfigFields.labels}>
+          <ConfigValue value={run.labels} path={['labels']} />
+        </ConfigRow>
+        {hasIncludesExcludes ? (
+          <ConfigGroup {...includesExcludesField}>
+            <RunIncludesExcludes scopes={run.scopes} paths={run.paths} />
+          </ConfigGroup>
+        ) : (
+          <ConfigRow {...includesExcludesField}>
+            <NoneValue />
+          </ConfigRow>
+        )}
+      </ConfigList>
+    </ServerChangesContext.Provider>
   );
 };
