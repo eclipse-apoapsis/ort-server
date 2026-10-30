@@ -178,7 +178,7 @@ const InsideBlockContext = createContext(false);
  * The list that settings are laid out in: one setting per line, the label in a column of its
  * own and the value next to it, or below the label where the list is narrow.
  */
-const ConfigList = ({
+export const ConfigList = ({
   children,
   className,
 }: {
@@ -225,7 +225,7 @@ export const ConfigRow = ({ label, description, children }: RowProps) => (
 /**
  * A setting that holds further settings, shown in the value column.
  */
-const ConfigGroup = ({ label, description, children }: RowProps) => (
+export const ConfigGroup = ({ label, description, children }: RowProps) => (
   <div className={rowClassName}>
     <Term label={label} description={description} />
     <dd className='min-w-0'>{children}</dd>

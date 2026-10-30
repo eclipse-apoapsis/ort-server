@@ -24,9 +24,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { ConfigFields, ConfigRow } from './config-fields';
+import { ConfigFields } from './config-fields';
 import { jobSections, PluginDescriptorsContext } from './config-utils';
-import { ConfigValue } from './config-value';
 import { JobTitle } from './job-title';
 
 type JobConfigurationsProps = {
@@ -65,29 +64,17 @@ export const JobConfigurations = ({
               </AccordionTrigger>
               <AccordionContent className='pl-6'>
                 {jobConfig && (
-                  <div className='flex flex-col gap-3'>
-                    {value === 'evaluator' && (
-                      <dl>
-                        <ConfigRow label='Rule set'>
-                          <ConfigValue
-                            value={jobConfigs.ruleSet}
-                            path={['ruleSet']}
-                          />
-                        </ConfigRow>
-                      </dl>
-                    )}
-                    <ConfigFields
-                      value={jobConfig}
-                      path={[value]}
-                      hiddenKeys={
-                        // The reporter uses the package configuration providers of the
-                        // evaluator if the run has one, as on the create-run form.
-                        value === 'reporter' && jobConfigs.evaluator
-                          ? ['packageConfigurationProviders']
-                          : []
-                      }
-                    />
-                  </div>
+                  <ConfigFields
+                    value={jobConfig}
+                    path={[value]}
+                    hiddenKeys={
+                      // The reporter uses the package configuration providers of the
+                      // evaluator if the run has one, as on the create-run form.
+                      value === 'reporter' && jobConfigs.evaluator
+                        ? ['packageConfigurationProviders']
+                        : []
+                    }
+                  />
                 )}
               </AccordionContent>
             </AccordionItem>

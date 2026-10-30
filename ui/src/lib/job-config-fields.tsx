@@ -46,6 +46,16 @@ const packageConfigurationProviders: JobConfigField = {
  * `ENVIRONMENT_DEFINITION_SCHEMAS`.
  */
 export const jobConfigFields = {
+  ruleSet: {
+    label: 'Rule set',
+    description:
+      'The rule set to use for the run. This selects a set of configuration files used by the Evaluator and the Reporter, such as rules for the Evaluator or license classifications. If left empty, the default rule set is used.',
+  },
+  parameters: {
+    label: 'Configuration parameters',
+    description:
+      "A map of key-value pairs that serve as input parameters for the configuration's validation script. The script can use these parameters to alter specific job configurations.",
+  },
   'analyzer.repositoryConfigPath': {
     label: 'Repository configuration path',
     description:
@@ -106,6 +116,10 @@ export const jobConfigFields = {
     description:
       "Select the package managers enabled for this run. Note that the 'Unmanaged' package manager is always enabled.",
   },
+  'analyzer.packageManagerOptions': {
+    label: 'Package manager settings',
+    description: 'The settings of each enabled package manager.',
+  },
   'analyzer.packageCurationProviders': {
     label: 'Package curation providers',
     description:
@@ -131,6 +145,10 @@ export const jobConfigFields = {
     label: 'Enabled advisors',
     description: 'Select the advisors enabled for this run.',
   },
+  'advisor.config': {
+    label: 'Advisor settings',
+    description: 'The settings of each enabled advisor.',
+  },
   'advisor.keepAliveWorker': keepAliveWorker,
   'scanner.skipConcluded': {
     label: 'Skip concluded',
@@ -147,6 +165,10 @@ export const jobConfigFields = {
     description:
       'Select the scanners enabled for this run. Use the scope toggle to control whether a scanner runs on projects, packages, or both.',
   },
+  'scanner.config': {
+    label: 'Scanner settings',
+    description: 'The settings of each enabled scanner.',
+  },
   'scanner.keepAliveWorker': keepAliveWorker,
   'evaluator.packageConfigurationProviders': packageConfigurationProviders,
   'evaluator.keepAliveWorker': keepAliveWorker,
@@ -154,8 +176,73 @@ export const jobConfigFields = {
     label: 'Report formats',
     description: 'Select the report formats to generate from the run.',
   },
+  'reporter.config': {
+    label: 'Report format settings',
+    description: 'The settings of each report format.',
+  },
   'reporter.packageConfigurationProviders': packageConfigurationProviders,
   'reporter.keepAliveWorker': keepAliveWorker,
   'notifier.recipientAddresses': { label: 'Recipient addresses' },
   'notifier.keepAliveWorker': keepAliveWorker,
 } as const satisfies Record<string, JobConfigField>;
+
+/**
+ * The labels and help text of the settings of a run outside its job configurations, keyed by
+ * the name of the setting in the request that creates the run.
+ */
+export const runConfigFields = {
+  revision: {
+    label: 'Revision',
+    description:
+      'The repository revision to use. Can be a branch, tag, or commit. Uses the default branch if left empty.',
+  },
+  path: {
+    label: 'Path',
+    description: (
+      <>
+        The path (relative to the repository root) to limit the analysis to, for
+        example <InlineCode>path/to/source</InlineCode>.
+      </>
+    ),
+  },
+  jobConfigContext: {
+    label: 'Configuration context',
+    description: (
+      <>
+        The context to pass to the configuration provider in use. The
+        configuration provider is responsible for obtaining configuration for
+        this run and uses the context in an implementation-specific way. For
+        example, if the <InlineCode>GitHubConfigFileProvider</InlineCode> is in
+        use, the context defines the Git revision of the configuration to check
+        out.
+      </>
+    ),
+  },
+  environmentConfigPath: {
+    label: 'Environment configuration path',
+    description: (
+      <>
+        The optional path to an environment configuration file. If this is not
+        defined, the environment configuration is read from the default location{' '}
+        <InlineCode>.ort.env.yml</InlineCode>.
+      </>
+    ),
+  },
+  labels: {
+    label: 'ORT labels',
+    description:
+      'A map of key-value pairs to store as labels in ORT results. ORT does not interpret labels by itself, but leaves interpretation to custom configuration, like evaluator rules.',
+  },
+} as const satisfies Record<string, JobConfigField>;
+
+/** The label and help text of the `scopes` and `paths` of a run, which are shown as one setting. */
+export const includesExcludesField = {
+  label: 'Includes and excludes',
+  description: (
+    <>
+      Exclude scopes and paths from this run, or include only some of them.
+      These apply in addition to the excludes and includes in the repository's{' '}
+      <InlineCode>.ort.yml</InlineCode>.
+    </>
+  ),
+} as const satisfies JobConfigField;

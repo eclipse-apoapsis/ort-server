@@ -18,7 +18,14 @@
  */
 
 import type { PathIncludesExcludes, ScopeIncludesExcludes } from '@/api';
-import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { capitalize } from '@/helpers/capitalize';
 import {
   formatReason,
@@ -31,8 +38,8 @@ type RunIncludesExcludesProps = {
 };
 
 /**
- * Show the path and scope includes and excludes that were set when a run was created. Renders
- * nothing for runs without them.
+ * Show the path and scope includes and excludes that were set when a run was created, one
+ * table each. Renders nothing for runs without them.
  */
 export const RunIncludesExcludes = ({
   scopes,
@@ -46,31 +53,35 @@ export const RunIncludesExcludes = ({
   if (groups.length === 0) return null;
 
   return (
-    <div className='text-sm'>
-      <Label className='font-semibold'>Includes and excludes:</Label>
-      <div className='text-muted-foreground ml-4 text-xs'>
-        Set when the run was created, in addition to those in the repository's{' '}
-        <code className='font-mono'>.ort.yml</code>.
-      </div>
+    <div className='flex flex-col gap-4'>
       {groups.map((group) => (
-        <div key={group.title} className='mt-1 ml-4 text-xs'>
-          <div className='font-medium'>{group.title}</div>
-          {group.rows.map((row) => (
-            <div
-              key={`${row.direction}:${row.pattern}`}
-              className='ml-4 flex flex-wrap items-baseline gap-x-3'
-            >
-              <span className='w-12 shrink-0'>{capitalize(row.direction)}</span>
-              <span className='font-mono break-all'>{row.pattern}</span>
-              <span>{formatReason(row.reason)}</span>
-              {row.comment && (
-                <span className='text-muted-foreground break-all'>
-                  {row.comment}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+        <section key={group.title}>
+          <h4 className='mb-1 text-sm font-semibold'>{group.title}</h4>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Direction</TableHead>
+                <TableHead>Pattern</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Comment</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {group.rows.map((row) => (
+                <TableRow key={`${row.direction}:${row.pattern}`}>
+                  <TableCell>{capitalize(row.direction)}</TableCell>
+                  <TableCell className='font-mono break-words whitespace-normal'>
+                    {row.pattern}
+                  </TableCell>
+                  <TableCell>{formatReason(row.reason)}</TableCell>
+                  <TableCell className='text-muted-foreground break-words whitespace-normal'>
+                    {row.comment}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
       ))}
     </div>
   );

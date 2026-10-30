@@ -24,15 +24,13 @@ import { useState } from 'react';
 
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { Sha1Component } from '@/components/sha1-component';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { createRunPluginsOptions } from '@/hooks/use-create-run-plugins';
 import { jobSearchParameterSchema } from '@/schemas';
 import { jobSections } from './-components/config-utils';
 import { JobConfigurations } from './-components/job-configurations';
-import { RunIncludesExcludes } from './-components/run-includes-excludes';
+import { RunSettings } from './-components/run-settings';
 
 const allJobValues = jobSections.map(({ value }) => value);
 
@@ -64,86 +62,7 @@ const ConfigComponent = () => {
           <CardTitle>Run Configuration</CardTitle>
         </CardHeader>
         <CardContent>
-          {ortRun.path && (
-            <div className='text-sm'>
-              <Label className='font-semibold'>Path:</Label> {ortRun.path}
-            </div>
-          )}
-          {(ortRun.jobConfigContext || ortRun.resolvedJobConfigContext) && (
-            <div className='flex items-center gap-1 text-sm'>
-              <Label className='font-semibold'>Configuration context:</Label>
-              {ortRun.jobConfigContext && <div>{ortRun.jobConfigContext}</div>}
-              {ortRun.resolvedJobConfigContext &&
-                ortRun.jobConfigContext !== ortRun.resolvedJobConfigContext && (
-                  <div>
-                    <Sha1Component sha1={ortRun.resolvedJobConfigContext} />
-                  </div>
-                )}
-            </div>
-          )}
-          {ortRun.environmentConfigPath && (
-            <div className='flex items-center gap-1 text-sm'>
-              <Label className='font-semibold'>
-                Environment configuration path:
-              </Label>
-              {ortRun.environmentConfigPath && (
-                <div>{ortRun.environmentConfigPath}</div>
-              )}
-            </div>
-          )}
-          {(() => {
-            const labels = ortRun.labels;
-            const hasLabels = Object.keys(labels).length > 0;
-            return (
-              <div className='text-sm'>
-                <Label className='font-semibold'>Labels:</Label>{' '}
-                {hasLabels ? (
-                  Object.entries(labels).map(([key, value]) => (
-                    <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                      <div className='col-span-3 text-left break-all'>
-                        {key}
-                      </div>
-                      <div className='col-span-1 text-center'>=</div>
-                      <div className='col-span-8 text-left break-all'>
-                        {value}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <span className='text-muted-foreground ml-4 text-xs italic'>
-                    undefined
-                  </span>
-                )}
-              </div>
-            );
-          })()}
-          {(() => {
-            const parameters = ortRun.jobConfigs.parameters ?? {};
-            const hasParameters = Object.keys(parameters).length > 0;
-            return (
-              <div className='text-sm'>
-                <Label className='font-semibold'>Parameters:</Label>{' '}
-                {hasParameters ? (
-                  Object.entries(parameters).map(([key, value]) => (
-                    <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                      <div className='col-span-3 text-left break-all'>
-                        {key}
-                      </div>
-                      <div className='col-span-1 text-center'>=</div>
-                      <div className='col-span-8 text-left break-all'>
-                        {value}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <span className='text-muted-foreground ml-4 text-xs italic'>
-                    undefined
-                  </span>
-                )}
-              </div>
-            );
-          })()}
-          <RunIncludesExcludes scopes={ortRun.scopes} paths={ortRun.paths} />
+          <RunSettings run={ortRun} />
         </CardContent>
       </Card>
       <Card>
