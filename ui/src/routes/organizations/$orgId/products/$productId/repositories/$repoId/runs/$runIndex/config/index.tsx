@@ -17,46 +17,22 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 
-import { OrtRun } from '@/api';
 import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Sha1Component } from '@/components/sha1-component';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { createRunPluginsOptions } from '@/hooks/use-create-run-plugins';
 import { jobSearchParameterSchema } from '@/schemas';
-import { AdvisorJobDetails } from './-components/advisor-job-details';
-import { AnalyzerJobDetails } from './-components/analyzer-job-details';
-import { EvaluatorJobDetails } from './-components/evaluator-job-details';
-import { JobTitle } from './-components/job-title';
-import { NotifierJobDetails } from './-components/notifier-job-details';
-import { ReporterJobDetails } from './-components/reporter-job-details';
+import { jobSections } from './-components/config-utils';
+import { JobConfigurations } from './-components/job-configurations';
 import { RunIncludesExcludes } from './-components/run-includes-excludes';
-import { ScannerJobDetails } from './-components/scanner-job-details';
-
-const jobSections = [
-  { value: 'analyzer', title: 'Analyzer', Component: AnalyzerJobDetails },
-  { value: 'advisor', title: 'Advisor', Component: AdvisorJobDetails },
-  { value: 'scanner', title: 'Scanner', Component: ScannerJobDetails },
-  { value: 'evaluator', title: 'Evaluator', Component: EvaluatorJobDetails },
-  { value: 'reporter', title: 'Reporter', Component: ReporterJobDetails },
-  { value: 'notifier', title: 'Notifier', Component: NotifierJobDetails },
-] as const;
-
-type JobKey = (typeof jobSections)[number]['value'];
-
-const getJob = (run: OrtRun, key: JobKey) => run.jobs[key];
 
 const allJobValues = jobSections.map(({ value }) => value);
 
@@ -73,6 +49,13 @@ const ConfigComponent = () => {
       },
     }),
   });
+
+  const { data: plugins } = useQuery(
+    createRunPluginsOptions(
+      ortRun.repositoryId,
+      ortRun.resolvedJobConfigContext ?? ortRun.jobConfigContext ?? undefined
+    )
+  );
 
   return (
     <div className='flex flex-col gap-4'>
@@ -192,22 +175,12 @@ const ConfigComponent = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Accordion
-            type='multiple'
-            value={openSections}
-            onValueChange={setOpenSections}
-          >
-            {jobSections.map(({ value, title, Component }) => (
-              <AccordionItem key={value} value={value}>
-                <AccordionTrigger>
-                  <JobTitle title={title} job={getJob(ortRun, value)} />
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Component run={ortRun} />
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <JobConfigurations
+            run={ortRun}
+            plugins={plugins ?? []}
+            openSections={openSections}
+            onOpenSectionsChange={setOpenSections}
+          />
         </CardContent>
       </Card>
     </div>
