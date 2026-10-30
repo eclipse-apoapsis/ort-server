@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { JobStatus } from '@/api';
+import { JobStatus, OrtRun } from '@/api';
 
 /**
  * Check if a job is finished, based on its status. The finished states are
@@ -53,4 +53,36 @@ export const jobStatusTexts = (
       : { value: '-', description: 'Not started' }
     : { value: 'Skipped', description: 'Enable the job for results' };
   return { value, description };
+};
+
+export type JobKey = keyof OrtRun['jobs'];
+
+/**
+ * The state of a job of a run, from the run's configuration and its jobs:
+ *
+ * - `started`: the job has an entry in the run, whatever its status.
+ * - `notStarted`: the job is configured but has no entry yet, because it is waiting or the run
+ *   stopped earlier.
+ * - `notEnabled`: the resolved configuration has no configuration for the job.
+ * - `notRequested`: the configuration is not resolved and the request has no configuration
+ *   for the job. The server could still add it while resolving.
+ */
+export type JobState = 'started' | 'notStarted' | 'notEnabled' | 'notRequested';
+
+export const getJobState = (run: OrtRun, job: JobKey): JobState => {
+  const jobConfigs = run.resolvedJobConfigs ?? run.jobConfigs;
+
+  if (!jobConfigs[job]) {
+    return run.resolvedJobConfigs ? 'notEnabled' : 'notRequested';
+  }
+
+  return run.jobs[job] ? 'started' : 'notStarted';
+};
+
+/**
+ * Whether the job has a configuration to show, so its panel can be expanded.
+ */
+export const isJobExpandable = (run: OrtRun, job: JobKey) => {
+  const state = getJobState(run, job);
+  return state === 'started' || state === 'notStarted';
 };

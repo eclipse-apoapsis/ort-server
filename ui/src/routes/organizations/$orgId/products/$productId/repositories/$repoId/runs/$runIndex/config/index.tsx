@@ -26,13 +26,12 @@ import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { isJobExpandable } from '@/helpers/job-helpers';
 import { createRunPluginsOptions } from '@/hooks/use-create-run-plugins';
 import { jobSearchParameterSchema } from '@/schemas';
 import { jobSections } from './-components/config-utils';
 import { JobConfigurations } from './-components/job-configurations';
 import { RunSettings } from './-components/run-settings';
-
-const allJobValues = jobSections.map(({ value }) => value);
 
 const ConfigComponent = () => {
   const params = Route.useParams();
@@ -55,6 +54,13 @@ const ConfigComponent = () => {
     )
   );
 
+  const expandableJobs = jobSections
+    .map(({ value }) => value)
+    .filter((value) => isJobExpandable(ortRun, value));
+  const allOpen =
+    expandableJobs.length > 0 &&
+    expandableJobs.every((value) => openSections.includes(value));
+
   return (
     <div className='flex flex-col gap-4'>
       <Card>
@@ -73,13 +79,9 @@ const ConfigComponent = () => {
               variant='ghost'
               size='xs'
               className='-mr-1.5'
-              onClick={() =>
-                setOpenSections((prev) =>
-                  prev.length === allJobValues.length ? [] : [...allJobValues]
-                )
-              }
+              onClick={() => setOpenSections(allOpen ? [] : expandableJobs)}
             >
-              {openSections.length === allJobValues.length ? (
+              {allOpen ? (
                 <>
                   Collapse all
                   <ChevronsDownUp className='size-4' />

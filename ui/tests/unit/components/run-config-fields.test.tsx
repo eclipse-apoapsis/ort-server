@@ -262,6 +262,45 @@ describe('ConfigFields', () => {
 });
 
 describe('JobConfigurations', () => {
+  const renderJobConfigurations = (run: Parameters<typeof createOrtRun>[0]) =>
+    render(
+      <JobConfigurations
+        run={createOrtRun(run)}
+        plugins={[]}
+        openSections={['analyzer', 'advisor']}
+        onOpenSectionsChange={() => {}}
+      />
+    );
+
+  it('shows a job that was not enabled as such, without a way to expand it', () => {
+    renderJobConfigurations({
+      status: 'FINISHED',
+      jobs: { analyzer: { status: 'FINISHED' } },
+      jobConfigs: { analyzer: {} },
+      resolvedJobConfigs: { analyzer: {} },
+    });
+
+    const advisor = screen.getByRole('button', { name: /^Advisor/ });
+
+    expect(advisor).toHaveTextContent('Not enabled for this run');
+    expect(advisor).toBeDisabled();
+  });
+
+  it('shows the configuration of a job that has not started', () => {
+    renderJobConfigurations({
+      status: 'ACTIVE',
+      jobs: { analyzer: { status: 'RUNNING' } },
+      jobConfigs: { analyzer: {}, advisor: { advisors: ['OSV'] } },
+      resolvedJobConfigs: { analyzer: {}, advisor: { advisors: ['OSV'] } },
+    });
+
+    const advisor = screen.getByRole('button', { name: /^Advisor/ });
+
+    expect(advisor).toHaveTextContent('Not started');
+    expect(advisor).toBeEnabled();
+    expect(row('Enabled advisors').getByText('OSV')).toBeInTheDocument();
+  });
+
   it.each([
     [true, false],
     [false, true],
@@ -297,20 +336,24 @@ describe('JobConfigurations', () => {
     }
   );
 
-  it('shows the requested settings of a run whose configuration is not resolved', () => {
-    render(
-      <JobConfigurations
-        run={createOrtRun({
-          jobs: {},
-          jobConfigs: { analyzer: { allowDynamicVersions: true } },
-          resolvedJobConfigs: null,
-        })}
-        plugins={[]}
-        openSections={['analyzer']}
-        onOpenSectionsChange={() => {}}
-      />
-    );
+  it.each([
+    ['ACTIVE', 'The server has not resolved this configuration yet.'],
+    ['FAILED', 'The server could not resolve this configuration.'],
+  ] as const)(
+    'shows the requested settings of a %s run whose configuration is not resolved',
+    (status, notice) => {
+      renderJobConfigurations({
+        status,
+        jobs: {},
+        jobConfigs: { analyzer: { allowDynamicVersions: true } },
+        resolvedJobConfigs: null,
+      });
 
-    expect(row('Allow dynamic versions').getByText('On')).toBeInTheDocument();
-  });
+      expect(screen.getByRole('status')).toHaveTextContent(notice);
+      expect(row('Allow dynamic versions').getByText('On')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /^Advisor/ })
+      ).toHaveTextContent('Not requested');
+    }
+  );
 });
