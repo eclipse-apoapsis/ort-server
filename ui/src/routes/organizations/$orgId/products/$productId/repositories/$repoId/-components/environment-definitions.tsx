@@ -47,11 +47,19 @@ import {
   EnvironmentDefinitionSchema,
   FieldEntry,
 } from '@/lib/environment-definition-fields';
+import { jobConfigFields } from '@/lib/job-config-fields';
 import {
   EnvironmentDefinitionEntry,
   EnvironmentDefinitions,
 } from '@/lib/types';
 import { CreateRunFormValues } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components';
+
+const environmentDefinitionsField =
+  jobConfigFields['analyzer.environmentConfig.environmentDefinitions'];
+const serviceField =
+  jobConfigFields[
+    'analyzer.environmentConfig.environmentDefinitions.*.*.service'
+  ];
 
 type PackageManagerFieldProps = {
   pmKey: string;
@@ -77,7 +85,7 @@ function PackageManagerField({
         name={name}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Service</FormLabel>
+            <FormLabel>{serviceField.label}</FormLabel>
             <InfrastructureServiceSelect
               value={typeof field.value === 'string' ? field.value : undefined}
               onChange={(service) => {
@@ -90,9 +98,7 @@ function PackageManagerField({
               placeholder='Select an infrastructure service'
               className='w-full'
             />
-            <FormDescription>
-              Select the infrastructure service from a chosen hierarchy level.
-            </FormDescription>
+            <FormDescription>{serviceField.description}</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -312,10 +318,9 @@ export const EnvironmentDefinitionsFields = ({
   return (
     <div className='flex flex-col gap-2'>
       <div>
-        <h3>Environment configuration</h3>
+        <h3>{environmentDefinitionsField.label}</h3>
         <p className='mt-1 text-sm text-gray-500'>
-          Configure the credentials for different package managers to access
-          private artifact repositories.
+          {environmentDefinitionsField.description}
         </p>
       </div>
       <div className='mt-2 flex flex-col gap-4'>

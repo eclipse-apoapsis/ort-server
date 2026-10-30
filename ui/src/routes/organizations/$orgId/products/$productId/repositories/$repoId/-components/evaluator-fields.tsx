@@ -34,6 +34,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { jobConfigFields } from '@/lib/job-config-fields';
 import {
   CreateRunFormValues,
   DefaultPluginSelections,
@@ -86,13 +87,12 @@ export const EvaluatorFields = ({
               defaultPluginSelections?.packageConfigurationProviders
             }
             configName='jobConfigs.evaluator.packageConfigurationProviderConfig'
-            label='Package configuration providers'
+            label={
+              jobConfigFields['evaluator.packageConfigurationProviders'].label
+            }
             description={
-              <>
-                Configure the package configuration providers to use. Providers
-                higher in the list take precedence over lower providers. Change
-                the order of providers via drag & drop.
-              </>
+              jobConfigFields['evaluator.packageConfigurationProviders']
+                .description
             }
             plugins={packageConfigurationProviderPlugins}
             secrets={secrets}
@@ -105,11 +105,11 @@ export const EvaluatorFields = ({
               render={({ field }) => (
                 <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                   <div className='space-y-0.5'>
-                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormLabel>
+                      {jobConfigFields['evaluator.keepAliveWorker'].label}
+                    </FormLabel>
                     <FormDescription>
-                      A flag to control whether the worker is kept alive for
-                      debugging purposes. This flag only has an effect if the
-                      ORT Server is deployed on Kubernetes.
+                      {jobConfigFields['evaluator.keepAliveWorker'].description}
                     </FormDescription>
                   </div>
                   <FormControl>

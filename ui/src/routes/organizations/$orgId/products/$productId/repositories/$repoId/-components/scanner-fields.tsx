@@ -34,6 +34,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { jobConfigFields } from '@/lib/job-config-fields';
 import {
   CreateRunFormValues,
   DefaultPluginSelections,
@@ -85,11 +86,11 @@ export const ScannerFields = ({
             render={({ field }) => (
               <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                 <div className='space-y-0.5'>
-                  <FormLabel>Skip concluded</FormLabel>
+                  <FormLabel>
+                    {jobConfigFields['scanner.skipConcluded'].label}
+                  </FormLabel>
                   <FormDescription>
-                    A flag to indicate whether packages that have a concluded
-                    license and authors set (to derive copyrights from) should
-                    be skipped by the scanner.
+                    {jobConfigFields['scanner.skipConcluded'].description}
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -107,10 +108,11 @@ export const ScannerFields = ({
             render={({ field }) => (
               <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                 <div className='space-y-0.5'>
-                  <FormLabel>Skip excluded</FormLabel>
+                  <FormLabel>
+                    {jobConfigFields['scanner.skipExcluded'].label}
+                  </FormLabel>
                   <FormDescription>
-                    A flag to control whether excluded scopes and paths should
-                    by skipped by the scanner.
+                    {jobConfigFields['scanner.skipExcluded'].description}
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -129,14 +131,8 @@ export const ScannerFields = ({
             defaultScannerScopes={defaultPluginSelections?.scannerScopes}
             configName='jobConfigs.scanner.config'
             scannerScopeName='jobConfigs.scanner.scannerScopes'
-            label='Enabled scanners'
-            description={
-              <>
-                Select the scanners enabled for this run. Use the scope toggle
-                to control whether a scanner runs on projects, packages, or
-                both.
-              </>
-            }
+            label={jobConfigFields['scanner.scanners'].label}
+            description={jobConfigFields['scanner.scanners'].description}
             plugins={scannerPlugins}
             secrets={secrets}
           />
@@ -147,11 +143,11 @@ export const ScannerFields = ({
               render={({ field }) => (
                 <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
                   <div className='space-y-0.5'>
-                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormLabel>
+                      {jobConfigFields['scanner.keepAliveWorker'].label}
+                    </FormLabel>
                     <FormDescription>
-                      A flag to control whether the worker is kept alive for
-                      debugging purposes. This flag only has an effect if the
-                      ORT Server is deployed on Kubernetes.
+                      {jobConfigFields['scanner.keepAliveWorker'].description}
                     </FormDescription>
                   </div>
                   <FormControl>
