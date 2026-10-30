@@ -31,7 +31,6 @@ import type {
   Secret,
 } from '@/api';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
-import { InlineCode } from '@/components/typography.tsx';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,6 +54,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useDebounce } from '@/hooks/use-debounce';
+import { jobConfigFields, runConfigFields } from '@/lib/job-config-fields';
 import type {
   OrganizationPermissions,
   ProductPermissions,
@@ -421,13 +421,12 @@ export const CreateRunForm = ({
               name='revision'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Revision</FormLabel>
+                  <FormLabel>{runConfigFields.revision.label}</FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    The repository revision to use. Can be a branch, tag, or
-                    commit. Uses the default branch if left empty.
+                    {runConfigFields.revision.description}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -438,14 +437,12 @@ export const CreateRunForm = ({
               name='path'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>Path</FormLabel>
+                  <FormLabel>{runConfigFields.path.label}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The path (relative to the repository root) to limit the
-                    analysis to, for example{' '}
-                    <InlineCode>path/to/source</InlineCode>.
+                    {runConfigFields.path.description}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -456,18 +453,14 @@ export const CreateRunForm = ({
               name='jobConfigContext'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>Configuration context</FormLabel>
+                  <FormLabel>
+                    {runConfigFields.jobConfigContext.label}
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The context to pass to the configuration provider in use.
-                    The configuration provider is responsible for obtaining
-                    configuration for this run and uses the context in an
-                    implementation-specific way. For example, if the{' '}
-                    <InlineCode>GitHubConfigFileProvider</InlineCode> is in use,
-                    the context defines the Git revision of the configuration to
-                    check out.
+                    {runConfigFields.jobConfigContext.description}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -478,15 +471,14 @@ export const CreateRunForm = ({
               name='environmentConfigPath'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>Environment configuration path</FormLabel>
+                  <FormLabel>
+                    {runConfigFields.environmentConfigPath.label}
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The optional path to an environment configuration file. If
-                    this is not defined, the environment configuration is read
-                    from the default location
-                    <InlineCode>.ort.env.yml</InlineCode>.
+                    {runConfigFields.environmentConfigPath.description}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -497,26 +489,21 @@ export const CreateRunForm = ({
               name='jobConfigs.ruleSet'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>Rule set</FormLabel>
+                  <FormLabel>{jobConfigFields.ruleSet.label}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The rule set to use for the run. This selects a set of
-                    configuration files used by the Evaluator and the Reporter,
-                    such as rules for the Evaluator or license classifications.
-                    If left empty, the default rule set is used.
+                    {jobConfigFields.ruleSet.description}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <h3 className='mt-4'>Configuration parameters</h3>
+            <h3 className='mt-4'>{jobConfigFields.parameters.label}</h3>
             <div className='text-sm text-gray-500'>
-              A map of key-value pairs that serve as input parameters for the
-              configuration's validation script. The script can use these
-              parameters to alter specific job configurations.
+              {jobConfigFields.parameters.description}
             </div>
             {parametersFields.map((field, index) => (
               <div
@@ -582,11 +569,9 @@ export const CreateRunForm = ({
               <PlusIcon className='ml-1 h-4 w-4' />
             </Button>
 
-            <h3 className='mt-4'>ORT labels</h3>
+            <h3 className='mt-4'>{runConfigFields.labels.label}</h3>
             <div className='text-sm text-gray-500'>
-              A map of key-value pairs to store as labels in ORT results. ORT
-              does not interpret labels by itself, but leaves interpretation to
-              custom configuration, like evaluator rules.
+              {runConfigFields.labels.description}
             </div>
             {labelsFields.map((field, index) => (
               <div

@@ -20,8 +20,8 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { zJobConfigurations } from '@/api/zod.gen';
-import { jobConfigFields } from '@/lib/job-config-fields';
+import { zJobConfigurations, zPostRepositoryRun } from '@/api/zod.gen';
+import { jobConfigFields, runConfigFields } from '@/lib/job-config-fields';
 
 /**
  * Follow a dotted path through a schema. A record accepts any key, a list only `*`. Return
@@ -65,4 +65,13 @@ describe('jobConfigFields', () => {
       false
     );
   });
+});
+
+describe('runConfigFields', () => {
+  it.each(Object.keys(runConfigFields))(
+    'has the field %s in the request that creates a run',
+    (field) => {
+      expect(pathExists(zPostRepositoryRun, [field])).toBe(true);
+    }
+  );
 });

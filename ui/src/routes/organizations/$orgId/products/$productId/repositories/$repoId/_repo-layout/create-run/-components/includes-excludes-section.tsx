@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDebounce } from '@/hooks/use-debounce';
+import { includesExcludesField } from '@/lib/job-config-fields';
 import {
   formatReason,
   getReasonOptions,
@@ -80,11 +81,9 @@ export const IncludesExcludesSection = ({
   projectSuggestionsLoading,
 }: IncludesExcludesSectionProps) => (
   <>
-    <h3 className='mt-4'>Includes and excludes</h3>
+    <h3 className='mt-4'>{includesExcludesField.label}</h3>
     <div className='text-sm text-gray-500'>
-      Exclude scopes and paths from this run, or include only some of them.
-      These apply in addition to the excludes and includes in the repository's{' '}
-      <InlineCode>.ort.yml</InlineCode>.
+      {includesExcludesField.description}
     </div>
     <Accordion
       type='multiple'
