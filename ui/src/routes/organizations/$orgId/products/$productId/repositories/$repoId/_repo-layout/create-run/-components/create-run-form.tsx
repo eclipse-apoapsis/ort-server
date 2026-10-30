@@ -30,7 +30,7 @@ import type {
   PreconfiguredPluginDescriptor,
   Secret,
 } from '@/api';
-import { CopyToClipboard } from '@/components/copy-to-clipboard';
+import { PayloadView } from '@/components/payload-view';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import {
@@ -52,7 +52,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { useDebounce } from '@/hooks/use-debounce';
 import { jobConfigFields, runConfigFields } from '@/lib/job-config-fields';
 import type {
@@ -771,34 +770,12 @@ export const CreateRunForm = ({
               </div>
             </div>
             {isTest && !pluginsUnavailable && (
-              <>
-                <h3 className='mt-4'>Form payload</h3>
-                <Label htmlFor='payload' className='text-muted-foreground'>
-                  You can copy this payload to use it when triggering runs via
-                  the API or CLI.
-                </Label>
-                <div className='relative w-full'>
-                  <Textarea
-                    id='payload'
-                    className='h-96 pr-12 font-mono'
-                    readOnly
-                    value={JSON.stringify(
-                      formValuesToPayload(watchedValues, plugins),
-                      null,
-                      2
-                    )}
-                  />
-                  <div className='absolute top-2 right-2 z-10'>
-                    <CopyToClipboard
-                      copyText={JSON.stringify(
-                        formValuesToPayload(watchedValues, plugins),
-                        null,
-                        2
-                      )}
-                    />
-                  </div>
-                </div>
-              </>
+              <PayloadView
+                id='payload'
+                title='Form payload'
+                description='You can copy this payload to use it when triggering runs via the API or CLI.'
+                payload={formValuesToPayload(watchedValues, plugins)}
+              />
             )}
           </CardFooter>
         </form>
