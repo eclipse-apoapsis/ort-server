@@ -350,7 +350,7 @@ internal class ResultPhase(
             throw AnalysisPhaseException(error.message)
         }
 
-        val result: OrtResult = readExchangeFile(exchangeDir, ORT_RESULT_FILE)
+        val result = readExchangeFile<OrtResult>(exchangeDir, ORT_RESULT_FILE)
 
         return contextFactory.withContext(job.ortRunId) { context ->
             worker.processResult(
