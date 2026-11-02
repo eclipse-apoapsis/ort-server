@@ -32,6 +32,6 @@ javaPlatform {
 
 dependencies {
     childProjects.values.forEach {
-        api(it)
+        api(project(it.path))
     }
 }
