@@ -63,6 +63,9 @@ internal const val CONFIG_DIR = "conf"
 
 internal const val ORT_RESULT_FILE = "ort-result.json"
 
+/** The name of the file with information about a failure of the analysis phase. */
+internal const val ANALYSIS_ERROR_FILE = "analysis-error.json"
+
 private val logger = LoggerFactory.getLogger(AnalyzerPhase::class.java)
 
 /**
@@ -218,6 +221,10 @@ internal class PreparationPhase(
  *
  * An optional second argument can point to a path of a file that should be created once the analysis is done. This can
  * be used as a synchronization mechanism to signal the completion of the analysis phase.
+ *
+ * This phase typically runs without access to the infrastructure, including the transport to the Orchestrator.
+ * Therefore, it does not report failures itself. Instead, it writes an [AnalysisError] to the exchange directory and
+ * creates the sync file as well, so that [ResultPhase] can report the failure.
  */
 internal class AnalysisPhase : AnalyzerPhase {
     override suspend fun run(
@@ -227,13 +234,18 @@ internal class AnalysisPhase : AnalyzerPhase {
     ): RunResult {
         val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 2))
 
-        val prepareResult = createPrepareResult(exchangeDir, jobId)
-        handleKeepAlive(prepareResult.runnerConfig.keepAliveWorker, prepareResult.runnerConfig.keepAlivePhases)
-        copyConfigFiles(exchangeDir)
-        setUpEnvironment()
+        runCatching {
+            val prepareResult = createPrepareResult(exchangeDir, jobId)
+            handleKeepAlive(prepareResult.runnerConfig.keepAliveWorker, prepareResult.runnerConfig.keepAlivePhases)
+            copyConfigFiles(exchangeDir)
+            setUpEnvironment()
 
-        val result = worker.analyze(prepareResult)
-        writeExchangeFile(exchangeDir, ORT_RESULT_FILE, result)
+            val result = worker.analyze(prepareResult)
+            writeExchangeFile(exchangeDir, ORT_RESULT_FILE, result)
+        }.onFailure {
+            logger.error("Analysis for job {} failed. Passing the error to the result phase.", jobId, it)
+            writeExchangeFile(exchangeDir, ANALYSIS_ERROR_FILE, AnalysisError(it.message))
+        }
 
         writeSyncFile(args)
         return RunResult.Ignored
@@ -304,7 +316,9 @@ internal class AnalysisPhase : AnalyzerPhase {
  * An implementation of [AnalyzerPhase] that collects the results from the analysis and stores them in the database.
  *
  * The results, in form of a serialized ORT result, are expected to be found in a job-specific directory on an exchange
- * volume whose root path is passed as single argument.
+ * volume whose root path is passed as single argument. If the directory contains an [AnalysisError] instead, the
+ * analysis phase failed; then this phase fails with the same error message, so that the failure is reported to the
+ * Orchestrator.
  */
 internal class ResultPhase(
     /** The database to access the job and store the results. */
@@ -330,6 +344,11 @@ internal class ResultPhase(
         val exchangeDir = exchangeDirectory(jobId, checkArgs(this, args, 1, 1))
         val job = ortRunService.getValidAnalyzerJob(jobId)
         handleKeepAlive(job.configuration)
+
+        if (exchangeDir.resolve(ANALYSIS_ERROR_FILE).isFile) {
+            val error = readExchangeFile<AnalysisError>(exchangeDir, ANALYSIS_ERROR_FILE)
+            throw AnalysisPhaseException(error.message)
+        }
 
         val result: OrtResult = readExchangeFile(exchangeDir, ORT_RESULT_FILE)
 
@@ -363,6 +382,21 @@ internal data class PreparationExchange(
     /** The ID of the run that is analyzed. */
     val runId: Long
 )
+
+/**
+ * A data class to hold information about a failure of the analysis phase. [AnalysisPhase] serializes such an object to
+ * a file on the shared volume, so that [ResultPhase] can report the failure to the Orchestrator.
+ */
+@Serializable
+internal data class AnalysisError(
+    /** The message of the exception that caused the failure. */
+    val message: String?
+)
+
+/**
+ * An exception thrown by [ResultPhase] to report a failure of [AnalysisPhase] with the original error [message].
+ */
+internal class AnalysisPhaseException(message: String?) : Exception(message)
 
 /** The phases for which the worker should be kept alive if no specific phases are provided. */
 private val DEFAULT_KEEP_ALIVE_PHASES = EnumSet.of(AnalyzerPhaseEnum.ANALYSIS, AnalyzerPhaseEnum.FULL)

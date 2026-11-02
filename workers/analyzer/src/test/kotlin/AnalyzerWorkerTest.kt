@@ -1443,6 +1443,52 @@ class AnalyzerWorkerTest : StringSpec({
         }
     }
 
+    "The analysis phase should pass an error to the result phase" {
+        val exchangeDir = tempdir()
+        val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
+        val downloadDir = jobDir.resolve("analyzer-worker-${ortRun.id}-download")
+        downloadDir.mkdirs()
+        val syncFile = exchangeDir.resolve("sync/ready")
+        val prepareExchange = PreparationExchange(
+            environment = emptyMap(),
+            runnerConfig = AnalyzerRunnerConfig(
+                allowDynamicVersions = true,
+                skipExcluded = false,
+                enabledPackageManagers = null,
+                disabledPackageManagers = null,
+                packageManagerOptions = null,
+                packageCurationProviders = emptyList(),
+                repositoryConfigPath = null,
+                keepAliveWorker = false,
+                keepAlivePhases = emptySet()
+            ),
+            runId = ortRun.id
+        )
+        jobDir.resolve(PREPARATION_EXCHANGE_FILE).writeValue(prepareExchange)
+        jobDir.resolve(CONFIG_DIR).mkdirs()
+
+        val runner = mockk<AnalyzerRunner> {
+            coEvery { run(any(), any(), any()) } throws IllegalStateException("Analysis failed.")
+        }
+
+        mockkObject(EnvironmentForkHelper, WorkerOrtConfig) {
+            every { WorkerOrtConfig.create() } returns mockk(relaxed = true)
+            every { EnvironmentForkHelper.setupAuthentication(any(), any()) } just runs
+
+            val worker = AnalyzerWorker(mockk(), runner)
+            val result = worker.testRun(
+                AnalysisPhase(),
+                arrayOf(exchangeDir.absolutePath, syncFile.absolutePath)
+            )
+            result shouldBe RunResult.Ignored
+
+            val error: AnalysisError = jobDir.resolve(ANALYSIS_ERROR_FILE).readValue()
+            error.message shouldBe "Analysis failed."
+            jobDir.resolve(ORT_RESULT_FILE).exists() shouldBe false
+            syncFile.isFile shouldBe true
+        }
+    }
+
     "The result phase should be executed" {
         val exchangeDir = tempdir()
         val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}")
@@ -1512,6 +1558,28 @@ class AnalyzerWorkerTest : StringSpec({
             coVerify {
                 phase.handleKeepAlive(analyzerJob.configuration)
             }
+        }
+    }
+
+    "The result phase should report an error of the analysis phase" {
+        val exchangeDir = tempdir()
+        val jobDir = exchangeDir.resolve("$JOB_DIR_PREFIX${analyzerJob.id}").apply { mkdirs() }
+        jobDir.resolve(ANALYSIS_ERROR_FILE).writeValue(AnalysisError("Analysis failed."))
+
+        val ortRunService = mockk<OrtRunService> {
+            coEvery { getAnalyzerJob(any()) } returns analyzerJob
+        }
+
+        val phase = ResultPhase(mockk(), ortRunService, mockContextFactory(), mockk(), mockk())
+        val worker = AnalyzerWorker(mockk(), mockk())
+
+        when (val result = worker.testRun(phase, arrayOf(exchangeDir.absolutePath))) {
+            is RunResult.Failed -> result.error.message shouldBe "Analysis failed."
+            else -> AssertionErrorBuilder.fail("Unexpected result: $result")
+        }
+
+        coVerify(exactly = 0) {
+            ortRunService.storeAnalyzerRun(any(), any())
         }
     }
 })
