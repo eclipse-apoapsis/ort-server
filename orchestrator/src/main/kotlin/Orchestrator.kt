@@ -132,7 +132,7 @@ class Orchestrator(
     /** Handle messages of the type [ConfigWorkerResult]. */
     suspend fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            val ortRun = getCurrentOrtRun(configWorkerResult.ortRunId)
+            val ortRun = getOrtRun(configWorkerResult.ortRunId)
 
             nextJobsToSchedule(ConfigEndpoint, ortRun.id, header, jobs = emptyMap())
         }.scheduleNextJobs {
@@ -240,7 +240,7 @@ class Orchestrator(
         db.transactionCatching(transactionIsolation = isolationLevel) {
             val repository = workerJobRepositories[workerError.endpointName]
                 ?: return@transactionCatching createWorkerScheduleContext(
-                    getCurrentOrtRun(ortRunId),
+                    getOrtRun(ortRunId),
                     header,
                     failed = true
                 ) to emptyList()
@@ -266,7 +266,7 @@ class Orchestrator(
         log.info("Handling a lost schedule for ORT run {}.", lostSchedule.ortRunId)
 
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            val ortRun = getCurrentOrtRun(lostSchedule.ortRunId)
+            val ortRun = getOrtRun(lostSchedule.ortRunId)
             val context = createWorkerScheduleContext(ortRun, header)
 
             if (context.jobs.isNotEmpty()) {
@@ -280,7 +280,7 @@ class Orchestrator(
     }
 
     /** Obtain the [OrtRun] with the given [ortRunId] of fail with an exception if it does not exist. */
-    private suspend fun getCurrentOrtRun(ortRunId: Long): OrtRun =
+    private suspend fun getOrtRun(ortRunId: Long): OrtRun =
         requireNotNull(ortRunRepository.get(ortRunId)) {
             "ORT run '$ortRunId' not found."
         }
@@ -357,7 +357,7 @@ class Orchestrator(
     ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
         log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
 
-        val ortRun = getCurrentOrtRun(ortRunId)
+        val ortRun = getOrtRun(ortRunId)
         val scheduleContext = createWorkerScheduleContext(ortRun, header, workerJobs = jobs)
 
         return fetchNextJobs(scheduleContext)
