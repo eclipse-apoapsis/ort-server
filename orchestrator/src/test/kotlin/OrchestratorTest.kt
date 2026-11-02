@@ -655,6 +655,41 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(any(), any())
                 }
             }
+
+            "create a reporter job if the advisor job failed" {
+                val scannerWorkerResult = ScannerWorkerResult(789)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED) {
+                    coEvery { get(scannerWorkerResult.jobId) } returns scannerJob
+                    coEvery { complete(scannerJob.id, any(), any()) } returns mockk()
+                }
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FAILED)
+                val evaluatorJobRepository: EvaluatorJobRepository = createRepository()
+                val reporterJobRepository = expectReporterJob()
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleScannerWorkerResult(msgHeader, scannerWorkerResult)
+                }
+
+                verifyReporterJobCreated(reporterJobRepository, publisher)
+
+                coVerify(exactly = 0) {
+                    evaluatorJobRepository.create(any(), any())
+                }
+            }
         }
 
         "handleScannerWorkerResultWithIssues" should {
@@ -1034,6 +1069,38 @@ class OrchestratorTest : WordSpec() {
                     ortRunRepository.update(any(), any())
                 }
                 verifyReporterJobCreated(reporterJobRepository, publisher)
+            }
+
+            "not create a reporter job if the scanner job is still running" {
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FAILED) {
+                    coEvery { get(advisorJob.id) } returns advisorJob
+                    coEvery { complete(advisorJob.id, any(), any(), any()) } returns advisorJob
+                }
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.RUNNING)
+                val reporterJobRepository: ReporterJobRepository = createRepository()
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false) {
+                    coEvery { update(ortRun.id, issues = any()) } returns mockk()
+                }
+
+                val advisorWorkerError = AdvisorWorkerError(advisorJob.id, "Advisor error msg")
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = mockk()
+                    ).handleAdvisorWorkerError(msgHeader, advisorWorkerError)
+                }
+
+                coVerify(exactly = 0) {
+                    reporterJobRepository.create(any(), any())
+                    ortRunRepository.update(any(), any())
+                }
             }
         }
 
