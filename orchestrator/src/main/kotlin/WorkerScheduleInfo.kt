@@ -20,8 +20,6 @@
 package org.eclipse.apoapsis.ortserver.orchestrator
 
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
-import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -60,64 +58,39 @@ internal enum class WorkerScheduleInfo(
     val runAfterFailure: Boolean = false
 ) {
     ANALYZER(AnalyzerEndpoint) {
-        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob =
-            context.workerJobRepositories.analyzerJobRepository.create(
-                context.ortRun.id,
-                context.jobConfigs().analyzer
-            )
-
         override fun isConfigured(configs: JobConfigurations): Boolean = true
     },
 
     ADVISOR(AdvisorEndpoint, dependsOn = listOf(ANALYZER)) {
-        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().advisor?.let { config ->
-                context.workerJobRepositories.advisorJobRepository.create(context.ortRun.id, config)
-            }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.advisor != null
     },
 
     SCANNER(ScannerEndpoint, dependsOn = listOf(ANALYZER)) {
-        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().scanner?.let { config ->
-                context.workerJobRepositories.scannerJobRepository.create(context.ortRun.id, config)
-            }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.scanner != null
     },
 
     EVALUATOR(EvaluatorEndpoint, runsAfter = listOf(ADVISOR, SCANNER)) {
-        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().evaluator?.let { config ->
-                context.workerJobRepositories.evaluatorJobRepository.create(context.ortRun.id, config)
-            }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.evaluator != null
     },
 
     REPORTER(ReporterEndpoint, runsAfter = listOf(EVALUATOR), runAfterFailure = true) {
-        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().reporter?.let { config ->
-                context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
-            }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.reporter != null
     },
 
     NOTIFIER(NotifierEndpoint, dependsOn = listOf(REPORTER), runAfterFailure = true) {
-        override suspend fun createJob(context: WorkerScheduleContext): WorkerJob? =
-            context.jobConfigs().notifier?.let { config ->
-                context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
-            }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.notifier != null
     };
+
+    companion object {
+        /** Return the [WorkerScheduleInfo] for the worker with the given [endpointName] or *null* if there is none. */
+        fun forEndpointName(endpointName: String): WorkerScheduleInfo? =
+            entries.find { it.endpoint.configPrefix == endpointName }
+    }
 
     /**
      * Return the transitive set of the workers that must complete before this one can run. This is necessary to
@@ -133,16 +106,12 @@ internal enum class WorkerScheduleInfo(
      * that schedules the job.
      */
     suspend fun createAndScheduleJob(context: WorkerScheduleContext): JobScheduleFunc? =
-        createJob(context)?.let { job ->
+        context.runStore.createJob(context.ortRun, this)?.let { job ->
             {
                 context.jobDispatcher.dispatchJob(this, job.id, context.ortRun, context.header)
-
-                context.workerJobRepositories.updateJobStatus(endpoint, job.id, JobStatus.SCHEDULED, finished = false)
+                context.runStore.markJobScheduled(this, job.id)
             }
         }
-
-    /** Create a new job for this worker based on the information in the given [context]. */
-    protected abstract suspend fun createJob(context: WorkerScheduleContext): WorkerJob?
 
     /** Return a flag whether this worker is configured to run for the current ORT run based on the given [configs]. */
     abstract fun isConfigured(configs: JobConfigurations): Boolean
