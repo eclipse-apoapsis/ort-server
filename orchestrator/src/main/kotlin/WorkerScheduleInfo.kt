@@ -214,12 +214,20 @@ internal enum class WorkerScheduleInfo(
 
     /**
      * Check whether the represented worker is pending for the current ORT run based on the given [context]. This
-     * means that the worker has not yet run, but - given the current state - is supposed to run later.
+     * means that the worker has not yet completed and either was already scheduled or - given the current state - is
+     * supposed to run later. A scheduled job is pending independently of the failure state, as it is still running.
      */
     private fun isPending(context: WorkerScheduleContext): Boolean =
         isConfigured(context.jobConfigs()) &&
                 !context.isJobCompleted(endpoint) &&
-                canRunWithFailureState(context) &&
+                (context.wasScheduled(endpoint) || isExpectedToRun(context))
+
+    /**
+     * Check whether the represented worker is supposed to run later based on the given [context]. This is the case if
+     * it can run in the current failure state and all the workers it depends on were scheduled or are pending.
+     */
+    private fun isExpectedToRun(context: WorkerScheduleContext): Boolean =
+        canRunWithFailureState(context) &&
                 dependsOn.all {
                     context.wasScheduled(it) ||
                             WorkerScheduleInfo[it].isPending(context)
