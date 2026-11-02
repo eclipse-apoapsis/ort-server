@@ -51,7 +51,6 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
@@ -78,12 +77,14 @@ private val log = LoggerFactory.getLogger(Orchestrator::class.java)
 @Suppress("TooManyFunctions")
 class Orchestrator(
     private val db: Database,
-    private val workerJobRepositories: WorkerJobRepositories,
-    private val repositoryRepository: RepositoryRepository,
-    private val ortRunRepository: OrtRunRepository,
-    private val publisher: MessagePublisher
+    workerJobRepositories: WorkerJobRepositories,
+    repositoryRepository: RepositoryRepository,
+    ortRunRepository: OrtRunRepository,
+    publisher: MessagePublisher
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
+
+    private val runStore = RunStore(workerJobRepositories, repositoryRepository, ortRunRepository)
 
     private val jobDispatcher = JobDispatcher(publisher)
 
@@ -117,11 +118,9 @@ class Orchestrator(
         db.transactionCatching(transactionIsolation = isolationLevel) {
             val ortRun = createOrtRun.ortRun
 
-            requireNotNull(repositoryRepository.get(ortRun.repositoryId)) {
-                "Repository '${ortRun.repositoryId}' not found."
-            }
+            runStore.requireRepository(ortRun.repositoryId)
 
-            val context = WorkerScheduleContext(ortRun, workerJobRepositories, jobDispatcher, header, emptyMap())
+            val context = createWorkerScheduleContext(ortRun, header, RunState(ortRun.jobConfigs, emptyMap()))
             context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
@@ -131,7 +130,7 @@ class Orchestrator(
     /** Handle messages of the type [ConfigWorkerResult]. */
     suspend fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            val ortRun = getOrtRun(configWorkerResult.ortRunId)
+            val ortRun = runStore.getOrtRun(configWorkerResult.ortRunId)
 
             nextJobsToSchedule(ConfigEndpoint, ortRun.id, header)
         }.scheduleNextJobs {
@@ -142,11 +141,7 @@ class Orchestrator(
     /** Handle messages of the type [ConfigWorkerError]. */
     suspend fun handleConfigWorkerError(configWorkerError: ConfigWorkerError) {
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            ortRunRepository.update(
-                id = configWorkerError.ortRunId,
-                status = OrtRunStatus.FAILED.asPresent(),
-                issues = listOf(ConfigEndpoint.createErrorIssue(configWorkerError)).asPresent()
-            )
+            runStore.failRun(configWorkerError.ortRunId, ConfigEndpoint.createErrorIssue(configWorkerError))
         }.onFailure {
             log.warn("Failed to handle 'ConfigWorkerError' message.", it)
         }
@@ -237,20 +232,23 @@ class Orchestrator(
         log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
 
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            val repository = workerJobRepositories[workerError.endpointName]
-                ?: return@transactionCatching createWorkerScheduleContext(
-                    getOrtRun(ortRunId),
-                    header,
-                    failed = true
-                ) to emptyList()
+            val worker = WorkerScheduleInfo.forEndpointName(workerError.endpointName)
 
-            val job = requireNotNull(repository.getForOrtRun(ortRunId)) {
-                "ORT run '$ortRunId' not found."
-            }
+            when {
+                // Only the Config worker does not have jobs.
+                worker == null -> {
+                    val ortRun = runStore.getOrtRun(ortRunId)
+                    createWorkerScheduleContext(
+                        ortRun,
+                        header,
+                        runStore.loadRunState(ortRun, configWorkerFailed = true)
+                    ) to emptyList()
+                }
 
-            // If the job was already completed, the error is outdated and must not change the state of the run.
-            repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
-                nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
+                runStore.tryFailJob(worker, ortRunId) -> nextJobsToSchedule(worker.endpoint, ortRunId, header)
+
+                // If the job was already completed, the error is outdated and must not change the state of the run.
+                else -> null
             }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'WorkerError' message.", it)
@@ -265,10 +263,10 @@ class Orchestrator(
         log.info("Handling a lost schedule for ORT run {}.", lostSchedule.ortRunId)
 
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            val ortRun = getOrtRun(lostSchedule.ortRunId)
-            val context = createWorkerScheduleContext(ortRun, header)
+            val ortRun = runStore.getOrtRun(lostSchedule.ortRunId)
+            val context = createWorkerScheduleContext(ortRun, header, runStore.loadRunState(ortRun))
 
-            if (context.jobs.isNotEmpty()) {
+            if (context.runState.hasJobs()) {
                 fetchNextJobs(context)
             } else {
                 context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
@@ -277,12 +275,6 @@ class Orchestrator(
             log.warn("Failed to handle 'LostSchedule' message.", it)
         }
     }
-
-    /** Obtain the [OrtRun] with the given [ortRunId] of fail with an exception if it does not exist. */
-    private suspend fun getOrtRun(ortRunId: Long): OrtRun =
-        requireNotNull(ortRunRepository.get(ortRunId)) {
-            "ORT run '$ortRunId' not found."
-        }
 
     /** Handle the given [result] message with the given [header] from a worker of the given [endpoint]. */
     private suspend fun handleWorkerResult(endpoint: Endpoint<*>, header: MessageHeader, result: WorkerMessage) {
@@ -327,14 +319,12 @@ class Orchestrator(
         )
 
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            val job = workerJobRepositories.updateJobStatus(
-                endpoint,
-                message.jobId,
-                status,
-                true,
-                extractErrorMessage(message)
-            )
-            if (issues.isNotEmpty()) ortRunRepository.update(job.ortRunId, issues = issues.asPresent())
+            val worker = requireNotNull(WorkerScheduleInfo.forEndpointName(endpoint.configPrefix)) {
+                "No jobs are created for endpoint '${endpoint.configPrefix}'."
+            }
+
+            val job = runStore.completeJob(worker, message.jobId, status, extractErrorMessage(message))
+            if (issues.isNotEmpty()) runStore.addIssues(job.ortRunId, issues)
 
             nextJobsToSchedule(endpoint, job.ortRunId, header)
         }.scheduleNextJobs {
@@ -354,8 +344,8 @@ class Orchestrator(
     ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
         log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
 
-        val ortRun = getOrtRun(ortRunId)
-        val scheduleContext = createWorkerScheduleContext(ortRun, header)
+        val ortRun = runStore.getOrtRun(ortRunId)
+        val scheduleContext = createWorkerScheduleContext(ortRun, header, runStore.loadRunState(ortRun))
 
         return fetchNextJobs(scheduleContext)
     }
@@ -374,21 +364,9 @@ class Orchestrator(
         this@scheduleNextJobs.onFailure { onFailure(it) }
     }
 
-    /**
-     * Create a [WorkerScheduleContext] for the given [ortRun] and message [header] with the given [failed] flag.
-     * The context is initialized with the status of all jobs for this run loaded from the database.
-     */
-    private suspend fun createWorkerScheduleContext(
-        ortRun: OrtRun,
-        header: MessageHeader,
-        failed: Boolean = false
-    ): WorkerScheduleContext {
-        val jobs = workerJobRepositories.jobRepositories.mapNotNull { (endpoint, repository) ->
-            repository.getForOrtRun(ortRun.id)?.let { endpoint to it }
-        }.toMap()
-
-        return WorkerScheduleContext(ortRun, workerJobRepositories, jobDispatcher, header, jobs, failed)
-    }
+    /** Create a [WorkerScheduleContext] for the given [ortRun], message [header], and [runState]. */
+    private fun createWorkerScheduleContext(ortRun: OrtRun, header: MessageHeader, runState: RunState) =
+        WorkerScheduleContext(ortRun, runStore, jobDispatcher, header, runState)
 
     /**
      * Trigger the scheduling of the given new [createdJobs] for the ORT run contained in the given [context]. This
@@ -400,11 +378,9 @@ class Orchestrator(
         createdJobs.forEach { it() }
 
         context.runState.finalStatus()?.also { ortRunStatus ->
-            cleanupJobs(context.ortRun.id)
-
             log.info("Setting the final status of ORT run {} to '{}'.", context.ortRun.id, ortRunStatus.name)
 
-            ortRunRepository.update(context.ortRun.id, ortRunStatus.asPresent())
+            runStore.finishRun(context.ortRun.id, ortRunStatus)
         }
     }
 
@@ -416,14 +392,7 @@ class Orchestrator(
         jobDispatcher.dispatchConfigJob(run, header)
 
         if (updateRun) {
-            ortRunRepository.update(run.id, OrtRunStatus.ACTIVE.asPresent())
-        }
-    }
-
-    /** Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job. */
-    private suspend fun cleanupJobs(ortRunId: Long) {
-        workerJobRepositories.notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
-            workerJobRepositories.notifierJobRepository.deleteMailRecipients(notifierJob.id)
+            runStore.setRunStatus(run.id, OrtRunStatus.ACTIVE)
         }
     }
 }

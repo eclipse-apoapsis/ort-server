@@ -71,6 +71,9 @@ internal class RunState(
             else -> OrtRunStatus.FINISHED
         }
 
+    /** Return a flag whether at least one job has been created for the ORT run. */
+    fun hasJobs(): Boolean = jobStatuses.isNotEmpty()
+
     /** Return a flag whether at least one job has not completed yet. */
     private fun hasRunningJobs(): Boolean = jobStatuses.values.any { !it.final }
 
