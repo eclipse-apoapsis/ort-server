@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation(libs.koin.test)
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.table)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
 }
