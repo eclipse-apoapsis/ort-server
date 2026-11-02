@@ -22,11 +22,7 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
-import org.eclipse.apoapsis.ortserver.transport.Endpoint
-import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
-import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
-import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
 
 /**
  * A class holding context information required when scheduling new worker jobs for an [OrtRun]. This includes the
@@ -41,7 +37,7 @@ internal class WorkerScheduleContext(
     val workerJobRepositories: WorkerJobRepositories,
 
     /** The object for sending messages to the workers to trigger new jobs. */
-    val publisher: MessagePublisher,
+    val jobDispatcher: JobDispatcher,
 
     /**
      * The header of the message that is currently processed. The header for messages sent to worker endpoints is
@@ -66,21 +62,6 @@ internal class WorkerScheduleContext(
      * otherwise, return the original configurations.
      */
     fun jobConfigs(): JobConfigurations = ortRun.resolvedJobConfigs ?: ortRun.jobConfigs
-
-    /**
-     * Create a message based on the given [payload] and publish it to the given [endpoint].
-     * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
-     * current ORT run. Also make sure that a trace ID is available.
-     */
-    fun <T : Any> publish(endpoint: Endpoint<T>, payload: T) {
-        val traceId = header.traceId.takeUnless { it.isEmpty() } ?: ortRun.traceId.orEmpty()
-        val headerWithProperties = header.copy(
-            traceId = traceId,
-            transportProperties = ortRun.labels.selectByPrefix("transport")
-        )
-
-        publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
-    }
 
     /** The [RunState] of the current [OrtRun] which is used to decide which jobs to schedule next. */
     val runState: RunState by lazy {

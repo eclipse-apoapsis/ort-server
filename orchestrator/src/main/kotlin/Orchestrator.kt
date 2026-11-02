@@ -33,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
@@ -65,7 +64,6 @@ import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
-import org.eclipse.apoapsis.ortserver.transport.selectByPrefix
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -87,6 +85,8 @@ class Orchestrator(
     private val publisher: MessagePublisher
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
+
+    private val jobDispatcher = JobDispatcher(publisher)
 
     /** Handle the given [message] by passing it to the handler function for the type of its payload. */
     suspend fun handleMessage(message: Message<OrchestratorMessage>) {
@@ -122,7 +122,7 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
+            val context = WorkerScheduleContext(ortRun, workerJobRepositories, jobDispatcher, header, emptyMap())
             context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
@@ -392,7 +392,7 @@ class Orchestrator(
             repository.getForOrtRun(ortRun.id)?.let { endpoint to it }
         }.toMap()
 
-        return WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, jobs, failed)
+        return WorkerScheduleContext(ortRun, workerJobRepositories, jobDispatcher, header, jobs, failed)
     }
 
     /**
@@ -418,26 +418,11 @@ class Orchestrator(
      * [run]. If [updateRun] is *true*, set the status of the run to ACTIVE.
      */
     private suspend fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader, updateRun: Boolean) {
-        publish(ConfigEndpoint, run, header, ConfigRequest(run.id))
+        jobDispatcher.dispatchConfigJob(run, header)
 
         if (updateRun) {
             ortRunRepository.update(run.id, OrtRunStatus.ACTIVE.asPresent())
         }
-    }
-
-    /**
-     * Create a message based on the given [run], [header], and [payload] and publish it to the given [endpoint].
-     * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
-     * current ORT run. Also make sure that a trace ID is available.
-     */
-    private fun <T : Any> publish(endpoint: Endpoint<T>, run: OrtRun, header: MessageHeader, payload: T) {
-        val traceId = header.traceId.takeUnless { it.isEmpty() } ?: run.traceId.orEmpty()
-        val headerWithProperties = header.copy(
-            traceId = traceId,
-            transportProperties = run.labels.selectByPrefix("transport")
-        )
-
-        publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }
 
     /** Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job. */

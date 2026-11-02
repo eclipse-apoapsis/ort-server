@@ -22,12 +22,6 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
-import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorRequest
-import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierRequest
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -72,10 +66,6 @@ internal enum class WorkerScheduleInfo(
                 context.jobConfigs().analyzer
             )
 
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(AnalyzerEndpoint, AnalyzerRequest(job.id))
-        }
-
         override fun isConfigured(configs: JobConfigurations): Boolean = true
     },
 
@@ -84,10 +74,6 @@ internal enum class WorkerScheduleInfo(
             context.jobConfigs().advisor?.let { config ->
                 context.workerJobRepositories.advisorJobRepository.create(context.ortRun.id, config)
             }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(AdvisorEndpoint, AdvisorRequest(job.id))
-        }
 
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.advisor != null
@@ -99,10 +85,6 @@ internal enum class WorkerScheduleInfo(
                 context.workerJobRepositories.scannerJobRepository.create(context.ortRun.id, config)
             }
 
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(ScannerEndpoint, ScannerRequest(job.id))
-        }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.scanner != null
     },
@@ -112,10 +94,6 @@ internal enum class WorkerScheduleInfo(
             context.jobConfigs().evaluator?.let { config ->
                 context.workerJobRepositories.evaluatorJobRepository.create(context.ortRun.id, config)
             }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(EvaluatorEndpoint, EvaluatorRequest(job.id))
-        }
 
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.evaluator != null
@@ -127,10 +105,6 @@ internal enum class WorkerScheduleInfo(
                 context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
             }
 
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(ReporterEndpoint, ReporterRequest(job.id))
-        }
-
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.reporter != null
     },
@@ -140,10 +114,6 @@ internal enum class WorkerScheduleInfo(
             context.jobConfigs().notifier?.let { config ->
                 context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
             }
-
-        override fun publishJob(context: WorkerScheduleContext, job: WorkerJob) {
-            context.publish(NotifierEndpoint, NotifierRequest(job.id))
-        }
 
         override fun isConfigured(configs: JobConfigurations): Boolean =
             configs.notifier != null
@@ -165,7 +135,7 @@ internal enum class WorkerScheduleInfo(
     suspend fun createAndScheduleJob(context: WorkerScheduleContext): JobScheduleFunc? =
         createJob(context)?.let { job ->
             {
-                publishJob(context, job)
+                context.jobDispatcher.dispatchJob(this, job.id, context.ortRun, context.header)
 
                 context.workerJobRepositories.updateJobStatus(endpoint, job.id, JobStatus.SCHEDULED, finished = false)
             }
@@ -173,12 +143,6 @@ internal enum class WorkerScheduleInfo(
 
     /** Create a new job for this worker based on the information in the given [context]. */
     protected abstract suspend fun createJob(context: WorkerScheduleContext): WorkerJob?
-
-    /**
-     * Publish a message to the worker endpoint to schedule the given [job] based on the information in the given
-     * [context].
-     */
-    protected abstract fun publishJob(context: WorkerScheduleContext, job: WorkerJob)
 
     /** Return a flag whether this worker is configured to run for the current ORT run based on the given [configs]. */
     abstract fun isConfigured(configs: JobConfigurations): Boolean
