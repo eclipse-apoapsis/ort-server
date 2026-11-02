@@ -19,13 +19,17 @@ As a consequence, these credentials are also available while build scripts are r
 To avoid this, the Analyzer worker can split a job into three phases.
 Each phase runs in its own container of the Analyzer pod and receives only the credentials it needs:
 
-| Phase       | Container                       | Tasks                                                                                                  | Requires access to                                 |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| Preparation | `analyzerinit` (init container) | Reads the job, clones the repository, resolves secrets, and creates the package manager configuration. | Database, secret storage, configuration, transport |
-| Analysis    | `analyzer-main`                 | Runs the ORT Analyzer, which invokes the package managers and executes build scripts.                  | None of the infrastructure credentials             |
-| Result      | `analyzerresult`                | Waits for the analysis to finish and stores the results in the database.                               | Database, configuration, transport                 |
+| Phase       | Container                       | Tasks                                                                                                              | Requires access to                                 |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| Preparation | `analyzerinit` (init container) | Reads the job, clones the repository, resolves secrets, and creates the package manager configuration.             | Database, secret storage, configuration, transport |
+| Analysis    | `analyzer-main`                 | Runs the ORT Analyzer, which invokes the package managers and executes build scripts.                              | None of the infrastructure credentials             |
+| Result      | `analyzerresult`                | Waits for the analysis to finish, stores the results in the database, and reports the outcome to the Orchestrator. | Database, configuration, transport                 |
 
 The containers exchange data through an `emptyDir` volume that is mounted at `/mnt/exchange` in all three containers.
+
+The analysis container cannot connect to the transport, so it does not report the outcome of the analysis to the Orchestrator.
+If the analysis fails, it writes the error to the exchange volume instead, and the result container reports the failure.
+To find the cause of a failed analysis, check the log of the `analyzer-main` container.
 
 :::note
 The analysis container still has access to the credentials that the analyzed repository needs to download dependencies, for example, credentials for a private package registry.
