@@ -19,11 +19,11 @@ As a consequence, these credentials are also available while build scripts are r
 To avoid this, the Analyzer worker can split a job into three phases.
 Each phase runs in its own container of the Analyzer pod and receives only the credentials it needs:
 
-| Phase       | Container                       | Tasks                                                                                                  | Requires access to                      |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------- |
-| Preparation | `analyzerinit` (init container) | Reads the job, clones the repository, resolves secrets, and creates the package manager configuration. | Database, secret storage, configuration |
-| Analysis    | `analyzer-main`                 | Runs the ORT Analyzer, which invokes the package managers and executes build scripts.                  | None of the infrastructure credentials  |
-| Result      | `analyzerresult`                | Waits for the analysis to finish and stores the results in the database.                               | Database, configuration                 |
+| Phase       | Container                       | Tasks                                                                                                  | Requires access to                                 |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| Preparation | `analyzerinit` (init container) | Reads the job, clones the repository, resolves secrets, and creates the package manager configuration. | Database, secret storage, configuration, transport |
+| Analysis    | `analyzer-main`                 | Runs the ORT Analyzer, which invokes the package managers and executes build scripts.                  | None of the infrastructure credentials             |
+| Result      | `analyzerresult`                | Waits for the analysis to finish and stores the results in the database.                               | Database, configuration, transport                 |
 
 The containers exchange data through an `emptyDir` volume that is mounted at `/mnt/exchange` in all three containers.
 
