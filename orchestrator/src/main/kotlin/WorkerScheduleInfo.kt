@@ -28,9 +28,6 @@ import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
-/** Type definition for a function that schedules another worker job. */
-typealias JobScheduleFunc = suspend () -> Unit
-
 /**
  * An enumeration class with constants that describe if and when a job for a specific worker should be scheduled.
  *
@@ -100,18 +97,6 @@ internal enum class WorkerScheduleInfo(
      */
     val runsAfterTransitively: Set<WorkerScheduleInfo>
         get() = (runsAfter + dependsOn).flatMapTo(mutableSetOf()) { it.runsAfterTransitively + it }
-
-    /**
-     * Create the job for the represented worker in the database based on the given [context] and return a function
-     * that schedules the job.
-     */
-    suspend fun createAndScheduleJob(context: WorkerScheduleContext): JobScheduleFunc? =
-        context.runStore.createJob(context.ortRun, this)?.let { job ->
-            {
-                context.jobDispatcher.dispatchJob(this, job.id, context.ortRun, context.header)
-                context.runStore.markJobScheduled(this, job.id)
-            }
-        }
 
     /** Return a flag whether this worker is configured to run for the current ORT run based on the given [configs]. */
     abstract fun isConfigured(configs: JobConfigurations): Boolean

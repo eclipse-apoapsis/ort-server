@@ -73,6 +73,10 @@ private val log = LoggerFactory.getLogger(Orchestrator::class.java)
  * The Orchestrator is the central component that breaks an ORT run into single steps and coordinates their execution.
  * It creates jobs for the single processing steps and passes them to the corresponding workers. It collects the results
  * produced by the workers until the complete ORT result is available or the run has failed.
+ *
+ * Each message is processed in two phases: In a serializable transaction, the state of the affected ORT run is
+ * updated, the next jobs are determined via its [RunState] and created in the database, resulting in a
+ * [SchedulingPlan]. After the transaction has been committed, the plan is executed by sending messages to the workers.
  */
 @Suppress("TooManyFunctions")
 class Orchestrator(
@@ -115,35 +119,28 @@ class Orchestrator(
 
     /** Handle messages of the type [CreateOrtRun]. */
     suspend fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
-        db.transactionCatching(transactionIsolation = isolationLevel) {
+        processMessage(createOrtRun) {
             val ortRun = createOrtRun.ortRun
 
             runStore.requireRepository(ortRun.repositoryId)
+            runStore.setRunStatus(ortRun.id, OrtRunStatus.ACTIVE)
 
-            val context = createWorkerScheduleContext(ortRun, header, RunState(ortRun.jobConfigs, emptyMap()))
-            context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
-        }.scheduleNextJobs {
-            log.warn("Failed to handle 'CreateOrtRun' message.", it)
+            SchedulingPlan(ortRun, header, dispatchConfigJob = true)
         }
     }
 
     /** Handle messages of the type [ConfigWorkerResult]. */
     suspend fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
-        db.transactionCatching(transactionIsolation = isolationLevel) {
-            val ortRun = runStore.getOrtRun(configWorkerResult.ortRunId)
-
-            nextJobsToSchedule(ConfigEndpoint, ortRun.id, header)
-        }.scheduleNextJobs {
-            log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
+        processMessage(configWorkerResult) {
+            planNextJobs(runStore.getOrtRun(configWorkerResult.ortRunId), header)
         }
     }
 
     /** Handle messages of the type [ConfigWorkerError]. */
     suspend fun handleConfigWorkerError(configWorkerError: ConfigWorkerError) {
-        db.transactionCatching(transactionIsolation = isolationLevel) {
+        processMessage(configWorkerError) {
             runStore.failRun(configWorkerError.ortRunId, ConfigEndpoint.createErrorIssue(configWorkerError))
-        }.onFailure {
-            log.warn("Failed to handle 'ConfigWorkerError' message.", it)
+            null
         }
     }
 
@@ -231,27 +228,18 @@ class Orchestrator(
         val ortRunId = header.ortRunId
         log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
 
-        db.transactionCatching(transactionIsolation = isolationLevel) {
+        processMessage(workerError) {
             val worker = WorkerScheduleInfo.forEndpointName(workerError.endpointName)
 
             when {
                 // Only the Config worker does not have jobs.
-                worker == null -> {
-                    val ortRun = runStore.getOrtRun(ortRunId)
-                    createWorkerScheduleContext(
-                        ortRun,
-                        header,
-                        runStore.loadRunState(ortRun, configWorkerFailed = true)
-                    ) to emptyList()
-                }
+                worker == null -> planNextJobs(runStore.getOrtRun(ortRunId), header, configWorkerFailed = true)
 
-                runStore.tryFailJob(worker, ortRunId) -> nextJobsToSchedule(worker.endpoint, ortRunId, header)
+                runStore.tryFailJob(worker, ortRunId) -> planNextJobs(runStore.getOrtRun(ortRunId), header)
 
                 // If the job was already completed, the error is outdated and must not change the state of the run.
                 else -> null
             }
-        }.scheduleNextJobs {
-            log.warn("Failed to handle 'WorkerError' message.", it)
         }
     }
 
@@ -262,17 +250,15 @@ class Orchestrator(
     suspend fun handleLostSchedule(header: MessageHeader, lostSchedule: LostSchedule) {
         log.info("Handling a lost schedule for ORT run {}.", lostSchedule.ortRunId)
 
-        db.transactionCatching(transactionIsolation = isolationLevel) {
+        processMessage(lostSchedule) {
             val ortRun = runStore.getOrtRun(lostSchedule.ortRunId)
-            val context = createWorkerScheduleContext(ortRun, header, runStore.loadRunState(ortRun))
+            val runState = runStore.loadRunState(ortRun)
 
-            if (context.runState.hasJobs()) {
-                fetchNextJobs(context)
+            if (runState.hasJobs()) {
+                planNextJobs(ortRun, header, runState)
             } else {
-                context to listOf<JobScheduleFunc> { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
+                SchedulingPlan(ortRun, header, dispatchConfigJob = true)
             }
-        }.scheduleNextJobs {
-            log.warn("Failed to handle 'LostSchedule' message.", it)
         }
     }
 
@@ -300,9 +286,7 @@ class Orchestrator(
 
     /**
      * Handle a [message] with the given [header] about a worker job for the given [endpoint] that completed in the
-     * given [status] with optional [issues]. This is the central scheduling function. It determines the current job
-     * execution state of the affected ORT run, schedules the next job(s) if possible, or decides that the ORT run is
-     * now finished.
+     * given [status] with optional [issues]. Update the job and plan the next jobs of the affected ORT run.
      */
     private suspend fun handleCompletedJob(
         endpoint: Endpoint<*>,
@@ -318,7 +302,7 @@ class Orchestrator(
             status.name
         )
 
-        db.transactionCatching(transactionIsolation = isolationLevel) {
+        processMessage(message) {
             val worker = requireNotNull(WorkerScheduleInfo.forEndpointName(endpoint.configPrefix)) {
                 "No jobs are created for endpoint '${endpoint.configPrefix}'."
             }
@@ -326,79 +310,62 @@ class Orchestrator(
             val job = runStore.completeJob(worker, message.jobId, status, extractErrorMessage(message))
             if (issues.isNotEmpty()) runStore.addIssues(job.ortRunId, issues)
 
-            nextJobsToSchedule(endpoint, job.ortRunId, header)
-        }.scheduleNextJobs {
-            log.warn("Failed to handle '{}' message.", message::class.java.simpleName, it)
+            planNextJobs(runStore.getOrtRun(job.ortRunId), header)
         }
     }
 
     /**
-     * Determine the next jobs that can be scheduled after a job for the given [endpoint] for the run with the given
-     * [ortRunId] has completed. Use the given [header] to send messages to the worker endpoints. Return a list with
-     * the new jobs to schedule and the current [WorkerScheduleContext].
+     * Process the given [message] by running [updateState] in a transaction. If it returns a [SchedulingPlan],
+     * execute it after the transaction was committed. Log failures.
      */
-    private suspend fun nextJobsToSchedule(
-        endpoint: Endpoint<*>,
-        ortRunId: Long,
-        header: MessageHeader
-    ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
-        log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
-
-        val ortRun = runStore.getOrtRun(ortRunId)
-        val scheduleContext = createWorkerScheduleContext(ortRun, header, runStore.loadRunState(ortRun))
-
-        return fetchNextJobs(scheduleContext)
-    }
-
-    /**
-     * Convenience function to evaluate and process this [Result] with information about the next jobs to be scheduled.
-     * If the result is successful and not *null*, actually trigger the jobs. Otherwise, call the given [onFailure]
-     * function with the exception that occurred.
-     */
-    private suspend fun Result<Pair<WorkerScheduleContext, List<JobScheduleFunc>>?>.scheduleNextJobs(
-        onFailure: (Throwable) -> Unit
-    ) {
-        onSuccess { result ->
-            result?.let { (context, schedules) -> scheduleCreatedJobs(context, schedules) }
+    private suspend fun processMessage(message: Any, updateState: suspend () -> SchedulingPlan?) {
+        db.transactionCatching(transactionIsolation = isolationLevel) {
+            updateState()
+        }.onSuccess { plan ->
+            plan?.also { executePlan(it) }
+        }.onFailure {
+            log.warn("Failed to handle '{}' message.", message::class.simpleName, it)
         }
-        this@scheduleNextJobs.onFailure { onFailure(it) }
     }
 
-    /** Create a [WorkerScheduleContext] for the given [ortRun], message [header], and [runState]. */
-    private fun createWorkerScheduleContext(ortRun: OrtRun, header: MessageHeader, runState: RunState) =
-        WorkerScheduleContext(ortRun, runStore, jobDispatcher, header, runState)
-
     /**
-     * Trigger the scheduling of the given new [createdJobs] for the ORT run contained in the given [context]. This
-     * also includes sending corresponding messages to the worker endpoints.
+     * Determine the next jobs for the given [ortRun] based on its [runState] and create them in the database. Return
+     * a [SchedulingPlan] to dispatch the jobs using the given [header]. If no jobs can be scheduled anymore, set the
+     * final status of the run instead. The [configWorkerFailed] flag is only used if the run state must be loaded.
      */
-    private suspend fun scheduleCreatedJobs(context: WorkerScheduleContext, createdJobs: CreatedJobs) {
+    private suspend fun planNextJobs(
+        ortRun: OrtRun,
+        header: MessageHeader,
+        runState: RunState? = null,
+        configWorkerFailed: Boolean = false
+    ): SchedulingPlan {
+        val state = runState ?: runStore.loadRunState(ortRun, configWorkerFailed)
+
+        state.finalStatus()?.also { ortRunStatus ->
+            log.info("Setting the final status of ORT run {} to '{}'.", ortRun.id, ortRunStatus.name)
+
+            runStore.finishRun(ortRun.id, ortRunStatus)
+        }
+
+        val jobs = state.nextJobs().mapNotNull { worker ->
+            runStore.createJob(ortRun, worker)?.let { worker to it.id }
+        }.toMap()
+
+        return SchedulingPlan(ortRun, header, jobs)
+    }
+
+    /** Execute the given [plan] by sending messages to the workers and marking the dispatched jobs as scheduled. */
+    private suspend fun executePlan(plan: SchedulingPlan) {
         // TODO: Handle errors during job scheduling.
 
-        createdJobs.forEach { it() }
+        if (plan.dispatchConfigJob) jobDispatcher.dispatchConfigJob(plan.ortRun, plan.header)
 
-        context.runState.finalStatus()?.also { ortRunStatus ->
-            log.info("Setting the final status of ORT run {} to '{}'.", context.ortRun.id, ortRunStatus.name)
-
-            runStore.finishRun(context.ortRun.id, ortRunStatus)
-        }
-    }
-
-    /**
-     * Publish a message with the given [header] to the [ConfigEndpoint] to trigger the Config worker job for the given
-     * [run]. If [updateRun] is *true*, set the status of the run to ACTIVE.
-     */
-    private suspend fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader, updateRun: Boolean) {
-        jobDispatcher.dispatchConfigJob(run, header)
-
-        if (updateRun) {
-            runStore.setRunStatus(run.id, OrtRunStatus.ACTIVE)
+        plan.jobs.forEach { (worker, jobId) ->
+            jobDispatcher.dispatchJob(worker, jobId, plan.ortRun, plan.header)
+            runStore.markJobScheduled(worker, jobId)
         }
     }
 }
-
-/** Type definition to represent a list of jobs that have been created and must be scheduled. */
-typealias CreatedJobs = List<JobScheduleFunc>
 
 /** Create an [Issue] representing the [error] that occurred in an [Endpoint]. */
 fun <T : Any> Endpoint<T>.createErrorIssue(error: Any): Issue = Issue(
@@ -410,12 +377,3 @@ fun <T : Any> Endpoint<T>.createErrorIssue(error: Any): Issue = Issue(
 
 private fun extractErrorMessage(message: Any): String? =
     (message as? WorkerErrorMessage)?.errorMessage
-
-/**
- * Return a [Pair] with the given [scheduleContext] and the list of jobs that can be scheduled in the current phase
- * of the affected ORT run.
- */
-private suspend fun fetchNextJobs(
-    scheduleContext: WorkerScheduleContext
-): Pair<WorkerScheduleContext, List<JobScheduleFunc>> =
-    scheduleContext to scheduleContext.runState.nextJobs().mapNotNull { it.createAndScheduleJob(scheduleContext) }
