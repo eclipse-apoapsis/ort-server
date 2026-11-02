@@ -404,14 +404,8 @@ class Orchestrator(
 
         createdJobs.forEach { it() }
 
-        if (createdJobs.isEmpty() && !context.hasRunningJobs()) {
+        context.runState.finalStatus()?.also { ortRunStatus ->
             cleanupJobs(context.ortRun.id)
-
-            val ortRunStatus = when {
-                context.isFailed() -> OrtRunStatus.FAILED
-                context.isFinishedWithIssues() -> OrtRunStatus.FINISHED_WITH_ISSUES
-                else -> OrtRunStatus.FINISHED
-            }
 
             log.info("Setting the final status of ORT run {} to '{}'.", context.ortRun.id, ortRunStatus.name)
 
@@ -475,4 +469,4 @@ private fun extractErrorMessage(message: Any): String? =
 private suspend fun fetchNextJobs(
     scheduleContext: WorkerScheduleContext
 ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> =
-    scheduleContext to WorkerScheduleInfo.entries.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
+    scheduleContext to scheduleContext.runState.nextJobs().mapNotNull { it.createAndScheduleJob(scheduleContext) }
