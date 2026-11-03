@@ -107,7 +107,7 @@ export const NotifierFields = ({
                 <Button
                   type='button'
                   variant='outline'
-                  size='sm'
+                  size='icon'
                   onClick={() => {
                     remove(index);
                   }}

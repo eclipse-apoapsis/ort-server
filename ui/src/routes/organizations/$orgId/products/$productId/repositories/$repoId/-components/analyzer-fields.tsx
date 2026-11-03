@@ -289,7 +289,7 @@ export const AnalyzerFields = ({
                       <Button
                         type='button'
                         variant='outline'
-                        size='sm'
+                        size='icon'
                         onClick={() => {
                           environmentVariablesRemove(index);
                         }}
