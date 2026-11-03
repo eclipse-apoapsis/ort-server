@@ -874,7 +874,7 @@ describe('CreateRunForm', () => {
       '.*(UnitTest|AndroidTest).*'
     );
     expect(screen.getByLabelText('Reason')).toHaveTextContent(
-      'Test dependency of'
+      'TEST_DEPENDENCY_OF'
     );
 
     // The list stays open, so that the same preset can be picked again to remove it.

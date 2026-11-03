@@ -46,7 +46,6 @@ import {
 import { useDebounce } from '@/hooks/use-debounce';
 import { includesExcludesField } from '@/lib/job-config-fields';
 import {
-  formatReason,
   getReasonOptions,
   guessReason,
   type IncludeExcludeEntry,
@@ -137,7 +136,7 @@ const texts = {
 const columns = {
   type: 'w-28 shrink-0',
   pattern: 'min-w-48 flex-1',
-  reason: 'w-60 shrink-0',
+  reason: 'w-80 shrink-0',
   comment: 'min-w-40 flex-1',
   // The width of the remove button.
   actions: 'w-9 shrink-0',
@@ -312,7 +311,7 @@ const IncludesExcludesItem = ({
                       <SelectContent>
                         {getReasonOptions(kind, type).map((reason) => (
                           <SelectItem key={reason} value={reason}>
-                            {formatReason(reason)}
+                            {reason}
                           </SelectItem>
                         ))}
                       </SelectContent>
