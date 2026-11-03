@@ -37,6 +37,7 @@ http-client.private.env.json
 .codex/
 .dolt/
 .github/chatmodes/
+.impeccable/
 .perles/
 docs/ai-plans
 AGENTS.md
