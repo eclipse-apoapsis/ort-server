@@ -89,8 +89,8 @@ const pathExcludeReasonClues: [RegExp, string][] = [
 /**
  * Guess the reason for a new include or exclude from its pattern. Includes are taken to be the
  * source of the project. Excludes get the reason their pattern hints at; without a hint, path
- * excludes get "Other", and scope excludes get no reason, because the API offers no "Other" for
- * them.
+ * excludes get `OTHER`, and scope excludes get no reason, because the API offers no `OTHER`
+ * for them.
  */
 export const guessReason = (
   kind: IncludeExcludeKind,
