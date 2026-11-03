@@ -167,7 +167,12 @@ const PluginMultiSelectFieldContent = <
     ),
     submitCount,
     // The errors of the configuration are keyed by plugin id.
-    idsWithErrors: Object.keys(get(errors, configName) ?? {}),
+    idsWithErrors: Object.keys(
+      get<typeof errors, Record<string, unknown> | undefined>(
+        errors,
+        configName
+      ) ?? {}
+    ),
   });
   const pluginIds = plugins.map((plugin) => plugin.id);
 
