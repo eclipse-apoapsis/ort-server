@@ -294,7 +294,7 @@ export const AnalyzerFields = ({
                           environmentVariablesRemove(index);
                         }}
                       >
-                        <TrashIcon className='h-4 w-4' />
+                        <TrashIcon className='h-4 w-4 text-red-500' />
                       </Button>
                     </div>
                   </div>

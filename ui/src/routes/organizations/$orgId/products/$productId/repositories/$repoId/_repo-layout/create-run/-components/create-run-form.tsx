@@ -551,7 +551,7 @@ export const CreateRunForm = ({
                     parametersRemove(index);
                   }}
                 >
-                  <TrashIcon className='h-4 w-4' />
+                  <TrashIcon className='h-4 w-4 text-red-500' />
                 </Button>
               </div>
             ))}
@@ -619,7 +619,7 @@ export const CreateRunForm = ({
                     labelsRemove(index);
                   }}
                 >
-                  <TrashIcon className='h-4 w-4' />
+                  <TrashIcon className='h-4 w-4 text-red-500' />
                 </Button>
               </div>
             ))}
