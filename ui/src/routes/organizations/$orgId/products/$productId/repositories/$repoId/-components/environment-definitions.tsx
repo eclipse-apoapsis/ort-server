@@ -338,7 +338,7 @@ export const EnvironmentDefinitionsFields = ({
                   removeEnvironmentDefinition(card.schema.key, card.index);
                 }}
               >
-                <TrashIcon className='h-4 w-4' />
+                <TrashIcon className='h-4 w-4 text-red-500' />
               </Button>
             </CardHeader>
             <CardContent className='flex flex-col gap-4'>

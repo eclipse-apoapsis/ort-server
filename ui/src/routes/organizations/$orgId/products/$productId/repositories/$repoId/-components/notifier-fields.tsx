@@ -112,7 +112,7 @@ export const NotifierFields = ({
                     remove(index);
                   }}
                 >
-                  <TrashIcon className='h-4 w-4' />
+                  <TrashIcon className='h-4 w-4 text-red-500' />
                 </Button>
               </div>
             ))}
