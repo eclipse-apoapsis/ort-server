@@ -10,9 +10,6 @@ dist
 src/api/
 src/routeTree.gen.ts
 
-# AI Agent related files and directories
-plans/
-
 # Playwright
 /test-results/
 /playwright-report/

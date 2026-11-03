@@ -29,16 +29,11 @@ http-client.private.env.json
 
 # Files related to usage of AI agents and tooling which are better kept private,
 # to not pollute the repository with personal configurations.
-*.db
-.beads-credential-key
-.bv/
 .agents/
 .claude/
 .codex/
-.dolt/
 .github/chatmodes/
 .impeccable/
-.perles/
 docs/ai-plans
 AGENTS.md
 CLAUDE.md
