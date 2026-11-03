@@ -31,14 +31,14 @@ import { capitalize } from '@/helpers/capitalize';
 /** Whether an entry applies to the scopes or to the paths of a run. */
 export type IncludeExcludeKind = 'scopes' | 'paths';
 
-export type IncludeExcludeDirection = 'exclude' | 'include';
+export type IncludeExcludeType = 'exclude' | 'include';
 
 /**
  * An include or exclude as edited in the create run form. The reason is empty until one is chosen,
  * and the comment is empty when there is none.
  */
 export type IncludeExcludeEntry = {
-  direction: IncludeExcludeDirection;
+  type: IncludeExcludeType;
   pattern: string;
   reason: string;
   comment: string;
@@ -46,7 +46,7 @@ export type IncludeExcludeEntry = {
 
 const reasonOptions: Record<
   IncludeExcludeKind,
-  Record<IncludeExcludeDirection, readonly string[]>
+  Record<IncludeExcludeType, readonly string[]>
 > = {
   scopes: {
     exclude: zScopeExcludeReason.options,
@@ -61,8 +61,8 @@ const reasonOptions: Record<
 /** Get the reasons the API accepts for an include or exclude of the given kind. */
 export const getReasonOptions = (
   kind: IncludeExcludeKind,
-  direction: IncludeExcludeDirection
-): readonly string[] => reasonOptions[kind][direction];
+  type: IncludeExcludeType
+): readonly string[] => reasonOptions[kind][type];
 
 /** Format a reason such as `TEST_DEPENDENCY_OF` as "Test dependency of". */
 export const formatReason = (reason: string): string =>
@@ -94,10 +94,10 @@ const pathExcludeReasonClues: [RegExp, string][] = [
  */
 export const guessReason = (
   kind: IncludeExcludeKind,
-  direction: IncludeExcludeDirection,
+  type: IncludeExcludeType,
   pattern: string
 ): string => {
-  if (direction === 'include') return 'SOURCE_OF';
+  if (type === 'include') return 'SOURCE_OF';
 
   const clues =
     kind === 'scopes' ? scopeExcludeReasonClues : pathExcludeReasonClues;
@@ -139,7 +139,7 @@ export const createIncludesExcludesSchema = (kind: IncludeExcludeKind) =>
   z
     .array(
       z.object({
-        direction: z.enum(['exclude', 'include']),
+        type: z.enum(['exclude', 'include']),
         pattern: z.string(),
         reason: z.string(),
         comment: z.string(),
@@ -163,16 +163,16 @@ export const createIncludesExcludesSchema = (kind: IncludeExcludeKind) =>
             path: [index, 'pattern'],
             message: 'Not a valid regular expression.',
           });
-        } else if (seen.has(`${entry.direction}:${pattern}`)) {
+        } else if (seen.has(`${entry.type}:${pattern}`)) {
           ctx.addIssue({
             code: 'custom',
             path: [index, 'pattern'],
             message: 'This pattern is already in the list.',
           });
         }
-        seen.add(`${entry.direction}:${pattern}`);
+        seen.add(`${entry.type}:${pattern}`);
 
-        if (!getReasonOptions(kind, entry.direction).includes(entry.reason)) {
+        if (!getReasonOptions(kind, entry.type).includes(entry.reason)) {
           ctx.addIssue({
             code: 'custom',
             path: [index, 'reason'],
@@ -189,11 +189,11 @@ export const includesExcludesToFormEntries = (
   includesExcludes: IncludesExcludes | null | undefined
 ): IncludeExcludeEntry[] => {
   const toEntries = (
-    direction: IncludeExcludeDirection,
+    type: IncludeExcludeType,
     list: { pattern: string; reason: string; comment?: string | null }[] = []
   ) =>
     list.map((entry) => ({
-      direction,
+      type,
       pattern: entry.pattern,
       reason: entry.reason,
       comment: entry.comment ?? '',
@@ -215,9 +215,9 @@ export function formEntriesToIncludesExcludes<T extends IncludesExcludes>(
 ): T | undefined {
   if (entries.length === 0) return undefined;
 
-  const toApiEntries = (direction: IncludeExcludeDirection) =>
+  const toApiEntries = (type: IncludeExcludeType) =>
     entries
-      .filter((entry) => entry.direction === direction)
+      .filter((entry) => entry.type === type)
       .map((entry) => ({
         pattern: entry.pattern.trim(),
         reason: entry.reason,

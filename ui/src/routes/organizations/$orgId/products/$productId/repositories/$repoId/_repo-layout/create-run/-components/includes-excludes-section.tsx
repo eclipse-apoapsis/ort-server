@@ -49,9 +49,9 @@ import {
   formatReason,
   getReasonOptions,
   guessReason,
-  type IncludeExcludeDirection,
   type IncludeExcludeEntry,
   type IncludeExcludeKind,
+  type IncludeExcludeType,
 } from './includes-excludes';
 import { PatternCombobox } from './pattern-combobox';
 import {
@@ -135,7 +135,7 @@ const texts = {
 
 // The widths of the columns, shared by the header and the rows so that they line up.
 const columns = {
-  direction: 'w-28 shrink-0',
+  type: 'w-28 shrink-0',
   pattern: 'min-w-48 flex-1',
   reason: 'w-60 shrink-0',
   comment: 'min-w-40 flex-1',
@@ -147,7 +147,7 @@ const columns = {
 // of the header.
 const fieldLabelClass = '@[50rem]:sr-only';
 
-const directionLabels: Record<IncludeExcludeDirection, string> = {
+const typeLabels: Record<IncludeExcludeType, string> = {
   exclude: 'Exclude',
   include: 'Include',
 };
@@ -177,7 +177,7 @@ const IncludesExcludesItem = ({
     countRemaining(kind, debouncedEntries, projectSuggestions);
   const leavesNothing = remaining?.remaining === 0;
 
-  const excluded = entries.filter((e) => e.direction === 'exclude').length;
+  const excluded = entries.filter((e) => e.type === 'exclude').length;
   const included = entries.length - excluded;
   const summary =
     entries.length === 0
@@ -189,19 +189,16 @@ const IncludesExcludesItem = ({
           .filter(Boolean)
           .join(', ');
 
-  const changeDirection = (
-    index: number,
-    direction: IncludeExcludeDirection
-  ) => {
+  const changeType = (index: number, type: IncludeExcludeType) => {
     const entry = form.getValues(`${kind}.${index}`);
-    form.setValue(`${kind}.${index}.direction`, direction, {
+    form.setValue(`${kind}.${index}.type`, type, {
       shouldDirty: true,
     });
     // The reasons differ between includes and excludes.
-    if (!getReasonOptions(kind, direction).includes(entry.reason)) {
+    if (!getReasonOptions(kind, type).includes(entry.reason)) {
       form.setValue(
         `${kind}.${index}.reason`,
-        guessReason(kind, direction, entry.pattern),
+        guessReason(kind, type, entry.pattern),
         { shouldDirty: true }
       );
     }
@@ -231,7 +228,7 @@ const IncludesExcludesItem = ({
             aria-hidden
             className='-mb-1 hidden gap-2 text-sm font-medium @[50rem]:flex'
           >
-            <div className={columns.direction}>Direction</div>
+            <div className={columns.type}>Type</div>
             <div className={columns.pattern}>Pattern</div>
             <div className={columns.reason}>Reason</div>
             <div className={columns.comment}>Comment</div>
@@ -239,7 +236,7 @@ const IncludesExcludesItem = ({
           </div>
         )}
         {fields.map((field, index) => {
-          const direction = entries[index]?.direction ?? field.direction;
+          const type = entries[index]?.type ?? field.type;
           // The rows move up when one is removed, so the debounced entries are used only once they
           // have caught up.
           const debouncedEntry =
@@ -254,14 +251,14 @@ const IncludesExcludesItem = ({
             >
               <FormField
                 control={form.control}
-                name={`${kind}.${index}.direction`}
+                name={`${kind}.${index}.type`}
                 render={({ field }) => (
-                  <FormItem className={columns.direction}>
-                    <FormLabel className={fieldLabelClass}>Direction</FormLabel>
+                  <FormItem className={columns.type}>
+                    <FormLabel className={fieldLabelClass}>Type</FormLabel>
                     <Select
                       value={field.value}
                       onValueChange={(value) =>
-                        changeDirection(index, value as IncludeExcludeDirection)
+                        changeType(index, value as IncludeExcludeType)
                       }
                     >
                       <FormControl>
@@ -272,7 +269,7 @@ const IncludesExcludesItem = ({
                       <SelectContent>
                         {(['exclude', 'include'] as const).map((value) => (
                           <SelectItem key={value} value={value}>
-                            {directionLabels[value]}
+                            {typeLabels[value]}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -313,7 +310,7 @@ const IncludesExcludesItem = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {getReasonOptions(kind, direction).map((reason) => (
+                        {getReasonOptions(kind, type).map((reason) => (
                           <SelectItem key={reason} value={reason}>
                             {formatReason(reason)}
                           </SelectItem>
@@ -385,7 +382,7 @@ const IncludesExcludesItem = ({
 
 type MatchCountProps = {
   kind: IncludeExcludeKind;
-  entry: Pick<IncludeExcludeEntry, 'direction' | 'pattern'>;
+  entry: Pick<IncludeExcludeEntry, 'type' | 'pattern'>;
   suggestions: ProjectSuggestions;
 };
 
@@ -394,12 +391,7 @@ type MatchCountProps = {
  * last analyzed run. A pattern that matches nothing is not an error, as the next run may differ.
  */
 const MatchCount = ({ kind, entry, suggestions }: MatchCountProps) => {
-  const effect = describeEffect(
-    kind,
-    entry.direction,
-    entry.pattern,
-    suggestions
-  );
+  const effect = describeEffect(kind, entry.type, entry.pattern, suggestions);
 
   if (!effect) return null;
 

@@ -18,15 +18,15 @@
  */
 
 import type {
-  IncludeExcludeDirection,
   IncludeExcludeKind,
+  IncludeExcludeType,
 } from './includes-excludes';
 
 /** A common include or exclude that can be picked instead of typing its pattern. */
 export type IncludeExcludePreset = {
   label: string;
   pattern: string;
-  direction: IncludeExcludeDirection;
+  type: IncludeExcludeType;
   reason: string;
 };
 
@@ -59,19 +59,19 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Unit and instrumented tests',
         pattern: '.*(UnitTest|AndroidTest).*',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_DEPENDENCY_OF',
       },
       {
         label: 'Debug builds',
         pattern: '.*[Dd]ebug.*',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'BUILD_DEPENDENCY_OF',
       },
       {
         label: 'Only release runtime',
         pattern: '.*[Rr]eleaseRuntimeClasspath',
-        direction: 'include',
+        type: 'include',
         reason: 'SOURCE_OF',
       },
     ],
@@ -79,7 +79,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Instrumented test sources',
         pattern: '**/src/androidTest/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_OF',
       },
     ],
@@ -91,14 +91,14 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Test classpaths',
         pattern: 'test.*|.*Test.*',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_DEPENDENCY_OF',
       },
       {
         label: 'Build tooling',
         pattern:
           'kotlinCompiler.*|kotlinKlib.*|kapt.*|ksp.*|detekt.*|ktlint.*|jacoco.*|checkstyle.*|lint.*',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'BUILD_DEPENDENCY_OF',
       },
     ],
@@ -111,13 +111,13 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Test scope',
         pattern: 'test',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_DEPENDENCY_OF',
       },
       {
         label: 'Provided scope',
         pattern: 'provided',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'PROVIDED_DEPENDENCY_OF',
       },
     ],
@@ -130,7 +130,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Test scope',
         pattern: 'test',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_DEPENDENCY_OF',
       },
     ],
@@ -143,7 +143,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Development dependencies',
         pattern: 'devDependencies',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DEV_DEPENDENCY_OF',
       },
     ],
@@ -156,7 +156,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Development and build dependencies',
         pattern: 'dev-dependencies|build-dependencies',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DEV_DEPENDENCY_OF',
       },
     ],
@@ -169,7 +169,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Development requirements',
         pattern: 'require-dev',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DEV_DEPENDENCY_OF',
       },
     ],
@@ -182,7 +182,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Development dependencies',
         pattern: 'dev_dependencies',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DEV_DEPENDENCY_OF',
       },
     ],
@@ -195,7 +195,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Development and test groups',
         pattern: 'development|test',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DEV_DEPENDENCY_OF',
       },
     ],
@@ -208,13 +208,13 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Build requirements',
         pattern: 'build_requires',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'BUILD_DEPENDENCY_OF',
       },
       {
         label: 'Test requirements',
         pattern: 'test_requires',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_DEPENDENCY_OF',
       },
     ],
@@ -227,7 +227,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Development dependencies',
         pattern: 'dev',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DEV_DEPENDENCY_OF',
       },
     ],
@@ -240,7 +240,7 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Tests and benchmarks',
         pattern: 'test|bench',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_DEPENDENCY_OF',
       },
     ],
@@ -254,37 +254,37 @@ export const includeExcludePresetGroups: IncludeExcludePresetGroup[] = [
       {
         label: 'Test directories',
         pattern: '**/test/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_OF',
       },
       {
         label: 'Test directories',
         pattern: '**/tests/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_OF',
       },
       {
         label: 'Test sources',
         pattern: '**/src/test/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'TEST_OF',
       },
       {
         label: 'Documentation',
         pattern: 'docs/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'DOCUMENTATION_OF',
       },
       {
         label: 'Examples',
         pattern: 'examples/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'EXAMPLE_OF',
       },
       {
         label: 'Samples',
         pattern: 'samples/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'EXAMPLE_OF',
       },
     ],

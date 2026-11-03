@@ -37,9 +37,9 @@ import { cn } from '@/lib/utils';
 import type { IncludeExcludePreset } from './include-exclude-presets';
 import {
   guessReason,
-  type IncludeExcludeDirection,
   type IncludeExcludeEntry,
   type IncludeExcludeKind,
+  type IncludeExcludeType,
 } from './includes-excludes';
 import {
   describeEffect,
@@ -92,9 +92,9 @@ export const PatternCombobox = ({
   const pattern = search.trim();
   const query = pattern.toLowerCase();
 
-  const findEntry = (direction: IncludeExcludeDirection, value: string) =>
+  const findEntry = (type: IncludeExcludeType, value: string) =>
     entries.findIndex(
-      (entry) => entry.direction === direction && entry.pattern.trim() === value
+      (entry) => entry.type === type && entry.pattern.trim() === value
     );
 
   const allGroups = getSuggestionGroups(kind, projectSuggestions);
@@ -109,24 +109,23 @@ export const PatternCombobox = ({
     }))
     .filter((group) => group.presets.length > 0);
 
-  // A typed pattern is offered in each direction that no suggestion has it in.
-  const customDirections = (['exclude', 'include'] as const).filter(
-    (direction) =>
+  // A typed pattern is offered with each type that no suggestion offers it with.
+  const customTypes = (['exclude', 'include'] as const).filter(
+    (type) =>
       !allGroups.some((group) =>
         group.presets.some(
-          (preset) =>
-            preset.direction === direction && preset.pattern === pattern
+          (preset) => preset.type === type && preset.pattern === pattern
         )
       )
   );
 
   const togglePreset = (preset: IncludeExcludePreset) => {
-    const index = findEntry(preset.direction, preset.pattern);
+    const index = findEntry(preset.type, preset.pattern);
     if (index >= 0) {
       onRemove(index);
     } else {
       onAdd({
-        direction: preset.direction,
+        type: preset.type,
         pattern: preset.pattern,
         reason: preset.reason,
         comment: '',
@@ -134,11 +133,11 @@ export const PatternCombobox = ({
     }
   };
 
-  const addCustom = (direction: IncludeExcludeDirection) => {
+  const addCustom = (type: IncludeExcludeType) => {
     onAdd({
-      direction,
+      type,
       pattern,
-      reason: guessReason(kind, direction, pattern),
+      reason: guessReason(kind, type, pattern),
       comment: '',
     });
     setSearch('');
@@ -179,13 +178,12 @@ export const PatternCombobox = ({
             {groups.map((group) => (
               <CommandGroup key={group.heading} heading={group.heading}>
                 {group.presets.map((preset) => {
-                  const selected =
-                    findEntry(preset.direction, preset.pattern) >= 0;
+                  const selected = findEntry(preset.type, preset.pattern) >= 0;
                   const effect =
                     projectSuggestions && !group.hideEffects
                       ? describeEffect(
                           kind,
-                          preset.direction,
+                          preset.type,
                           preset.pattern,
                           projectSuggestions
                         )
@@ -193,8 +191,8 @@ export const PatternCombobox = ({
 
                   return (
                     <CommandItem
-                      key={`${preset.direction}:${preset.pattern}`}
-                      value={`${group.heading}:${preset.direction}:${preset.pattern}`}
+                      key={`${preset.type}:${preset.pattern}`}
+                      value={`${group.heading}:${preset.type}:${preset.pattern}`}
                       onSelect={() => togglePreset(preset)}
                       className='items-start'
                     >
@@ -223,16 +221,16 @@ export const PatternCombobox = ({
                 })}
               </CommandGroup>
             ))}
-            {pattern !== '' && customDirections.length > 0 && (
+            {pattern !== '' && customTypes.length > 0 && (
               <CommandGroup heading='Custom pattern'>
-                {customDirections.map((direction) => (
+                {customTypes.map((type) => (
                   <CommandItem
-                    key={direction}
-                    value={`custom:${direction}`}
-                    onSelect={() => addCustom(direction)}
+                    key={type}
+                    value={`custom:${type}`}
+                    onSelect={() => addCustom(type)}
                   >
                     <span className='min-w-0 break-all'>
-                      {texts[kind][direction]}{' '}
+                      {texts[kind][type]}{' '}
                       <code className='font-mono'>{pattern}</code>
                     </span>
                   </CommandItem>

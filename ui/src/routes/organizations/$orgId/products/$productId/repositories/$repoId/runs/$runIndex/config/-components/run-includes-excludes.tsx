@@ -68,8 +68,8 @@ export const RunIncludesExcludes = ({
             </TableHeader>
             <TableBody>
               {group.rows.map((row) => (
-                <TableRow key={`${row.direction}:${row.pattern}`}>
-                  <TableCell>{capitalize(row.direction)}</TableCell>
+                <TableRow key={`${row.type}:${row.pattern}`}>
+                  <TableCell>{capitalize(row.type)}</TableCell>
                   <TableCell className='font-mono break-words whitespace-normal'>
                     {row.pattern}
                   </TableCell>

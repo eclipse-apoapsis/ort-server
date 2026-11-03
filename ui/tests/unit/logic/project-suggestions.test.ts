@@ -76,7 +76,7 @@ describe('getProjectSuggestions', () => {
       {
         label: 'Example projects (2 projects)',
         pattern: 'samples/**',
-        direction: 'exclude',
+        type: 'exclude',
         reason: 'EXAMPLE_OF',
       },
     ]);
@@ -187,8 +187,8 @@ describe('countRemaining', () => {
       countRemaining(
         'scopes',
         [
-          { direction: 'exclude', pattern: 'test' },
-          { direction: 'exclude', pattern: 'compile|provided' },
+          { type: 'exclude', pattern: 'test' },
+          { type: 'exclude', pattern: 'compile|provided' },
         ],
         suggestions
       )
@@ -199,7 +199,7 @@ describe('countRemaining', () => {
     expect(
       countRemaining(
         'paths',
-        [{ direction: 'include', pattern: 'src/**' }],
+        [{ type: 'include', pattern: 'src/**' }],
         suggestions
       )
     ).toEqual({ remaining: 0, total: 2 });
@@ -207,8 +207,8 @@ describe('countRemaining', () => {
       countRemaining(
         'paths',
         [
-          { direction: 'include', pattern: '**' },
-          { direction: 'exclude', pattern: 'samples/**' },
+          { type: 'include', pattern: '**' },
+          { type: 'exclude', pattern: 'samples/**' },
         ],
         suggestions
       )
@@ -220,8 +220,8 @@ describe('countRemaining', () => {
       countRemaining(
         'scopes',
         [
-          { direction: 'exclude', pattern: '' },
-          { direction: 'exclude', pattern: 'test(' },
+          { type: 'exclude', pattern: '' },
+          { type: 'exclude', pattern: 'test(' },
         ],
         suggestions
       )

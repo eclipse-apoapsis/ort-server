@@ -386,13 +386,13 @@ describe('formValuesToPayload', () => {
     const values = createFormValues();
     values.scopes = [
       {
-        direction: 'exclude',
+        type: 'exclude',
         pattern: ' test.* ',
         reason: 'TEST_DEPENDENCY_OF',
         comment: '',
       },
       {
-        direction: 'include',
+        type: 'include',
         pattern: 'releaseRuntimeClasspath',
         reason: 'SOURCE_OF',
         comment: 'Only the shipped code',
@@ -400,7 +400,7 @@ describe('formValuesToPayload', () => {
     ];
     values.paths = [
       {
-        direction: 'exclude',
+        type: 'exclude',
         pattern: 'docs/**',
         reason: 'DOCUMENTATION_OF',
         comment: '',
