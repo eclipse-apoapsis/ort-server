@@ -26,7 +26,6 @@ import {
   zScopeExcludeReason,
   zScopeIncludeReason,
 } from '@/api/zod.gen';
-import { capitalize } from '@/helpers/capitalize';
 
 /** Whether an entry applies to the scopes or to the paths of a run. */
 export type IncludeExcludeKind = 'scopes' | 'paths';
@@ -63,10 +62,6 @@ export const getReasonOptions = (
   kind: IncludeExcludeKind,
   type: IncludeExcludeType
 ): readonly string[] => reasonOptions[kind][type];
-
-/** Format a reason such as `TEST_DEPENDENCY_OF` as "Test dependency of". */
-export const formatReason = (reason: string): string =>
-  capitalize(reason.replaceAll('_', ' '));
 
 const scopeExcludeReasonClues: [RegExp, string][] = [
   [/test/i, 'TEST_DEPENDENCY_OF'],
