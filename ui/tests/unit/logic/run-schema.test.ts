@@ -278,13 +278,13 @@ describe('createRunFormSchema', () => {
       const formData = createValidFormData();
       formData.scopes = [
         {
-          direction: 'exclude',
+          type: 'exclude',
           pattern: 'test.*',
           reason: 'TEST_DEPENDENCY_OF',
           comment: '',
         },
         {
-          direction: 'include',
+          type: 'include',
           pattern: 'test.*',
           reason: 'SOURCE_OF',
           comment: '',
@@ -292,7 +292,7 @@ describe('createRunFormSchema', () => {
       ];
       formData.paths = [
         {
-          direction: 'exclude',
+          type: 'exclude',
           pattern: '[docs/**',
           reason: 'OTHER',
           comment: '',
@@ -306,7 +306,7 @@ describe('createRunFormSchema', () => {
       const formData = createValidFormData();
       formData.scopes = [
         {
-          direction: 'exclude',
+          type: 'exclude',
           pattern: 'test(',
           reason: 'TEST_DEPENDENCY_OF',
           comment: '',
@@ -320,7 +320,7 @@ describe('createRunFormSchema', () => {
       const formData = createValidFormData();
       formData.scopes = [
         {
-          direction: 'exclude',
+          type: 'exclude',
           pattern: '(?i)test.*',
           reason: 'TEST_DEPENDENCY_OF',
           comment: '',
@@ -333,7 +333,7 @@ describe('createRunFormSchema', () => {
     it('rejects an empty pattern', () => {
       const formData = createValidFormData();
       formData.paths = [
-        { direction: 'exclude', pattern: ' ', reason: 'OTHER', comment: '' },
+        { type: 'exclude', pattern: ' ', reason: 'OTHER', comment: '' },
       ];
 
       expect(issuePaths(formData)).toContainEqual(['paths', 0, 'pattern']);
@@ -343,13 +343,13 @@ describe('createRunFormSchema', () => {
       const formData = createValidFormData();
       formData.paths = [
         {
-          direction: 'exclude',
+          type: 'exclude',
           pattern: 'docs/**',
           reason: 'OTHER',
           comment: '',
         },
         {
-          direction: 'exclude',
+          type: 'exclude',
           pattern: 'docs/** ',
           reason: 'DOCUMENTATION_OF',
           comment: '',
@@ -362,7 +362,7 @@ describe('createRunFormSchema', () => {
     it('rejects a scope exclude without a reason', () => {
       const formData = createValidFormData();
       formData.scopes = [
-        { direction: 'exclude', pattern: 'runtime', reason: '', comment: '' },
+        { type: 'exclude', pattern: 'runtime', reason: '', comment: '' },
       ];
 
       expect(issuePaths(formData)).toContainEqual(['scopes', 0, 'reason']);

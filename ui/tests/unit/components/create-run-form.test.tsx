@@ -842,7 +842,7 @@ describe('CreateRunForm', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('offers a typed pattern in the direction that no suggestion has', async () => {
+  it('offers a typed pattern as an include or exclude that no suggestion has', async () => {
     const { user } = renderCreateRunForm();
 
     await user.click(await screen.findByRole('button', { name: /^Scopes/ }));

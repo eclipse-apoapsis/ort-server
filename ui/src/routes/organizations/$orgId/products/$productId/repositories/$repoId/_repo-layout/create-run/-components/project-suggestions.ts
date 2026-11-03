@@ -28,9 +28,9 @@ import {
 import {
   guessReason,
   toJavaScriptRegex,
-  type IncludeExcludeDirection,
   type IncludeExcludeEntry,
   type IncludeExcludeKind,
+  type IncludeExcludeType,
 } from './includes-excludes';
 
 /** What the projects of an analyzed run suggest as includes and excludes. */
@@ -111,7 +111,7 @@ const getDirectorySuggestions = (definitionFilePaths: string[]) => {
     .map(([pattern, { label, reason, count }]): IncludeExcludePreset => ({
       label: `${label} (${count} ${count === 1 ? 'project' : 'projects'})`,
       pattern,
-      direction: 'exclude',
+      type: 'exclude',
       reason,
     }));
 };
@@ -156,18 +156,18 @@ export const describeRun = ({ runIndex, capped }: ProjectSuggestions) =>
  */
 export const countRemaining = (
   kind: IncludeExcludeKind,
-  entries: Pick<IncludeExcludeEntry, 'direction' | 'pattern'>[],
+  entries: Pick<IncludeExcludeEntry, 'type' | 'pattern'>[],
   suggestions: ProjectSuggestions
 ): { remaining: number; total: number } | undefined => {
   const regexes = entries.flatMap((entry) => {
     const regex = toRegex(kind, entry.pattern);
-    return regex ? [{ direction: entry.direction, regex }] : [];
+    return regex ? [{ type: entry.type, regex }] : [];
   });
   const values = getValues(kind, suggestions);
   if (regexes.length === 0 || values.length === 0) return undefined;
 
-  const includes = regexes.filter((entry) => entry.direction === 'include');
-  const excludes = regexes.filter((entry) => entry.direction === 'exclude');
+  const includes = regexes.filter((entry) => entry.type === 'include');
+  const excludes = regexes.filter((entry) => entry.type === 'exclude');
   const isKept = (value: string) =>
     (includes.length === 0 ||
       includes.some(({ regex }) => regex.test(value))) &&
@@ -207,7 +207,7 @@ const listFormat = new Intl.ListFormat('en', { type: 'conjunction' });
 const toScopePreset = (scopeName: string): IncludeExcludePreset => ({
   label: scopeName,
   pattern: escapeRegex(scopeName),
-  direction: 'exclude',
+  type: 'exclude',
   reason: guessReason('scopes', 'exclude', scopeName),
 });
 
@@ -246,8 +246,7 @@ export const getSuggestionGroups = (
           (preset, index, presets) =>
             presets.findIndex(
               (other) =>
-                other.direction === preset.direction &&
-                other.pattern === preset.pattern
+                other.type === preset.type && other.pattern === preset.pattern
             ) === index
         ),
     },
@@ -281,22 +280,22 @@ const countedItems = {
  */
 export const describeEffect = (
   kind: IncludeExcludeKind,
-  direction: IncludeExcludeDirection,
+  type: IncludeExcludeType,
   pattern: string,
   suggestions: ProjectSuggestions
 ): { text: string; leavesNothing: boolean } | undefined => {
-  const count = countRemaining(kind, [{ direction, pattern }], suggestions);
+  const count = countRemaining(kind, [{ type, pattern }], suggestions);
   if (!count) return undefined;
 
   const matched =
-    direction === 'exclude' ? count.total - count.remaining : count.remaining;
-  if (kind === 'paths' && direction === 'exclude' && matched === 0) {
+    type === 'exclude' ? count.total - count.remaining : count.remaining;
+  if (kind === 'paths' && type === 'exclude' && matched === 0) {
     return undefined;
   }
 
   const [singular, plural] = countedItems[kind];
   const verb =
-    direction === 'exclude'
+    type === 'exclude'
       ? 'Would exclude'
       : matched === 0
         ? 'Would keep'

@@ -693,13 +693,13 @@ it('takes the includes and excludes from reruns, excludes first', () => {
 
   expect(defaults.scopes).toEqual([
     {
-      direction: 'exclude',
+      type: 'exclude',
       pattern: 'test.*',
       reason: 'TEST_DEPENDENCY_OF',
       comment: 'Tests',
     },
     {
-      direction: 'include',
+      type: 'include',
       pattern: 'releaseRuntimeClasspath',
       reason: 'SOURCE_OF',
       comment: '',
@@ -707,7 +707,7 @@ it('takes the includes and excludes from reruns, excludes first', () => {
   ]);
   expect(defaults.paths).toEqual([
     {
-      direction: 'exclude',
+      type: 'exclude',
       pattern: 'docs/**',
       reason: 'DOCUMENTATION_OF',
       comment: '',
