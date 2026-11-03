@@ -546,7 +546,7 @@ export const CreateRunForm = ({
                 <Button
                   type='button'
                   variant='outline'
-                  size='sm'
+                  size='icon'
                   onClick={() => {
                     parametersRemove(index);
                   }}
@@ -614,7 +614,7 @@ export const CreateRunForm = ({
                 <Button
                   type='button'
                   variant='outline'
-                  size='sm'
+                  size='icon'
                   onClick={() => {
                     labelsRemove(index);
                   }}
