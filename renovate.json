@@ -11,7 +11,10 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["/workers/scanner/docker/Scanner\\.Dockerfile$/"],
+      "managerFilePatterns": [
+        "/ui/docker/UI\\.Dockerfile$/",
+        "/workers/scanner/docker/Scanner\\.Dockerfile$/"
+      ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s*\\nARG \\w+_VERSION=(?<currentValue>\\S+)"
       ]

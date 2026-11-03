@@ -18,11 +18,17 @@
 # License-Filename: LICENSE
 
 # Stage 1: Build the UI.
-FROM node:24-slim@sha256:c86ecead9e55a5210ac1727de38a4ca840bf03dcaf34dc9749addbf383b1920c AS build
+FROM debian:13-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS build
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# Install the standalone pnpm executable which downloads the Node.js version configured in the "devEngines" of
+# package.json on its own.
+# renovate: datasource=npm depName=pnpm
+ARG PNPM_VERSION=12.16.1
+ADD https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-x64.tar.gz /tmp/pnpm.tar.gz
+RUN mkdir /opt/pnpm \
+    && tar -xzf /tmp/pnpm.tar.gz -C /opt/pnpm \
+    && rm /tmp/pnpm.tar.gz \
+    && ln -s /opt/pnpm/pnpm /usr/local/bin/pnpm
 
 WORKDIR /app
 COPY --chmod=755 . .
