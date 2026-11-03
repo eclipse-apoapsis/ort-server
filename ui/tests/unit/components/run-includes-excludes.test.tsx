@@ -42,10 +42,10 @@ describe('RunIncludesExcludes', () => {
     );
 
     expect(screen.getByText('test.*')).toBeInTheDocument();
-    expect(screen.getByText('Test dependency of')).toBeInTheDocument();
+    expect(screen.getByText('TEST_DEPENDENCY_OF')).toBeInTheDocument();
     expect(screen.getByText('Only used in tests')).toBeInTheDocument();
     expect(screen.getByText('src/**')).toBeInTheDocument();
-    expect(screen.getByText('Source of')).toBeInTheDocument();
+    expect(screen.getByText('SOURCE_OF')).toBeInTheDocument();
   });
 
   it('shows nothing for a run without includes and excludes', () => {

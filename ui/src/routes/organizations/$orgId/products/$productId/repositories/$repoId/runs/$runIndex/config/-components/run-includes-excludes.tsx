@@ -27,10 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { capitalize } from '@/helpers/capitalize';
-import {
-  formatReason,
-  includesExcludesToFormEntries,
-} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/includes-excludes';
+import { includesExcludesToFormEntries } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/-components/includes-excludes';
 
 type RunIncludesExcludesProps = {
   scopes: ScopeIncludesExcludes | null | undefined;
@@ -60,7 +57,7 @@ export const RunIncludesExcludes = ({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Direction</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Pattern</TableHead>
                 <TableHead>Reason</TableHead>
                 <TableHead>Comment</TableHead>
@@ -73,7 +70,7 @@ export const RunIncludesExcludes = ({
                   <TableCell className='font-mono break-words whitespace-normal'>
                     {row.pattern}
                   </TableCell>
-                  <TableCell>{formatReason(row.reason)}</TableCell>
+                  <TableCell>{row.reason}</TableCell>
                   <TableCell className='text-muted-foreground break-words whitespace-normal'>
                     {row.comment}
                   </TableCell>
