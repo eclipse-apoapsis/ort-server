@@ -118,6 +118,17 @@ class ProductService(
     }
 
     /**
+     * List all products on the server according to the given [parameters] and an optional [filter] on the product
+     * name. No hierarchy filter is applied, so this function is meant for server administrators.
+     */
+    suspend fun listProducts(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Product> = db.transaction {
+        productRepository.list(parameters, filter)
+    }
+
+    /**
      * List all repositories for a [product][productId] according to the given [parameters].
      */
     suspend fun listRepositoriesForProduct(
