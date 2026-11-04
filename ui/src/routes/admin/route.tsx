@@ -25,6 +25,7 @@ import {
   KeyRound,
   ListChecks,
   ListVideo,
+  Package,
   Palette,
   User,
 } from 'lucide-react';
@@ -54,6 +55,16 @@ const Layout = () => {
             status: ['ACTIVE'],
           },
           icon: () => <ListVideo className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Hierarchy',
+      items: [
+        {
+          title: 'All Products',
+          to: '/admin/products',
+          icon: () => <Package className='h-4 w-4' />,
         },
       ],
     },

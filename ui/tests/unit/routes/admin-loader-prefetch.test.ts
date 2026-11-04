@@ -22,6 +22,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Route as AdminOverviewRoute } from '@/routes/admin/index';
 import { Route as AdminPluginTemplatesRoute } from '@/routes/admin/plugins/$pluginType/$pluginId/index';
 import { Route as AdminDefaultPluginsRoute } from '@/routes/admin/plugins/defaults/index';
+import { Route as AdminProductsRoute } from '@/routes/admin/products/index';
 import { Route as AdminRunsRoute } from '@/routes/admin/runs/index';
 import { Route as AdminUsersRoute } from '@/routes/admin/users/index';
 import {
@@ -116,6 +117,30 @@ describe('admin route loaders', () => {
 
     const totalCountRequest = getQueryKeyRequest(queryFn.mock.calls[1]![0]);
     expect(totalCountRequest._id).toBe('getRuns');
+    expect(totalCountRequest.query).toEqual({ limit: 1 });
+  });
+
+  it('awaits the requested page of all products and their total count before resolving', async () => {
+    const loader = AdminProductsRoute.options.loader as unknown as (
+      options: unknown
+    ) => Promise<void>;
+
+    const queryFn = await expectLoaderToAwaitQuery(
+      loader,
+      'prefetchQuery',
+      {
+        deps: { page: 3, pageSize: 25, filter: 'shop' },
+        params: {},
+      },
+      2
+    );
+
+    const request = getQueryKeyRequest(queryFn.mock.calls[0]![0]);
+    expect(request._id).toBe('getProducts');
+    expect(request.query).toEqual({ limit: 25, offset: 50, filter: 'shop' });
+
+    const totalCountRequest = getQueryKeyRequest(queryFn.mock.calls[1]![0]);
+    expect(totalCountRequest._id).toBe('getProducts');
     expect(totalCountRequest.query).toEqual({ limit: 1 });
   });
 
