@@ -184,6 +184,101 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     fun org.eclipse.apoapsis.ortserver.model.Product.hierarchyId(organizationId: Long = orgId): CompoundHierarchyId =
         CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(id))
 
+    "GET /products" should {
+        "return the products of all organizations sorted by name" {
+            integrationTestApplication {
+                val orgId2 = organizationService.createOrganization(name = "name2", description = "description").id
+                val product1 = createProduct(name = "product b")
+                val product2 = createProduct(name = "product a", organizationId = orgId2)
+                val product3 = createProduct(name = "product c", organizationId = orgId2)
+
+                val response = superuserClient.get("/api/v1/products")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Product(product2.id, orgId2, "product a", productDescription),
+                        Product(product1.id, orgId, "product b", productDescription),
+                        Product(product3.id, orgId2, "product c", productDescription)
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 3,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "apply the limit and offset and return the number of all products" {
+            integrationTestApplication {
+                val orgId2 = organizationService.createOrganization(name = "name2", description = "description").id
+                createProduct(name = "product a")
+                val product2 = createProduct(name = "product b", organizationId = orgId2)
+                createProduct(name = "product c")
+
+                val response = superuserClient.get("/api/v1/products?limit=1&offset=1")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(Product(product2.id, orgId2, "product b", productDescription)),
+                    PagingData(
+                        limit = 1,
+                        offset = 1,
+                        totalCount = 3,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "return only the products whose name matches the filter" {
+            integrationTestApplication {
+                val orgId2 = organizationService.createOrganization(name = "name2", description = "description").id
+                val product1 = createProduct(name = "Web shop")
+                createProduct(name = "Payments")
+                val product3 = createProduct(name = "Shop admin", organizationId = orgId2)
+
+                val response = superuserClient.get("/api/v1/products?filter=shop")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Product(product3.id, orgId2, "Shop admin", productDescription),
+                        Product(product1.id, orgId, "Web shop", productDescription)
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "respond with 'Bad Request' if the filter is not a valid regular expression" {
+            integrationTestApplication {
+                createProduct(name = "Web shop")
+
+                val response = superuserClient.get("/api/v1/products?filter=shop(")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Invalid query parameters."
+                body.cause shouldContain "regular expression"
+            }
+        }
+
+        "require superuser rights" {
+            requestShouldRequireSuperuser {
+                get("/api/v1/products")
+            }
+        }
+    }
+
     "GET /products/{productId}" should {
         "return a single product" {
             integrationTestApplication {
