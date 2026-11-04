@@ -19,6 +19,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { Route as AdminOverviewRoute } from '@/routes/admin/index';
 import { Route as AdminPluginTemplatesRoute } from '@/routes/admin/plugins/$pluginType/$pluginId/index';
 import { Route as AdminDefaultPluginsRoute } from '@/routes/admin/plugins/defaults/index';
 import { Route as AdminRunsRoute } from '@/routes/admin/runs/index';
@@ -61,6 +62,31 @@ const expectLoaderToAwaitQuery = async (
 };
 
 describe('admin route loaders', () => {
+  it('starts the organization, run and active run counts without waiting for them', () => {
+    const loader = AdminOverviewRoute.options.loader as unknown as (
+      options: unknown
+    ) => unknown;
+    const queryFn = vi.fn().mockReturnValue(createDeferred().promise);
+
+    const result = loader({
+      deps: {},
+      params: {},
+      context: { queryClient: { prefetchQuery: queryFn } },
+    });
+
+    expect(result).toBeUndefined();
+    expect(
+      queryFn.mock.calls.map(([options]) => {
+        const { _id, query } = getQueryKeyRequest(options);
+        return { _id, query };
+      })
+    ).toEqual([
+      { _id: 'getOrganizations', query: { limit: 1 } },
+      { _id: 'getRuns', query: { limit: 1 } },
+      { _id: 'getRuns', query: { limit: 1, status: 'active' } },
+    ]);
+  });
+
   it('awaits the runs and total count prefetches before resolving', async () => {
     const loader = AdminRunsRoute.options.loader as unknown as (
       options: unknown

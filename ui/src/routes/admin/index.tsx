@@ -17,123 +17,134 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { AudioWaveform, List, ListVideo, Loader2 } from 'lucide-react';
+import {
+  useSuspenseQuery,
+  type QueryKey,
+  type UseSuspenseQueryOptions,
+} from '@tanstack/react-query';
+import {
+  createFileRoute,
+  Link,
+  linkOptions,
+  type LinkOptions,
+} from '@tanstack/react-router';
+import { AudioWaveform, List, ListVideo, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
+import type { PagingData } from '@/api';
 import {
   getOrganizationsOptions,
   getRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
+import { QueryBoundary, QueryErrorFallback } from '@/components/query-boundary';
 import { StatisticsCard } from '@/components/statistics-card';
-import { toastError } from '@/lib/toast';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const organizationsCountOptions = getOrganizationsOptions({
+  query: { limit: 1 },
+});
+
+const runsCountOptions = getRunsOptions({ query: { limit: 1 } });
+
+const activeRunsCountOptions = getRunsOptions({
+  query: { limit: 1, status: 'active' },
+});
+
+/**
+ * Show the total count of a paged list query. The component suspends until the query has loaded.
+ */
+const TotalCount = <
+  TData extends { pagination: PagingData },
+  TError,
+  TKey extends QueryKey,
+>({
+  options,
+}: {
+  options: UseSuspenseQueryOptions<TData, TError, TData, TKey>;
+}) => {
+  const { data } = useSuspenseQuery(options);
+
+  return data.pagination.totalCount;
+};
+
+type AdminCount = {
+  title: string;
+  icon: LucideIcon;
+  link: LinkOptions;
+  value: ReactNode;
+};
+
+/**
+ * Show one count of the overview. The count loads on its own: until its query has loaded, the card shows a
+ * placeholder, and if the query fails, it shows a retry button instead of the link.
+ */
+const AdminCountCard = ({ title, icon: Icon, link, value }: AdminCount) => {
+  const card = (cardValue: ReactNode, className?: string) => (
+    <StatisticsCard
+      title={title}
+      icon={() => <Icon className='h-4 w-4' />}
+      value={cardValue}
+      className={className}
+    />
+  );
+
+  return (
+    <QueryBoundary
+      fallback={card(<Skeleton className='h-8 w-12' />, 'h-full')}
+      errorFallback={(props) =>
+        card(<QueryErrorFallback {...props} />, 'h-full')
+      }
+      loadingLabel={`Loading ${title.toLowerCase()}...`}
+    >
+      <Link {...link}>{card(value, 'hover:bg-muted/50 h-full')}</Link>
+    </QueryBoundary>
+  );
+};
 
 const OverviewContent = () => {
-  const {
-    data: orgs,
-    isLoading: orgsIsLoading,
-    error: orgIsError,
-  } = useQuery({
-    ...getOrganizationsOptions({ query: { limit: 1 } }),
-  });
-
-  const {
-    data: runs,
-    isLoading: runsIsLoading,
-    error: runsIsError,
-  } = useQuery({
-    ...getRunsOptions({ query: { limit: 1 } }),
-  });
-
-  const {
-    data: activeRuns,
-    isLoading: activeRunsIsLoading,
-    error: activeRunsIsError,
-  } = useQuery({
-    ...getRunsOptions({
-      query: { limit: 1, status: 'active' },
-    }),
-  });
-
-  if (orgIsError || runsIsError || activeRunsIsError) {
-    toastError(
-      'Unable to load data',
-      orgIsError || runsIsError || activeRunsIsError
-    );
-  }
+  const counts: AdminCount[] = [
+    {
+      title: 'Organizations',
+      icon: List,
+      link: linkOptions({ to: '/organizations' }),
+      value: <TotalCount options={organizationsCountOptions} />,
+    },
+    {
+      title: 'Runs',
+      icon: ListVideo,
+      link: linkOptions({ to: '/admin/runs' }),
+      value: <TotalCount options={runsCountOptions} />,
+    },
+    {
+      title: 'Active runs',
+      icon: AudioWaveform,
+      link: linkOptions({
+        to: '/admin/runs',
+        search: { status: [zOrtRunStatus.enum.ACTIVE] },
+      }),
+      value: <TotalCount options={activeRunsCountOptions} />,
+    },
+  ];
 
   return (
     <div className='space-y-4'>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <Link to='/organizations'>
-          <StatisticsCard
-            title='Organizations'
-            icon={() => <List className='h-4 w-4' />}
-            value={
-              orgsIsLoading ? (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='animate-spin' />
-                </>
-              ) : orgIsError ? (
-                <span className='text-sm text-red-500'>
-                  Error fetching data
-                </span>
-              ) : (
-                orgs?.pagination.totalCount
-              )
-            }
-            className='hover:bg-muted/50 h-full'
-          />
-        </Link>
-        <Link to='/admin/runs'>
-          <StatisticsCard
-            title='Runs'
-            icon={() => <ListVideo className='h-4 w-4' />}
-            value={
-              runsIsLoading ? (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='animate-spin' />
-                </>
-              ) : runsIsError ? (
-                <span className='text-sm text-red-500'>
-                  Error fetching data
-                </span>
-              ) : (
-                runs?.pagination.totalCount
-              )
-            }
-            className='hover:bg-muted/50 h-full'
-          />
-        </Link>
-        <Link to='/admin/runs' search={{ status: [zOrtRunStatus.enum.ACTIVE] }}>
-          <StatisticsCard
-            title='Active runs'
-            icon={() => <AudioWaveform className='h-4 w-4' />}
-            value={
-              activeRunsIsLoading ? (
-                <>
-                  <span className='sr-only'>Loading...</span>
-                  <Loader2 size={16} className='animate-spin' />
-                </>
-              ) : activeRunsIsError ? (
-                <span className='text-sm text-red-500'>
-                  Error fetching data
-                </span>
-              ) : (
-                activeRuns?.pagination.totalCount
-              )
-            }
-            className='hover:bg-muted/50 h-full'
-          />
-        </Link>
+        {counts.map((count) => (
+          <AdminCountCard key={count.title} {...count} />
+        ))}
       </div>
     </div>
   );
 };
 
 export const Route = createFileRoute('/admin/')({
+  // Start all count queries without waiting for them, so that the page shows at once and every count appears as
+  // soon as its own query has loaded.
+  loader: ({ context: { queryClient } }) => {
+    void queryClient.prefetchQuery(organizationsCountOptions);
+    void queryClient.prefetchQuery(runsCountOptions);
+    void queryClient.prefetchQuery(activeRunsCountOptions);
+  },
   component: OverviewContent,
 });
