@@ -64,7 +64,7 @@ const expectLoaderToAwaitQuery = async (
 };
 
 describe('admin route loaders', () => {
-  it('starts the organization, run and active run counts without waiting for them', () => {
+  it('starts all overview queries without waiting for them', () => {
     const loader = AdminOverviewRoute.options.loader as unknown as (
       options: unknown
     ) => unknown;
@@ -84,8 +84,17 @@ describe('admin route loaders', () => {
       })
     ).toEqual([
       { _id: 'getOrganizations', query: { limit: 1 } },
+      { _id: 'getProducts', query: { limit: 1 } },
+      { _id: 'getRepositories', query: { limit: 1 } },
+      { _id: 'getUsers', query: { limit: 1 } },
+      { _id: 'getInstalledPlugins', query: undefined },
+      { _id: 'getGlobalDefaultPlugins', query: undefined },
       { _id: 'getRuns', query: { limit: 1 } },
+      { _id: 'getRuns', query: { limit: 1, status: 'finished' } },
+      { _id: 'getRuns', query: { limit: 1, status: 'finished_with_issues' } },
+      { _id: 'getRuns', query: { limit: 1, status: 'failed' } },
       { _id: 'getRuns', query: { limit: 1, status: 'active' } },
+      { _id: 'getRuns', query: { limit: 1, status: 'created' } },
     ]);
   });
 

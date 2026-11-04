@@ -20,6 +20,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
   Blocks,
+  Building2,
   Eye,
   FilePen,
   FolderGit2,
@@ -62,6 +63,11 @@ const Layout = () => {
     {
       label: 'Hierarchy',
       items: [
+        {
+          title: 'All Organizations',
+          to: '/organizations',
+          icon: () => <Building2 className='h-4 w-4' />,
+        },
         {
           title: 'All Products',
           to: '/admin/products',

@@ -17,134 +17,127 @@
  * License-Filename: LICENSE
  */
 
+import { createFileRoute, linkOptions } from '@tanstack/react-router';
+import { Blocks, ListVideo, Network, User } from 'lucide-react';
+
+import { DefaultPluginsNote } from './-components/default-plugins-note';
+import { HierarchyFigures } from './-components/hierarchy-figures';
+import { InstalledPluginsNote } from './-components/installed-plugins-note';
+import { defaultPluginsCount, totalCount } from './-components/overview-format';
 import {
-  useSuspenseQuery,
-  type QueryKey,
-  type UseSuspenseQueryOptions,
-} from '@tanstack/react-query';
+  defaultPluginsOptions,
+  installedPluginsOptions,
+  prefetchOverview,
+  runsCountOptions,
+  runStatusCountOptions,
+  usersCountOptions,
+} from './-components/overview-queries';
 import {
-  createFileRoute,
-  Link,
-  linkOptions,
-  type LinkOptions,
-} from '@tanstack/react-router';
-import { AudioWaveform, List, ListVideo, type LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+  OverviewFigure,
+  OverviewRow,
+  QueryCount,
+} from './-components/overview-row';
+import { RunStatusSummary } from './-components/run-status-summary';
+import { WaitingRunsNote } from './-components/waiting-runs-note';
 
-import type { PagingData } from '@/api';
-import {
-  getOrganizationsOptions,
-  getRunsOptions,
-} from '@/api/@tanstack/react-query.gen';
-import { zOrtRunStatus } from '@/api/zod.gen';
-import { QueryBoundary, QueryErrorFallback } from '@/components/query-boundary';
-import { StatisticsCard } from '@/components/statistics-card';
-import { Skeleton } from '@/components/ui/skeleton';
-
-const organizationsCountOptions = getOrganizationsOptions({
-  query: { limit: 1 },
-});
-
-const runsCountOptions = getRunsOptions({ query: { limit: 1 } });
-
-const activeRunsCountOptions = getRunsOptions({
-  query: { limit: 1, status: 'active' },
-});
-
-/**
- * Show the total count of a paged list query. The component suspends until the query has loaded.
- */
-const TotalCount = <
-  TData extends { pagination: PagingData },
-  TError,
-  TKey extends QueryKey,
->({
-  options,
-}: {
-  options: UseSuspenseQueryOptions<TData, TError, TData, TKey>;
-}) => {
-  const { data } = useSuspenseQuery(options);
-
-  return data.pagination.totalCount;
-};
-
-type AdminCount = {
-  title: string;
-  icon: LucideIcon;
-  link: LinkOptions;
-  value: ReactNode;
-};
-
-/**
- * Show one count of the overview. The count loads on its own: until its query has loaded, the card shows a
- * placeholder, and if the query fails, it shows a retry button instead of the link.
- */
-const AdminCountCard = ({ title, icon: Icon, link, value }: AdminCount) => {
-  const card = (cardValue: ReactNode, className?: string) => (
-    <StatisticsCard
-      title={title}
-      icon={() => <Icon className='h-4 w-4' />}
-      value={cardValue}
-      className={className}
-    />
-  );
-
-  return (
-    <QueryBoundary
-      fallback={card(<Skeleton className='h-8 w-12' />, 'h-full')}
-      errorFallback={(props) =>
-        card(<QueryErrorFallback {...props} />, 'h-full')
-      }
-      loadingLabel={`Loading ${title.toLowerCase()}...`}
-    >
-      <Link {...link}>{card(value, 'hover:bg-muted/50 h-full')}</Link>
-    </QueryBoundary>
-  );
-};
-
-const OverviewContent = () => {
-  const counts: AdminCount[] = [
-    {
-      title: 'Organizations',
-      icon: List,
-      link: linkOptions({ to: '/organizations' }),
-      value: <TotalCount options={organizationsCountOptions} />,
-    },
-    {
-      title: 'Runs',
-      icon: ListVideo,
-      link: linkOptions({ to: '/admin/runs' }),
-      value: <TotalCount options={runsCountOptions} />,
-    },
-    {
-      title: 'Active runs',
-      icon: AudioWaveform,
-      link: linkOptions({
-        to: '/admin/runs',
-        search: { status: [zOrtRunStatus.enum.ACTIVE] },
-      }),
-      value: <TotalCount options={activeRunsCountOptions} />,
-    },
-  ];
-
-  return (
-    <div className='space-y-4'>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        {counts.map((count) => (
-          <AdminCountCard key={count.title} {...count} />
-        ))}
-      </div>
+const OverviewContent = () => (
+  <div className='flex flex-col gap-4'>
+    <div className='flex flex-col gap-1'>
+      <h1 className='text-2xl font-semibold tracking-tight'>Overview</h1>
+      <p className='text-muted-foreground text-sm'>
+        The runs, hierarchy, users and plugins of this server.
+      </p>
     </div>
-  );
-};
+    <div className='bg-card text-card-foreground divide-y rounded-xl border shadow-sm'>
+      <OverviewRow
+        title='Runs'
+        description='See how many runs are active and waiting, and catch the ones that fail.'
+        icon={ListVideo}
+        figures={
+          <>
+            <OverviewFigure
+              label='Active'
+              link={linkOptions({
+                to: '/admin/runs',
+                search: { status: ['ACTIVE'] },
+              })}
+              note={<WaitingRunsNote />}
+              value={
+                <QueryCount
+                  options={runStatusCountOptions('ACTIVE')}
+                  count={totalCount}
+                />
+              }
+            />
+            <OverviewFigure
+              label='Runs in total'
+              link={linkOptions({ to: '/admin/runs' })}
+              value={
+                <QueryCount options={runsCountOptions} count={totalCount} />
+              }
+            />
+            <RunStatusSummary />
+          </>
+        }
+      />
+      <OverviewRow
+        title='Hierarchy'
+        description='See how many organizations, products and repositories the server holds, and open their lists.'
+        icon={Network}
+        figures={<HierarchyFigures />}
+      />
+      <OverviewRow
+        title='Users'
+        description='Manage who can sign in, and their roles in organizations, products and repositories.'
+        icon={User}
+        figures={
+          <OverviewFigure
+            label='Users'
+            link={linkOptions({ to: '/admin/users' })}
+            value={
+              <QueryCount options={usersCountOptions} count={totalCount} />
+            }
+          />
+        }
+      />
+      <OverviewRow
+        title='Plugins'
+        description='Choose the plugins the workers run, and the defaults for new runs.'
+        icon={Blocks}
+        figures={
+          <>
+            <OverviewFigure
+              label='Installed plugins'
+              link={linkOptions({ to: '/admin/plugins' })}
+              note={<InstalledPluginsNote />}
+              value={
+                <QueryCount
+                  options={installedPluginsOptions}
+                  count={(plugins) => plugins.length}
+                />
+              }
+            />
+            <OverviewFigure
+              label='Default plugins'
+              link={linkOptions({ to: '/admin/plugins/defaults' })}
+              note={<DefaultPluginsNote />}
+              value={
+                <QueryCount
+                  options={defaultPluginsOptions}
+                  count={defaultPluginsCount}
+                />
+              }
+            />
+          </>
+        }
+      />
+    </div>
+  </div>
+);
 
 export const Route = createFileRoute('/admin/')({
-  // Start all count queries without waiting for them, so that the page shows at once and every count appears as
-  // soon as its own query has loaded.
-  loader: ({ context: { queryClient } }) => {
-    void queryClient.prefetchQuery(organizationsCountOptions);
-    void queryClient.prefetchQuery(runsCountOptions);
-    void queryClient.prefetchQuery(activeRunsCountOptions);
-  },
+  // Start all queries without waiting for them, so that the page shows at once and every number
+  // appears as soon as its own query has loaded.
+  loader: ({ context: { queryClient } }) => prefetchOverview(queryClient),
   component: OverviewContent,
 });
