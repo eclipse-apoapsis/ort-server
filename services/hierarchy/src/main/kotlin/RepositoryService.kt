@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -126,6 +127,17 @@ class RepositoryService(
      */
     suspend fun getRepository(repositoryId: Long): Repository? = db.transaction {
         repositoryRepository.get(repositoryId)
+    }
+
+    /**
+     * List all repositories on the server according to the given [parameters] and an optional [filter] on the
+     * repository name or URL. No hierarchy filter is applied, so this function is meant for server administrators.
+     */
+    suspend fun listRepositories(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Repository> = db.transaction {
+        repositoryRepository.list(parameters, filter)
     }
 
     /**
