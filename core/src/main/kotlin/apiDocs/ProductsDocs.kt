@@ -59,6 +59,46 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
+val getProducts: RouteConfig.() -> Unit = {
+    operationId = "getProducts"
+    summary = "Get all products"
+    description = "Get the products of all organizations on the server. This requires superuser rights."
+    tags = listOf("Products")
+
+    request {
+        standardListQueryParameters()
+        queryParameter<String>("filter") {
+            description = "A regular expression to filter products by name."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<PagedResponse<Product>> {
+                example("List all products") {
+                    value = PagedResponse(
+                        listOf(
+                            Product(id = 1, organizationId = 1, name = "First Product", description = "Description"),
+                            Product(id = 2, organizationId = 2, name = "Second Product")
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 2,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The filter is not a valid regular expression."
+        }
+    }
+}
+
 val getProduct: RouteConfig.() -> Unit = {
     operationId = "getProduct"
     summary = "Get details of a product"

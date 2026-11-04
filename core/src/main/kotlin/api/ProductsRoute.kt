@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
@@ -64,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductVulnerabilities
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductVulnerabilityAdvisors
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProducts
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProductRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
@@ -75,6 +77,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -98,6 +101,22 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.utils.common.collectMessages
+
+/**
+ * The route that lists the products of all organizations. The routes for a single product are in [products].
+ */
+fun Route.allProducts() = route("products") {
+    val productService by inject<ProductService>()
+
+    get(getProducts, requireSuperuser()) {
+        val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
+        val filter = call.filterParameter("filter")
+
+        val products = productService.listProducts(pagingOptions.mapToModel(), filter?.mapToModel())
+
+        call.respond(HttpStatusCode.OK, products.mapToApi(Product::mapToApi))
+    }
+}
 
 @Suppress("LongMethod")
 fun Route.products() = route("products/{productId}") {
