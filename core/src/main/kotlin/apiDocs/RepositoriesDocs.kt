@@ -237,6 +237,60 @@ fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): 
     )
 }
 
+val getRepositories: RouteConfig.() -> Unit = {
+    operationId = "getRepositories"
+    summary = "Get all repositories"
+    description = "Get the repositories of all products on the server. This requires superuser rights."
+    tags = listOf("Repositories")
+
+    request {
+        standardListQueryParameters()
+        queryParameter<String>("filter") {
+            description = "A regular expression to filter repositories by name or URL."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<PagedResponse<Repository>> {
+                example("List all repositories") {
+                    value = PagedResponse(
+                        listOf(
+                            Repository(
+                                id = 1,
+                                organizationId = 1,
+                                productId = 1,
+                                type = RepositoryType.GIT,
+                                url = "https://example.com/org/first.git",
+                                name = "first",
+                                description = "Description"
+                            ),
+                            Repository(
+                                id = 2,
+                                organizationId = 2,
+                                productId = 3,
+                                type = RepositoryType.GIT,
+                                url = "https://example.com/org/second.git"
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 2,
+                            sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The filter is not a valid regular expression."
+        }
+    }
+}
+
 val getRepository: RouteConfig.() -> Unit = {
     operationId = "getRepository"
     summary = "Get details of a repository"

@@ -210,6 +210,97 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             RepositoryId(id)
         )
 
+    "GET /repositories" should {
+        "return the repositories of all products sorted by URL" {
+            integrationTestApplication {
+                val orgId2 = organizationService.createOrganization(name = "name2", description = "description").id
+                val productId2 =
+                    organizationService.createProduct(name = "name", description = null, organizationId = orgId2).id
+                val repo1 = createRepository(url = "https://example.org/b.git")
+                val repo2 = createRepository(url = "https://example.org/a.git", prodId = productId2, name = null)
+                val repo3 = createRepository(url = "https://example.org/c.git", prodId = productId2)
+
+                val response = superuserClient.get("/api/v1/repositories")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(repo2.mapToApi(), repo1.mapToApi(), repo3.mapToApi()),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 3,
+                        sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "apply the limit and offset and return the number of all repositories" {
+            integrationTestApplication {
+                createRepository(url = "https://example.org/a.git")
+                val repo2 = createRepository(url = "https://example.org/b.git")
+                createRepository(url = "https://example.org/c.git")
+
+                val response = superuserClient.get("/api/v1/repositories?limit=1&offset=1")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(repo2.mapToApi()),
+                    PagingData(
+                        limit = 1,
+                        offset = 1,
+                        totalCount = 3,
+                        sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "return only the repositories whose name or URL matches the filter" {
+            integrationTestApplication {
+                val orgId2 = organizationService.createOrganization(name = "name2", description = "description").id
+                val productId2 =
+                    organizationService.createProduct(name = "name", description = null, organizationId = orgId2).id
+                val repo1 = createRepository(url = "https://example.org/web-shop.git", name = null)
+                createRepository(url = "https://example.org/payments.git", name = "Payments")
+                val repo3 = createRepository(url = "https://example.org/admin.git", prodId = productId2, name = "Shop")
+
+                val response = superuserClient.get("/api/v1/repositories?filter=SHOP")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(repo3.mapToApi(), repo1.mapToApi()),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "respond with 'Bad Request' if the filter is not a valid regular expression" {
+            integrationTestApplication {
+                createRepository()
+
+                val response = superuserClient.get("/api/v1/repositories?filter=shop(")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Invalid query parameters."
+                body.cause shouldContain "regular expression"
+            }
+        }
+
+        "require superuser rights" {
+            requestShouldRequireSuperuser {
+                get("/api/v1/repositories")
+            }
+        }
+    }
+
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
             integrationTestApplication {

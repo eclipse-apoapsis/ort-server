@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
@@ -61,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositories
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryRuns
@@ -76,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -85,6 +88,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.filterParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
@@ -94,6 +98,22 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.utils.common.collectMessages
+
+/**
+ * The route that lists the repositories of all products. The routes for a single repository are in [repositories].
+ */
+fun Route.allRepositories() = route("repositories") {
+    val repositoryService by inject<RepositoryService>()
+
+    get(getRepositories, requireSuperuser()) {
+        val pagingOptions = call.pagingOptions(SortProperty("url", SortDirection.ASCENDING))
+        val filter = call.filterParameter("filter")
+
+        val repositories = repositoryService.listRepositories(pagingOptions.mapToModel(), filter?.mapToModel())
+
+        call.respond(HttpStatusCode.OK, repositories.mapToApi(Repository::mapToApi))
+    }
+}
 
 @Suppress("LongMethod")
 fun Route.repositories() = route("repositories/{repositoryId}") {

@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.components.snippetfindings.snippetFindingR
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.secretsCompositionRoutes
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.allProducts
+import org.eclipse.apoapsis.ortserver.core.api.allRepositories
 import org.eclipse.apoapsis.ortserver.core.api.authentication
 import org.eclipse.apoapsis.ortserver.core.api.downloads
 import org.eclipse.apoapsis.ortserver.core.api.healthChecks
@@ -63,6 +64,7 @@ fun Application.configureRouting() {
                 rateLimit(RateLimitName("authorized")) {
                     admin()
                     allProducts()
+                    allRepositories()
                     authorizationRoutes()
                     dependencyGraphRoutes(get(), get(), get(), get())
                     infrastructureServicesRoutes(get())
