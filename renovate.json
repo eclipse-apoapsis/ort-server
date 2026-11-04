@@ -70,6 +70,12 @@
       "description": "React Compiler 1.0 does not support Babel 8 and silently skips components with default prop values when it runs with it.",
       "matchPackageNames": ["@babel/core"],
       "allowedVersions": "< 8"
+    },
+    {
+      "description": "Update the pnpm base image together with pnpm in the package.json files.",
+      "matchPackageNames": ["pnpm", "ghcr.io/pnpm/pnpm"],
+      "groupName": "pnpm",
+      "minimumReleaseAge": "7 days"
     }
   ]
 }
