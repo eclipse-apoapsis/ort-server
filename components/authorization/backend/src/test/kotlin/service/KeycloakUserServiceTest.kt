@@ -39,7 +39,6 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.User as KeycloakUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField

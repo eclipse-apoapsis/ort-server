@@ -25,13 +25,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser

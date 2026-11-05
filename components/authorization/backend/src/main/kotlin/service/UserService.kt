@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
-import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
