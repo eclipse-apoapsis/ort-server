@@ -44,7 +44,7 @@ class RunStatisticsReporter(
 ) : Reporter {
     override fun generateReport(input: ReporterInput, outputDir: File): List<Result<File>> {
         val outputFile = runCatching {
-            outputDir.resolve("statistics.json").apply { writeValue(input.statistics) }
+            outputDir.resolve("statistics.json").apply { writeValue(input.statistics.toRunStatistics()) }
         }
 
         return listOf(outputFile)

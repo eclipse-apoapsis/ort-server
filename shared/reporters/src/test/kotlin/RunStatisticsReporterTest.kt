@@ -33,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
-import org.ossreviewtoolkit.reporter.Statistics
 
 class RunStatisticsReporterTest : WordSpec({
     "The RunStatisticsReporter" should {
@@ -48,8 +47,8 @@ class RunStatisticsReporterTest : WordSpec({
             reportFileResults.shouldBeSingleton {
                 it shouldBeSuccess { runStatisticsFile ->
                     runStatisticsFile.name shouldBe "statistics.json"
-                    val actualResult = runStatisticsFile.readValue<Statistics>()
-                    actualResult shouldBe input.statistics
+                    val actualResult = runStatisticsFile.readValue<RunStatistics>()
+                    actualResult shouldBe input.statistics.toRunStatistics()
                 }
             }
         }
