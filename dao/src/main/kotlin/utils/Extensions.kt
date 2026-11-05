@@ -163,7 +163,9 @@ fun <E : LongEntity, M, T : AbstractQuery<T>> SortableEntityClass<E>.listCustomQ
 }
 
 /**
- * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.
+ * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by. The ID of
+ * [table] is added as the last sort field, so that entities with equal values in the requested sort fields keep the
+ * same order across pages.
  */
 fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParameters): SizedIterable<T> {
     val orders = parameters.sortFields.map {
@@ -172,7 +174,8 @@ fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParame
         column to it.direction.toSortOrder()
     }
 
-    val orderedQuery = orderBy(*orders.toTypedArray())
+    val idOrder = (table.id to SortOrder.ASC).takeIf { orders.none { (column, _) -> column == table.id } }
+    val orderedQuery = orderBy(*(orders + listOfNotNull(idOrder)).toTypedArray())
     return parameters.limit?.let { orderedQuery.limit(it).offset(parameters.offset ?: 0) } ?: orderedQuery
 }
 
