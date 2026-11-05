@@ -87,7 +87,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as ApiShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy as ApiSubmoduleFetchStrategy
-import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName as ApiUserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfoCurationData as ApiVcsInfoCurationData
@@ -134,7 +133,6 @@ import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
-import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
@@ -794,8 +792,6 @@ fun ApiSourceCodeOrigin.mapToModel() =
         ApiSourceCodeOrigin.ARTIFACT -> SourceCodeOrigin.ARTIFACT
         ApiSourceCodeOrigin.VCS -> SourceCodeOrigin.VCS
     }
-
-fun User.mapToApi() = ApiUser(username = username, firstName = firstName, lastName = lastName, email = email)
 
 fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
 

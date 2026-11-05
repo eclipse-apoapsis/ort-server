@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model
+package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
-/**
- * A data class representing a user.
- */
-data class User(
-    /** The username of the user. */
-    val username: String,
+import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
+import org.eclipse.apoapsis.ortserver.components.authorization.service.User
 
-    /** The first name of the user. */
-    val firstName: String? = null,
-
-    /** The last name of the user. */
-    val lastName: String? = null,
-
-    /** The mail address of the user. */
-    val email: String? = null
-)
+fun User.mapToApi() = ApiUser(username = username, firstName = firstName, lastName = lastName, email = email)

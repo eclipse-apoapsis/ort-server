@@ -40,6 +40,8 @@ dependencies {
     implementation(projects.shared.coroutines)
     implementation(projects.shared.ktorUtils)
 
+    routesApi(projects.api.v1.apiV1Model)
+
     routesImplementation(libs.ktor.openApi)
 
     testImplementation(testFixtures(projects.dao))

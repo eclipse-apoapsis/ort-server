@@ -19,13 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToApi
+import org.eclipse.apoapsis.ortserver.components.authorization.service.User
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.paginate

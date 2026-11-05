@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithOrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole as ModelProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
+import org.eclipse.apoapsis.ortserver.components.authorization.service.User
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithRoleHelper.sortAndPage
@@ -42,7 +43,6 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.model.User as ModelUser
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -182,9 +182,9 @@ class UserWithRoleHelperTest : WordSpec({
 
             val userService = mockk<UserService> {
                 coEvery { getUsersById(roles.keys) } returns setOf(
-                    ModelUser("john2hh", "John", "Doe", "john.doe@example.com"),
-                    ModelUser("ron5ff", "Ron", "Boo", "ron.boo@example.com"),
-                    ModelUser("jane3gg", "Jane", "Roe", "jane.roe@example.com")
+                    User("john2hh", "John", "Doe", "john.doe@example.com"),
+                    User("ron5ff", "Ron", "Boo", "ron.boo@example.com"),
+                    User("jane3gg", "Jane", "Roe", "jane.roe@example.com")
                 )
             }
 
