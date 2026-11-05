@@ -1,4 +1,6 @@
 .impeccable/
+DESIGN.md
+PRODUCT.md
 pnpm-lock.yaml
 src/routeTree.gen.ts
 build/
