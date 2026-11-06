@@ -68,16 +68,12 @@ tasks.withType<Test>().configureEach {
         jvmArgs("--add-opens=java.base/java.io=ALL-UNNAMED")
     }
 
-    val testSystemProperties = mutableListOf("gradle.build.dir" to project.layout.buildDirectory.get().toString())
-
-    listOf(
+    systemProperties = listOf(
         "kotest.assertions.multi-line-diff",
         "kotest.tags"
-    ).mapNotNullTo(testSystemProperties) { key ->
+    ).mapNotNull { key ->
         System.getProperty(key)?.let { key to it }
-    }
-
-    systemProperties = testSystemProperties.toMap()
+    }.toMap()
 
     testLogging {
         events = setOf(
