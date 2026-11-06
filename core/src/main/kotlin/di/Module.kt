@@ -225,7 +225,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     }
 
     single<UserService> {
-        KeycloakUserService(get(), get())
+        KeycloakUserService(get(), get(), get())
     }
 
     single { UserRegistrationService(get()) }

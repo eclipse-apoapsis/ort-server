@@ -38,16 +38,19 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithSuperuserStatus
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.DaoUserRepository
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.User as ModelUser
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
@@ -275,6 +278,39 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
                     effectiveRole.getProductPermissions().shouldBeEmpty()
                     effectiveRole.getRepositoryPermissions().shouldBeEmpty()
                 }
+            }
+        }
+
+        "keep a deleted user, so that their runs still show who started them" {
+            integrationTestApplication {
+                val userId = keycloak.keycloakAdminClient.realm(TEST_REALM).users()
+                    .searchByUsername(TEST_USER.username.value, true).single().id
+                val user = ModelUser(userId, TEST_USER.username.value, "Test User")
+                val run = dbExtension.fixtures.ortRunRepository.create(
+                    dbExtension.fixtures.repository.id,
+                    "revision",
+                    null,
+                    dbExtension.fixtures.jobConfigurations,
+                    labels = emptyMap(),
+                    traceId = null,
+                    environmentConfigPath = null,
+                    userDisplayName = user
+                )
+
+                val response = superuserClient.delete("/api/v1/admin/users") {
+                    parameter("username", TEST_USER.username.value)
+                }
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                val storedUser = DaoUserRepository(dbExtension.db).get(user.userId).shouldNotBeNull()
+                storedUser.username shouldBe user.username
+                storedUser.fullName shouldBe user.fullName
+                storedUser.deletedAt.shouldNotBeNull()
+
+                val runUser = dbExtension.fixtures.ortRunRepository.get(run.id)?.userDisplayName.shouldNotBeNull()
+                runUser.username shouldBe user.username
+                runUser.fullName shouldBe user.fullName
             }
         }
 

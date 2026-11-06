@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.User as KeycloakUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.model.repositories.UserRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -57,7 +58,7 @@ class KeycloakUserServiceTest : WordSpec({
                 coEvery { createUser(any(), any(), any(), any(), any(), any()) } just runs
             }
 
-            val service = KeycloakUserService(client, mockk())
+            val service = KeycloakUserService(client, mockk(), mockk())
             service.createUser(
                 username = username,
                 firstName = firstName,
@@ -85,6 +86,7 @@ class KeycloakUserServiceTest : WordSpec({
         val username = keycloakUser.username.value
         lateinit var client: KeycloakClient
         lateinit var authorizationService: AuthorizationService
+        lateinit var userRepository: UserRepository
         lateinit var service: KeycloakUserService
 
         beforeEach {
@@ -95,7 +97,10 @@ class KeycloakUserServiceTest : WordSpec({
             authorizationService = mockk {
                 coEvery { removeUserAssignments(username) } returns 3
             }
-            service = KeycloakUserService(client, authorizationService)
+            userRepository = mockk {
+                coEvery { markDeleted(any()) } just runs
+            }
+            service = KeycloakUserService(client, authorizationService, userRepository)
         }
 
         "remove roles for the resolved username before deleting by Keycloak ID" {
@@ -107,8 +112,9 @@ class KeycloakUserServiceTest : WordSpec({
                 client.getUser(UserName(requestedUsername))
                 authorizationService.removeUserAssignments(username)
                 client.deleteUser(keycloakUser.id)
+                userRepository.markDeleted(keycloakUser.id.value)
             }
-            confirmVerified(client, authorizationService)
+            confirmVerified(client, authorizationService, userRepository)
         }
 
         "delete a user without role assignments" {
@@ -120,8 +126,9 @@ class KeycloakUserServiceTest : WordSpec({
                 client.getUser(keycloakUser.username)
                 authorizationService.removeUserAssignments(username)
                 client.deleteUser(keycloakUser.id)
+                userRepository.markDeleted(keycloakUser.id.value)
             }
-            confirmVerified(client, authorizationService)
+            confirmVerified(client, authorizationService, userRepository)
         }
 
         "leave assignments untouched if user lookup fails" {
@@ -134,8 +141,9 @@ class KeycloakUserServiceTest : WordSpec({
             coVerify(exactly = 0) {
                 authorizationService.removeUserAssignments(any())
                 client.deleteUser(any())
+                userRepository.markDeleted(any())
             }
-            confirmVerified(client, authorizationService)
+            confirmVerified(client, authorizationService, userRepository)
         }
 
         "not delete the Keycloak user if role removal fails" {
@@ -148,8 +156,29 @@ class KeycloakUserServiceTest : WordSpec({
                 client.getUser(keycloakUser.username)
                 authorizationService.removeUserAssignments(username)
             }
-            coVerify(exactly = 0) { client.deleteUser(any()) }
-            confirmVerified(client, authorizationService)
+            coVerify(exactly = 0) {
+                client.deleteUser(any())
+                userRepository.markDeleted(any())
+            }
+            confirmVerified(client, authorizationService, userRepository)
+        }
+
+        "not mark the user deleted if the Keycloak deletion fails" {
+            val failure = KeycloakClientException("Keycloak unavailable")
+            coEvery { client.deleteUser(any()) } throws failure
+
+            shouldThrow<KeycloakClientException> { service.deleteUser(username) } shouldBe failure
+
+            coVerify(exactly = 0) { userRepository.markDeleted(any()) }
+        }
+
+        "fail if the user cannot be marked deleted" {
+            val failure = IllegalStateException("Database unavailable")
+            coEvery { userRepository.markDeleted(any()) } throws failure
+
+            shouldThrow<IllegalStateException> { service.deleteUser(username) } shouldBe failure
+
+            coVerify(exactly = 1) { client.deleteUser(keycloakUser.id) }
         }
     }
 
@@ -312,7 +341,7 @@ class KeycloakUserServiceTest : WordSpec({
                 coEvery { getUser(keycloakUser.username) } returns keycloakUser
             }
 
-            val service = KeycloakUserService(client, mockk())
+            val service = KeycloakUserService(client, mockk(), mockk())
             val user = service.getUserById(keycloakUser.username.value)
 
             user shouldBe expectedUser
@@ -332,7 +361,7 @@ class KeycloakUserServiceTest : WordSpec({
                 }
             }
 
-            val service = KeycloakUserService(client, mockk())
+            val service = KeycloakUserService(client, mockk(), mockk())
             val users = service.getUsersById(userIds)
 
             users shouldContainExactly expectedUsers
@@ -348,7 +377,7 @@ class KeycloakUserServiceTest : WordSpec({
                 coEvery { getUser(UserName("non-existing-user")) } throws KeycloakClientException("User not found")
             }
 
-            val service = KeycloakUserService(client, mockk())
+            val service = KeycloakUserService(client, mockk(), mockk())
             val users = service.getUsersById(userIds)
 
             users shouldContainExactly setOf(expectedUser)
@@ -362,7 +391,7 @@ class KeycloakUserServiceTest : WordSpec({
                 coEvery { getUser(UserName(username)) } returns createKeycloakUser(1)
             }
 
-            val service = KeycloakUserService(client, mockk())
+            val service = KeycloakUserService(client, mockk(), mockk())
             service.userExists(username) shouldBe true
         }
 
@@ -372,7 +401,7 @@ class KeycloakUserServiceTest : WordSpec({
                 coEvery { getUser(UserName(username)) } throws KeycloakClientException("User not found")
             }
 
-            val service = KeycloakUserService(client, mockk())
+            val service = KeycloakUserService(client, mockk(), mockk())
             service.userExists(username) shouldBe false
         }
     }
@@ -404,7 +433,7 @@ private fun createService(users: Set<KeycloakUser>): KeycloakUserService {
         coEvery { getUsers() } returns users
     }
 
-    return KeycloakUserService(client, mockk())
+    return KeycloakUserService(client, mockk(), mockk())
 }
 
 /**

@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User as KeycloakUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.model.repositories.UserRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -41,7 +42,9 @@ class KeycloakUserService(
     /** The client for interacting with Keycloak. */
     private val keycloakClient: KeycloakClient,
     /** The service managing the users' role assignments. */
-    private val authorizationService: AuthorizationService
+    private val authorizationService: AuthorizationService,
+    /** The repository of the users stored in ORT Server, where deleted users are kept and marked deleted. */
+    private val userRepository: UserRepository
 ) : UserService {
     override suspend fun createUser(
         username: String,
@@ -68,6 +71,9 @@ class KeycloakUserService(
         // If Keycloak deletion fails, keep the roles removed rather than restoring access.
         authorizationService.removeUserAssignments(user.username.value)
         keycloakClient.deleteUser(user.id)
+
+        // Keep the stored user, so that runs started by them still show who started them.
+        userRepository.markDeleted(user.id.value)
     }
 
     override suspend fun listUsers(parameters: ListQueryParameters, search: String?): ListQueryResult<User> {
