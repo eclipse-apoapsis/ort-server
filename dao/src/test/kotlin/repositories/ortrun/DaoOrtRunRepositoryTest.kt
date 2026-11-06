@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
@@ -250,6 +251,37 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 traceId = null,
                 null
             ).index shouldBe 2
+        }
+
+        "create runs for different users with the same username" {
+            val formerUser = User("former-user-id", "john.doe", "John Doe")
+            val currentUser = User("current-user-id", "john.doe", "John Smith")
+
+            val runOfFormerUser = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = null,
+                null,
+                userDisplayName = formerUser
+            )
+            val runOfCurrentUser = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = null,
+                null,
+                userDisplayName = currentUser
+            )
+
+            ortRunRepository.get(runOfFormerUser.id)?.userDisplayName shouldBe formerUser
+            ortRunRepository.get(runOfCurrentUser.id)?.userDisplayName shouldBe currentUser
         }
     }
 
