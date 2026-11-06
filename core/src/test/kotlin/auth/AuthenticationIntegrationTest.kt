@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -35,11 +36,14 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.testing.ApplicationTestBuilder
 
+import io.mockk.mockk
+
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
@@ -51,11 +55,18 @@ import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.DaoUserRepository
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
+
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class AuthenticationIntegrationTest : StringSpec({
     tags(Integration)
+
+    val dbExtension = extension(DatabaseTestExtension())
 
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
@@ -72,11 +83,17 @@ class AuthenticationIntegrationTest : StringSpec({
 
     val json = Json { ignoreUnknownKeys = true }
 
+    /** Return the ID that Keycloak has given to [TEST_USER]. */
+    fun getTestUserId(): String =
+        keycloak.keycloakAdminClient.realm(TEST_REALM).users().searchByUsername(TEST_USER.username.value, true)
+            .single().id
+
     fun authTestApplication(
         onCall: RoutingContext.() -> Unit = {},
+        db: Database = dbExtension.db,
         block: suspend ApplicationTestBuilder.() -> Unit
     ) =
-        ortServerTestApplication(config = TestConfig.TestAuth, additionalConfigs = keycloakConfig + jwtConfig) {
+        ortServerTestApplication(db, TestConfig.TestAuth, keycloakConfig + jwtConfig) {
             routing {
                 route("api/v1") {
                     authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
@@ -97,6 +114,46 @@ class AuthenticationIntegrationTest : StringSpec({
         keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
 
         authTestApplication {
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
+
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.OK
+        }
+    }
+
+    "A request with a valid token should store the user" {
+        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
+
+        authTestApplication {
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
+
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.OK
+        }
+
+        DaoUserRepository(dbExtension.db).get(getTestUserId()) shouldNotBeNull {
+            username shouldBe TEST_USER.username.value
+            fullName shouldBe "${TEST_USER.firstName} ${TEST_USER.lastName}"
+        }
+    }
+
+    "A request should store the user even if a former user had the same username" {
+        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
+        val userRepository = DaoUserRepository(dbExtension.db)
+        val formerUser = userRepository.upsert(User("former-user-id", TEST_USER.username.value, "Former User"))
+
+        authTestApplication {
+            val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
+
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.OK
+        }
+
+        userRepository.get(getTestUserId())?.username shouldBe TEST_USER.username.value
+        userRepository.get(formerUser.userId) shouldBe formerUser
+    }
+
+    "A request with a valid token should succeed if the user cannot be stored" {
+        keycloak.keycloakAdminClient.setUpClientScope(TEST_CLIENT)
+
+        authTestApplication(db = mockk()) {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
             authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.OK
@@ -127,6 +184,8 @@ class AuthenticationIntegrationTest : StringSpec({
 
             authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.Unauthorized
         }
+
+        DaoUserRepository(dbExtension.db).get(getTestUserId()).shouldBeNull()
     }
 
     "A principal with correct properties should be created" {

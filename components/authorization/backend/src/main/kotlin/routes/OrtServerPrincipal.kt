@@ -57,10 +57,10 @@ class OrtServerPrincipal(
 ) {
     companion object {
         /** Constant for the name of the claim containing the username. */
-        private const val CLAIM_USERNAME = "preferred_username"
+        internal const val CLAIM_USERNAME = "preferred_username"
 
         /** Constant for the name of the claim containing the full name. */
-        private const val CLAIM_FULL_NAME = "name"
+        internal const val CLAIM_FULL_NAME = "name"
 
         /**
          * Create an [OrtServerPrincipal] from the given JWT [payload] and [effectiveRole].

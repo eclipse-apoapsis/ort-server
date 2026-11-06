@@ -48,14 +48,25 @@ import java.util.concurrent.TimeUnit
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserRegistrationService
+import org.eclipse.apoapsis.ortserver.model.User
+
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(UserRegistrationService::class.java)
 
 /**
  * Configure the authentication for this server application.
  *
  * This function sets up the Ktor plugins for authentication using JWT tokens. It configures the creation of an
- * [OrtServerPrincipal] instance for authorized requests.
+ * [OrtServerPrincipal] instance for authorized requests. The user of each request with a valid token is stored with
+ * the [userRegistrationService].
  */
-fun Application.configureAuthentication(config: ApplicationConfig, authorizationService: AuthorizationService) {
+fun Application.configureAuthentication(
+    config: ApplicationConfig,
+    authorizationService: AuthorizationService,
+    userRegistrationService: UserRegistrationService
+) {
     val issuer = config.property("jwt.issuer").getString()
     val jwksUri = URI.create(config.property("jwt.jwksUri").getString()).toURL()
     val configuredRealm = config.property("jwt.realm").getString()
@@ -73,11 +84,30 @@ fun Application.configureAuthentication(config: ApplicationConfig, authorization
             }
 
             validate { credential ->
-                credential.payload.takeIf { requiredAudience in it.audience }?.let {
-                    createAuthorizedPrincipal(authorizationService, credential.payload)
+                credential.payload.takeIf { requiredAudience in it.audience }?.let { payload ->
+                    // Store the user before their role is loaded, so that users without access to the requested
+                    // resource are stored too.
+                    registerUser(userRegistrationService, payload)
+                    createAuthorizedPrincipal(authorizationService, payload)
                 }
             }
         }
+    }
+}
+
+/**
+ * Store the user identified by the given JWT [payload] with the [userRegistrationService]. Skip users without a user ID
+ * or username. A failure is only logged, as storing the user must not fail the request.
+ */
+private suspend fun registerUser(userRegistrationService: UserRegistrationService, payload: Payload) {
+    val userId = payload.subject?.takeUnless(String::isBlank) ?: return
+    val username = payload.getClaim(OrtServerPrincipal.CLAIM_USERNAME).asString()?.takeUnless(String::isBlank) ?: return
+    val fullName = payload.getClaim(OrtServerPrincipal.CLAIM_FULL_NAME)?.asString()
+
+    runCatching {
+        userRegistrationService.register(User(userId = userId, username = username, fullName = fullName))
+    }.onFailure {
+        logger.warn("Failed to store the user with ID '$userId'.", it)
     }
 }
 

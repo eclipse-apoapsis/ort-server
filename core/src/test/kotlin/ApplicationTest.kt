@@ -59,7 +59,7 @@ fun Application.testModule(db: Database) {
  */
 fun Application.testAuthModule(db: Database) {
     configureKoin(db)
-    configureAuthentication(get(), get())
+    configureAuthentication(get(), get(), get())
     configureRateLimit()
     configureStatusPages()
     configureRouting()

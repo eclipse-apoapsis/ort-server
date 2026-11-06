@@ -35,7 +35,7 @@ fun Application.module() {
 
     configureKoin()
     configureAuthenticator()
-    configureAuthentication(get(), get())
+    configureAuthentication(get(), get(), get())
     configureLifecycle()
     configureRateLimit()
     configureStatusPages()

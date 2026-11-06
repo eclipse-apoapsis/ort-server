@@ -61,6 +61,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.configureA
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserRegistrationService
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.DaoUserRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
@@ -144,7 +146,11 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
                     }
                 }
 
-                configureAuthentication(config, authorizationService)
+                configureAuthentication(
+                    config,
+                    authorizationService,
+                    UserRegistrationService(DaoUserRepository(dbExtension.db))
+                )
 
                 routing {
                     authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
