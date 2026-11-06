@@ -42,7 +42,9 @@ interface UserService {
     /**
      * Delete the user with the given [username] and all their role assignments from the server. Remove assignments
      * before deleting the user. If role removal fails, the user is not deleted. If user deletion subsequently fails,
-     * the assignments remain removed. Throw an exception if the user does not exist or either operation fails.
+     * the assignments remain removed. After the user is deleted, keep them in the users table and mark them deleted
+     * there, so that runs still show who started them. Throw an exception if the user does not exist or any of these
+     * operations fails.
      */
     suspend fun deleteUser(username: String)
 
