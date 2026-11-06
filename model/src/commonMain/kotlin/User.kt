@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
+import kotlin.time.Instant
+
 import kotlinx.serialization.Serializable
 
 /** A user of ORT Server, identified by the stable [userId] from Keycloak. */
@@ -40,5 +42,11 @@ data class User(
      * Full name of the user: A derived attribute that typically combines a user's first name and last name,
      * providing a readable display name but not serving as a unique identifier. This can change over time.
      */
-    val fullName: String? = null
+    val fullName: String? = null,
+
+    /** The time when the user was found to be deleted in Keycloak, or `null` if the user exists. */
+    val deletedAt: Instant? = null,
+
+    /** The time when the user was last synchronized with Keycloak, or `null` if this never happened. */
+    val lastSyncedAt: Instant? = null
 )
