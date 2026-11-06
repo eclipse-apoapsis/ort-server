@@ -45,3 +45,15 @@ dependencies {
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.wiremock)
 }
+
+tasks.named<Test>("test") {
+    // Some tests run against the real Scaleway API if credentials are provided via environment variables. As their
+    // results depend on the state of the remote API, always run the tests and do not cache them in this case.
+    val hasCredentials = providers.environmentVariable("SCW_SECRET_KEY")
+        .zip(providers.environmentVariable("SCW_PROJECT_ID")) { secretKey, projectId ->
+            secretKey.isNotEmpty() && projectId.isNotEmpty()
+        }.orElse(false)
+
+    outputs.upToDateWhen { !hasCredentials.get() }
+    outputs.cacheIf("Scaleway credentials are not provided") { !hasCredentials.get() }
+}
