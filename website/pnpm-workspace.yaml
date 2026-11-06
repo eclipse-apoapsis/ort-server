@@ -2,3 +2,6 @@ allowBuilds:
   '@parcel/watcher': true
   core-js: true
   postman-code-generators: true
+
+# Only resolve versions that were published at least 3 days ago.
+minimumReleaseAge: 4320
