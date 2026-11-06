@@ -36,8 +36,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.R
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNamesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.UserDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.UsersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
@@ -86,7 +86,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val path = text("path").nullable()
     val traceId = text("trace_id").nullable()
     val environmentConfigPath = text("environment_config_path").nullable()
-    val userDisplayName = reference("user_id", UserDisplayNamesTable.id).nullable()
+    val userDisplayName = reference("user_id", UsersTable.id).nullable()
     val ortServerVersion = text("ort_server_version").nullable()
     val includesExcludes = jsonb<RunIncludesExcludes>("includes_excludes").nullable()
 
@@ -122,7 +122,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var vcsId by OrtRunsTable.vcsId
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
     var environmentConfigPath by OrtRunsTable.environmentConfigPath
-    var userDisplayName by UserDisplayNameDao optionalReferencedOn OrtRunsTable.userDisplayName
+    var userDisplayName by UserDao optionalReferencedOn OrtRunsTable.userDisplayName
     var ortServerVersion by OrtRunsTable.ortServerVersion
     var includesExcludes by OrtRunsTable.includesExcludes
 
