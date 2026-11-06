@@ -133,7 +133,7 @@ import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
@@ -928,7 +928,7 @@ fun Project.mapToApi() = ApiProject(
     scopeNames = scopeNames
 )
 
-fun UserDisplayName.mapToApi() = ApiUserDisplayName(username = username, fullName = fullName)
+fun User.mapToApi() = ApiUserDisplayName(username = username, fullName = fullName)
 
 fun OidcConfig.mapToApi() = ApiOidcConfig(accessTokenUrl = accessTokenUrl, clientId = clientId)
 

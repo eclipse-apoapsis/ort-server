@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
@@ -62,7 +62,7 @@ class OrchestratorService(
         jobConfigContext: String?,
         labels: Map<String, String>?,
         environmentConfigPath: String?,
-        userDisplayName: UserDisplayName?,
+        userDisplayName: User?,
         resolvedJobConfigContext: String,
         includesExcludes: RunIncludesExcludes? = null
     ): OrtRun {

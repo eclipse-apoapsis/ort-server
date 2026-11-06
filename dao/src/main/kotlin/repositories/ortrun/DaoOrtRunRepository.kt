@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
@@ -99,7 +99,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         labels: Map<String, String>,
         traceId: String?,
         environmentConfigPath: String?,
-        userDisplayName: UserDisplayName?,
+        userDisplayName: User?,
         resolvedJobConfigContext: String?,
         includesExcludes: RunIncludesExcludes?
     ): OrtRun = db.transaction {

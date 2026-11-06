@@ -21,11 +21,9 @@ package org.eclipse.apoapsis.ortserver.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * User information to be displayed in the UI.
- */
+/** A user of ORT Server, identified by the stable [userId] from Keycloak. */
 @Serializable
-data class UserDisplayName(
+data class User(
     /**
      * Identifier assigned to each user in Keycloak, used to distinguish users across sessions and services.
      * This identifier is stable over time and is unique to each user.

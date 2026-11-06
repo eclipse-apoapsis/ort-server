@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
@@ -61,7 +61,7 @@ class UserDisplayNameDao(id: EntityID<String>) : Entity<String>(id) {
         /**
          * Insert a new entry, if it does not already exist, else update the entry.
          */
-        fun insertOrUpdate(userDisplayName: UserDisplayName?): UserDisplayNameDao? {
+        fun insertOrUpdate(userDisplayName: User?): UserDisplayNameDao? {
             // Tests may pass `null` as `userDisplayName`
             if (userDisplayName == null) {
                 return null
@@ -82,5 +82,5 @@ class UserDisplayNameDao(id: EntityID<String>) : Entity<String>(id) {
     var fullName by UserDisplayNamesTable.fullName
     var createdAt by UserDisplayNamesTable.createdAt.transformToDatabasePrecision()
 
-    fun mapToModel() = UserDisplayName(userId = id.value, username = username, fullName = fullName)
+    fun mapToModel() = User(userId = id.value, username = username, fullName = fullName)
 }

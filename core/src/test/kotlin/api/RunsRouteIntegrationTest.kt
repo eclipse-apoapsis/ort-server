@@ -129,7 +129,7 @@ import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.AppliedPackageCurationRef
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
@@ -626,7 +626,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "include name of the user that triggered this run" {
-            val userDisplayName = UserDisplayName("user-id", "username", "full name")
+            val userDisplayName = User("user-id", "username", "full name")
             integrationTestApplication {
                 val run = ortRunRepository.create(
                     repositoryId,
@@ -655,8 +655,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "update the name of the user if user already exists" {
-            val userDisplayName1 = UserDisplayName("user-id", "username", "full name")
-            val userDisplayName2 = UserDisplayName("user-id", "new-username", "new full name")
+            val userDisplayName1 = User("user-id", "username", "full name")
+            val userDisplayName2 = User("user-id", "new-username", "new full name")
             integrationTestApplication {
                 val run1 = ortRunRepository.create(
                     repositoryId,
@@ -673,7 +673,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response1 = superuserClient.get("/api/v1/runs/${run1.id}")
                 response1 shouldHaveStatus HttpStatusCode.OK
 
-                // UserDisplayName is already created by the previous request, now do another request with different
+                // User is already created by the previous request, now do another request with different
                 // username and full name and check if it is updated.
                 val run2 = ortRunRepository.create(
                     repositoryId,
