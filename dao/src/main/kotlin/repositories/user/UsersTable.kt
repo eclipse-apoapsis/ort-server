@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName
+package org.eclipse.apoapsis.ortserver.dao.repositories.user
 
 import kotlin.time.Clock
 
@@ -37,7 +37,7 @@ import org.jetbrains.exposed.v1.jdbc.upsert
  * only used to store users' names in a central table, where it is easier to keep them up to date or remove them after a
  * time of inactivity.
  */
-object UserDisplayNamesTable : IdTable<String>("user_display_names") {
+object UsersTable : IdTable<String>("users") {
     /**
      * Unique user identifier, for example, derived from JWT `sub` claim. This is stable over time.
      */
@@ -56,31 +56,31 @@ object UserDisplayNamesTable : IdTable<String>("user_display_names") {
     val createdAt = timestamp("created_at")
 }
 
-class UserDisplayNameDao(id: EntityID<String>) : Entity<String>(id) {
-    companion object : EntityClass<String, UserDisplayNameDao>(UserDisplayNamesTable) {
+class UserDao(id: EntityID<String>) : Entity<String>(id) {
+    companion object : EntityClass<String, UserDao>(UsersTable) {
         /**
          * Insert a new entry, if it does not already exist, else update the entry.
          */
-        fun insertOrUpdate(userDisplayName: User?): UserDisplayNameDao? {
+        fun insertOrUpdate(userDisplayName: User?): UserDao? {
             // Tests may pass `null` as `userDisplayName`
             if (userDisplayName == null) {
                 return null
             }
 
-            UserDisplayNamesTable.upsert(UserDisplayNamesTable.id) {
+            UsersTable.upsert(UsersTable.id) {
                 it[this.id] = userDisplayName.userId
                 it[this.username] = userDisplayName.username
                 it[this.fullName] = userDisplayName.fullName
                 it[this.createdAt] = Clock.System.now()
             }
 
-            return UserDisplayNameDao[userDisplayName.userId]
+            return UserDao[userDisplayName.userId]
         }
     }
 
-    var username by UserDisplayNamesTable.username
-    var fullName by UserDisplayNamesTable.fullName
-    var createdAt by UserDisplayNamesTable.createdAt.transformToDatabasePrecision()
+    var username by UsersTable.username
+    var fullName by UsersTable.fullName
+    var createdAt by UsersTable.createdAt.transformToDatabasePrecision()
 
     fun mapToModel() = User(userId = id.value, username = username, fullName = fullName)
 }
