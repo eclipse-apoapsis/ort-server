@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RunIncludesExcludes
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -53,7 +53,7 @@ interface OrtRunRepository {
         labels: Map<String, String>,
         traceId: String?,
         environmentConfigPath: String?,
-        userDisplayName: UserDisplayName? = null,
+        userDisplayName: User? = null,
         resolvedJobConfigContext: String? = null,
         includesExcludes: RunIncludesExcludes? = null
     ): OrtRun

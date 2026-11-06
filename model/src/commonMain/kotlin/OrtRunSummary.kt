@@ -114,7 +114,7 @@ data class OrtRunSummary(
     /**
      * The display name of the user that triggered this run.
      */
-    val userDisplayName: UserDisplayName? = null,
+    val userDisplayName: User? = null,
 
     /**
      * The version of the ORT Server that was active when this run was created.

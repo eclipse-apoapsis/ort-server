@@ -79,7 +79,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
-import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
@@ -443,7 +443,7 @@ fun Route.products() = route("products/{productId}") {
 
             val createOrtRun = call.receive<PostRepositoryRun>()
             val userDisplayName = call.ortServerPrincipal.let { principal ->
-                UserDisplayName(principal.userId, principal.username, principal.fullName)
+                User(principal.userId, principal.username, principal.fullName)
             }
 
             // Resolve the config context now, so that the configuration of the run cannot change later.
