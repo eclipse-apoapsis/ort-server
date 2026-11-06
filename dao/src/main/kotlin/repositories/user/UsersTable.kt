@@ -59,7 +59,8 @@ object UsersTable : IdTable<String>("users") {
 class UserDao(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, UserDao>(UsersTable) {
         /**
-         * Insert a new entry, if it does not already exist, else update the entry.
+         * Insert a new entry, if it does not already exist, else update the entry. The creation time of an existing
+         * entry is kept.
          */
         fun insertOrUpdate(userDisplayName: User?): UserDao? {
             // Tests may pass `null` as `userDisplayName`
@@ -67,7 +68,7 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
                 return null
             }
 
-            UsersTable.upsert(UsersTable.id) {
+            UsersTable.upsert(UsersTable.id, onUpdateExclude = listOf(UsersTable.createdAt)) {
                 it[this.id] = userDisplayName.userId
                 it[this.username] = userDisplayName.username
                 it[this.fullName] = userDisplayName.fullName

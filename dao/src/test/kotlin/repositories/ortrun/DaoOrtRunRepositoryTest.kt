@@ -41,6 +41,7 @@ import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.UserDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
@@ -282,6 +283,41 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
             ortRunRepository.get(runOfFormerUser.id)?.userDisplayName shouldBe formerUser
             ortRunRepository.get(runOfCurrentUser.id)?.userDisplayName shouldBe currentUser
+        }
+
+        "keep the time when the user was first stored" {
+            val user = User("user-id", "john.doe", "John Doe")
+
+            ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = null,
+                null,
+                userDisplayName = user
+            )
+            val firstCreatedAt = dbExtension.db.transaction { UserDao[user.userId].createdAt }
+
+            ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = null,
+                null,
+                userDisplayName = user.copy(fullName = "John Smith")
+            )
+
+            dbExtension.db.transaction {
+                val userDao = UserDao[user.userId]
+                userDao.fullName shouldBe "John Smith"
+                userDao.createdAt shouldBe firstCreatedAt
+            }
         }
     }
 
