@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migratio
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakUserService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserRegistrationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.dependencygraph.backend.DependencyGraphService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
@@ -79,6 +80,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.D
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.DaoResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.user.DaoUserRepository
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
@@ -98,6 +100,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.UserRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -178,6 +181,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
     single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
     single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+    single<UserRepository> { DaoUserRepository(get()) }
 
     singleOf(SecretStorage::createStorage)
 
@@ -223,6 +227,8 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     single<UserService> {
         KeycloakUserService(get(), get())
     }
+
+    single { UserRegistrationService(get()) }
 
     singleOf(::DefaultPluginsEventStore)
     singleOf(::DefaultPluginsService)
