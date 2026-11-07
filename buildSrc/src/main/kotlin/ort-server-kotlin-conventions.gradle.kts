@@ -36,6 +36,7 @@ plugins {
 dependencies {
     detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:$detektVersion")
     detektPlugins("org.ossreviewtoolkit:detekt-rules:$detektRulesVersion")
+    detektPlugins(project(":detekt-rules"))
 }
 
 detekt {
