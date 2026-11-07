@@ -49,9 +49,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-/**
- * Integration test class testing some error conditions during API requests and how they are handled.
- */
+/** Integration test class testing some error conditions during API requests and how they are handled. */
 class ErrorsIntegrationTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 

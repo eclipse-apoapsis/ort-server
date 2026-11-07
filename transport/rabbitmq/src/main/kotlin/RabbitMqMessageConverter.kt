@@ -29,9 +29,7 @@ import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
 internal object RabbitMqMessageConverter {
-    /**
-     * Convert the [message headers][this] to the AMQP compatible [BasicProperties].
-     */
+    /** Convert the [message headers][this] to the AMQP compatible [BasicProperties]. */
     fun MessageHeader.toAmqpProperties(): BasicProperties = BasicProperties.Builder()
         .contentType("application/json")
         .contentEncoding("UTF-8")
@@ -42,14 +40,10 @@ internal object RabbitMqMessageConverter {
             )
         ).build()
 
-    /**
-     * Convert the [message]'s payload into a plain JSON string.
-     */
+    /** Convert the [message]'s payload into a plain JSON string. */
     fun <T> toStringMessage(message: Message<T>, serializer: JsonSerializer<T>) = serializer.toJson(message.payload)
 
-    /**
-     * Convert the [delivery] to a [Message] using the [serializer].
-     */
+    /** Convert the [delivery] to a [Message] using the [serializer]. */
     fun <T> toTransportMessage(delivery: Delivery, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(
             delivery.properties.headers[TRACE_PROPERTY].toString(),

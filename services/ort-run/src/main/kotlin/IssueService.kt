@@ -81,9 +81,7 @@ private class IssueQueryContext(
     val statusExpression: ExpressionWithColumnType<String>
 )
 
-/**
- * A service to manage and get information about issues.
- */
+/** A service to manage and get information about issues. */
 class IssueService(
     private val db: Database,
     private val ortRunService: OrtRunService,
@@ -395,9 +393,7 @@ class IssueService(
             .count()
     }
 
-    /**
-     * Count overall issues by severity for provided ORT runs.
-     */
+    /** Count overall issues by severity for provided ORT runs. */
     suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.transaction {
         val countAlias = Count(OrtRunsIssuesTable.id, true)
 

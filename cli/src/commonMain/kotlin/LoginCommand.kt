@@ -92,9 +92,7 @@ private class TokenOptions : OptionGroup(
     ).required()
 }
 
-/**
- * A command to log in to an ORT Server instance.
- */
+/** A command to log in to an ORT Server instance. */
 class LoginCommand : SuspendingCliktCommand(name = "login") {
     private val serverOptions by ServerOptions()
     private val userOptions by UserOptions().cooccurring()

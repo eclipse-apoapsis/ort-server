@@ -115,9 +115,7 @@ data class DataSourceConfig(
     val initSqlStatement: String?
 ) {
     companion object {
-        /**
-         * Create a [DataSourceConfig] object from the provided [config].
-         */
+        /** Create a [DataSourceConfig] object from the provided [config]. */
         fun create(config: ConfigManager) = DataSourceConfig(
             host = config.getString("database.host"),
             port = config.getInt("database.port"),

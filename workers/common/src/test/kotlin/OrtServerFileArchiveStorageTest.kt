@@ -112,9 +112,7 @@ private suspend fun OrtServerFileArchiveStorage.putArchive(provenance: KnownProv
     putData(provenance, ByteArrayInputStream(byteArray), byteArray.size.toLong())
 }
 
-/**
- * Create the [Storage] to be used for tests. This is a test storage, so the stored data can be inspected.
- */
+/** Create the [Storage] to be used for tests. This is a test storage, so the stored data can be inspected. */
 private fun createStorage(): Storage {
     val storageType = "test"
     val configMap = mapOf(storageType to mapOf("name" to StorageProviderFactoryForTesting.NAME))

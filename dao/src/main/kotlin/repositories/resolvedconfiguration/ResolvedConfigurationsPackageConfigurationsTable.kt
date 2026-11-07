@@ -23,9 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [ResolvedConfigurationsTable] and [PackageConfigurationsTable].
- */
+/** An intermediate table to store references from [ResolvedConfigurationsTable] and [PackageConfigurationsTable]. */
 object ResolvedConfigurationsPackageConfigurationsTable : Table("resolved_configurations_package_configurations") {
     val resolvedConfigurationId = reference("resolved_configuration_id", ResolvedConfigurationsTable)
     val packageConfigurationId = reference("package_configuration_id", PackageConfigurationsTable)

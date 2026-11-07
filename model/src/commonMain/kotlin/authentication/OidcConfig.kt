@@ -24,13 +24,9 @@ package org.eclipse.apoapsis.ortserver.model.authentication
  * authentication logic.
  */
 data class OidcConfig(
-    /**
-     * The URL to the OpenID Connect provider's authorization endpoint.
-     */
+    /** The URL to the OpenID Connect provider's authorization endpoint. */
     val accessTokenUrl: String,
 
-    /**
-     * The client ID configured in the OpenID Connect provider.
-     */
+    /** The client ID configured in the OpenID Connect provider. */
     val clientId: String
 )

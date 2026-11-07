@@ -27,14 +27,10 @@ import org.eclipse.apoapsis.ortserver.cli.json
 import org.eclipse.apoapsis.ortserver.cli.model.printables.CliPrintable
 import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 
-/**
- * Global variable that gets toggled by a command line parameter parsed in the main entry points of the modules.
- */
+/** Global variable that gets toggled by a command line parameter parsed in the main entry points of the modules. */
 var useJsonFormat = false
 
-/**
- * Print the [message] of an error to stderr. If required, as a [json][CliError] object.
- */
+/** Print the [message] of an error to stderr. If required, as a [json][CliError] object. */
 internal fun SuspendingCliktCommand.echoError(message: String?) {
     if (useJsonFormat) {
         echo(json.encodeToString(CliError(message)), err = true)
@@ -43,9 +39,7 @@ internal fun SuspendingCliktCommand.echoError(message: String?) {
     }
 }
 
-/**
- * Print the [message] to stdout. If required, as a JSON object.
- */
+/** Print the [message] to stdout. If required, as a JSON object. */
 internal fun SuspendingCliktCommand.echoMessage(message: CliPrintable) {
     if (useJsonFormat) {
         echo(message.json())

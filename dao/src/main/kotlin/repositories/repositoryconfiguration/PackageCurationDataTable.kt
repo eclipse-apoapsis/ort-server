@@ -36,9 +36,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a package configuration data, which is part of a [PackageCuration][PackageCurationsTable].
- */
+/** A table to represent a package configuration data, which is part of a [PackageCuration][PackageCurationsTable]. */
 object PackageCurationDataTable : LongIdTable("package_curation_data") {
     val binaryArtifactId = reference("binary_artifact_id", RemoteArtifactsTable).nullable()
     val sourceArtifactId = reference("source_artifact_id", RemoteArtifactsTable).nullable()

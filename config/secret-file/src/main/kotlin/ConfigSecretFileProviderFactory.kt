@@ -28,9 +28,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactory
 
 import org.slf4j.LoggerFactory
 
-/**
- * Factory implementation for [ConfigSecretFileProvider].
- */
+/** Factory implementation for [ConfigSecretFileProvider]. */
 class ConfigSecretFileProviderFactory : ConfigSecretProviderFactory {
     companion object {
         /** The name of this provider implementation. */

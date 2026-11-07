@@ -120,8 +120,6 @@ private val rootVcs = VcsInfo(VcsType.GIT, "https://repo.example.org/test.git", 
 /** The provenance for the test root repository. */
 private val rootProvenance = RepositoryProvenance(rootVcs, REVISION)
 
-/**
- * Return a [RepositoryProvenance] for a component located in a sub [path] of the root repository.
- */
+/** Return a [RepositoryProvenance] for a component located in a sub [path] of the root repository. */
 private fun nestedProvenance(path: String): RepositoryProvenance =
     RepositoryProvenance(rootVcs.copy(path = path), REVISION)

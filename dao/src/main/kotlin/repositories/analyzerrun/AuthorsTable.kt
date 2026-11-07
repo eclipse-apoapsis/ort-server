@@ -25,9 +25,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an author.
- */
+/** A table to represent an author. */
 object AuthorsTable : LongIdTable("authors") {
     val name = text("name")
 }

@@ -34,9 +34,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A table to store the shortest dependency path for a package.
- */
+/** A table to store the shortest dependency path for a package. */
 object ShortestDependencyPathsTable : LongIdTable("shortest_dependency_paths") {
     val packageId = reference("package_id", PackagesTable)
     val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)

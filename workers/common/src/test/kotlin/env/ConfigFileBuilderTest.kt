@@ -248,8 +248,6 @@ private suspend fun withSecretResolverFun(
     capturedSecrets shouldContainExactlyInAnyOrder secretValues.keys
 }
 
-/**
- * Create a test [Secret] based on the given [index].
- */
+/** Create a test [Secret] based on the given [index]. */
 private fun createSecret(index: Int): Secret =
     Secret(index.toLong(), "p$index", "secret$index", null, null, null, null)

@@ -30,9 +30,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/**
- * An implementation of [NotifierRunRepository] that stores notifier runs in [NotifierRunsTable].
- */
+/** An implementation of [NotifierRunRepository] that stores notifier runs in [NotifierRunsTable]. */
 class DaoNotifierRunRepository(private val db: Database) : NotifierRunRepository {
     override suspend fun create(notifierJobId: Long, startTime: Instant, endTime: Instant): NotifierRun =
         db.transaction {

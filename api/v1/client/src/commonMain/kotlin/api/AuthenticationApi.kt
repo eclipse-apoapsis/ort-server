@@ -25,14 +25,10 @@ import io.ktor.client.request.get
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.OidcConfig
 
-/**
- * A client for the Authentication API.
- */
+/** A client for the Authentication API. */
 class AuthenticationApi(
     private val client: HttpClient
 ) {
-    /**
-     * Get CLI specific [OidcConfig].
-     */
+    /** Get CLI specific [OidcConfig]. */
     suspend fun getCliOidcConfig() = client.get("api/v1/auth/oidc-config/cli").body<OidcConfig>()
 }

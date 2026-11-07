@@ -32,9 +32,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an issue resolution, used within a [RepositoryConfiguration][RepositoryConfigurationsTable].
- */
+/** A table to represent an issue resolution, used within a [RepositoryConfiguration][RepositoryConfigurationsTable]. */
 object IssueResolutionsTable : LongIdTable("issue_resolutions") {
     val message = text("message")
     val messageHash = text("message_hash").nullable()

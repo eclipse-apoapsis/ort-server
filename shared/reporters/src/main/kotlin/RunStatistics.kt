@@ -89,9 +89,7 @@ data class RunResolvedConfigurationStatistics(
     val vulnerabilityResolutions: Int
 )
 
-/**
- * Convert ORT's [Statistics] to [RunStatistics].
- */
+/** Convert ORT's [Statistics] to [RunStatistics]. */
 fun Statistics.toRunStatistics() =
     RunStatistics(
         repositoryConfiguration = repositoryConfiguration.toRunStatistics(),

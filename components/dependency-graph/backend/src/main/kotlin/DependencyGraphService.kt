@@ -52,13 +52,9 @@ import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A service for retrieving dependency graphs for ORT runs.
- */
+/** A service for retrieving dependency graphs for ORT runs. */
 class DependencyGraphService(private val db: Database) {
-    /**
-     * Return the dependency graphs for the ORT run with the given [ortRunId], applying the provided [sortFields].
-     */
+    /** Return the dependency graphs for the ORT run with the given [ortRunId], applying the provided [sortFields]. */
     suspend fun getDependencyGraphs(
         ortRunId: Long,
         sortFields: List<OrderField> = DEFAULT_DEPENDENCY_GRAPH_SORT_FIELDS

@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-/**
- * The status of a Job.
- */
+/** The status of a Job. */
 enum class JobStatus(
     /** A flag that indicates whether the status is a final status. */
     val final: Boolean,

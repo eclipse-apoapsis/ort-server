@@ -122,15 +122,11 @@ object JobStatusLogging {
         }.isSuccess
     }
 
-    /**
-     * Return the JSON property for the execution time of a job based on the given [startTime] in milliseconds.
-     */
+    /** Return the JSON property for the execution time of a job based on the given [startTime] in milliseconds. */
     private fun executionTimeField(startTime: Long): JsonPrimitive =
         JsonPrimitive(System.currentTimeMillis() - startTime)
 
-    /**
-     * Return the JSON property for the timestamp of a job execution. This is calculated from the current time.
-     */
+    /** Return the JSON property for the timestamp of a job execution. This is calculated from the current time. */
     private fun timestampField(): JsonPrimitive =
         JsonPrimitive(Clock.System.now().toString())
 }

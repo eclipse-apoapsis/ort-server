@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.transport.azureservicebus
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
-/**
- * A class defining the configuration settings used by the Azure Service Bus Transport implementation.
- */
+/** A class defining the configuration settings used by the Azure Service Bus Transport implementation. */
 class AzureServicebusConfig(
     /** The namespace of the Azure Service Bus. */
     val namespace: String,
@@ -44,9 +42,7 @@ class AzureServicebusConfig(
         /** Name of the configuration property for the queue name. */
         private const val QUEUE_NAME_PROPERTY = "queueName"
 
-        /**
-         * Create a [AzureServicebusConfig] from the provided [configManager].
-         */
+        /** Create a [AzureServicebusConfig] from the provided [configManager]. */
         fun createConfig(configManager: ConfigManager) =
             AzureServicebusConfig(
                 namespace = configManager.getString(NAMESPACE_PROPERTY),

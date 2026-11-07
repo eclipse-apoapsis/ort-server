@@ -24,21 +24,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TokenInfo(
-    /**
-     * The access token.
-     */
+    /** The access token. */
     @SerialName("access_token")
     val accessToken: String,
 
-    /**
-     * The refresh token.
-     */
+    /** The refresh token. */
     @SerialName("refresh_token")
     val refreshToken: String,
 
-    /**
-     * The time (in seconds) when the access token expires.
-     */
+    /** The time (in seconds) when the access token expires. */
     @SerialName("expires_in")
     val expiresInSeconds: Int
 )

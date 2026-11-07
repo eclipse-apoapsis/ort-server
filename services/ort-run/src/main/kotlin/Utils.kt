@@ -63,9 +63,7 @@ internal suspend fun getFileLists(fileListResolver: FileListResolver, provenance
         }.awaitAll().filterNotNull()
     }
 
-/**
- * Return package purls by identifier ID for the given [ortRunId]. Curated purls override base purls.
- */
+/** Return package purls by identifier ID for the given [ortRunId]. Curated purls override base purls. */
 internal fun getPurlByIdentifierIdForOrtRun(ortRunId: Long, identifierIds: Collection<Long>): Map<Long, String> {
     if (identifierIds.isEmpty()) return emptyMap()
 

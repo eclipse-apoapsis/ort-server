@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
 
-/**
- * Defines a [RuleViolationResolution] that was applied to a rule violation in a run.
- */
+/** Defines a [RuleViolationResolution] that was applied to a rule violation in a run. */
 @Serializable
 data class AppliedRuleViolationResolution(
     /** A regular expression to match the rule violation message. */

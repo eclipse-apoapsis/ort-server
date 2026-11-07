@@ -40,9 +40,7 @@ data class LokiConfig(
      */
     val serverUrl: String,
 
-    /**
-     * The namespace for which logs are to be retrieved. This has to be added to query strings sent to Loki.
-     */
+    /** The namespace for which logs are to be retrieved. This has to be added to query strings sent to Loki. */
     val namespace: String,
 
     /**
@@ -89,9 +87,7 @@ data class LokiConfig(
         /** The default limit to be passed to the query endpoint. */
         private const val DEFAULT_LIMIT = 1000
 
-        /**
-         * Return a new instance of [LokiConfig] that has been initialized from the passed in [configManager].
-         */
+        /** Return a new instance of [LokiConfig] that has been initialized from the passed in [configManager]. */
         fun create(configManager: ConfigManager): LokiConfig {
             val username = configManager.getStringOrNull(USERNAME_PROPERTY)
             val password = if (username == null) {

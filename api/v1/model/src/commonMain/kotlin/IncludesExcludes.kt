@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * The [includes] and [excludes] for paths requested for an ORT run.
- */
+/** The [includes] and [excludes] for paths requested for an ORT run. */
 @Serializable
 data class PathIncludesExcludes(
     /** The paths to include. */
@@ -33,9 +31,7 @@ data class PathIncludesExcludes(
     val excludes: List<PathExclude> = emptyList()
 )
 
-/**
- * The [includes] and [excludes] for scopes requested for an ORT run.
- */
+/** The [includes] and [excludes] for scopes requested for an ORT run. */
 @Serializable
 data class ScopeIncludesExcludes(
     /** The scopes to include. */
@@ -45,9 +41,7 @@ data class ScopeIncludesExcludes(
     val excludes: List<ScopeExclude> = emptyList()
 )
 
-/**
- * A pattern defining paths that should be included.
- */
+/** A pattern defining paths that should be included. */
 @Serializable
 data class PathInclude(
     /** A glob pattern specifying the paths to include. */
@@ -60,9 +54,7 @@ data class PathInclude(
     val comment: String? = null
 )
 
-/**
- * A pattern defining paths that should be excluded.
- */
+/** A pattern defining paths that should be excluded. */
 @Serializable
 data class PathExclude(
     /** A glob pattern specifying the paths to exclude. */
@@ -75,9 +67,7 @@ data class PathExclude(
     val comment: String? = null
 )
 
-/**
- * A pattern defining scopes that should be included.
- */
+/** A pattern defining scopes that should be included. */
 @Serializable
 data class ScopeInclude(
     /** A regular expression specifying the scopes to include. */
@@ -90,9 +80,7 @@ data class ScopeInclude(
     val comment: String? = null
 )
 
-/**
- * A pattern defining scopes that should be excluded.
- */
+/** A pattern defining scopes that should be excluded. */
 @Serializable
 data class ScopeExclude(
     /** A regular expression specifying the scopes to exclude. */
@@ -105,17 +93,13 @@ data class ScopeExclude(
     val comment: String? = null
 )
 
-/**
- * The possible reasons for including a path, matching those of ORT.
- */
+/** The possible reasons for including a path, matching those of ORT. */
 enum class PathIncludeReason {
     SOURCE_OF,
     OTHER
 }
 
-/**
- * The possible reasons for excluding a path, matching those of ORT.
- */
+/** The possible reasons for excluding a path, matching those of ORT. */
 enum class PathExcludeReason {
     BUILD_TOOL_OF,
     DATA_FILE_OF,
@@ -128,17 +112,13 @@ enum class PathExcludeReason {
     TEST_TOOL_OF
 }
 
-/**
- * The possible reasons for including a scope, matching those of ORT.
- */
+/** The possible reasons for including a scope, matching those of ORT. */
 enum class ScopeIncludeReason {
     SOURCE_OF,
     OTHER
 }
 
-/**
- * The possible reasons for excluding a scope, matching those of ORT.
- */
+/** The possible reasons for excluding a scope, matching those of ORT. */
 enum class ScopeExcludeReason {
     BUILD_TOOL_OF,
     BUILD_DEPENDENCY_OF,

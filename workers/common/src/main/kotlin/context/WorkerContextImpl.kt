@@ -67,9 +67,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(WorkerContextImpl::class.java)
 
-/**
- * The internal default implementation of the [WorkerContext] interface.
- */
+/** The internal default implementation of the [WorkerContext] interface. */
 internal class WorkerContextImpl(
     /** The object allowing access to the application configuration. */
     override val configManager: ConfigManager,
@@ -101,9 +99,7 @@ internal class WorkerContextImpl(
      */
     private val tempDirectories = Collections.newSetFromMap(ConcurrentHashMap<File, Boolean>())
 
-    /**
-     * The authenticator to be used for all requests during the lifetime of this context.
-     */
+    /** The authenticator to be used for all requests during the lifetime of this context. */
     private val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(configManager))
 
     /**
@@ -304,15 +300,11 @@ internal class WorkerContextImpl(
             cache.getOrPut(key) { async { transform(key) } }
         }
 
-    /**
-     * Resolve the value of the provided [secret] using the [secretService].
-     */
+    /** Resolve the value of the provided [secret] using the [secretService]. */
     private suspend fun resolveSecretValue(secret: Secret): String =
         secretService.getSecretValue(secret)?.value ?: error("Could not resolve secret at path '${secret.path}'")
 
-    /**
-     * Resolve the given [secret] from the configuration manager.
-     */
+    /** Resolve the given [secret] from the configuration manager. */
     private fun resolveConfigSecret(secret: String): String =
         configManager.getSecret(ConfigPath(secret))
 

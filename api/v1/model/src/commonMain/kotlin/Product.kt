@@ -28,9 +28,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.optionalPattern
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
-/**
- * Response object for the products endpoints. Used to group multiple repositories into products.
- */
+/** Response object for the products endpoints. Used to group multiple repositories into products. */
 @Serializable
 data class Product(
     val id: Long,
@@ -51,9 +49,7 @@ data class Product(
     }
 }
 
-/**
- * Request object for the create product endpoint.
- */
+/** Request object for the create product endpoint. */
 @Serializable
 data class PostProduct(
     val name: String,
@@ -70,9 +66,7 @@ data class PostProduct(
     }
 }
 
-/**
- * Request object for the update product endpoint.
- */
+/** Request object for the update product endpoint. */
 @Serializable
 data class PatchProduct(
     val name: OptionalValue<String> = OptionalValue.Absent,

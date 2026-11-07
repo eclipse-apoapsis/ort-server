@@ -28,9 +28,7 @@ sealed interface MdcKey {
     val key: String
 }
 
-/**
- * An enumeration of standard MDC keys used throughout the application.
- */
+/** An enumeration of standard MDC keys used throughout the application. */
 enum class StandardMdcKeys(override val key: String) : MdcKey {
     /**
      * The key describing the component that produces the log message. This is typically a separate application or a
@@ -45,7 +43,5 @@ enum class StandardMdcKeys(override val key: String) : MdcKey {
     TRACE_ID("traceId")
 }
 
-/**
- * A data class allowing the creation of arbitrary MDC keys not covered by [StandardMdcKeys].
- */
+/** A data class allowing the creation of arbitrary MDC keys not covered by [StandardMdcKeys]. */
 data class CustomMdcKey(override val key: String) : MdcKey

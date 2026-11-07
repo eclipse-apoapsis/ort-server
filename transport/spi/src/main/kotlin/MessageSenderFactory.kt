@@ -35,9 +35,7 @@ import org.slf4j.LoggerFactory
  */
 interface MessageSenderFactory {
     companion object {
-        /**
-         * A prefix used for configuration properties of message senders.
-         */
+        /** A prefix used for configuration properties of message senders. */
         const val CONFIG_PREFIX = "sender"
 
         /**

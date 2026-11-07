@@ -21,15 +21,11 @@ package org.eclipse.apoapsis.ortserver.logaccess.loki
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class that represents the relevant parts of a response sent by Loki for a range query.
- */
+/** A data class that represents the relevant parts of a response sent by Loki for a range query. */
 @Serializable
 internal data class LokiResponse(val data: ResponseData)
 
-/**
- * A data class that represents the data part of a response sent by Loki for a range query.
- */
+/** A data class that represents the data part of a response sent by Loki for a range query. */
 @Serializable
 internal data class ResponseData(val result: List<StreamResult>)
 
@@ -62,8 +58,6 @@ internal data class LogStatement(
     val statement: String
 )
 
-/**
- * Return a list with all log statements contained in this [LokiResponse].
- */
+/** Return a list with all log statements contained in this [LokiResponse]. */
 internal fun LokiResponse.logStatements(): List<LogStatement> =
     data.result.flatMap(StreamResult::values).map { LogStatement(it[0], it[1]) }

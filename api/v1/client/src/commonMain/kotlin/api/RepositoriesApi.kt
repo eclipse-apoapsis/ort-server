@@ -28,26 +28,18 @@ import io.ktor.client.request.setBody
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 
-/**
- * A client for the repositories API.
- */
+/** A client for the repositories API. */
 class RepositoriesApi(
-    /**
-     * The configured HTTP client for the interaction with the API.
-     */
+    /** The configured HTTP client for the interaction with the API. */
     private val client: HttpClient
 ) {
-    /**
-     * Create a new [ORT run][ortRun] for the given [repository][repositoryId].
-     */
+    /** Create a new [ORT run][ortRun] for the given [repository][repositoryId]. */
     suspend fun createOrtRun(repositoryId: Long, ortRun: PostRepositoryRun): OrtRun =
         client.post("api/v1/repositories/$repositoryId/runs") {
             setBody(ortRun)
         }.body()
 
-    /**
-     * Get the [ORT run][OrtRun] with the given [repositoryId] and [index].
-     */
+    /** Get the [ORT run][OrtRun] with the given [repositoryId] and [index]. */
     suspend fun getOrtRun(repositoryId: Long, index: Long): OrtRun =
         client.get("api/v1/repositories/$repositoryId/runs/$index").body()
 }

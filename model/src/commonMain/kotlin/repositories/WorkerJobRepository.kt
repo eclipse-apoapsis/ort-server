@@ -33,19 +33,13 @@ import org.eclipse.apoapsis.ortserver.model.util.asPresent
  * generic way.
  */
 interface WorkerJobRepository<T : WorkerJob> {
-    /**
-     * Get a job by [id]. Returns null if the job is not found.
-     */
+    /** Get a job by [id]. Returns null if the job is not found. */
     suspend fun get(id: Long): T?
 
-    /**
-     * Get the job for an [ORT run][ortRunId].
-     */
+    /** Get the job for an [ORT run][ortRunId]. */
     suspend fun getForOrtRun(ortRunId: Long): T?
 
-    /**
-     * Update a job by [id] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a job by [id] with the [present][OptionalValue.Present] values. */
     suspend fun update(
         id: Long,
         startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
@@ -68,9 +62,7 @@ interface WorkerJobRepository<T : WorkerJob> {
     suspend fun tryStart(id: Long, startedAt: Instant): T? =
         if (getStatus(id) in notStartedJobStates) start(id, startedAt) else null
 
-    /**
-     * Mark a job by [id] as completed by updating the given [finishedAt] date and setting the given [status].
-     */
+    /** Mark a job by [id] as completed by updating the given [finishedAt] date and setting the given [status]. */
     suspend fun complete(id: Long, finishedAt: Instant, status: JobStatus, errorMessage: String? = null): T {
         require(status in completedJobStates) {
             "complete can only be called with a JobStatus that mark the job as completed: $completedJobStates."
@@ -107,12 +99,8 @@ interface WorkerJobRepository<T : WorkerJob> {
         requireNotNull(get(id)?.status) { "${this::class.simpleName}: Job '$id' not found." }
 }
 
-/**
- * A set with the [JobStatus] values that indicate a completed job.
- */
+/** A set with the [JobStatus] values that indicate a completed job. */
 private val completedJobStates = setOf(JobStatus.FINISHED, JobStatus.FINISHED_WITH_ISSUES, JobStatus.FAILED)
 
-/**
- * A set with the [JobStatus] values that indicate a job that was not started.
- */
+/** A set with the [JobStatus] values that indicate a job that was not started. */
 private val notStartedJobStates = setOf(JobStatus.CREATED, JobStatus.SCHEDULED)

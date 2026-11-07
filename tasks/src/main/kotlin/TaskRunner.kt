@@ -192,17 +192,13 @@ internal fun endTaskRunner() {
     }
 }
 
-/**
- * Create a [Module] that provides access to the configuration of the tasks.
- */
+/** Create a [Module] that provides access to the configuration of the tasks. */
 internal fun configModule(): Module =
     module {
         single { ConfigManager.create(ConfigFactory.load()) }
     }
 
-/**
- * Create a [Module] for the standard tasks and their dependencies.
- */
+/** Create a [Module] for the standard tasks and their dependencies. */
 private fun tasksModule(): Module =
     module {
         includes(reportStorageModule)

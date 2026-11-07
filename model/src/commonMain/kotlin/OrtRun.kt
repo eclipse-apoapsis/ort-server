@@ -29,39 +29,25 @@ import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 @Serializable
 data class OrtRun(
-    /**
-     * The unique identifier.
-     */
+    /** The unique identifier. */
     val id: Long,
 
-    /**
-     * The index of this run in the [repository][repositoryId].
-     */
+    /** The index of this run in the [repository][repositoryId]. */
     val index: Long,
 
-    /**
-     * The id of the [Organization] this run belongs to.
-     */
+    /** The id of the [Organization] this run belongs to. */
     val organizationId: Long,
 
-    /**
-     * The id of the [Product] this run belongs to.
-     */
+    /** The id of the [Product] this run belongs to. */
     val productId: Long,
 
-    /**
-     * The id of the repository for this run.
-     */
+    /** The id of the repository for this run. */
     val repositoryId: Long,
 
-    /**
-     * The repository revision used by this run.
-     */
+    /** The repository revision used by this run. */
     val revision: String,
 
-    /**
-     * The revision resolved from [revision].
-     */
+    /** The revision resolved from [revision]. */
     val resolvedRevision: String? = null,
 
     /**
@@ -70,19 +56,13 @@ data class OrtRun(
      */
     val path: String? = null,
 
-    /**
-     * The time this run was created.
-     */
+    /** The time this run was created. */
     val createdAt: Instant,
 
-    /**
-     * The time when this run was finished or *null* if it is not yet finished.
-     */
+    /** The time when this run was finished or *null* if it is not yet finished. */
     val finishedAt: Instant?,
 
-    /**
-     * The job configurations for this run.
-     */
+    /** The job configurations for this run. */
     val jobConfigs: JobConfigurations,
 
     /**
@@ -91,24 +71,16 @@ data class OrtRun(
      */
     val resolvedJobConfigs: JobConfigurations?,
 
-    /**
-     * The status of this run.
-     */
+    /** The status of this run. */
     val status: OrtRunStatus,
 
-    /**
-     * The labels of this run.
-     */
+    /** The labels of this run. */
     val labels: Map<String, String>,
 
-    /**
-     * Original VCS-related information containing the analyzer root.
-     */
+    /** Original VCS-related information containing the analyzer root. */
     val vcsId: Long?,
 
-    /**
-     * Processed VCS-related information containing the analyzer root.
-     */
+    /** Processed VCS-related information containing the analyzer root. */
     val vcsProcessedId: Long?,
 
     /**
@@ -154,14 +126,10 @@ data class OrtRun(
      */
     val traceId: String?,
 
-    /**
-     * Name of the user that triggered this run.
-     */
+    /** Name of the user that triggered this run. */
     val userDisplayName: User? = null,
 
-    /**
-     * The version of the ORT Server that was active when this run was created.
-     */
+    /** The version of the ORT Server that was active when this run was created. */
     val ortServerVersion: String? = null,
 
     /**
@@ -182,9 +150,7 @@ enum class OrtRunStatus(
     FINISHED_WITH_ISSUES(true)
 }
 
-/**
- * Object containing values to filter an ort run listing with.
- */
+/** Object containing values to filter an ort run listing with. */
 data class OrtRunFilters(
     val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null
 )

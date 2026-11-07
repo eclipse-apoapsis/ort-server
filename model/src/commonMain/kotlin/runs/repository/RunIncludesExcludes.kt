@@ -33,18 +33,14 @@ data class RunIncludesExcludes(
     val scopes: ScopeIncludesExcludes = ScopeIncludesExcludes()
 )
 
-/**
- * The [includes] and [excludes] for paths requested for an ORT run.
- */
+/** The [includes] and [excludes] for paths requested for an ORT run. */
 @Serializable
 data class PathIncludesExcludes(
     val includes: List<PathInclude> = emptyList(),
     val excludes: List<PathExclude> = emptyList()
 )
 
-/**
- * The [includes] and [excludes] for scopes requested for an ORT run.
- */
+/** The [includes] and [excludes] for scopes requested for an ORT run. */
 @Serializable
 data class ScopeIncludesExcludes(
     val includes: List<ScopeInclude> = emptyList(),

@@ -55,15 +55,11 @@ enum class RepositoryPermission {
         /** The prefix for the permission-related roles used for repositories. */
         private const val ROLE_PREFIX = "permission_repository_"
 
-        /**
-         * Get all [role names][roleName] for the provided [repositoryId].
-         */
+        /** Get all [role names][roleName] for the provided [repositoryId]. */
         fun getRolesForRepository(repositoryId: Long) =
             enumEntries<RepositoryPermission>().map { it.roleName(repositoryId) }
 
-        /**
-         * A unique prefix for the roles for the provided [repositoryId].
-         */
+        /** A unique prefix for the roles for the provided [repositoryId]. */
         fun rolePrefix(repositoryId: Long) = "$ROLE_PREFIX${repositoryId}_"
 
         /**

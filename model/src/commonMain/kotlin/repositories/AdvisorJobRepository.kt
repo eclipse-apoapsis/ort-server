@@ -22,17 +22,11 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 
-/**
- * A repository of [advisor jobs][AdvisorJob].
- */
+/** A repository of [advisor jobs][AdvisorJob]. */
 interface AdvisorJobRepository : WorkerJobRepository<AdvisorJob> {
-    /**
-     * Create an advisor job.
-     */
+    /** Create an advisor job. */
     suspend fun create(ortRunId: Long, configuration: AdvisorJobConfiguration): AdvisorJob
 
-    /**
-     * Delete an advisor job by [id].
-     */
+    /** Delete an advisor job by [id]. */
     suspend fun delete(id: Long)
 }

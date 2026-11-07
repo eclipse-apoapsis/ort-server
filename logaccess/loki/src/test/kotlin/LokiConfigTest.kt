@@ -64,9 +64,7 @@ class LokiConfigTest : StringSpec({
     }
 })
 
-/**
- * Return a [ConfigManager] object with a configuration that contains the properties of the provided [configMap].
- */
+/** Return a [ConfigManager] object with a configuration that contains the properties of the provided [configMap]. */
 private fun createConfigManager(configMap: Map<String, Any>): ConfigManager =
     ConfigManager(
         ConfigFactory.parseMap(configMap),

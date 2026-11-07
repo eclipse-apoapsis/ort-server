@@ -623,9 +623,7 @@ private val usernameSecret = createSecret("username")
 /** A secret referencing the test password. */
 private val passwordSecret = createSecret("password")
 
-/**
- * Create a [Secret] based on the given [path].
- */
+/** Create a [Secret] based on the given [path]. */
 private fun createSecret(path: String): Secret =
     Secret(0, path, "$path-secret", null, null, null, null)
 
@@ -648,9 +646,7 @@ private fun createService(
         credentialsTypes = credentialsTypes
     )
 
-/**
- * Create an [AuthenticationInfo] object with the given [services] and the secrets used for testing.
- */
+/** Create an [AuthenticationInfo] object with the given [services] and the secrets used for testing. */
 private fun createAuthInfo(services: List<ResolvedInfrastructureService>): AuthenticationInfo =
     AuthenticationInfo(
         secrets = mapOf(

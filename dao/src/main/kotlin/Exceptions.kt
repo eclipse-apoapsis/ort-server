@@ -26,9 +26,7 @@ import java.sql.SQLException
 import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-/**
- * Enum for PostgreSQL exception states, see https://www.postgresql.org/docs/10/errcodes-appendix.html.
- */
+/** Enum for PostgreSQL exception states, see https://www.postgresql.org/docs/10/errcodes-appendix.html. */
 enum class PostgresErrorCodes(val value: String) {
     INVALID_REGULAR_EXPRESSION("2201B"),
     UNIQUE_CONSTRAINT_VIOLATION("23505")
@@ -39,9 +37,7 @@ class UniqueConstraintException(msg: String, cause: Throwable? = null) :
     override fun createCopy() = UniqueConstraintException(checkNotNull(message), this)
 }
 
-/**
- * An exception class indicating that invalid query parameters have been passed to a query function.
- */
+/** An exception class indicating that invalid query parameters have been passed to a query function. */
 class QueryParametersException(msg: String, cause: Throwable? = null) :
     RuntimeException(msg, cause), CopyableThrowable<QueryParametersException> {
     override fun createCopy() = QueryParametersException(checkNotNull(message), this)

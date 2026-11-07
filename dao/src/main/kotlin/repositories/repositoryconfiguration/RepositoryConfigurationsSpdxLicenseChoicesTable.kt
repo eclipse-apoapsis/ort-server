@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [RepositoryConfigurationsTable] and [SpdxLicenseChoicesTable].
- */
+/** An intermediate table to store references from [RepositoryConfigurationsTable] and [SpdxLicenseChoicesTable]. */
 object RepositoryConfigurationsSpdxLicenseChoicesTable : Table("repository_configurations_spdx_license_choices") {
     val repositoryConfigurationId = reference("repository_configuration_id", RepositoryConfigurationsTable)
     val spdxLicenseChoice = reference("spdx_license_choice", SpdxLicenseChoicesTable)

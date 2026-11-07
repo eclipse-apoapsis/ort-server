@@ -27,9 +27,7 @@ import io.ktor.server.routing.RoutingContext
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 
-/**
- * A class storing information about the authenticated principal in the ORT Server.
- */
+/** A class storing information about the authenticated principal in the ORT Server. */
 class OrtServerPrincipal(
     /** The internal ID of the user. */
     val userId: String,
@@ -62,9 +60,7 @@ class OrtServerPrincipal(
         /** Constant for the name of the claim containing the full name. */
         internal const val CLAIM_FULL_NAME = "name"
 
-        /**
-         * Create an [OrtServerPrincipal] from the given JWT [payload] and [effectiveRole].
-         */
+        /** Create an [OrtServerPrincipal] from the given JWT [payload] and [effectiveRole]. */
         fun create(payload: Payload, effectiveRole: EffectiveRole?): OrtServerPrincipal =
             OrtServerPrincipal(
                 userId = payload.subject,

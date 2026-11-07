@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to store key-value style labels for package curations data
- */
+/** A table to store key-value style labels for package curations data */
 object PackageCurationDataLabelsTable : LongIdTable("package_curation_data_labels") {
     val packageCurationDataId = reference("package_curation_data_id", PackageCurationDataTable)
     val key = text("key")

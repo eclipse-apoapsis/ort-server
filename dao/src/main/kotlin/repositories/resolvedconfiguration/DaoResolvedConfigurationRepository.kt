@@ -299,9 +299,7 @@ class DaoResolvedConfigurationRepository(private val db: Database) : ResolvedCon
             .firstOrNull()?.get(OrtRunsIssuesTable.id)?.value
     }
 
-    /**
-     * Find the identifier ID for the given identifier details.
-     */
+    /** Find the identifier ID for the given identifier details. */
     private fun findIdentifierId(identifier: Identifier): Long? =
         IdentifiersTable
             .select(IdentifiersTable.id)

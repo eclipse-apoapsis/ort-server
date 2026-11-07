@@ -42,19 +42,13 @@ import org.jetbrains.exposed.v1.jdbc.upsert
  * that the information who created a run is kept.
  */
 object UsersTable : IdTable<String>("users") {
-    /**
-     * Unique user identifier, for example, derived from JWT `sub` claim. This is stable over time.
-     */
+    /** Unique user identifier, for example, derived from JWT `sub` claim. This is stable over time. */
     override val id: Column<EntityID<String>> = varchar("user_id", 40).entityId()
 
-    /**
-     * Preferred username. This may change over time.
-     */
+    /** Preferred username. This may change over time. */
     val username = text("username")
 
-    /**
-     * UX-friendly display name. This may change over time.
-     */
+    /** UX-friendly display name. This may change over time. */
     val fullName = text("full_name").nullable()
 
     val createdAt = timestamp("created_at")

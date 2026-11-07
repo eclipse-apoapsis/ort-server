@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.config
 
 import com.typesafe.config.Config
 
-/**
- * A factory interface for creating [ConfigSecretProvider] instances.
- */
+/** A factory interface for creating [ConfigSecretProvider] instances. */
 interface ConfigSecretProviderFactory {
     /**
      * The name of the [ConfigSecretProvider] implementation. This is used to load a specific factory from the

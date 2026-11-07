@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.util
 
-/**
- * An enumeration that defines the different success statuses of an operation that processes a collection of items.
- */
+/** An enumeration that defines the different success statuses of an operation that processes a collection of items. */
 enum class ProcessingResultStatus {
     /** The operation was completely successful, i.e., all items were processed successfully. */
     SUCCESS,

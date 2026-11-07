@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [AdvisorResultsTable] and [VulnerabilitiesTable].
- */
+/** An intermediate table to store references from [AdvisorResultsTable] and [VulnerabilitiesTable]. */
 object AdvisorResultsVulnerabilitiesTable : Table("advisor_results_vulnerabilities") {
     val advisorResultId = reference("advisor_result_id", AdvisorResultsTable)
     val vulnerabilityId = reference("vulnerability_id", VulnerabilitiesTable)

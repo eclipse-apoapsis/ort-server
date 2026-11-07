@@ -34,9 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-/**
- * A repository of [ORT runs][OrtRun].
- */
+/** A repository of [ORT runs][OrtRun]. */
 @Suppress("TooManyFunctions")
 interface OrtRunRepository {
     /**
@@ -58,14 +56,10 @@ interface OrtRunRepository {
         includesExcludes: RunIncludesExcludes? = null
     ): OrtRun
 
-    /**
-     * Get an ORT run by [id]. Returns null if the ORT run is not found.
-     */
+    /** Get an ORT run by [id]. Returns null if the ORT run is not found. */
     suspend fun get(id: Long): OrtRun?
 
-    /**
-     * Get an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
-     */
+    /** Get an ORT run by its [index][ortRunIndex] within a [repository][repositoryId]. */
     suspend fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
 
     /**
@@ -75,17 +69,13 @@ interface OrtRunRepository {
      */
     suspend fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long?
 
-    /**
-     * List all ORT runs according to the given [parameters] and [filters].
-     */
+    /** List all ORT runs according to the given [parameters] and [filters]. */
     suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: OrtRunFilters? = null
     ): ListQueryResult<OrtRun>
 
-    /**
-     * List all ORT runs for a [repository][repositoryId] according to the given [parameters].
-     */
+    /** List all ORT runs for a [repository][repositoryId] according to the given [parameters]. */
     suspend fun listForRepository(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
@@ -106,9 +96,7 @@ interface OrtRunRepository {
      */
     suspend fun listActiveRuns(): List<ActiveOrtRun>
 
-    /**
-     * Return a [List] with the IDs of all ORT runs that have finished before [before].
-     */
+    /** Return a [List] with the IDs of all ORT runs that have finished before [before]. */
     suspend fun findRunsBefore(before: Instant): List<Long>
 
     /**
@@ -133,18 +121,12 @@ interface OrtRunRepository {
      */
     suspend fun updateIssueHowToFixTexts(ortRunId: Long, issues: Collection<Issue>): Int
 
-    /**
-     * Delete an ORT run by [id].
-     */
+    /** Delete an ORT run by [id]. */
     suspend fun delete(id: Long): Int
 
-    /**
-     * Delete the ORT runs of a repository, specified by the [repositoryId].
-     */
+    /** Delete the ORT runs of a repository, specified by the [repositoryId]. */
     suspend fun deleteByRepository(repositoryId: Long): Int
 
-    /**
-     * Delete all ORT runs associated to this [productId].
-     */
+    /** Delete all ORT runs associated to this [productId]. */
     suspend fun deleteByProduct(productId: Long): Int
 }

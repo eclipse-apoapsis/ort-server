@@ -86,17 +86,13 @@ class ReaperTaskTest : StringSpec({
     }
 })
 
-/**
- * Create a test configuration for the reaper.
- */
+/** Create a test configuration for the reaper. */
 private fun createConfig(): MonitorConfig =
     mockk {
         every { reaperMaxAge } returns maxJobAge
     }
 
-/**
- * Create a dummy job.
- */
+/** Create a dummy job. */
 private fun createJob(): JobData = JobData(
     mockk<V1Job> {
         every { metadata } returns mockk {

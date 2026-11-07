@@ -22,9 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization.rights
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
-/**
- * A class that encapsulates a number of permissions to check on hierarchy elements.
- */
+/** A class that encapsulates a number of permissions to check on hierarchy elements. */
 class PermissionChecker(
     /** The required permissions on organization level. */
     val organizationPermissions: Set<OrganizationPermission> = emptySet(),
@@ -35,9 +33,7 @@ class PermissionChecker(
     /** The required permissions on repository level. */
     val repositoryPermissions: Set<RepositoryPermission> = emptySet()
 ) {
-    /**
-     * Check whether the given [role] contains all permissions required by this [PermissionChecker].
-     */
+    /** Check whether the given [role] contains all permissions required by this [PermissionChecker]. */
     operator fun invoke(role: Role): Boolean =
         organizationPermissions.all { it in role.organizationPermissions } &&
                 productPermissions.all { it in role.productPermissions } &&
@@ -87,27 +83,19 @@ sealed interface HierarchyPermissions {
                 ?: StandardHierarchyPermissions(assignmentsByLevel, checker)
         }
 
-        /**
-         * Return a [PermissionChecker] that checks for the presence of all given organization permissions [ps].
-         */
+        /** Return a [PermissionChecker] that checks for the presence of all given organization permissions [ps]. */
         fun permissions(vararg ps: OrganizationPermission): PermissionChecker =
             PermissionChecker(organizationPermissions = ps.toSet())
 
-        /**
-         * Return a [PermissionChecker] that checks for the presence of all given product permissions [ps].
-         */
+        /** Return a [PermissionChecker] that checks for the presence of all given product permissions [ps]. */
         fun permissions(vararg ps: ProductPermission): PermissionChecker =
             PermissionChecker(productPermissions = ps.toSet())
 
-        /**
-         * Return a [PermissionChecker] that checks for the presence of all given repository permissions [ps].
-         */
+        /** Return a [PermissionChecker] that checks for the presence of all given repository permissions [ps]. */
         fun permissions(vararg ps: RepositoryPermission): PermissionChecker =
             PermissionChecker(repositoryPermissions = ps.toSet())
 
-        /**
-         * Return a [PermissionChecker] that checks for the presence of all permissions defined by the given [role].
-         */
+        /** Return a [PermissionChecker] that checks for the presence of all permissions defined by the given [role]. */
         fun permissions(role: Role): PermissionChecker =
             PermissionChecker(
                 organizationPermissions = role.organizationPermissions,
@@ -148,9 +136,7 @@ sealed interface HierarchyPermissions {
      */
     fun implicitIncludes(): IdsByLevel
 
-    /**
-     * Return a flag whether this instance represents superuser permissions.
-     */
+    /** Return a flag whether this instance represents superuser permissions. */
     fun isSuperuser(): Boolean
 }
 

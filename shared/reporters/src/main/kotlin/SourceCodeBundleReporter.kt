@@ -61,14 +61,10 @@ const val SOURCE_BUNDLE_FILE_NAME = "source-bundle-archive.zip"
 const val SOURCE_BUNDLE_SUB_DIR = "source_code_bundle"
 
 data class SourceCodeBundleReporterConfig(
-    /**
-     * The license categories to consider when including packages in the source code bundle.
-     */
+    /** The license categories to consider when including packages in the source code bundle. */
     val includedLicenseCategories: List<String>?,
 
-    /**
-     * The type of package to include in the source code bundle. Allowed values are "PROJECT" and "PACKAGE".
-     */
+    /** The type of package to include in the source code bundle. Allowed values are "PROJECT" and "PACKAGE". */
     @OrtPluginOption(defaultValue = "PROJECT", aliases = ["packageType"])
     val packageTypes: List<String>,
 
@@ -79,9 +75,7 @@ data class SourceCodeBundleReporterConfig(
     val sourceCodeOrigins: List<String>?
 )
 
-/**
- * A custom reporter that creates source code bundles.
- */
+/** A custom reporter that creates source code bundles. */
 @OrtPlugin(
     id = "SourceCodeBundle",
     displayName = "Source Code Bundle",
@@ -108,14 +102,10 @@ class SourceCodeBundleReporter(
     )
 
     companion object {
-        /**
-         * Name of the property that specifies the type of package for the source code bundle.
-         */
+        /** Name of the property that specifies the type of package for the source code bundle. */
         const val PACKAGE_TYPE_PROPERTY = "packageType"
 
-        /**
-         * Name of the property that specifies the license classifications to include in the source code bundle.
-         */
+        /** Name of the property that specifies the license classifications to include in the source code bundle. */
         const val INCLUDED_LICENSE_CATEGORIES_PROPERTY = "includedLicenseCategories"
 
         /** A file filter that simply includes all files. */
@@ -137,9 +127,7 @@ class SourceCodeBundleReporter(
                 else -> includeAllFilter
             }
 
-        /**
-         * Return a filter that includes only files below the given [subPath] under the given [outputDir].
-         */
+        /** Return a filter that includes only files below the given [subPath] under the given [outputDir]. */
         private fun createSubPathFilter(subPath: String, outputDir: File): (File) -> Boolean {
             val subPathDir = outputDir.resolve(subPath).toPath()
 

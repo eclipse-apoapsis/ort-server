@@ -25,9 +25,7 @@ import com.github.ajalt.clikt.core.Context
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 
-/**
- * A command to logout from ORT Server instances.
- */
+/** A command to logout from ORT Server instances. */
 class LogoutCommand : SuspendingCliktCommand(name = "logout") {
     override fun help(context: Context) = "Logout from all ORT Server instances."
 

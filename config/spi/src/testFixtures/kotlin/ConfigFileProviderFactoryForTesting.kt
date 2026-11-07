@@ -57,9 +57,7 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
          */
         const val ERROR_VALUE = "errorConfig"
 
-        /**
-         * Test whether secrets can be queried from the given [secretProvider] if this check is enabled.
-         */
+        /** Test whether secrets can be queried from the given [secretProvider] if this check is enabled. */
         private fun checkConfigManagerSecretAccess(config: Config, secretProvider: ConfigSecretProvider) {
             config.getStringOrNull(SECRET_PROPERTY)?.let { secret ->
                 secretProvider.getSecret(Path(secret))

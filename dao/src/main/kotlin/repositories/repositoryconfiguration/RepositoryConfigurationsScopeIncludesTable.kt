@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [RepositoryConfigurationsTable] and [ScopeIncludesTable].
- */
+/** An intermediate table to store references from [RepositoryConfigurationsTable] and [ScopeIncludesTable]. */
 object RepositoryConfigurationsScopeIncludesTable : Table("repository_configurations_scope_includes") {
     val repositoryConfigurationId = reference("repository_configuration_id", RepositoryConfigurationsTable)
     val scopeIncludeId = reference("scope_include_id", ScopeIncludesTable)

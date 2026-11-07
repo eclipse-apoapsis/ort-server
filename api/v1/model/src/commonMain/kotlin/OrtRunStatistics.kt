@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * A response object for returning ORT run statistics.
- */
+/** A response object for returning ORT run statistics. */
 @Serializable
 data class OrtRunStatistics(
     /** The number of unresolved issues found in the run(s), or null if no valid jobs have completed yet. */

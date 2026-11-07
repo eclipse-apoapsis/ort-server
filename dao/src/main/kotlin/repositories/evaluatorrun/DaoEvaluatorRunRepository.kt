@@ -34,9 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/**
- * An implementation of [EvaluatorRunRepository] that stores evaluator runs in [EvaluatorRunsTable].
- */
+/** An implementation of [EvaluatorRunRepository] that stores evaluator runs in [EvaluatorRunsTable]. */
 class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunRepository {
     override suspend fun create(
         evaluatorJobId: Long,

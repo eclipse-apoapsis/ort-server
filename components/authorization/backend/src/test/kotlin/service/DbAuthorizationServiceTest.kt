@@ -60,9 +60,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 class DbAuthorizationServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
-    /**
-     * Create a test service instance.
-     */
+    /** Create a test service instance. */
     private fun createService() = DbAuthorizationService(dbExtension.db)
 
     init {
@@ -1361,9 +1359,7 @@ class DbAuthorizationServiceTest : WordSpec() {
         }
     }
 
-    /**
-     * Create a [CompoundHierarchyId] for the test repository.
-     */
+    /** Create a [CompoundHierarchyId] for the test repository. */
     private fun repositoryCompoundId(): CompoundHierarchyId =
         CompoundHierarchyId.forRepository(
             organizationId = OrganizationId(dbExtension.fixtures.organization.id),
@@ -1371,9 +1367,7 @@ class DbAuthorizationServiceTest : WordSpec() {
             repositoryId = RepositoryId(dbExtension.fixtures.repository.id)
         )
 
-    /**
-     * Create a role assignment entity in the database for the given parameters.
-     */
+    /** Create a role assignment entity in the database for the given parameters. */
     private suspend fun createAssignment(
         userId: String = USER_ID,
         organizationId: Long? = null,
@@ -1420,9 +1414,7 @@ class DbAuthorizationServiceTest : WordSpec() {
         }
     }
 
-    /**
-     * Execute a test for listing the users with the given [role] on the specified [hierarchyId].
-     */
+    /** Execute a test for listing the users with the given [role] on the specified [hierarchyId]. */
     private suspend fun checkListUsersWithRole(hierarchyId: CompoundHierarchyId, role: Role) {
         val user2 = "test-user-2"
         val service = createService()
@@ -1440,16 +1432,12 @@ class DbAuthorizationServiceTest : WordSpec() {
         users should containExactlyInAnyOrder(USER_ID, user2)
     }
 
-    /**
-     * Verify that the number of role assignments in the database matches the [expectedCount].
-     */
+    /** Verify that the number of role assignments in the database matches the [expectedCount]. */
     private suspend fun assertRoleAssignmentCount(expectedCount: Int) {
         queryRoleAssignmentsCount() shouldBe expectedCount
     }
 
-    /**
-     * Query the number of role assignments in the database.
-     */
+    /** Query the number of role assignments in the database. */
     private suspend fun queryRoleAssignmentsCount(): Long = dbExtension.db.transaction {
         RoleAssignmentsTable.select(RoleAssignmentsTable.id).count()
     }

@@ -63,9 +63,7 @@ class MessagePublisher(
     /** The sender to the Notifier endpoint. */
     private val notifierSender by lazy { MessageSenderFactory.createSender(NotifierEndpoint, configManager) }
 
-    /**
-     * Send the given [message] to the specified [endpoint][to].
-     */
+    /** Send the given [message] to the specified [endpoint][to]. */
     fun <T : Any> publish(to: Endpoint<T>, message: Message<T>) {
         log.info(
             "Sending '${message.payload::class.simpleName}' message " +

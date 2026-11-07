@@ -571,9 +571,7 @@ private fun createJob(
     return job.captured
 }
 
-/**
- * Create a sender to be tested based on the given [config] together with a mocked Kubernetes client.
- */
+/** Create a sender to be tested based on the given [config] together with a mocked Kubernetes client. */
 private fun createClientAndSender(
     config: KubernetesSenderConfig
 ): Pair<BatchV1Api, KubernetesMessageSender<AnalyzerRequest>> {
@@ -627,9 +625,7 @@ private fun createConfig(
     }
 }
 
-/**
- * Return a copy of the test message that contains the given [properties].
- */
+/** Return a copy of the test message that contains the given [properties]. */
 private fun messageWithProperties(vararg properties: Pair<String, String>): Message<AnalyzerRequest> =
     message.copy(header = header.copy(transportProperties = mapOf(*properties)))
 
@@ -647,9 +643,7 @@ private fun verifyLabels(actualLabels: Map<String, String>, expectedRunId: Long,
     }
 }
 
-/**
- * Check whether this container has exactly the volume mounts with the given [expectedNames].
- */
+/** Check whether this container has exactly the volume mounts with the given [expectedNames]. */
 private fun V1Container.expectMounts(vararg expectedNames: String) {
     volumeMounts.orEmpty().map { it.name } shouldContainExactlyInAnyOrder expectedNames.toList()
 }

@@ -102,9 +102,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.utils.common.collectMessages
 
-/**
- * The route that lists the products of all organizations. The routes for a single product are in [products].
- */
+/** The route that lists the products of all organizations. The routes for a single product are in [products]. */
 fun Route.allProducts() = route("products") {
     val productService by inject<ProductService>()
 

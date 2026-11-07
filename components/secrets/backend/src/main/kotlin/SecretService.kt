@@ -35,18 +35,14 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/**
- * A service providing functions for working with [secrets][Secret].
- */
+/** A service providing functions for working with [secrets][Secret]. */
 class SecretService(
     private val db: Database,
     private val secretStorage: SecretStorage
 ) {
     private val secretRepository = SecretRepository(db)
 
-    /**
-     * Create a secret for [id] with the given metadata [name] and [description], and the provided [value].
-     */
+    /** Create a secret for [id] with the given metadata [name] and [description], and the provided [value]. */
     suspend fun createSecret(
         name: String,
         value: String,
@@ -61,24 +57,18 @@ class SecretService(
         secret
     }
 
-    /**
-     * Delete a secret by [id] and [name].
-     */
+    /** Delete a secret by [id] and [name]. */
     suspend fun deleteSecret(id: HierarchyId, name: String) = db.transaction {
         secretRepository.getByIdAndName(id, name)?.deleteValue()
         secretRepository.deleteForIdAndName(id, name)
     }
 
-    /**
-     * Get a secret by [id] and [name]. Returns null if the secret is not found.
-     */
+    /** Get a secret by [id] and [name]. Returns null if the secret is not found. */
     suspend fun getSecret(id: HierarchyId, name: String): Secret? = db.transaction {
         secretRepository.getByIdAndName(id, name)
     }
 
-    /**
-     * Get the value of a [secret]. Returns `null` if the value is not found.
-     */
+    /** Get the value of a [secret]. Returns `null` if the value is not found. */
     suspend fun getSecretValue(secret: Secret): SecretValue? = secretStorage.readSecret(Path(secret.path))
 
     /**
@@ -107,9 +97,7 @@ class SecretService(
         }
     }
 
-    /**
-     * List all secrets for a specific [id] and according to the given [parameters].
-     */
+    /** List all secrets for a specific [id] and according to the given [parameters]. */
     suspend fun listForId(
         id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
@@ -117,9 +105,7 @@ class SecretService(
         secretRepository.listForId(id, parameters)
     }
 
-    /**
-     * Update a secret by [id] and [name] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a secret by [id] and [name] with the [present][OptionalValue.Present] values. */
     suspend fun updateSecret(
         id: HierarchyId,
         name: String,
@@ -135,16 +121,12 @@ class SecretService(
         secret
     }
 
-    /**
-     * Update the [value] of this [Secret] in the [SecretStorage].
-     */
+    /** Update the [value] of this [Secret] in the [SecretStorage]. */
     private suspend fun Secret.updateValue(value: String) {
         secretStorage.writeSecret(Path(path), SecretValue(value))
     }
 
-    /**
-     * Remove the value of this [Secret] from the [SecretStorage].
-     */
+    /** Remove the value of this [Secret] from the [SecretStorage]. */
     private suspend fun Secret.deleteValue() {
         secretStorage.removeSecret(Path(path))
     }

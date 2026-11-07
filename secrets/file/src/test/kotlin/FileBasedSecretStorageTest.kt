@@ -137,9 +137,7 @@ class FileBasedSecretStorageTest : WordSpec() {
     }
 }
 
-/**
- * Returns a config for [FileBasedSecretsProvider].
- */
+/** Returns a config for [FileBasedSecretsProvider]. */
 private fun getStorage(storageFile: File): SecretStorage {
     val properties = mapOf(
         "$CONFIG_PREFIX.$NAME_PROPERTY" to FileBasedSecretsProvider.NAME,

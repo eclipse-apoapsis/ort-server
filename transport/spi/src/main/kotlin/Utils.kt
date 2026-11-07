@@ -33,9 +33,7 @@ private const val ORT_SERVER_BANNER = """
  ORT Server version: $ORT_SERVER_VERSION
 """
 
-/**
- * Log the ORT Server version including the commit hash. Also display a pretty Ascii art banner.
- */
+/** Log the ORT Server version including the commit hash. Also display a pretty Ascii art banner. */
 fun Logger.logVersion() {
     info(ORT_SERVER_BANNER)
 }

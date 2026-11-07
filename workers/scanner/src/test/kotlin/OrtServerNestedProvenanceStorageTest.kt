@@ -72,9 +72,7 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
             packageProvenanceStorage.writeProvenance(id, vcsInfo, packageProvenance)
         }
 
-        /**
-         * Verify that the provided [result] was associated to the given [provenance].
-         */
+        /** Verify that the provided [result] was associated to the given [provenance]. */
         suspend fun verifyAssociatedProvenance(
             result: NestedProvenanceResolutionResult,
             provenance: RepositoryProvenance = packageProvenance.provenance

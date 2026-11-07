@@ -28,13 +28,9 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-/**
- * A repository of [repositories][Repository].
- */
+/** A repository of [repositories][Repository]. */
 interface RepositoryRepository {
-    /**
-     * Create a repository.
-     */
+    /** Create a repository. */
     suspend fun create(
         type: RepositoryType,
         url: String,
@@ -43,9 +39,7 @@ interface RepositoryRepository {
         description: String?
     ): Repository
 
-    /**
-     * Get a repository by [id]. Returns null if the repository is not found.
-     */
+    /** Get a repository by [id]. Returns null if the repository is not found. */
     suspend fun get(id: Long): Repository?
 
     /**
@@ -64,18 +58,14 @@ interface RepositoryRepository {
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Repository>
 
-    /**
-     * List all repositories for a [product][productId] according to the given [parameters].
-     */
+    /** List all repositories for a [product][productId] according to the given [parameters]. */
     suspend fun listForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
     ): ListQueryResult<Repository>
 
-    /**
-     * Update a repository by [id] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a repository by [id] with the [present][OptionalValue.Present] values. */
     suspend fun update(
         id: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
@@ -85,13 +75,9 @@ interface RepositoryRepository {
         productId: OptionalValue<Long> = OptionalValue.Absent
     ): Repository
 
-    /**
-     * Delete a repository by [id].
-     */
+    /** Delete a repository by [id]. */
     suspend fun delete(id: Long)
 
-    /**
-     * Delete all [Repositories][Repository] associated to this [productId].
-     */
+    /** Delete all [Repositories][Repository] associated to this [productId]. */
     suspend fun deleteByProduct(productId: Long): Int
 }

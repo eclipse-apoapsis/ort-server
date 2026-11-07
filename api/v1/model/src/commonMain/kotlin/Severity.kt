@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
-/**
- * An enum for severities of [Issue]s and other similar objects.
- */
+/** An enum for severities of [Issue]s and other similar objects. */
 enum class Severity {
     /** Used for issues that provide information only. */
     HINT,

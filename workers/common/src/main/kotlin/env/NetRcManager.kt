@@ -51,9 +51,7 @@ internal class NetRcManager(
     companion object {
         private val logger = LoggerFactory.getLogger(NetRcManager::class.java)
 
-        /**
-         * Create a new instance of [NetRcManager] and initialize it with the given [resolverFun].
-         */
+        /** Create a new instance of [NetRcManager] and initialize it with the given [resolverFun]. */
         fun create(resolverFun: SecretResolverFun): NetRcManager =
             NetRcManager(resolverFun)
     }
@@ -75,20 +73,14 @@ internal class NetRcManager(
         }
     }
 
-    /**
-     * Return a new instance of [ConfigFileBuilder] to be used for creating the `.netrc` file.
-     */
+    /** Return a new instance of [ConfigFileBuilder] to be used for creating the `.netrc` file. */
     internal fun createConfigFileBuilder(): ConfigFileBuilder =
         ConfigFileBuilder(resolverFun, undefinedInfraSecretResolver)
 
-    /**
-     * Return a new instance of [NetRcGenerator] that is going to be called to generate the `.netrc` file.
-     */
+    /** Return a new instance of [NetRcGenerator] that is going to be called to generate the `.netrc` file. */
     internal fun createNetRcGenerator(): NetRcGenerator = NetRcGenerator()
 
-    /**
-     * Perform an update of the `.netrc` file after receiving an authentication event for the given [service].
-     */
+    /** Perform an update of the `.netrc` file after receiving an authentication event for the given [service]. */
     private suspend fun updateNetRcServices(service: ResolvedInfrastructureService) {
         val serviceUri = URI.create(service.url)
         val serviceHost = serviceUri.host

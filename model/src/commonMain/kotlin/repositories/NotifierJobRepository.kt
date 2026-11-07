@@ -23,18 +23,12 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 
 interface NotifierJobRepository : WorkerJobRepository<NotifierJob> {
-    /**
-     * Create a notifier job.
-     */
+    /** Create a notifier job. */
     suspend fun create(ortRunId: Long, configuration: NotifierJobConfiguration): NotifierJob
 
-    /**
-     * Delete a notifier job by [id].
-     */
+    /** Delete a notifier job by [id]. */
     suspend fun delete(id: Long)
 
-    /**
-     * Delete the recipients from the NotifierJob, as the email addresses are personal data.
-     */
+    /** Delete the recipients from the NotifierJob, as the email addresses are personal data. */
     suspend fun deleteMailRecipients(id: Long): NotifierJob
 }

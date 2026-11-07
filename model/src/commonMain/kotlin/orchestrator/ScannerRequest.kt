@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a request to the Scanner worker to process a specific repository.
- */
+/** A data class representing a request to the Scanner worker to process a specific repository. */
 @Serializable
 data class ScannerRequest(
     val scannerJobId: Long

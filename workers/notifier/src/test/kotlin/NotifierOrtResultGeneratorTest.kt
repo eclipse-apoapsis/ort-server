@@ -167,18 +167,14 @@ private val notifierJob = NotifierJob(
     errorMessage = null
 )
 
-/**
- * Return a mock for a [WorkerJob] of the given type that is prepared to report the given [jobId] and [status].
- */
+/** Return a mock for a [WorkerJob] of the given type that is prepared to report the given [jobId] and [status]. */
 private inline fun <reified J : WorkerJob> createJob(status: JobStatus, jobId: Long): J =
     mockk {
         every { id } returns jobId
         every { this@mockk.status } returns status
     }
 
-/**
- * A test helper class that manages test data and mocks required by test cases.
- */
+/** A test helper class that manages test data and mocks required by test cases. */
 private class ResultGeneratorTestHelper {
     val repository = mockk<org.ossreviewtoolkit.model.Repository>()
     val analyzerRun = mockk<AnalyzerRun>()

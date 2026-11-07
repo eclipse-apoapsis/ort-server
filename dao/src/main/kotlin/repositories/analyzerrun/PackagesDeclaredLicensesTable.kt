@@ -23,9 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [PackagesTable] and [DeclaredLicensesTable].
- */
+/** An intermediate table to store references from [PackagesTable] and [DeclaredLicensesTable]. */
 object PackagesDeclaredLicensesTable : Table("packages_declared_licenses") {
     val packageId = reference("package_id", PackagesTable)
     val declaredLicenseId = reference("declared_license_id", DeclaredLicensesTable)

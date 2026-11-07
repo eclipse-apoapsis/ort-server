@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an option for an advisor.
- */
+/** A table to represent an option for an advisor. */
 object AdvisorConfigurationOptionsTable : LongIdTable("advisor_configuration_options") {
     val advisor = text("advisor")
     val option = text("option")

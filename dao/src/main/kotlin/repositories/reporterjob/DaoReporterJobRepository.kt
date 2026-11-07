@@ -95,9 +95,7 @@ class DaoReporterJobRepository(private val db: Database) : ReporterJobRepository
         }?.map { it.mapToModel() }.orEmpty()
     }
 
-    /**
-     * Return the [ReporterJobDao] for the given [ortRunId], or *null* if no job exists for the run.
-     */
+    /** Return the [ReporterJobDao] for the given [ortRunId], or *null* if no job exists for the run. */
     private fun findJobForOrtRun(ortRunId: Long) =
         ReporterJobDao.find { ReporterJobsTable.ortRunId eq ortRunId }.limit(1).firstOrNull()
 }

@@ -62,9 +62,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A table to represent an ORT run.
- */
+/** A table to represent an ORT run. */
 object OrtRunsTable : SortableTable("ort_runs") {
     val repositoryId = reference("repository_id", RepositoriesTable)
 

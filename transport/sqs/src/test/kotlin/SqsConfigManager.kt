@@ -32,9 +32,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Images
 
 import org.testcontainers.utility.DockerImageName
 
-/**
- * Create a [ConfigManager] with a test queue for [consumerName] using [transportType].
- */
+/** Create a [ConfigManager] with a test queue for [consumerName] using [transportType]. */
 fun Spec.createSqsConfigManager(consumerName: String, transportType: String): ConfigManager {
     val floci = install(TestContainerSpecExtension(FlociContainer(DockerImageName.parse(Images.FLOCI))))
 

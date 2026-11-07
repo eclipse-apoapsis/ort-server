@@ -51,9 +51,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerP
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-/**
- * A base class for integration tests that provides a database connection and a mock authentication provider.
- */
+/** A base class for integration tests that provides a database connection and a mock authentication provider. */
 @Suppress("AbstractClassCanBeConcreteClass")
 abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
     val dbExtension = extension(DatabaseTestExtension())

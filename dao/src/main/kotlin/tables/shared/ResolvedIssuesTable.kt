@@ -24,9 +24,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.I
 
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
-/**
- * A table to store resolved issues, linking [OrtRunsTable], [OrtRunsIssuesTable], and [IssueResolutionsTable].
- */
+/** A table to store resolved issues, linking [OrtRunsTable], [OrtRunsIssuesTable], and [IssueResolutionsTable]. */
 object ResolvedIssuesTable : LongIdTable("resolved_issues") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
     val ortRunIssueId = reference("ort_run_issue_id", OrtRunsIssuesTable)

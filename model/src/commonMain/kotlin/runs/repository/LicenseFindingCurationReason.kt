@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-/**
- * Possible reasons for a [LicenseFindingCuration].
- */
+/** Possible reasons for a [LicenseFindingCuration]. */
 enum class LicenseFindingCurationReason {
     CODE,
     DATA_OF,

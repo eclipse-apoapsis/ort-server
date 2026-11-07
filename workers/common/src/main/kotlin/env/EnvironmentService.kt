@@ -259,9 +259,7 @@ class EnvironmentService(
         }
     }
 
-    /**
-     * Resolve the given [services] into [ResolvedInfrastructureService]s by looking up their associated secrets.
-     */
+    /** Resolve the given [services] into [ResolvedInfrastructureService]s by looking up their associated secrets. */
     suspend fun resolveInfrastructureServices(
         context: WorkerContext,
         services: Collection<InfrastructureService>
@@ -325,9 +323,7 @@ internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConf
     return EnvironmentConfig(mergedInfrastructureService, mergedEnvironmentDefinitions, mergedEnvironmentVariables)
 }
 
-/**
- * Convert this [InfrastructureServiceDeclaration] to an [InfrastructureService].
- */
+/** Convert this [InfrastructureServiceDeclaration] to an [InfrastructureService]. */
 internal fun InfrastructureServiceDeclaration.toInfrastructureService(): InfrastructureService =
     InfrastructureService(
         name = name,

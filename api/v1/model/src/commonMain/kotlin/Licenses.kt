@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * A response object for licenses.
- */
+/** A response object for licenses. */
 @Serializable
 data class Licenses(
     /** The distinct processed declared license expressions. */

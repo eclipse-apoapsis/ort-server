@@ -38,9 +38,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a snippet.
- */
+/** A table to represent a snippet. */
 object SnippetsTable : LongIdTable("snippets") {
     val purl = text("purl")
     val artifactId = reference("artifact_id", RemoteArtifactsTable).nullable()

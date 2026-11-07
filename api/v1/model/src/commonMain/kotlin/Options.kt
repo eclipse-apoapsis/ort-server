@@ -19,7 +19,5 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
-/**
- * A typealias for key-value pairs.
- */
+/** A typealias for key-value pairs. */
 typealias Options = Map<String, String>

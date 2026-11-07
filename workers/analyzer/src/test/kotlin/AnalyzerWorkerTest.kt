@@ -157,9 +157,7 @@ private val analyzerJob = AnalyzerJob(
     errorMessage = null
 )
 
-/**
- * Helper function to invoke this worker with the given [phase], [args] and further test parameters.
- */
+/** Helper function to invoke this worker with the given [phase], [args] and further test parameters. */
 private suspend fun AnalyzerWorker.testRun(phase: AnalyzerPhase, args: Array<String> = emptyArray()): RunResult =
     run(JOB_ID, TRACE_ID, phase, args)
 
@@ -1612,9 +1610,7 @@ private fun mockIssueResolutionService() = mockk<IssueResolutionService> {
     coEvery { getResolutionsForRepository(any()) } returns Ok(emptyList())
 }
 
-/**
- * Return an [AnalyzerRunnerConfig] based on the given [jobConfig] and optional [packageCurationProviderConfigs].
- */
+/** Return an [AnalyzerRunnerConfig] based on the given [jobConfig] and optional [packageCurationProviderConfigs]. */
 private fun runnerConfig(
     jobConfig: AnalyzerJobConfiguration,
     packageCurationProviderConfigs: List<ProviderPluginConfiguration>? = null

@@ -23,9 +23,7 @@ import java.security.MessageDigest
 
 private const val RESOLUTION_MESSAGE_HASH_ALGORITHM = "SHA-1"
 
-/**
- * Calculate the stable technical identifier for a resolution from the exact matcher [message].
- */
+/** Calculate the stable technical identifier for a resolution from the exact matcher [message]. */
 @OptIn(ExperimentalStdlibApi::class)
 fun calculateResolutionMessageHash(message: String): String =
     MessageDigest.getInstance(RESOLUTION_MESSAGE_HASH_ALGORITHM)

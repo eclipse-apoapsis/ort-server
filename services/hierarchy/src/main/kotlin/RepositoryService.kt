@@ -53,9 +53,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A service providing functions for working with [repositories][Repository].
- */
+/** A service providing functions for working with [repositories][Repository]. */
 @Suppress("LongParameterList")
 class RepositoryService(
     private val db: Database,
@@ -69,18 +67,14 @@ class RepositoryService(
     private val notifierJobRepository: NotifierJobRepository,
     private val authorizationService: AuthorizationService
 ) {
-    /**
-     * Delete the [Repository] by its [repositoryId] and all [OrtRun]s that are associated with it.
-     */
+    /** Delete the [Repository] by its [repositoryId] and all [OrtRun]s that are associated with it. */
     suspend fun deleteRepository(repositoryId: Long): Unit = db.transaction {
         ortRunRepository.deleteByRepository(repositoryId)
 
         repositoryRepository.delete(repositoryId)
     }
 
-    /**
-     * Get all [Jobs] for the [OrtRun] with the provided [ortRunIndex] and [repositoryId].
-     */
+    /** Get all [Jobs] for the [OrtRun] with the provided [ortRunIndex] and [repositoryId]. */
     suspend fun getJobs(repositoryId: Long, ortRunIndex: Long): Jobs? = db.transaction {
         val ortRun = ortRunRepository.getByIndex(repositoryId, ortRunIndex) ?: return@transaction null
 
@@ -122,9 +116,7 @@ class RepositoryService(
         ortRunRepository.listSummariesForRepository(repositoryId, parameters)
     }
 
-    /**
-     * Get a repository by [repositoryId]. Returns null if the repository is not found.
-     */
+    /** Get a repository by [repositoryId]. Returns null if the repository is not found. */
     suspend fun getRepository(repositoryId: Long): Repository? = db.transaction {
         repositoryRepository.get(repositoryId)
     }
@@ -140,9 +132,7 @@ class RepositoryService(
         repositoryRepository.list(parameters, filter)
     }
 
-    /**
-     * Update a repository by [repositoryId] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a repository by [repositoryId] with the [present][OptionalValue.Present] values. */
     suspend fun updateRepository(
         repositoryId: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
@@ -174,9 +164,7 @@ class RepositoryService(
         }
     }
 
-    /**
-     * Get the ID of the latest ORT run of the repository where the analyzer job is in a final state.
-     */
+    /** Get the ID of the latest ORT run of the repository where the analyzer job is in a final state. */
     suspend fun getLatestOrtRunIdWithAnalyzerJobInFinalState(repositoryId: Long): Long? = db.transaction {
         AnalyzerJobsTable
             .innerJoin(OrtRunsTable)
@@ -192,9 +180,7 @@ class RepositoryService(
             ?.value
     }
 
-    /**
-     * Get the ID of the latest ORT run of the repository where the analyzer job has succeeded.
-     */
+    /** Get the ID of the latest ORT run of the repository where the analyzer job has succeeded. */
     suspend fun getLatestOrtRunIdWithSuccessfulAnalyzerJob(repositoryId: Long): Long? = db.transaction {
         AnalyzerJobsTable
             .innerJoin(OrtRunsTable)
@@ -210,9 +196,7 @@ class RepositoryService(
             ?.value
     }
 
-    /**
-     * Get the ID of the latest ORT run of the repository where the advisor job has succeeded.
-     */
+    /** Get the ID of the latest ORT run of the repository where the advisor job has succeeded. */
     suspend fun getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId: Long): Long? = db.transaction {
         AdvisorJobsTable
             .innerJoin(OrtRunsTable)
@@ -228,9 +212,7 @@ class RepositoryService(
             ?.value
     }
 
-    /**
-     * Get the ID of the latest ORT run of the repository where the evaluator job has succeeded.
-     */
+    /** Get the ID of the latest ORT run of the repository where the evaluator job has succeeded. */
     suspend fun getLatestOrtRunIdWithSuccessfulEvaluatorJob(repositoryId: Long): Long? = db.transaction {
         EvaluatorJobsTable
             .innerJoin(OrtRunsTable)

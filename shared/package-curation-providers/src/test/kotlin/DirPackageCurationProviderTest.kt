@@ -101,9 +101,7 @@ private fun createProvider(root: File): PackageCurationProvider {
     return PackageCurationProviderFactory.create(listOf(config)).single().second
 }
 
-/**
- * Return a test [PackageCuration] for a package with the given [id].
- */
+/** Return a test [PackageCuration] for a package with the given [id]. */
 private fun createCuration(id: Identifier): PackageCuration =
     PackageCuration(
         id = id,

@@ -37,9 +37,7 @@ import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.jdbc.Query
 
-/**
- * A table to represent an ort issue.
- */
+/** A table to represent an ort issue. */
 object IssuesTable : SortableTable("issues") {
     val issueSource = text("source")
     val message = text("message")
@@ -92,9 +90,7 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     var severity by IssuesTable.severity
     var affectedPath by IssuesTable.affectedPath
 
-    /**
-     * Return a model representation of this [IssueDao] with the given additional properties.
-     */
+    /** Return a model representation of this [IssueDao] with the given additional properties. */
     fun mapToModel(at: Instant, identifier: Identifier?, worker: String?, howToFix: String? = null) = Issue(
         timestamp = at,
         source = source,

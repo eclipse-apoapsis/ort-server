@@ -28,9 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedIssueResoluti
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
-/**
- * A data class describing an issue that occurred during an ORT run.
- */
+/** A data class describing an issue that occurred during an ORT run. */
 @Serializable
 data class Issue(
     /** The timestamp when this issue occurred. */
@@ -69,9 +67,7 @@ data class Issue(
     val howToFix: String? = null
 )
 
-/**
- * Filters to apply when querying for issues.
- */
+/** Filters to apply when querying for issues. */
 data class IssueFilter(
     /** Filter by resolution status. Null if both resolved and unresolved issues should be returned. */
     val resolved: Boolean? = null,

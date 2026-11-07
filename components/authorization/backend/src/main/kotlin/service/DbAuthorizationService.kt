@@ -366,14 +366,10 @@ class DbAuthorizationService(
         }
 }
 
-/**
- * Constant to represent an invalid ID in the database. This is used to determine whether resolving an ID failed.
- */
+/** Constant to represent an invalid ID in the database. This is used to determine whether resolving an ID failed. */
 private const val INVALID_ID = -1L
 
-/**
- * An implementation of the [EffectiveRole] interface used by [DbAuthorizationService].
- */
+/** An implementation of the [EffectiveRole] interface used by [DbAuthorizationService]. */
 private class EffectiveRoleImpl(
     override val elementId: CompoundHierarchyId,
 
@@ -389,25 +385,19 @@ private class EffectiveRoleImpl(
     override fun getRepositoryPermissions(): Set<RepositoryPermission> = permissions.repositoryPermissions
 }
 
-/**
- * Check whether this [CompoundHierarchyId] is invalid. This means that its components could not be resolved.
- */
+/** Check whether this [CompoundHierarchyId] is invalid. This means that its components could not be resolved. */
 private fun CompoundHierarchyId.isInvalid() =
     organizationId?.value == INVALID_ID ||
             productId?.value == INVALID_ID ||
             repositoryId?.value == INVALID_ID
 
-/**
- * Generate a filter condition that matches exactly all role assignments for this [CompoundHierarchyId].
- */
+/** Generate a filter condition that matches exactly all role assignments for this [CompoundHierarchyId]. */
 private fun CompoundHierarchyId.toFilterCondition(): Op<Boolean> =
     (RoleAssignmentsTable.organizationId eq this.organizationId?.value) and
             (RoleAssignmentsTable.productId eq this.productId?.value) and
             (RoleAssignmentsTable.repositoryId eq this.repositoryId?.value)
 
-/**
- * Fetch the concrete [Role] that is referenced by this [ResultRow].
- */
+/** Fetch the concrete [Role] that is referenced by this [ResultRow]. */
 private fun ResultRow.extractRole(): Role? = runCatching {
     listOfNotNull(
         this[RoleAssignmentsTable.organizationRole]?.let(OrganizationRole::valueOf),
@@ -418,9 +408,7 @@ private fun ResultRow.extractRole(): Role? = runCatching {
     logger.error("Failed to extract role from database row: ${this[RoleAssignmentsTable.id]}", it)
 }.getOrNull()
 
-/**
- * Extract the [CompoundHierarchyId] on the correct level from this [ResultRow].
- */
+/** Extract the [CompoundHierarchyId] on the correct level from this [ResultRow]. */
 private fun ResultRow.extractHierarchyId(): CompoundHierarchyId {
     val orgId = this[RoleAssignmentsTable.organizationId]?.let { OrganizationId(it.value) }
     if (orgId == null) {
@@ -454,9 +442,7 @@ private fun computeRoleForUser(
     return findHighestRole(assignments, hierarchyId)?.first
 }
 
-/**
- * Generate the SQL condition to match role assignments for the given [role].
- */
+/** Generate the SQL condition to match role assignments for the given [role]. */
 private fun roleCondition(role: Role): Op<Boolean> =
     when (role) {
         is OrganizationRole -> RoleAssignmentsTable.organizationRole eq role.name

@@ -28,8 +28,6 @@ data class Identifier(
     val name: String,
     val version: String
 ) {
-    /**
-     * Return this identifier in ORT coordinates format.
-     */
+    /** Return this identifier in ORT coordinates format. */
     fun toCoordinates(): String = "$type:$namespace:$name:$version"
 }

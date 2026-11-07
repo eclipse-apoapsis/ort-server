@@ -43,9 +43,7 @@ import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/**
- * A service providing functions for working with [organizations][Organization].
- */
+/** A service providing functions for working with [organizations][Organization]. */
 class OrganizationService(
     private val db: Database,
     private val organizationRepository: OrganizationRepository,
@@ -53,16 +51,12 @@ class OrganizationService(
     private val repositoryRepository: RepositoryRepository,
     private val authorizationService: AuthorizationService
 ) {
-    /**
-     * Create an organization.
-     */
+    /** Create an organization. */
     suspend fun createOrganization(name: String, description: String?): Organization = db.transaction {
         organizationRepository.create(name, description)
     }
 
-    /**
-     * Create a product inside an [organization][organizationId].
-     */
+    /** Create a product inside an [organization][organizationId]. */
     suspend fun createProduct(
         name: String,
         description: String?,
@@ -85,9 +79,7 @@ class OrganizationService(
         return product
     }
 
-    /**
-     * Delete an organization by [organizationId].
-     */
+    /** Delete an organization by [organizationId]. */
     suspend fun deleteOrganization(organizationId: Long): Unit = db.transaction {
         if (productRepository.countForOrganization(organizationId) != 0L) {
             throw OrganizationNotEmptyException(
@@ -98,16 +90,12 @@ class OrganizationService(
         organizationRepository.delete(organizationId)
     }
 
-    /**
-     * Get an organization by [organizationId]. Returns null if the organization is not found.
-     */
+    /** Get an organization by [organizationId]. Returns null if the organization is not found. */
     suspend fun getOrganization(organizationId: Long): Organization? = db.transaction {
         organizationRepository.get(organizationId)
     }
 
-    /**
-     * List all organizations according to the given [parameters].
-     */
+    /** List all organizations according to the given [parameters]. */
     suspend fun listOrganizations(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
@@ -132,9 +120,7 @@ class OrganizationService(
         )
     }
 
-    /**
-     * List all products for an [organization][organizationId].
-     */
+    /** List all products for an [organization][organizationId]. */
     suspend fun listProductsForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
@@ -162,9 +148,7 @@ class OrganizationService(
         return productRepository.list(parameters, nameFilter, productFilter)
     }
 
-    /**
-     * Update an organization by [organizationId] with the [present][OptionalValue.Present] values.
-     */
+    /** Update an organization by [organizationId] with the [present][OptionalValue.Present] values. */
     suspend fun updateOrganization(
         organizationId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,

@@ -63,9 +63,7 @@ import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 
-/**
- * The maximum number of failures in a sequence that cause the waiting loop for a run to finish to abort.
- */
+/** The maximum number of failures in a sequence that cause the waiting loop for a run to finish to abort. */
 private const val MAX_FAILURE_COUNT = 10
 
 class StartCommand : SuspendingCliktCommand(name = "start") {

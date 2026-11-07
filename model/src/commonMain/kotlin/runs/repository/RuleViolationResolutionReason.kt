@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-/**
- * Possible reasons for resolving a rule violation using a [RuleViolationResolution].
- */
+/** Possible reasons for resolving a rule violation using a [RuleViolationResolution]. */
 enum class RuleViolationResolutionReason {
     CANT_FIX_EXCEPTION,
     DYNAMIC_LINKAGE_EXCEPTION,

@@ -27,9 +27,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
 
-/**
- * A data class describing an issue that occurred during an ORT run.
- */
+/** A data class describing an issue that occurred during an ORT run. */
 @Serializable
 data class Issue(
     /** The timestamp when this issue occurred. */

@@ -41,9 +41,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a scan result.
- */
+/** A table to represent a scan result. */
 object ScanResultsTable : LongIdTable("scan_results") {
     val artifactUrl = text("artifact_url").nullable()
     val artifactHash = text("artifact_hash").nullable()
@@ -60,17 +58,13 @@ object ScanResultsTable : LongIdTable("scan_results") {
 
 class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScanResultDao>(ScanResultsTable) {
-        /**
-         * Return an expression that encapsulates the condition that the scan result matches the given [artifact].
-         */
+        /** Return an expression that encapsulates the condition that the scan result matches the given [artifact]. */
         fun matchesRemoteArtifact(artifact: RemoteArtifact): Op<Boolean> =
             (ScanResultsTable.artifactUrl eq artifact.url) and
                     (ScanResultsTable.artifactHash eq artifact.hashValue) and
                     (ScanResultsTable.artifactHashAlgorithm eq artifact.hashAlgorithm)
 
-        /**
-         * Return an expression that encapsulates the condition that the scan result matches the given [vcs].
-         */
+        /** Return an expression that encapsulates the condition that the scan result matches the given [vcs]. */
         fun matchesVcsInfo(vcs: VcsInfo): Op<Boolean> =
             (ScanResultsTable.vcsType eq vcs.type.name) and
                     (ScanResultsTable.vcsUrl eq vcs.url) and

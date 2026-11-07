@@ -42,29 +42,19 @@ class S3StorageProviderFactory : StorageProviderFactory {
         /** The name of this storage implementation. */
         const val NAME = "s3"
 
-        /**
-         * The name of the configuration property for the S3 storage access key.
-         */
+        /** The name of the configuration property for the S3 storage access key. */
         const val ACCESS_KEY_PROPERTY = "s3AccessKey"
 
-        /**
-         * The name of the configuration property for the S3 storage secret key.
-         */
+        /** The name of the configuration property for the S3 storage secret key. */
         const val SECRET_KEY_PROPERTY = "s3SecretKey"
 
-        /**
-         * The name of the configuration property for the S3 storage region.
-         */
+        /** The name of the configuration property for the S3 storage region. */
         const val REGION_PROPERTY = "s3Region"
 
-        /**
-         * The name of the configuration property for the S3 bucket name.
-         */
+        /** The name of the configuration property for the S3 bucket name. */
         const val BUCKET_NAME_PROPERTY = "s3BucketName"
 
-        /**
-         * The name of the configuration property for the endpoint URL of the S3 storage.
-         */
+        /** The name of the configuration property for the endpoint URL of the S3 storage. */
         const val ENDPOINT_URL_PROPERTY = "s3EndpointUrl"
 
         /**
@@ -81,9 +71,7 @@ class S3StorageProviderFactory : StorageProviderFactory {
 
     override val name: String = NAME
 
-    /**
-     * Create an instance of the [S3StorageProvider] using the provided [configuration][config].
-     */
+    /** Create an instance of the [S3StorageProvider] using the provided [configuration][config]. */
     override fun createProvider(config: ConfigManager, db: Database): StorageProvider {
         val client = S3Client {
             region = config.getStringOrNull(REGION_PROPERTY)

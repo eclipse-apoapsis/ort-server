@@ -29,9 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.Product
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.LongEntity
 
-/**
- * A product is a collection of repositories which are combined into one software product.
- */
+/** A product is a collection of repositories which are combined into one software product. */
 object ProductsTable : SortableTable("products") {
     val organizationId = reference("organization_id", OrganizationsTable)
 

@@ -22,9 +22,7 @@ package org.eclipse.apoapsis.ortserver.cli
 import org.eclipse.apoapsis.ortserver.cli.utils.getHomeDirectory
 import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 
-/**
- * Add a trailing slash to this [String] if it is missing.
- */
+/** Add a trailing slash to this [String] if it is missing. */
 fun String.ensureSuffix(suffix: String): String = takeIf { endsWith(suffix) } ?: "$this$suffix"
 
 /**

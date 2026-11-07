@@ -140,9 +140,7 @@ internal class ConfiguredDefaultPlugins(
 internal fun Column<Long?>.matches(organizationId: OrganizationId?): Op<Boolean> =
     if (organizationId == null) isNull() else eq(organizationId.value)
 
-/**
- * A table to store default plugins events. A `null` [organizationId] denotes events for the global defaults.
- */
+/** A table to store default plugins events. A `null` [organizationId] denotes events for the global defaults. */
 internal object DefaultPluginsEvents : Table("default_plugins_events") {
     val organizationId = long("organization_id").nullable()
     val category = enumerationByName<DefaultPluginsCategory>("category")

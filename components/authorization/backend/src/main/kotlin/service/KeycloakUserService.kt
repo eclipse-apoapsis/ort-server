@@ -141,9 +141,7 @@ private fun <T> Comparator<T>.withDirection(direction: OrderDirection): Comparat
         OrderDirection.DESCENDING -> reversed()
     }
 
-/**
- * Convert this [KeycloakUser] to a [User] in the ORT Server data model.
- */
+/** Convert this [KeycloakUser] to a [User] in the ORT Server data model. */
 private fun KeycloakUser.toOrtUser(): User =
     User(
         username = this.username.value,

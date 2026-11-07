@@ -21,17 +21,11 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing statistics for an ecosystem.
- */
+/** A data class representing statistics for an ecosystem. */
 @Serializable
 data class EcosystemStats(
-    /**
-     * The name of the ecosystem.
-     */
+    /** The name of the ecosystem. */
     val name: String,
-    /**
-     * The number of packages in the ORT run that belong to this ecosystem.
-     */
+    /** The number of packages in the ORT run that belong to this ecosystem. */
     val count: Long
 )

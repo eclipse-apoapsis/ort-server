@@ -24,13 +24,9 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 class VersionsApi(
-    /**
-     * The configured HTTP client for the interaction with the API.
-     */
+    /** The configured HTTP client for the interaction with the API. */
     private val client: HttpClient
 ) {
-    /**
-     * Retrieve the version information of the ORT server.
-     */
+    /** Retrieve the version information of the ORT server. */
     suspend fun getVersions(): Map<String, String> = client.get("api/v1/versions").body()
 }

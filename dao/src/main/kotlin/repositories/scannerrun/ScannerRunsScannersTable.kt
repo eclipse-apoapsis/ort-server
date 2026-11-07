@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to track which packages have been scanned by which scanners in an ORT run.
- */
+/** A table to track which packages have been scanned by which scanners in an ORT run. */
 object ScannerRunsScannersTable : LongIdTable("scanner_runs_scanners") {
     val scannerRunId = reference("scanner_run_id", ScannerRunsTable)
     val identifierId = reference("identifier_id", IdentifiersTable)

@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import com.typesafe.config.Config
 
-/**
- * A class defining the configuration settings used by the ActiveMQ Artemis Transport implementation.
- */
+/** A class defining the configuration settings used by the ActiveMQ Artemis Transport implementation. */
 data class ArtemisConfig(
     /** The URI where the server broker is running. */
     val serverUri: String,
@@ -44,9 +42,7 @@ data class ArtemisConfig(
         /** Name of the configuration property for the queue name. */
         private const val QUEUE_NAME_PROPERTY = "queueName"
 
-        /**
-         * Create an [ArtemisConfig] object from the provided [config].
-         */
+        /** Create an [ArtemisConfig] object from the provided [config]. */
         fun createConfig(config: Config) =
             ArtemisConfig(
                 serverUri = config.getString(SERVER_URI_PROPERTY),

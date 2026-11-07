@@ -94,9 +94,7 @@ class VaultConfigurationTest : StringSpec({
     }
 })
 
-/**
- * Return a [ConfigManager] that wraps the given [vaultProperties]. In addition, access to the secrets is possible.
- */
+/** Return a [ConfigManager] that wraps the given [vaultProperties]. In addition, access to the secrets is possible. */
 private fun createConfigManager(vaultProperties: Map<String, Any>): ConfigManager {
     val secretProperties = mapOf(
         "vaultRoleId" to ROLE_ID,

@@ -37,9 +37,7 @@ internal class TimeHelper(
     /** The default zone offset for this system. */
     private val systemZoneOffset: ZoneOffset = OffsetDateTime.now().offset
 ) {
-    /**
-     * Return the current time as an [Instant].
-     */
+    /** Return the current time as an [Instant]. */
     fun now(): Instant = clock.now()
 
     /**

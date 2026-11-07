@@ -368,9 +368,7 @@ private val environment = Environment(
     variables = variables
 )
 
-/**
- * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
- */
+/** Create a mock [WorkerContextFactory] and prepare it to return the given [context]. */
 private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
     val slot = slot<suspend (WorkerContext) -> RunResult>()
     return mockk {

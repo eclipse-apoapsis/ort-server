@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a group managed by Keycloak.
- */
+/** A data class representing a group managed by Keycloak. */
 @Serializable
 data class Group(
     /** The internal ID of the group. */

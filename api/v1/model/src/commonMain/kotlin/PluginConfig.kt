@@ -23,9 +23,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PluginConfig(
-    /**
-     * The configuration options of the plugin. See the specific implementation for available configuration options.
-     */
+    /** The configuration options of the plugin. See the specific implementation for available configuration options. */
     val options: Options,
 
     /**

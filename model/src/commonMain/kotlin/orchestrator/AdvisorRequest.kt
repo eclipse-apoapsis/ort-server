@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a request to the Advisor worker to process an Analyzer result.
- */
+/** A data class representing a request to the Advisor worker to process an Analyzer result. */
 @Serializable
 data class AdvisorRequest(
     val advisorJobId: Long

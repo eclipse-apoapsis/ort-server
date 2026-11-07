@@ -53,13 +53,9 @@ interface RateLimitDelayStrategy {
     fun computeDelay(retryCount: Int, config: RateLimitConfig): Duration
 }
 
-/**
- * An enumeration class providing different standard implementations of [RateLimitDelayStrategy].
- */
+/** An enumeration class providing different standard implementations of [RateLimitDelayStrategy]. */
 enum class StandardRateLimitStrategies : RateLimitDelayStrategy {
-    /**
-     * A strategy that returns the constant [RateLimitConfig.defaultDelay] value for all retry counts.
-     */
+    /** A strategy that returns the constant [RateLimitConfig.defaultDelay] value for all retry counts. */
     CONSTANT {
         override fun computeDelay(
             retryCount: Int,
@@ -93,9 +89,7 @@ enum class StandardRateLimitStrategies : RateLimitDelayStrategy {
     }
 }
 
-/**
- * Configuration for the rate limiting behavior of an HTTP client.
- */
+/** Configuration for the rate limiting behavior of an HTTP client. */
 data class RateLimitConfig(
     /** Maximum number of retry attempts after a 429 response. */
     val maxRetries: Int,
@@ -128,9 +122,7 @@ data class RateLimitConfig(
          */
         const val DEFAULT_DELAY_PROPERTY = "defaultDelayMs"
 
-        /**
-         * The configuration property for the [RateLimitConfig.maxDelay] option (value expected in milliseconds).
-         */
+        /** The configuration property for the [RateLimitConfig.maxDelay] option (value expected in milliseconds). */
         const val MAX_DELAY_PROPERTY = "maxDelayMs"
 
         /**
@@ -139,9 +131,7 @@ data class RateLimitConfig(
          */
         const val DELAY_STRATEGY_PROPERTY = "delayStrategy"
 
-        /**
-         * Return a [RateLimitConfig] instance that has been initialized from the values of the given [config].
-         */
+        /** Return a [RateLimitConfig] instance that has been initialized from the values of the given [config]. */
         fun create(config: Config): RateLimitConfig {
             val rateLimitConfig = config.getConfig(CONFIG_PATH)
 

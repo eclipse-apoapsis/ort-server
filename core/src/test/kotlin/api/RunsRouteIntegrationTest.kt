@@ -273,9 +273,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         return ortRun
     }
 
-    /**
-     * Create an [OrtRun], store a report for the created run, and return the created run.
-     */
+    /** Create an [OrtRun], store a report for the created run, and return the created run. */
     suspend fun createReport(): OrtRun {
         val run = dbExtension.fixtures.createOrtRun(repositoryId)
         val key = Key("${run.id}|$reportFile")
@@ -4110,15 +4108,11 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     }
 })
 
-/**
- * Generate the content of a log file for the given [source].
- */
+/** Generate the content of a log file for the given [source]. */
 private fun logFileContent(source: LogSource): String =
     "Content of log file for '${source.name}'."
 
-/**
- * Check whether the given [archiveFile] contains the correct logs for the given [sources].
- */
+/** Check whether the given [archiveFile] contains the correct logs for the given [sources]. */
 private fun checkLogArchive(archiveFile: File, sources: Set<LogSource>) {
     archiveFile shouldBe aFile()
     val currentDir = archiveFile.parentFile
@@ -4140,9 +4134,7 @@ private fun checkLogArchive(archiveFile: File, sources: Set<LogSource>) {
     }
 }
 
-/**
- * Return the name of the log file for this [LogSource].
- */
+/** Return the name of the log file for this [LogSource]. */
 private fun LogSource.logFileName() = "${name.lowercase()}.log"
 
 private fun generateAdvisorEnvironment() = Environment(

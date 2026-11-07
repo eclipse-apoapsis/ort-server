@@ -57,9 +57,7 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
 
         private const val GIT_CONFIG_URL_INSTEAD_OF = "gitConfigUrlInsteadOf"
 
-        /**
-         * Create a new instance of [GitConfigGenerator] that already has parsed the configuration.
-         */
+        /** Create a new instance of [GitConfigGenerator] that already has parsed the configuration. */
         fun create(configManager: ConfigManager): GitConfigGenerator {
             val parsedConfiguration = configManager.config.getStringOrNull(GIT_CONFIG_URL_INSTEAD_OF)
                 ?.let { configUrlInsteadOf ->

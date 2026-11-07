@@ -23,9 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
 import org.jetbrains.exposed.v1.core.SortOrder
 
-/**
- * Convert this [OrderDirection] constant to the corresponding [SortOrder].
- */
+/** Convert this [OrderDirection] constant to the corresponding [SortOrder]. */
 fun OrderDirection.toSortOrder(): SortOrder =
     when (this) {
         OrderDirection.ASCENDING -> SortOrder.ASC

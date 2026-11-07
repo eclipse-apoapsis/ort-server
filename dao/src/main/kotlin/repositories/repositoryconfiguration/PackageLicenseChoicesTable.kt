@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a package license choice.
- */
+/** A table to represent a package license choice. */
 object PackageLicenseChoicesTable : LongIdTable("package_license_choices") {
     val identifierId = reference("identifier_id", IdentifiersTable)
 }

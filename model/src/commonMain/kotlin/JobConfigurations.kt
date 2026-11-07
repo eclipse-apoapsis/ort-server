@@ -23,14 +23,10 @@ import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 
-/**
- * A typealias for key-value pairs.
- */
+/** A typealias for key-value pairs. */
 typealias Options = Map<String, String>
 
-/**
- * The configurations for the jobs in an [OrtRun].
- */
+/** The configurations for the jobs in an [OrtRun]. */
 @Serializable
 data class JobConfigurations(
     val analyzer: AnalyzerJobConfiguration = AnalyzerJobConfiguration(),
@@ -54,9 +50,7 @@ data class JobConfigurations(
     val ruleSet: String? = null
 )
 
-/**
- * The configuration for an analyzer job.
- */
+/** The configuration for an analyzer job. */
 @Serializable
 data class AnalyzerJobConfiguration(
     /**
@@ -112,9 +106,7 @@ data class AnalyzerJobConfiguration(
      */
     val repositoryConfigPath: String? = null,
 
-    /**
-     * A flag to control whether excluded scopes and paths should be skipped during the analysis.
-     */
+    /** A flag to control whether excluded scopes and paths should be skipped during the analysis. */
     val skipExcluded: Boolean? = null,
 
     /**
@@ -130,9 +122,7 @@ data class AnalyzerJobConfiguration(
     val keepAlivePhases: Set<AnalyzerPhase> = emptySet()
 )
 
-/**
- * The configuration for an advisor job.
- */
+/** The configuration for an advisor job. */
 @Serializable
 data class AdvisorJobConfiguration(
     /**
@@ -141,14 +131,10 @@ data class AdvisorJobConfiguration(
      */
     val advisors: List<String>? = null,
 
-    /**
-     * Do not advise excluded packages.
-     */
+    /** Do not advise excluded packages. */
     val skipExcluded: Boolean = false,
 
-    /**
-     * A map of plugin configurations that are specific to a concrete advisor.
-     */
+    /** A map of plugin configurations that are specific to a concrete advisor. */
     val config: Map<String, ResolvablePluginConfig>? = null,
 
     /**
@@ -158,9 +144,7 @@ data class AdvisorJobConfiguration(
     val keepAliveWorker: Boolean = false
 )
 
-/**
- * The configuration for a scanner job.
- */
+/** The configuration for a scanner job. */
 @Serializable
 data class ScannerJobConfiguration(
     /**
@@ -181,14 +165,10 @@ data class ScannerJobConfiguration(
      */
     val skipConcluded: Boolean? = null,
 
-    /**
-     * Do not scan excluded projects or packages.
-     */
+    /** Do not scan excluded projects or packages. */
     val skipExcluded: Boolean = false,
 
-    /**
-     * A map of plugin configurations that are specific to a concrete scanner.
-     */
+    /** A map of plugin configurations that are specific to a concrete scanner. */
     val config: Map<String, ResolvablePluginConfig>? = null,
 
     /**
@@ -205,9 +185,7 @@ data class ScannerJobConfiguration(
     val submoduleFetchStrategy: SubmoduleFetchStrategy = SubmoduleFetchStrategy.FULLY_RECURSIVE
 )
 
-/**
- * The configuration for an evaluator job.
- */
+/** The configuration for an evaluator job. */
 @Serializable
 data class EvaluatorJobConfiguration(
     /**
@@ -254,9 +232,7 @@ data class ReporterJobConfiguration(
      */
     val packageConfigurationProviders: List<ResolvableProviderPluginConfig>? = null,
 
-    /**
-     * A map of configuration options that are specific to a concrete reporter.
-     */
+    /** A map of configuration options that are specific to a concrete reporter. */
     val config: Map<String, ResolvablePluginConfig>? = null,
 
     /**
@@ -268,9 +244,7 @@ data class ReporterJobConfiguration(
 
 @Serializable
 data class NotifierJobConfiguration(
-    /**
-     * The list of email addresses to which notifications should be sent.
-     */
+    /** The list of email addresses to which notifications should be sent. */
     val recipientAddresses: List<String> = emptyList(),
 
     /**
@@ -280,47 +254,29 @@ data class NotifierJobConfiguration(
     val keepAliveWorker: Boolean = false
 )
 
-/**
- * The strategy to use for fetching submodules.
- */
+/** The strategy to use for fetching submodules. */
 enum class SubmoduleFetchStrategy {
-    /**
-     * Don't fetch submodules at all.
-     */
+    /** Don't fetch submodules at all. */
     DISABLED,
 
-    /**
-     * Only fetch the top level of submodules.
-     */
+    /** Only fetch the top level of submodules. */
     TOP_LEVEL_ONLY,
 
-    /**
-     * Fetch all nested submodules recursively.
-     */
+    /** Fetch all nested submodules recursively. */
     FULLY_RECURSIVE
 }
 
-/**
- * An enumeration defining the different phases supported by the Analyzer worker.
- */
+/** An enumeration defining the different phases supported by the Analyzer worker. */
 enum class AnalyzerPhase {
-    /**
-     * The preparation phase which clones the repository and sets up the environment for the analysis.
-     */
+    /** The preparation phase which clones the repository and sets up the environment for the analysis. */
     PREPARATION,
 
-    /**
-     * The analysis phase which invokes ORT's Analyzer to analyze the current repository.
-     */
+    /** The analysis phase which invokes ORT's Analyzer to analyze the current repository. */
     ANALYSIS,
 
-    /**
-     * The result phase which gathers the results from the [ANALYSIS] phase and stores them in the database.
-     */
+    /** The result phase which gathers the results from the [ANALYSIS] phase and stores them in the database. */
     RESULT,
 
-    /**
-     * The full phase which is used to run the whole Analyzer process in a single shot.
-     */
+    /** The full phase which is used to run the whole Analyzer process in a single shot. */
     FULL
 }

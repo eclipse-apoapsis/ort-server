@@ -87,9 +87,7 @@ class Orchestrator(
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
-    /**
-     * Handle messages of the type [CreateOrtRun].
-     */
+    /** Handle messages of the type [CreateOrtRun]. */
     suspend fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
         db.transactionCatching(transactionIsolation = isolationLevel) {
             val ortRun = createOrtRun.ortRun
@@ -105,9 +103,7 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [ConfigWorkerResult].
-     */
+    /** Handle messages of the type [ConfigWorkerResult]. */
     suspend fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
         db.transactionCatching(transactionIsolation = isolationLevel) {
             val ortRun = getCurrentOrtRun(configWorkerResult.ortRunId)
@@ -118,9 +114,7 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [ConfigWorkerError].
-     */
+    /** Handle messages of the type [ConfigWorkerError]. */
     suspend fun handleConfigWorkerError(configWorkerError: ConfigWorkerError) {
         db.transactionCatching(transactionIsolation = isolationLevel) {
             ortRunRepository.update(
@@ -133,9 +127,7 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [AnalyzerWorkerResult].
-     */
+    /** Handle messages of the type [AnalyzerWorkerResult]. */
     suspend fun handleAnalyzerWorkerResult(header: MessageHeader, analyzerWorkerResult: AnalyzerWorkerResult) {
         if (!analyzerWorkerResult.hasIssues) {
             handleWorkerResult(AnalyzerEndpoint, header, analyzerWorkerResult)
@@ -144,16 +136,12 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [AnalyzerWorkerError].
-     */
+    /** Handle messages of the type [AnalyzerWorkerError]. */
     suspend fun handleAnalyzerWorkerError(header: MessageHeader, analyzerWorkerError: AnalyzerWorkerError) {
         handleWorkerError(AnalyzerEndpoint, header, analyzerWorkerError)
     }
 
-    /**
-     * Handle messages of the type [AdvisorWorkerResult].
-     */
+    /** Handle messages of the type [AdvisorWorkerResult]. */
     suspend fun handleAdvisorWorkerResult(header: MessageHeader, advisorWorkerResult: AdvisorWorkerResult) {
         if (!advisorWorkerResult.hasIssues) {
             handleWorkerResult(AdvisorEndpoint, header, advisorWorkerResult)
@@ -162,16 +150,12 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [AnalyzerWorkerError].
-     */
+    /** Handle messages of the type [AnalyzerWorkerError]. */
     suspend fun handleAdvisorWorkerError(header: MessageHeader, advisorWorkerError: AdvisorWorkerError) {
         handleWorkerError(AdvisorEndpoint, header, advisorWorkerError)
     }
 
-    /**
-     * Handle messages of the type [ScannerWorkerResult].
-     */
+    /** Handle messages of the type [ScannerWorkerResult]. */
     suspend fun handleScannerWorkerResult(header: MessageHeader, scannerWorkerResult: ScannerWorkerResult) {
         if (!scannerWorkerResult.hasIssues) {
             handleWorkerResult(ScannerEndpoint, header, scannerWorkerResult)
@@ -180,16 +164,12 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [ScannerWorkerError].
-     */
+    /** Handle messages of the type [ScannerWorkerError]. */
     suspend fun handleScannerWorkerError(header: MessageHeader, scannerWorkerError: ScannerWorkerError) {
         handleWorkerError(ScannerEndpoint, header, scannerWorkerError)
     }
 
-    /**
-     * Handle messages of the type [EvaluatorWorkerResult].
-     */
+    /** Handle messages of the type [EvaluatorWorkerResult]. */
     suspend fun handleEvaluatorWorkerResult(header: MessageHeader, evaluatorWorkerResult: EvaluatorWorkerResult) {
         if (!evaluatorWorkerResult.hasIssues) {
             handleWorkerResult(EvaluatorEndpoint, header, evaluatorWorkerResult)
@@ -198,16 +178,12 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [EvaluatorWorkerError].
-     */
+    /** Handle messages of the type [EvaluatorWorkerError]. */
     suspend fun handleEvaluatorWorkerError(header: MessageHeader, evaluatorWorkerError: EvaluatorWorkerError) {
         handleWorkerError(EvaluatorEndpoint, header, evaluatorWorkerError)
     }
 
-    /**
-     * Handle messages of the type [ReporterWorkerResult].
-     */
+    /** Handle messages of the type [ReporterWorkerResult]. */
     suspend fun handleReporterWorkerResult(header: MessageHeader, reporterWorkerResult: ReporterWorkerResult) {
         if (!reporterWorkerResult.hasIssues) {
             handleWorkerResult(ReporterEndpoint, header, reporterWorkerResult)
@@ -216,16 +192,12 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Handle messages of the type [ReporterWorkerError].
-     */
+    /** Handle messages of the type [ReporterWorkerError]. */
     suspend fun handleReporterWorkerError(header: MessageHeader, reporterWorkerError: ReporterWorkerError) {
         handleWorkerError(ReporterEndpoint, header, reporterWorkerError)
     }
 
-    /**
-     * Handle messages of the type [NotifierWorkerResult].
-     */
+    /** Handle messages of the type [NotifierWorkerResult]. */
     suspend fun handleNotifierWorkerResult(header: MessageHeader, notifierWorkerResult: NotifierWorkerResult) {
         handleWorkerResult(NotifierEndpoint, header, notifierWorkerResult)
     }
@@ -234,9 +206,7 @@ class Orchestrator(
         handleWorkerError(NotifierEndpoint, header, notifierWorkerError)
     }
 
-    /**
-     * Handle messages of the type [WorkerError] with the given [header].
-     */
+    /** Handle messages of the type [WorkerError] with the given [header]. */
     suspend fun handleWorkerError(header: MessageHeader, workerError: WorkerError) {
         val ortRunId = header.ortRunId
         log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
@@ -277,17 +247,13 @@ class Orchestrator(
         }
     }
 
-    /**
-     * Obtain the [OrtRun] with the given [ortRunId] of fail with an exception if it does not exist.
-     */
+    /** Obtain the [OrtRun] with the given [ortRunId] of fail with an exception if it does not exist. */
     private suspend fun getCurrentOrtRun(ortRunId: Long): OrtRun =
         requireNotNull(ortRunRepository.get(ortRunId)) {
             "ORT run '$ortRunId' not found."
         }
 
-    /**
-     * Handle the given [result] message with the given [header] from a worker of the given [endpoint].
-     */
+    /** Handle the given [result] message with the given [header] from a worker of the given [endpoint]. */
     private suspend fun handleWorkerResult(endpoint: Endpoint<*>, header: MessageHeader, result: WorkerMessage) {
         handleCompletedJob(endpoint, header, result, JobStatus.FINISHED)
     }
@@ -304,9 +270,7 @@ class Orchestrator(
         handleCompletedJob(endpoint, header, result, JobStatus.FINISHED_WITH_ISSUES)
     }
 
-    /**
-     * Handle the given [error] message with the given [header] from a worker of the given [endpoint].
-     */
+    /** Handle the given [error] message with the given [header] from a worker of the given [endpoint]. */
     private suspend fun handleWorkerError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
         handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue(error)))
     }
@@ -446,9 +410,7 @@ class Orchestrator(
         publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }
 
-    /**
-     * Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job.
-     */
+    /** Cleanup the jobs for the given [ortRunId] by deleting the mail recipients of the corresponding notifier job. */
     private suspend fun cleanupJobs(ortRunId: Long) {
         workerJobRepositories.notifierJobRepository.getForOrtRun(ortRunId)?.let { notifierJob ->
             workerJobRepositories.notifierJobRepository.deleteMailRecipients(notifierJob.id)
@@ -456,14 +418,10 @@ class Orchestrator(
     }
 }
 
-/**
- * Type definition to represent a list of jobs that have been created and must be scheduled.
- */
+/** Type definition to represent a list of jobs that have been created and must be scheduled. */
 typealias CreatedJobs = List<JobScheduleFunc>
 
-/**
- * Create an [Issue] representing the [error] that occurred in an [Endpoint].
- */
+/** Create an [Issue] representing the [error] that occurred in an [Endpoint]. */
 fun <T : Any> Endpoint<T>.createErrorIssue(error: Any): Issue = Issue(
     timestamp = Clock.System.now(),
     source = configPrefix,

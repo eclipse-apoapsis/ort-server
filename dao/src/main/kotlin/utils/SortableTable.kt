@@ -47,8 +47,6 @@ open class SortableTable(name: String) : LongIdTable(name) {
         return this
     }
 
-    /**
-     * Return the sortable column with the given [property name][name] or *null* if no such column exists.
-     */
+    /** Return the sortable column with the given [property name][name] or *null* if no such column exists. */
     fun sortableColumn(name: String): Column<*>? = sortableColumns[name]
 }

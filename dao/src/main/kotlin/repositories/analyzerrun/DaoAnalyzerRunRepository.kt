@@ -48,9 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 
-/**
- * An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable].
- */
+/** An implementation of [AnalyzerRunRepository] that stores analyzer runs in [AnalyzerRunsTable]. */
 class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository {
     override suspend fun create(
         analyzerJobId: Long,
@@ -175,9 +173,7 @@ private fun createProject(
     return projectDao
 }
 
-/**
- * Create a new [ProjectDao] entity in the database with the given values.
- */
+/** Create a new [ProjectDao] entity in the database with the given values. */
 private fun insertProject(
     identifier: IdentifierDao,
     vcs: VcsInfoDao,
@@ -254,9 +250,7 @@ private fun createPackage(
     return pkgDao
 }
 
-/**
- * Create a new [PackageDao] entity in the database with the given values.
- */
+/** Create a new [PackageDao] entity in the database with the given values. */
 private fun insertPackage(
     identifier: IdentifierDao,
     vcs: VcsInfoDao,

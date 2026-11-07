@@ -44,13 +44,9 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(SecretRepository::class.java)
 
-/**
- * A repository of [secrets][Secret].
- */
+/** A repository of [secrets][Secret]. */
 internal class SecretRepository(private val db: Database) {
-    /**
-     * Create a secret for the given hierarchy [id].
-     */
+    /** Create a secret for the given hierarchy [id]. */
     suspend fun create(path: String, name: String, description: String?, id: HierarchyId): Secret = db.transaction {
         SecretDao.new {
             this.path = path
@@ -62,16 +58,12 @@ internal class SecretRepository(private val db: Database) {
         }.mapToModel()
     }
 
-    /**
-     * Get a secret by [id] and [name]. Returns null if the secret is not found.
-     */
+    /** Get a secret by [id] and [name]. Returns null if the secret is not found. */
     suspend fun getByIdAndName(id: HierarchyId, name: String): Secret? = db.transactionCatching {
         SecretDao.find(byNameCondition(id, name)).firstOrNull()?.mapToModel()
     }.getEntityOrNull()
 
-    /**
-     * List all secrets for an [id] according to the given [parameters].
-     */
+    /** List all secrets for an [id] according to the given [parameters]. */
     suspend fun listForId(
         id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
@@ -88,9 +80,7 @@ internal class SecretRepository(private val db: Database) {
         throw it
     }
 
-    /**
-     * Update a secret by [id] and [name] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a secret by [id] and [name] with the [present][OptionalValue.Present] values. */
     suspend fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret =
         db.transaction {
             val secret = SecretDao.findSingle(byNameCondition(id, name))
@@ -98,17 +88,13 @@ internal class SecretRepository(private val db: Database) {
             secret.mapToModel()
         }
 
-    /**
-     * Delete a secret by [id] and [name].
-     */
+    /** Delete a secret by [id] and [name]. */
     suspend fun deleteForIdAndName(id: HierarchyId, name: String) = db.transaction {
         SecretDao.findSingle(byNameCondition(id, name)).delete()
     }
 }
 
-/**
- * Generate a WHERE condition to find a [Secret] entity within the hierarchy [id] and the given [name].
- */
+/** Generate a WHERE condition to find a [Secret] entity within the hierarchy [id] and the given [name]. */
 private fun byNameCondition(id: HierarchyId, name: String): Op<Boolean> =
     SecretsTable.organizationId eq (id as? OrganizationId)?.value and
             (SecretsTable.productId eq (id as? ProductId)?.value) and

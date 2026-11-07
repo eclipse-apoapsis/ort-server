@@ -19,17 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.model.util
 
-/**
- * Object representing the operator and value by which the result is filtered with.
- */
+/** Object representing the operator and value by which the result is filtered with. */
 data class FilterOperatorAndValue<T>(
     val operator: ComparisonOperator,
     val value: T
 )
 
-/**
- * An enumeration of filter operators.
- */
+/** An enumeration of filter operators. */
 enum class ComparisonOperator {
     EQUALS,
     NOT_EQUALS,

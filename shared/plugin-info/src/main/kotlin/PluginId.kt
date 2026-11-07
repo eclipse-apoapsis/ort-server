@@ -35,9 +35,7 @@ value class PluginId(val id: String)
 @JvmInline
 value class PluginType(val type: String)
 
-/**
- * A data class that uniquely identifies a plugin by combining its [PluginId] and [PluginType].
- */
+/** A data class that uniquely identifies a plugin by combining its [PluginId] and [PluginType]. */
 data class TypedPluginId(
     /** The ID of the plugin. */
     val id: PluginId,

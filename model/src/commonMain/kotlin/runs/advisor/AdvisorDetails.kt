@@ -20,8 +20,6 @@
 package org.eclipse.apoapsis.ortserver.model.runs.advisor
 
 data class AdvisorDetails(
-    /**
-     * The name of the used advisor.
-     */
+    /** The name of the used advisor. */
     val name: String
 )

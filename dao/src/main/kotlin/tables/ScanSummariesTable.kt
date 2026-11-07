@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a scan result.
- */
+/** A table to represent a scan result. */
 object ScanSummariesTable : LongIdTable("scan_summaries") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")

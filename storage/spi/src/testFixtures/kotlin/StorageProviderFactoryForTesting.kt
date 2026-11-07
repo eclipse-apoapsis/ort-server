@@ -74,9 +74,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
          */
         fun keys(): Set<Key> = latestData.keys
 
-        /**
-         * An internal class used to manage the data stored in this test storage.
-         */
+        /** An internal class used to manage the data stored in this test storage. */
         class Entry(
             val data: ByteArray,
             val contentType: String?,
@@ -118,9 +116,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
                 return entry != null
             }
 
-            /**
-             * Check whether [key] should trigger an exception. Otherwise, return the associated [Entry].
-             */
+            /** Check whether [key] should trigger an exception. Otherwise, return the associated [Entry]. */
             private fun getEntry(key: Key): Entry? {
                 if (errorKey in key.key) throw IOException("Test exception from StorageProviderFactoryForTesting.")
 

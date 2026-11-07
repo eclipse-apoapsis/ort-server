@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 import kotlinx.serialization.Serializable
 
-/**
- * The availability of a plugin.
- */
+/** The availability of a plugin. */
 enum class PluginAvailability {
     /** The plugin is available to all organizations. */
     ENABLED,
@@ -35,9 +33,7 @@ enum class PluginAvailability {
     DISABLED
 }
 
-/**
- * A descriptor holding the metadata of a plugin.
- */
+/** A descriptor holding the metadata of a plugin. */
 @Serializable
 data class PluginDescriptor(
     val id: String,
@@ -62,9 +58,7 @@ enum class PluginType {
     SCANNER
 }
 
-/**
- * A configuration option for a plugin.
- */
+/** A configuration option for a plugin. */
 @Serializable
 data class PluginOption(
     val name: String,
@@ -76,9 +70,7 @@ data class PluginOption(
     val isRequired: Boolean
 )
 
-/**
- * The supported types of plugin options.
- */
+/** The supported types of plugin options. */
 enum class PluginOptionType {
     BOOLEAN,
     ENUM,

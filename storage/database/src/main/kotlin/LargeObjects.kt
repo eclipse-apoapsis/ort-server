@@ -99,14 +99,10 @@ internal fun getStreamForLargeObject(
     }
 }
 
-/**
- * Return the JDBC [Connection] from this transaction. This is required for some low-level operations.
- */
+/** Return the JDBC [Connection] from this transaction. This is required for some low-level operations. */
 private fun JdbcTransaction.jdbcConnection(): Connection =
     checkNotNull(connection.connection as? Connection) { "Cannot obtain JDBC connection." }
 
-/**
- * Obtain the PostgreSQL API for managing large objects from the given [connection].
- */
+/** Obtain the PostgreSQL API for managing large objects from the given [connection]. */
 private fun largeObjectManager(connection: Connection): LargeObjectManager =
     connection.unwrap(PGConnection::class.java).largeObjectAPI

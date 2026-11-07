@@ -31,26 +31,20 @@ import org.eclipse.apoapsis.ortserver.cli.utils.write
 
 private const val CONTEXT_FILE_NAME = "context.yml"
 
-/**
- * Data class to store contextual information about the CLI's current state.
- */
+/** Data class to store contextual information about the CLI's current state. */
 @Serializable
 internal data class ContextData(
     val run: RunData? = null
 )
 
-/**
- * Data class to store contextual information about ORT runs.
- */
+/** Data class to store contextual information about ORT runs. */
 @Serializable
 internal data class RunData(
     /** The ID of the latest run started by the CLI. */
     val latestId: Long? = null
 )
 
-/**
- * Object to manage the storage and retrieval of contextual information.
- */
+/** Object to manage the storage and retrieval of contextual information. */
 internal object ContextStorage {
     private val contextFile = configDir.resolve(CONTEXT_FILE_NAME)
     private var storage: ContextData = ContextData()

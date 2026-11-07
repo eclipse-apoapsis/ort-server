@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A junction table to link [ScannerRunsTable] with [ScanResultsTable].
- */
+/** A junction table to link [ScannerRunsTable] with [ScanResultsTable]. */
 object ScannerRunsScanResultsTable : Table("scanner_runs_scan_results") {
     val scannerRunId = reference("scanner_run_id", ScannerRunsTable)
     val scanResultId = reference("scan_result_id", ScanResultsTable)

@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [PackagesTable] and [AuthorsTable].
- */
+/** An intermediate table to store references from [PackagesTable] and [AuthorsTable]. */
 object PackagesAuthorsTable : Table("packages_authors") {
     val authorId = reference("author_id", AuthorsTable)
     val packageId = reference("package_id", PackagesTable)

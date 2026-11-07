@@ -29,9 +29,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to store key-value style labels for packages.
- */
+/** A table to store key-value style labels for packages. */
 object PackageLabelsTable : LongIdTable("package_labels") {
     val packageId = reference("package_id", PackagesTable)
     val key = text("key")

@@ -29,18 +29,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 
-/**
- * A client for the runs API.
- */
+/** A client for the runs API. */
 class RunsApi(
-    /**
-     * The configured HTTP client for the interaction with the API.
-     */
+    /** The configured HTTP client for the interaction with the API. */
     private val client: HttpClient
 ) {
-    /**
-     * Get the [ORT run][OrtRun] with the given [id].
-     */
+    /** Get the [ORT run][OrtRun] with the given [id]. */
     suspend fun getOrtRun(id: Long): OrtRun =
         client.get("api/v1/runs/$id").body()
 

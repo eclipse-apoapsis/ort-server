@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * A junction table to link [AdvisorConfigurationsTable] with [AdvisorConfigurationSecretsTable].
- */
+/** A junction table to link [AdvisorConfigurationsTable] with [AdvisorConfigurationSecretsTable]. */
 object AdvisorConfigurationsSecretsTable : Table("advisor_configurations_secrets") {
     val advisorConfigurationId = reference("advisor_configuration_id", AdvisorConfigurationsTable)
     val advisorConfigurationSecretId = reference("advisor_configuration_secret_id", AdvisorConfigurationSecretsTable)

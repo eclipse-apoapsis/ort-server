@@ -231,14 +231,10 @@ private val advisorRun = AdvisorRun(
     results = mapOf(identifier to listOf(advisorResult), otherIdentifier to listOf(otherAdvisorResult))
 )
 
-/**
- * Return a copy of this [AdvisorResult] with the issues converted to plain issues.
- */
+/** Return a copy of this [AdvisorResult] with the issues converted to plain issues. */
 private fun AdvisorResult.withPlainIssues(): AdvisorResult =
     copy(issues = issues.map { it.toPlain() })
 
-/**
- * Return an [Issue] derived from this one with the fields removed that are set when the entity is created.
- */
+/** Return an [Issue] derived from this one with the fields removed that are set when the entity is created. */
 private fun Issue.toPlain(): Issue =
     copy(identifier = null, worker = null)

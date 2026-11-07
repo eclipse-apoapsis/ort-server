@@ -79,16 +79,12 @@ class Storage(
         val StorageEntry.dataArray: ByteArray
             get() = data.readAllBytes()
 
-        /**
-         * Return the data stored in this [StorageEntry] as a string. Note: This reads all data into memory.
-         */
+        /** Return the data stored in this [StorageEntry] as a string. Note: This reads all data into memory. */
         val StorageEntry.dataString: String
             get() = String(dataArray)
     }
 
-    /**
-     * Return the [StorageEntry] associated with the given [key]. Throw a [StorageEntry] if this operation fails.
-     */
+    /** Return the [StorageEntry] associated with the given [key]. Throw a [StorageEntry] if this operation fails. */
     suspend fun read(key: Key): StorageEntry = wrapException {
         read(key)
     }
@@ -134,9 +130,7 @@ class Storage(
      */
     suspend fun delete(key: Key): Boolean = wrapException { provider.delete(key) }
 
-    /**
-     * Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s.
-     */
+    /** Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s. */
     private suspend fun <T> wrapException(block: suspend StorageProvider.() -> T): T =
         @Suppress("TooGenericExceptionCaught")
         try {

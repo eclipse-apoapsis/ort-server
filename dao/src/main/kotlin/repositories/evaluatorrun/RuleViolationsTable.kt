@@ -33,9 +33,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 
-/**
- * A table to represent a rule violation.
- */
+/** A table to represent a rule violation. */
 object RuleViolationsTable : SortableTable("rule_violations") {
     val rule = text("rule").sortable()
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
@@ -102,13 +100,9 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
     )
 }
 
-/**
- * Map a set of [LicenseSource] to a comma-separated [String], or `null` if the set is empty.
- */
+/** Map a set of [LicenseSource] to a comma-separated [String], or `null` if the set is empty. */
 private fun Set<LicenseSource>.mapToString() = takeIf { it.isNotEmpty() }?.joinToString(",") { it.name }
 
-/**
- * Map a comma-separated [String] to a set of [LicenseSource], or an empty set if the string is `null`.
- */
+/** Map a comma-separated [String] to a set of [LicenseSource], or an empty set if the string is `null`. */
 private fun String?.mapToLicenseSources(): Set<LicenseSource> =
     this?.split(',')?.mapTo(mutableSetOf()) { enumValueOf<LicenseSource>(it) }.orEmpty()

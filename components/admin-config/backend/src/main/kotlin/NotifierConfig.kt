@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import com.sksamuel.hoplite.ConfigAlias
 
-/**
- *  Configuration for a Jira REST client interacting with a Jira server after an ORT run.
- */
+/** Configuration for a Jira REST client interacting with a Jira server after an ORT run. */
 data class JiraRestClientConfiguration(
     /** The URL of the Jira server, e.g. "https://jira.example.com". */
     @param:ConfigAlias("url")

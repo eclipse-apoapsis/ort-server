@@ -28,9 +28,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.optionalPattern
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
-/**
- * Response object for the organization endpoint. Used to group multiple users and projects into organizations.
- */
+/** Response object for the organization endpoint. Used to group multiple users and projects into organizations. */
 @Serializable
 data class Organization(
     val id: Long,
@@ -48,9 +46,7 @@ data class Organization(
     }
 }
 
-/**
- * Request object for the create organization endpoint.
- */
+/** Request object for the create organization endpoint. */
 @Serializable
 data class PostOrganization(
     val name: String,
@@ -67,9 +63,7 @@ data class PostOrganization(
     }
 }
 
-/**
- * Request object for the update organization endpoint.
- */
+/** Request object for the update organization endpoint. */
 @Serializable
 data class PatchOrganization(
     val name: OptionalValue<String> = OptionalValue.Absent,

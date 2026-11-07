@@ -220,9 +220,7 @@ class ElasticsearchLogFileProvider(
             }
         }
 
-    /**
-     * Create an [HttpClient] with a configuration to communicate with Elasticsearch.
-     */
+    /** Create an [HttpClient] with a configuration to communicate with Elasticsearch. */
     private fun createClient(): HttpClient =
         createHttpClient(ElasticsearchConfig.HTTP_CLIENT_OVERRIDES_PATH) {
             install(ContentNegotiation) {

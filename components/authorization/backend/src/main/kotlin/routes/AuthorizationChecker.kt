@@ -65,9 +65,7 @@ private const val PRODUCT_ID_PARAM = "productId"
 /** The name of the request parameter referring to the repository ID. */
 private const val REPOSITORY_ID_PARAM = "repositoryId"
 
-/**
- * Create an [AuthorizationChecker] that checks for the presence of the given organization-level [permission].
- */
+/** Create an [AuthorizationChecker] that checks for the presence of the given organization-level [permission]. */
 fun requirePermission(permission: OrganizationPermission): AuthorizationChecker =
     object : AuthorizationChecker {
         override suspend fun loadEffectiveRole(
@@ -82,9 +80,7 @@ fun requirePermission(permission: OrganizationPermission): AuthorizationChecker 
             )
     }
 
-/**
- * Create an [AuthorizationChecker] that checks for the presence of the given product-level [permission].
- */
+/** Create an [AuthorizationChecker] that checks for the presence of the given product-level [permission]. */
 fun requirePermission(permission: ProductPermission): AuthorizationChecker =
     object : AuthorizationChecker {
         override suspend fun loadEffectiveRole(
@@ -99,9 +95,7 @@ fun requirePermission(permission: ProductPermission): AuthorizationChecker =
             )
     }
 
-/**
- * Create an [AuthorizationChecker] that checks for the presence of the given repository-level [permission].
- */
+/** Create an [AuthorizationChecker] that checks for the presence of the given repository-level [permission]. */
 fun requirePermission(permission: RepositoryPermission): AuthorizationChecker =
     object : AuthorizationChecker {
         override suspend fun loadEffectiveRole(
@@ -116,9 +110,7 @@ fun requirePermission(permission: RepositoryPermission): AuthorizationChecker =
             )
     }
 
-/**
- * Create an [AuthorizationChecker] that checks whether the user is a superuser.
- */
+/** Create an [AuthorizationChecker] that checks whether the user is a superuser. */
 fun requireSuperuser(): AuthorizationChecker =
     object : AuthorizationChecker {
         override suspend fun loadEffectiveRole(

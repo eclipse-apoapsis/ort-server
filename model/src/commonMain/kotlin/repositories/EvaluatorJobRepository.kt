@@ -22,17 +22,11 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 
-/**
- * A repository of [evaluator jobs][EvaluatorJob].
- */
+/** A repository of [evaluator jobs][EvaluatorJob]. */
 interface EvaluatorJobRepository : WorkerJobRepository<EvaluatorJob> {
-    /**
-     * Create an evaluator job.
-     */
+    /** Create an evaluator job. */
     suspend fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob
 
-    /**
-     * Delete an evaluator job by [id].
-     */
+    /** Delete an evaluator job by [id]. */
     suspend fun delete(id: Long)
 }

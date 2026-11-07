@@ -26,18 +26,12 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-/**
- * A repository of [organizations][Organization].
- */
+/** A repository of [organizations][Organization]. */
 interface OrganizationRepository {
-    /**
-     * Create an organization.
-     */
+    /** Create an organization. */
     suspend fun create(name: String, description: String?): Organization
 
-    /**
-     * Get an organization by [id]. Returns null if the organization is not found.
-     */
+    /** Get an organization by [id]. Returns null if the organization is not found. */
     suspend fun get(id: Long): Organization?
 
     /**
@@ -50,17 +44,13 @@ interface OrganizationRepository {
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Organization>
 
-    /**
-     * Update an organization by [id] with the [present][OptionalValue.Present] values.
-     */
+    /** Update an organization by [id] with the [present][OptionalValue.Present] values. */
     suspend fun update(
         id: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Organization
 
-    /**
-     * Delete an organization by [id].
-     */
+    /** Delete an organization by [id]. */
     suspend fun delete(id: Long)
 }

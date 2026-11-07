@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.tasks
 
-/**
- * An interface describing a task that can be executed.
- */
+/** An interface describing a task that can be executed. */
 interface Task {
     /**
      * Execute this task.

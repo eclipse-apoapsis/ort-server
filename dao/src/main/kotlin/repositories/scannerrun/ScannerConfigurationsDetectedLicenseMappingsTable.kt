@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [ScannerConfigurationsTable] and [DetectedLicenseMappingsTable].
- */
+/** An intermediate table to store references from [ScannerConfigurationsTable] and [DetectedLicenseMappingsTable]. */
 object ScannerConfigurationsDetectedLicenseMappingsTable : Table("scanner_configurations_detected_license_mappings") {
     val scannerConfigurationId = reference("scanner_configuration_id", ScannerConfigurationsTable)
     val detectedLicenseMappingId = reference("detected_license_mapping_id", DetectedLicenseMappingsTable)

@@ -26,9 +26,7 @@ import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
-/**
- * Implementation of the [MessageSenderFactory] interface for Apache ActiveMQ Artemis.
- */
+/** Implementation of the [MessageSenderFactory] interface for Apache ActiveMQ Artemis. */
 class ArtemisMessageSenderFactory : MessageSenderFactory {
     override val name: String = ArtemisConfig.TRANSPORT_NAME
 

@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * A junction table to link [ScannerConfigurationsTable] with [ScannerConfigurationOptionsTable].
- */
+/** A junction table to link [ScannerConfigurationsTable] with [ScannerConfigurationOptionsTable]. */
 object ScannerConfigurationsOptionsTable : Table("scanner_configurations_options") {
     val scannerConfigurationId = reference("scanner_configuration_id", ScannerConfigurationsTable)
     val scannerConfigurationOptionId = reference("scanner_configuration_option_id", ScannerConfigurationOptionsTable)

@@ -19,7 +19,5 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository.snippet
 
-/**
- * The URL of the RepositoryProvenance the snippet choice applies to.
- */
+/** The URL of the RepositoryProvenance the snippet choice applies to. */
 data class Provenance(val url: String)

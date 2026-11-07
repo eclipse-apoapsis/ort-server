@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-/**
- * A class to represent the type of a source code repository.
- */
+/** A class to represent the type of a source code repository. */
 data class RepositoryType(val name: String) {
     companion object {
         val GIT = RepositoryType("GIT")

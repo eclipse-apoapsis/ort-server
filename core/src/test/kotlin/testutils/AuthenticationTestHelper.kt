@@ -45,8 +45,6 @@ fun Application.configureTestAuthentication() {
     }
 }
 
-/**
- * Validate whether the [credentials] passed to the server are the expected test credentials.
- */
+/** Validate whether the [credentials] passed to the server are the expected test credentials. */
 fun validateTestCredentials(credentials: UserPasswordCredential): UserIdPrincipal? =
     credentials.takeIf { it.name == TEST_USER && it.password == TEST_PASSWORD }?.let { UserIdPrincipal(it.name) }

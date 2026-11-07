@@ -27,18 +27,12 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackag
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 
-/**
- * A repository for [ResolvedConfiguration]s.
- */
+/** A repository for [ResolvedConfiguration]s. */
 interface ResolvedConfigurationRepository {
-    /**
-     * Get a [ResolvedConfiguration] by id. Returns null if the [ResolvedConfiguration] is not found.
-     */
+    /** Get a [ResolvedConfiguration] by id. Returns null if the [ResolvedConfiguration] is not found. */
     suspend fun get(id: Long): ResolvedConfiguration?
 
-    /**
-     * Get the [ResolvedConfiguration] for an [OrtRun] by [ortRunId].
-     */
+    /** Get the [ResolvedConfiguration] for an [OrtRun] by [ortRunId]. */
     suspend fun getForOrtRun(ortRunId: Long): ResolvedConfiguration?
 
     /**

@@ -31,9 +31,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A table to represent a vulnerability.
- */
+/** A table to represent a vulnerability. */
 object VulnerabilitiesTable : SortableTable("vulnerabilities") {
     val externalId = text("external_id").sortable("externalId")
     val summary = text("summary").nullable()

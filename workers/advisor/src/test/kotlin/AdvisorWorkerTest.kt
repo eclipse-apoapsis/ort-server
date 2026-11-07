@@ -102,9 +102,7 @@ private val advisorJob = AdvisorJob(
     errorMessage = null
 )
 
-/**
- * Return an [AdvisorRunner] to be used by tests.
- */
+/** Return an [AdvisorRunner] to be used by tests. */
 private fun createRunner(): AdvisorRunner = AdvisorRunner()
 
 class AdvisorWorkerTest : StringSpec({
@@ -622,9 +620,7 @@ class AdvisorWorkerTest : StringSpec({
     }
 })
 
-/**
- * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
- */
+/** Create a mock [WorkerContextFactory] and prepare it to return the given [context]. */
 private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
     val slot = slot<suspend (WorkerContext) -> RunResult>()
     return mockk {

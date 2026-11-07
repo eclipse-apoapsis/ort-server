@@ -23,8 +23,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AdvisorDetails(
-    /**
-     * The name of the used advisor.
-     */
+    /** The name of the used advisor. */
     val name: String
 )

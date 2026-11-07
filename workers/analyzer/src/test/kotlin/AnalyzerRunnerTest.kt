@@ -565,9 +565,7 @@ class AnalyzerRunnerTest : WordSpec({
     }
 })
 
-/**
- * Create a mock for a [Process] that is prepared to expect some standard interactions.
- */
+/** Create a mock for a [Process] that is prepared to expect some standard interactions. */
 private fun createProcessMock(pipeStream: OutputStream = ByteArrayOutputStream()): Process =
     mockk {
         every { waitFor() } returns 0

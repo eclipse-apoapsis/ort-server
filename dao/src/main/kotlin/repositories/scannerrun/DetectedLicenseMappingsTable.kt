@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to store a detected license mapping.
- */
+/** A table to store a detected license mapping. */
 object DetectedLicenseMappingsTable : LongIdTable("detected_license_mappings") {
     val license = text("license")
     val spdxLicense = text("spdx_license")
