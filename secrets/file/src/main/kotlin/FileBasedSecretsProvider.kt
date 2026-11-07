@@ -49,9 +49,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         /** The name of this test provider implementation.*/
         const val NAME = "fileBased"
 
-        /**
-         * The path to the encrypted file storing the secrets
-         */
+        /** The path to the encrypted file storing the secrets */
         const val PATH_PROPERTY = "fileBasedPath"
 
         private val logger = LoggerFactory.getLogger(FileBasedSecretsProvider::class.java)
@@ -61,9 +59,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
 
     private val secretStorageFilePath = config.getStringOrDefault(PATH_PROPERTY, ".")
 
-    /**
-     * Return a map representing all secrets stored in file-based secret storage.
-     */
+    /** Return a map representing all secrets stored in file-based secret storage. */
     private suspend fun readSecrets(): Map<Path, SecretValue> =
         withContext(Dispatchers.Virtual) {
             val file = getOrCreateStorageFile()
@@ -90,9 +86,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         return file
     }
 
-    /**
-     * Return a map representing all secrets stored in file-based secret storage.
-     */
+    /** Return a map representing all secrets stored in file-based secret storage. */
     private suspend fun writeSecrets(secrets: Map<Path, SecretValue>) {
         withContext(Dispatchers.Virtual) {
             val secretsJson = Json.encodeToString<FileBasedSecretsStorage>(

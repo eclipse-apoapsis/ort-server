@@ -25,14 +25,10 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
  */
 @Suppress("TooManyFunctions")
 interface KeycloakClient {
-    /**
-     * Return a set of all [users][User], which currently exist in the Keycloak realm.
-     */
+    /** Return a set of all [users][User], which currently exist in the Keycloak realm. */
     suspend fun getUsers(): Set<User>
 
-    /**
-     * Return the [user][User] with the given [username].
-     */
+    /** Return the [user][User] with the given [username]. */
     suspend fun getUser(username: UserName): User
 
     /**
@@ -60,18 +56,12 @@ interface KeycloakClient {
         email: String? = null
     )
 
-    /**
-     * Delete the [user][User] with the given [id] from the Keycloak realm.
-     */
+    /** Delete the [user][User] with the given [id] from the Keycloak realm. */
     suspend fun deleteUser(id: UserId)
 
-    /**
-     * Return a set of all [users][User] of a group [GroupName].
-     */
+    /** Return a set of all [users][User] of a group [GroupName]. */
     suspend fun getGroupMembers(groupName: GroupName): Set<User>
 
-    /**
-     * Return a set of all [users][User] of a group [GroupId].
-     */
+    /** Return a set of all [users][User] of a group [GroupId]. */
     suspend fun getGroupMembers(groupId: GroupId): Set<User>
 }

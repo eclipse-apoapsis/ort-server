@@ -23,18 +23,12 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 
-/**
- * A repository of [ReporterJob]s.
- */
+/** A repository of [ReporterJob]s. */
 interface ReporterJobRepository : WorkerJobRepository<ReporterJob> {
-    /**
-     * Create a reporter job.
-     */
+    /** Create a reporter job. */
     suspend fun create(ortRunId: Long, configuration: ReporterJobConfiguration): ReporterJob
 
-    /**
-     * Delete a reporter job by [id].
-     */
+    /** Delete a reporter job by [id]. */
     suspend fun delete(id: Long)
 
     /**
@@ -43,8 +37,6 @@ interface ReporterJobRepository : WorkerJobRepository<ReporterJob> {
      */
     suspend fun getReportByToken(ortRunId: Long, token: String): Report?
 
-    /**
-     * Get all reports for the [ortRunId] filtered by the expiration date of the [Report.downloadLink].
-     */
+    /** Get all reports for the [ortRunId] filtered by the expiration date of the [Report.downloadLink]. */
     suspend fun getNonExpiredReports(ortRunId: Long): List<Report>
 }

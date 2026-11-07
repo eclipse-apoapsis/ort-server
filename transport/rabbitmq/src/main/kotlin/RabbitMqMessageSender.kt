@@ -27,9 +27,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
 
-/**
- * Implementation of the [MessageSender] interface for RabbitMQ.
- */
+/** Implementation of the [MessageSender] interface for RabbitMQ. */
 class RabbitMqMessageSender<T : Any>(
     /** The RabbitMQ channel. */
     private val channel: Channel,

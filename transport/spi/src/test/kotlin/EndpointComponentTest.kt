@@ -100,9 +100,7 @@ private class EndpointForTesting : EndpointComponent<OrchestratorMessage>(Orches
     val receivedMessages: List<Message<OrchestratorMessage>>
         get() = receivedMessagesList
 
-    /**
-     * A handler function that records the received message and executes further functionality of the base class.
-     */
+    /** A handler function that records the received message and executes further functionality of the base class. */
     override val endpointHandler: EndpointHandler<OrchestratorMessage> = { message ->
         receivedMessagesList += message
 

@@ -97,9 +97,7 @@ data class ReportNameMapping(
  * report generation.
  */
 data class ReportDefinition(
-    /**
-     * The ID of the reporter plugin that generates this report.
-     */
+    /** The ID of the reporter plugin that generates this report. */
     val pluginId: String,
 
     /** An optional description for this report. */

@@ -68,9 +68,7 @@ data class ScalewayConfiguration(
     val hasCredentials = secretKey.isNotEmpty() && projectId.isNotEmpty()
 }
 
-/**
- * See https://www.scaleway.com/en/developers/api/#versions.
- */
+/** See https://www.scaleway.com/en/developers/api/#versions. */
 @Serializable
 enum class ScalewayApiVersion {
     @SerialName("v1alpha1") V1_ALPHA1,
@@ -80,9 +78,7 @@ enum class ScalewayApiVersion {
     override fun toString() = serializer().descriptor.getElementName(ordinal)
 }
 
-/**
- * See https://www.scaleway.com/en/developers/api/#regions-and-zones.
- */
+/** See https://www.scaleway.com/en/developers/api/#regions-and-zones. */
 @Serializable
 enum class ScalewayRegion {
     @SerialName("fr-par") FRANCE_PARIS,

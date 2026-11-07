@@ -99,9 +99,7 @@ import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.utils.common.collectMessages
 
-/**
- * The route that lists the repositories of all products. The routes for a single repository are in [repositories].
- */
+/** The route that lists the repositories of all products. The routes for a single repository are in [repositories]. */
 fun Route.allRepositories() = route("repositories") {
     val repositoryService by inject<RepositoryService>()
 

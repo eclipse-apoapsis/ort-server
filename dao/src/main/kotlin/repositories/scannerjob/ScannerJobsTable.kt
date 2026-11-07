@@ -36,9 +36,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a scanner job.
- */
+/** A table to represent a scanner job. */
 object ScannerJobsTable : LongIdTable("scanner_jobs") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 

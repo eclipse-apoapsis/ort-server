@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
-/**
- * The status of a job.
- */
+/** The status of a job. */
 enum class JobStatus {
     /** The job was created in the database but not yet scheduled for execution. */
     CREATED,

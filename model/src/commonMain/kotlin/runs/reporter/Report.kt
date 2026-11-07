@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.runs.reporter
 
 import kotlin.time.Instant
 
-/**
- * A data class providing some metadata about a report generated during an ORT run.
- */
+/** A data class providing some metadata about a report generated during an ORT run. */
 data class Report(
     /** The filename of the report. */
     val filename: String,

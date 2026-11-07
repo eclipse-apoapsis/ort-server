@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to store the results of processing declared licenses.
- */
+/** A table to store the results of processing declared licenses. */
 object ProcessedDeclaredLicensesTable : LongIdTable("processed_declared_licenses") {
     val packageId = reference("package_id", PackagesTable).nullable()
     val projectId = reference("project_id", ProjectsTable).nullable()

@@ -123,9 +123,7 @@ class OrtServerMain : SuspendingCliktCommand(COMMAND_NAME) {
         showStacktrace = stacktrace
     }
 
-    /**
-     * Build the version information for the CLI and (if authenticated) for the ORT Server.
-     */
+    /** Build the version information for the CLI and (if authenticated) for the ORT Server. */
     private suspend fun buildVersionInformation(cliVersion: String): String {
         val serverVersions = runCatching { createAuthenticatedOrtServerClient()?.versions?.getVersions() }.getOrNull()
 

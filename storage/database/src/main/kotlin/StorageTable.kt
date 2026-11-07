@@ -25,9 +25,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * Definition of a table for storing arbitrary binary data in a BLOB column.
- */
+/** Definition of a table for storing arbitrary binary data in a BLOB column. */
 object StorageTable : LongIdTable("storage") {
     val createdAt = timestamp("created_at")
     val namespace = text("namespace")

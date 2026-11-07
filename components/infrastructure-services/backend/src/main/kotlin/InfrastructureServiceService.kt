@@ -63,9 +63,7 @@ class InfrastructureServiceService(
     /** Reference to the database. */
     private val db: Database
 ) {
-    /**
-     * Create an [InfrastructureService] with the given properties for the hierarchy entity [id].
-     */
+    /** Create an [InfrastructureService] with the given properties for the hierarchy entity [id]. */
     suspend fun createForId(
         id: HierarchyId,
         name: String,
@@ -94,9 +92,7 @@ class InfrastructureServiceService(
         }.mapToModel()
     }
 
-    /**
-     * Update the [InfrastructureService] with the given [name] and hierarchy entity [id].
-     */
+    /** Update the [InfrastructureService] with the given [name] and hierarchy entity [id]. */
     suspend fun updateForId(
         id: HierarchyId,
         name: String,
@@ -117,18 +113,14 @@ class InfrastructureServiceService(
         service.mapToModel()
     }
 
-    /**
-     * Delete the [InfrastructureService] with the given [name] and hierarchy entity [id].
-     */
+    /** Delete the [InfrastructureService] with the given [name] and hierarchy entity [id]. */
     suspend fun deleteForId(id: HierarchyId, name: String) {
         db.transaction {
             InfrastructureServicesDao.findSingle(selectByIdAndName(id, name)).delete()
         }
     }
 
-    /**
-     * Return the [InfrastructureService] for the given [name] and hierarchy entity [id].
-     */
+    /** Return the [InfrastructureService] for the given [name] and hierarchy entity [id]. */
     suspend fun getForId(id: HierarchyId, name: String): InfrastructureService? =
         db.transaction { getDaoForId(id, name)?.mapToModel() }
 
@@ -152,9 +144,7 @@ class InfrastructureServiceService(
         serviceDao.mapToModel()
     }
 
-    /**
-     * Return the [InfrastructureServiceDeclaration]s associated to the given [ORT Run][runId].
-     */
+    /** Return the [InfrastructureServiceDeclaration]s associated to the given [ORT Run][runId]. */
     suspend fun listDeclarationsForRun(runId: Long): List<InfrastructureServiceDeclaration> = db.transaction {
         val subQuery = InfrastructureServiceDeclarationsRunsTable
             .select(infrastructureServiceDeclarationId)
@@ -373,8 +363,6 @@ private fun selectByIdAndName(
         InfrastructureServicesTable.name eq name
     }
 
-/**
- * An exception class that is thrown if the reference to a secret cannot be resolved.
- */
+/** An exception class that is thrown if the reference to a secret cannot be resolved. */
 class InvalidSecretReferenceException(reference: String) :
     Exception("Could not resolve secret reference '$reference'.")

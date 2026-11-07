@@ -308,9 +308,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     }
 }
 
-/**
- * Obtain a [LabelDao] for the given [entry].
- */
+/** Obtain a [LabelDao] for the given [entry]. */
 private fun getLabelDao(entry: Map.Entry<String, String>): LabelDao =
     LabelDao.getOrPut(entry.key, entry.value)
 

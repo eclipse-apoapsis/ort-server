@@ -140,9 +140,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Simulate an incoming request to advice a project.
-     */
+    /** Simulate an incoming request to advice a project. */
     private suspend fun sendAdvisorRequest() {
         mockkTransaction {
             val message = Message(messageHeader, advisorRequest)

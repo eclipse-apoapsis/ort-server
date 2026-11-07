@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a scope exclude.
- */
+/** A table to represent a scope exclude. */
 object ScopeExcludesTable : LongIdTable("scope_excludes") {
     val pattern = text("pattern")
     val reason = text("reason")

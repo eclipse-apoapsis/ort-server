@@ -29,9 +29,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a VCS info curation data, used within a [PackageCurationData][PackageCurationDataTable].
- */
+/** A table to represent a VCS info curation data, used within a [PackageCurationData][PackageCurationDataTable]. */
 object VcsInfoCurationDataTable : LongIdTable("vcs_info_curation_data") {
     val type = text("type").nullable()
     val url = text("url").nullable()

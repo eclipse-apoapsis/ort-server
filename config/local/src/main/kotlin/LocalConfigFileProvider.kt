@@ -38,21 +38,15 @@ import org.eclipse.apoapsis.ortserver.config.resolveSecurely
 import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.shared.coroutines.withContextClosingOnCancel
 
-/**
- * An implementation of [ConfigFileProvider] that reads config files from a [local directory][configDir].
- */
+/** An implementation of [ConfigFileProvider] that reads config files from a [local directory][configDir]. */
 class LocalConfigFileProvider(
     private val configDir: File
 ) : ConfigFileProvider {
     companion object {
-        /**
-         * Configuration property for the directory where config files are stored.
-         */
+        /** Configuration property for the directory where config files are stored. */
         const val CONFIG_DIR = "localConfigDir"
 
-        /**
-         * Create a new instance of [LocalConfigFileProvider] that is initialized based on the given [config].
-         */
+        /** Create a new instance of [LocalConfigFileProvider] that is initialized based on the given [config]. */
         fun create(config: Config): LocalConfigFileProvider {
             val configDir = config.getString(CONFIG_DIR)
             val file = File(configDir)

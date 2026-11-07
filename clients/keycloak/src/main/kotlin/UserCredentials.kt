@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import kotlinx.serialization.Serializable
 
-/**
- * Part of the request object for creating a new user with credentials in Keycloak.
- */
+/** Part of the request object for creating a new user with credentials in Keycloak. */
 @Serializable
 data class UserCredentials(
     val id: String,

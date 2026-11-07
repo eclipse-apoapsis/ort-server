@@ -44,9 +44,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 
-/**
- * An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable].
- */
+/** An implementation of [ScannerRunRepository] that stores scanner runs in the [ScannerRunsTable]. */
 class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
     override suspend fun create(scannerJobId: Long): ScannerRun = db.transaction {
         val scannerRunDao = ScannerRunDao.new {
@@ -108,9 +106,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         ScannerRunDao.find { ScannerRunsTable.scannerJobId eq scannerJobId }.firstOrNull()?.let { get(it.id.value) }
     }
 
-    /**
-     * Get the [ProvenanceResolutionResult]s for the provided [packageProvenances].
-     */
+    /** Get the [ProvenanceResolutionResult]s for the provided [packageProvenances]. */
     internal fun getProvenanceResolutionResults(
         packageProvenances: Iterable<PackageProvenanceDao>
     ): Set<ProvenanceResolutionResult> = buildSet {

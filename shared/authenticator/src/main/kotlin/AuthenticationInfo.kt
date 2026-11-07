@@ -26,9 +26,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
  * configuration files can be generated or credentials for repositories can be obtained.
  */
 data class AuthenticationInfo(
-    /**
-     * A map with the currently known secrets. The map assigns the secret paths to their values.
-     */
+    /** A map with the currently known secrets. The map assigns the secret paths to their values. */
     val secrets: Map<String, String>,
 
     /** A list with the [ResolvedInfrastructureService]s available in the current context. */

@@ -40,9 +40,7 @@ sealed interface ConfigValidationResult {
         get() = if (issues.isEmpty()) OptionalValue.Absent else issues.asPresent()
 }
 
-/**
- * A data class representing a successful validation of a run configuration.
- */
+/** A data class representing a successful validation of a run configuration. */
 data class ConfigValidationResultSuccess(
     /** The resolved [JobConfigurations] returned by the validation script. */
     val resolvedConfigurations: JobConfigurations,
@@ -57,9 +55,7 @@ data class ConfigValidationResultSuccess(
     val optionalLabels = if (labels.isEmpty()) OptionalValue.Absent else labels.asPresent()
 }
 
-/**
- * A data class representing a failed validation of a run configuration.
- */
+/** A data class representing a failed validation of a run configuration. */
 data class ConfigValidationResultFailure(
     /** A list with issues that were the cause of the failed validation. */
     override val issues: List<Issue>

@@ -45,9 +45,7 @@ data class StorageEntry(
     val length: Long
 ) : AutoCloseable {
     companion object {
-        /**
-         * Create a [StorageEntry] instance from the provided [data], [contentType], and [length].
-         */
+        /** Create a [StorageEntry] instance from the provided [data], [contentType], and [length]. */
         fun create(data: InputStream, contentType: String?, length: Long) =
             StorageEntry(data, contentType, length)
 

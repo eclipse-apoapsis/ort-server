@@ -76,9 +76,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 
 import org.ossreviewtoolkit.model.CuratedPackage as OrtCuratedPackage
 
-/**
- * A service to interact with packages.
- */
+/** A service to interact with packages. */
 class PackageService(private val db: Database, private val ortRunService: OrtRunService) {
     @Suppress("LongMethod")
     suspend fun listForOrtRunId(

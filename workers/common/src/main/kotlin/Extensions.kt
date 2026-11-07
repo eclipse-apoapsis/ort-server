@@ -40,9 +40,7 @@ import org.slf4j.LoggerFactory
 
 val logger: Logger = LoggerFactory.getLogger(ConfigManager::class.java)
 
-/**
- * Map the entries of all [PluginConfig.options] in this map using the provided [transform] function.
- */
+/** Map the entries of all [PluginConfig.options] in this map using the provided [transform] function. */
 fun Map<String, ResolvablePluginConfig>.mapOptions(
     transform: (Map.Entry<String, String>) -> String
 ): Map<String, ResolvablePluginConfig> =
@@ -158,9 +156,7 @@ suspend inline fun <reified T> ConfigManager.getConfigFile(
     if (it is ConfigException) exceptionHandler(it) else throw it
 }
 
-/**
- * Return the resolved context for accessing configuration files from this [WorkerContext] if it is defined.
- */
+/** Return the resolved context for accessing configuration files from this [WorkerContext] if it is defined. */
 val WorkerContext.resolvedConfigurationContext: ResolvedConfigContext
     get() = checkNotNull(ortRun.resolvedJobConfigContext) {
         "Job config context of ORT run '${ortRun.id}' must be resolved."

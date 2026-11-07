@@ -336,14 +336,10 @@ class EnvironmentConfigLoader(
     }
 }
 
-/**
- * An exception class for reporting problems with the environment configuration.
- */
+/** An exception class for reporting problems with the environment configuration. */
 class EnvironmentConfigException(message: String) : Exception(message)
 
-/**
- * A helper class for resolving services on different layers of the hierarchy.
- */
+/** A helper class for resolving services on different layers of the hierarchy. */
 private class ServiceResolver(
     /** The [Hierarchy] of the current repository. */
     val hierarchy: Hierarchy,
@@ -436,17 +432,13 @@ private fun parseService(
 private fun Collection<ResolvedInfrastructureService>.associateByName(): Map<String, ResolvedInfrastructureService> =
     associateBy(ResolvedInfrastructureService::name)
 
-/**
- * Convert this [InfrastructureServiceDeclaration] to a [RepositoryInfrastructureService].
- */
+/** Convert this [InfrastructureServiceDeclaration] to a [RepositoryInfrastructureService]. */
 private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
     RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes)
 
 private fun InfrastructureService.toRepositoryInfrastructureService(): RepositoryInfrastructureService =
     RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes)
 
-/**
- * Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition].
- */
+/** Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition]. */
 private fun EnvironmentVariableDeclaration.toRepositoryVariable(): RepositoryEnvironmentVariableDefinition =
     RepositoryEnvironmentVariableDefinition(name, secretName, value)

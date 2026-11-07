@@ -77,8 +77,6 @@ private object StrictUrlValidator : UrlValidator {
 
     override fun hasUserInfo(url: String): Boolean = parseUrl(url)?.userInfo != null
 
-    /**
-     * Parse the given [url] to a [URL] if it is valid. Return *null* otherwise.
-     */
+    /** Parse the given [url] to a [URL] if it is valid. Return *null* otherwise. */
     private fun parseUrl(url: String): URL? = runCatching { URI.create(url).toURL() }.getOrNull()
 }

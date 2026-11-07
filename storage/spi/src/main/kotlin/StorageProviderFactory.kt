@@ -34,8 +34,6 @@ interface StorageProviderFactory {
     /** Defines a name for this concrete storage implementation. */
     val name: String
 
-    /**
-     * Return an initialized [StorageProvider] using the given [config] and [database][db].
-     */
+    /** Return an initialized [StorageProvider] using the given [config] and [database][db]. */
     fun createProvider(config: ConfigManager, db: Database): StorageProvider
 }

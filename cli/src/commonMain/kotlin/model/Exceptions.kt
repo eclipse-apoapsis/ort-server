@@ -21,23 +21,15 @@ package org.eclipse.apoapsis.ortserver.cli.model
 
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
 
-/**
- * Base class for all exceptions caused by the ORT Server CLI.
- */
+/** Base class for all exceptions caused by the ORT Server CLI. */
 sealed class OrtServerCliException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-/**
- * An exception thrown when the user provides invalid input which is not handled by Clikt.
- */
+/** An exception thrown when the user provides invalid input which is not handled by Clikt. */
 class CliInputException(message: String, cause: Throwable? = null) : OrtServerCliException(message, cause)
 
-/**
- * An exception thrown when the user authentication or the re-authentication using a refresh token fails.
- */
+/** An exception thrown when the user authentication or the re-authentication using a refresh token fails. */
 class AuthenticationError(message: String = "Authentication required. Please run '$COMMAND_NAME auth login'.") :
     OrtServerCliException(message, null)
 
-/**
- * An exception thrown when a run has been completed but issues were found.
- */
+/** An exception thrown when a run has been completed but issues were found. */
 class RunFinishedWithIssuesException(message: String) : Exception(message)

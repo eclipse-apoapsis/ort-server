@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * An intermediate table to store references from [IdentifiersTable] and [IssuesTable].
- */
+/** An intermediate table to store references from [IdentifiersTable] and [IssuesTable]. */
 object IdentifiersIssuesTable : LongIdTable("identifiers_issues") {
     val identifierId = reference("identifier_id", IdentifiersTable)
     val issueId = reference("issue_id", IssuesTable)

@@ -121,9 +121,7 @@ fun KeycloakContainer.createCliConfigMapForTestRealm() =
         "cli.keycloakClientId" to TEST_CLIENT
     )
 
-/**
- * Create an audience mapper that adds the provided [audience] to the access token.
- */
+/** Create an audience mapper that adds the provided [audience] to the access token. */
 private fun audienceMapper(audience: String) = ProtocolMapperRepresentation().apply {
     name = "audience-mapper"
     protocol = "openid-connect"
@@ -158,16 +156,12 @@ fun Keycloak.setUpClientScope(audience: String) {
     }
 }
 
-/**
- * Create a [user] with the provided [password].
- */
+/** Create a [user] with the provided [password]. */
 fun Keycloak.setUpUser(user: User, password: String) {
     realm(TEST_REALM).users().create(user.toUserRepresentation(password = password))
 }
 
-/**
- * Create the provided [roles] in the [TEST_CLIENT] and assign them to the provided [username].
- */
+/** Create the provided [roles] in the [TEST_CLIENT] and assign them to the provided [username]. */
 fun Keycloak.setUpUserRoles(username: String, roles: List<String>) {
     realm(TEST_REALM).apply {
         val client = clients().findByClientId(TEST_CLIENT).single()

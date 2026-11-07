@@ -91,9 +91,7 @@ import org.ossreviewtoolkit.scanner.utils.getVcsPathsForProvenances
 
 import org.slf4j.LoggerFactory
 
-/**
- * A service to interact with ORT runs.
- */
+/** A service to interact with ORT runs. */
 @Suppress("LongParameterList", "TooManyFunctions")
 class OrtRunService(
     private val db: Database,
@@ -212,69 +210,47 @@ class OrtRunService(
         }
     }
 
-    /**
-     * Return the [AdvisorJob] with the provided [id] or `null` if the job does not exist.
-     */
+    /** Return the [AdvisorJob] with the provided [id] or `null` if the job does not exist. */
     suspend fun getAdvisorJob(id: Long) = db.transaction { advisorJobRepository.get(id) }
 
-    /**
-     * Return the [AdvisorJob] for the provided [ortRunId] or `null` if the job does not exist.
-     */
+    /** Return the [AdvisorJob] for the provided [ortRunId] or `null` if the job does not exist. */
     suspend fun getAdvisorJobForOrtRun(ortRunId: Long) = db.transaction { advisorJobRepository.getForOrtRun(ortRunId) }
 
-    /**
-     * Return the [AdvisorRun] for the provided [ortRunId] or `null` if the run does not exist.
-     */
+    /** Return the [AdvisorRun] for the provided [ortRunId] or `null` if the run does not exist. */
     suspend fun getAdvisorRunForOrtRun(ortRunId: Long) = db.transaction {
         getAdvisorJobForOrtRun(ortRunId)?.let { advisorRunRepository.getByJobId(it.id) }
     }
 
-    /**
-     * Return the [AnalyzerJob] with the provided [id] or `null` if the job does not exist.
-     */
+    /** Return the [AnalyzerJob] with the provided [id] or `null` if the job does not exist. */
     suspend fun getAnalyzerJob(id: Long) = db.transaction { analyzerJobRepository.get(id) }
 
-    /**
-     * Return the [AnalyzerJob] for the provided [ortRunId] or `null` if the job does not exist.
-     */
+    /** Return the [AnalyzerJob] for the provided [ortRunId] or `null` if the job does not exist. */
     suspend fun getAnalyzerJobForOrtRun(ortRunId: Long) =
         db.transaction { analyzerJobRepository.getForOrtRun(ortRunId) }
 
-    /**
-     * Return the [AnalyzerRun] for the provided [ortRunId] or `null` if the run does not exist.
-     */
+    /** Return the [AnalyzerRun] for the provided [ortRunId] or `null` if the run does not exist. */
     suspend fun getAnalyzerRunForOrtRun(ortRunId: Long) = db.transaction {
         getAnalyzerJobForOrtRun(ortRunId)?.let { analyzerRunRepository.getByJobId(it.id) }
     }
 
-    /**
-     * Return the [EvaluatorJob] with the provided [id] or `null` if the job does not exist.
-     */
+    /** Return the [EvaluatorJob] with the provided [id] or `null` if the job does not exist. */
     suspend fun getEvaluatorJob(id: Long) = db.transaction { evaluatorJobRepository.get(id) }
 
-    /**
-     * Return the [EvaluatorJob] for the provided [ortRunId] or `null` if the job does not exist.
-     */
+    /** Return the [EvaluatorJob] for the provided [ortRunId] or `null` if the job does not exist. */
     suspend fun getEvaluatorJobForOrtRun(ortRunId: Long) =
         db.transaction { evaluatorJobRepository.getForOrtRun(ortRunId) }
 
-    /**
-     * Return the [EvaluatorRun] for the provided [ortRunId] or `null` if the run does not exist.
-     */
+    /** Return the [EvaluatorRun] for the provided [ortRunId] or `null` if the run does not exist. */
     suspend fun getEvaluatorRunForOrtRun(ortRunId: Long) = db.transaction {
         getEvaluatorJobForOrtRun(ortRunId)?.let { evaluatorRunRepository.getByJobId(it.id) }
     }
 
-    /**
-     * Return the download links for the reports of the ORT run with the given [ortRunId].
-     */
+    /** Return the download links for the reports of the ORT run with the given [ortRunId]. */
     suspend fun getDownloadLinksForOrtRun(ortRunId: Long) = db.transaction {
         reporterJobRepository.getNonExpiredReports(ortRunId)
     }
 
-    /**
-     * Return the [Hierarchy] for the provided [ortRunId] or `null` if the run does not exist.
-     */
+    /** Return the [Hierarchy] for the provided [ortRunId] or `null` if the run does not exist. */
     suspend fun getHierarchyForOrtRun(ortRunId: Long) = db.transaction {
         getOrtRun(ortRunId)?.let { repositoryRepository.getHierarchy(it.repositoryId) }
     }
@@ -323,32 +299,22 @@ class OrtRunService(
         )
     }
 
-    /**
-     * Return the [OrtRun] with the provided [id] or `null` if the ORT run does not exist.
-     */
+    /** Return the [OrtRun] with the provided [id] or `null` if the ORT run does not exist. */
     suspend fun getOrtRun(id: Long) = db.transaction { ortRunRepository.get(id) }
 
-    /**
-     * Return the [ReporterJob] with the provided [id] or `null` if the job does not exist.
-     */
+    /** Return the [ReporterJob] with the provided [id] or `null` if the job does not exist. */
     suspend fun getReporterJob(id: Long) = db.transaction { reporterJobRepository.get(id) }
 
-    /**
-     * Return the [ReporterJob] for the provided [ortRunId] or `null` if the job does not exist.
-     */
+    /** Return the [ReporterJob] for the provided [ortRunId] or `null` if the job does not exist. */
     suspend fun getReporterJobForOrtRun(ortRunId: Long) =
         db.transaction { reporterJobRepository.getForOrtRun(ortRunId) }
 
-    /**
-     * Return the [ReporterRun] for the provided [ortRunId] or `null` if the run does not exist.
-     */
+    /** Return the [ReporterRun] for the provided [ortRunId] or `null` if the run does not exist. */
     suspend fun getReporterRunForOrtRun(ortRunId: Long) = db.transaction {
         getReporterJobForOrtRun(ortRunId)?.let { reporterRunRepository.getByJobId(it.id) }
     }
 
-    /**
-     * Return the [NotifierJob] for the provided [id] or `null` if the run does not exist.
-     */
+    /** Return the [NotifierJob] for the provided [id] or `null` if the run does not exist. */
     suspend fun getNotifierJob(id: Long) = db.transaction { notifierJobRepository.get(id) }
 
     /**
@@ -359,19 +325,13 @@ class OrtRunService(
         resolvedConfigurationRepository.getForOrtRun(ortRun.id) ?: ResolvedConfiguration()
     }
 
-    /**
-     * Return the [ScannerJob] with the provided [id] or `null` if the job does not exist.
-     */
+    /** Return the [ScannerJob] with the provided [id] or `null` if the job does not exist. */
     suspend fun getScannerJob(id: Long) = db.transaction { scannerJobRepository.get(id) }
 
-    /**
-     * Return the [ScannerJob] for the provided [ortRunId] or `null` if the job does not exist.
-     */
+    /** Return the [ScannerJob] for the provided [ortRunId] or `null` if the job does not exist. */
     suspend fun getScannerJobForOrtRun(ortRunId: Long) = db.transaction { scannerJobRepository.getForOrtRun(ortRunId) }
 
-    /**
-     * Return the [ScannerRun] for the provided [ortRunId] or `null` if the run does not exist.
-     */
+    /** Return the [ScannerRun] for the provided [ortRunId] or `null` if the run does not exist. */
     suspend fun getScannerRunForOrtRun(ortRunId: Long) = db.transaction {
         getScannerJobForOrtRun(ortRunId)?.let { scannerRunRepository.getByJobId(it.id) }
     }
@@ -449,9 +409,7 @@ class OrtRunService(
         )
     }
 
-    /**
-     * Start the [AdvisorJob] with the provided [id] and return the updated job or `null` if the job does not exist.
-     */
+    /** Start the [AdvisorJob] with the provided [id] and return the updated job or `null` if the job does not exist. */
     suspend fun startAdvisorJob(id: Long) = advisorJobRepository.tryStart(id, Clock.System.now())
 
     /**
@@ -474,14 +432,10 @@ class OrtRunService(
      */
     suspend fun startNotifierJob(id: Long) = notifierJobRepository.tryStart(id, Clock.System.now())
 
-    /**
-     * Start the [ScannerJob] with the provided [id] and return the updated job or `null` if the job does not exist.
-     */
+    /** Start the [ScannerJob] with the provided [id] and return the updated job or `null` if the job does not exist. */
     suspend fun startScannerJob(id: Long) = scannerJobRepository.tryStart(id, Clock.System.now())
 
-    /**
-     * Store the provided [advisorRun].
-     */
+    /** Store the provided [advisorRun]. */
     suspend fun storeAdvisorRun(advisorRun: AdvisorRun) {
         advisorRunRepository.create(
             advisorJobId = advisorRun.advisorJobId,
@@ -494,9 +448,7 @@ class OrtRunService(
         )
     }
 
-    /**
-     * Store the provided [analyzerRun].
-     */
+    /** Store the provided [analyzerRun]. */
     suspend fun storeAnalyzerRun(
         analyzerRun: AnalyzerRun,
         shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap(),
@@ -519,9 +471,7 @@ class OrtRunService(
         )
     }
 
-    /**
-     * Store the provided [evaluatorRun].
-     */
+    /** Store the provided [evaluatorRun]. */
     suspend fun storeEvaluatorRun(evaluatorRun: EvaluatorRun) {
         evaluatorRunRepository.create(
             evaluatorRun.evaluatorJobId,
@@ -532,9 +482,7 @@ class OrtRunService(
         )
     }
 
-    /**
-     * Store the provided [reporterRun].
-     */
+    /** Store the provided [reporterRun]. */
     suspend fun storeReporterRun(reporterRun: ReporterRun) {
         reporterRunRepository.create(
             reporterRun.reporterJobId,
@@ -552,9 +500,7 @@ class OrtRunService(
         )
     }
 
-    /**
-     * Store the provided [repositoryInformation] associated with the [ortRunId].
-     */
+    /** Store the provided [repositoryInformation] associated with the [ortRunId]. */
     suspend fun storeRepositoryInformation(ortRunId: Long, repositoryInformation: Repository) {
         db.transaction {
             val vcsInfoDao = VcsInfoDao.getOrPut(repositoryInformation.vcs.mapToModel())
@@ -591,9 +537,7 @@ class OrtRunService(
         }
     }
 
-    /**
-     * Store the provided resolved [packageConfigurations] associated with the [ortRunId].
-     */
+    /** Store the provided resolved [packageConfigurations] associated with the [ortRunId]. */
     suspend fun storeResolvedPackageConfigurations(ortRunId: Long, packageConfigurations: List<PackageConfiguration>) {
         db.transaction {
             resolvedConfigurationRepository.addPackageConfigurations(
@@ -603,18 +547,14 @@ class OrtRunService(
         }
     }
 
-    /**
-     * Store the provided resolved [packageCurations] associated with the [ortRunId].
-     */
+    /** Store the provided resolved [packageCurations] associated with the [ortRunId]. */
     suspend fun storeResolvedPackageCurations(ortRunId: Long, packageCurations: List<ResolvedPackageCurations>) {
         db.transaction {
             resolvedConfigurationRepository.addPackageCurations(ortRunId, packageCurations.map { it.mapToModel() })
         }
     }
 
-    /**
-     * Store package curation associations for the provided [ortRunId].
-     */
+    /** Store package curation associations for the provided [ortRunId]. */
     suspend fun storePackageCurationAssociations(
         ortRunId: Long,
         packageCurationAssociations: Map<Identifier, List<AppliedPackageCurationRef>>
@@ -683,9 +623,7 @@ class OrtRunService(
     }
 }
 
-/**
- * Filter the [files][FileList.files] in this [FileList] to only contain files matching the provided [paths].
- */
+/** Filter the [files][FileList.files] in this [FileList] to only contain files matching the provided [paths]. */
 private fun FileList.filterByVcsPaths(paths: Collection<String>): FileList {
     if (paths.any { it.isBlank() }) return this
 

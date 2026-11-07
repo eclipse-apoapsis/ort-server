@@ -36,9 +36,7 @@ import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
-/**
- * Type definition for a function that schedules another worker job.
- */
+/** Type definition for a function that schedules another worker job. */
 typealias JobScheduleFunc = suspend () -> Unit
 
 /**
@@ -64,9 +62,7 @@ internal enum class WorkerScheduleInfo(
      */
     private val runsAfter: List<Endpoint<*>> = emptyList(),
 
-    /**
-     * A flag determining whether the represented worker should be run even if previous workers have already failed.
-     */
+    /** A flag determining whether the represented worker should be run even if previous workers have already failed. */
     private val runAfterFailure: Boolean = false
 ) {
     ANALYZER(AnalyzerEndpoint) {
@@ -184,9 +180,7 @@ internal enum class WorkerScheduleInfo(
         }
     }
 
-    /**
-     * Create a new job for this worker based on the information in the given [context].
-     */
+    /** Create a new job for this worker based on the information in the given [context]. */
     protected abstract suspend fun createJob(context: WorkerScheduleContext): WorkerJob?
 
     /**
@@ -195,9 +189,7 @@ internal enum class WorkerScheduleInfo(
      */
     protected abstract fun publishJob(context: WorkerScheduleContext, job: WorkerJob)
 
-    /**
-     * Return a flag whether this worker is configured to run for the current ORT run based on the given [configs].
-     */
+    /** Return a flag whether this worker is configured to run for the current ORT run based on the given [configs]. */
     protected abstract fun isConfigured(configs: JobConfigurations): Boolean
 
     /**

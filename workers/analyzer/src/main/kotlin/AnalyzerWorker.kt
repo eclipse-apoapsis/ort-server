@@ -307,9 +307,7 @@ private class AnalyzerException(message: String) : Exception(message)
 internal suspend fun OrtRunService.getValidAnalyzerJob(jobId: Long) =
     getAnalyzerJob(jobId).validateForProcessing(jobId)
 
-/**
- * Return the [OrtRun] referenced by the given [job] or throw an [IllegalArgumentException] if it does not exist.
- */
+/** Return the [OrtRun] referenced by the given [job] or throw an [IllegalArgumentException] if it does not exist. */
 internal suspend fun OrtRunService.getValidOrtRun(job: AnalyzerJob): OrtRun =
     getOrtRun(job.ortRunId)
         ?: throw IllegalArgumentException("The ORT run '${job.ortRunId}' does not exist.")

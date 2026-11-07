@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
 
-/**
- * The response object for the endpoint to manage infrastructure services.
- */
+/** The response object for the endpoint to manage infrastructure services. */
 @Serializable
 data class InfrastructureService(
     /** The name of this service. */

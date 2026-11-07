@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an advisor configuration.
- */
+/** A table to represent an advisor configuration. */
 object AdvisorConfigurationsTable : LongIdTable("advisor_configurations") {
     val advisorRunId = reference("advisor_run_id", AdvisorRunsTable)
 }

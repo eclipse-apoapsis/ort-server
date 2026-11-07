@@ -182,9 +182,7 @@ internal class GitHubConfigFileCache(
     private suspend fun getOrPutFileInCache(dataFile: File, load: suspend () -> ByteReadChannel): InputStream =
         withContextClosingOnCancel(Dispatchers.Virtual) { openFileInCache(dataFile, load) }
 
-    /**
-     * Implementation of [getOrPutFileInCache] that must be called on a dispatcher suitable for blocking I/O.
-     */
+    /** Implementation of [getOrPutFileInCache] that must be called on a dispatcher suitable for blocking I/O. */
     private suspend fun openFileInCache(dataFile: File, load: suspend () -> ByteReadChannel): FileInputStream {
         while (true) {
             if (!dataFile.isFile) {

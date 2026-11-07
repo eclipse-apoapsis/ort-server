@@ -294,15 +294,11 @@ class LokiLogFileProviderTest : StringSpec() {
         }
     }
 
-    /**
-     * Send a test request for the given [source] and [levels] and return the resulting log file.
-     */
+    /** Send a test request for the given [source] and [levels] and return the resulting log file. */
     private suspend fun sendTestRequest(source: LogSource, levels: Set<LogLevel>): File =
         LokiLogFileProvider(server.lokiConfig()).testRequest(source, levels)
 
-    /**
-     * Trigger sending a test request via this [LokiLogFileProvider] for the given [source] and [levels].
-     */
+    /** Trigger sending a test request via this [LokiLogFileProvider] for the given [source] and [levels]. */
     private suspend fun LokiLogFileProvider.testRequest(source: LogSource, levels: Set<LogLevel>): File {
         val folder = tempdir()
         val logFile = downloadLogFile(RUN_ID, source, levels, startTime, endTime, folder, FILE_NAME)
@@ -338,14 +334,10 @@ private const val DEFAULT_RESPONSE_TEMPLATE = "loki-response.json.template"
  */
 private val responseTemplate = readResponseTemplate()
 
-/**
- * Return the URL of this mock server to be used in the [LokiConfig].
- */
+/** Return the URL of this mock server to be used in the [LokiConfig]. */
 private fun WireMockServer.lokiUrl() = "http://localhost:${port()}"
 
-/**
- * Return a default [LokiConfig] that references this mock server.
- */
+/** Return a default [LokiConfig] that references this mock server. */
 private fun WireMockServer.lokiConfig(): LokiConfig =
     LokiConfig(
         serverUrl = lokiUrl(),
@@ -382,16 +374,12 @@ private fun WireMockServer.stubLogRequest(
     )
 }
 
-/**
- * Read a file with the given [name] containing a template to generate Loki responses with log statements.
- */
+/** Read a file with the given [name] containing a template to generate Loki responses with log statements. */
 private fun readResponseTemplate(name: String = DEFAULT_RESPONSE_TEMPLATE): String =
     LokiLogFileProviderTest::class.java.getResource("/$name")?.readText()
         ?: AssertionErrorBuilder.fail("Could not load response template '$name'.")
 
-/**
- * Generate a log line for the given [timestamp].
- */
+/** Generate a log line for the given [timestamp]. */
 private fun generateLogLine(timestamp: Instant): String =
     "[$timestamp] Something interesting just happened at this time."
 
@@ -427,14 +415,10 @@ private fun generateLogDataWithIdenticalTimestamp(count: Int, timestamp: String)
     return List(count) { timestamp to generateUniqueLogLine(instant) }
 }
 
-/**
- * Generate the timestamp of a test log entry starting at [from] with the given [index].
- */
+/** Generate the timestamp of a test log entry starting at [from] with the given [index]. */
 private fun logDataTimestamp(from: Instant, index: Int): Instant = from.plus(((index - 1) * 100).milliseconds)
 
-/**
- * Convert this [Instant] to a string with epoch nanoseconds. This format is used by Loki.
- */
+/** Convert this [Instant] to a string with epoch nanoseconds. This format is used by Loki. */
 private fun Instant.toNanoStr(): String =
     String.format(Locale.ROOT, "%d%09d", epochSeconds, nanosecondsOfSecond)
 
@@ -457,9 +441,7 @@ private fun LogData.generateResponse(
     return template.replace(placeholder, logDataJson)
 }
 
-/**
- * Check whether the given [file] contains the log statements represented by this [LogData].
- */
+/** Check whether the given [file] contains the log statements represented by this [LogData]. */
 private fun LogData.checkLogFile(file: File) {
     val expectedLogLines = map { it.second }
     val logLines = file.readLines()
@@ -472,8 +454,6 @@ private fun LogData.isContainedInLogFile(file: File): Boolean {
     return logLines.containsAll(map { it.second })
 }
 
-/**
- * Generate a query string for the given [source] and [log level criterion][levelCriterion].
- */
+/** Generate a query string for the given [source] and [log level criterion][levelCriterion]. */
 private fun generateQuery(source: LogSource, levelCriterion: String): String =
     """{namespace="$NAMESPACE",component="${source.component}"} |~ "level=($levelCriterion)" |~ "ortRunId=$RUN_ID""""

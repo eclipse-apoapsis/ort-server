@@ -99,9 +99,7 @@ class LogFileService private constructor(
             return LogFileService(provider, tempDir)
         }
 
-        /**
-         * Generate the name of a log file based on the given [source].
-         */
+        /** Generate the name of a log file based on the given [source]. */
         private fun logFileName(source: LogSource): String = "${source.name.lowercase()}.log"
     }
 

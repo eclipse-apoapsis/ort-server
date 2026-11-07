@@ -24,9 +24,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
-/**
- * Request object for the update infrastructure service endpoint.
- */
+/** Request object for the update infrastructure service endpoint. */
 @Serializable
 data class PatchInfrastructureService(
     val url: OptionalValue<String> = OptionalValue.Absent,

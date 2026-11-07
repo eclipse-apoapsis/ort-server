@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [PackageCurationDataTable] and [DeclaredLicenseMappingsTable].
- */
+/** An intermediate table to store references from [PackageCurationDataTable] and [DeclaredLicenseMappingsTable]. */
 object PackageCurationDataDeclaredLicenseMappingsTable : Table("package_curation_data_declared_license_mappings") {
     val packageCurationDataId = reference("package_curation_data_id", PackageCurationDataTable)
     val declaredLicenseMappingId = reference("declared_license_mapping_id", DeclaredLicenseMappingsTable)

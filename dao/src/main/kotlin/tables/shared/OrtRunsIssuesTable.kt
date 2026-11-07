@@ -67,9 +67,7 @@ internal fun ortRunIssueContentMatches(ortRunId: Long, issue: Issue): Op<Boolean
 
 class OrtRunIssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<OrtRunIssueDao>(OrtRunsIssuesTable) {
-        /**
-         * Create a new entity based on the given [issue] and associate it with the given [ortRunId].
-         */
+        /** Create a new entity based on the given [issue] and associate it with the given [ortRunId]. */
         fun createByIssue(ortRunId: Long, issue: Issue): OrtRunIssueDao =
             new {
                 this.ortRunId = OrtRunDao[ortRunId].id

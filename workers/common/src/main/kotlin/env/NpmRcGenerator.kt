@@ -48,9 +48,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         /** The NPM configuration option to define the no proxy setting. */
         private const val NO_PROXY_SETTING = "noproxy"
 
-        /**
-         * Return the value of this string base64 encoded.
-         */
+        /** Return the value of this string base64 encoded. */
         private fun String.base64(): String =
             Base64.encode(toByteArray())
 

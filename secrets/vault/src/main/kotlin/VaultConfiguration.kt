@@ -26,9 +26,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 
-/**
- * A data class storing the supported configuration options for the HashiVault secrets provider implementation.
- */
+/** A data class storing the supported configuration options for the HashiVault secrets provider implementation. */
 data class VaultConfiguration(
     /** The URI of the Vault service. */
     val vaultUri: String,
@@ -84,9 +82,7 @@ data class VaultConfiguration(
         /** The separator for hierarchical paths. */
         private const val PATH_SEPARATOR = "/"
 
-        /**
-         * Create a new [VaultConfiguration] based on the properties stored in the given [configManager].
-         */
+        /** Create a new [VaultConfiguration] based on the properties stored in the given [configManager]. */
         fun create(configManager: ConfigManager): VaultConfiguration = VaultConfiguration(
             vaultUri = configManager.getString(URI_PROPERTY),
             credentials = VaultCredentials(
@@ -108,9 +104,7 @@ data class VaultConfiguration(
                 rootPath.takeIf { it.endsWith(PATH_SEPARATOR) } ?: "$rootPath$PATH_SEPARATOR"
             }.orEmpty()
 
-        /**
-         * Return the prefix for paths from the given [config] or the default prefix.
-         */
+        /** Return the prefix for paths from the given [config] or the default prefix. */
         private fun getOptionalPrefix(config: Config): String =
             config.getStringOrNull(PREFIX_PROPERTY)?.removeSuffix(PATH_SEPARATOR) ?: DEFAULT_PREFIX
     }

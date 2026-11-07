@@ -109,9 +109,7 @@ private val messageHeader = MessageHeader(TRACE_ID, 24)
 
 private val configRequest = ConfigRequest(RUN_ID)
 
-/**
- * Simulate an incoming request to check the configuration of an ORT run.
- */
+/** Simulate an incoming request to check the configuration of an ORT run. */
 private suspend fun sendConfigRequest() {
     mockkTransaction {
         val message = Message(messageHeader, configRequest)

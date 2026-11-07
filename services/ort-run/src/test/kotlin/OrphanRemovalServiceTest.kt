@@ -941,9 +941,7 @@ class OrphanRemovalServiceTest : WordSpec() {
         } get ProjectScopesTable.id
 }
 
-/**
- * Return a [ConfigManager] instance with the default configuration for orphan deletion.
- */
+/** Return a [ConfigManager] instance with the default configuration for orphan deletion. */
 private fun createConfigManager(): ConfigManager {
     val configMap = mapOf(
         "vcsInfo.limit" to "10",

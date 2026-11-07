@@ -44,14 +44,10 @@ inline fun <reified T : Any> Table.jsonb(name: String): Column<T> =
  */
 fun String.escapeNull() = replace("\\u0000", "\\\\u0000")
 
-/**
- * Unescape the null character "\u0000". For details see [escapeNull].
- */
+/** Unescape the null character "\u0000". For details see [escapeNull]. */
 fun String.unescapeNull() = replace("\\\\u0000", "\\u0000")
 
-/**
- * A [Json] instance used to serialize and deserialize values for [jsonb] columns.
- */
+/** A [Json] instance used to serialize and deserialize values for [jsonb] columns. */
 val jsonForJsonbColumns = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true

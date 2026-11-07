@@ -49,9 +49,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A query to get the [Project]s for a given [analyzerRunId]. Returns an empty set if no projects are found.
- */
+/** A query to get the [Project]s for a given [analyzerRunId]. Returns an empty set if no projects are found. */
 class GetProjectsForAnalyzerRunQuery(
     /** The ID of the analyzer run to retrieve projects for. */
     val analyzerRunId: Long
@@ -145,9 +143,7 @@ class GetProjectsForAnalyzerRunQuery(
             .mapKeys { it.key.value }
             .mapValues { it.value.toSet() }
 
-    /**
-     * Get the [ProcessedDeclaredLicense]s for the provided [projectIds].
-     */
+    /** Get the [ProcessedDeclaredLicense]s for the provided [projectIds]. */
     @Suppress("UNCHECKED_CAST")
     private fun getProcessedDeclaredLicenses(projectIds: Set<Long>): Map<Long, ProcessedDeclaredLicense?> =
         ProcessedDeclaredLicensesTable

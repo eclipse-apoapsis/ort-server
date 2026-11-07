@@ -29,9 +29,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent Version Control System information.
- */
+/** A table to represent Version Control System information. */
 object VcsInfoTable : LongIdTable("vcs_info") {
     val type = text("type")
     val url = text("url")

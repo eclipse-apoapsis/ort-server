@@ -19,14 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.utils.system
 
-/**
- * The version of the ORT Server as a string.
- */
+/** The version of the ORT Server as a string. */
 const val ORT_SERVER_VERSION = BuildConfig.ORT_SERVER_VERSION
 
 object CustomHttpHeaders {
-    /**
-     * HTTP header name used to identify the client type making API requests.
-     */
+    /** HTTP header name used to identify the client type making API requests. */
     const val CLIENT_TYPE = "X-Client-Type"
 }

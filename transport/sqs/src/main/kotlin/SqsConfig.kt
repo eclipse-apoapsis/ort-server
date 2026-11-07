@@ -55,9 +55,7 @@ data class SqsConfig(
     }
 }
 
-/**
- * Create an AWS [SqsClient] from ORT [SqsConfig].
- */
+/** Create an AWS [SqsClient] from ORT [SqsConfig]. */
 internal fun createSqsClient(config: SqsConfig) =
     SqsClient {
         // Although the region gets overridden by the endpoint URL, hard-code it to some nun-null value to avoid an

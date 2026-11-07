@@ -271,9 +271,7 @@ data class KubernetesSenderConfig(
         /** A regular expression to split key value pairs. */
         private val splitKeyValueRegex = splitRegex(KEY_VALUE_SEPARATOR)
 
-        /**
-         * Create a [KubernetesSenderConfig] for the given [endpoint] from the provided [config].
-         */
+        /** Create a [KubernetesSenderConfig] for the given [endpoint] from the provided [config]. */
         fun createConfig(config: Config, endpoint: Endpoint<*>): KubernetesSenderConfig {
             val mainContainer = createMainContainer(config, endpoint)
             val additionalContainerNames = config.getStringOrNull(ADDITIONAL_CONTAINERS_PROPERTY)
@@ -359,9 +357,7 @@ data class KubernetesSenderConfig(
                 if (s.startsWith('"') && s.endsWith('"')) s.substring(1..s.length - 2) else s
             }.filterNot { it.isEmpty() }
 
-        /**
-         * Split a nullable string using the given [regex] and return a list with the non-empty parts.
-         */
+        /** Split a nullable string using the given [regex] and return a list with the non-empty parts. */
         private fun String?.splitAt(regex: Regex): List<String> =
             this?.split(regex).orEmpty().filterNot { it.isEmpty() }
 
@@ -374,21 +370,15 @@ data class KubernetesSenderConfig(
             return declarations.splitAtWhitespace().mapNotNull(parse)
         }
 
-        /**
-         * Parse the secret volume mount declarations from this [Config].
-         */
+        /** Parse the secret volume mount declarations from this [Config]. */
         private fun Config.parseSecretVolumeMounts(): List<VolumeMount> =
             toVolumeMounts(MOUNT_SECRETS_PROPERTY, ::parseSecretVolumeMount)
 
-        /**
-         * Parse the PVC-based volume mount declarations from this [Config].
-         */
+        /** Parse the PVC-based volume mount declarations from this [Config]. */
         private fun Config.parsePvcVolumeMounts(): List<VolumeMount> =
             toVolumeMounts(MOUNT_PVCS_PROPERTY, ::parsePvcVolumeMount)
 
-        /**
-         * Parse the empty volume mount declarations from this [Config].
-         */
+        /** Parse the empty volume mount declarations from this [Config]. */
         private fun Config.parseEmptyDirVolumeMounts(): List<VolumeMount> =
             toVolumeMounts(MOUNT_EMPTYDIRS_PROPERTY, ::parseEmptyVolumeMount)
 

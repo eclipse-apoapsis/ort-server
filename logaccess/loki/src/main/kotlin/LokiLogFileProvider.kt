@@ -151,9 +151,7 @@ class LokiLogFileProvider(
         return logFile
     }
 
-    /**
-     * Generate a Loki query string to query log information for the given [ortRunId], [source], and [levels].
-     */
+    /** Generate a Loki query string to query log information for the given [ortRunId], [source], and [levels]. */
     private fun constructQuery(
         ortRunId: Long,
         source: LogSource,
@@ -164,9 +162,7 @@ class LokiLogFileProvider(
                 """ |~ "level=$levelCriterion" |~ "ortRunId=$ortRunId""""
     }
 
-    /**
-     * Create an [HttpClient] with a configuration to communicate with the Loki service.
-     */
+    /** Create an [HttpClient] with a configuration to communicate with the Loki service. */
     private fun createClient(): HttpClient =
         createHttpClient(LokiConfig.HTTP_CLIENT_OVERRIDES_PATH) {
             defaultRequest {

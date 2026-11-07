@@ -149,8 +149,6 @@ class NetRcGeneratorTest : StringSpec({
         }
 })
 
-/**
- * Helper function to create a list with [EnvironmentServiceDefinition] objects from the passed in [services].
- */
+/** Helper function to create a list with [EnvironmentServiceDefinition] objects from the passed in [services]. */
 private fun definitions(vararg services: ResolvedInfrastructureService): List<EnvironmentServiceDefinition> =
     listOf(*services).map { EnvironmentServiceDefinition((it)) }

@@ -35,9 +35,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a summary of a scanner run.
- */
+/** A table to represent a summary of a scanner run. */
 object ScannerRunsTable : LongIdTable("scanner_runs") {
     val scannerJobId = reference("scanner_job_id", ScannerJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable).nullable()
@@ -48,9 +46,7 @@ object ScannerRunsTable : LongIdTable("scanner_runs") {
 
 class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScannerRunDao>(ScannerRunsTable) {
-        /**
-         * Constant for the _worker_ property value set for issues to mark them as created by the Scanner.
-         */
+        /** Constant for the _worker_ property value set for issues to mark them as created by the Scanner. */
         const val ISSUE_WORKER_TYPE = "scanner"
     }
 

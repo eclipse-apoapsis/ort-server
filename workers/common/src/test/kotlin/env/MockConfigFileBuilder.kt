@@ -59,9 +59,7 @@ class MockConfigFileBuilder(
          */
         fun testSecretRef(secret: Secret): String = "#{${System.identityHashCode(secret)}}"
 
-        /**
-         * Return a test [ResolvedInfrastructureService] based on the provided parameters.
-         */
+        /** Return a test [ResolvedInfrastructureService] based on the provided parameters. */
         fun createInfrastructureService(
             url: String = REPOSITORY_URL,
             usernameSecret: Secret = mockk(relaxed = true) {
@@ -80,9 +78,7 @@ class MockConfigFileBuilder(
                 credentialsTypes = credentialsTypes
             )
 
-        /**
-         * Return a test [Secret] based on the given [name].
-         */
+        /** Return a test [Secret] based on the given [name]. */
         fun createSecret(name: String): Secret =
             Secret(
                 id = 0L,
@@ -168,9 +164,7 @@ class MockConfigFileBuilder(
      */
     fun encodingFunctionFor(reference: String): SecretEncodingFun = encodingFunctions.getValue(reference)
 
-    /**
-     * Create a mock for a [ConfigFileBuilder] that is prepared to record its invocations.
-     */
+    /** Create a mock for a [ConfigFileBuilder] that is prepared to record its invocations. */
     private fun createBuilderMock(): ConfigFileBuilder =
         mockk {
             coEvery { build(any(), any()) } answers {
@@ -206,9 +200,7 @@ class MockConfigFileBuilder(
     }
 }
 
-/**
- * A data class holding information about a file generated via [MockConfigFileBuilder].
- */
+/** A data class holding information about a file generated via [MockConfigFileBuilder]. */
 private data class GeneratedFile(
     /** The path to the generated file if [ConfigFileBuilder.build] was called. */
     val targetFile: File?,

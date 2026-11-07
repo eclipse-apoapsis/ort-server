@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a scanner configuration.
- */
+/** A table to represent a scanner configuration. */
 object ScannerConfigurationsTable : LongIdTable("scanner_configurations") {
     val scannerRunId = reference("scanner_run_id", ScannerRunsTable)
 

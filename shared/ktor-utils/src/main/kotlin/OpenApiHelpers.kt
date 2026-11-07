@@ -39,9 +39,7 @@ inline fun <reified T> ResponseConfig.jsonBody(noinline block: SimpleBodyConfig.
         block()
     }
 
-/**
- * Generate documentation for the standard sort query parameter.
- */
+/** Generate documentation for the standard sort query parameter. */
 fun RequestConfig.standardSortQueryParameter() {
     queryParameter<String>("sort") {
         description = "Comma-separated list of fields by which the result is sorted. The listed fields must be " +
@@ -50,9 +48,7 @@ fun RequestConfig.standardSortQueryParameter() {
     }
 }
 
-/**
- * Generate documentation for standard list query parameters, using [maxLimit] as the maximum accepted limit.
- */
+/** Generate documentation for standard list query parameters, using [maxLimit] as the maximum accepted limit. */
 fun RequestConfig.standardListQueryParameters(maxLimit: Int = ListQueryParameters.DEFAULT_MAX_LIMIT) {
     require(maxLimit > 0) { "The maximum limit must be positive." }
 

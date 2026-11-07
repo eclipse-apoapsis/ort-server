@@ -48,9 +48,7 @@ internal actual fun Path.setPermissionsToOwnerReadWrite() {
     }
 }
 
-/**
- * Get the user's home directory as a [Path].
- */
+/** Get the user's home directory as a [Path]. */
 actual fun getHomeDirectory() = fixupUserHomeProperty().toPath()
 
 /**

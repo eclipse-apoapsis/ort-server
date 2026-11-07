@@ -26,9 +26,7 @@ import io.ktor.http.headersOf
 
 import kotlinx.serialization.json.Json
 
-/**
- * Create JSON respond with the given [obj] and [statusCode].
- */
+/** Create JSON respond with the given [obj] and [statusCode]. */
 internal inline fun <reified T : Any> MockRequestHandleScope.jsonRespond(
     obj: T,
     statusCode: HttpStatusCode = HttpStatusCode.OK

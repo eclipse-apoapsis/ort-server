@@ -711,9 +711,7 @@ private val configSecrets = mapOf(
 /** The configuration used by the test factory. */
 private val config = createConfigManager()
 
-/**
- * Return an initialized [Config] object that configures the test secret provider factory.
- */
+/** Return an initialized [Config] object that configures the test secret provider factory. */
 private fun createConfigManager(): ConfigManager {
     val configManagerProperties = mapOf(
         ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
@@ -727,15 +725,11 @@ private fun createConfigManager(): ConfigManager {
     return ConfigManager.create(ConfigFactory.parseMap(properties))
 }
 
-/**
- * Create a [Secret] with the given [path]. All other properties are irrelevant.
- */
+/** Create a [Secret] with the given [path]. All other properties are irrelevant. */
 private fun createSecret(path: String): Secret =
     Secret(0L, path, "irrelevant", null, null, null, null)
 
-/**
- * A test helper class managing a [WorkerContextFactory] instance and its dependencies.
- */
+/** A test helper class managing a [WorkerContextFactory] instance and its dependencies. */
 private class ContextFactoryTestHelper {
     /** Mock for the [OrtRunRepository]. */
     val ortRunRepository: OrtRunRepository = mockk()
@@ -772,8 +766,6 @@ private class ContextFactoryTestHelper {
         return run
     }
 
-    /**
-     * Invoke the test factory to create a context for the test run ID.
-     */
+    /** Invoke the test factory to create a context for the test run ID. */
     fun context(): WorkerContext = factory.createContext(RUN_ID)
 }

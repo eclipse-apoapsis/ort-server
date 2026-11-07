@@ -27,9 +27,7 @@ import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
-/**
- * Implementation of the [MessageSenderFactory] interface for Azure Service Bus.
- */
+/** Implementation of the [MessageSenderFactory] interface for Azure Service Bus. */
 class AzureServicebusMessageSenderFactory : MessageSenderFactory {
     override val name = AzureServicebusConfig.TRANSPORT_NAME
 

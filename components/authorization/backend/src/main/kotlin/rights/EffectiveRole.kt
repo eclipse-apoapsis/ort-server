@@ -52,24 +52,16 @@ interface EffectiveRole {
      */
     val elementId: CompoundHierarchyId
 
-    /**
-     * A flag indicating whether the associated user has superuser rights.
-     */
+    /** A flag indicating whether the associated user has superuser rights. */
     val isSuperuser: Boolean
 
-    /**
-     * Return all organization-level permissions granted by this effective role.
-     */
+    /** Return all organization-level permissions granted by this effective role. */
     fun getOrganizationPermissions(): Set<OrganizationPermission>
 
-    /**
-     * Return all product-level permissions granted by this effective role.
-     */
+    /** Return all product-level permissions granted by this effective role. */
     fun getProductPermissions(): Set<ProductPermission>
 
-    /**
-     * Return all repository-level permissions granted by this effective role.
-     */
+    /** Return all repository-level permissions granted by this effective role. */
     fun getRepositoryPermissions(): Set<RepositoryPermission>
 
     /**

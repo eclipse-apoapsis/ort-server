@@ -407,9 +407,7 @@ class KeycloakUserServiceTest : WordSpec({
     }
 })
 
-/**
- * Generate a test user in Keycloak with properties derived from the given [index].
- */
+/** Generate a test user in Keycloak with properties derived from the given [index]. */
 private fun createKeycloakUser(
     index: Int,
     username: String = "user$index",
@@ -425,9 +423,7 @@ private fun createKeycloakUser(
         email = email
     )
 
-/**
- * Create a user service backed by a client that returns the given [users].
- */
+/** Create a user service backed by a client that returns the given [users]. */
 private fun createService(users: Set<KeycloakUser>): KeycloakUserService {
     val client = mockk<KeycloakClient> {
         coEvery { getUsers() } returns users
@@ -436,15 +432,11 @@ private fun createService(users: Set<KeycloakUser>): KeycloakUserService {
     return KeycloakUserService(client, mockk(), mockk())
 }
 
-/**
- * Create list query parameters for the given sort [field] and [direction].
- */
+/** Create list query parameters for the given sort [field] and [direction]. */
 private fun queryParameters(field: String, direction: OrderDirection) =
     ListQueryParameters(sortFields = listOf(OrderField(field, direction)))
 
-/**
- * Generate a test user in the ORT Server model with properties derived from the given [index].
- */
+/** Generate a test user in the ORT Server model with properties derived from the given [index]. */
 private fun createUser(index: Int): User =
     User(
         username = "user$index",

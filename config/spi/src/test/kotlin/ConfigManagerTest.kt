@@ -493,9 +493,7 @@ class ConfigManagerTest : WordSpec({
 private const val TEST_SECRET_NAME = "top-secret"
 private const val TEST_SECRET_VALUE = "licenseToTest"
 
-/**
- * Create a [ConfigManager] instance with the given [configuration][configMap].
- */
+/** Create a [ConfigManager] instance with the given [configuration][configMap]. */
 private fun createConfigManager(
     configMap: Map<String, Any> = createConfigManagerProperties()
 ): ConfigManager {
@@ -504,9 +502,7 @@ private fun createConfigManager(
     return ConfigManager.create(config)
 }
 
-/**
- * Return a [Map] with properties that are required to create a [ConfigManager] instance.
- */
+/** Return a [Map] with properties that are required to create a [ConfigManager] instance. */
 private fun createConfigManagerProperties(): Map<String, Map<String, Any>> {
     val configManagerMap = createConfigProviderProperties()
 

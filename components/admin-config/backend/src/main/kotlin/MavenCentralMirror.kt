@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import com.sksamuel.hoplite.ConfigAlias
 
-/**
- * A data class representing a Maven Central mirror configuration.
- */
+/** A data class representing a Maven Central mirror configuration. */
 data class MavenCentralMirror(
     /** The unique identifier of the Maven Central mirror. */
     val id: String,

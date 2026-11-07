@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a relation between nested repositories and ORT runs.
- */
+/** A table to represent a relation between nested repositories and ORT runs. */
 object NestedRepositoriesTable : LongIdTable("nested_repositories") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
     val vcsId = reference("vcs_id", VcsInfoTable)

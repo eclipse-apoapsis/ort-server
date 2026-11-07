@@ -110,15 +110,11 @@ data class ReportDownloadData(
     val loader: suspend OutputStream.() -> Unit
 )
 
-/**
- * Class for an exception thrown by [ReportStorageService] if a requested report cannot be resolved.
- */
+/** Class for an exception thrown by [ReportStorageService] if a requested report cannot be resolved. */
 class ReportNotFoundException(runId: Long, fileName: String) :
     Exception("Could not resolve report '$fileName' for run $runId.")
 
-/**
- * Generate the storage [Key] for the given combination of [runId] and [fileName].
- */
+/** Generate the storage [Key] for the given combination of [runId] and [fileName]. */
 internal fun generateKey(runId: Long, fileName: String): Key = Key("$runId|$fileName")
 
 /** The default content type to be used if the detection fails. */

@@ -55,9 +55,7 @@ object PackageProvenancesTable : LongIdTable("package_provenances") {
 
 class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<PackageProvenanceDao>(PackageProvenancesTable) {
-        /**
-         * Return a matching package provenance for the provided [package][pkg] or null if no provenance is found.
-         */
+        /** Return a matching package provenance for the provided [package][pkg] or null if no provenance is found. */
         fun findByPackage(pkg: PackageDao): PackageProvenanceDao? =
             // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
             //       provenances are found for a package.

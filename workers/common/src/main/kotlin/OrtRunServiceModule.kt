@@ -65,9 +65,7 @@ import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
-/**
- * Return a module with bean definitions for the [OrtRunService] and the repositories it depends on.
- */
+/** Return a module with bean definitions for the [OrtRunService] and the repositories it depends on. */
 fun ortRunServiceModule(): Module = module {
     includes(reportStorageModule)
 

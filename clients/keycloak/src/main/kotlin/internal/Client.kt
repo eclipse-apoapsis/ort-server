@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing an OAuth client in a Keycloak realm.
- */
+/** A data class representing an OAuth client in a Keycloak realm. */
 @Serializable
 internal data class Client(
     /** The (Keycloak-internal) unique client ID. */

@@ -21,13 +21,9 @@ package org.eclipse.apoapsis.ortserver.logaccess
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
-/**
- * A factory interface for creating [LogFileProvider] instances.
- */
+/** A factory interface for creating [LogFileProvider] instances. */
 interface LogFileProviderFactory {
-    /**
-     * The name of the [LogFileProvider] implementation. This is used to load a specific factory from the classpath.
-     */
+    /** The name of the [LogFileProvider] implementation. This is used to load a specific factory from the classpath. */
     val name: String
 
     /**

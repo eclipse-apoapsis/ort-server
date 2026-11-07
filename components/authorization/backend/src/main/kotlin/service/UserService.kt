@@ -22,13 +22,9 @@ package org.eclipse.apoapsis.ortserver.components.authorization.service
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
-/**
- * A service interface to manage users for this server instance. The service
- */
+/** A service interface to manage users for this server instance. The service */
 interface UserService {
-    /**
-     * Create a user. If "password" is null, then "temporary" is ignored.
-     */
+    /** Create a user. If "password" is null, then "temporary" is ignored. */
     @Suppress("LongParameterList")
     suspend fun createUser(
         username: String,
@@ -57,18 +53,12 @@ interface UserService {
         search: String? = null
     ): ListQueryResult<User>
 
-    /**
-     * Return the user with the given internal [id]. Throw an exception if the user does not exist.
-     */
+    /** Return the user with the given internal [id]. Throw an exception if the user does not exist. */
     suspend fun getUserById(id: String): User
 
-    /**
-     * Resolve a number of users by their internal [ids]. Ignore unknown ids.
-     */
+    /** Resolve a number of users by their internal [ids]. Ignore unknown ids. */
     suspend fun getUsersById(ids: Set<String>): Set<User>
 
-    /**
-     * Return a flag whether a user with the given [id] exists.
-     */
+    /** Return a flag whether a user with the given [id] exists. */
     suspend fun userExists(id: String): Boolean
 }

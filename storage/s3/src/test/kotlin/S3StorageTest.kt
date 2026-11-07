@@ -275,9 +275,7 @@ class S3StorageTest : WordSpec({
 internal const val S3_REGION = "eu-central-1"
 internal const val TEST_BUCKET_NAME = "test-bucket"
 
-/**
- * Create a [Storage] that is configured to use the [S3StorageProvider] implementation.
- */
+/** Create a [Storage] that is configured to use the [S3StorageProvider] implementation. */
 private fun FlociContainer.createStorage(
     region: String = S3_REGION,
     bucket: String = TEST_BUCKET_NAME,

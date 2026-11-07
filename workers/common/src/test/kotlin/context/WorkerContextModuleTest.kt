@@ -62,9 +62,7 @@ class WorkerContextModuleTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Prepare the test environment for a test of the given [workerModule] and then execute the given test [block].
-     */
+    /** Prepare the test environment for a test of the given [workerModule] and then execute the given test [block]. */
     private suspend fun runModuleTest(workerModule: Module = workerContextModule(), block: suspend () -> Unit) {
         withMockDatabaseModule {
             startKoin {

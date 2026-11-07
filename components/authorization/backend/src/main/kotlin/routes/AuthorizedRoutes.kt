@@ -269,18 +269,12 @@ private fun Route.findAuthorizationChecker(): AuthorizationChecker? =
     this.attributes.getOrNull(AuthorizationCheckerKey)
         ?: parent?.findAuthorizationChecker()
 
-/**
- * Constant for a key in the attributes of a [Route] to store an [AuthorizationChecker].
- */
+/** Constant for a key in the attributes of a [Route] to store an [AuthorizationChecker]. */
 private val AuthorizationCheckerKey = AttributeKey<AuthorizationChecker>("AuthorizationCheckerKey")
 
-/**
- * An object defining constants for the names of supported authentication providers.
- */
+/** An object defining constants for the names of supported authentication providers. */
 object AuthenticationProviders {
-    /**
-     * The name of the authentication provider for authorization based on JWT tokens.
-     */
+    /** The name of the authentication provider for authorization based on JWT tokens. */
     const val TOKEN_PROVIDER = "token"
 }
 

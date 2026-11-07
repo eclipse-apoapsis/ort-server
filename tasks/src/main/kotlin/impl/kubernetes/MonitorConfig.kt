@@ -55,9 +55,7 @@ data class TimeoutConfig(
     val notifierTimeout: Duration
 )
 
-/**
- * A class collecting the configuration options supported by the Kubernetes Job Monitor component.
- */
+/** A class collecting the configuration options supported by the Kubernetes Job Monitor component. */
 data class MonitorConfig(
     /** The name of the Kubernetes namespace this component should monitor. */
     val namespace: String,
@@ -130,9 +128,7 @@ data class MonitorConfig(
         /** The configuration property defining the timeout for the Notifier worker. */
         private const val TIMEOUT_NOTIFIER_PROPERTY = "notifier"
 
-        /**
-         * Create a [MonitorConfig] from the settings stored in the given [configManager].
-         */
+        /** Create a [MonitorConfig] from the settings stored in the given [configManager]. */
         fun create(configManager: ConfigManager): MonitorConfig {
             val config = configManager.subConfig(Path(CONFIG_PREFIX))
 
@@ -145,9 +141,7 @@ data class MonitorConfig(
             )
         }
 
-        /**
-         * Create a [TimeoutConfig] from the corresponding subsection of the given [config].
-         */
+        /** Create a [TimeoutConfig] from the corresponding subsection of the given [config]. */
         private fun createTimeoutConfig(config: ConfigManager): TimeoutConfig {
             val timeouts = config.subConfig(Path(TIMEOUTS_SECTION))
 

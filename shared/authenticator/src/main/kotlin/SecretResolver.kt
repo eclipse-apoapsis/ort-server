@@ -67,9 +67,7 @@ fun secretResolver(authenticationInfo: AuthenticationInfo): SecretResolverFun =
 fun resolveSecrets(resolverFun: SecretResolverFun, vararg secrets: Secret): Map<Secret, String> =
     secrets.associateWith(resolverFun)
 
-/**
- * Return an [InfraSecretResolverFun] that delegates to the given [configManager] to resolve secrets.
- */
+/** Return an [InfraSecretResolverFun] that delegates to the given [configManager] to resolve secrets. */
 fun infraSecretResolverFromConfig(configManager: ConfigManager): InfraSecretResolverFun = { secret ->
     configManager.getSecret(secret)
 }

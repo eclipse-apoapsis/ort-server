@@ -44,9 +44,7 @@ class DeleteOrphanedEntitiesTask(
         /** The section containing configuration for orphaned entity deletion. */
         private val ORPHAN_SECTION = Path("orphanHandlers")
 
-        /**
-         * Create a new instance of [DeleteOldOrtRunsTask].
-         */
+        /** Create a new instance of [DeleteOldOrtRunsTask]. */
         fun create(config: ConfigManager, orphanRemovalService: OrphanRemovalService): DeleteOrphanedEntitiesTask =
             DeleteOrphanedEntitiesTask(config, orphanRemovalService)
     }

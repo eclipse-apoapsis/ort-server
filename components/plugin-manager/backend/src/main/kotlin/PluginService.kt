@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A service to query ORT plugins and their configuration.
- */
+/** A service to query ORT plugins and their configuration. */
 class PluginService(private val db: Database) {
     /**
      * Returns the [PluginAvailability] of the plugin with the given [pluginType] and [pluginId]. Returns
@@ -49,14 +47,10 @@ class PluginService(private val db: Database) {
         }
     }
 
-    /**
-     * Returns `true` if the plugin with the given [pluginType] and [pluginId] is installed, `false` otherwise.
-     */
+    /** Returns `true` if the plugin with the given [pluginType] and [pluginId] is installed, `false` otherwise. */
     fun isInstalled(pluginType: PluginType, pluginId: String) = normalizePluginId(pluginType, pluginId) != null
 
-    /**
-     * Returns the [PluginDescriptor]s for all installed ORT plugins.
-     */
+    /** Returns the [PluginDescriptor]s for all installed ORT plugins. */
     suspend fun getPlugins(): List<PluginDescriptor> {
         val pluginInfo = mutableMapOf<PluginType, MutableMap<String, PluginAvailability>>()
 

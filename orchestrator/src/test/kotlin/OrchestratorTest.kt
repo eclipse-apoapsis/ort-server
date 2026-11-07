@@ -2157,9 +2157,7 @@ class OrchestratorTest : WordSpec() {
         }
     }
 
-    /**
-     * Create a mock for a [ReporterJobRepository] that is prepared to expect a schedule of a reporter job.
-     */
+    /** Create a mock for a [ReporterJobRepository] that is prepared to expect a schedule of a reporter job. */
     private fun expectReporterJob(): ReporterJobRepository {
         val reporterJobRepository: ReporterJobRepository = createRepository {
             coEvery { create(ortRun.id, any()) } returns reporterJob
@@ -2189,9 +2187,7 @@ class OrchestratorTest : WordSpec() {
         }
     }
 
-    /**
-     * Create a mock for a [NotifierJobRepository] that is prepared to expect a schedule of a notifier job.
-     */
+    /** Create a mock for a [NotifierJobRepository] that is prepared to expect a schedule of a notifier job. */
     private fun expectNotifierJob(): NotifierJobRepository {
         val notifierJobRepository: NotifierJobRepository = createRepository {
             coEvery { create(ortRun.id, any()) } returns notifierJob
@@ -2244,9 +2240,7 @@ private const val RUN_ID = 1L
 /** The default ID of a mock job. */
 private const val JOB_ID = 42L
 
-/**
- * Helper function to create an [Orchestrator] instance with default parameters.
- */
+/** Helper function to create an [Orchestrator] instance with default parameters. */
 @Suppress("LongParameterList")
 private fun createOrchestrator(
     analyzerJobRepository: AnalyzerJobRepository = createRepository(),
@@ -2292,9 +2286,7 @@ private inline fun <reified J : WorkerJob, reified R : WorkerJobRepository<J>> c
     return repository
 }
 
-/**
- * Return a mock for a [WorkerJob] of the given type that is prepared to report the given [jobId] and [status].
- */
+/** Return a mock for a [WorkerJob] of the given type that is prepared to report the given [jobId] and [status]. */
 private inline fun <reified J : WorkerJob> createJob(status: JobStatus, jobId: Long): J =
     mockk {
         every { id } returns jobId

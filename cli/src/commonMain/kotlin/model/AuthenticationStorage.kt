@@ -52,23 +52,17 @@ internal object AuthenticationStorage {
         }
     }
 
-    /**
-     * Store the [authentication] on the user's disk.
-     */
+    /** Store the [authentication] on the user's disk. */
     fun store(authentication: HostAuthenticationDetails) {
         storage = authentication
 
         saveToFile()
     }
 
-    /**
-     * Read the stored authentication details.
-     */
+    /** Read the stored authentication details. */
     fun get(): HostAuthenticationDetails? = storage
 
-    /**
-     * Delete any existing authentication.
-     */
+    /** Delete any existing authentication. */
     fun clear() {
         storage = null
 
@@ -84,9 +78,7 @@ internal object AuthenticationStorage {
     }
 }
 
-/**
- * Data class to store the authentication details for a single ORT Server host.
- */
+/** Data class to store the authentication details for a single ORT Server host. */
 @Serializable
 internal data class HostAuthenticationDetails(
     /** The base URL of the ORT server instance. */

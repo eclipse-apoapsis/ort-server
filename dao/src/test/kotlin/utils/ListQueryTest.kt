@@ -241,25 +241,19 @@ class ListQueryTest : StringSpec() {
         }
     }
 
-    /**
-     * Insert a number of synthetic test organizations in random order.
-     */
+    /** Insert a number of synthetic test organizations in random order. */
     private suspend fun insertTestOrganizations() {
         (1..COUNT).shuffled().forEach { index ->
             organizationRepository.create(ORGANIZATION_NAME.appendIndex(index), ORGANIZATION_DESC.appendIndex(index))
         }
     }
 
-    /**
-     * Return the results of a query for organizations that applies the given [parameters].
-     */
+    /** Return the results of a query for organizations that applies the given [parameters]. */
     private fun query(parameters: ListQueryParameters): List<Organization> = transaction {
         OrganizationDao.list(parameters).map { it.mapToModel() }
     }
 
-    /**
-     * Check whether the given [list] contains the test entities in the expected [range].
-     */
+    /** Check whether the given [list] contains the test entities in the expected [range]. */
     private fun checkOrganizations(list: List<Organization>, range: IntProgression) {
         list shouldHaveSize range.count()
 

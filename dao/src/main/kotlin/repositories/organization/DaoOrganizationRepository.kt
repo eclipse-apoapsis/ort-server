@@ -38,9 +38,7 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/**
- * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
- */
+/** An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable]. */
 class DaoOrganizationRepository(private val db: Database) : OrganizationRepository {
     override suspend fun create(name: String, description: String?) = db.transaction {
         OrganizationDao.new {
@@ -81,9 +79,7 @@ class DaoOrganizationRepository(private val db: Database) : OrganizationReposito
     override suspend fun delete(id: Long) = db.transaction { OrganizationDao[id].delete() }
 }
 
-/**
- * Generate a condition defined by a [filter] for the given [level] and [ids].
- */
+/** Generate a condition defined by a [filter] for the given [level] and [ids]. */
 private fun generateHierarchyCondition(
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,

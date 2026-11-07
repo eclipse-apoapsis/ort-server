@@ -33,9 +33,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a summary of an advisor run.
- */
+/** A table to represent a summary of an advisor run. */
 object AdvisorRunsTable : LongIdTable("advisor_runs") {
     val advisorJobId = reference("advisor_job_id", AdvisorJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable)
@@ -46,9 +44,7 @@ object AdvisorRunsTable : LongIdTable("advisor_runs") {
 
 class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AdvisorRunDao>(AdvisorRunsTable) {
-        /**
-         * Constant for the _worker_ property value set for issues to mark them as created by the Advisor.
-         */
+        /** Constant for the _worker_ property value set for issues to mark them as created by the Advisor. */
         const val ISSUE_WORKER_TYPE = "advisor"
     }
 

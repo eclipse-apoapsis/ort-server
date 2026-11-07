@@ -36,9 +36,7 @@ import kotlinx.serialization.encoding.Encoder
  */
 @Serializable(OptionalValueSerializer::class)
 sealed interface OptionalValue<out T> {
-    /**
-     * Value is present, the property will be updated with [value].
-     */
+    /** Value is present, the property will be updated with [value]. */
     class Present<T>(val value: T) : OptionalValue<T> {
         override fun toString() = value.toString()
 
@@ -55,21 +53,15 @@ sealed interface OptionalValue<out T> {
         override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
-    /**
-     * Value is not present, the property will be ignored.
-     */
+    /** Value is not present, the property will be ignored. */
     object Absent : OptionalValue<Nothing>
 
-    /**
-     * Execute [function] if this value is [Present].
-     */
+    /** Execute [function] if this value is [Present]. */
     fun ifPresent(function: (T) -> Unit) {
         if (this is Present) function(value)
     }
 
-    /**
-     * Execute [function] if this value is [Absent].
-     */
+    /** Execute [function] if this value is [Absent]. */
     fun ifAbsent(function: () -> Unit) {
         when (this) {
             is Absent -> function()
@@ -77,9 +69,7 @@ sealed interface OptionalValue<out T> {
         }
     }
 
-    /**
-     * If this [OptionalValue] is [Present], [transform] the [value][Present.value], otherwise return [Absent].
-     */
+    /** If this [OptionalValue] is [Present], [transform] the [value][Present.value], otherwise return [Absent]. */
     fun <M> map(transform: (T) -> M) =
         when (this) {
             is Present -> Present(transform(value))
@@ -112,7 +102,5 @@ class OptionalValueSerializer<T>(private val valueSerializer: KSerializer<T>) : 
     }
 }
 
-/**
- * Wrap [this] object in [OptionalValue.Present].
- */
+/** Wrap [this] object in [OptionalValue.Present]. */
 fun <T : Any?> T.asPresent() = OptionalValue.Present(this)

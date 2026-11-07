@@ -31,9 +31,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a summary of a reporter run.
- */
+/** A table to represent a summary of a reporter run. */
 object ReporterRunsTable : LongIdTable("reporter_runs") {
     val reporterJobId = reference("reporter_job_id", ReporterJobsTable)
     val startTime = timestamp("start_time")

@@ -129,23 +129,17 @@ object EnvironmentForkHelper {
         restoreAuthentication(authInfos, configManager)
     }
 
-    /**
-     * Restore the MDC context from the given [context] map.
-     */
+    /** Restore the MDC context from the given [context] map. */
     private fun restoreMdcContext(context: Map<String, String>) =
         if (context.isEmpty()) MDC.clear() else MDC.setContextMap(context)
 
-    /**
-     * Obtain authentication information from the authenticator and return it in a form that can be serialized.
-     */
+    /** Obtain authentication information from the authenticator and return it in a form that can be serialized. */
     private fun fetchAuthenticationInfo(): SerializableAuthenticationInfos {
         val authenticator = OrtServerAuthenticator.install(loadEnvironmentServices = false)
         return authenticator.authenticationInfo.toSerializableAuthenticationInfos()
     }
 
-    /**
-     * Initialize the authenticator with the given deserialized [serAuthInfos] and the provided [configManager].
-     */
+    /** Initialize the authenticator with the given deserialized [serAuthInfos] and the provided [configManager]. */
     private fun restoreAuthentication(serAuthInfos: SerializableAuthenticationInfos, configManager: ConfigManager) {
         val authInfos = serAuthInfos.toAuthenticationInfos()
         val authenticator = OrtServerAuthenticator.install(
@@ -205,9 +199,7 @@ object EnvironmentForkHelper {
     private fun SerializableAuthenticationInfos.toAuthenticationInfos(): Map<String, AuthenticationInfo> =
         infosByType.mapValues { (_, authInfo) -> authInfo.toAuthenticationInfo() }
 
-    /**
-     * Convert this [ResolvedInfrastructureService] to a serializable [InfrastructureServiceDeclaration]
-     */
+    /** Convert this [ResolvedInfrastructureService] to a serializable [InfrastructureServiceDeclaration] */
     private fun ResolvedInfrastructureService.toSerializableInfrastructureService(): InfrastructureServiceDeclaration =
         InfrastructureServiceDeclaration(
             name = name,
@@ -232,9 +224,7 @@ object EnvironmentForkHelper {
             credentialsTypes = credentialsTypes
         )
 
-    /**
-     * Create a secret with sufficient information to be used in the authentication process for the given [path].
-     */
+    /** Create a secret with sufficient information to be used in the authentication process for the given [path]. */
     private fun createDummySecret(path: String): Secret =
         Secret(
             id = 0,
@@ -247,9 +237,7 @@ object EnvironmentForkHelper {
         )
 }
 
-/**
- * A data class to store all information that needs to be handed to the forked process.
- */
+/** A data class to store all information that needs to be handed to the forked process. */
 @Serializable
 private data class SerializableForkData(
     /** Authentication information for services. */

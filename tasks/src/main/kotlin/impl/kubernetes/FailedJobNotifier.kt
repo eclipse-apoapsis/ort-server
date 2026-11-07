@@ -82,9 +82,7 @@ internal class FailedJobNotifier(
         sendToOrchestrator(message)
     }
 
-    /**
-     * Send the given [message] to the Orchestrator via the configured [MessageSender].
-     */
+    /** Send the given [message] to the Orchestrator via the configured [MessageSender]. */
     private fun sendToOrchestrator(message: Message<OrchestratorMessage>) {
         log.info(
             "Sending '${message.payload::class.simpleName}' message " +

@@ -41,9 +41,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent an analyzer run.
- */
+/** A table to represent an analyzer run. */
 object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val analyzerJobId = reference("analyzer_job_id", AnalyzerJobsTable)
     val environmentId = reference("environment_id", EnvironmentsTable)
@@ -61,9 +59,7 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AnalyzerRunDao>(AnalyzerRunsTable) {
-        /**
-         * Constant for the _worker_ property value set for issues to mark them as created by the Analyzer.
-         */
+        /** Constant for the _worker_ property value set for issues to mark them as created by the Analyzer. */
         const val ISSUE_WORKER_TYPE = "analyzer"
 
         /**

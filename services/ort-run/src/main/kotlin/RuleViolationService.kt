@@ -84,9 +84,7 @@ private class RuleViolationQueryContext(
     val statusExpression: ExpressionWithColumnType<String>
 )
 
-/**
- * A service to interact with rule violations.
- */
+/** A service to interact with rule violations. */
 class RuleViolationService(
     private val db: Database,
     private val ortRunService: OrtRunService,

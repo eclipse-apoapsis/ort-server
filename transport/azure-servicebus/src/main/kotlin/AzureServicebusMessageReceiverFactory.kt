@@ -40,9 +40,7 @@ import org.slf4j.MDC
 
 private val logger = LoggerFactory.getLogger(AzureServicebusMessageReceiverFactory::class.java)
 
-/**
- * Implementation of the [MessageReceiverFactory] interface for Azure Servicebus.
- */
+/** Implementation of the [MessageReceiverFactory] interface for Azure Servicebus. */
 class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
     override val name = AzureServicebusConfig.TRANSPORT_NAME
 

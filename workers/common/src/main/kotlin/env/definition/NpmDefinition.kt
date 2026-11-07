@@ -22,9 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
-/**
- * An enumeration class defining the supported ways to declare the authentication against an NPM registry.
- */
+/** An enumeration class defining the supported ways to declare the authentication against an NPM registry. */
 enum class NpmAuthMode {
     /**
      * Authentication is done via the properties `username` and `_password`; the values are obtained directly from the
@@ -78,13 +76,9 @@ class NpmDefinition(
      */
     val scope: String? = null,
 
-    /**
-     * An optional email address that may be required for the authentication.
-     */
+    /** An optional email address that may be required for the authentication. */
     val email: String? = null,
 
-    /**
-     * Defines the way authentication should be handled for this private registry.
-     */
+    /** Defines the way authentication should be handled for this private registry. */
     val authMode: NpmAuthMode = NpmAuthMode.PASSWORD
 ) : EnvironmentServiceDefinition(service, credentialsTypes)

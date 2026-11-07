@@ -205,9 +205,7 @@ private fun createConfigManager() = mockk<ConfigManager> {
             File("src/test/resources/resolutions.yml").inputStream()
 }
 
-/**
- * Create a mock [AdminConfigService] and prepare it to return the given [config].
- */
+/** Create a mock [AdminConfigService] and prepare it to return the given [config]. */
 private fun createAdminConfigService(config: AdminConfig = adminConfig): AdminConfigService =
     mockk {
         coEvery { loadAdminConfig(resolvedConfigContext) } returns config

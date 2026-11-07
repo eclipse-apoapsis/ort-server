@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A junction table to link [ScanResultsTable] with [PackageProvenancesTable].
- */
+/** A junction table to link [ScanResultsTable] with [PackageProvenancesTable]. */
 object ScanResultPackageProvenancesTable : Table("scan_result_package_provenances") {
     val scanResultId = reference("scan_result_id", ScanResultsTable, onDelete = ReferenceOption.CASCADE)
     val packageProvenanceId =

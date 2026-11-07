@@ -60,9 +60,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(DataSource::class.java)
 
-/**
- * Connect the database.
- */
+/** Connect the database. */
 fun DataSource.connect() = Database.connect(
     datasource = this,
     databaseConfig = getDatabaseConfig()
@@ -76,9 +74,7 @@ private fun getDatabaseConfig(): DatabaseConfig =
         dispatcher = Dispatchers.Virtual
     }
 
-/**
- * Run the database migrations.
- */
+/** Run the database migrations. */
 fun DataSource.migrate() {
     Flyway(getFlywayConfig(this)).migrate()
 }
@@ -189,9 +185,7 @@ fun <T> Result<T>.getEntityOrNull() = getOrElse {
     }
 }
 
-/**
- * Map the generic database exceptions to more specific exceptions.
- */
+/** Map the generic database exceptions to more specific exceptions. */
 internal fun <T> Result<T>.mapExceptions(): Result<T> =
     recoverCatching {
         if (it is ExposedSQLException) {
@@ -229,8 +223,6 @@ fun <T : LongEntity> LongEntityClass<T>.findSingle(condition: Op<Boolean>): T =
 fun <M, D> mapAndDeduplicate(modelObjects: Collection<M>?, mapper: (M) -> D): SizedIterable<D> =
     SizedCollection(mapToSet(modelObjects, mapper).orEmpty())
 
-/**
- * Map the given [modelObjects] collection to a [Set] using the given [mapper] function.
- */
+/** Map the given [modelObjects] collection to a [Set] using the given [mapper] function. */
 private fun <D, M> mapToSet(modelObjects: Iterable<M>?, mapper: (M) -> D): Set<D>? =
     modelObjects?.mapTo(mutableSetOf(), mapper)

@@ -27,9 +27,7 @@ import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCuration
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 
-/**
- * Returns all installed plugins for the given [pluginType].
- */
+/** Returns all installed plugins for the given [pluginType]. */
 internal fun getInstalledPlugins(pluginType: PluginType): List<PluginDescriptor> =
     when (pluginType) {
         PluginType.ADVISOR -> AdviceProviderFactory.ALL.values.map { it.descriptor }

@@ -25,9 +25,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationR
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
 
-/**
- * Response object for a user.
- */
+/** Response object for a user. */
 @Serializable
 data class User(
     /** The username of the user. */
@@ -43,9 +41,7 @@ data class User(
     val email: String? = null
 )
 
-/**
- * Response object for a user containing the role of the user on an organization.
- */
+/** Response object for a user containing the role of the user on an organization. */
 @Serializable
 data class UserWithOrganizationRole(
     /** User object */
@@ -55,9 +51,7 @@ data class UserWithOrganizationRole(
     val role: OrganizationRole
 )
 
-/**
- * Response object for a user containing the role of the user on a product.
- */
+/** Response object for a user containing the role of the user on a product. */
 @Serializable
 data class UserWithProductRole(
     /** User object */
@@ -67,9 +61,7 @@ data class UserWithProductRole(
     val role: ProductRole
 )
 
-/**
- * Response object for a user containing the role of the user on a repository.
- */
+/** Response object for a user containing the role of the user on a repository. */
 @Serializable
 data class UserWithRepositoryRole(
     /** User object */
@@ -79,9 +71,7 @@ data class UserWithRepositoryRole(
     val role: RepositoryRole
 )
 
-/**
- * Response object for a user containing superuser status.
- */
+/** Response object for a user containing superuser status. */
 @Serializable
 data class UserWithSuperuserStatus(
     /** User object */
@@ -103,9 +93,7 @@ data class PostUser(
     val temporary: Boolean = true
 )
 
-/**
- * Request object for identifying a user by name.
- */
+/** Request object for identifying a user by name. */
 @Serializable
 data class Username(
     val username: String

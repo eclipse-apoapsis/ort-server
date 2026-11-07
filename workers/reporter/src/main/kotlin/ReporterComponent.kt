@@ -73,9 +73,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
          */
         const val WORK_DIR_PLACEHOLDER = "\${workdir}"
 
-        /**
-         * The path in the configuration containing the properties for the reporter worker.
-         */
+        /** The path in the configuration containing the properties for the reporter worker. */
         private const val PATH_REPORTER = "reporter"
 
         /**

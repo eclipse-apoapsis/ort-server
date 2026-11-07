@@ -30,9 +30,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a VCS matcher, used within a [PackageConfiguration][PackageConfigurationsTable].
- */
+/** A table to represent a VCS matcher, used within a [PackageConfiguration][PackageConfigurationsTable]. */
 object VcsMatchersTable : LongIdTable("vcs_matchers") {
     val type = text("type")
     val url = text("url")

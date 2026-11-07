@@ -59,14 +59,10 @@ class ConfigManager(
     private val allowSecretsFromConfig: Boolean
 ) : Config by config {
     companion object {
-        /**
-         * The name of the section in the configuration that contains the settings evaluated by this class.
-         */
+        /** The name of the section in the configuration that contains the settings evaluated by this class. */
         const val CONFIG_MANAGER_SECTION = "configManager"
 
-        /**
-         * The name of the configuration property that defines the name of the config file provider implementation.
-         */
+        /** The name of the configuration property that defines the name of the config file provider implementation. */
         const val FILE_PROVIDER_NAME_PROPERTY = "fileProvider"
 
         /**
@@ -144,9 +140,7 @@ class ConfigManager(
                 )
         }
 
-        /**
-         * Return the system's temporary directory.
-         */
+        /** Return the system's temporary directory. */
         private fun getTempDir(): File = File(System.getProperty("java.io.tmpdir"))
     }
 
@@ -258,9 +252,7 @@ class ConfigManager(
     }
 }
 
-/**
- * A specialized exception class for reporting errors related to the access of configuration data.
- */
+/** A specialized exception class for reporting errors related to the access of configuration data. */
 class ConfigException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**

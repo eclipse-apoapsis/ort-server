@@ -104,9 +104,7 @@ data class ElasticsearchConfig(
         /** The default number of hits requested per page when no explicit page size is configured. */
         private const val DEFAULT_PAGE_SIZE = 1000
 
-        /**
-         * Return a new instance of [ElasticsearchConfig] initialized from the passed in [configManager].
-         */
+        /** Return a new instance of [ElasticsearchConfig] initialized from the passed in [configManager]. */
         fun create(configManager: ConfigManager): ElasticsearchConfig {
             val username = configManager.getStringOrNull(USERNAME_PROPERTY)?.ifBlank { null }
             val apiKey = runCatching {

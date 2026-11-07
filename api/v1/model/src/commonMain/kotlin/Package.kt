@@ -50,9 +50,7 @@ data class Package(
     val publishedAt: Instant? = null
 )
 
-/**
- * Object containing values to filter a packages listing with.
- */
+/** Object containing values to filter a packages listing with. */
 @Serializable
 data class PackageFilters(
     /** Substring filter for identifier. Null if not set. */

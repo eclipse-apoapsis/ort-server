@@ -50,54 +50,40 @@ internal fun calculateScanSummaryHash(ortSummary: ScanSummary): String {
     return digest.digest().toHexString()
 }
 
-/**
- * Update the given [digest] to calculate a hash value for this [LicenseFinding].
- */
+/** Update the given [digest] to calculate a hash value for this [LicenseFinding]. */
 private fun LicenseFinding.hash(digest: MessageDigest) {
     digest.updateString(license.toString())
     location.hash(digest)
 }
 
-/**
- * Update the given [digest] to calculate a hash value for this [CopyrightFinding].
- */
+/** Update the given [digest] to calculate a hash value for this [CopyrightFinding]. */
 private fun CopyrightFinding.hash(digest: MessageDigest) {
     digest.updateString(statement)
     location.hash(digest)
 }
 
-/**
- * Update the given [digest] to calculate a hash value for this [SnippetFinding].
- */
+/** Update the given [digest] to calculate a hash value for this [SnippetFinding]. */
 private fun SnippetFinding.hash(digest: MessageDigest) {
     sourceLocation.hash(digest)
     snippets.forEach { it.hash(digest) }
 }
 
-/**
- * Update the given [digest] to calculate a hash value for this [Snippet].
- */
+/** Update the given [digest] to calculate a hash value for this [Snippet]. */
 private fun Snippet.hash(digest: MessageDigest) {
     digest.updateString("$purl,$license,$location")
 }
 
-/**
- * Update the given [digest] to calculate a hash value for this [Issue].
- */
+/** Update the given [digest] to calculate a hash value for this [Issue]. */
 private fun Issue.hash(digest: MessageDigest) {
     digest.updateString("$message,$severity,$source")
 }
 
-/**
- * Update the given [digest] to calculate a hash value for this [TextLocation].
- */
+/** Update the given [digest] to calculate a hash value for this [TextLocation]. */
 private fun TextLocation.hash(digest: MessageDigest) {
     digest.updateString("$startLine,$endLine,$path")
 }
 
-/**
- * Update this [MessageDigest] with the given [str].
- */
+/** Update this [MessageDigest] with the given [str]. */
 private fun MessageDigest.updateString(str: String) {
     update(str.toByteArray())
 }

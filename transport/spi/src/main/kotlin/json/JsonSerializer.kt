@@ -33,14 +33,10 @@ import kotlinx.serialization.serializer
  */
 interface JsonSerializer<T> {
     companion object {
-        /**
-         * Return an instance of [JsonSerializer] that can handle instances of the provided data type.
-         */
+        /** Return an instance of [JsonSerializer] that can handle instances of the provided data type. */
         inline fun <reified T : Any> forType(): JsonSerializer<T> = forClass(T::class)
 
-        /**
-         * Return an instance of [JsonSerializer] that can handle instances of the provided [class][clazz].
-         */
+        /** Return an instance of [JsonSerializer] that can handle instances of the provided [class][clazz]. */
         @OptIn(InternalSerializationApi::class)
         fun <T : Any> forClass(clazz: KClass<T>): JsonSerializer<T> {
             val serializer = clazz.serializer()
@@ -53,13 +49,9 @@ interface JsonSerializer<T> {
         }
     }
 
-    /**
-     * Generate a JSON string representation for [obj].
-     */
+    /** Generate a JSON string representation for [obj]. */
     fun toJson(obj: T): String
 
-    /**
-     * Deserialize the given [json] string to an object of the managed type.
-     */
+    /** Deserialize the given [json] string to an object of the managed type. */
     fun fromJson(json: String): T
 }

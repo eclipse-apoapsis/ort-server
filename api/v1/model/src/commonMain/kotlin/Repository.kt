@@ -29,9 +29,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.valueOrThrow
 
-/**
- * Response object for the repository endpoint.
- */
+/** Response object for the repository endpoint. */
 @Serializable
 data class Repository(
     val id: Long,
@@ -61,9 +59,7 @@ data class Repository(
     }
 }
 
-/**
- * Request object for the create repository endpoint.
- */
+/** Request object for the create repository endpoint. */
 @Serializable
 data class PostRepository(
     val type: RepositoryType,
@@ -92,9 +88,7 @@ data class PostRepository(
     }
 }
 
-/**
- * Request object for the update repository endpoint.
- */
+/** Request object for the update repository endpoint. */
 @Serializable
 data class PatchRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,

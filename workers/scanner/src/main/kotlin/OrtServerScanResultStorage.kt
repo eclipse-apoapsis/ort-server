@@ -171,9 +171,7 @@ class OrtServerScanResultStorage(
      */
     fun getAllIssues(): Map<Provenance, Set<Issue>> = issuesMap
 
-    /**
-     * Create a new database entry for the given [scanResult] for the given [provenance].
-     */
+    /** Create a new database entry for the given [scanResult] for the given [provenance]. */
     private fun createNewScanResult(scanResult: ScanResult, provenance: KnownProvenance): ScanResultDao {
         val summaryDao = getOrCreateScanSummaryDao(scanResult.summary)
 
@@ -210,9 +208,7 @@ class OrtServerScanResultStorage(
             ?: createScanSummaryDao(summary, summaryHash)
     }
 
-    /**
-     * Create a new [ScanSummaryDao] for the given [summary] with the given [hash].
-     */
+    /** Create a new [ScanSummaryDao] for the given [summary] with the given [hash]. */
     private fun createScanSummaryDao(summary: ScanSummary, hash: String): ScanSummaryDao {
         val summaryDao = ScanSummaryDao.new {
             this.startTime = summary.startTime.toKotlinInstant()

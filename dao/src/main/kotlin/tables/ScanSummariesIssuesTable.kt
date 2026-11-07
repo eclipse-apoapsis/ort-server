@@ -42,9 +42,7 @@ object ScanSummariesIssuesTable : LongIdTable("scan_summaries_issues") {
 
 class ScanSummariesIssuesDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScanSummariesIssuesDao>(ScanSummariesIssuesTable) {
-        /**
-         * Create an entity based on the given [issue] and assign it to the given [scanSummaryId].
-         */
+        /** Create an entity based on the given [issue] and assign it to the given [scanSummaryId]. */
         fun createByIssue(scanSummaryId: Long, issue: Issue): ScanSummariesIssuesDao = new {
             this.scanSummary = ScanSummaryDao[scanSummaryId]
             this.issue = IssueDao.createByIssue(issue)
@@ -56,9 +54,7 @@ class ScanSummariesIssuesDao(id: EntityID<Long>) : LongEntity(id) {
     var issue by IssueDao referencedOn ScanSummariesIssuesTable.issueId
     var timestamp by ScanSummariesIssuesTable.timestamp.transformToDatabasePrecision()
 
-    /**
-     * Map this DAO to an [Issue].
-     */
+    /** Map this DAO to an [Issue]. */
     fun mapToModel(): Issue =
         issue.mapToModel(at = timestamp, identifier = null, worker = null)
 }

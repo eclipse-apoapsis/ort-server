@@ -82,9 +82,7 @@ class VaultSecretsProviderRequestsTest : StringSpec({
 /** Credentials to log in into the Vault server. */
 private val credentials = VaultCredentials("someRole", "someSecret")
 
-/**
- * Return the URL of this mock server to be used in the [VaultConfiguration].
- */
+/** Return the URL of this mock server to be used in the [VaultConfiguration]. */
 private fun WireMockServer.vaultUrl() = "http://localhost:${port()}"
 
 /**

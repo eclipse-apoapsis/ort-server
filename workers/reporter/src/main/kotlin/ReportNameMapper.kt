@@ -29,9 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.ReportNameMapping
  */
 interface ReportNameMapper {
     companion object {
-        /**
-         * A default [ReportNameMapper] instance that maps report files to their original names.
-         */
+        /** A default [ReportNameMapper] instance that maps report files to their original names. */
         private val DEFAULT_MAPPER = object : ReportNameMapper {
             override fun mapReportNames(reportFiles: Collection<File>): Map<String, File> =
                 reportFiles.associateBy { it.name }
@@ -44,9 +42,7 @@ interface ReportNameMapper {
         fun create(nameMapping: ReportNameMapping?): ReportNameMapper =
             nameMapping?.let(::createWithMapping) ?: DEFAULT_MAPPER
 
-        /**
-         * Return a [ReportNameMapper] implementation that applies the given [nameMapping].
-         */
+        /** Return a [ReportNameMapper] implementation that applies the given [nameMapping]. */
         private fun createWithMapping(nameMapping: ReportNameMapping): ReportNameMapper =
             object : ReportNameMapper {
                 override fun mapReportNames(reportFiles: Collection<File>): Map<String, File> =

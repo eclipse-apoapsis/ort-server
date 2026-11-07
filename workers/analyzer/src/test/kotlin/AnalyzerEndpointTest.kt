@@ -318,9 +318,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Simulate an incoming request to analyze a project.
-     */
+    /** Simulate an incoming request to analyze a project. */
     private suspend fun sendAnalyzerRequest() {
         mockkTransaction {
             val message = Message(messageHeader, analyzerRequest)

@@ -191,23 +191,17 @@ private suspend fun checkMain(keepAliveFlag: Boolean = true, block: (Koin) -> Un
     }
 }
 
-/**
- * A simple helper class used by the test tasks to record their execution.
- */
+/** A simple helper class used by the test tasks to record their execution. */
 private class TaskLog {
     /** A map storing the task log. */
     private val taskMap: ConcurrentMap<String, Boolean> = ConcurrentHashMap()
 
-    /**
-     * Record in this log that the task with the given [taskName] was executed.
-     */
+    /** Record in this log that the task with the given [taskName] was executed. */
     fun recordTaskExecution(taskName: String) {
         taskMap[taskName] = true
     }
 
-    /**
-     * Return a [Set] with the names of the task that have been executed.
-     */
+    /** Return a [Set] with the names of the task that have been executed. */
     fun getExecutedTasks(): Set<String> = taskMap.keys
 }
 
@@ -241,9 +235,7 @@ private class ErrorTask(taskLog: TaskLog) : TestTaskBase(ERROR_TASK, taskLog) {
     }
 }
 
-/**
- * Create a [Module] that contains all test tasks and their dependencies.
- */
+/** Create a [Module] that contains all test tasks and their dependencies. */
 private fun createTestModule(taskLog: TaskLog): Module =
     module {
         single { taskLog }

@@ -25,9 +25,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class OrtRun(
-    /**
-     * The unique identifier.
-     */
+    /** The unique identifier. */
     val id: Long,
 
     /**
@@ -36,29 +34,19 @@ data class OrtRun(
      */
     val index: Long,
 
-    /**
-     * The id of the [Organization] this run belongs to.
-     */
+    /** The id of the [Organization] this run belongs to. */
     val organizationId: Long,
 
-    /**
-     * The id of the [Product] this run belongs to.
-     */
+    /** The id of the [Product] this run belongs to. */
     val productId: Long,
 
-    /**
-     * The id of the repository for this run.
-     */
+    /** The id of the repository for this run. */
     val repositoryId: Long,
 
-    /**
-     * The repository revision used by this run.
-     */
+    /** The repository revision used by this run. */
     val revision: String,
 
-    /**
-     * The revision resolved from [revision].
-     */
+    /** The revision resolved from [revision]. */
     val resolvedRevision: String? = null,
 
     /**
@@ -67,19 +55,13 @@ data class OrtRun(
      */
     val path: String? = null,
 
-    /**
-     * The time this run was created.
-     */
+    /** The time this run was created. */
     val createdAt: Instant,
 
-    /**
-     * The time when this run was finished or *null* if it is not yet finished.
-     */
+    /** The time when this run was finished or *null* if it is not yet finished. */
     val finishedAt: Instant? = null,
 
-    /**
-     * The job configurations for this run.
-     */
+    /** The job configurations for this run. */
     val jobConfigs: JobConfigurations,
 
     /**
@@ -88,19 +70,13 @@ data class OrtRun(
      */
     val resolvedJobConfigs: JobConfigurations? = null,
 
-    /**
-     * The jobs for this run.
-     */
+    /** The jobs for this run. */
     val jobs: Jobs,
 
-    /**
-     * The status of this run.
-     */
+    /** The status of this run. */
     val status: OrtRunStatus,
 
-    /**
-     * The labels of this run.
-     */
+    /** The labels of this run. */
     val labels: Options,
 
     /**
@@ -134,14 +110,10 @@ data class OrtRun(
      */
     val traceId: String?,
 
-    /**
-     * The display name of the user that triggered the scan.
-     */
+    /** The display name of the user that triggered the scan. */
     val userDisplayName: UserDisplayName? = null,
 
-    /**
-     * The version of the ORT Server that was active when this run was created.
-     */
+    /** The version of the ORT Server that was active when this run was created. */
     val ortServerVersion: String? = null,
 
     /**
@@ -157,14 +129,10 @@ data class OrtRun(
     val scopes: ScopeIncludesExcludes? = null
 )
 
-/**
- * Request object for the create ort run endpoint.
- */
+/** Request object for the create ort run endpoint. */
 @Serializable
 data class PostRepositoryRun(
-    /**
-     * The repository revision used by this run.
-     */
+    /** The repository revision used by this run. */
     val revision: String,
 
     /**
@@ -173,19 +141,13 @@ data class PostRepositoryRun(
      */
     val path: String? = null,
 
-    /**
-     * The job configurations for this run.
-     */
+    /** The job configurations for this run. */
     val jobConfigs: JobConfigurations,
 
-    /**
-     * The labels for this run.
-     */
+    /** The labels for this run. */
     val labels: Options? = emptyMap(),
 
-    /**
-     * The optional context for obtaining the configuration of this run.
-     */
+    /** The optional context for obtaining the configuration of this run. */
     val jobConfigContext: String? = null,
 
     /**
@@ -194,14 +156,10 @@ data class PostRepositoryRun(
      */
     val environmentConfigPath: String? = null,
 
-    /**
-     * The IDs of the repositories for this run.
-     */
+    /** The IDs of the repositories for this run. */
     val repositoryIds: List<Long> = emptyList(),
 
-    /**
-     * The IDs of the repositories for this run that failed.
-     */
+    /** The IDs of the repositories for this run that failed. */
     val repositoryFailedIds: List<Long> = emptyList(),
 
     /**
@@ -221,14 +179,10 @@ enum class OrtRunStatus {
     CREATED,
     ACTIVE,
 
-    /**
-     * The run finished successfully.
-     */
+    /** The run finished successfully. */
     FINISHED,
 
-    /**
-     * The run failed.
-     */
+    /** The run failed. */
     FAILED,
 
     /**
@@ -248,9 +202,7 @@ data class Jobs(
     val notifier: NotifierJob? = null
 )
 
-/**
- * Object containing values to filter an ort run listing with.
- */
+/** Object containing values to filter an ort run listing with. */
 @Serializable
 data class OrtRunFilters(
     val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null

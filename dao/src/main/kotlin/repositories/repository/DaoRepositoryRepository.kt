@@ -142,9 +142,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     }
 }
 
-/**
- * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
- */
+/** Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids]. */
 private fun generateHierarchyCondition(
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>

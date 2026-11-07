@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a package curation provider.
- */
+/** A table to represent a package curation provider. */
 object ResolvedPackageCurationsTable : LongIdTable("resolved_package_curations") {
     val resolvedPackageCurationProviderId =
         reference("resolved_package_curation_provider_id", ResolvedPackageCurationProvidersTable)

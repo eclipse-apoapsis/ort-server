@@ -49,9 +49,7 @@ interface StorageProvider {
      */
     suspend fun write(key: Key, data: InputStream, length: Long, contentType: String? = null)
 
-    /**
-     * Return a flag whether an entry with the given [key] exists in this storage.
-     */
+    /** Return a flag whether an entry with the given [key] exists in this storage. */
     suspend fun contains(key: Key): Boolean
 
     /**

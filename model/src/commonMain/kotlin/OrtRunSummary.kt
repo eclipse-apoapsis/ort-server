@@ -21,13 +21,9 @@ package org.eclipse.apoapsis.ortserver.model
 
 import kotlin.time.Instant
 
-/**
- * The summary of an ORT run.
- */
+/** The summary of an ORT run. */
 data class OrtRunSummary(
-    /**
-     * The unique identifier.
-     */
+    /** The unique identifier. */
     val id: Long,
 
     /**
@@ -36,29 +32,19 @@ data class OrtRunSummary(
      */
     val index: Long,
 
-    /**
-     * The id of the [Organization] this run belongs to.
-     */
+    /** The id of the [Organization] this run belongs to. */
     val organizationId: Long,
 
-    /**
-     * The id of the [Product] this run belongs to.
-     */
+    /** The id of the [Product] this run belongs to. */
     val productId: Long,
 
-    /**
-     * The id of the repository for this run.
-     */
+    /** The id of the repository for this run. */
     val repositoryId: Long,
 
-    /**
-     * The repository revision used by this run.
-     */
+    /** The repository revision used by this run. */
     val revision: String,
 
-    /**
-     * The revision resolved from [revision].
-     */
+    /** The revision resolved from [revision]. */
     val resolvedRevision: String? = null,
 
     /**
@@ -67,29 +53,19 @@ data class OrtRunSummary(
      */
     val path: String? = null,
 
-    /**
-     * The time this run was created.
-     */
+    /** The time this run was created. */
     val createdAt: Instant,
 
-    /**
-     * The time when this run was finished or *null* if it is not yet finished.
-     */
+    /** The time when this run was finished or *null* if it is not yet finished. */
     val finishedAt: Instant? = null,
 
-    /**
-     * The jobs for this run.
-     */
+    /** The jobs for this run. */
     val jobs: JobSummaries,
 
-    /**
-     * The status of this run.
-     */
+    /** The status of this run. */
     val status: OrtRunStatus,
 
-    /**
-     * The labels of this run.
-     */
+    /** The labels of this run. */
     val labels: Options,
 
     /**
@@ -111,20 +87,14 @@ data class OrtRunSummary(
      */
     val environmentConfigPath: String? = null,
 
-    /**
-     * The display name of the user that triggered this run.
-     */
+    /** The display name of the user that triggered this run. */
     val userDisplayName: User? = null,
 
-    /**
-     * The version of the ORT Server that was active when this run was created.
-     */
+    /** The version of the ORT Server that was active when this run was created. */
     val ortServerVersion: String? = null
 )
 
-/**
- * The summaries of all jobs in an ORT run.
- */
+/** The summaries of all jobs in an ORT run. */
 data class JobSummaries(
     val analyzer: JobSummary? = null,
     val advisor: JobSummary? = null,
@@ -133,37 +103,23 @@ data class JobSummaries(
     val reporter: JobSummary? = null
 )
 
-/**
- * The summary of a job.
- */
+/** The summary of a job. */
 data class JobSummary(
-    /**
-     * The unique identifier of the job.
-     */
+    /** The unique identifier of the job. */
     val id: Long,
 
-    /**
-     * The time the job was created.
-     */
+    /** The time the job was created. */
     val createdAt: Instant,
 
-    /**
-     * The time the job was started.
-     */
+    /** The time the job was started. */
     val startedAt: Instant? = null,
 
-    /**
-     * The time the job finished.
-     */
+    /** The time the job finished. */
     val finishedAt: Instant? = null,
 
-    /**
-     * The job status.
-     */
+    /** The job status. */
     val status: JobStatus,
 
-    /**
-     * Job execution error message, if any.
-     */
+    /** Job execution error message, if any. */
     val errorMessage: String?
 )

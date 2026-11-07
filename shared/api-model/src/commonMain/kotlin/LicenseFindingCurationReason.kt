@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.shared.apimodel
 
-/**
- * Possible reasons for a license finding curation.
- */
+/** Possible reasons for a license finding curation. */
 enum class LicenseFindingCurationReason {
     CODE,
     DATA_OF,

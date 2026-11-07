@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.resolvedconfiguration
 
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 
-/**
- * The [curations] resolved from a specific [provider].
- */
+/** The [curations] resolved from a specific [provider]. */
 data class ResolvedPackageCurations(
     /** The [PackageCurationProviderConfig]. */
     val provider: PackageCurationProviderConfig,

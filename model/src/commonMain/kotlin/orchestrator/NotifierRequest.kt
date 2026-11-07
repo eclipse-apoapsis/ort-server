@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a request to the Notifier worker to notify a user about an ORT result.
- */
+/** A data class representing a request to the Notifier worker to notify a user about an ORT result. */
 @Serializable
 data class NotifierRequest(
     val notifierJobId: Long

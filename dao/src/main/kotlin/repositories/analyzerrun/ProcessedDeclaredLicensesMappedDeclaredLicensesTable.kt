@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to associate [ProcessedDeclaredLicensesTable] with [MappedDeclaredLicensesTable].
- */
+/** An intermediate table to associate [ProcessedDeclaredLicensesTable] with [MappedDeclaredLicensesTable]. */
 object ProcessedDeclaredLicensesMappedDeclaredLicensesTable :
     Table("processed_declared_licenses_mapped_declared_licenses") {
     val processedDeclaredLicenseId = reference("processed_declared_license_id", ProcessedDeclaredLicensesTable)

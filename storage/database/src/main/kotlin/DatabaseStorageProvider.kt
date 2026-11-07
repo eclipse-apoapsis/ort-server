@@ -90,9 +90,7 @@ class DatabaseStorageProvider(
             true
         } ?: false
 
-    /**
-     * Search for an entry with the given [key].
-     */
+    /** Search for an entry with the given [key]. */
     private fun findByKey(key: Key): SizedIterable<StorageDao> =
         StorageDao.find { (StorageTable.key eq key.key) and (StorageTable.namespace eq namespace) }
 }

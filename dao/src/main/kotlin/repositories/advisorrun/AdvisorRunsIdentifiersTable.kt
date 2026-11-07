@@ -30,9 +30,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * An intermediate table to store references from [AdvisorRunsTable] and [IdentifiersTable].
- */
+/** An intermediate table to store references from [AdvisorRunsTable] and [IdentifiersTable]. */
 object AdvisorRunsIdentifiersTable : LongIdTable("advisor_runs_identifiers") {
     val advisorRunId = reference("advisor_run_id", AdvisorRunsTable)
     val identifierId = reference("identifier_id", IdentifiersTable)

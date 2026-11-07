@@ -63,9 +63,7 @@ private const val WORKER_LABEL = "ort-worker"
  */
 private val VARIABLES_NOT_TO_PROPAGATE = setOf("_", "HOME", "PATH", "PWD")
 
-/**
- * Implementation of the [MessageSender] interface for Kubernetes.
- */
+/** Implementation of the [MessageSender] interface for Kubernetes. */
 internal class KubernetesMessageSender<T : Any>(
     /** The Kubernetes API for creating jobs. */
     val api: BatchV1Api,

@@ -514,9 +514,7 @@ class JobHandlerTest : WordSpec({
     }
 })
 
-/**
- * Create a [JobHandler] instance with default dependencies that can be overridden if needed.
- */
+/** Create a [JobHandler] instance with default dependencies that can be overridden if needed. */
 private fun createJobHandler(
     jobApi: BatchV1Api = mockk(),
     api: CoreV1Api = mockk(),
@@ -525,44 +523,34 @@ private fun createJobHandler(
 ): JobHandler =
     JobHandler(jobApi, api, notifier, createMonitorConfig(recentlyProcessedInterval))
 
-/**
- * Create a [MonitorConfig] with default values and the given [processedInterval].
- */
+/** Create a [MonitorConfig] with default values and the given [processedInterval]. */
 private fun createMonitorConfig(processedInterval: Duration): MonitorConfig =
     mockk {
         every { namespace } returns NAMESPACE
         every { recentlyProcessedInterval } returns processedInterval
     }
 
-/**
- * Create a [V1Job] with the given [name] and [status].
- */
+/** Create a [V1Job] with the given [name] and [status]. */
 private fun createJob(name: String, status: V1JobStatus = V1JobStatus()): V1Job =
     V1Job().apply {
         metadata = createMetadata(name)
         status(status)
     }
 
-/**
- * Create a [JobData] object containing a [V1Job] with the given [name], and the given [failed] flag.
- */
+/** Create a [JobData] object containing a [V1Job] with the given [name], and the given [failed] flag. */
 private fun createJobData(name: String, failed: Boolean = false): JobData =
     JobData(
         job = createJob(name),
         failed = failed
     )
 
-/**
- * Create a [V1Job] object with the given [name].
- */
+/** Create a [V1Job] object with the given [name]. */
 private fun createPod(name: String): V1Pod =
     V1Pod().apply {
         metadata = createMetadata(name)
     }
 
-/**
- * Create a [V1ObjectMeta] object with the given [name].
- */
+/** Create a [V1ObjectMeta] object with the given [name]. */
 private fun createMetadata(name: String): V1ObjectMeta =
     V1ObjectMeta().apply {
         name(name)

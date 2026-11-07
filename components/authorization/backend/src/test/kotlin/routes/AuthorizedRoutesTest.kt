@@ -629,9 +629,7 @@ private const val JWT_ISSUER = "http://0.0.0.0:8080/"
 private const val JWT_AUDIENCE = "test-audience"
 private const val JWT_REALM = "Access to 'test'"
 
-/**
- * Create a token for the test user.
- */
+/** Create a token for the test user. */
 private fun createToken(): String =
     JWT.create()
         .withIssuer(JWT_ISSUER)

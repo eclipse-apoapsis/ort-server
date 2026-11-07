@@ -45,9 +45,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 /** The name to identify the test transport implementation. */
 const val TEST_TRANSPORT_NAME = "testMessageTransport"
 
-/**
- * A test [MessageSenderFactory] implementation that is referenced by test cases.
- */
+/** A test [MessageSenderFactory] implementation that is referenced by test cases. */
 class MessageSenderFactoryForTesting : MessageSenderFactory {
     companion object {
         /** A map for storing messages sent by one of the created senders. */
@@ -74,9 +72,7 @@ class MessageSenderFactoryForTesting : MessageSenderFactory {
             queue.poll(delay.inWholeMilliseconds, TimeUnit.MILLISECONDS) should beNull()
         }
 
-        /**
-         * Make sure that a sender for the given [endpoint] has been created and return its queue of sent messages.
-         */
+        /** Make sure that a sender for the given [endpoint] has been created and return its queue of sent messages. */
         private fun <T : Any> queueFor(endpoint: Endpoint<T>) = messageQueues[endpoint].shouldNotBeNull()
     }
 
@@ -109,9 +105,7 @@ class MessageSenderForTesting<T : Any>(
     }
 }
 
-/**
- * A test [MessageReceiverFactory] implementation that is referenced by test cases.
- */
+/** A test [MessageReceiverFactory] implementation that is referenced by test cases. */
 class MessageReceiverFactoryForTesting : MessageReceiverFactory {
     companion object {
         /** Stores the [Endpoint] passed to [createReceiver]. */
@@ -123,9 +117,7 @@ class MessageReceiverFactoryForTesting : MessageReceiverFactory {
         /** Stores the handler function passed to [createReceiver]. */
         var createdHandler: Any? = null
 
-        /**
-         * Reset the properties passed from the last [createReceiver] call.
-         */
+        /** Reset the properties passed from the last [createReceiver] call. */
         fun reset() {
             createdEndpoint = null
             createdConfig = null

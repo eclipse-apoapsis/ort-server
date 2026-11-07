@@ -161,9 +161,7 @@ class OrtServerAuthenticator(
     }
 }
 
-/**
- * An internally used data class to store information about the services that can be authenticated.
- */
+/** An internally used data class to store information about the services that can be authenticated. */
 private data class ServiceData(
     /** The object managing the known infrastructure services. */
     private val authenticatedServices: AuthenticatedServices,
@@ -171,9 +169,7 @@ private data class ServiceData(
     /** The object with authentication information. */
     val authenticationInfo: AuthenticationInfo
 ) {
-    /**
-     * Find the best-matching [ResolvedInfrastructureService] for the given [host] and optional [url].
-     */
+    /** Find the best-matching [ResolvedInfrastructureService] for the given [host] and optional [url]. */
     fun getAuthenticatedService(host: String, url: URL?): ResolvedInfrastructureService? =
         authenticatedServices.getAuthenticatedServiceFor(host, url)
 }

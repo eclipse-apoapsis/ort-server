@@ -36,14 +36,10 @@ interface UrlValidator {
 
         private const val USER_INFO_MESSAGE = "The ${URL_TYPE_PLACEHOLDER}URL must not contain userinfo."
 
-        /**
-         * Generate a validation error message for an invalid URL of the given optional [urlType].
-         */
+        /** Generate a validation error message for an invalid URL of the given optional [urlType]. */
         fun invalidUrlMessage(urlType: String? = null): String = replaceUrlType(INVALID_URL_MESSAGE, urlType)
 
-        /**
-         * Generate a validation error message for a URL with a user info component of the given optional [urlType].
-         */
+        /** Generate a validation error message for a URL with a user info component of the given optional [urlType]. */
         fun userInfoMessage(urlType: String? = null): String = replaceUrlType(USER_INFO_MESSAGE, urlType)
 
         /**
@@ -54,13 +50,9 @@ interface UrlValidator {
             message.replace(URL_TYPE_PLACEHOLDER, urlType?.let { "$it " }.orEmpty())
     }
 
-    /**
-     * Validate if the given [url] is valid.
-     */
+    /** Validate if the given [url] is valid. */
     fun isValidUrl(url: String): Boolean
 
-    /**
-     * Return *true* if the given [url] has a user info component or *false* otherwise.
-     */
+    /** Return *true* if the given [url] has a user info component or *false* otherwise. */
     fun hasUserInfo(url: String): Boolean
 }

@@ -30,14 +30,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
  * nested repositories, like Git submodules.
  */
 data class ProvenanceResolutionResult(
-    /**
-     * The identifier of the package.
-     */
+    /** The identifier of the package. */
     val id: Identifier,
 
-    /**
-     * The resolved provenance of the package.
-     */
+    /** The resolved provenance of the package. */
     val packageProvenance: KnownProvenance? = null,
 
     /**
@@ -52,14 +48,10 @@ data class ProvenanceResolutionResult(
      */
     val packageProvenanceResolutionIssue: Issue? = null,
 
-    /**
-     * An [Issue] describing an error during the resolution of the [subRepositories], or null if there was no error.
-     */
+    /** An [Issue] describing an error during the resolution of the [subRepositories], or null if there was no error. */
     val nestedProvenanceResolutionIssue: Issue? = null
 ) {
-    /**
-     * Get all [KnownProvenance]s from the [packageProvenance] and [subRepositories].
-     */
+    /** Get all [KnownProvenance]s from the [packageProvenance] and [subRepositories]. */
     fun getProvenances(): Set<KnownProvenance> =
         buildSet {
             packageProvenance?.let { add(it) }

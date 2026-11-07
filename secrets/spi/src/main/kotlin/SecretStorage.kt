@@ -83,9 +83,7 @@ class SecretStorage(
         }
     }
 
-    /**
-     * Return the [SecretValue] at the given [path] or `null` if the path cannot be resolved.
-     */
+    /** Return the [SecretValue] at the given [path] or `null` if the path cannot be resolved. */
     suspend fun readSecret(path: Path): SecretValue? = wrapExceptions { provider.readSecret(path) }
 
     /**
@@ -103,16 +101,12 @@ class SecretStorage(
         wrapExceptions { provider.writeSecret(path, secret) }
     }
 
-    /**
-     * Remove the [SecretValue] under the given [path]. Throw a [SecretStorageException] if this fails.
-     */
+    /** Remove the [SecretValue] under the given [path]. Throw a [SecretStorageException] if this fails. */
     suspend fun removeSecret(path: Path) {
         wrapExceptions { provider.removeSecret(path) }
     }
 
-    /**
-     * Generate a [Path] in the hierarchy identified by [id] that is named [secretName].
-     */
+    /** Generate a [Path] in the hierarchy identified by [id] that is named [secretName]. */
     fun createPath(id: HierarchyId, secretName: String) =
         wrapExceptions { provider.createPath(id, secretName) }
 }

@@ -24,38 +24,24 @@ package org.eclipse.apoapsis.ortserver.model
  * about the secret, such as name, description, organization, product or repository to which the given secret belongs.
  */
 data class Secret(
-    /**
-     * The unique identifier of the secret.
-     */
+    /** The unique identifier of the secret. */
     val id: Long,
 
-    /**
-     * The path to the secret.
-     */
+    /** The path to the secret. */
     val path: String,
 
-    /**
-     * The name of the secret.
-     */
+    /** The name of the secret. */
     val name: String,
 
-    /**
-     * The description of the secret.
-     */
+    /** The description of the secret. */
     val description: String?,
 
-    /**
-     * The ID of the [Organization] the secret belongs to.
-     */
+    /** The ID of the [Organization] the secret belongs to. */
     val organizationId: Long?,
 
-    /**
-     * The ID of the [Product] the secret belongs to.
-     */
+    /** The ID of the [Product] the secret belongs to. */
     val productId: Long?,
 
-    /**
-     * The ID of the [Repository] the secret belongs to.
-     */
+    /** The ID of the [Repository] the secret belongs to. */
     val repositoryId: Long?
 )

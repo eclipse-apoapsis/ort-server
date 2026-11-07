@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an analyzer configuration.
- */
+/** A table to represent an analyzer configuration. */
 object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
     val analyzerRunId = reference("analyzer_run_id", AnalyzerRunsTable)
 

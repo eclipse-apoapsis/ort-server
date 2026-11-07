@@ -53,9 +53,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(EvaluatorRunner::class.java)
 
 class EvaluatorRunner(
-    /**
-     * The file archiver is used to resolve license files which is optional input for the rules.
-     */
+    /** The file archiver is used to resolve license files which is optional input for the rules. */
     private val fileArchiver: FileArchiver,
 
     /** The service for obtaining the admin configuration. */

@@ -26,25 +26,17 @@ import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
-/**
- * Response object for the Secrets Metadata endpoint.
- */
+/** Response object for the Secrets Metadata endpoint. */
 @Serializable
 data class Secret(
-    /**
-     * The name of the secret.
-     */
+    /** The name of the secret. */
     val name: String,
 
-    /**
-     * The description of the secret.
-     */
+    /** The description of the secret. */
     val description: String?
 )
 
-/**
- * Request object for the create secret endpoint.
- */
+/** Request object for the create secret endpoint. */
 @Serializable
 data class PostSecret(
     val name: String,

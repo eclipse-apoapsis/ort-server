@@ -36,9 +36,7 @@ val SUPERUSER = User(
     email = "superuser@example.org"
 )
 
-/**
- * The password of [SUPERUSER].
- */
+/** The password of [SUPERUSER]. */
 const val SUPERUSER_PASSWORD = "superuser-password"
 
 /**
@@ -53,7 +51,5 @@ val TEST_USER = User(
     email = "test-user@example.org"
 )
 
-/**
- * The password of [TEST_USER].
- */
+/** The password of [TEST_USER]. */
 const val TEST_USER_PASSWORD = "password"

@@ -152,9 +152,7 @@ abstract class CollectDependencyPluginsTask : DefaultTask() {
         }
     }
 
-    /**
-     * Read the given [jarFile] and extract all information files about ORT plugins to the given [extractDir].
-     */
+    /** Read the given [jarFile] and extract all information files about ORT plugins to the given [extractDir]. */
     private fun extractPluginInfosFromJar(jarFile: File, extractDir: File) {
         ZipFile(jarFile).use { zip ->
             zip.entries().asSequence()
@@ -189,9 +187,7 @@ internal data class PluginInfo(
     val factoryClass: String
 )
 
-/**
- * A data class defining the relevant information from a plugin descriptor.
- */
+/** A data class defining the relevant information from a plugin descriptor. */
 @Serializable
 internal data class PluginDescriptor(
     /** The plugin ID. */

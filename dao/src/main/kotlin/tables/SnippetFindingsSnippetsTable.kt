@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [SnippetFindingsTable] and [SnippetsTable].
- */
+/** An intermediate table to store references from [SnippetFindingsTable] and [SnippetsTable]. */
 object SnippetFindingsSnippetsTable : Table("snippet_findings_snippets") {
     val snippetFindingId = reference("snippet_finding_id", SnippetFindingsTable)
     val snippetId = reference("snippet_id", SnippetsTable)

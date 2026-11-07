@@ -62,9 +62,7 @@ class StatusLoggingTestExtension : BeforeSpecListener, AfterSpecListener, Before
         listAppender.list.clear()
     }
 
-    /**
-     * Return the single log event created for the job status as a [JsonObject].
-     */
+    /** Return the single log event created for the job status as a [JsonObject]. */
     fun statusLog(): JsonObject {
         val event = listAppender.list.single { it.level == Level.INFO }
         event.loggerName shouldBe JOB_STATUS_LOGGER_NAME

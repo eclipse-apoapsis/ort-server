@@ -30,9 +30,7 @@ import kotlinx.serialization.Serializable
  */
 typealias EnvironmentDefinitions = Map<String, List<Map<String, String>>>
 
-/**
- * A data class describing the environment configuration of a specific repository.
- */
+/** A data class describing the environment configuration of a specific repository. */
 @Serializable
 data class EnvironmentConfig(
     /** The list of infrastructure services declared for this repository. */

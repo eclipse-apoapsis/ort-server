@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to store nested provenances.
- */
+/** A table to store nested provenances. */
 object NestedProvenancesTable : LongIdTable("nested_provenances") {
     val rootVcsId = reference("root_vcs_id", VcsInfoTable)
 

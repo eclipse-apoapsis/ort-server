@@ -44,9 +44,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
                 "xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.1.0 " + "" +
                 "http://maven.apache.org/xsd/settings-1.1.0.xsd\""
 
-        /**
-         * Print XML content with an opening and closing [tag] and the given [content].
-         */
+        /** Print XML content with an opening and closing [tag] and the given [content]. */
         private fun PrintWriter.printTag(tag: String, content: String) {
             println("<$tag>$content</$tag>".prependIndent(INDENT_12_SPACES))
         }
@@ -183,9 +181,7 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
     }
 }
 
-/**
- * A data class representing a Maven mirror configuration.
- */
+/** A data class representing a Maven mirror configuration. */
 private data class MavenMirror(
     val id: String,
     val name: String,

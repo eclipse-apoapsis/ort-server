@@ -26,18 +26,12 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
-/**
- * A repository of [products][Product].
- */
+/** A repository of [products][Product]. */
 interface ProductRepository {
-    /**
-     * Create a product.
-     */
+    /** Create a product. */
     suspend fun create(name: String, description: String?, organizationId: Long): Product
 
-    /**
-     * Get a product by [id]. Returns null if the product is not found.
-     */
+    /** Get a product by [id]. Returns null if the product is not found. */
     suspend fun get(id: Long): Product?
 
     /**
@@ -50,31 +44,23 @@ interface ProductRepository {
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Product>
 
-    /**
-     * List all products for an [organization][organizationId] according to the given [parameters].
-     */
+    /** List all products for an [organization][organizationId] according to the given [parameters]. */
     suspend fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filter: FilterParameter? = null
     ): ListQueryResult<Product>
 
-    /**
-     * Count the products associated to an [organization][organizationId].
-     */
+    /** Count the products associated to an [organization][organizationId]. */
     suspend fun countForOrganization(organizationId: Long): Long
 
-    /**
-     * Update a product by [id] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a product by [id] with the [present][OptionalValue.Present] values. */
     suspend fun update(
         id: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Product
 
-    /**
-     * Delete a product by [id].
-     */
+    /** Delete a product by [id]. */
     suspend fun delete(id: Long)
 }

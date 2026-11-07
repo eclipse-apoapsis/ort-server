@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [RepositoryConfigurationsTable] and [PathExcludesTable].
- */
+/** An intermediate table to store references from [RepositoryConfigurationsTable] and [PathExcludesTable]. */
 object RepositoryConfigurationsPathExcludes : Table("repository_configurations_path_excludes") {
     val repositoryConfigurationId = reference("repository_configuration_id", RepositoryConfigurationsTable)
     val pathExcludeId = reference("path_exclude_id", PathExcludesTable)

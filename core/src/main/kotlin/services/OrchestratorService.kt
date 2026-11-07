@@ -38,9 +38,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.slf4j.MDC
 
-/**
- * A service responsible for the communication with the Orchestrator.
- */
+/** A service responsible for the communication with the Orchestrator. */
 class OrchestratorService(
     private val db: Database,
     private val ortRunRepository: OrtRunRepository,

@@ -137,9 +137,7 @@ class ReporterComponentTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Simulate an incoming request to create a project report.
-     */
+    /** Simulate an incoming request to create a project report. */
     private suspend fun sendReporterRequest() {
         val message = Message(messageHeader, reporterRequest)
         MessageReceiverFactoryForTesting.receive(ReporterEndpoint, message)

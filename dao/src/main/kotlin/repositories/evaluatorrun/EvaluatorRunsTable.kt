@@ -34,9 +34,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 
-/**
- * A table to represent a summary of an evaluator run.
- */
+/** A table to represent a summary of an evaluator run. */
 object EvaluatorRunsTable : LongIdTable("evaluator_runs") {
     val evaluatorJobId = reference("evaluator_job_id", EvaluatorJobsTable)
     val startTime = timestamp("start_time")

@@ -33,9 +33,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.json
 
-/**
- * A [CliPrintable] for a formatted and reduced [OrtRun] object.
- */
+/** A [CliPrintable] for a formatted and reduced [OrtRun] object. */
 class OrtRunPrintable(private val ortRun: OrtRun) : CliPrintable {
     override fun humanReadable(): Widget = grid {
         row(yellow("ORT Run Information"))

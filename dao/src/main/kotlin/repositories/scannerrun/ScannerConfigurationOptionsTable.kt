@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an option for a scanner.
- */
+/** A table to represent an option for a scanner. */
 object ScannerConfigurationOptionsTable : LongIdTable("scanner_configuration_options") {
     val scanner = text("scanner")
     val option = text("option")

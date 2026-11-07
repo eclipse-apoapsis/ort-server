@@ -25,9 +25,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactory
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 
-/**
- * Factory implementation for [LocalConfigFileProvider].
- */
+/** Factory implementation for [LocalConfigFileProvider]. */
 class LocalConfigFileProviderFactory : ConfigFileProviderFactory {
     companion object {
         /** The name of this provider implementation. */

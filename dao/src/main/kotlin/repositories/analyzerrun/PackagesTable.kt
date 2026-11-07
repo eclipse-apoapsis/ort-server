@@ -48,9 +48,7 @@ import org.jetbrains.exposed.v1.jdbc.andHaving
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A table to represent all metadata for a software package.
- */
+/** A table to represent all metadata for a software package. */
 object PackagesTable : SortableTable("packages") {
     val identifierId = reference("identifier_id", IdentifiersTable)
     val vcsId = reference("vcs_id", VcsInfoTable)

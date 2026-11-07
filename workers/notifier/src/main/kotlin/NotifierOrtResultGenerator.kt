@@ -75,9 +75,7 @@ internal class NotifierOrtResultGenerator(
         ReporterEndpoint to ortRunService::getReporterJobForOrtRun
     )
 
-    /**
-     * Generate an [OrtResult] from the given [ortRun] object based on the given [notifierJob].
-     */
+    /** Generate an [OrtResult] from the given [ortRun] object based on the given [notifierJob]. */
     suspend fun generateOrtResult(ortRun: OrtRun, notifierJob: NotifierJob): OrtResult {
         val baseResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
 
@@ -112,9 +110,7 @@ internal class NotifierOrtResultGenerator(
             mapOf(EMAIL_RECIPIENTS_LABEL to recipients.joinToString(RECIPIENTS_SEPARATOR))
         }.orEmpty()
 
-    /**
-     * Return a map with labels that contain information about the worker jobs executed for the given [ortRun].
-     */
+    /** Return a map with labels that contain information about the worker jobs executed for the given [ortRun]. */
     private suspend fun getJobStatusLabels(ortRun: OrtRun): Map<String, String> {
         val jobStatusLabels = mutableMapOf<String, String>()
 

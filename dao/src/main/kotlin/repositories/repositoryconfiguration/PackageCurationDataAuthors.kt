@@ -23,9 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [PackageCurationDataTable] and [AuthorsTable].
- */
+/** An intermediate table to store references from [PackageCurationDataTable] and [AuthorsTable]. */
 object PackageCurationDataAuthors : Table("package_curation_data_authors") {
     val packageCurationDataId = reference("package_curation_data_id", PackageCurationDataTable)
     val authorId = reference("author_id", AuthorsTable)

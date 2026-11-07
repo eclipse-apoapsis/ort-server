@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.secrets.file.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing the file storage for secrets.
- */
+/** A data class representing the file storage for secrets. */
 @Serializable
 data class FileBasedSecretsStorage(
     val secrets: Map<String, String>

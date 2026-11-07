@@ -26,9 +26,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-/**
- * A data class representing a link with a token that can be used to download a report without authentication.
- */
+/** A data class representing a link with a token that can be used to download a report without authentication. */
 data class ReportDownloadLink(
     /** The link for accessing the report. */
     val downloadLink: String,
@@ -66,9 +64,7 @@ internal class ReportDownloadLinkGenerator(
     private val clock: Clock = Clock.System
 ) {
     companion object {
-        /**
-         * A link to be returned if no token length is provided and thus the token mechanism is disabled.
-         */
+        /** A link to be returned if no token length is provided and thus the token mechanism is disabled. */
         private val disabledLink = ReportDownloadLink("", Instant.fromEpochMilliseconds(0))
     }
 

@@ -58,9 +58,7 @@ class PluginEventStore(private val db: Database) {
         updateReadModel(pluginEvent)
     }
 
-    /**
-     * Get the current state of the plugin with the given [pluginType] and [pluginId].
-     */
+    /** Get the current state of the plugin with the given [pluginType] and [pluginId]. */
     internal suspend fun getPlugin(pluginType: PluginType, pluginId: String) =
         Plugin().applyAll(loadEvents(pluginType, pluginId))
 
@@ -96,9 +94,7 @@ class PluginEventStore(private val db: Database) {
     )
 }
 
-/**
- * A table to store plugin events.
- */
+/** A table to store plugin events. */
 internal object PluginEvents : Table("plugin_events") {
     val pluginType = enumerationByName<PluginType>("plugin_type")
     val pluginId = text("plugin_id")
