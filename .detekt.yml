@@ -148,3 +148,8 @@ ORT:
   OrtPackageNaming:
     # TODO: Implement package naming check for ort-server.
     active: false
+
+OrtServer:
+  SingleLineKDoc:
+    active: true
+    autoCorrect: true
