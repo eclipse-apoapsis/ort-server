@@ -164,9 +164,7 @@ class ScannerWorker(
         ortRunService.getScannerJob(jobId).validateForProcessing(jobId)
 }
 
-/**
- * Extract all [Issue]s from this [OrtScannerResult] and convert it to the ORT Server model.
- */
+/** Extract all [Issue]s from this [OrtScannerResult] and convert it to the ORT Server model. */
 private fun OrtScannerResult.extractIssues(): Set<Issue> {
     val result = mutableSetOf<Issue>()
 

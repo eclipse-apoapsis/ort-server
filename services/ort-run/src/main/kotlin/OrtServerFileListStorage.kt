@@ -45,9 +45,7 @@ class OrtServerFileListStorage(
         /** The content type used when writing data to the [storage]. */
         private const val CONTENT_TYPE = "application/octet-stream"
 
-        /**
-         * Generate the storage [Key] for the given [provenance].
-         */
+        /** Generate the storage [Key] for the given [provenance]. */
         private fun generateKey(provenance: KnownProvenance): Key =
             with(provenance) {
                 when (this) {

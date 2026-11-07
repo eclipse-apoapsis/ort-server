@@ -19,7 +19,5 @@
 
 package org.eclipse.apoapsis.ortserver.utils.system
 
-/**
- * Get the value of the environment variable with the given [name], or `null` if it is not set.
- */
+/** Get the value of the environment variable with the given [name], or `null` if it is not set. */
 expect fun getEnv(name: String): String?

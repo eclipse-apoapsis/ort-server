@@ -325,9 +325,7 @@ private fun mockContext(
         every { ortRun.organizationId } returns ORGANIZATION_ID
     }
 
-/**
- * Create a mock for the [AdminConfigService] that is prepared to return a test admin configuration for the scanner.
- */
+/** Create a mock for the [AdminConfigService] that is prepared to return a test admin configuration for the scanner. */
 private fun mockAdminConfigService(): AdminConfigService {
     val adminConfig = AdminConfig(scannerConfig = testScannerConfig)
     return mockk {

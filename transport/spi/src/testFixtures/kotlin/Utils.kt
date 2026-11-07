@@ -112,9 +112,7 @@ fun startReceiver(
     return ReceiverHandle(job, queue)
 }
 
-/**
- * Check that the next message in this queue has the given [traceId], [runId], and [payload].
- */
+/** Check that the next message in this queue has the given [traceId], [runId], and [payload]. */
 fun <T> BlockingQueue<Message<T>>.checkMessage(traceId: String, runId: Long, payload: T) {
     poll(TEST_QUEUE_TIMEOUT, TimeUnit.SECONDS) shouldNotBeNull {
         header.traceId shouldBe traceId

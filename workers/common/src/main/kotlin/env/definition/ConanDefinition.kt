@@ -33,9 +33,7 @@ class ConanDefinition(
 
     credentialsTypes: Set<CredentialsType>?,
 
-    /**
-     * Name of the remote. This name will be used in commands like `conan list`.
-     */
+    /** Name of the remote. This name will be used in commands like `conan list`. */
     val name: String,
 
     /**
@@ -44,9 +42,7 @@ class ConanDefinition(
      */
     val url: String?,
 
-    /**
-     * Verify SSL certificate of the specified url.
-     */
+    /** Verify SSL certificate of the specified url. */
     val verifySsl: Boolean
 ) : EnvironmentServiceDefinition(service, credentialsTypes) {
     /**

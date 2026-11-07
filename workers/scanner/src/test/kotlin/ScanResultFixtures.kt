@@ -174,9 +174,7 @@ internal object ScanResultFixtures {
             additionalData
         )
 
-    /**
-     * Return a copy of this [OrtScanResult] that does not contain any objects from related tables.
-     */
+    /** Return a copy of this [OrtScanResult] that does not contain any objects from related tables. */
     fun OrtScanResult.withoutRelations(): OrtScanResult {
         val strippedSummary = summary.copy(
             licenseFindings = emptySet(),

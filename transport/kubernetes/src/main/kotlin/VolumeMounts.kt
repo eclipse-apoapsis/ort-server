@@ -131,9 +131,7 @@ internal fun generateVolumeName(identity: VolumeIdentity, index: Int): String =
         is VolumeIdentity.EmptyDir -> "$EMPTY_DIR_VOLUME_PREFIX${index + 1}"
     }
 
-/**
- * A data class defining a volume for a secret to be mounted in a container.
- */
+/** A data class defining a volume for a secret to be mounted in a container. */
 internal data class SecretVolumeMount(
     /** The name of the secret to be mounted. */
     val secretName: String,
@@ -158,9 +156,7 @@ internal data class SecretVolumeMount(
             .secret(V1SecretVolumeSource().secretName(secretName))
 }
 
-/**
- * A data class defining a volume mount for a pod based on a persistent volume claim.
- */
+/** A data class defining a volume mount for a pod based on a persistent volume claim. */
 internal data class PvcVolumeMount(
     /** The name of the referenced persistent volume claim. */
     val claimName: String,

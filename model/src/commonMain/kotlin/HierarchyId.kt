@@ -23,30 +23,22 @@ import java.util.EnumSet
 
 import kotlinx.serialization.Serializable
 
-/**
- * A sealed interface for a [value] that describes an ID within a specific hierarchy.
- */
+/** A sealed interface for a [value] that describes an ID within a specific hierarchy. */
 sealed interface HierarchyId {
     val value: Long
 }
 
-/**
- * An ID for an [Organization].
- */
+/** An ID for an [Organization]. */
 @JvmInline
 @Serializable
 value class OrganizationId(override val value: Long) : HierarchyId
 
-/**
- * An ID for a [Product].
- */
+/** An ID for a [Product]. */
 @JvmInline
 @Serializable
 value class ProductId(override val value: Long) : HierarchyId
 
-/**
- * An ID for a [Repository].
- */
+/** An ID for a [Repository]. */
 @JvmInline
 @Serializable
 value class RepositoryId(override val value: Long) : HierarchyId
@@ -92,9 +84,7 @@ enum class HierarchyLevel {
  * hierarchy of another element.
  */
 data class CompoundHierarchyId private constructor(
-    /**
-     * The [OrganizationId] this element belongs to. This is only *null* for the special [WILDCARD] instance.
-     */
+    /** The [OrganizationId] this element belongs to. This is only *null* for the special [WILDCARD] instance. */
     val organizationId: OrganizationId?,
 
     /** The [ProductId] this element belongs to or *null* if the element is an organization. */
@@ -104,26 +94,18 @@ data class CompoundHierarchyId private constructor(
     val repositoryId: RepositoryId?
 ) {
     companion object {
-        /**
-         * A special instance representing a wildcard matching any hierarchy ID.
-         */
+        /** A special instance representing a wildcard matching any hierarchy ID. */
         val WILDCARD = CompoundHierarchyId(null, null, null)
 
-        /**
-         * Create a [CompoundHierarchyId] for an organization.
-         */
+        /** Create a [CompoundHierarchyId] for an organization. */
         fun forOrganization(organizationId: OrganizationId) =
             CompoundHierarchyId(organizationId, null, null)
 
-        /**
-         * Create a [CompoundHierarchyId] for a product.
-         */
+        /** Create a [CompoundHierarchyId] for a product. */
         fun forProduct(organizationId: OrganizationId, productId: ProductId) =
             CompoundHierarchyId(organizationId, productId, null)
 
-        /**
-         * Create a [CompoundHierarchyId] for a repository.
-         */
+        /** Create a [CompoundHierarchyId] for a repository. */
         fun forRepository(
             organizationId: OrganizationId,
             productId: ProductId,

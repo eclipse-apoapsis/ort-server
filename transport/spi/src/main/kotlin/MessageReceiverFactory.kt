@@ -32,9 +32,7 @@ import org.slf4j.LoggerFactory
  */
 typealias EndpointHandler<T> = suspend (Message<T>) -> EndpointHandlerResult
 
-/**
- * The result of handling a message by an [EndpointHandler].
- */
+/** The result of handling a message by an [EndpointHandler]. */
 enum class EndpointHandlerResult {
     /** The handler shall receive further messages. */
     CONTINUE,
@@ -58,9 +56,7 @@ enum class EndpointHandlerResult {
  */
 interface MessageReceiverFactory {
     companion object {
-        /**
-         * A prefix used for configuration properties of message receivers.
-         */
+        /** A prefix used for configuration properties of message receivers. */
         const val CONFIG_PREFIX = "receiver"
 
         /**

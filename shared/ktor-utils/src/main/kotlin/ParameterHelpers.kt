@@ -38,9 +38,7 @@ fun ApplicationCall.numberParameter(name: String): Number? =
         throw ParameterConversionException(name, "Number", e)
     }
 
-/**
- * Get the parameter from this [ApplicationCall] or throw an exception if the parameter is null.
- */
+/** Get the parameter from this [ApplicationCall] or throw an exception if the parameter is null. */
 fun ApplicationCall.requireParameter(name: String) = parameters[name] ?: throw MissingRequestParameterException(name)
 
 /**
@@ -66,9 +64,7 @@ fun ApplicationCall.stringSetFilter(parameterName: String): FilterOperatorAndVal
     }
 }
 
-/**
- * Get the filter parameter from this [ApplicationCall] or return null if the parameter is null.
- */
+/** Get the filter parameter from this [ApplicationCall] or return null if the parameter is null. */
 fun ApplicationCall.filterParameter(name: String): FilterOptions? {
     val filter = parameters[name]?.let { filter ->
         FilterOptions(filter)

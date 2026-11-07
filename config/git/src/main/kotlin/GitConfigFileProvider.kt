@@ -71,9 +71,7 @@ class GitConfigFileProvider internal constructor(
     private val git: VersionControlSystem = GitFactory.create(historyDepth = 1)
 ) : ConfigFileProvider {
     companion object {
-        /**
-         * Configuration property for the Git URL.
-         */
+        /** Configuration property for the Git URL. */
         const val GIT_URL = "gitUrl"
 
         /**
@@ -90,9 +88,7 @@ class GitConfigFileProvider internal constructor(
 
         private val logger = LoggerFactory.getLogger(GitConfigFileProvider::class.java)
 
-        /**
-         * Create a new instance of [GitConfigFileProvider] that is initialized based on the given [config].
-         */
+        /** Create a new instance of [GitConfigFileProvider] that is initialized based on the given [config]. */
         fun create(config: Config): GitConfigFileProvider {
             val gitUrl = config.getServiceUrl(GIT_URL)
             val revisionCacheTtl = config.getLongOrDefault(

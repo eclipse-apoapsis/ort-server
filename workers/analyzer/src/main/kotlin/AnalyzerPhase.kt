@@ -299,9 +299,7 @@ internal class AnalysisPhase : AnalyzerPhase {
         WorkerOrtConfig.create().setUpOrtEnvironment()
     }
 
-    /**
-     * Write the sync file to indicate that this phase is complete if configured in the given [args].
-     */
+    /** Write the sync file to indicate that this phase is complete if configured in the given [args]. */
     private fun writeSyncFile(args: Array<String>) {
         if (args.size == 2) {
             val syncFile = File(args[1])
@@ -393,9 +391,7 @@ internal data class AnalysisError(
     val message: String?
 )
 
-/**
- * An exception thrown by [ResultPhase] to report a failure of [AnalysisPhase] with the original error [message].
- */
+/** An exception thrown by [ResultPhase] to report a failure of [AnalysisPhase] with the original error [message]. */
 internal class AnalysisPhaseException(message: String?) : Exception(message)
 
 /** The phases for which the worker should be kept alive if no specific phases are provided. */
@@ -431,9 +427,7 @@ private fun checkArgs(phase: AnalyzerPhase, args: Array<String>, minCount: Int, 
     return args
 }
 
-/**
- * Write a file with the given [name] and [data] in the [exchangeDir] for this [AnalyzerPhase]. Log this operation.
- */
+/** Write a file with the given [name] and [data] in the [exchangeDir] for this [AnalyzerPhase]. Log this operation. */
 private inline fun <reified T : Any> AnalyzerPhase.writeExchangeFile(
     exchangeDir: File,
     name: String,

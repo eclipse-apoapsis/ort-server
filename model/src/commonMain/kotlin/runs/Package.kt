@@ -46,9 +46,7 @@ data class Package(
     val publishedAt: Instant? = null
 )
 
-/**
- * Object containing values to filter a packages listing with.
- */
+/** Object containing values to filter a packages listing with. */
 data class PackageFilters(
     /** Substring or exact filter for the full identifier. Null if not set. */
     val identifier: FilterOperatorAndValue<String>? = null,

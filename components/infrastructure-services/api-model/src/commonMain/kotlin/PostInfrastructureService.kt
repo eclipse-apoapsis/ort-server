@@ -27,9 +27,7 @@ import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
 
-/**
- * Request object for the create infrastructure service endpoint.
- */
+/** Request object for the create infrastructure service endpoint. */
 @Serializable
 data class PostInfrastructureService(
     val name: String,

@@ -192,9 +192,7 @@ private val END_TIME = Instant.parse("2023-11-14T15:26:59.94Z")
 /** A test [ConfigManager] instance. */
 private val configManager = createTestConfigManager()
 
-/**
- * Create a [ConfigManager] object with a configuration that selects the test log file provider.
- */
+/** Create a [ConfigManager] object with a configuration that selects the test log file provider. */
 private fun createTestConfigManager(): ConfigManager {
     val configMap = mapOf(
         LogFileService.LOG_FILE_SERVICE_SECTION to mapOf(
@@ -206,29 +204,21 @@ private fun createTestConfigManager(): ConfigManager {
     return createConfigManager(config)
 }
 
-/**
- * Create a [ConfigManager] for testing that wraps the given [config].
- */
+/** Create a [ConfigManager] for testing that wraps the given [config]. */
 private fun createConfigManager(config: Config) =
     ConfigManager(config, { mockk() }, { mockk() }, false)
 
-/**
- * Create a [LogFileCriteria] instance for the given [source] and [levels].
- */
+/** Create a [LogFileCriteria] instance for the given [source] and [levels]. */
 private fun createLogFileCriteria(
     source: LogSource,
     levels: Set<LogLevel> = EnumSet.of(LogLevel.ERROR, LogLevel.WARN)
 ): LogFileCriteria =
     LogFileCriteria(RUN_ID, source, levels, START_TIME, END_TIME)
 
-/**
- * Create a dummy log file under this directory for the given [source] with the given [content].
- */
+/** Create a dummy log file under this directory for the given [source] with the given [content]. */
 private fun File.createLogFile(source: LogSource, content: String = generateLog(source)): File =
     resolve("${RUN_ID}_${source.name}.log").apply { writeText(content) }
 
-/**
- * Return a string with dummy log data for the given [source].
- */
+/** Return a string with dummy log data for the given [source]. */
 private fun generateLog(source: LogSource): String =
     "Logs for '${source.name}'."

@@ -22,17 +22,11 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 
-/**
- * A repository of [analyzer jobs][AnalyzerJob].
- */
+/** A repository of [analyzer jobs][AnalyzerJob]. */
 interface AnalyzerJobRepository : WorkerJobRepository<AnalyzerJob> {
-    /**
-     * Create an analyzer job.
-     */
+    /** Create an analyzer job. */
     suspend fun create(ortRunId: Long, configuration: AnalyzerJobConfiguration): AnalyzerJob
 
-    /**
-     * Delete an analyzer job by [id].
-     */
+    /** Delete an analyzer job by [id]. */
     suspend fun delete(id: Long)
 }

@@ -489,24 +489,18 @@ private fun TestConfiguration.copyConfig(
     return target
 }
 
-/**
- * Parse the test configuration with the given [name] from the resources using the given [helper].
- */
+/** Parse the test configuration with the given [name] from the resources using the given [helper]. */
 private fun TestConfiguration.parseConfig(name: String, helper: TestHelper): EnvironmentConfig {
     val fileToParse = copyConfig(name)
 
     return helper.loader().parseEnvironmentConfigFile(fileToParse)
 }
 
-/**
- * Resolve the test configuration using the given [helper].
- */
+/** Resolve the test configuration using the given [helper]. */
 private suspend fun EnvironmentConfig.resolve(helper: TestHelper): ResolvedEnvironmentConfig =
     helper.loader().resolve(this, hierarchy)
 
-/**
- * A test helper class managing the dependencies required by the object under test.
- */
+/** A test helper class managing the dependencies required by the object under test. */
 private class TestHelper(
     /** Mock for the service for secrets. */
     val secretService: SecretService = mockk(),
@@ -526,9 +520,7 @@ private class TestHelper(
     /** Stores infrastructure services assigned to the current organization. */
     private val organizationServices = mutableListOf<ResolvedInfrastructureService>()
 
-    /**
-     * Create a new [EnvironmentConfigLoader] instance with the dependencies managed by this object.
-     */
+    /** Create a new [EnvironmentConfigLoader] instance with the dependencies managed by this object. */
     fun loader(): EnvironmentConfigLoader {
         initSecretRepository()
         initInfrastructureServiceService()
@@ -579,9 +571,7 @@ private class TestHelper(
         return this
     }
 
-    /**
-     * Prepare the mock for the [SecretService] to answer queries based on the secrets that have been defined.
-     */
+    /** Prepare the mock for the [SecretService] to answer queries based on the secrets that have been defined. */
     private fun initSecretRepository() {
         coEvery {
             secretService.listForHierarchy(Hierarchy(repository, product, organization))
@@ -631,9 +621,7 @@ private val repository = Repository(
 /** A test [Hierarchy] used by the tests. */
 private val hierarchy = Hierarchy(repository, product, organization)
 
-/**
- * Create a test service based on the given [index] with the given [userSecret] and [passSecret].
- */
+/** Create a test service based on the given [index] with the given [userSecret] and [passSecret]. */
 private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret): ResolvedInfrastructureService =
     ResolvedInfrastructureService(
         name = serviceName(index),
@@ -644,9 +632,7 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
         credentialsTypes = setOf(CredentialsType.entries[index % 2])
     )
 
-/**
- * Create a test secret with the given [name].
- */
+/** Create a test secret with the given [name]. */
 private fun createSecret(name: String): Secret =
     Secret(
         id = 0,
@@ -658,19 +644,13 @@ private fun createSecret(name: String): Secret =
         repositoryId = null
     )
 
-/**
- * Generate the name of a test service with the given [index].
- */
+/** Generate the name of a test service with the given [index]. */
 private fun serviceName(index: Int): String = "Test service$index"
 
-/**
- * Generate the URL of a test service with the given [index].
- */
+/** Generate the URL of a test service with the given [index]. */
 private fun serviceUrl(index: Int): String = "https://repo.example.org/test/service$index"
 
-/**
- * Generate the description of a test service with the given [index].
- */
+/** Generate the description of a test service with the given [index]. */
 private fun serviceDescription(index: Int) = "Test service $index"
 
 /**

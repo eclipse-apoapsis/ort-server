@@ -187,9 +187,7 @@ internal class ReporterWorker(
     private suspend fun getValidReporterJob(jobId: Long) =
         ortRunService.getReporterJob(jobId).validateForProcessing(jobId)
 
-    /**
-     * Create a [Report] for the given [file] and [runId] together with a link to download it.
-     */
+    /** Create a [Report] for the given [file] and [runId] together with a link to download it. */
     private fun toReport(file: String, sizeInBytes: Long, runId: Long): Report {
         val reportToken = linkGenerator.generateLink(runId)
         return Report(file, reportToken.downloadLink, reportToken.expirationTime, sizeInBytes)

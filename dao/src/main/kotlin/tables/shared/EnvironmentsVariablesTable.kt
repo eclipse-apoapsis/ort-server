@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables.shared
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [EnvironmentsTable] and [VariablesTable].
- */
+/** An intermediate table to store references from [EnvironmentsTable] and [VariablesTable]. */
 object EnvironmentsVariablesTable : Table("environments_variables") {
     val environmentId = reference("environment_id", EnvironmentsTable)
     val variableId = reference("variable_id", VariablesTable)

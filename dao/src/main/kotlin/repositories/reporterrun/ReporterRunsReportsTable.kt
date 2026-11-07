@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [ReporterRunsTable] and [ReportsTable].
- */
+/** An intermediate table to store references from [ReporterRunsTable] and [ReportsTable]. */
 object ReporterRunsReportsTable : Table("reporter_runs_reports") {
     val reporterRunId = reference("reporter_run_id", ReporterRunsTable)
     val reportId = reference("report_id", ReportsTable)

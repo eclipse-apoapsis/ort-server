@@ -27,14 +27,10 @@ import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 
-/**
- * Environment variables that can be used to configure the SSL CA bundle path.
- */
+/** Environment variables that can be used to configure the SSL CA bundle path. */
 private val caBundleEnvironmentVariables = sequenceOf("SSL_CERT_FILE", "CURL_CA_BUNDLE")
 
-/**
- * Common paths where SSL CA certificates are typically located on Linux systems.
- */
+/** Common paths where SSL CA certificates are typically located on Linux systems. */
 private val commonCaBundlePaths = sequenceOf(
     "/etc/ssl/certs/ca-certificates.crt", // Debian/Ubuntu/Gentoo etc.
     "/etc/pki/tls/certs/ca-bundle.crt", // Fedora/RHEL/CentOS
@@ -43,15 +39,11 @@ private val commonCaBundlePaths = sequenceOf(
     "/etc/pki/tls/cert.pem" // Amazon Linux
 )
 
-/**
- * Check if a file exists at the given [path].
- */
+/** Check if a file exists at the given [path]. */
 private fun fileExists(path: String): Boolean =
     FileSystem.SYSTEM.exists(path.toPath())
 
-/**
- * Find the CA bundle path from environment variables or common system locations.
- */
+/** Find the CA bundle path from environment variables or common system locations. */
 private fun findCaBundlePath(): String? {
     // First, check environment variables
     caBundleEnvironmentVariables.firstNotNullOfOrNull { getEnv(it) }?.let { path ->

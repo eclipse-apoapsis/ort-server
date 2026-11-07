@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a snippet finding.
- */
+/** A table to represent a snippet finding. */
 object SnippetFindingsTable : LongIdTable("snippet_findings") {
     val path = text("path")
     val startLine = integer("start_line")

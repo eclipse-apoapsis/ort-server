@@ -33,9 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 
 import org.koin.ktor.ext.inject
 
-/**
- * Endpoints related to the authentication of users with the system.
- */
+/** Endpoints related to the authentication of users with the system. */
 fun Route.authentication() = route("auth") {
     val applicationConfig by inject<ApplicationConfig>()
 

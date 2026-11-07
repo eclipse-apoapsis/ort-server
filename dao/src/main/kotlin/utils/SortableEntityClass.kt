@@ -33,9 +33,7 @@ open class SortableEntityClass<out E : LongEntity>(
     /** The [SortableTable] associated with this entity. */
     val sortableTable: SortableTable
 ) : LongEntityClass<E>(sortableTable) {
-    /**
-     * Query all entities from this class and apply the given [parameters].
-     */
+    /** Query all entities from this class and apply the given [parameters]. */
     fun list(parameters: ListQueryParameters): SizedIterable<E> =
         all().apply(sortableTable, parameters)
 }

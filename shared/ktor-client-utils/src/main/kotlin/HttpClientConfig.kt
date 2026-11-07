@@ -30,9 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * each HTTP client instance to make sure that it behaves correctly in real world scenarios.
  */
 data class HttpClientConfig(
-    /**
-     * Timeout for establishing a TCP connection to the server. A value of [Duration.INFINITE] disables the timeout.
-     */
+    /** Timeout for establishing a TCP connection to the server. A value of [Duration.INFINITE] disables the timeout. */
     val connectTimeout: Duration,
 
     /**
@@ -47,9 +45,7 @@ data class HttpClientConfig(
      */
     val requestTimeout: Duration,
 
-    /**
-     * Maximum number of retry attempts when the server responds with a 5xx error. A value of `0` disables retries.
-     */
+    /** Maximum number of retry attempts when the server responds with a 5xx error. A value of `0` disables retries. */
     val maxRetries: Int,
 
     /**
@@ -65,9 +61,7 @@ data class HttpClientConfig(
      */
     val retryExponentialBackoff: Boolean,
 
-    /**
-     * Configuration for handling HTTP 429 (Too Many Requests) responses with automatic retries.
-     */
+    /** Configuration for handling HTTP 429 (Too Many Requests) responses with automatic retries. */
     val rateLimitConfig: RateLimitConfig
 ) {
     companion object {
@@ -86,14 +80,10 @@ data class HttpClientConfig(
         /** The configuration property for the [HttpClientConfig.maxRetries] option. */
         const val MAX_RETRIES_PROPERTY = "maxRetries"
 
-        /**
-         * The configuration property for the [HttpClientConfig.retryDelay] option (value in milliseconds).
-         */
+        /** The configuration property for the [HttpClientConfig.retryDelay] option (value in milliseconds). */
         const val RETRY_DELAY_PROPERTY = "retryDelayMs"
 
-        /**
-         * The configuration property for the [HttpClientConfig.retryExponentialBackoff] option.
-         */
+        /** The configuration property for the [HttpClientConfig.retryExponentialBackoff] option. */
         const val RETRY_EXPONENTIAL_BACKOFF_PROPERTY = "retryExponentialBackoff"
 
         /**

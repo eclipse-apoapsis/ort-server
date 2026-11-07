@@ -139,9 +139,7 @@ class ConfigWorkerIntegrationTest : WordSpec({
         )
     }
 
-    /**
-     * Create an ORT run with the given [configContext] resolved, as it is done when a run is created via the API.
-     */
+    /** Create an ORT run with the given [configContext] resolved, as it is done when a run is created via the API. */
     suspend fun createOrtRun(
         configContext: String = "",
         jobConfigurations: JobConfigurations = fixtures.jobConfigurations,

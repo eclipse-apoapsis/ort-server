@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * User information to be displayed in the UI.
- */
+/** User information to be displayed in the UI. */
 @Serializable
 data class UserDisplayName(
     /**

@@ -30,9 +30,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.LongEntity
 
-/**
- * A table to represent a repository inside a product.
- */
+/** A table to represent a repository inside a product. */
 object RepositoriesTable : SortableTable("repositories") {
     val productId = reference("product_id", ProductsTable)
 

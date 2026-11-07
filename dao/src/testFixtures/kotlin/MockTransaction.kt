@@ -62,9 +62,7 @@ fun mockkTransaction() {
     coEvery { suspendTransaction(any(), any(), any(), capture(coSlot)) } coAnswers { coSlot.coInvoke(mockk()) }
 }
 
-/**
- * Clear the static mock created by [mockkTransaction].
- */
+/** Clear the static mock created by [mockkTransaction]. */
 fun unmockkTransaction() {
     unmockkObject(TransactionManager.Companion)
     unmockkStatic(DATABASE_DIALECT_CLASS)

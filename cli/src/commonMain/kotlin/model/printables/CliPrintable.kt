@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.cli.model.printables
 
 import com.github.ajalt.mordant.rendering.Widget
 
-/**
- * Interface that describes the way how objects can be printed in the CLI.
- */
+/** Interface that describes the way how objects can be printed in the CLI. */
 interface CliPrintable {
     /** The human-readable representation of this object. */
     fun humanReadable(): Widget

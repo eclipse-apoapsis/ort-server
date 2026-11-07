@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-/**
- * The jobs of an [OrtRun].
- */
+/** The jobs of an [OrtRun]. */
 data class Jobs(
     val analyzer: AnalyzerJob?,
     val advisor: AdvisorJob?,

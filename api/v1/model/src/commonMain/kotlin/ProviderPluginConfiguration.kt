@@ -21,24 +21,16 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * The configuration of provider plugins.
- */
+/** The configuration of provider plugins. */
 @Serializable
 data class ProviderPluginConfiguration(
-    /**
-     * The type of the provider. Must match the type of an available ORT plugin.
-     */
+    /** The type of the provider. Must match the type of an available ORT plugin. */
     val type: String,
 
-    /**
-     * A unique identifier for the provider.
-     */
+    /** A unique identifier for the provider. */
     val id: String = type,
 
-    /**
-     * Whether this provider is enabled.
-     */
+    /** Whether this provider is enabled. */
     val enabled: Boolean = true,
 
     /**

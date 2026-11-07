@@ -76,9 +76,7 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
         fun instance(): SecretsProvider = latestInstance
             ?: throw AssertionError("No SecretsProviderForTesting instance has been created.")
 
-        /**
-         * Return a map to be used as internal secret store that is already populated with the test secrets.
-         */
+        /** Return a map to be used as internal secret store that is already populated with the test secrets. */
         private fun createStorage(): ConcurrentHashMap<Path, SecretValue> =
             ConcurrentHashMap(
                 mapOf(

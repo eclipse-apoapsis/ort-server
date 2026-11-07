@@ -19,17 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles
 
-/**
- * Constants related to the superuser role that grants all permissions.
- */
+/** Constants related to the superuser role that grants all permissions. */
 object Superuser {
-    /**
-     * The name of the superuser Keycloak role which grants all permissions.
-     */
+    /** The name of the superuser Keycloak role which grants all permissions. */
     const val ROLE_NAME = "superuser"
 
-    /**
-     * The name of the superuser Keycloak group which grants the [ROLE_NAME].
-     */
+    /** The name of the superuser Keycloak group which grants the [ROLE_NAME]. */
     const val GROUP_NAME = "SUPERUSERS"
 }

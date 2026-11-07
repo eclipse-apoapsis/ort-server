@@ -43,9 +43,7 @@ import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
 import org.ossreviewtoolkit.utils.common.calculateHash
 
-/**
- * Implementation of the [StorageProvider] interface that is backed by AWS S3 storage.
- */
+/** Implementation of the [StorageProvider] interface that is backed by AWS S3 storage. */
 class S3StorageProvider(
     /** The S3 client to interact with AWS S3. */
     private val s3Client: S3Client,
@@ -56,9 +54,7 @@ class S3StorageProvider(
     /** An optional prefix for the storage keys. */
     private val keyPrefix: String?
 ) : StorageProvider {
-    /**
-     * Retrieve the data associated with the given [key] from the S3 bucket.
-     */
+    /** Retrieve the data associated with the given [key] from the S3 bucket. */
     override suspend fun read(key: Key): StorageEntry = s3Client.getObject(
         GetObjectRequest {
             bucket = bucketName
@@ -75,9 +71,7 @@ class S3StorageProvider(
         }.onFailure { tempFile.deleteExisting() }.getOrThrow()
     }
 
-    /**
-     * Write the given [data] to the S3 bucket with the provided [key].
-     */
+    /** Write the given [data] to the S3 bucket with the provided [key]. */
     override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
         val tempFile = createTempFile()
 
@@ -100,9 +94,7 @@ class S3StorageProvider(
         }
     }
 
-    /**
-     * Check if an object with the given [key] exists in the S3 bucket.
-     */
+    /** Check if an object with the given [key] exists in the S3 bucket. */
     override suspend fun contains(key: Key): Boolean = runCatching {
         s3Client.headObject(
             HeadObjectRequest {
@@ -112,9 +104,7 @@ class S3StorageProvider(
         )
     }.isSuccess
 
-    /**
-     * Delete the object for the provided key in the S3 bucket.
-     */
+    /** Delete the object for the provided key in the S3 bucket. */
     override suspend fun delete(key: Key): Boolean = if (contains(key)) {
         runCatching {
             s3Client.deleteObject {
@@ -135,8 +125,6 @@ class S3StorageProvider(
 /** The algorithm used for checksum calculation. */
 private const val CHECKSUM_ALGORITHM = "SHA-256"
 
-/**
- * Calculate a SHA256 checksum for the given [data] file. This is used to verify the integrity of uploaded data.
- */
+/** Calculate a SHA256 checksum for the given [data] file. This is used to verify the integrity of uploaded data. */
 private fun calculateSha256Checksum(data: File): String =
     Base64.encode(calculateHash(data, MessageDigest.getInstance(CHECKSUM_ALGORITHM)))

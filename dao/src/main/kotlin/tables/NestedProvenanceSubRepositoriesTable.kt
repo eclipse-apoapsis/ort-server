@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to store the sub-repositories of [nested provenances][NestedProvenancesTable].
- */
+/** A table to store the sub-repositories of [nested provenances][NestedProvenancesTable]. */
 object NestedProvenanceSubRepositoriesTable : LongIdTable("nested_provenance_sub_repositories") {
     val nestedProvenanceId = reference("nested_provenance_id", NestedProvenancesTable)
     val vcsId = reference("vcs_id", VcsInfoTable)

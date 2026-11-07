@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.config
 
 import java.io.File
 
-/**
- * A class representing a path of a property in the configuration of the application.
- */
+/** A class representing a path of a property in the configuration of the application. */
 @JvmInline
 value class Path(val path: String) {
     /**

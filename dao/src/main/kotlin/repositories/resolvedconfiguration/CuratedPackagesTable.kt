@@ -34,9 +34,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A table to store curated packages, linking [OrtRunsTable], [PackagesTable], and [ResolvedPackageCurationsTable].
- */
+/** A table to store curated packages, linking [OrtRunsTable], [PackagesTable], and [ResolvedPackageCurationsTable]. */
 object CuratedPackagesTable : LongIdTable("curated_packages") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
     val packageId = reference("package_id", PackagesTable)

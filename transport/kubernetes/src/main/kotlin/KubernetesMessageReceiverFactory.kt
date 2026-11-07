@@ -41,9 +41,7 @@ class KubernetesMessageReceiverFactory : MessageReceiverFactory {
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesMessageReceiverFactory::class.java)
 
-        /**
-         * Exit this process. This is necessary to make sure that the Java process terminates after the job has run.
-         */
+        /** Exit this process. This is necessary to make sure that the Java process terminates after the job has run. */
         internal fun exit(status: Int) {
             exitProcess(status)
         }

@@ -73,9 +73,7 @@ data class DefaultPlugins(
     val fallbackCategory: DefaultPluginsCategory? = null
 )
 
-/**
- * The source of [DefaultPlugins].
- */
+/** The source of [DefaultPlugins]. */
 enum class DefaultPluginsSource {
     /** The built-in defaults are used, because no defaults were configured. */
     BUILT_IN,

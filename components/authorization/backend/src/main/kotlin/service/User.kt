@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
-/**
- * A user as Keycloak reports it, used for user administration.
- */
+/** A user as Keycloak reports it, used for user administration. */
 data class User(
     /** The username of the user. */
     val username: String,

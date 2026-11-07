@@ -33,9 +33,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a repository configuration.
- */
+/** A table to represent a repository configuration. */
 object RepositoryConfigurationsTable : LongIdTable("repository_configurations") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
     val repositoryAnalyzerConfigurationId =

@@ -167,9 +167,7 @@ class SecretStorageTest : WordSpec({
 /** The path that causes errors. */
 private val ERROR_PATH = Path("error")
 
-/**
- * Return a [SecretStorage] object wrapping the test provider.
- */
+/** Return a [SecretStorage] object wrapping the test provider. */
 private fun createStorage(): SecretStorage {
     val properties = mapOf(
         "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,

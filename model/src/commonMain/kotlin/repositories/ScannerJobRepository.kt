@@ -22,17 +22,11 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 
-/**
- * A repository of [scanner jobs][ScannerJob].
- */
+/** A repository of [scanner jobs][ScannerJob]. */
 interface ScannerJobRepository : WorkerJobRepository<ScannerJob> {
-    /**
-     * Create a scanner job.
-     */
+    /** Create a scanner job. */
     suspend fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob
 
-    /**
-     * Delete a scanner job by [id].
-     */
+    /** Delete a scanner job by [id]. */
     suspend fun delete(id: Long)
 }

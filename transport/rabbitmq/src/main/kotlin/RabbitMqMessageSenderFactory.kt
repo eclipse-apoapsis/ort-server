@@ -28,9 +28,7 @@ import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 
 import org.slf4j.LoggerFactory
 
-/**
- * Implementation of the [MessageSenderFactory] interface for RabbitMQ.
- */
+/** Implementation of the [MessageSenderFactory] interface for RabbitMQ. */
 class RabbitMqMessageSenderFactory : MessageSenderFactory {
     companion object {
         private val logger = LoggerFactory.getLogger(RabbitMqMessageSenderFactory::class.java)

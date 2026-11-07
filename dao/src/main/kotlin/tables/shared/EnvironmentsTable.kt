@@ -29,9 +29,7 @@ import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.jdbc.insert
 
-/**
- * A table to represent the environment settings.
- */
+/** A table to represent the environment settings. */
 object EnvironmentsTable : LongIdTable("environments") {
     val ortVersion = text("ort_version")
     val javaVersion = text("java_version")

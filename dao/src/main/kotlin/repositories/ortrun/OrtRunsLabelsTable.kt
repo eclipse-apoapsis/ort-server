@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [OrtRunsTable] and [LabelsTable].
- */
+/** An intermediate table to store references from [OrtRunsTable] and [LabelsTable]. */
 object OrtRunsLabelsTable : Table("ort_runs_labels") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
     val labelId = reference("label_id", LabelsTable)

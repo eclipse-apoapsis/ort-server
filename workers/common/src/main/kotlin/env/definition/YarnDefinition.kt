@@ -39,9 +39,7 @@ class YarnDefinition(
      */
     val alwaysAuth: Boolean = true,
 
-    /**
-     * Defines the way authentication should be handled for this private registry.
-     */
+    /** Defines the way authentication should be handled for this private registry. */
     val authMode: YarnAuthMode = YarnAuthMode.AUTH_TOKEN
 ) : EnvironmentServiceDefinition(service, credentialsTypes)
 

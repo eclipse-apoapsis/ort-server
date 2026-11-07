@@ -53,9 +53,7 @@ import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A service providing functions for working with [products][Product].
- */
+/** A service providing functions for working with [products][Product]. */
 class ProductService(
     private val db: Database,
     private val productRepository: ProductRepository,
@@ -63,9 +61,7 @@ class ProductService(
     private val ortRunRepository: OrtRunRepository,
     private val authorizationService: AuthorizationService
 ) {
-    /**
-     * Create a repository inside a [product][productId].
-     */
+    /** Create a repository inside a [product][productId]. */
     suspend fun createRepository(
         type: RepositoryType,
         url: String,
@@ -100,9 +96,7 @@ class ProductService(
         return repository
     }
 
-    /**
-     * Delete a [product][productId] with its [repositories][Repository] and [OrtRun]s.
-     */
+    /** Delete a [product][productId] with its [repositories][Repository] and [OrtRun]s. */
     suspend fun deleteProduct(productId: Long): Unit = db.transaction {
         ortRunRepository.deleteByProduct(productId)
         repositoryRepository.deleteByProduct(productId)
@@ -110,9 +104,7 @@ class ProductService(
         productRepository.delete(productId)
     }
 
-    /**
-     * Get a product by [productId]. Returns null if the product is not found.
-     */
+    /** Get a product by [productId]. Returns null if the product is not found. */
     suspend fun getProduct(productId: Long): Product? = db.transaction {
         productRepository.get(productId)
     }
@@ -128,9 +120,7 @@ class ProductService(
         productRepository.list(parameters, filter)
     }
 
-    /**
-     * List all repositories for a [product][productId] according to the given [parameters].
-     */
+    /** List all repositories for a [product][productId] according to the given [parameters]. */
     suspend fun listRepositoriesForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
@@ -159,9 +149,7 @@ class ProductService(
         }
     } ?: ListQueryResult(emptyList(), parameters, 0)
 
-    /**
-     * Update a product by [productId] with the [present][OptionalValue.Present] values.
-     */
+    /** Update a product by [productId] with the [present][OptionalValue.Present] values. */
     suspend fun updateProduct(
         productId: Long,
         name: OptionalValue<String> = OptionalValue.Absent,
@@ -190,9 +178,7 @@ class ProductService(
         }
     }
 
-    /**
-     * Get the ID of the latest ORT run of the repository where the status is failed.
-     **/
+    /** Get the ID of the latest ORT run of the repository where the status is failed. */
     suspend fun getLatestOrtRunWithFailedStatusForProduct(productId: Long): List<Long> = db.transaction {
         RepositoriesTable
             .innerJoin(OrtRunsTable)

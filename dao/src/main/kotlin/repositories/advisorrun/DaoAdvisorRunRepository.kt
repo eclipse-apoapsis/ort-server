@@ -41,9 +41,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 
-/**
- * An implementation of [AdvisorRunRepository] that stores the advisor runs in [AdvisorRunsTable].
- */
+/** An implementation of [AdvisorRunRepository] that stores the advisor runs in [AdvisorRunsTable]. */
 class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
     override suspend fun create(
         advisorJobId: Long,

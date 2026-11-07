@@ -55,15 +55,11 @@ enum class OrganizationPermission {
         /** The prefix for the permission-related roles used for organizations. */
         private const val ROLE_PREFIX = "permission_organization_"
 
-        /**
-         * Get all [role names][roleName] for the provided [organizationId].
-         */
+        /** Get all [role names][roleName] for the provided [organizationId]. */
         fun getRolesForOrganization(organizationId: Long) =
             enumEntries<OrganizationPermission>().map { it.roleName(organizationId) }
 
-        /**
-         * A unique prefix for the roles for the provided [organizationId].
-         */
+        /** A unique prefix for the roles for the provided [organizationId]. */
         fun rolePrefix(organizationId: Long) = "$ROLE_PREFIX${organizationId}_"
 
         /**

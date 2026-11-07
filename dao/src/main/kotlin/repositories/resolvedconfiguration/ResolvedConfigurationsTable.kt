@@ -34,9 +34,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a [ResolvedConfiguration].
- */
+/** A table to represent a [ResolvedConfiguration]. */
 object ResolvedConfigurationsTable : LongIdTable("resolved_configurations") {
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 }

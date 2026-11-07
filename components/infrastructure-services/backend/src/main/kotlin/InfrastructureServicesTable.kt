@@ -36,9 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.dao.LongEntity
 
-/**
- * A table to store infrastructure services, such as source code or artifact repositories.
- */
+/** A table to store infrastructure services, such as source code or artifact repositories. */
 internal object InfrastructureServicesTable : SortableTable("infrastructure_services") {
     val name = text("name").sortable()
     val url = text("url")
@@ -55,15 +53,11 @@ internal object InfrastructureServicesTable : SortableTable("infrastructure_serv
 
 internal class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<InfrastructureServicesDao>(InfrastructureServicesTable) {
-        /**
-         * Convert a set of [CredentialsType]s to a string representation.
-         */
+        /** Convert a set of [CredentialsType]s to a string representation. */
         private fun toCredentialsTypeString(types: Set<CredentialsType>): String? =
             types.takeUnless { it.isEmpty() }?.toSortedSet()?.joinToString(",") { it.name }
 
-        /**
-         * Return a set of [CredentialsType]s from a string representation.
-         */
+        /** Return a set of [CredentialsType]s from a string representation. */
         private fun fromCredentialsTypeString(typeString: String?): Set<CredentialsType> =
             typeString?.split(',')
                 ?.mapTo(EnumSet.noneOf(CredentialsType::class.java)) { CredentialsType.valueOf(it) }.orEmpty()

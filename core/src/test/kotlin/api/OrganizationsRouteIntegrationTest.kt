@@ -2341,8 +2341,6 @@ private fun generateAdvisorResult(vulnerabilities: List<Vulnerability>) = Adviso
     vulnerabilities = vulnerabilities
 )
 
-/**
- * Return a [CompoundHierarchyId] for this [Organization].
- */
+/** Return a [CompoundHierarchyId] for this [Organization]. */
 private val org.eclipse.apoapsis.ortserver.model.Organization.hierarchyId: CompoundHierarchyId
         get() = CompoundHierarchyId.forOrganization(OrganizationId(id))

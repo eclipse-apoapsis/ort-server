@@ -346,15 +346,11 @@ class RateLimitHandlerTest : WordSpec({
     }
 })
 
-/**
- * Create an [HttpClient] for testing that uses the given [config].
- */
+/** Create an [HttpClient] for testing that uses the given [config]. */
 private fun createClient(config: RateLimitConfig): HttpClient =
     HttpClient(OkHttp).withRateLimitHandling(config)
 
-/**
- * Create a [RateLimitConfig] with default values for all parameters except the ones explicitly specified.
- */
+/** Create a [RateLimitConfig] with default values for all parameters except the ones explicitly specified. */
 private fun createConfig(
     maxRetries: Int = 5,
     defaultDelay: Duration = 5.seconds,

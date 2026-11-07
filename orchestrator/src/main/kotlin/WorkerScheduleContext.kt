@@ -83,9 +83,7 @@ internal class WorkerScheduleContext(
         publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }
 
-    /**
-     * Return a flag whether the current [OrtRun] has at least one running job.
-     */
+    /** Return a flag whether the current [OrtRun] has at least one running job. */
     fun hasRunningJobs(): Boolean =
         jobs.values.any { !it.status.final }
 
@@ -96,21 +94,15 @@ internal class WorkerScheduleContext(
     fun wasScheduled(endpoint: Endpoint<*>): Boolean =
         endpoint.configPrefix in jobs
 
-    /**
-     * Return a flag whether the worker job for the given [endpoint] has already completed.
-     */
+    /** Return a flag whether the worker job for the given [endpoint] has already completed. */
     fun isJobCompleted(endpoint: Endpoint<*>): Boolean =
         jobs[endpoint.configPrefix]?.status?.final ?: false
 
-    /**
-     * Return a flag whether this [OrtRun] has failed, i.e., it has at least one job in failed state.
-     */
+    /** Return a flag whether this [OrtRun] has failed, i.e., it has at least one job in failed state. */
     fun isFailed(): Boolean =
         failed || jobs.values.any { it.status == JobStatus.FAILED }
 
-    /**
-    * Return a flag whether this [OrtRun] has finished with issues, i.e., it has at least one job with this state.
-    */
+    /** Return a flag whether this [OrtRun] has finished with issues, i.e., it has at least one job with this state. */
     fun isFinishedWithIssues(): Boolean =
         !isFailed() && jobs.values.any { it.status == JobStatus.FINISHED_WITH_ISSUES }
 }

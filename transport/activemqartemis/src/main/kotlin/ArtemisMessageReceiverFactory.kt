@@ -35,9 +35,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
 
-/**
- * Implementation of the [MessageReceiverFactory] interface for Apache ActiveMQ Artemis.
- */
+/** Implementation of the [MessageReceiverFactory] interface for Apache ActiveMQ Artemis. */
 class ArtemisMessageReceiverFactory : MessageReceiverFactory {
     companion object {
         private val logger = LoggerFactory.getLogger(ArtemisMessageReceiverFactory::class.java)

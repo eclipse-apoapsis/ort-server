@@ -58,15 +58,11 @@ enum class ProductPermission {
         /** The prefix for the permission-related roles used for products. */
         private const val ROLE_PREFIX = "permission_product_"
 
-        /**
-         * Get all [role names][roleName] for the provided [productId].
-         */
+        /** Get all [role names][roleName] for the provided [productId]. */
         fun getRolesForProduct(productId: Long) =
             enumEntries<ProductPermission>().map { it.roleName(productId) }
 
-        /**
-         * A unique prefix for the roles for the provided [productId].
-         */
+        /** A unique prefix for the roles for the provided [productId]. */
         fun rolePrefix(productId: Long) = "$ROLE_PREFIX${productId}_"
 
         /**

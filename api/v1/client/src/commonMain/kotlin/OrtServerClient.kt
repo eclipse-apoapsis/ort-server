@@ -34,15 +34,11 @@ import org.eclipse.apoapsis.ortserver.client.api.VersionsApi
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 
 class OrtServerClient(
-    /**
-     * The configured HTTP client for the interaction with the API.
-     */
+    /** The configured HTTP client for the interaction with the API. */
     client: HttpClient
 ) {
     companion object {
-        /**
-         * The JSON configuration to use for serialization and deserialization.
-         */
+        /** The JSON configuration to use for serialization and deserialization. */
         val JSON = Json {
             ignoreUnknownKeys = true
             isLenient = true
@@ -90,18 +86,12 @@ class OrtServerClient(
 
     val auth = AuthenticationApi(client)
 
-    /**
-     * Provide access to the repositories API, allowing operations on repositories in the ORT server.
-     */
+    /** Provide access to the repositories API, allowing operations on repositories in the ORT server. */
     val repositories = RepositoriesApi(client)
 
-    /**
-     * Provide access to the runs API, allowing operations on runs in the ORT server.
-     */
+    /** Provide access to the runs API, allowing operations on runs in the ORT server. */
     val runs = RunsApi(client)
 
-    /**
-     * Provide access to the versions API.
-     */
+    /** Provide access to the versions API. */
     val versions = VersionsApi(client)
 }

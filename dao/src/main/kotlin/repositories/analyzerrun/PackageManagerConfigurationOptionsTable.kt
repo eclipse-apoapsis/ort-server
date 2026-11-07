@@ -24,9 +24,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a key-value pair.
- */
+/** A table to represent a key-value pair. */
 object PackageManagerConfigurationOptionsTable : LongIdTable("package_manager_configuration_options") {
     val packageManagerConfigurationId =
         reference("package_manager_configuration_id", PackageManagerConfigurationsTable)

@@ -28,9 +28,7 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 
-/**
- * Implementation of the [MessageSender] interface for Apache ActiveMQ Artemis.
- */
+/** Implementation of the [MessageSender] interface for Apache ActiveMQ Artemis. */
 internal class ArtemisMessageSender<T : Any>(
     /** The JMS connection. */
     private val connection: Connection,

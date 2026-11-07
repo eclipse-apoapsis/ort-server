@@ -39,9 +39,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
 import org.slf4j.LoggerFactory
 
-/**
- * An internal helper class providing functionality to deal with jobs.
- */
+/** An internal helper class providing functionality to deal with jobs. */
 internal class JobHandler(
     /** The API to access job objects. */
     private val jobApi: BatchV1Api,
@@ -80,9 +78,7 @@ internal class JobHandler(
         private val workerJobsLabelSelector = "ort-worker in " +
                 Endpoint.entries().joinToString(",", prefix = "(", postfix = ")") { it.configPrefix }
 
-        /**
-         * Return a flag whether this job has failed. For jobs that are still running, the result is `false`.
-         */
+        /** Return a flag whether this job has failed. For jobs that are still running, the result is `false`. */
         fun V1Job.isFailed(): Boolean = status?.conditions.orEmpty().any { it.type == FAILED_CONDITION }
 
         /**
@@ -107,9 +103,7 @@ internal class JobHandler(
         val V1Job.ortRunId: Long?
             get() = metadata?.labels?.get(RUN_ID_LABEL)?.toLongOrNull()
 
-        /**
-         * Return the trace ID from this job for the labels used for this purpose.
-         */
+        /** Return the trace ID from this job for the labels used for this purpose. */
         fun V1Job.traceId(): String {
             val labels = metadata?.labels.orEmpty()
             val traceLabels = labels.filterKeys { it.startsWith(TRACE_LABEL_PREFIX) }.toList()
@@ -146,9 +140,7 @@ internal class JobHandler(
     fun findJobsCompletedBefore(time: OffsetDateTime): List<JobData> =
         listJobs(workerJobsLabelSelector).mapNotNull { getCompletedOrFailedJob(it, time) }
 
-    /**
-     * Return a list with all currently active jobs for the worker defined by the given [endpoint].
-     */
+    /** Return a list with all currently active jobs for the worker defined by the given [endpoint]. */
     fun findJobsForWorker(endpoint: Endpoint<*>): List<V1Job> {
         val labelSelector = "ort-worker=${endpoint.configPrefix}"
 
@@ -182,9 +174,7 @@ internal class JobHandler(
         }
     }
 
-    /**
-     * Delete the job with the given [jobName]. Log occurring exceptions, but ignore them otherwise.
-     */
+    /** Delete the job with the given [jobName]. Log occurring exceptions, but ignore them otherwise. */
     fun deleteJob(jobName: String) {
         runCatching {
             jobApi.deleteNamespacedJob(jobName, config.namespace).execute()
@@ -195,9 +185,7 @@ internal class JobHandler(
         findPodsForJob(jobName).forEach(this::deletePod)
     }
 
-    /**
-     * Find all pods that have been created for the job with the specified [jobName].
-     */
+    /** Find all pods that have been created for the job with the specified [jobName]. */
     private fun findPodsForJob(jobName: String?): List<V1Pod> = jobName?.let {
         val selector = "job-name=$it"
 
@@ -245,9 +233,7 @@ internal class JobHandler(
         }
     }
 
-    /**
-     * Return a list with the jobs in the configured namespace. Apply the given [labelSelector] filter.
-     */
+    /** Return a list with the jobs in the configured namespace. Apply the given [labelSelector] filter. */
     private fun listJobs(labelSelector: String?): List<V1Job> =
         jobApi.listNamespacedJob(config.namespace).labelSelector(labelSelector).watch(false).execute().items
 

@@ -40,9 +40,7 @@ import org.jetbrains.exposed.v1.jdbc.andHaving
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A table to represent a software package as a project.
- */
+/** A table to represent a software package as a project. */
 object ProjectsTable : SortableTable("projects") {
     val sortableId = id.sortable()
     val identifierId = reference("identifier_id", IdentifiersTable)

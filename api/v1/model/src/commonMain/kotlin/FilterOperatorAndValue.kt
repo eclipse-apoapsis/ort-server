@@ -21,18 +21,14 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * Object representing the operator and value by which the result is filtered with.
- */
+/** Object representing the operator and value by which the result is filtered with. */
 @Serializable
 data class FilterOperatorAndValue<T>(
     val operator: ComparisonOperator,
     val value: T
 )
 
-/**
- * An enumeration of filter operators.
- */
+/** An enumeration of filter operators. */
 enum class ComparisonOperator {
     EQUALS,
     NOT_EQUALS,

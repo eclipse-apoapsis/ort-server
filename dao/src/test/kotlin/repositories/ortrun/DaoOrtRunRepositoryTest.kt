@@ -1142,9 +1142,7 @@ class DaoOrtRunRepositoryTest : WordSpec({
     }
 })
 
-/**
- * Check whether the given [timestamp] is rather close to the current system time.
- */
+/** Check whether the given [timestamp] is rather close to the current system time. */
 private fun assertCurrentTime(timestamp: Instant?) {
     with(Clock.System.now() - timestamp.shouldNotBeNull()) {
         inWholeMilliseconds shouldBeInRange 0L..3000L

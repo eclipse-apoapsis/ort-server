@@ -34,9 +34,7 @@ interface EnvironmentConfigGenerator<T : EnvironmentServiceDefinition> {
      */
     val environmentDefinitionType: Class<T>
 
-    /**
-     * Generate a configuration file for the given [definitions] with the help of the given [builder].
-     */
+    /** Generate a configuration file for the given [definitions] with the help of the given [builder]. */
     suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<T>)
 
     /**
@@ -48,9 +46,7 @@ interface EnvironmentConfigGenerator<T : EnvironmentServiceDefinition> {
     }
 }
 
-/**
- * These constants are intended to be used in package managers' config generators.
- */
+/** These constants are intended to be used in package managers' config generators. */
 const val INDENT_2_SPACES = "  "
 const val INDENT_4_SPACES = "    "
 const val INDENT_6_SPACES = "      "

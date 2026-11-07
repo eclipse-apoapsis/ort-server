@@ -30,8 +30,6 @@ package org.eclipse.apoapsis.ortserver.transport
  * underlying infrastructure. Thus, it can be deployed in different environments.
  */
 interface MessageSender<in T> {
-    /**
-     * Send [message] to the target endpoint of this [MessageSender].
-     */
+    /** Send [message] to the target endpoint of this [MessageSender]. */
     fun send(message: Message<T>)
 }

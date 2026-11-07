@@ -134,9 +134,7 @@ class EnvironmentDefinitionFactory {
             GradleDefinition(service, credentialsTypes())
         }
 
-    /**
-     * Create a definition for Maven's _settings.xml_ file with the given [service] and [properties].
-     */
+    /** Create a definition for Maven's _settings.xml_ file with the given [service] and [properties]. */
     private fun createMavenDefinition(
         service: ResolvedInfrastructureService,
         properties: DefinitionProperties
@@ -150,9 +148,7 @@ class EnvironmentDefinitionFactory {
             )
         }
 
-    /**
-     * Create a definition for the _.npmrc_ configuration file of NPM with the given [service] and [properties].
-     */
+    /** Create a definition for the _.npmrc_ configuration file of NPM with the given [service] and [properties]. */
     private fun createNpmDefinition(
         service: ResolvedInfrastructureService,
         properties: DefinitionProperties
@@ -210,9 +206,7 @@ private class DefinitionProperties(val properties: Map<String, String>) {
     /** A set to check whether unsupported properties are present. */
     private val consumedProperties = (properties.keys - EnvironmentDefinitionFactory.standardProperties).toMutableSet()
 
-    /**
-     * Check whether all the given [names] are contained in this object and execute the given [block].
-     */
+    /** Check whether all the given [names] are contained in this object and execute the given [block]. */
     fun <T> withRequiredProperties(vararg names: String, block: DefinitionProperties.() -> T): Result<T> {
         val namesList = names.toSet()
         consumedProperties -= namesList
@@ -225,9 +219,7 @@ private class DefinitionProperties(val properties: Map<String, String>) {
         }
     }
 
-    /**
-     * Return the value of the credentials types property.
-     */
+    /** Return the value of the credentials types property. */
     fun credentialsTypes(): Set<CredentialsType>? {
         val credentialsTypesString = properties[EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY]
         if (credentialsTypesString?.isEmpty() == true) return EnumSet.noneOf(CredentialsType::class.java)
@@ -238,14 +230,10 @@ private class DefinitionProperties(val properties: Map<String, String>) {
             }
     }
 
-    /**
-     * Return the value of the required property with the given [name].
-     */
+    /** Return the value of the required property with the given [name]. */
     fun getProperty(name: String): String = properties.getValue(name)
 
-    /**
-     * Return the value of the property with the given [name] or *null* if it is not defined.
-     */
+    /** Return the value of the property with the given [name] or *null* if it is not defined. */
     fun getOptionalProperty(name: String): String? =
         properties[name].also { consumedProperties -= name }
 
@@ -279,21 +267,15 @@ private class DefinitionProperties(val properties: Map<String, String>) {
         getEnumProperty<BooleanProperty>(name, booleanPropertyMap.getValue(default)) == BooleanProperty.TRUE
 }
 
-/**
- * Throw an exception with the given [message] that is extended by the given [properties].
- */
+/** Throw an exception with the given [message] that is extended by the given [properties]. */
 private fun <T> fail(message: String, properties: Map<String, String>): Result<T> =
     Result.failure(EnvironmentConfigException("$message with properties $properties."))
 
-/**
- * An internally used enum class to represent boolean property values and validate them.
- */
+/** An internally used enum class to represent boolean property values and validate them. */
 private enum class BooleanProperty {
     TRUE,
     FALSE
 }
 
-/**
- * A mapping from boolean values to their corresponding constants in [BooleanProperty].
- */
+/** A mapping from boolean values to their corresponding constants in [BooleanProperty]. */
 private val booleanPropertyMap = mapOf(true to BooleanProperty.TRUE, false to BooleanProperty.FALSE)

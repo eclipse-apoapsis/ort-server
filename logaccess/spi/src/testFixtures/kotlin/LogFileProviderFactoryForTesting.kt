@@ -46,9 +46,7 @@ class LogFileProviderFactoryForTesting : LogFileProviderFactory {
         /** A list for tracking the requests handled by this provider. */
         private val recordedRequests = Collections.synchronizedList(mutableListOf<LogFileCriteria>())
 
-        /**
-         * Register a [log file][file] to be returned by this implementation for the given [criteria].
-         */
+        /** Register a [log file][file] to be returned by this implementation for the given [criteria]. */
         fun addLogFile(criteria: LogFileCriteria, file: File) {
             logFiles[criteria] = file
         }
@@ -112,19 +110,13 @@ data class LogFileCriteria(
     /** A set with the expected log levels. */
     val levels: Set<LogLevel> = EnumSet.of(LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR),
 
-    /**
-     * The expected start time for the logs to download. A value of *null* means that this criterion is not checked.
-     */
+    /** The expected start time for the logs to download. A value of *null* means that this criterion is not checked. */
     val startTime: Instant? = null,
 
-    /**
-     * The expected end time for the logs to download. A value of *null* means that this criterion is not checked.
-     */
+    /** The expected end time for the logs to download. A value of *null* means that this criterion is not checked. */
     val endTime: Instant? = null
 ) {
-    /**
-     * Check whether the properties in this object match the given parameters.
-     */
+    /** Check whether the properties in this object match the given parameters. */
     fun matches(
         ortRunId: Long,
         source: LogSource,

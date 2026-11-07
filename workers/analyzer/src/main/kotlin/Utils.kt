@@ -25,9 +25,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 
-/**
- * Helper function to find the shortest dependency path across scopes for each package identifier.
- */
+/** Helper function to find the shortest dependency path across scopes for each package identifier. */
 fun getIdentifierToShortestPathsMap(
     projectIdentifier: Identifier,
     pathsByScopeMap: Map<String, Map<OrtIdentifier, List<OrtIdentifier>>>

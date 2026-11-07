@@ -153,9 +153,7 @@ internal class LostJobsFinderTask(
         return Pair(kubeJobs, lostJobs)
     }
 
-    /**
-     * Perform actions to handle the given list of [lostJobs] for the given [endpoint].
-     */
+    /** Perform actions to handle the given list of [lostJobs] for the given [endpoint]. */
     private suspend fun handleLostWorkerJobs(
         endpoint: Endpoint<*>,
         lostJobs: List<WorkerJob>

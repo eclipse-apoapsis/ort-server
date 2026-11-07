@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [ProvenanceSnippetChoicesTable] and [SnippetChoicesTable].
- */
+/** An intermediate table to store references from [ProvenanceSnippetChoicesTable] and [SnippetChoicesTable]. */
 object ProvenanceSnippetChoicesChoicesTable : Table("provenance_snippet_choices_snippet_choices") {
     val provenanceSnippetChoicesId = reference("provenance_snippet_choices_id", ProvenanceSnippetChoicesTable)
     val snippetChoicesId = reference("snippet_choices_id", SnippetChoicesTable)

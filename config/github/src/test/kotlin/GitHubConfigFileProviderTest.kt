@@ -429,9 +429,7 @@ internal const val CONTENT = "repository: repo, username: user, password: pass"
 internal const val NOT_FOUND = "NotFound"
 internal const val API_TOKEN = "test-api-token"
 
-/**
- * Return a [GitHubConfigFileProvider] instance with a default configuration and optional additional [properties].
- */
+/** Return a [GitHubConfigFileProvider] instance with a default configuration and optional additional [properties]. */
 private fun getProvider(vararg properties: Pair<String, String>): GitHubConfigFileProvider {
     val secretProvider = mockk<ConfigSecretProvider>()
 
@@ -452,15 +450,11 @@ private fun getProvider(vararg properties: Pair<String, String>): GitHubConfigFi
     return GitHubConfigFileProvider.create(config, secretProvider)
 }
 
-/**
- * Prepare stubbing of a GET request with the expected authorization header.
- */
+/** Prepare stubbing of a GET request with the expected authorization header. */
 private fun authorizedGet(pattern: UrlPattern): MappingBuilder =
     get(pattern).withHeader("Authorization", equalTo("Bearer $API_TOKEN"))
 
-/**
- * A stub for successfully getting the default branch.
- */
+/** A stub for successfully getting the default branch. */
 private fun WireMockServer.stubDefaultBranch() {
     stubFor(
         authorizedGet(
@@ -477,9 +471,7 @@ private fun WireMockServer.stubDefaultBranch() {
     )
 }
 
-/**
- * A stub for successfully resolving a given [revision].
- */
+/** A stub for successfully resolving a given [revision]. */
 private fun WireMockServer.stubExistingRevision(revision: String = REVISION) {
     stubFor(
         authorizedGet(
@@ -500,9 +492,7 @@ private fun WireMockServer.stubExistingRevision(revision: String = REVISION) {
     )
 }
 
-/**
- * A stub with a missing SHA-1 commit ID.
- */
+/** A stub with a missing SHA-1 commit ID. */
 private fun WireMockServer.stubMissingRevision() {
     stubFor(
         authorizedGet(
@@ -521,9 +511,7 @@ private fun WireMockServer.stubMissingRevision() {
     )
 }
 
-/**
- * A stub which returns a "Not Found" response for a revision.
- */
+/** A stub which returns a "Not Found" response for a revision. */
 private fun WireMockServer.stubRevisionNotFound() {
     stubFor(
         get(anyUrl()).willReturn(
@@ -541,9 +529,7 @@ private fun WireMockServer.stubRevisionNotFound() {
     )
 }
 
-/**
- * A stub for successfully getting a raw file.
- */
+/** A stub for successfully getting a raw file. */
 private fun WireMockServer.stubRawFile() {
     stubFor(
         authorizedGet(
@@ -556,9 +542,7 @@ private fun WireMockServer.stubRawFile() {
     )
 }
 
-/**
- * A stub which returns a "Not Found" response for a file.
- */
+/** A stub which returns a "Not Found" response for a file. */
 private fun WireMockServer.stubFileNotFound() {
     stubFor(
         authorizedGet(
@@ -578,9 +562,7 @@ private fun WireMockServer.stubFileNotFound() {
     )
 }
 
-/**
- * A stub returning a response with unexpected JSON content type.
- */
+/** A stub returning a response with unexpected JSON content type. */
 private fun WireMockServer.stubUnexpectedJsonContentType() {
     stubFor(
         authorizedGet(
@@ -602,9 +584,7 @@ private fun WireMockServer.stubUnexpectedJsonContentType() {
     )
 }
 
-/**
- * A stub for successfully getting file information in JSON format.
- */
+/** A stub for successfully getting file information in JSON format. */
 private fun WireMockServer.stubJsonFileContentType() {
     stubFor(
         authorizedGet(
@@ -627,9 +607,7 @@ private fun WireMockServer.stubJsonFileContentType() {
     )
 }
 
-/**
- * A stub returning a response for a path referencing a directory with several objects.
- */
+/** A stub returning a response for a path referencing a directory with several objects. */
 private fun WireMockServer.stubDirectory() {
     stubFor(
         authorizedGet(

@@ -150,9 +150,7 @@ class SearchService(
     }
 }
 
-/**
- * Find runs by ORT package identifier without curation resolution (for performance reasons).
- */
+/** Find runs by ORT package identifier without curation resolution (for performance reasons). */
 private fun findByIdentifier(
     identifier: String,
     query: Join,
@@ -197,9 +195,7 @@ private fun findByIdentifier(
     }
 }
 
-/**
- * Find runs by PURL using curated PURL resolution. Return the identifier of the matching package as well.
- */
+/** Find runs by PURL using curated PURL resolution. Return the identifier of the matching package as well. */
 private fun findByPurl(
     purl: String,
     query: Join,
@@ -250,9 +246,7 @@ private fun createVulnerabilityBaseQuery() = OrtRunsTable
     .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
     .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
 
-/**
- * Search for vulnerabilities and return package identifiers.
- */
+/** Search for vulnerabilities and return package identifiers. */
 private fun findVulnerabilitiesWithIdentifier(
     externalId: String,
     query: Join,
@@ -289,9 +283,7 @@ private fun findVulnerabilitiesWithIdentifier(
     }
 }
 
-/**
- * Search for vulnerabilities and return effective PURLs with curation resolution.
- */
+/** Search for vulnerabilities and return effective PURLs with curation resolution. */
 private fun findVulnerabilitiesWithPurl(
     externalId: String,
     query: Join,
@@ -357,9 +349,7 @@ private fun createEffectivePurlExpression(): CustomFunction<String> {
     )
 }
 
-/**
- * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
- */
+/** Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids]. */
 private fun generateHierarchyCondition(
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,

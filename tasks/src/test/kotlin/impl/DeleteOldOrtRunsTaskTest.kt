@@ -95,17 +95,13 @@ class DeleteOldOrtRunsTaskTest : StringSpec({
 /** The result to be returned by the [OrtRunService] mock when it is invoked to delete old ORT runs. */
 private val deletionResult = ProcessingResult(16, 1)
 
-/**
- * Create a mock for [OrtRunService] and prepare it to expect a call to delete old ORT runs.
- */
+/** Create a mock for [OrtRunService] and prepare it to expect a call to delete old ORT runs. */
 private fun createOrtRunService(): OrtRunService =
     mockk<OrtRunService> {
     coEvery { deleteRunsCreatedBefore(any()) } returns deletionResult
 }
 
-/**
- * Check whether the given [ortRunService] mock was correctly invoked to delete ORT runs older than [expectedDays].
- */
+/** Check whether the given [ortRunService] mock was correctly invoked to delete ORT runs older than [expectedDays]. */
 private fun checkDeleteInvocation(ortRunService: OrtRunService, expectedDays: Int) {
     val slot = slot<Instant>()
     coVerify {

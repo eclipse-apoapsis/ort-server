@@ -101,9 +101,7 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
     override suspend fun delete(id: Long) = db.transaction { ProductDao[id].delete() }
 }
 
-/**
- * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
- */
+/** Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids]. */
 private fun generateHierarchyCondition(
     level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,

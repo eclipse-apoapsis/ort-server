@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import kotlinx.serialization.Serializable
 
-/**
- * Response object for the liveness endpoint, used by cloud environment to check if the application is running.
- */
+/** Response object for the liveness endpoint, used by cloud environment to check if the application is running. */
 @Serializable
 data class Liveness(
     /** A message describing the state of the application. */

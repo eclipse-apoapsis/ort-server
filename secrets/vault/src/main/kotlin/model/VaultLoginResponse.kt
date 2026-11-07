@@ -32,9 +32,7 @@ data class VaultLoginResponse(
     val auth: Auth
 )
 
-/**
- * A data class with relevant information to authenticate against a Vault service.
- */
+/** A data class with relevant information to authenticate against a Vault service. */
 @Serializable
 data class Auth(
     /** The token for the credentials provided in the login request. */

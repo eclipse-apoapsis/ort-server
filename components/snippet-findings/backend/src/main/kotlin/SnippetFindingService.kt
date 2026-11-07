@@ -53,9 +53,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.union
 
-/**
- * A service for querying snippet findings and their snippet sources for ORT runs.
- */
+/** A service for querying snippet findings and their snippet sources for ORT runs. */
 class SnippetFindingService(private val db: Database) {
     /**
      * Return package provenances with snippet findings for the ORT run with the given [ortRunId].

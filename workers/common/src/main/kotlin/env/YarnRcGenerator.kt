@@ -35,9 +35,7 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
         /** The name of the configuration file created by this generator. */
         private const val YARNRC_FILE_NAME = ".yarnrc.yml"
 
-        /**
-         * Print a line for the given [key] and [value] if the value is not null.
-         */
+        /** Print a line for the given [key] and [value] if the value is not null. */
         private fun PrintWriter.printOptionalSetting(key: String, value: String?) {
             value?.let {
                 println("$key: \"${value}\"")

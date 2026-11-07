@@ -427,9 +427,7 @@ private fun createWorkerContext(
     }
 }
 
-/**
- * Prepare this mock [AdminConfigService] to return a dummy configuration containing the given [ruleSet].
- */
+/** Prepare this mock [AdminConfigService] to return a dummy configuration containing the given [ruleSet]. */
 private fun AdminConfigService.initRuleSet(ruleSet: RuleSet) {
     val adminConfig = mockk<AdminConfig> {
         every { getRuleSet(RULE_SET) } returns ruleSet

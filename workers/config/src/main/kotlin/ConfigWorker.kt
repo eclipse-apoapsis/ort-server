@@ -65,9 +65,7 @@ class ConfigWorker(
         private val logger = LoggerFactory.getLogger(ConfigWorker::class.java)
     }
 
-    /**
-     * Execute the config validation on the ORT run with the given [ortRunId].
-     */
+    /** Execute the config validation on the ORT run with the given [ortRunId]. */
     suspend fun run(ortRunId: Long): RunResult = runCatching {
         logger.info("Running config worker for run '$ortRunId'.")
 

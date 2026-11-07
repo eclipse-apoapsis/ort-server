@@ -83,19 +83,13 @@ class GitHubConfigFileProvider(
          */
         const val GITHUB_API_URL = "gitHubApiUrl"
 
-        /**
-         * The account owner of the repository. The name is not case-sensitive.
-         */
+        /** The account owner of the repository. The name is not case-sensitive. */
         const val REPOSITORY_OWNER = "gitHubRepositoryOwner"
 
-        /**
-         * The name of the repository without the .git extension. The name is not case-sensitive.
-         */
+        /** The name of the repository without the .git extension. The name is not case-sensitive. */
         const val REPOSITORY_NAME = "gitHubRepositoryName"
 
-        /**
-         * Configuration property that defines the default branch.
-         */
+        /** Configuration property that defines the default branch. */
         const val DEFAULT_BRANCH = "gitHubDefaultBranch"
 
         /**
@@ -131,14 +125,10 @@ class GitHubConfigFileProvider(
          */
         const val CACHE_CLEANUP_RATIO = "gitHubCacheCleanupRatio"
 
-        /**
-         * The header value required to get the raw content of a file directly.
-         */
+        /** The header value required to get the raw content of a file directly. */
         const val RAW_CONTENT_TYPE_HEADER = "application/vnd.github.raw"
 
-        /**
-         * The header value indicating that the response format is JSON.
-         */
+        /** The header value indicating that the response format is JSON. */
         const val JSON_CONTENT_TYPE_HEADER = "application/json"
 
         /** The path in the application configuration that contains GitHub-specific HTTP client overrides. */
@@ -189,9 +179,7 @@ class GitHubConfigFileProvider(
             )
         }
 
-        /**
-         * Create the HTTP client to be used for all requests against the GitHub REST API.
-         */
+        /** Create the HTTP client to be used for all requests against the GitHub REST API. */
         private fun createClient(secretProvider: ConfigSecretProvider): HttpClient =
             createHttpClient(HTTP_CLIENT_OVERRIDES_PATH) {
                 defaultRequest {
@@ -199,9 +187,7 @@ class GitHubConfigFileProvider(
                 }
             }
 
-        /**
-         * Create the cache for configuration data based on the given [config].
-         */
+        /** Create the cache for configuration data based on the given [config]. */
         private fun createCache(config: Config): GitHubConfigCache =
             config.getStringOrNull(CACHE_DIRECTORY)?.let { cacheDir ->
                 logger.debug("Using file-based cache in directory '{}'.", cacheDir)

@@ -30,9 +30,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
  */
 typealias ValidatorFunc<T> = (T) -> ValidationResult<T>
 
-/**
- * An extension function for validating [OptionalValue] objects against a given regex [pattern].
- */
+/** An extension function for validating [OptionalValue] objects against a given regex [pattern]. */
 fun ValidationBuilder<OptionalValue<String>>.optionalPattern(pattern: Regex) = constrain(
     "must match the expected pattern '${pattern.pattern}'"
 ) {

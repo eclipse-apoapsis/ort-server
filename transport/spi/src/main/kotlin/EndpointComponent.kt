@@ -70,9 +70,7 @@ abstract class EndpointComponent<T : Any>(
         private const val KEEP_ALIVE_FILE_NAME = "keep-alive.lock"
         private val logger: Logger = LoggerFactory.getLogger(EndpointComponent::class.java)
 
-        /**
-         * Get the keep-alive file in the system's temporary directory.
-         */
+        /** Get the keep-alive file in the system's temporary directory. */
         private fun getKeepAliveFile(): File {
             val tmpDir = File(System.getProperty("java.io.tmpdir"))
             return tmpDir.resolve(KEEP_ALIVE_FILE_NAME)

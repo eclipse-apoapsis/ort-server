@@ -83,9 +83,7 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
     val reportData = "Data of the report to download".toByteArray()
     val reportToken = "secret-token-to-access-the-test-report"
 
-    /**
-     * Create an [OrtRun], store a report for the created run, and return the created run.
-     */
+    /** Create an [OrtRun], store a report for the created run, and return the created run. */
     suspend fun createReport(): OrtRun {
         val run = dbExtension.fixtures.createOrtRun(repositoryId)
         val key = Key("${run.id}|$reportFile")

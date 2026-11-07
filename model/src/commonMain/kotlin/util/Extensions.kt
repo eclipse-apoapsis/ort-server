@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.util
 
-/**
- * Remove the given [prefix] from this string if it is present, or return *null* otherwise.
- */
+/** Remove the given [prefix] from this string if it is present, or return *null* otherwise. */
 fun String.removePrefixOrNull(prefix: String): String? =
     takeIf { it.startsWith(prefix) }?.drop(prefix.length)
 

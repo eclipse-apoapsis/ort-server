@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a package manager configuration.
- */
+/** A table to represent a package manager configuration. */
 object PackageManagerConfigurationsTable : LongIdTable("package_manager_configurations") {
     val name = text("name")
     val mustRunAfter = text("must_run_after").nullable()

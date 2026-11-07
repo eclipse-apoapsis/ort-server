@@ -30,45 +30,29 @@ import okio.Source
 import okio.buffer
 import okio.use
 
-/**
- * Get the current working directory as a [Path].
- */
+/** Get the current working directory as a [Path]. */
 internal val currentWorkingDir: Path
     get() = FileSystem.SYSTEM.canonicalize(".".toPath())
 
-/**
- * Create a [Source] for this [Path].
- */
+/** Create a [Source] for this [Path]. */
 internal fun Path.toSource() = FileSystem.SYSTEM.source(this)
 
-/**
- * Delete the file or directory at this [Path].
- */
+/** Delete the file or directory at this [Path]. */
 internal fun Path.delete() = FileSystem.SYSTEM.delete(this)
 
-/**
- * Check if the file or directory at this [Path] exists.
- */
+/** Check if the file or directory at this [Path] exists. */
 internal fun Path.exists() = FileSystem.SYSTEM.exists(this)
 
-/**
- * Create the directory with all required parents at this [Path].
- */
+/** Create the directory with all required parents at this [Path]. */
 internal fun Path.mkdirs() = FileSystem.SYSTEM.createDirectories(this)
 
-/**
- * Read the content of the file at this [Path] as a UTF8 [String].
- */
+/** Read the content of the file at this [Path] as a UTF8 [String]. */
 internal fun Path.read() = FileSystem.SYSTEM.read(this) { readUtf8() }
 
-/**
- * Write the UTF8 [content] to the file at this [Path].
- */
+/** Write the UTF8 [content] to the file at this [Path]. */
 internal fun Path.write(content: String) = FileSystem.SYSTEM.write(this) { writeUtf8(content) }
 
-/**
- * Write the content of the [channel] to this [Path].
- */
+/** Write the content of the [channel] to this [Path]. */
 internal suspend fun Path.writeFromChannel(channel: ByteReadChannel) {
     FileSystem.SYSTEM.sink(this).buffer().use { sink ->
         val buffer = ByteArray(8192)
@@ -79,12 +63,8 @@ internal suspend fun Path.writeFromChannel(channel: ByteReadChannel) {
     }
 }
 
-/**
- * Get the user's home directory as a [Path].
- */
+/** Get the user's home directory as a [Path]. */
 expect fun getHomeDirectory(): Path
 
-/**
- * Set the permissions of the file at this [Path] to owner read and write only (0600).
- */
+/** Set the permissions of the file at this [Path] to owner read and write only (0600). */
 internal expect fun Path.setPermissionsToOwnerReadWrite()

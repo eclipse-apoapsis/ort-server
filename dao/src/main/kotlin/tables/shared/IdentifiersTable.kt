@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an identifier of a software package.
- */
+/** A table to represent an identifier of a software package. */
 object IdentifiersTable : LongIdTable("identifiers") {
     val type = text("type")
     val namespace = text("namespace")

@@ -25,9 +25,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a license string.
- */
+/** A table to represent a license string. */
 object DeclaredLicensesTable : LongIdTable("declared_licenses") {
     val name = text("name")
 }

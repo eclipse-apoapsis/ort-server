@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.util
 
-/**
- * An enum class defining constants for the direction in which fields are sorted.
- */
+/** An enum class defining constants for the direction in which fields are sorted. */
 enum class OrderDirection {
     /** Constant for _ascending_ order direction. */
     ASCENDING,
@@ -30,9 +28,7 @@ enum class OrderDirection {
     DESCENDING
 }
 
-/**
- * A data class defining a field by which a query result should be ordered.
- */
+/** A data class defining a field by which a query result should be ordered. */
 data class OrderField(
     /** The name of the field. */
     val name: String,
@@ -74,14 +70,10 @@ data class ListQueryParameters(
          */
         val DEFAULT = ListQueryParameters()
 
-        /**
-         * Constant for [limit] used as default if no limit is given as request parameter.
-         */
+        /** Constant for [limit] used as default if no limit is given as request parameter. */
         const val DEFAULT_LIMIT = 20
 
-        /**
-         * Default maximum value for [limit] accepted from a request parameter.
-         */
+        /** Default maximum value for [limit] accepted from a request parameter. */
         const val DEFAULT_MAX_LIMIT = 100
     }
 }

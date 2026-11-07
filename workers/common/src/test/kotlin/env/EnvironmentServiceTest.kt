@@ -1022,9 +1022,7 @@ private val repositoryFolder = File("repositoryCheckoutLocation")
 /** A default [AdminConfig] object used in tests. */
 val adminConfig = AdminConfig()
 
-/**
- * Create an InfrastructureServiceDeclaration with the given [name] and [credentialsTypes].
- */
+/** Create an InfrastructureServiceDeclaration with the given [name] and [credentialsTypes]. */
 fun createInfrastructureServiceDeclaration(
     name: String,
     credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
@@ -1065,9 +1063,7 @@ private fun mockSecretService(extraSetup: SecretService.() -> Unit = {}): Secret
         extraSetup()
     }
 
-/**
- * Create a mock [EnvironmentConfigLoader] that is prepared to return the given [config].
- */
+/** Create a mock [EnvironmentConfigLoader] that is prepared to return the given [config]. */
 private fun mockConfigLoader(config: ResolvedEnvironmentConfig): EnvironmentConfigLoader {
     val envConfig = mockk<EnvironmentConfig>(relaxed = true)
 
@@ -1099,9 +1095,7 @@ private fun mockConfigLoader(
     }
 }
 
-/**
- * Create a mock [AdminConfigService] that is prepared to return the [adminConfig] when loading the admin config.
- */
+/** Create a mock [AdminConfigService] that is prepared to return the [adminConfig] when loading the admin config. */
 private fun createMockAdminConfigService(): AdminConfigService = mockk<AdminConfigService> {
     coEvery { loadAdminConfig(ResolvedConfigContext(RESOLVED_JOB_CONFIG_CONTEXT)) } returns adminConfig
 }

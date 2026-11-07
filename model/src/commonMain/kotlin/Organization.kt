@@ -24,18 +24,12 @@ package org.eclipse.apoapsis.ortserver.model
  * manages multiple [Product]s.
  */
 data class Organization(
-    /**
-     * The unique identifier of the organization.
-     */
+    /** The unique identifier of the organization. */
     val id: Long,
 
-    /**
-     * The name of the organization.
-     */
+    /** The name of the organization. */
     val name: String,
 
-    /**
-     * The description of the organization.
-     */
+    /** The description of the organization. */
     val description: String? = null
 )

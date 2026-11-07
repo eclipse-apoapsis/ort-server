@@ -234,9 +234,7 @@ private const val STORAGE_TYPE = "testStorage"
 private const val ERROR_KEY = "THROW!"
 private const val CONTENT_TYPE = "test/content"
 
-/**
- * Create the [Config] for obtaining a [Storage] instance.
- */
+/** Create the [Config] for obtaining a [Storage] instance. */
 private fun createStorageConfig(): Config =
     ConfigFactory.parseMap(
         mapOf(
@@ -247,8 +245,6 @@ private fun createStorageConfig(): Config =
         )
     )
 
-/**
- * Return a [Storage] instance that can be used for testing. It is obtained via the default mechanism.
- */
+/** Return a [Storage] instance that can be used for testing. It is obtained via the default mechanism. */
 private fun createStorage(): Storage =
     Storage.create(STORAGE_TYPE, ConfigManager.create(createStorageConfig()), mockk())

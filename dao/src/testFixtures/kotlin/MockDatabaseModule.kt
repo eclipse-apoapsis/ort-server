@@ -37,9 +37,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.inject
 
-/**
- * A data class to simulate a connection object in the mock database module.
- */
+/** A data class to simulate a connection object in the mock database module. */
 private data class MockConnection(val success: Boolean)
 
 /**
@@ -61,9 +59,7 @@ fun mockDatabaseModule() {
     every { databaseModule(any()) } returns databaseModuleWithMockConnection()
 }
 
-/**
- * Reverts mocking of the database module done by [mockDatabaseModule].
- */
+/** Reverts mocking of the database module done by [mockDatabaseModule]. */
 fun unmockDatabaseModule() {
     unmockkStatic(::databaseModule)
 }

@@ -57,9 +57,7 @@ import org.jetbrains.exposed.v1.jdbc.insert
 class RolesToDbMigrationTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
-    /**
-     * Create a test instance of [RolesToDbMigration] with the given dependencies.
-     */
+    /** Create a test instance of [RolesToDbMigration] with the given dependencies. */
     private fun createMigration(
         keycloakClient: KeycloakClient,
         authorizationService: AuthorizationService
@@ -322,9 +320,7 @@ private fun createKeycloakClientForGroups(groupsWithUsers: Map<String, List<Stri
         }
     }
 
-/**
- * A data class to store the properties of a role assignment requested on the authorization service.
- */
+/** A data class to store the properties of a role assignment requested on the authorization service. */
 private data class RoleAssignment(
     /** The subject user ID. */
     val userId: String,

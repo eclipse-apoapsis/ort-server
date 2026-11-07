@@ -125,9 +125,7 @@ class LargeObjectsTest : WordSpec({
     }
 })
 
-/**
- * Create a file in a temporary directory and populate it with the given [data].
- */
+/** Create a file in a temporary directory and populate it with the given [data]. */
 private fun Spec.createTempFile(data: ByteArray): File {
     val dir = tempdir()
     val file = dir.resolve("test.tmp")

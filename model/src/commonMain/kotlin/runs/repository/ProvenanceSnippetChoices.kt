@@ -22,17 +22,11 @@ package org.eclipse.apoapsis.ortserver.model.runs.repository
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
 
-/**
- * A collection of snippet choices for a given provenance.
- */
+/** A collection of snippet choices for a given provenance. */
 data class ProvenanceSnippetChoices(
-    /**
-     * The provenance this snippet choice applies to.
-     */
+    /** The provenance this snippet choice applies to. */
     val provenance: Provenance,
 
-    /**
-     * The snippet choices for this package.
-     */
+    /** The snippet choices for this package. */
     val choices: List<SnippetChoice>
 )

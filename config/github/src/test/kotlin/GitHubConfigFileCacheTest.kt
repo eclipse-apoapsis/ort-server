@@ -266,14 +266,10 @@ private fun loadFileFunc(prefix: String? = null): suspend () -> ByteReadChannel 
     }
 }
 
-/**
- * Generate the content of a test file with an optional [prefix].
- */
+/** Generate the content of a test file with an optional [prefix]. */
 private fun testFileContent(prefix: String? = null) = prefix.orEmpty() + TEST_CONTENT
 
-/**
- * Verify that this [InputStream] contains the expected content with the given [prefix]. Also close the stream.
- */
+/** Verify that this [InputStream] contains the expected content with the given [prefix]. Also close the stream. */
 private fun InputStream.verifyContent(prefix: String? = null) {
     use {
         String(readAllBytes()) shouldBe testFileContent(prefix)
@@ -296,23 +292,17 @@ private fun loadFolderContentFunc(name: String, revision: String): suspend () ->
     }
 }
 
-/**
- * Generate the content of a test folder for the given [name] and [revision].
- */
+/** Generate the content of a test folder for the given [name] and [revision]. */
 private fun testFolderContent(name: String, revision: String): Set<String> = setOf(
     "$name/file1-$revision.txt",
     "$name/file2-$revision.doc",
     "$name/file3-$revision.kt"
 )
 
-/**
- * Generate a revision based on the given [index].
- */
+/** Generate a revision based on the given [index]. */
 private fun revision(index: Int): String = "rev$index"
 
-/**
- * Return a test instance of [GitHubConfigFileCache] backed by a managed temporary directory.
- */
+/** Return a test instance of [GitHubConfigFileCache] backed by a managed temporary directory. */
 private fun TestConfiguration.createCache(): GitHubConfigFileCache =
     GitHubConfigFileCache(tempdir(), lockCheckInterval, 1, 1.days)
 
@@ -330,9 +320,7 @@ private fun File.createChildDirAt(name: String, time: Instant, block: (File) -> 
         toPath().setLastModifiedTime(FileTime.from(time.toJavaInstant()))
     }
 
-/**
- * Create a file as a child of this [File] with the given [name] and some test content.
- */
+/** Create a file as a child of this [File] with the given [name] and some test content. */
 private fun File.writeTestFile(name: String): File =
     resolve(name).apply {
         writeText("test file $name")

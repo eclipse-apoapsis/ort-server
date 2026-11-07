@@ -77,9 +77,7 @@ private val TIMER_STEP = 30.seconds
 
 private val logger = LoggerFactory.getLogger(JobMetrics::class.java)
 
-/**
- * A micrometer [MeterBinder] that provides metrics for ORT runs and jobs.
- */
+/** A micrometer [MeterBinder] that provides metrics for ORT runs and jobs. */
 @Suppress("TooManyFunctions")
 class JobMetrics(private val application: Application, private val db: Database) : MeterBinder {
     private val runStatusCounts = OrtRunStatus.entries.associateWith { AtomicLong(0) }

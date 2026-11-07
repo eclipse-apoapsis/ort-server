@@ -26,9 +26,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.MdcKey
 
 import org.ossreviewtoolkit.utils.ort.printStackTrace
 
-/**
- * Set [printStackTrace] to true to enable printing stack traces in ORT code.
- */
+/** Set [printStackTrace] to true to enable printing stack traces in ORT code. */
 fun enableOrtStackTraces() {
     printStackTrace = true
 }
@@ -47,8 +45,6 @@ inline fun <reified T : WorkerJob> T?.validateForProcessing(jobId: Long): T {
     return this
 }
 
-/**
- * Return a pair of [MdcKey] and [jobId] that can be used to add the job ID for this [Endpoint] to the MDC context.
- */
+/** Return a pair of [MdcKey] and [jobId] that can be used to add the job ID for this [Endpoint] to the MDC context. */
 fun Endpoint<*>.jobMdcKey(jobId: Long): Pair<MdcKey, String> =
     CustomMdcKey("${configPrefix}JobId") to jobId.toString()

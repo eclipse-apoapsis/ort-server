@@ -139,9 +139,7 @@ class ScannerEndpointTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Simulate an incoming request to scan a project.
-     */
+    /** Simulate an incoming request to scan a project. */
     private suspend fun sendScannerRequest() {
         mockkTransaction {
             val message = Message(messageHeader, scannerRequest)

@@ -19,7 +19,5 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
-/**
- * This exception is thrown if a worker ignored a job, for example, because it was already done.
- */
+/** This exception is thrown if a worker ignored a job, for example, because it was already done. */
 class JobIgnoredException(message: String) : RuntimeException(message)

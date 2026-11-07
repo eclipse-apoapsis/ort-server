@@ -112,8 +112,6 @@ class PackageProvenanceCache {
  */
 private fun RepositoryProvenance.isRootProvenance(): Boolean = vcsInfo.path.isEmpty()
 
-/**
- * Return a [RepositoryProvenance] that points to the root VCS of this provenance.
- */
+/** Return a [RepositoryProvenance] that points to the root VCS of this provenance. */
 private fun RepositoryProvenance.rootProvenance(): RepositoryProvenance =
     takeIf { isRootProvenance() } ?: copy(vcsInfo = vcsInfo.copy(path = ""))

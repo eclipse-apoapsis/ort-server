@@ -72,9 +72,7 @@ class WorkerJobRepositories(
         NotifierEndpoint.configPrefix to notifierJobRepository
     )
 
-    /**
-     * Return the [WorkerJobRepository] for the given [endpoint] or *null* if there is no such repository.
-     */
+    /** Return the [WorkerJobRepository] for the given [endpoint] or *null* if there is no such repository. */
     operator fun get(endpoint: Endpoint<*>): WorkerJobRepository<*>? = get(endpoint.configPrefix)
 
     /**

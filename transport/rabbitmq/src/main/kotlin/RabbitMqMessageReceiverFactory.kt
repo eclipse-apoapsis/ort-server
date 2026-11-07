@@ -51,9 +51,7 @@ import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
-/**
- * Implementation of the [MessageReceiverFactory] interface for RabbitMQ.
- */
+/** Implementation of the [MessageReceiverFactory] interface for RabbitMQ. */
 class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
     companion object {
         private val logger = LoggerFactory.getLogger(RabbitMqMessageReceiverFactory::class.java)

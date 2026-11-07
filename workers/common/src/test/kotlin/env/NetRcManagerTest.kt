@@ -180,9 +180,7 @@ class NetRcManagerTest : WordSpec({
     }
 })
 
-/**
- * Create a spy for a [NetRcManager] instance that is prepared to use the given [mockBuilder] and [mockGenerator].
- */
+/** Create a spy for a [NetRcManager] instance that is prepared to use the given [mockBuilder] and [mockGenerator]. */
 private fun createNetRcManagerSpy(
     mockBuilder: ConfigFileBuilder,
     mockGenerator: NetRcGenerator

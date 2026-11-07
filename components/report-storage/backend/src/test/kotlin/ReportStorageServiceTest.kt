@@ -182,9 +182,7 @@ class ReportStorageServiceTest : WordSpec({
 
 private const val RUN_ID = 20230522073118L
 
-/**
- * Create the [Storage] to be used for tests. This is a test storage, so the stored data can be inspected.
- */
+/** Create the [Storage] to be used for tests. This is a test storage, so the stored data can be inspected. */
 private fun createStorage(): Storage {
     val storageType = "test"
     val configMap = mapOf(storageType to mapOf("name" to StorageProviderFactoryForTesting.NAME))

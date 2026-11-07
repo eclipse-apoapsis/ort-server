@@ -50,9 +50,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-/**
- * A query to get the [Package]s for a given [analyzerRunId]. Returns an empty set if no packages are found.
- */
+/** A query to get the [Package]s for a given [analyzerRunId]. Returns an empty set if no packages are found. */
 class GetPackagesForAnalyzerRunQuery(
     /** The ID of the analyzer run to retrieve packages for. */
     val analyzerRunId: Long
@@ -175,9 +173,7 @@ class GetPackagesForAnalyzerRunQuery(
             .mapKeys { it.key.value }
             .mapValues { it.value.toSet() }
 
-    /**
-     * Get the [ProcessedDeclaredLicense]s for the provided [packageIds].
-     */
+    /** Get the [ProcessedDeclaredLicense]s for the provided [packageIds]. */
     @Suppress("UNCHECKED_CAST")
     private fun getProcessedDeclaredLicenses(packageIds: Set<Long>): Map<Long, ProcessedDeclaredLicense?> =
         ProcessedDeclaredLicensesTable

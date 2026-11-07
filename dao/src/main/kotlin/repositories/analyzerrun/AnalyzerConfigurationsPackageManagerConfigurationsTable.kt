@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * A junction table to store references from [AnalyzerConfigurationsTable] and [PackageManagerConfigurationsTable].
- */
+/** A junction table to store references from [AnalyzerConfigurationsTable] and [PackageManagerConfigurationsTable]. */
 object AnalyzerConfigurationsPackageManagerConfigurationsTable :
     Table("analyzer_configurations_package_manager_configurations") {
     val analyzerConfigurationId = reference("analyzer_configuration_id", AnalyzerConfigurationsTable)

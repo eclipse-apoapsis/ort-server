@@ -31,9 +31,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
  * current configuration.
  */
 interface SecretsProviderFactory {
-    /**
-     * The name of this implementation. This is used to match the factory selected in the application configuration.
-     */
+    /** The name of this implementation. This is used to match the factory selected in the application configuration. */
     val name: String
 
     /**

@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
 
-/**
- * Defines an [IssueResolution] that was applied to an issue in a run.
- */
+/** Defines an [IssueResolution] that was applied to an issue in a run. */
 @Serializable
 data class AppliedIssueResolution(
     /** A regular expression to match the issue message. */

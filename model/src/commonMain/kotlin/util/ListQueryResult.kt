@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.util
 
-/**
- * A class to capture the result of a [parameterized][params] list query.
- */
+/** A class to capture the result of a [parameterized][params] list query. */
 data class ListQueryResult<T>(
     /** The data returned by the query. */
     val data: List<T>,

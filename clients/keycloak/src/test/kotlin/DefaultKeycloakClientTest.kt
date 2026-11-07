@@ -257,15 +257,11 @@ class DefaultKeycloakClientTest : WordSpec() {
     }
 }
 
-/**
- * Create a test client instance that is configured to access the Keycloak instance managed by this container.
- */
+/** Create a test client instance that is configured to access the Keycloak instance managed by this container. */
 private fun KeycloakContainer.createTestClient(): KeycloakClient =
     DefaultKeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), createJson())
 
-/**
- * Create the [Json] instance required by the test client.
- */
+/** Create the [Json] instance required by the test client. */
 private fun createJson(): Json = Json {
     ignoreUnknownKeys = true
 }

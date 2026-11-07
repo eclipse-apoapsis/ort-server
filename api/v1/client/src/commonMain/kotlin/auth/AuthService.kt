@@ -28,9 +28,7 @@ import io.ktor.http.isSuccess
 
 import org.eclipse.apoapsis.ortserver.client.HttpRequestException
 
-/**
- * A service to generate/refresh an OAuth token to authenticate with the ORT server.
- */
+/** A service to generate/refresh an OAuth token to authenticate with the ORT server. */
 class AuthService(
     private val client: HttpClient,
     private val tokenUrl: String,
@@ -66,9 +64,7 @@ class AuthService(
             )
         }.body()
 
-    /**
-     * Refresh the tokens for the given [refreshToken] with optional [scopes].
-     */
+    /** Refresh the tokens for the given [refreshToken] with optional [scopes]. */
     suspend fun refreshToken(refreshToken: String, scopes: Set<String> = emptySet()): TokenInfo = runCatching {
         client.submitForm(
             url = tokenUrl,
@@ -92,7 +88,5 @@ class AuthService(
     }.body()
 }
 
-/**
- * An exception to indicate an authentication error.
- */
+/** An exception to indicate an authentication error. */
 class AuthenticationException(message: String, cause: Throwable? = null) : Exception(message, cause)

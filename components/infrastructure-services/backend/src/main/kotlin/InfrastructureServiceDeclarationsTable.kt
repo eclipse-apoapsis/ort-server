@@ -49,9 +49,7 @@ internal class InfrastructureServiceDeclarationDao(id: EntityID<Long>) : LongEnt
     companion object : SortableEntityClass<InfrastructureServiceDeclarationDao>(
         InfrastructureServiceDeclarationsTable
     ) {
-        /**
-         * Try to find an entity with properties matching the ones of the given [service].
-         */
+        /** Try to find an entity with properties matching the ones of the given [service]. */
         fun findByInfrastructureServiceDeclaration(service: InfrastructureServiceDeclaration):
                 InfrastructureServiceDeclarationDao? =
             find {
@@ -80,15 +78,11 @@ internal class InfrastructureServiceDeclarationDao(id: EntityID<Long>) : LongEnt
                 passwordSecret = service.passwordSecret
             }
 
-        /**
-         * Convert a set of [CredentialsType]s to a string representation.
-         */
+        /** Convert a set of [CredentialsType]s to a string representation. */
         private fun toCredentialsTypeString(types: Set<CredentialsType>): String? =
             types.takeUnless { it.isEmpty() }?.toSortedSet()?.joinToString(",") { it.name }
 
-        /**
-         * Return a set of [CredentialsType]s from a string representation.
-         */
+        /** Return a set of [CredentialsType]s from a string representation. */
         fun fromCredentialsTypeString(typeString: String?): Set<CredentialsType> =
             typeString?.split(',')
                 ?.mapTo(EnumSet.noneOf(CredentialsType::class.java)) { CredentialsType.valueOf(it) }.orEmpty()

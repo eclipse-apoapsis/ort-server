@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [EvaluatorRunsTable] and [RuleViolationsTable].
- */
+/** An intermediate table to store references from [EvaluatorRunsTable] and [RuleViolationsTable]. */
 object EvaluatorRunsRuleViolationsTable : Table("evaluator_runs_rule_violations") {
     val evaluatorRunId = reference("evaluator_run_id", EvaluatorRunsTable)
     val ruleViolationId = reference("rule_violation_id", RuleViolationsTable)

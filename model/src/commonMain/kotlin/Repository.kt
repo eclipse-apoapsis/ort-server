@@ -19,42 +19,26 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-/**
- * A repository represents a source code repository, for example, a [Git][RepositoryType.GIT] repository.
- */
+/** A repository represents a source code repository, for example, a [Git][RepositoryType.GIT] repository. */
 data class Repository(
-    /**
-     * The unique identifier of the repository.
-     */
+    /** The unique identifier of the repository. */
     val id: Long,
 
-    /**
-     * The unique identifier of the [Organization] this repository belongs to.
-     */
+    /** The unique identifier of the [Organization] this repository belongs to. */
     val organizationId: Long,
 
-    /**
-     * The unique identifier of the [Product] this repository belongs to.
-     */
+    /** The unique identifier of the [Product] this repository belongs to. */
     val productId: Long,
 
-    /**
-     * The type of the repository.
-     */
+    /** The type of the repository. */
     val type: RepositoryType,
 
-    /**
-     * The URL of the repository.
-     */
+    /** The URL of the repository. */
     val url: String,
 
-    /**
-     * The name of the repository.
-     */
+    /** The name of the repository. */
     val name: String? = null,
 
-    /**
-     * The description of the repository.
-     */
+    /** The description of the repository. */
     val description: String? = null
 )

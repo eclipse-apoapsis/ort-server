@@ -25,13 +25,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
-/**
- * A repository of [evaluator runs][EvaluatorRun].
- */
+/** A repository of [evaluator runs][EvaluatorRun]. */
 interface EvaluatorRunRepository {
-    /**
-     * Create an evaluator run.
-     */
+    /** Create an evaluator run. */
     suspend fun create(
         evaluatorJobId: Long,
         startTime: Instant,
@@ -40,13 +36,9 @@ interface EvaluatorRunRepository {
         violations: List<RuleViolation>
     ): EvaluatorRun
 
-    /**
-     * Get an evaluator run by [id]. Returns null if the evaluator run is not found.
-     */
+    /** Get an evaluator run by [id]. Returns null if the evaluator run is not found. */
     suspend fun get(id: Long): EvaluatorRun?
 
-    /**
-     * Get an evaluator run by [evaluatorJobId]. Returns null if the evaluator run is not found.
-     */
+    /** Get an evaluator run by [evaluatorJobId]. Returns null if the evaluator run is not found. */
     suspend fun getByJobId(evaluatorJobId: Long): EvaluatorRun?
 }

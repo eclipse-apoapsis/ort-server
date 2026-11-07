@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-/**
- * Represents a collection of path and scope include patterns.
- */
+/** Represents a collection of path and scope include patterns. */
 data class Includes(
     /** A list of [PathInclude] objects defining patterns and reasons for including specific paths. */
     val paths: List<PathInclude> = emptyList(),

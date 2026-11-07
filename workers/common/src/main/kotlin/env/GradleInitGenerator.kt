@@ -52,15 +52,11 @@ class GradleInitGenerator : EnvironmentConfigGenerator<GradleDefinition> {
                 replaceTemplateVariable(acc, name, value)
             }
 
-        /**
-         * Replace the template variable with the given [name] in the given [template] with the provided [value].
-         */
+        /** Replace the template variable with the given [name] in the given [template] with the provided [value]. */
         private fun replaceTemplateVariable(template: String, name: String, value: String?): String =
             template.replace(templateVariable(name), value ?: "null")
 
-        /**
-         * Return a variable used within the template with the given [name].
-         */
+        /** Return a variable used within the template with the given [name]. */
         private fun templateVariable(name: String): String = "#{$name}#"
     }
 

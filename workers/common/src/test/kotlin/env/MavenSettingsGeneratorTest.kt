@@ -503,9 +503,7 @@ private fun mirrorBlock(id: String, name: String, url: String, mirrorOf: String)
         |</mirror>
     """.trimMargin()
 
-/**
- * Generate a string with all lines indented by the given [indent].
- */
+/** Generate a string with all lines indented by the given [indent]. */
 private fun String.withIndent(indent: Int): String {
     val indentStr = " ".repeat(indent)
     return lineSequence().map { "$indentStr$it" }.joinToString(System.lineSeparator())

@@ -171,9 +171,7 @@ class RolesToDbMigration(
         }
     }
 
-    /**
-     * Migrate the access rights for the repository with the given [repositoryId] to the new database-based roles.
-     */
+    /** Migrate the access rights for the repository with the given [repositoryId] to the new database-based roles. */
     private suspend fun migrateRepositoryRolesToDb(repositoryId: CompoundHierarchyId) {
         logger.info("Migrating roles for repository '{}'.", repositoryId.repositoryId)
 

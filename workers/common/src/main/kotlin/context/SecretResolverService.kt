@@ -39,9 +39,7 @@ interface SecretResolverService {
         fun wrapSecretService(service: SecretService): SecretResolverService = SecretResolverServiceImpl(service)
     }
 
-    /**
-     * Get the value of a [secret]. Return *null* if the value is not found.
-     */
+    /** Get the value of a [secret]. Return *null* if the value is not found. */
     suspend fun getSecretValue(secret: Secret): SecretValue?
 
     /**
@@ -51,9 +49,7 @@ interface SecretResolverService {
     suspend fun listForHierarchy(hierarchy: Hierarchy): List<Secret>
 }
 
-/**
- * An implementation of [SecretResolverService] that wraps a [SecretService] to which it delegates all requests.
- */
+/** An implementation of [SecretResolverService] that wraps a [SecretService] to which it delegates all requests. */
 private class SecretResolverServiceImpl(
     /** The [SecretService] to delegate requests to. */
     private val secretService: SecretService

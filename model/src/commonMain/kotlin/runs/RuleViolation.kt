@@ -24,9 +24,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.AppliedRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
-/**
- * A data class describing a rule violation that occurred during an ORT run.
- */
+/** A data class describing a rule violation that occurred during an ORT run. */
 data class RuleViolation(
     val rule: String,
     val id: Identifier?,
@@ -44,9 +42,7 @@ data class RuleViolation(
     val purl: String? = null
 )
 
-/**
- * Filters to apply when querying for rule violations.
- */
+/** Filters to apply when querying for rule violations. */
 data class RuleViolationFilters(
     /** Filter by resolution status. Null if both resolved and unresolved rule violations should be returned. */
     val resolved: Boolean? = null,

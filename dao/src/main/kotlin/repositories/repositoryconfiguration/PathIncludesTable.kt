@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a path include, used within a [RepositoryConfiguration][RepositoryConfigurationsTable].
- */
+/** A table to represent a path include, used within a [RepositoryConfiguration][RepositoryConfigurationsTable]. */
 object PathIncludesTable : LongIdTable("path_includes") {
     val pattern = text("pattern")
     val reason = text("reason")

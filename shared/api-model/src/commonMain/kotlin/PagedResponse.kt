@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
 
-/**
- * A response object for returning paged lists of entities.
- */
+/** A response object for returning paged lists of entities. */
 @Serializable
 data class PagedResponse<E>(
     /** The list of returned entities. */
@@ -36,9 +34,7 @@ data class PagedResponse<E>(
     fun <T> toSearchResponse(filters: T): PagedSearchResponse<E, T> = PagedSearchResponse(data, pagination, filters)
 }
 
-/**
- * A response object for returning paged and filtered lists of entities.
- */
+/** A response object for returning paged and filtered lists of entities. */
 @Serializable
 data class PagedSearchResponse<E, T>(
     /** The list of returned entities. */
@@ -62,9 +58,7 @@ data class PagingOptions(
      */
     val offset: Long? = null,
 
-    /**
-     * An optional list of properties by which the result set should be sorted.
-     */
+    /** An optional list of properties by which the result set should be sorted. */
     val sortProperties: List<SortProperty>? = null
 ) {
     /**
@@ -95,9 +89,7 @@ data class PagingData(
     val sortProperties: List<SortProperty>
 )
 
-/**
- * A data class defining a property by which a query result should be sorted.
- */
+/** A data class defining a property by which a query result should be sorted. */
 @Serializable
 data class SortProperty(
     /** The name of the property to use for sorting. */
@@ -107,9 +99,7 @@ data class SortProperty(
     val direction: SortDirection
 )
 
-/**
- * An enum class defining constants for the direction in which properties are sorted.
- */
+/** An enum class defining constants for the direction in which properties are sorted. */
 enum class SortDirection {
     /** Constant for _ascending_ sort direction. */
     ASCENDING,

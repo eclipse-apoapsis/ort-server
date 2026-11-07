@@ -33,18 +33,14 @@ import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
  * This is used by both the Artemis-based sender and receiver implementations.
  */
 internal object ArtemisMessageConverter {
-    /**
-     * Convert the given [message] to a JMS [TextMessage] using the provided [serializer] and [session].
-     */
+    /** Convert the given [message] to a JMS [TextMessage] using the provided [serializer] and [session]. */
     fun <T> toJmsMessage(message: Message<T>, serializer: JsonSerializer<T>, session: Session): TextMessage =
         session.createTextMessage(serializer.toJson(message.payload)).apply {
             setStringProperty(TRACE_PROPERTY, message.header.traceId)
             setLongProperty(RUN_ID_PROPERTY, message.header.ortRunId)
         }
 
-    /**
-     * Convert the given [jmsMessage] to a [Message] using the given [serializer].
-     */
+    /** Convert the given [jmsMessage] to a [Message] using the given [serializer]. */
     fun <T> toTransportMessage(jmsMessage: TextMessage, serializer: JsonSerializer<T>): Message<T> {
         val header = MessageHeader(
             traceId = jmsMessage.getStringProperty(TRACE_PROPERTY),

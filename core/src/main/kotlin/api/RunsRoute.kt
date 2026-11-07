@@ -111,9 +111,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.stringSetFilter
 
 import org.koin.ktor.ext.inject
 
-/**
- * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
- */
+/** API for the run's endpoint. This endpoint provides information related to ORT runs and their results. */
 @Suppress("LongMethod")
 fun Route.runs() = route("runs") {
     val issueService by inject<IssueService>()
@@ -539,9 +537,7 @@ private fun ApplicationCall.status(): FilterOperatorAndValue<Set<OrtRunStatus>>?
     )
 }
 
-/**
- * Extract the filters for the run's endpoint from this [ApplicationCall].
- */
+/** Extract the filters for the run's endpoint from this [ApplicationCall]. */
 private fun ApplicationCall.filters(): OrtRunFilters =
     OrtRunFilters(
         status = status()
@@ -564,9 +560,7 @@ private fun ApplicationCall.severityFilter(): FilterOperatorAndValue<Set<Severit
         FilterOperatorAndValue(operator, severities.mapTo(mutableSetOf()) { findByName<Severity>(it) })
     }
 
-/**
- * Extract the package filters from this [ApplicationCall].
- */
+/** Extract the package filters from this [ApplicationCall]. */
 private fun ApplicationCall.packageFilters(): PackageFilters =
     PackageFilters(
         identifier = identifierFilter(),
@@ -604,9 +598,7 @@ private fun ApplicationCall.projectFilters(): ProjectFilters =
         }
     )
 
-/**
- * Extract the rule violation filters from this [ApplicationCall].
- */
+/** Extract the rule violation filters from this [ApplicationCall]. */
 private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
     RuleViolationFilters(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
@@ -616,9 +608,7 @@ private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
         rule = stringSetFilter("rule")
     )
 
-/**
- * Extract the issue filters from this [ApplicationCall].
- */
+/** Extract the issue filters from this [ApplicationCall]. */
 private fun ApplicationCall.issueFilters(): IssueFilter =
     IssueFilter(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
@@ -631,9 +621,7 @@ private fun ApplicationCall.issueFilters(): IssueFilter =
         severity = severityFilter()
     )
 
-/**
- * Extract the vulnerability filters from this [ApplicationCall].
- */
+/** Extract the vulnerability filters from this [ApplicationCall]. */
 private fun ApplicationCall.vulnerabilityFilters() =
     VulnerabilityFilters(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
@@ -645,13 +633,9 @@ private fun ApplicationCall.vulnerabilityFilters() =
         advisors = vulnerabilityAdvisorFilter()
     )
 
-/**
- * A key under which the current [OrtRun] is stored in the current call.
- */
+/** A key under which the current [OrtRun] is stored in the current call. */
 private val keyOrtRun = AttributeKey<OrtRun>("RunsRoute.OrtRun")
 
-/**
- * The current [OrtRun] stored in this [ApplicationCall].
- */
+/** The current [OrtRun] stored in this [ApplicationCall]. */
 private val ApplicationCall.ortRun: OrtRun
     get() = attributes[keyOrtRun]

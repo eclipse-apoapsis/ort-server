@@ -964,18 +964,14 @@ fun ScopeInclude.mapToApi() =
 fun ScopeExclude.mapToApi() =
     ApiScopeExclude(pattern, ApiScopeExcludeReason.valueOf(reason), comment.takeUnless { it.isEmpty() })
 
-/**
- * Map these includes and excludes requested for a run to the API, or return *null* if there are none.
- */
+/** Map these includes and excludes requested for a run to the API, or return *null* if there are none. */
 fun PathIncludesExcludes.mapToApi(): ApiPathIncludesExcludes? =
     ApiPathIncludesExcludes(
         includes = includes.map(PathInclude::mapToApi),
         excludes = excludes.map(PathExclude::mapToApi)
     ).takeUnless { it == ApiPathIncludesExcludes() }
 
-/**
- * Map these includes and excludes requested for a run to the API, or return *null* if there are none.
- */
+/** Map these includes and excludes requested for a run to the API, or return *null* if there are none. */
 fun ScopeIncludesExcludes.mapToApi(): ApiScopeIncludesExcludes? =
     ApiScopeIncludesExcludes(
         includes = includes.map(ScopeInclude::mapToApi),

@@ -105,9 +105,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
         }
     }
 
-    /**
-     * Create a [ScanSummaryDao] entity that can be used to assign issues to it.
-     */
+    /** Create a [ScanSummaryDao] entity that can be used to assign issues to it. */
     private suspend fun createScanSummary(): ScanSummaryDao =
         dbExtension.db.transaction {
             ScanSummaryDao.new {

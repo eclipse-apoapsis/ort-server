@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.shared.apimodel
 
-/**
- * Possible reasons for resolving an issue using an [IssueResolution].
- */
+/** Possible reasons for resolving an issue using an [IssueResolution]. */
 enum class IssueResolutionReason {
     BUILD_TOOL_ISSUE,
     CANT_FIX_ISSUE,

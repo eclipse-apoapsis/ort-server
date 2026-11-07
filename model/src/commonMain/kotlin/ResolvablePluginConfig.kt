@@ -24,13 +24,9 @@ import kotlinx.serialization.Serializable
 /** A [PluginConfig] with information about from which source the secret values must be resolved. */
 @Serializable
 data class ResolvablePluginConfig(
-    /**
-     * The configuration options of the plugin.
-     */
+    /** The configuration options of the plugin. */
     val options: Options,
 
-    /**
-     * The resolvable configuration secrets of the plugin.
-     */
+    /** The resolvable configuration secrets of the plugin. */
     val secrets: Map<String, ResolvableSecret>
 )

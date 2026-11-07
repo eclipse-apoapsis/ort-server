@@ -119,15 +119,11 @@ class VaultTestContainer {
             }
         }
 
-        /**
-         * Generate the string to define a policy that grants the given [capabilities] to the given [path].
-         */
+        /** Generate the string to define a policy that grants the given [capabilities] to the given [path]. */
         private fun policy(path: String, vararg capabilities: String): String =
             """path \"$path*\" {\n capabilities = [ ${capabilities.joinToString { """\"$it\"""" }} ]\n}"""
 
-        /**
-         * Create an [HttpClient] that is configured for the interaction with the given [vault] container.
-         */
+        /** Create an [HttpClient] that is configured for the interaction with the given [vault] container. */
         private fun createVaultClient(vault: VaultContainer<*>): HttpClient =
             HttpClient(OkHttp) {
                 defaultRequest {
@@ -158,17 +154,13 @@ class VaultTestContainer {
     /** The credentials for accessing the container. */
     private val credentials: VaultCredentials by lazy { setUpCredentials() }
 
-    /**
-     * Create a [VaultSecretsProvider] for accessing the managed Vault service under the given [rootPath].
-     */
+    /** Create a [VaultSecretsProvider] for accessing the managed Vault service under the given [rootPath]. */
     fun createProvider(rootPath: String = PATH): VaultSecretsProvider {
         val config = VaultConfiguration(vault.httpHostAddress, credentials, rootPath)
         return VaultSecretsProvider(config)
     }
 
-    /**
-     * Create a [ConfigManager] that can be used to obtain a secret storage backed by the managed Vault container.
-     */
+    /** Create a [ConfigManager] that can be used to obtain a secret storage backed by the managed Vault container. */
     fun createApplicationConfig(): ConfigManager {
         val vaultProperties = mapOf(
             "name" to "vault",
@@ -205,9 +197,7 @@ class VaultTestContainer {
     }
 }
 
-/**
- * Create a [VaultTestContainer] instance and install it as extension in this [Spec].
- */
+/** Create a [VaultTestContainer] instance and install it as extension in this [Spec]. */
 fun Spec.installVaultTestContainer(): VaultTestContainer {
     val container = VaultTestContainer()
     install(TestContainerSpecExtension(container.vault))
@@ -215,9 +205,7 @@ fun Spec.installVaultTestContainer(): VaultTestContainer {
     return container
 }
 
-/**
- * Add a [secret] ath [path] to the [VaultContainer]. The [secret] must be in the form `secret=value`.
- */
+/** Add a [secret] ath [path] to the [VaultContainer]. The [secret] must be in the form `secret=value`. */
 private fun <SELF : VaultContainer<SELF>> VaultContainer<SELF>.withSecret(
     path: String,
     secret: String

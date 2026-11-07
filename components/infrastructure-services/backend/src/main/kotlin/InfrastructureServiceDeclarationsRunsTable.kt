@@ -23,9 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 
 import org.jetbrains.exposed.v1.core.Table
 
-/**
- * An intermediate table to store references from [InfrastructureServiceDeclarationsTable] to [OrtRunsTable].
- */
+/** An intermediate table to store references from [InfrastructureServiceDeclarationsTable] to [OrtRunsTable]. */
 internal object InfrastructureServiceDeclarationsRunsTable : Table("infrastructure_service_declarations_ort_runs") {
     val infrastructureServiceDeclarationId = reference(
         "infrastructure_service_declaration_id",

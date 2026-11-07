@@ -32,9 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 
-/**
- * An implementation of [ReporterRunRepository] that stores reporter runs in [ReporterRunsTable].
- */
+/** An implementation of [ReporterRunRepository] that stores reporter runs in [ReporterRunsTable]. */
 class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository {
     override suspend fun create(
         reporterJobId: Long,

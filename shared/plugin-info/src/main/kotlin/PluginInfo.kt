@@ -38,9 +38,7 @@ object PluginInfo {
     /** A map storing information about all available ORT plugins. */
     private val pluginInfos = loadPluginInfo()
 
-    /**
-     * A set with the IDs of all ORT plugins that are available in ORT Server.
-     */
+    /** A set with the IDs of all ORT plugins that are available in ORT Server. */
     val pluginIds: Set<TypedPluginId>
         get() = pluginInfos.values.flatten().toSet()
 
@@ -48,9 +46,7 @@ object PluginInfo {
     val pluginTypes: Set<PluginType>
         get() = pluginInfos.keys
 
-    /**
-     * Return a list of all [TypedPluginId]s for the given [type]. Throw an exception if the type is unknown.
-     */
+    /** Return a list of all [TypedPluginId]s for the given [type]. Throw an exception if the type is unknown. */
     fun pluginsForType(type: PluginType): List<TypedPluginId> =
         pluginInfos.getValue(type)
 

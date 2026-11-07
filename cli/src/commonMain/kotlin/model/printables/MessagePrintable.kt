@@ -25,9 +25,7 @@ import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.cli.json
 
-/**
- * A [CliPrintable] that prints a simple [String] message.
- */
+/** A [CliPrintable] that prints a simple [String] message. */
 @Serializable
 class MessagePrintable(private val message: String) : CliPrintable {
     override fun humanReadable() = Text(message)
@@ -37,8 +35,6 @@ class MessagePrintable(private val message: String) : CliPrintable {
 
 fun String.toPrintable(): MessagePrintable = MessagePrintable(this)
 
-/**
- * A wrapper for JSON formatting of a String.
- */
+/** A wrapper for JSON formatting of a String. */
 @Serializable
 private data class StringMessage(val message: String)

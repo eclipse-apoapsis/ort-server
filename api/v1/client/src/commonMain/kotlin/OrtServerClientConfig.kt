@@ -26,23 +26,15 @@ data class OrtServerClientConfig(
      */
     val baseUrl: String,
 
-    /**
-     * The client ID to use for authentication.
-     */
+    /** The client ID to use for authentication. */
     val clientId: String,
 
-    /**
-     * The URL to use for token generation.
-     */
+    /** The URL to use for token generation. */
     val tokenUrl: String,
 
-    /**
-     * The username to use for authentication.
-     */
+    /** The username to use for authentication. */
     val username: String,
 
-    /**
-     * The password to use for authentication.
-     */
+    /** The password to use for authentication. */
     val password: String
 )

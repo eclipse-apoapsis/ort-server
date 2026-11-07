@@ -37,9 +37,7 @@ data class VaultSecretData(
     val data: Map<String, String>
 ) {
     companion object {
-        /**
-         * The name of the key under which the value provided by the secrets abstraction implementation is stored.
-         */
+        /** The name of the key under which the value provided by the secrets abstraction implementation is stored. */
         private const val DEFAULT_KEY = "value"
 
         /**

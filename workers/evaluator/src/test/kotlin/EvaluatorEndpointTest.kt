@@ -137,9 +137,7 @@ class EvaluatorEndpointTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Simulate an incoming request to evaluate a project.
-     */
+    /** Simulate an incoming request to evaluate a project. */
     private suspend fun sendEvaluatorRequest() {
         mockkTransaction {
             val message = Message(messageHeader, evaluatorRequest)

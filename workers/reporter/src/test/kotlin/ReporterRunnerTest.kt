@@ -1320,9 +1320,7 @@ private fun createReportDefinition(
         nameMapping = nameMapping
     )
 
-/**
- * Create a [ReporterConfig] based on the given parameters.
- */
+/** Create a [ReporterConfig] based on the given parameters. */
 private fun createReporterConfig(
     howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
     customLicenseTextDir: String? = null,
@@ -1348,9 +1346,7 @@ private fun createAdminConfigService(reporterConfig: ReporterConfig): AdminConfi
         )
     }
 
-/**
- * Simulate downloading of the configuration file with the given [name].
- */
+/** Simulate downloading of the configuration file with the given [name]. */
 private fun simulateGetConfigFile(name: String): InputStream =
     when (name) {
         ruleSet.copyrightGarbageFile -> copyrightGarbage.toStream()
@@ -1359,9 +1355,7 @@ private fun simulateGetConfigFile(name: String): InputStream =
         else -> throw ConfigException("Unsupported config file: $name")
     }
 
-/**
- * Return an [InputStream] with the serialized content of this object.
- */
+/** Return an [InputStream] with the serialized content of this object. */
 private fun <T> T.toStream(): InputStream {
     val serialized = yamlMapper.writeValueAsBytes(this)
     return ByteArrayInputStream(serialized)

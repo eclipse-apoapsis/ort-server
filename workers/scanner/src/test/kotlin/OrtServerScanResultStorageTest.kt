@@ -89,9 +89,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
             provenance
         }
 
-    /**
-     * Create a [PackageProvenanceDao] for the given [vcsInfo] and associate it with [scannerRun].
-     */
+    /** Create a [PackageProvenanceDao] for the given [vcsInfo] and associate it with [scannerRun]. */
     private suspend fun createPackageProvenanceForVcs(
         scannerRun: ScannerRun,
         vcsInfo: VcsInfo
@@ -131,9 +129,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
         }
     }
 
-    /**
-     * Return a [Set] with the IDs of all scan summaries assigned to a scan result.
-     */
+    /** Return a [Set] with the IDs of all scan summaries assigned to a scan result. */
     private suspend fun loadScanSummaryIds(): Set<Long> =
         dbExtension.db.transaction {
             ScanResultDao.all().map { it.scanSummary.id.value }.toSet()

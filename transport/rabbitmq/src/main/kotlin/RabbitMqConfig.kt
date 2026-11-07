@@ -24,9 +24,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 
 import org.slf4j.Logger
 
-/**
- * A class defining the configuration settings used by the RabbitMQ Transport implementation.
- */
+/** A class defining the configuration settings used by the RabbitMQ Transport implementation. */
 class RabbitMqConfig(
     /** The URI where the server broker is running. */
     val serverUri: String,
@@ -59,9 +57,7 @@ class RabbitMqConfig(
         /** Name of the configuration property for the password. */
         private val PASSWORD_PROPERTY = Path("rabbitMqPassword")
 
-        /**
-         * Create a [RabbitMqConfig] from the provided [configManager].
-         */
+        /** Create a [RabbitMqConfig] from the provided [configManager]. */
         fun createConfig(configManager: ConfigManager) =
             RabbitMqConfig(
                 serverUri = configManager.getString(SERVER_URI_PROPERTY),
@@ -71,9 +67,7 @@ class RabbitMqConfig(
             )
     }
 
-    /**
-     * Log this configuration using the provided [logger].
-     */
+    /** Log this configuration using the provided [logger]. */
     fun log(logger: Logger) {
         if (logger.isInfoEnabled) {
             logger.info("RabbitMQ server URI: '$serverUri'")

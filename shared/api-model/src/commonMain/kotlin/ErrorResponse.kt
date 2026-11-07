@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
 
-/**
- * A common model, used for failed requests.
- */
+/** A common model, used for failed requests. */
 @Serializable
 data class ErrorResponse(
     val message: String,

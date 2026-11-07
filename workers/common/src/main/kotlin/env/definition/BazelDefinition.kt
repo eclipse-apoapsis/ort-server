@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.shared.authenticator.ResolvedInfrastructureService
 
-/**
- * A specific [EnvironmentServiceDefinition] class for generating the _.bazel-credentials_ and _.bazelrc_ files.
- */
+/** A specific [EnvironmentServiceDefinition] class for generating the _.bazel-credentials_ and _.bazelrc_ files. */
 class BazelDefinition(
     service: ResolvedInfrastructureService
 ) : EnvironmentServiceDefinition(service)

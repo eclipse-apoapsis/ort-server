@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.resolvedconfiguration
 
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 
-/**
- * A provider for [PackageCuration]s.
- */
+/** A provider for [PackageCuration]s. */
 data class PackageCurationProviderConfig(
     /** The name of the package curation provider. */
     val name: String

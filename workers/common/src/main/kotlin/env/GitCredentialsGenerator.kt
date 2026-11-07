@@ -51,9 +51,7 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
         }
     }
 
-    /**
-     * Generate the content of the _.git-credentials_ file using the given [builder] for the given [definitions].
-     */
+    /** Generate the content of the _.git-credentials_ file using the given [builder] for the given [definitions]. */
     private suspend fun generateGitCredentials(
         builder: ConfigFileBuilder,
         definitions: Collection<EnvironmentServiceDefinition>

@@ -355,8 +355,6 @@ private enum class OrphanEntityHandler(
         }
     }
 
-    /**
-     * Return a query condition that filters for orphaned entities for the represented table.
-     */
+    /** Return a query condition that filters for orphaned entities for the represented table. */
     abstract fun filterOrphanedEntities(): () -> AbstractQuery<*>
 }

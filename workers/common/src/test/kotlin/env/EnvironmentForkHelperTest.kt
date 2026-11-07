@@ -288,14 +288,10 @@ private fun installAuthenticatorMock(authInfo: Map<String, AuthenticationInfo>):
         every { OrtServerAuthenticator.install(any(), false) } returns it
     }
 
-/**
- * Generate a path for a [Secret] with the given [name].
- */
+/** Generate a path for a [Secret] with the given [name]. */
 private fun secretPath(name: String): String = "secret/$name"
 
-/**
- * Generate a value for the test [Secret] with the given [name].
- */
+/** Generate a value for the test [Secret] with the given [name]. */
 private fun secretValue(name: String): String = "secret value for $name"
 
 /**
@@ -303,9 +299,7 @@ private fun secretValue(name: String): String = "secret value for $name"
  */
 private fun Secret.toAuthenticationInfo(): Pair<String, String> = path to secretValue(name)
 
-/**
- * Create a test [Secret] with the given name and some default properties.
- */
+/** Create a test [Secret] with the given name and some default properties. */
 private fun createSecret(name: String): Secret =
     Secret(
         id = 0,
@@ -317,9 +311,7 @@ private fun createSecret(name: String): Secret =
         repositoryId = null
     )
 
-/**
- * Create a test [ResolvedInfrastructureService] with the given properties.
- */
+/** Create a test [ResolvedInfrastructureService] with the given properties. */
 private fun createService(
     name: String,
     userSecret: Secret,
@@ -334,7 +326,5 @@ private fun createService(
         credentialsTypes = credentialsTypes
     )
 
-/**
- * Return the host name of this [InfrastructureService]'s URL.
- */
+/** Return the host name of this [InfrastructureService]'s URL. */
 private fun ResolvedInfrastructureService.host(): String = URI.create(url).host

@@ -22,16 +22,12 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak.internal
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing information about the tokens received from the API client.
- */
+/** A data class representing information about the tokens received from the API client. */
 @Serializable
 internal data class TokenInfo(
     @SerialName("access_token") val accessToken: String,
     @SerialName("refresh_token") val refreshTokenRaw: String? = null
 ) {
-    /**
-     * Return a refresh token that is not *null*. For some grant types, Keycloak does not support refresh tokens.
-     */
+    /** Return a refresh token that is not *null*. For some grant types, Keycloak does not support refresh tokens. */
     val refreshToken: String = refreshTokenRaw.orEmpty()
 }

@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model
 
 import kotlin.time.Instant
 
-/**
- * A data class holding a minimal set of properties to reference an active ORT run.
- */
+/** A data class holding a minimal set of properties to reference an active ORT run. */
 data class ActiveOrtRun(
     /** The ID of the ORT run. */
     val runId: Long,

@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.orchestrator
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a request to the Config worker for a specific ORT run.
- */
+/** A data class representing a request to the Config worker for a specific ORT run. */
 @Serializable
 data class ConfigRequest(
     /** The ID of the ORT run. */

@@ -54,9 +54,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 
-/**
- * A service for querying detected licenses and their findings for ORT runs.
- */
+/** A service for querying detected licenses and their findings for ORT runs. */
 class LicenseFindingService(private val db: Database) {
     /**
      * Return the detected licenses for the ORT run with the given [ortRunId].

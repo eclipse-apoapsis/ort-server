@@ -25,33 +25,21 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EvaluatorJob(
-    /**
-     * The unique identifier.
-     */
+    /** The unique identifier. */
     val id: Long,
 
-    /**
-     * The time the job was created.
-     */
+    /** The time the job was created. */
     val createdAt: Instant,
 
-    /**
-     * The time the job was started.
-     */
+    /** The time the job was started. */
     val startedAt: Instant? = null,
 
-    /**
-     * The time the job finished.
-     */
+    /** The time the job finished. */
     val finishedAt: Instant? = null,
 
-    /**
-     * The job configuration.
-     */
+    /** The job configuration. */
     val configuration: EvaluatorJobConfiguration,
 
-    /**
-     * The job status.
-     */
+    /** The job status. */
     val status: JobStatus
 )

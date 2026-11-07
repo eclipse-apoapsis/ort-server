@@ -26,9 +26,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent an ORT run.
- */
+/** A table to represent an ORT run. */
 object LabelsTable : LongIdTable("labels") {
     val key = text("key")
     val value = text("value")

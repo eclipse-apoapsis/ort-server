@@ -79,9 +79,7 @@ class DirPackageCurationProvider(
             }.awaitAll().flatten().toSet()
         }
 
-    /**
-     * Lookup the curations file for the given [pkg]. If it exists, load it and return the applicable curations.
-     */
+    /** Lookup the curations file for the given [pkg]. If it exists, load it and return the applicable curations. */
     private fun lookupCurations(pkg: Package): List<PackageCuration> {
         val curationFile = root.resolve(pkg.id.toCurationPath())
         logger.debug("Looking up curation file '{}'.", curationFile.absolutePath)
@@ -92,9 +90,7 @@ class DirPackageCurationProvider(
     }
 }
 
-/**
- * A data class defining the configuration options supported by [DirPackageCurationProvider].
- */
+/** A data class defining the configuration options supported by [DirPackageCurationProvider]. */
 data class DirPackageCurationProviderConfig(
     /** The root path of the folder structure to be searched by the provider. */
     val path: String

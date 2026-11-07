@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a license finding.
- */
+/** A table to represent a license finding. */
 object LicenseFindingsTable : LongIdTable("license_findings") {
     val license = text("license")
     val path = text("path")

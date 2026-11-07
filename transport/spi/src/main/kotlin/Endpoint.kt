@@ -51,9 +51,7 @@ sealed class Endpoint<T : Any>(
     val configPrefix: String
 ) {
     companion object {
-        /**
-         * A map holding the existing [Endpoint] instances using their configuration prefixes as keys.
-         */
+        /** A map holding the existing [Endpoint] instances using their configuration prefixes as keys. */
         private val endpointsByConfigPrefix by lazy {
             mapOf(
                 OrchestratorEndpoint.configPrefix to OrchestratorEndpoint,
@@ -67,9 +65,7 @@ sealed class Endpoint<T : Any>(
             )
         }
 
-        /**
-         * Return a list containing all the existing [Endpoint] instances.
-         */
+        /** Return a list containing all the existing [Endpoint] instances. */
         fun entries(): List<Endpoint<*>> = endpointsByConfigPrefix.values.toList()
 
         /**
@@ -82,42 +78,26 @@ sealed class Endpoint<T : Any>(
     }
 }
 
-/**
- * A concrete [Endpoint] declaration representing the Orchestrator endpoint.
- */
+/** A concrete [Endpoint] declaration representing the Orchestrator endpoint. */
 data object OrchestratorEndpoint : Endpoint<OrchestratorMessage>(OrchestratorMessage::class, "orchestrator")
 
-/**
- * A concrete [Endpoint] declaration representing the Config endpoint.
- */
+/** A concrete [Endpoint] declaration representing the Config endpoint. */
 data object ConfigEndpoint : Endpoint<ConfigRequest>(ConfigRequest::class, "config")
 
-/**
- * A concrete [Endpoint] declaration representing the Analyzer worker.
- */
+/** A concrete [Endpoint] declaration representing the Analyzer worker. */
 data object AnalyzerEndpoint : Endpoint<AnalyzerRequest>(AnalyzerRequest::class, "analyzer")
 
-/**
- * A concrete [Endpoint] declaration representing the Advisor worker.
- */
+/** A concrete [Endpoint] declaration representing the Advisor worker. */
 data object AdvisorEndpoint : Endpoint<AdvisorRequest>(AdvisorRequest::class, "advisor")
 
-/**
- * A concrete [Endpoint] declaration representing the Scanner worker.
- */
+/** A concrete [Endpoint] declaration representing the Scanner worker. */
 data object ScannerEndpoint : Endpoint<ScannerRequest>(ScannerRequest::class, "scanner")
 
-/**
- * A concrete [Endpoint] declaration representing the Evaluator worker.
- */
+/** A concrete [Endpoint] declaration representing the Evaluator worker. */
 data object EvaluatorEndpoint : Endpoint<EvaluatorRequest>(EvaluatorRequest::class, "evaluator")
 
-/**
- * A concrete [Endpoint] declaration representing the Notifier worker.
- */
+/** A concrete [Endpoint] declaration representing the Notifier worker. */
 data object NotifierEndpoint : Endpoint<NotifierRequest>(NotifierRequest::class, "notifier")
 
-/**
- * A concrete [Endpoint] declaration representing the Reporter worker.
- */
+/** A concrete [Endpoint] declaration representing the Reporter worker. */
 data object ReporterEndpoint : Endpoint<ReporterRequest>(ReporterRequest::class, "reporter")

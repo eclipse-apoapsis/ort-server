@@ -25,43 +25,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EvaluatorJob(
-    /**
-     * The unique identifier.
-     */
+    /** The unique identifier. */
     override val id: Long,
 
-    /**
-     * The ID of the [OrtRun] this [EvaluatorJob] is a part of.
-     */
+    /** The ID of the [OrtRun] this [EvaluatorJob] is a part of. */
     override val ortRunId: Long,
 
-    /**
-     * The time the job was created.
-     */
+    /** The time the job was created. */
     override val createdAt: Instant,
 
-    /**
-     * The time the job was started.
-     */
+    /** The time the job was started. */
     override val startedAt: Instant?,
 
-    /**
-     * The time the job finished.
-     */
+    /** The time the job finished. */
     override val finishedAt: Instant?,
 
-    /**
-     * The job configuration.
-     */
+    /** The job configuration. */
     val configuration: EvaluatorJobConfiguration,
 
-    /**
-     * The job status.
-     */
+    /** The job status. */
     override val status: JobStatus,
 
-    /**
-     * Job execution error message, if any.
-     */
+    /** Job execution error message, if any. */
     override val errorMessage: String?
 ) : WorkerJob

@@ -88,9 +88,7 @@ private suspend fun runCreateArtifactTest(db: Database, callCount: AtomicInteger
     }
 }
 
-/**
- * Create the test artifact in the given [database][db].
- */
+/** Create the test artifact in the given [database][db]. */
 private suspend fun createArtifact(db: Database) {
     db.transaction {
         RemoteArtifactDao.getOrPut(testArtifact)

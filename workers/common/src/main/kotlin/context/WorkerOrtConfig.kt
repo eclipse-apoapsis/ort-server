@@ -38,9 +38,7 @@ class WorkerOrtConfig private constructor(
     val configManager: ConfigManager
 ) {
     companion object {
-        /**
-         * The name of the section in the worker configuration that defines general settings for ORT.
-         */
+        /** The name of the section in the worker configuration that defines general settings for ORT. */
         const val ORT_CONFIG_SECTION = "ort"
 
         /**
@@ -63,9 +61,7 @@ class WorkerOrtConfig private constructor(
 
         private val logger = LoggerFactory.getLogger(WorkerOrtConfig::class.java)
 
-        /**
-         * Create a new instance of [WorkerOrtConfig] that loads the configuration from the given [configManager].
-         */
+        /** Create a new instance of [WorkerOrtConfig] that loads the configuration from the given [configManager]. */
         fun create(configManager: ConfigManager): WorkerOrtConfig =
             WorkerOrtConfig(configManager)
 
@@ -75,9 +71,7 @@ class WorkerOrtConfig private constructor(
          */
         fun create(): WorkerOrtConfig = create(ConfigManager.create(ConfigFactory.load()))
 
-        /**
-         * Split the given [value] into a list of strings or return *null* if it is undefined.
-         */
+        /** Split the given [value] into a list of strings or return *null* if it is undefined. */
         private fun splitProperty(value: String?): Collection<String>? = value?.split(DELIMITER)?.map { it.trim() }
     }
 

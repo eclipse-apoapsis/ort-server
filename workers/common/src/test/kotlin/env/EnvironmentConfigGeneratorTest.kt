@@ -47,23 +47,17 @@ class EnvironmentConfigGeneratorTest : StringSpec({
     }
 })
 
-/**
- * A test environment service definition class.
- */
+/** A test environment service definition class. */
 private class EnvironmentServiceDefinitionA(service: ResolvedInfrastructureService) : EnvironmentServiceDefinition(
     service
 )
 
-/**
- * Another test environment service definition class.
- */
+/** Another test environment service definition class. */
 private class EnvironmentServiceDefinitionB(service: ResolvedInfrastructureService) : EnvironmentServiceDefinition(
     service
 )
 
-/**
- * A test generator implementation that allows inspecting the data passed to its [generate] function.
- */
+/** A test generator implementation that allows inspecting the data passed to its [generate] function. */
 private class GeneratorTestImpl : EnvironmentConfigGenerator<EnvironmentServiceDefinitionA> {
     /** Stores the builder passed to the [generate] function. */
     var providedBuilder: ConfigFileBuilder? = null

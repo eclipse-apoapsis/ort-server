@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a user managed by Keycloak.
- */
+/** A data class representing a user managed by Keycloak. */
 @Serializable
 data class User(
     /** The internal ID of the user. */

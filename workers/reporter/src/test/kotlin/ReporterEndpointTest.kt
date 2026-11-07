@@ -147,9 +147,7 @@ class ReporterEndpointTest : KoinTest, StringSpec() {
         }
     }
 
-    /**
-     * Simulate an incoming request to scan a project.
-     */
+    /** Simulate an incoming request to scan a project. */
     private suspend fun sendReporterRequest() {
         mockkTransaction {
             val message = Message(messageHeader, reporterRequest)

@@ -85,17 +85,13 @@ fun ortServerTestApplication(
     block()
 }
 
-/**
- * Constants for different integration test configs.
- */
+/** Constants for different integration test configs. */
 sealed interface TestConfig {
     val config: ApplicationConfig
 
     fun Application.setupModules(db: Database)
 
-    /**
-     * The default application config that is used in production.
-     */
+    /** The default application config that is used in production. */
     object Default : TestConfig {
         override val config = ApplicationConfig("application.conf")
 
@@ -104,9 +100,7 @@ sealed interface TestConfig {
         }
     }
 
-    /**
-     * An application config that uses a test database and expects that the Keycloak config is provided separately.
-     */
+    /** An application config that uses a test database and expects that the Keycloak config is provided separately. */
     object TestAuth : TestConfig {
         override val config = ApplicationConfig("application-test-auth.conf")
 

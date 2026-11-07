@@ -24,21 +24,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
-/**
- * A data class that represents the relevant parts of a response sent by Elasticsearch for a search request.
- */
+/** A data class that represents the relevant parts of a response sent by Elasticsearch for a search request. */
 @Serializable
 internal data class ElasticsearchResponse(val hits: ElasticsearchHits)
 
-/**
- * A data class that represents the hits section of an Elasticsearch search response.
- */
+/** A data class that represents the hits section of an Elasticsearch search response. */
 @Serializable
 internal data class ElasticsearchHits(val hits: List<ElasticsearchHit>)
 
-/**
- * A data class that represents a single Elasticsearch search hit.
- */
+/** A data class that represents a single Elasticsearch search hit. */
 @Serializable
 internal data class ElasticsearchHit(
     /** The document ID assigned by Elasticsearch, used only for diagnostics. */

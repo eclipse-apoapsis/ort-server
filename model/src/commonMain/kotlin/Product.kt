@@ -19,27 +19,17 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-/**
- * A product represents a group of [repositories][Repository] that belong together.
- */
+/** A product represents a group of [repositories][Repository] that belong together. */
 data class Product(
-    /**
-     * The unique identifier of the product.
-     */
+    /** The unique identifier of the product. */
     val id: Long,
 
-    /**
-     * The unique identifier of the [Organization] this product belongs to.
-     */
+    /** The unique identifier of the [Organization] this product belongs to. */
     val organizationId: Long,
 
-    /**
-     * The name of the product. Must be unique within an [Organization].
-     */
+    /** The name of the product. Must be unique within an [Organization]. */
     val name: String,
 
-    /**
-     * The description of the product.
-     */
+    /** The description of the product. */
     val description: String? = null
 )

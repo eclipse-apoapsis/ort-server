@@ -46,9 +46,7 @@ data class PluginTemplate(
     val organizationIds: List<Long> = emptyList()
 )
 
-/**
- * A template config for a specific plugin option.
- */
+/** A template config for a specific plugin option. */
 @Serializable
 data class PluginOptionTemplate(
     /** The name of the option. */

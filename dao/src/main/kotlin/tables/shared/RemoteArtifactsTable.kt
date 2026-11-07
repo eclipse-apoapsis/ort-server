@@ -28,9 +28,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent bundle information about a remote artifact.
- */
+/** A table to represent bundle information about a remote artifact. */
 object RemoteArtifactsTable : LongIdTable("remote_artifacts") {
     val url = text("url")
     val hashValue = text("hash_value")

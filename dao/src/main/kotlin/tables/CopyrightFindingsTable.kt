@@ -27,9 +27,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-/**
- * A table to represent a copyright finding.
- */
+/** A table to represent a copyright finding. */
 object CopyrightFindingsTable : LongIdTable("copyright_findings") {
     val statement = text("statement")
     val path = text("path")

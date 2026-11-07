@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.config
 
 import com.typesafe.config.Config
 
-/**
- * A factory interface for creating [ConfigFileProvider] instances.
- */
+/** A factory interface for creating [ConfigFileProvider] instances. */
 interface ConfigFileProviderFactory {
     /**
      * The name of the [ConfigFileProvider] implementation. This is used to load a specific factory from the classpath.

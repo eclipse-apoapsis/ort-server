@@ -54,9 +54,7 @@ data class RuleViolation(
     val purl: String? = null
 )
 
-/**
- * Filters to apply when querying for rule violations.
- */
+/** Filters to apply when querying for rule violations. */
 @Serializable
 data class RuleViolationFilters(
     /**

@@ -127,9 +127,7 @@ private fun findBestMatchingService(
  */
 private val fuzzyScore = FuzzyScore(Locale.US)
 
-/**
- * Try to find a service that most closely matches the given [url] based on a fuzzy score.
- */
+/** Try to find a service that most closely matches the given [url] based on a fuzzy score. */
 private fun findFuzzyMatchingService(
     services: Collection<ResolvedInfrastructureService>,
     url: URL?
