@@ -30,7 +30,7 @@ mavenPublishPlugin = "0.37.0"
 
 # Gradle dependencies
 aedile = "3.0.4"
-awsSdk = "1.9.29"
+awsSdk = "1.9.32"
 azureIdentity = "1.19.0"
 azureMessagingServicebus = "7.19.1"
 azureSecurityKeyvaultSecrets = "4.13.1"
