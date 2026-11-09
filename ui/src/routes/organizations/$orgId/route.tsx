@@ -100,7 +100,7 @@ const Layout = () => {
           title: 'Users',
           to: '/organizations/$orgId/users',
           icon: () => <User className='h-4 w-4' />,
-          visible: organizationPermissions?.includes('MANAGE_ROLES'),
+          visible: organizationPermissions?.includes('READ'),
         },
         {
           title: 'Default Plugins',

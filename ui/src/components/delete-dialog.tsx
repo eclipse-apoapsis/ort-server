@@ -85,6 +85,10 @@ interface DeleteDialogProps {
    * When true, the uiComponent is rendered as disabled and the dialog cannot be opened.
    */
   disabled?: boolean;
+  /**
+   * The tooltip of the disabled delete button.
+   */
+  disabledTooltip?: string;
 }
 
 export const DeleteDialog = ({
@@ -97,6 +101,7 @@ export const DeleteDialog = ({
   tooltip,
   title,
   disabled,
+  disabledTooltip = 'Insufficient permissions.',
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
   const [open, setOpen] = useState(false);
@@ -130,7 +135,7 @@ export const DeleteDialog = ({
           )}
         </ActionTooltipTrigger>
         <TooltipContent>
-          {disabled ? 'Insufficient permissions.' : tooltip || 'Delete'}
+          {disabled ? disabledTooltip : tooltip || 'Delete'}
         </TooltipContent>
       </Tooltip>
       {/* Adding the preventDefault will prevent focusing on the trigger after closing the modal (which would cause the tooltip to show) */}

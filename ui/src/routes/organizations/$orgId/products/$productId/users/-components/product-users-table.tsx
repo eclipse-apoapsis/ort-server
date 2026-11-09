@@ -28,12 +28,17 @@ import { UsersTable } from '@/routes/organizations/$orgId/-components/users-tabl
 
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/users');
 
-export const ProductUsersTable = () => {
+export const ProductUsersTable = ({
+  canManageRoles,
+}: {
+  canManageRoles: boolean;
+}) => {
   const params = routeApi.useParams();
   const productId = Number.parseInt(params.productId);
 
   return (
     <UsersTable
+      canManageRoles={canManageRoles}
       level='product'
       usersOptions={(query) =>
         getProductUsersOptions({ path: { productId }, query })

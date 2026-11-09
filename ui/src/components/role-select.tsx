@@ -59,6 +59,7 @@ type RoleSelectProps = {
   onChange: (role: Role) => void;
   /** The hierarchy level the role is assigned for, which selects the role descriptions. */
   level: RoleLevel;
+  disabled?: boolean;
 };
 
 /**
@@ -69,9 +70,14 @@ type RoleSelectProps = {
  *
  * Render it inside a `FormField`, as it brings the `FormControl` of the field with it.
  */
-export const RoleSelect = ({ value, onChange, level }: RoleSelectProps) => {
+export const RoleSelect = ({
+  value,
+  onChange,
+  level,
+  disabled,
+}: RoleSelectProps) => {
   return (
-    <Select value={value} onValueChange={onChange}>
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
       <FormControl>
         <SelectTrigger>
           <SelectValue placeholder='Select a role'>

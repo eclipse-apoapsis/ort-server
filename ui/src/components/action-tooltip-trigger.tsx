@@ -19,7 +19,11 @@
 
 import type { ReactNode } from 'react';
 
-import { TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 type ActionTooltipTriggerProps = {
@@ -52,3 +56,34 @@ export const ActionTooltipTrigger = ({
     )}
   </TooltipTrigger>
 );
+
+type DisabledReasonTooltipProps = {
+  disabled: boolean;
+  // Why the control is disabled.
+  reason?: string;
+  // Layout classes for the span around the disabled control, such as `w-full` for a field.
+  className?: string;
+  children: ReactNode;
+};
+
+/**
+ * A tooltip that tells why a control is disabled. An enabled control is rendered without one.
+ *
+ * Use it for controls that have no tooltip of their own, such as form fields.
+ */
+export const DisabledReasonTooltip = ({
+  disabled,
+  reason = 'Insufficient permissions.',
+  className,
+  children,
+}: DisabledReasonTooltipProps) =>
+  disabled ? (
+    <Tooltip>
+      <ActionTooltipTrigger disabled className={className}>
+        {children}
+      </ActionTooltipTrigger>
+      <TooltipContent>{reason}</TooltipContent>
+    </Tooltip>
+  ) : (
+    children
+  );

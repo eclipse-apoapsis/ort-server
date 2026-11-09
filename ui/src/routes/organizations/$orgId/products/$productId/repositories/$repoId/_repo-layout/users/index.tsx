@@ -33,6 +33,7 @@ import {
   getRepositoryUsersQueryKey,
   putRepositoryRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { DisabledReasonTooltip } from '@/components/action-tooltip-trigger';
 import { RoleSelect } from '@/components/role-select';
 import { Button } from '@/components/ui/button';
 import {
@@ -52,6 +53,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { roleSchema } from '@/schemas';
@@ -81,6 +83,13 @@ const ManageUsers = () => {
     }),
   });
 
+  // Unresolved permissions leave the controls disabled until they are known.
+  const { isAllowed } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'MANAGE_ROLES'
+  );
+  const canManageRoles = isAllowed === true;
+
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } = useMutation({
@@ -103,6 +112,8 @@ const ManageUsers = () => {
   });
 
   async function onAddUser(values: z.infer<typeof formSchema>) {
+    if (!canManageRoles) return;
+
     await addUser({
       path: {
         repositoryId: Number.parseInt(params.repoId),
@@ -138,9 +149,14 @@ const ManageUsers = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Username</FormLabel>
-                    <FormControl autoFocus>
-                      <Input {...field} />
-                    </FormControl>
+                    <DisabledReasonTooltip
+                      disabled={!canManageRoles}
+                      className='w-full'
+                    >
+                      <FormControl autoFocus>
+                        <Input {...field} disabled={!canManageRoles} />
+                      </FormControl>
+                    </DisabledReasonTooltip>
                     <FormDescription>
                       Enter the exact username of an existing user account.
                     </FormDescription>
@@ -154,35 +170,43 @@ const ManageUsers = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <RoleSelect
-                      value={field.value}
-                      onChange={field.onChange}
-                      level='repository'
-                    />
+                    <DisabledReasonTooltip
+                      disabled={!canManageRoles}
+                      className='w-full'
+                    >
+                      <RoleSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={!canManageRoles}
+                        level='repository'
+                      />
+                    </DisabledReasonTooltip>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <Button
-              size='sm'
-              className='ml-auto gap-1'
-              type='submit'
-              disabled={isAddUserPending}
-              onClick={form.handleSubmit(onAddUser)}
-            >
-              {isAddUserPending ? (
-                <>
-                  <span className='sr-only'>Adding user...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              ) : (
-                'Assign role'
-              )}
-            </Button>
+            <DisabledReasonTooltip disabled={!canManageRoles}>
+              <Button
+                size='sm'
+                className='ml-auto gap-1'
+                type='submit'
+                disabled={!canManageRoles || isAddUserPending}
+                onClick={form.handleSubmit(onAddUser)}
+              >
+                {isAddUserPending ? (
+                  <>
+                    <span className='sr-only'>Adding user...</span>
+                    <Loader2 size={16} className='mx-3 animate-spin' />
+                  </>
+                ) : (
+                  'Assign role'
+                )}
+              </Button>
+            </DisabledReasonTooltip>
           </form>
         </Form>
-        <RepositoryUsersTable />
+        <RepositoryUsersTable canManageRoles={canManageRoles} />
       </CardContent>
     </Card>
   );

@@ -31,6 +31,10 @@ import { FileOutput } from 'lucide-react';
 import { z } from 'zod';
 
 import type { PagingData } from '@/api';
+import {
+  ActionTooltipTrigger,
+  DisabledReasonTooltip,
+} from '@/components/action-tooltip-trigger';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -77,6 +81,8 @@ type UsersTableProps<TUser extends UserWithRole, TQueryKey extends QueryKey> = {
   usersQueryKey: QueryKey;
   assignRole: (username: string, role: Role) => Promise<unknown>;
   removeRole: (username: string, role: Role) => Promise<unknown>;
+  // Whether the signed-in user may change the roles of the users, which enables the actions.
+  canManageRoles: boolean;
 };
 
 type UserActionsProps = Omit<
@@ -95,6 +101,7 @@ const UserActions = ({
   usersQueryKey,
   assignRole,
   removeRole,
+  canManageRoles,
 }: UserActionsProps) => {
   const queryClient = useQueryClient();
   const { username } = row.original.user;
@@ -143,16 +150,20 @@ const UserActions = ({
   return username !== useUser().username ? (
     <div className='flex gap-2'>
       <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
+        <ActionTooltipTrigger disabled={!canManageRoles}>
           <UserRoleRowActions
             row={row}
             onAssignAdminRole={() => assign('ADMIN').then(() => {})}
             onAssignWriterRole={() => assign('WRITER').then(() => {})}
             onAssignReaderRole={() => assign('READER').then(() => {})}
-            disabled={isAssignRolePending || isRemoveRolePending}
+            disabled={
+              !canManageRoles || isAssignRolePending || isRemoveRolePending
+            }
           />
-        </TooltipTrigger>
-        <TooltipContent>Assign role</TooltipContent>
+        </ActionTooltipTrigger>
+        <TooltipContent>
+          {canManageRoles ? 'Assign role' : 'Insufficient permissions.'}
+        </TooltipContent>
       </Tooltip>
 
       <DeleteDialog
@@ -169,11 +180,25 @@ const UserActions = ({
           />
         }
         onDelete={() => removeFromLevel()}
+        disabled={!canManageRoles}
       />
     </div>
   ) : (
     <div>
-      <DeleteIconButton icon={<FileOutput size={16} />} disabled={true} />
+      <DisabledReasonTooltip
+        disabled
+        reason={
+          canManageRoles
+            ? `You cannot remove yourself from this ${level}.`
+            : undefined
+        }
+      >
+        <DeleteIconButton
+          icon={<FileOutput size={16} />}
+          disabled={true}
+          srDescription={`Remove user from this ${level}`}
+        />
+      </DisabledReasonTooltip>
     </div>
   );
 };
