@@ -66,8 +66,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.Provenance
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.snippet.SnippetChoiceReason
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class DaoRepositoryConfigurationRepositoryTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var repositoryConfigurationRepository: DaoRepositoryConfigurationRepository

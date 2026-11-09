@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackag
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -59,6 +60,8 @@ import org.ossreviewtoolkit.scanner.FileList as ScannerFileList
 import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
 class UtilsTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var db: Database

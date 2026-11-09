@@ -42,8 +42,11 @@ import org.eclipse.apoapsis.ortserver.transport.testing.ReceiverHandle
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class SqsMessageReceiverFactoryTest : StringSpec({
+    tags(Integration)
+
     val consumerName = "orchestrator"
     val transportType = "receiver"
 

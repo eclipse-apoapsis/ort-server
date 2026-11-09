@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -66,6 +67,8 @@ class ListQueryTest : StringSpec() {
     private lateinit var ortRunRepository: DaoOrtRunRepository
 
     init {
+        tags(Integration)
+
         beforeEach {
             organizationRepository = dbExtension.fixtures.organizationRepository
             productRepository = dbExtension.fixtures.productRepository

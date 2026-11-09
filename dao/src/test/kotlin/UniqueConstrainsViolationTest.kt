@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -43,6 +44,8 @@ class UniqueConstrainsViolationTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
     init {
+        tags(Integration)
+
         "An exception about a unique constraint violation is handled by repeating the transaction" {
             val callCount = AtomicInteger()
 

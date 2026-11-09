@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.config.RequestedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 /** The config context containing an admin config with report definitions. */
 private const val REPORT_DEFINITIONS_CONTEXT = "src/test/resources/config"
@@ -49,6 +50,8 @@ private const val REPORT_DEFINITIONS_CONTEXT = "src/test/resources/config"
 private val emptyConfig = ResolvablePluginConfig(emptyMap(), emptyMap())
 
 class PluginTemplateServiceTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var pluginEventStore: PluginEventStore

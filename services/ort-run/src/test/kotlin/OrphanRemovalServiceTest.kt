@@ -81,6 +81,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -94,6 +95,8 @@ class OrphanRemovalServiceTest : WordSpec() {
     private lateinit var service: OrphanRemovalService
 
     init {
+        tags(Integration)
+
         beforeEach {
             db = dbExtension.db
             service = OrphanRemovalService(db)

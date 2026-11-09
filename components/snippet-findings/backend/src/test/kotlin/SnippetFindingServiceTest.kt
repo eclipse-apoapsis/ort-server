@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier as ApiIdentifier
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
@@ -68,6 +69,8 @@ class SnippetFindingServiceTest : WordSpec() {
     private lateinit var seed: SeedResult
 
     init {
+        tags(Integration)
+
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures

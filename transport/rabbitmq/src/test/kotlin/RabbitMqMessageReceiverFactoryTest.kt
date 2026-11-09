@@ -37,8 +37,11 @@ import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverte
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
 import org.eclipse.apoapsis.ortserver.transport.testing.checkMessage
 import org.eclipse.apoapsis.ortserver.transport.testing.startReceiver
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class RabbitMqMessageReceiverFactoryTest : StringSpec({
+    tags(Integration)
+
     "Messages can be received via the RabbitMQ transport" {
         val serializer = JsonSerializer.forType<OrchestratorMessage>()
         val config = startRabbitMqContainer("orchestrator", "receiver")

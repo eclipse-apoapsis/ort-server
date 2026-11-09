@@ -50,10 +50,13 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 import org.eclipse.apoapsis.ortserver.utils.test.Images
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.testcontainers.utility.DockerImageName
 
 class S3StorageTest : WordSpec({
+    tags(Integration)
+
     val floci = install(TestContainerSpecExtension(FlociContainer(DockerImageName.parse(Images.FLOCI))))
 
     val s3Client: S3Client by lazy {

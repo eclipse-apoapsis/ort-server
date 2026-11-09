@@ -39,8 +39,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class DaoAdvisorRunRepositoryTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var advisorRunRepository: DaoAdvisorRunRepository

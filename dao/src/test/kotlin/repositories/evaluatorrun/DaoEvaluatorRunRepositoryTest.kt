@@ -29,8 +29,11 @@ import kotlin.time.Clock
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class DaoEvaluatorRunRepositoryTest : StringSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var evaluatorRunRepository: DaoEvaluatorRunRepository

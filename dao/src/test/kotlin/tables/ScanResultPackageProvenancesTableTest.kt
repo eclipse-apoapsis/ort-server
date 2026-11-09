@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -40,6 +41,8 @@ class ScanResultPackageProvenancesTableTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
     init {
+        tags(Integration)
+
         "insertIfNotExists" should {
             "create a row when none exists" {
                 dbExtension.db.transaction {

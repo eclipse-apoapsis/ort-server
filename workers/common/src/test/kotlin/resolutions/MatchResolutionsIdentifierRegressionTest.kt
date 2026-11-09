@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.ResolutionSource
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -63,6 +64,8 @@ import org.ossreviewtoolkit.model.config.Resolutions
  * unresolved in the UI despite having a matching resolution.
  */
 class MatchResolutionsIdentifierRegressionTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var db: Database

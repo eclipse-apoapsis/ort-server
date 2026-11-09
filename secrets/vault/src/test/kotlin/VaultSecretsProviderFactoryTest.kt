@@ -27,11 +27,14 @@ import io.mockk.mockk
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class VaultSecretsProviderFactoryTest : StringSpec() {
     private val vault = installVaultTestContainer()
 
     init {
+        tags(Integration)
+
         "A SecretStorage accessing a Vault service can be created" {
             val config = vault.createApplicationConfig()
 

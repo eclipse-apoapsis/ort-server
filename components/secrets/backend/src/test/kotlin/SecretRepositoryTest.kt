@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class SecretRepositoryTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
@@ -52,6 +53,8 @@ class SecretRepositoryTest : StringSpec() {
     private val description = "ssh rsa certificate"
 
     init {
+        tags(Integration)
+
         beforeEach {
             secretRepository = SecretRepository(dbExtension.db)
             fixtures = dbExtension.fixtures

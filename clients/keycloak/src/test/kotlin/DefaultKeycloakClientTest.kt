@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CONFIDENTIAL_CL
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.testRealmAdmin
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.keycloak.admin.client.Keycloak
 
@@ -62,6 +63,8 @@ class DefaultKeycloakClientTest : WordSpec() {
     val client = keycloak.createTestClient()
 
     init {
+        tags(Integration)
+
         "create" should {
             "not throw any instantiation exception" {
                 val incorrectConfig = keycloak.createKeycloakClientConfigurationForTestRealm("falseSecret")
