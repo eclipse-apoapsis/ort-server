@@ -41,6 +41,16 @@ clients:
     secret: 4WWmIYAPN4rOv7JfMmKzYGaxrI2NO5pr
     standardFlowEnabled: false
     serviceAccountsEnabled: true
+    # Explicitly listing the default client scopes replaces the realm's defaults, so these are repeated here.
+    # The "kc-admin-api" scope is required since Keycloak 26.8.2 to access the Admin REST API.
+    defaultClientScopes:
+      - acr
+      - basic
+      - email
+      - kc-admin-api
+      - profile
+      - roles
+      - web-origins
 
   - clientId: ort-server-ui
     name: ORT Server UI

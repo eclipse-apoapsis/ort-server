@@ -94,6 +94,10 @@ class KeycloakTestExtension(
 
     private fun createRealm() {
         keycloak.keycloakAdminClient.realms().create(realm)
+        keycloak.keycloakAdminClient.setUpAdminApiAccess(
+            realm.realm,
+            listOf(TEST_CLIENT, TEST_CONFIDENTIAL_CLIENT)
+        )
         keycloak.keycloakAdminClient.configureRealm()
     }
 
