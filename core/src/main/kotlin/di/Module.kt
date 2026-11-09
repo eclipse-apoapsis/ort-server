@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.projections.ProjectionBuilder
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionConfig
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionRegistry
 import org.eclipse.apoapsis.ortserver.components.projections.ProjectionService
@@ -114,12 +115,14 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
 import org.eclipse.apoapsis.ortserver.services.ortrun.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
+import org.eclipse.apoapsis.ortserver.services.ortrun.RunVulnerabilitiesProjectionBuilder
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 import org.ossreviewtoolkit.downloader.DefaultWorkingTreeCache
@@ -241,6 +244,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::PluginTemplateService)
 
     singleOf(::ProjectionRegistry)
+    single { RunVulnerabilitiesProjectionBuilder() } bind ProjectionBuilder::class
     single { ProjectionService(get(), get(), getAll(), ProjectionConfig.create(get<ConfigManager>())) }
 
     single { RolesToDbMigration(get(), get(), getKeycloakGroupPrefix(config), get()) }

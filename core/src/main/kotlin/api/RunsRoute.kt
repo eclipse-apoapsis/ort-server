@@ -99,9 +99,11 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
 import org.eclipse.apoapsis.ortserver.services.ortrun.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
+import org.eclipse.apoapsis.ortserver.services.ortrun.RunVulnerabilitiesResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
@@ -110,6 +112,12 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.stringSetFilter
 
 import org.koin.ktor.ext.inject
+
+/** The number of seconds after which clients should retry a request for data that is being prepared. */
+private const val PREPARING_RETRY_AFTER_SECONDS = "1"
+
+/** The preference of a client to receive an asynchronous response, as defined in RFC 7240. */
+private const val RESPOND_ASYNC = "respond-async"
 
 /** API for the run's endpoint. This endpoint provides information related to ORT runs and their results. */
 @Suppress("LongMethod")
@@ -238,16 +246,32 @@ fun Route.runs() = route("runs") {
                 val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
                 val filters = call.vulnerabilityFilters()
 
-                val vulnerabilitiesForOrtRun =
-                    vulnerabilityService.listForOrtRunId(
-                        call.ortRun.id,
-                        pagingOptions.mapToModel(),
-                        filters.mapToModel()
+                val respondAsync = call.prefersRespondAsync()
+                if (respondAsync) call.response.header(HttpHeaders.PreferenceApplied, RESPOND_ASYNC)
+
+                val result = vulnerabilityService.getForOrtRunId(
+                    call.ortRun.id,
+                    pagingOptions.mapToModel(),
+                    filters.mapToModel(),
+                    respondAsync
+                )
+
+                when (result) {
+                    is RunVulnerabilitiesResult.Available ->
+                        call.respond(HttpStatusCode.OK, result.vulnerabilities.mapToApi { it })
+
+                    RunVulnerabilitiesResult.Preparing -> {
+                        call.response.header(HttpHeaders.RetryAfter, PREPARING_RETRY_AFTER_SECONDS)
+                        call.respond(
+                            if (respondAsync) HttpStatusCode.Accepted else HttpStatusCode.ServiceUnavailable
+                        )
+                    }
+
+                    is RunVulnerabilitiesResult.Failed -> call.respond(
+                        HttpStatusCode.InternalServerError,
+                        ErrorResponse("Failed to prepare the vulnerabilities of the ORT run.", result.error)
                     )
-
-                val pagedResponse = vulnerabilitiesForOrtRun.mapToApi { it }
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
+                }
             }
 
             route("advisors") {
@@ -632,6 +656,12 @@ private fun ApplicationCall.vulnerabilityFilters() =
         externalId = vulnerabilityExternalIdFilter(),
         advisors = vulnerabilityAdvisorFilter()
     )
+
+/** Return whether the client of this [ApplicationCall] prefers an asynchronous response, as defined in RFC 7240. */
+private fun ApplicationCall.prefersRespondAsync(): Boolean =
+    request.headers.getAll(HttpHeaders.Prefer).orEmpty()
+        .flatMap { it.split(',') }
+        .any { preference -> preference.substringBefore(';').substringBefore('=').trim().equals(RESPOND_ASYNC, true) }
 
 /** A key under which the current [OrtRun] is stored in the current call. */
 private val keyOrtRun = AttributeKey<OrtRun>("RunsRoute.OrtRun")

@@ -80,6 +80,8 @@ fun Application.configureHTTP() {
         allowHeader(CustomHttpHeaders.CLIENT_TYPE)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Prefer)
+        exposeHeader(HttpHeaders.RetryAfter)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Put)
