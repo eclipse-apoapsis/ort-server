@@ -17,23 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
-import { RequireOrganizationPermission } from '@/components/authorization';
-
-function OrganizationSecretsGuard() {
-  const { orgId } = Route.useParams();
-
-  return (
-    <RequireOrganizationPermission
-      organizationId={Number.parseInt(orgId)}
-      permission='WRITE_SECRETS'
-    >
-      <Outlet />
-    </RequireOrganizationPermission>
-  );
-}
+import { withOrganizationPermission } from '@/components/authorization';
 
 export const Route = createFileRoute('/organizations/$orgId/secrets')({
-  component: OrganizationSecretsGuard,
+  component: withOrganizationPermission('WRITE_SECRETS'),
 });
