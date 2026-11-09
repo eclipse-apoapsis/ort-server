@@ -37,6 +37,7 @@ import {
   getOrganizationOptions,
   patchOrganizationMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { withOrganizationPermission } from '@/components/authorization';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,6 +56,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useOrganizationPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { organizationDeleted, organizationUpdated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
@@ -66,6 +68,10 @@ const formSchema = z.object({
 
 const OrganizationSettingsPage = () => {
   const params = Route.useParams();
+  const { isAllowed: canDelete } = useOrganizationPermission(
+    Number.parseInt(params.orgId),
+    'DELETE'
+  );
   const navigate = useNavigate();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -223,6 +229,7 @@ const OrganizationSettingsPage = () => {
                 <Button variant='destructive'>Delete organization</Button>
               }
               onDelete={handleDelete}
+              disabled={canDelete !== true}
             />
           </div>
         </CardContent>
@@ -232,5 +239,5 @@ const OrganizationSettingsPage = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/settings/')({
-  component: OrganizationSettingsPage,
+  component: withOrganizationPermission('WRITE', OrganizationSettingsPage),
 });

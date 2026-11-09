@@ -43,6 +43,15 @@ const mocks = vi.hoisted(() => ({
   toastInfo: vi.fn(),
 }));
 
+// The user may delete the repository, which enables its delete and move controls.
+vi.mock('@/hooks/use-authorization', () => ({
+  useRepositoryPermission: () => ({
+    isAllowed: true,
+    isPending: false,
+    error: null,
+  }),
+}));
+
 vi.mock('@tanstack/react-query', () => ({
   useMutation: () => ({ mutateAsync: mocks.mutateAsync, isPending: false }),
   useQueryClient: () => ({ invalidateQueries: mocks.invalidateQueries }),

@@ -41,17 +41,20 @@ import { Route as RepositoryLayoutRoute } from '@/routes/organizations/$orgId/pr
 import { Route as RepositorySecretEditRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/$secretName/edit/index';
 import { Route as RepositorySecretCreateRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret/index';
 import { Route as RepositorySecretsRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/route';
+import { Route as RepositorySettingsRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/index';
 import { Route as RepositoryUsersRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/route';
 import { Route as RepositoryRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/route';
 import { Route as ProductRoute } from '@/routes/organizations/$orgId/products/$productId/route';
 import { Route as ProductSecretEditRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/$secretName/edit/index';
 import { Route as ProductSecretCreateRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/create-secret/index';
 import { Route as ProductSecretsRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/route';
+import { Route as ProductSettingsRoute } from '@/routes/organizations/$orgId/products/$productId/settings/index';
 import { Route as ProductUsersRoute } from '@/routes/organizations/$orgId/products/$productId/users/route';
 import { Route as OrganizationRoute } from '@/routes/organizations/$orgId/route';
 import { Route as OrganizationSecretEditRoute } from '@/routes/organizations/$orgId/secrets/$secretName/edit/index';
 import { Route as OrganizationSecretCreateRoute } from '@/routes/organizations/$orgId/secrets/create-secret/index';
 import { Route as OrganizationSecretsRoute } from '@/routes/organizations/$orgId/secrets/route';
+import { Route as OrganizationSettingsRoute } from '@/routes/organizations/$orgId/settings/index';
 import { Route as OrganizationUsersRoute } from '@/routes/organizations/$orgId/users/route';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 import type { TestRouteDefinition } from '../fixtures/router-harness';
@@ -106,6 +109,7 @@ const subpages = (routes: {
   services: GuardRoute;
   createService: GuardRoute;
   editService: GuardRoute;
+  settings: GuardRoute;
 }): TestRouteDefinition[] => [
   {
     path: 'users',
@@ -139,6 +143,7 @@ const subpages = (routes: {
       },
     ],
   },
+  { path: 'settings/', component: routes.settings.options.component },
   { path: 'other', component: OtherPage },
 ];
 
@@ -159,6 +164,7 @@ const levels = [
           services: OrganizationServicesRoute,
           createService: OrganizationServiceCreateRoute,
           editService: OrganizationServiceEditRoute,
+          settings: OrganizationSettingsRoute,
         }),
       },
     ],
@@ -184,6 +190,7 @@ const levels = [
           services: ProductServicesRoute,
           createService: ProductServiceCreateRoute,
           editService: ProductServiceEditRoute,
+          settings: ProductSettingsRoute,
         }),
       },
     ],
@@ -213,6 +220,7 @@ const levels = [
               services: RepositoryServicesRoute,
               createService: RepositoryServiceCreateRoute,
               editService: RepositoryServiceEditRoute,
+              settings: RepositorySettingsRoute,
             }),
           },
         ],
@@ -378,5 +386,51 @@ describe('hierarchy permission access', () => {
         expect(await screen.findByLabelText('URL Prefix')).toBeInTheDocument();
       }
     );
+  });
+
+  describe('the settings page', () => {
+    it.each(levels)(
+      'is denied on the $level level to users who may only read',
+      async (level) => {
+        renderLevel(level, ['READ'], 'settings');
+
+        expect(await screen.findByText('Forbidden')).toBeInTheDocument();
+      }
+    );
+
+    it.each(levels)(
+      'opens on the $level level for users who may write, with deletion disabled',
+      async (level) => {
+        renderLevel(level, ['READ', 'WRITE'], 'settings');
+
+        expect(
+          await screen.findByRole('button', { name: `Delete ${level.level}` })
+        ).toBeDisabled();
+      }
+    );
+
+    it.each(levels)(
+      'enables deletion on the $level level for users who may delete',
+      async (level) => {
+        renderLevel(level, ['READ', 'WRITE', 'DELETE'], 'settings');
+
+        await waitFor(() =>
+          expect(
+            screen.getByRole('button', { name: `Delete ${level.level}` })
+          ).toBeEnabled()
+        );
+      }
+    );
+
+    it('disables moving the repository for users who may not delete it', async () => {
+      renderLevel(levels[2], ['READ', 'WRITE'], 'settings');
+
+      expect(
+        await screen.findByRole('button', { name: 'Move repository' })
+      ).toBeDisabled();
+      expect(
+        screen.getByText('Select organization').closest('button')
+      ).toBeDisabled();
+    });
   });
 });

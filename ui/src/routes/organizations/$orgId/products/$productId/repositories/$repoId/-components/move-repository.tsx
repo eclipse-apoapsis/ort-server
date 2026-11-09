@@ -28,6 +28,7 @@ import {
   patchRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { OptionalValueLong } from '@/api/types.gen';
+import { DisabledReasonTooltip } from '@/components/action-tooltip-trigger';
 import { MoveDialog } from '@/components/move-dialog';
 import { SearchableInfiniteList } from '@/components/searchable-infinite-list';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,8 @@ import { cn } from '@/lib/utils';
 
 interface MoveRepositoryProps {
   repoUrl: string;
+  // Disables the controls for users who may not move the repository.
+  disabled?: boolean;
 }
 
 /**
@@ -51,7 +54,10 @@ interface MoveRepositoryProps {
  */
 type Selection = { id: number; name: string };
 
-export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
+export const MoveRepository = ({
+  repoUrl,
+  disabled = false,
+}: MoveRepositoryProps) => {
   const params = useParams({ strict: false });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -123,107 +129,122 @@ export const MoveRepository = ({ repoUrl }: MoveRepositoryProps) => {
 
   return (
     <div className='flex items-center gap-2'>
-      <SearchableInfiniteList
-        trigger={
-          <Button
-            variant='outline'
-            role='combobox'
-            aria-expanded={orgOpen}
-            className='w-[240px] justify-between gap-2'
-          >
-            <span className='min-w-0 truncate text-left'>
-              {selectedOrg ? selectedOrg.name : 'Select organization'}
-            </span>
-            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-          </Button>
-        }
-        open={orgOpen}
-        onOpenChange={setOrgOpen}
-        list={organizations}
-        getItemKey={(org) => org.id}
-        renderItem={(org) => (
-          <CommandItem
-            value={org.name}
-            onSelect={() => {
-              setSelectedOrg(org.id === selectedOrg?.id ? null : org);
-              // The products of another organization are different ones.
-              setSelectedProduct(null);
-              setProductSearch('');
-              setOrgOpen(false);
-            }}
-          >
-            <Check
-              className={cn(
-                'mr-2 h-4 w-4',
-                selectedOrg?.id === org.id ? 'opacity-100' : 'opacity-0'
-              )}
-            />
-            <span className='truncate'>{org.name}</span>
-          </CommandItem>
-        )}
-        searchPlaceholder='Search organization...'
-        searchTerm={orgSearch}
-        onSearchTermChange={setOrgSearch}
-        emptyMessage='No organization found.'
-        errorMessage='Failed to load organizations'
-      />
-      <SearchableInfiniteList
-        trigger={
-          <Button
-            variant='outline'
-            role='combobox'
-            aria-expanded={productOpen}
-            className='w-[240px] justify-between gap-2'
-            disabled={selectedOrg === null}
-          >
-            <span className='min-w-0 truncate text-left'>
-              {selectedProduct ? selectedProduct.name : 'Select product'}
-            </span>
-            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-          </Button>
-        }
-        open={productOpen}
-        onOpenChange={setProductOpen}
-        list={products}
-        getItemKey={(product) => product.id}
-        renderItem={(product) => (
-          <CommandItem
-            value={product.name}
-            onSelect={() => {
-              setSelectedProduct(
-                product.id === selectedProduct?.id ? null : product
-              );
-              setProductOpen(false);
-            }}
-          >
-            <Check
-              className={cn(
-                'mr-2 h-4 w-4',
-                selectedProduct?.id === product.id ? 'opacity-100' : 'opacity-0'
-              )}
-            />
-            <span className='truncate'>{product.name}</span>
-          </CommandItem>
-        )}
-        searchPlaceholder='Search product...'
-        searchTerm={productSearch}
-        onSearchTermChange={setProductSearch}
-        emptyMessage='No product found.'
-        errorMessage='Failed to load products'
-      />
+      <DisabledReasonTooltip disabled={disabled}>
+        <SearchableInfiniteList
+          trigger={
+            <Button
+              variant='outline'
+              role='combobox'
+              disabled={disabled}
+              aria-expanded={orgOpen}
+              className='w-[240px] justify-between gap-2'
+            >
+              <span className='min-w-0 truncate text-left'>
+                {selectedOrg ? selectedOrg.name : 'Select organization'}
+              </span>
+              <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+            </Button>
+          }
+          open={orgOpen}
+          onOpenChange={setOrgOpen}
+          list={organizations}
+          getItemKey={(org) => org.id}
+          renderItem={(org) => (
+            <CommandItem
+              value={org.name}
+              onSelect={() => {
+                setSelectedOrg(org.id === selectedOrg?.id ? null : org);
+                // The products of another organization are different ones.
+                setSelectedProduct(null);
+                setProductSearch('');
+                setOrgOpen(false);
+              }}
+            >
+              <Check
+                className={cn(
+                  'mr-2 h-4 w-4',
+                  selectedOrg?.id === org.id ? 'opacity-100' : 'opacity-0'
+                )}
+              />
+              <span className='truncate'>{org.name}</span>
+            </CommandItem>
+          )}
+          searchPlaceholder='Search organization...'
+          searchTerm={orgSearch}
+          onSearchTermChange={setOrgSearch}
+          emptyMessage='No organization found.'
+          errorMessage='Failed to load organizations'
+        />
+      </DisabledReasonTooltip>
+      <DisabledReasonTooltip disabled={disabled}>
+        <SearchableInfiniteList
+          trigger={
+            <Button
+              variant='outline'
+              role='combobox'
+              aria-expanded={productOpen}
+              className='w-[240px] justify-between gap-2'
+              disabled={disabled || selectedOrg === null}
+            >
+              <span className='min-w-0 truncate text-left'>
+                {selectedProduct ? selectedProduct.name : 'Select product'}
+              </span>
+              <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+            </Button>
+          }
+          open={productOpen}
+          onOpenChange={setProductOpen}
+          list={products}
+          getItemKey={(product) => product.id}
+          renderItem={(product) => (
+            <CommandItem
+              value={product.name}
+              onSelect={() => {
+                setSelectedProduct(
+                  product.id === selectedProduct?.id ? null : product
+                );
+                setProductOpen(false);
+              }}
+            >
+              <Check
+                className={cn(
+                  'mr-2 h-4 w-4',
+                  selectedProduct?.id === product.id
+                    ? 'opacity-100'
+                    : 'opacity-0'
+                )}
+              />
+              <span className='truncate'>{product.name}</span>
+            </CommandItem>
+          )}
+          searchPlaceholder='Search product...'
+          searchTerm={productSearch}
+          onSearchTermChange={setProductSearch}
+          emptyMessage='No product found.'
+          errorMessage='Failed to load products'
+        />
+      </DisabledReasonTooltip>
       <div className='flex-1' />
-      <MoveDialog
-        thingName='repository'
-        thingId={repoUrl}
-        title='Confirm Move'
-        tooltip='Move repository to another product'
-        uiComponent={
-          <Button variant='destructive' disabled={!isMoveEnabled}>
+      {disabled ? (
+        <DisabledReasonTooltip disabled>
+          <Button variant='destructive' disabled>
             Move repository
           </Button>
-        }
-        onMove={handleMove}
-      />
+        </DisabledReasonTooltip>
+      ) : (
+        <MoveDialog
+          thingName='repository'
+          thingId={repoUrl}
+          title='Confirm Move'
+          tooltip='Move repository to another product'
+          uiComponent={
+            <Button variant='destructive' disabled={!isMoveEnabled}>
+              Move repository
+            </Button>
+          }
+          onMove={handleMove}
+        />
+      )}
     </div>
   );
 };
