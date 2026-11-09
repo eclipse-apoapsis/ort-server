@@ -26,7 +26,7 @@ import { paginationSearchParameterSchema } from '@/schemas';
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/users'
 )({
-  component: withProductPermission('MANAGE_ROLES'),
+  component: withProductPermission('READ'),
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,

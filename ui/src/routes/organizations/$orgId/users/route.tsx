@@ -24,7 +24,7 @@ import { withOrganizationPermission } from '@/components/authorization';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute('/organizations/$orgId/users')({
-  component: withOrganizationPermission('MANAGE_ROLES'),
+  component: withOrganizationPermission('READ'),
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,

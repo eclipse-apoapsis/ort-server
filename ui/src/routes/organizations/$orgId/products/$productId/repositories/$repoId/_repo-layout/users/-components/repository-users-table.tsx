@@ -33,12 +33,17 @@ const routeApi = getRouteApi(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users'
 );
 
-export const RepositoryUsersTable = () => {
+export const RepositoryUsersTable = ({
+  canManageRoles,
+}: {
+  canManageRoles: boolean;
+}) => {
   const params = routeApi.useParams();
   const repositoryId = Number.parseInt(params.repoId);
 
   return (
     <UsersTable
+      canManageRoles={canManageRoles}
       level='repository'
       usersOptions={(query) =>
         getRepositoryUsersOptions({ path: { repositoryId }, query })
