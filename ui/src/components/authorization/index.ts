@@ -23,3 +23,8 @@ export {
   RequireRepositoryPermission,
 } from '@/components/authorization/require-permission';
 export { RequireSuperuser } from '@/components/authorization/require-superuser';
+export {
+  withOrganizationPermission,
+  withProductPermission,
+  withRepositoryPermission,
+} from '@/components/authorization/with-permission';

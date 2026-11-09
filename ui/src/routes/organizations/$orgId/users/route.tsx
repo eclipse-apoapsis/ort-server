@@ -17,27 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { getOrganizationUsersOptions } from '@/api/@tanstack/react-query.gen';
-import { RequireOrganizationPermission } from '@/components/authorization';
+import { withOrganizationPermission } from '@/components/authorization';
 import { paginationSearchParameterSchema } from '@/schemas';
 
-function OrganizationUsersGuard() {
-  const { orgId } = Route.useParams();
-
-  return (
-    <RequireOrganizationPermission
-      organizationId={Number.parseInt(orgId)}
-      permission='MANAGE_ROLES'
-    >
-      <Outlet />
-    </RequireOrganizationPermission>
-  );
-}
-
 export const Route = createFileRoute('/organizations/$orgId/users')({
-  component: OrganizationUsersGuard,
+  component: withOrganizationPermission('MANAGE_ROLES'),
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,

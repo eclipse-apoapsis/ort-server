@@ -17,25 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
-import { RequireRepositoryPermission } from '@/components/authorization';
-
-function RepositorySecretsGuard() {
-  const { repoId } = Route.useParams();
-
-  return (
-    <RequireRepositoryPermission
-      repositoryId={Number.parseInt(repoId)}
-      permission='WRITE_SECRETS'
-    >
-      <Outlet />
-    </RequireRepositoryPermission>
-  );
-}
+import { withRepositoryPermission } from '@/components/authorization';
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets'
 )({
-  component: RepositorySecretsGuard,
+  component: withRepositoryPermission('WRITE_SECRETS'),
 });

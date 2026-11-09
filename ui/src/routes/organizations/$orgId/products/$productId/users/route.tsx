@@ -17,29 +17,16 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { getProductUsersOptions } from '@/api/@tanstack/react-query.gen';
-import { RequireProductPermission } from '@/components/authorization';
+import { withProductPermission } from '@/components/authorization';
 import { paginationSearchParameterSchema } from '@/schemas';
-
-function ProductUsersGuard() {
-  const { productId } = Route.useParams();
-
-  return (
-    <RequireProductPermission
-      productId={Number.parseInt(productId)}
-      permission='MANAGE_ROLES'
-    >
-      <Outlet />
-    </RequireProductPermission>
-  );
-}
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/users'
 )({
-  component: ProductUsersGuard,
+  component: withProductPermission('MANAGE_ROLES'),
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,

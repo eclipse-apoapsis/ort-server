@@ -17,23 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
-import { RequireOrganizationPermission } from '@/components/authorization';
-
-function OrganizationDefaultPluginsGuard() {
-  const { orgId } = Route.useParams();
-
-  return (
-    <RequireOrganizationPermission
-      organizationId={Number.parseInt(orgId)}
-      permission='MANAGE_DEFAULT_PLUGINS'
-    >
-      <Outlet />
-    </RequireOrganizationPermission>
-  );
-}
+import { withOrganizationPermission } from '@/components/authorization';
 
 export const Route = createFileRoute('/organizations/$orgId/default-plugins')({
-  component: OrganizationDefaultPluginsGuard,
+  component: withOrganizationPermission('MANAGE_DEFAULT_PLUGINS'),
 });
