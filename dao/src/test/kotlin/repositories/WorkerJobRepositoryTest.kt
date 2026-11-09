@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 /** An abstract test class that contains common tests for all [WorkerJobRepository] implementations. */
 abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
@@ -44,6 +45,8 @@ abstract class WorkerJobRepositoryTest<T : WorkerJob> : StringSpec() {
     abstract fun getJobRepository(): WorkerJobRepository<T>
 
     init {
+        tags(Integration)
+
         "start should mark a job as running" {
             val job = createJob()
 

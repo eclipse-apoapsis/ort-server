@@ -35,11 +35,14 @@ import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class ScanSummariesIssuesTableTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
     init {
+        tags(Integration)
+
         "createByIssue" should {
             "create an entity for an issue" {
                 val summary = createScanSummary()

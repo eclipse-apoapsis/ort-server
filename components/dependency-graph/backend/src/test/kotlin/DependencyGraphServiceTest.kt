@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -53,6 +54,8 @@ class DependencyGraphServiceTest : WordSpec() {
     private lateinit var service: DependencyGraphService
 
     init {
+        tags(Integration)
+
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures

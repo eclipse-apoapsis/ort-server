@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.SCANNER_VERSION
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createArtifactProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createIssue
@@ -136,6 +137,8 @@ class OrtServerScanResultStorageTest : WordSpec() {
         }
 
     init {
+        tags(Integration)
+
         beforeEach {
             scannerRun = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
             scanResultStorage = OrtServerScanResultStorage(dbExtension.db, scannerRun.id)

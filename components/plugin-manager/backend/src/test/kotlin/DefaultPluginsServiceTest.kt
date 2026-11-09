@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.config.ResolvedConfigContext
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration
 
@@ -66,6 +67,8 @@ private const val REPORT_DEFINITIONS_CONTEXT = "src/test/resources/config"
 private const val EMPTY_CONTEXT = "non-existing"
 
 class DefaultPluginsServiceTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var pluginEventStore: PluginEventStore

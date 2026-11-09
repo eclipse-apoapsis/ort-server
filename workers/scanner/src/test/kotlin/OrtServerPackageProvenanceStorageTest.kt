@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Hash
@@ -59,6 +60,8 @@ class OrtServerPackageProvenanceStorageTest : WordSpec() {
     private lateinit var scannerRun: ScannerRun
 
     init {
+        tags(Integration)
+
         beforeEach {
             scannerRun = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
             packageProvenanceCache = PackageProvenanceCache()

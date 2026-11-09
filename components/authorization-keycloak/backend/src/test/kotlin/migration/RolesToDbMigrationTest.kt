@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.insert
 
@@ -70,6 +71,8 @@ class RolesToDbMigrationTest : StringSpec() {
         )
 
     init {
+        tags(Integration)
+
         "role assignments for all hierarchy elements should be migrated correctly" {
             val orgAdminUser = "OrgAdmin"
             val productAdminUser = "ProductAdmin"

@@ -52,8 +52,11 @@ import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class SqsMessageSenderFactoryTest : StringSpec({
+    tags(Integration)
+
     val consumerName = "orchestrator"
     val transportType = "sender"
 

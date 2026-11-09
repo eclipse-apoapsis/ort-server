@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 private const val SERVICE_NAME = "TestInfrastructureService"
 private const val SERVICE_URL = "https://repo.example.org/infra/test"
@@ -63,6 +64,8 @@ private const val SERVICE_DESC = "This is a test infrastructure service"
 
 @Suppress("LargeClass")
 class InfrastructureServiceServiceIntegrationTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var fixtures: Fixtures

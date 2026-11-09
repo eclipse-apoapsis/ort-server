@@ -27,6 +27,7 @@ import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.transaction
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -36,6 +37,8 @@ class RoleAssignmentsTableTest : StringSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
     init {
+        tags(Integration)
+
         "Inserting an entity without a role reference should fail" {
             shouldThrow<ExposedSQLException> {
                 dbExtension.db.transaction {

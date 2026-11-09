@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -62,6 +63,8 @@ class LicenseFindingServiceTest : WordSpec() {
     private lateinit var seed: SeedResult
 
     init {
+        tags(Integration)
+
         beforeEach { testCase ->
             db = dbExtension.db
             fixtures = dbExtension.fixtures

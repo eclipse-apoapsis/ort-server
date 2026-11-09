@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 import org.eclipse.apoapsis.ortserver.utils.test.Images
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.testcontainers.containers.GenericContainer
 
@@ -44,6 +45,8 @@ private const val ACCOUNT_KEY =
 private const val CONTAINER = "test"
 
 class AzureBlobStorageProviderTest : WordSpec({
+    tags(Integration)
+
     val azuriteContainer = install(
         TestContainerSpecExtension(
             GenericContainer(Images.AZURITE)

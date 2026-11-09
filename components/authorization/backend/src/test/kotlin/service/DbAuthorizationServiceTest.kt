@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -64,6 +65,8 @@ class DbAuthorizationServiceTest : WordSpec() {
     private fun createService() = DbAuthorizationService(dbExtension.db)
 
     init {
+        tags(Integration)
+
         "getEffectiveRole" should {
             "resolve a repository ID correctly" {
                 val service = createService()

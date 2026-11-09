@@ -28,8 +28,11 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class DaoNotifierRunRepositoryTest : StringSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var notifierRunRepository: DaoNotifierRunRepository

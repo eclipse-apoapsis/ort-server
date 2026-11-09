@@ -46,8 +46,11 @@ import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class ArtemisMessageSenderFactoryTest : StringSpec({
+    tags(Integration)
+
     "Messages can be sent via the sender" {
         val config = startArtemisContainer("orchestrator", "sender")
 

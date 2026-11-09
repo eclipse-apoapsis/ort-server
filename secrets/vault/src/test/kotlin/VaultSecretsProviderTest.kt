@@ -36,11 +36,14 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class VaultSecretsProviderTest : WordSpec() {
     private val vault = installVaultTestContainer()
 
     init {
+        tags(Integration)
+
         "readSecret" should {
             "return the value of an existing secret" {
                 val provider = vault.createProvider()

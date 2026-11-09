@@ -27,8 +27,11 @@ import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class DatabaseSecretsProviderFactoryTest : WordSpec({
+    tags(Integration)
+
     val dbExtension = extension(DatabaseTestExtension())
 
     "SecretStorage.createStorage" should {
