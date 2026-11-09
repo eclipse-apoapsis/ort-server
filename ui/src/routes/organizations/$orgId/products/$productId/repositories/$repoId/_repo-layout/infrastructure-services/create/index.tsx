@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postRepositoryInfrastructureServiceMutation } from '@/api/@tanstack/react-query.gen';
+import { withRepositoryPermission } from '@/components/authorization';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { SecretSelect } from '@/components/secret-select';
 import { Button } from '@/components/ui/button.tsx';
@@ -290,5 +291,7 @@ const CreateInfrastructureServicePage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services/create/'
 )({
-  component: CreateInfrastructureServicePage,
+  // Creating an infrastructure service needs write permission, while the list needs only read
+  // permission.
+  component: withRepositoryPermission('WRITE', CreateInfrastructureServicePage),
 });

@@ -28,6 +28,7 @@ import {
   getProductInfrastructureServicesQueryKey,
   getProductOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -41,13 +42,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { selectNoTableState, useAppTable } from '@/hooks/use-app-table';
 import type { AppCellContext, AppColumnDef } from '@/hooks/use-app-table';
+import { useProductPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -59,6 +57,11 @@ const ActionCell = ({
   row,
 }: AppCellContext<InfrastructureService, unknown>) => {
   const params = Route.useParams();
+  // Unresolved permissions leave the controls disabled until they are known.
+  const { isAllowed: canWrite } = useProductPermission(
+    Number.parseInt(params.productId),
+    'WRITE'
+  );
   const queryClient = useQueryClient();
 
   const { mutateAsync: delService } = useMutation({
@@ -81,7 +84,7 @@ const ActionCell = ({
   return (
     <div className='flex justify-end gap-1'>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <ActionTooltipTrigger disabled={canWrite !== true}>
           <Link
             to='/organizations/$orgId/products/$productId/infrastructure-services/$serviceName/edit'
             params={{
@@ -90,17 +93,23 @@ const ActionCell = ({
               serviceName: row.original.name,
             }}
             className={cn(buttonVariants({ variant: 'outline' }), 'h-8 px-2')}
+            disabled={canWrite !== true}
           >
             <span className='sr-only'>Edit</span>
             <EditIcon size={16} />
           </Link>
-        </TooltipTrigger>
-        <TooltipContent>Edit this infrastructure service</TooltipContent>
+        </ActionTooltipTrigger>
+        <TooltipContent>
+          {canWrite === true
+            ? 'Edit this infrastructure service'
+            : 'Insufficient permissions.'}
+        </TooltipContent>
       </Tooltip>
 
       <DeleteDialog
         thingName={'infrastructure service'}
         uiComponent={<DeleteIconButton />}
+        disabled={canWrite !== true}
         onDelete={() =>
           delService({
             path: {
@@ -117,6 +126,11 @@ const ActionCell = ({
 const InfrastructureServices = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  // Unresolved permissions leave the controls disabled until they are known.
+  const { isAllowed: canWrite } = useProductPermission(
+    Number.parseInt(params.productId),
+    'WRITE'
+  );
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
@@ -234,8 +248,13 @@ const InfrastructureServices = () => {
         </CardDescription>
         <div className='py-2'>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
+            <ActionTooltipTrigger disabled={canWrite !== true}>
+              <Button
+                asChild
+                size='sm'
+                className='ml-auto gap-1'
+                disabled={canWrite !== true}
+              >
                 <Link
                   to='/organizations/$orgId/products/$productId/infrastructure-services/create'
                   params={{ orgId: params.orgId, productId: params.productId }}
@@ -244,9 +263,11 @@ const InfrastructureServices = () => {
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>
-            </TooltipTrigger>
+            </ActionTooltipTrigger>
             <TooltipContent>
-              Create a new infrastructure service for this product
+              {canWrite === true
+                ? 'Create a new infrastructure service for this product'
+                : 'Insufficient permissions.'}
             </TooltipContent>
           </Tooltip>
         </div>

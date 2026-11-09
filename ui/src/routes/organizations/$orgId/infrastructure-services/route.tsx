@@ -24,5 +24,5 @@ import { withOrganizationPermission } from '@/components/authorization';
 export const Route = createFileRoute(
   '/organizations/$orgId/infrastructure-services'
 )({
-  component: withOrganizationPermission('WRITE'),
+  component: withOrganizationPermission('READ'),
 });

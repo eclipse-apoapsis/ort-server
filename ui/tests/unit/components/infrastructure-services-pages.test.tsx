@@ -41,10 +41,29 @@ const mocks = vi.hoisted(() => ({
   deleteRepositoryInfrastructureService: vi.fn(),
 }));
 
+const permissions = vi.hoisted(() => ({
+  useOrganizationPermission: vi.fn(),
+  useProductPermission: vi.fn(),
+  useRepositoryPermission: vi.fn(),
+}));
+
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
   ...mocks,
 }));
+
+vi.mock('@/hooks/use-authorization', () => permissions);
+
+// Answers the permission hooks of all levels with the given permissions.
+const grant = (granted: string[]) => {
+  for (const hook of Object.values(permissions)) {
+    hook.mockImplementation((_id: number, permission: string) => ({
+      isAllowed: granted.includes(permission),
+      isPending: false,
+      error: null,
+    }));
+  }
+};
 
 const [organization, product, repository] = hierarchyLevels(
   'infrastructure-services'
@@ -99,6 +118,33 @@ const renderServices = (level: (typeof levels)[number], search = '') => {
 
 const getRow = (name: string) => screen.getByText(name).closest('tr')!;
 
+// The router link renders `aria-disabled` and no target only when it is disabled.
+const expectLinkEnabled = (link: HTMLElement, enabled: boolean) => {
+  if (enabled) {
+    expect(link).not.toHaveAttribute('aria-disabled');
+    expect(link).toHaveAttribute('href');
+  } else {
+    expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).not.toHaveAttribute('href');
+  }
+};
+
+const expectActions = (enabled: boolean) => {
+  expectLinkEnabled(
+    screen.getByText('Add infrastructure service').closest('a')!,
+    enabled
+  );
+
+  for (const name of ['repo', 'git']) {
+    const row = within(getRow(name));
+
+    expectLinkEnabled(row.getByText('Edit').closest('a')!, enabled);
+    if (enabled)
+      expect(row.getByRole('button', { name: 'Delete' })).toBeEnabled();
+    else expect(row.getByRole('button', { name: 'Delete' })).toBeDisabled();
+  }
+};
+
 describe('infrastructure services pages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -123,7 +169,33 @@ describe('infrastructure services pages', () => {
       level.services.mockResolvedValue(pageOf(services));
       level.remove.mockResolvedValue({ data: undefined });
     }
+    grant(['READ', 'WRITE']);
   });
+
+  it.each(levels)(
+    'shows the services of the $level level to readers with the actions disabled',
+    async (level) => {
+      // Writing secrets does not allow changing infrastructure services.
+      grant(['READ', 'WRITE_SECRETS']);
+      renderServices(level);
+
+      await screen.findByText('repo');
+
+      expect(screen.getByText('https://git.example.com')).toBeVisible();
+      expectActions(false);
+    }
+  );
+
+  it.each(levels)(
+    'enables the actions on the $level level for users who may write',
+    async (level) => {
+      renderServices(level);
+
+      await screen.findByText('repo');
+
+      expectActions(true);
+    }
+  );
 
   it.each(levels)(
     'pages the services of the $level level from the URL',

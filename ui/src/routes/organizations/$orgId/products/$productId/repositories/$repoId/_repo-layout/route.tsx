@@ -64,7 +64,7 @@ const RepoLayout = () => {
           title: 'Infrastructure Services',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
           icon: () => <ServerCog className='h-4 w-4' />,
-          visible: repositoryPermissions?.includes('WRITE'),
+          visible: repositoryPermissions?.includes('READ'),
         },
         {
           title: 'Users',
