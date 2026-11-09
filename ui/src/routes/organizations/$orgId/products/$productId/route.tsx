@@ -86,7 +86,7 @@ const Layout = () => {
           title: 'Secrets',
           to: '/organizations/$orgId/products/$productId/secrets',
           icon: () => <BookLock className='h-4 w-4' />,
-          visible: productPermissions?.includes('WRITE_SECRETS'),
+          visible: productPermissions?.includes('READ'),
         },
         {
           title: 'Infrastructure Services',

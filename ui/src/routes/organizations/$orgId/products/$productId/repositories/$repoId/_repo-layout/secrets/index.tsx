@@ -52,16 +52,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { selectNoTableState, useAppTable } from '@/hooks/use-app-table';
 import type { AppCellContext, AppColumnDef } from '@/hooks/use-app-table';
 import {
   useOrganizationPermission,
   useProductPermission,
+  useRepositoryPermission,
 } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { toast, toastError } from '@/lib/toast';
@@ -76,6 +73,11 @@ const defaultPageSize = 5;
 
 const ActionCell = ({ row }: AppCellContext<Secret, unknown>) => {
   const params = Route.useParams();
+  // Unresolved permissions leave the controls disabled until they are known.
+  const { isAllowed: canWriteSecrets } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'WRITE_SECRETS'
+  );
   const queryClient = useQueryClient();
 
   const { data: repo } = useSuspenseQuery({
@@ -104,7 +106,7 @@ const ActionCell = ({ row }: AppCellContext<Secret, unknown>) => {
   return (
     <div className='flex items-center justify-end gap-1'>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <ActionTooltipTrigger disabled={canWriteSecrets !== true}>
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/secrets/$secretName/edit'
             params={{
@@ -114,16 +116,22 @@ const ActionCell = ({ row }: AppCellContext<Secret, unknown>) => {
               secretName: row.original.name,
             }}
             className={cn(buttonVariants({ variant: 'outline' }), 'h-8 px-2')}
+            disabled={canWriteSecrets !== true}
           >
             <span className='sr-only'>Edit</span>
             <EditIcon size={16} />
           </Link>
-        </TooltipTrigger>
-        <TooltipContent>Edit this secret</TooltipContent>
+        </ActionTooltipTrigger>
+        <TooltipContent>
+          {canWriteSecrets === true
+            ? 'Edit this secret'
+            : 'Insufficient permissions.'}
+        </TooltipContent>
       </Tooltip>
       <DeleteDialog
         thingName={'secret'}
         uiComponent={<DeleteIconButton />}
+        disabled={canWriteSecrets !== true}
         onDelete={() =>
           deleteSecret({
             path: { repositoryId: repo.id, secretName: row.original.name },
@@ -159,6 +167,11 @@ const columns: AppColumnDef<Secret>[] = [
 const RepositorySecrets = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  // Unresolved permissions leave the controls disabled until they are known.
+  const { isAllowed: canWriteSecrets } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'WRITE_SECRETS'
+  );
   const { isAllowed: canManageProductSecrets } = useProductPermission(
     Number.parseInt(params.productId),
     'WRITE_SECRETS'
@@ -342,8 +355,13 @@ const RepositorySecrets = () => {
           <CardDescription>Manage secrets for {repo.url}.</CardDescription>
           <div className='py-2'>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
+              <ActionTooltipTrigger disabled={canWriteSecrets !== true}>
+                <Button
+                  asChild
+                  size='sm'
+                  className='ml-auto gap-1'
+                  disabled={canWriteSecrets !== true}
+                >
                   <Link
                     to='/organizations/$orgId/products/$productId/repositories/$repoId/secrets/create-secret'
                     params={{
@@ -356,9 +374,11 @@ const RepositorySecrets = () => {
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
-              </TooltipTrigger>
+              </ActionTooltipTrigger>
               <TooltipContent>
-                Create a new secret for this repository
+                {canWriteSecrets === true
+                  ? 'Create a new secret for this repository'
+                  : 'Insufficient permissions.'}
               </TooltipContent>
             </Tooltip>
           </div>

@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postProductSecretMutation } from '@/api/@tanstack/react-query.gen';
+import { withProductPermission } from '@/components/authorization';
 import { PasswordInput } from '@/components/form/password-input';
 import { Button } from '@/components/ui/button';
 import {
@@ -159,5 +160,6 @@ const CreateProductSecretPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/secrets/create-secret/'
 )({
-  component: CreateProductSecretPage,
+  // Creating a secret needs write permission, while the secrets list needs only read permission.
+  component: withProductPermission('WRITE_SECRETS', CreateProductSecretPage),
 });

@@ -24,5 +24,5 @@ import { withProductPermission } from '@/components/authorization';
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/secrets'
 )({
-  component: withProductPermission('WRITE_SECRETS'),
+  component: withProductPermission('READ'),
 });

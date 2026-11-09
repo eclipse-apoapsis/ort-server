@@ -22,5 +22,5 @@ import { createFileRoute } from '@tanstack/react-router';
 import { withOrganizationPermission } from '@/components/authorization';
 
 export const Route = createFileRoute('/organizations/$orgId/secrets')({
-  component: withOrganizationPermission('WRITE_SECRETS'),
+  component: withOrganizationPermission('READ'),
 });

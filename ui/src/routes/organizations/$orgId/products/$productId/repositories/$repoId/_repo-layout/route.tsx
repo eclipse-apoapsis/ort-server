@@ -58,7 +58,7 @@ const RepoLayout = () => {
           title: 'Secrets',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
           icon: () => <BookLock className='h-4 w-4' />,
-          visible: repositoryPermissions?.includes('WRITE_SECRETS'),
+          visible: repositoryPermissions?.includes('READ'),
         },
         {
           title: 'Infrastructure Services',
