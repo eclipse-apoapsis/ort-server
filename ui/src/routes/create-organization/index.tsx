@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postOrganizationMutation } from '@/api/@tanstack/react-query.gen';
+import { RequireSuperuser } from '@/components/authorization';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { Button } from '@/components/ui/button';
@@ -140,6 +141,13 @@ const CreateOrganizationPage = () => {
   );
 };
 
+// Only superusers may create organizations.
+const CreateOrganizationGuard = () => (
+  <RequireSuperuser>
+    <CreateOrganizationPage />
+  </RequireSuperuser>
+);
+
 export const Route = createFileRoute('/create-organization/')({
-  component: CreateOrganizationPage,
+  component: CreateOrganizationGuard,
 });

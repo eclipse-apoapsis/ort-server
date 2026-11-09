@@ -37,6 +37,7 @@ import {
   getProductOptions,
   patchProductMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { withProductPermission } from '@/components/authorization';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,6 +56,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useProductPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { productDeleted, productUpdated } from '@/lib/entity-cache';
 import { toast, toastError } from '@/lib/toast';
@@ -66,6 +68,10 @@ const formSchema = z.object({
 
 const ProductSettingsPage = () => {
   const params = Route.useParams();
+  const { isAllowed: canDelete } = useProductPermission(
+    Number.parseInt(params.productId),
+    'DELETE'
+  );
   const navigate = useNavigate();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -224,6 +230,7 @@ const ProductSettingsPage = () => {
                 <Button variant='destructive'>Delete product</Button>
               }
               onDelete={handleDelete}
+              disabled={canDelete !== true}
             />
           </div>
         </CardContent>
@@ -235,5 +242,5 @@ const ProductSettingsPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/settings/'
 )({
-  component: ProductSettingsPage,
+  component: withProductPermission('WRITE', ProductSettingsPage),
 });

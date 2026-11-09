@@ -34,9 +34,11 @@ import {
   getRepositorySecretsQueryKey,
   patchRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { withRepositoryPermission } from '@/components/authorization';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ApiError } from '@/lib/api-error';
 import { repositoryDeleted, repositoryUpdated } from '@/lib/entity-cache';
 import {
@@ -55,6 +57,11 @@ export const RepositorySettingsPage = () => {
   const queryClient = useQueryClient();
 
   const repositoryId = Number.parseInt(params.repoId);
+  // Deleting and moving the repository both need permission to delete it.
+  const { isAllowed: canDelete } = useRepositoryPermission(
+    Number.parseInt(params.repoId),
+    'DELETE'
+  );
 
   const { data: repository } = useSuspenseQuery({
     ...getRepositoryOptions({
@@ -198,10 +205,14 @@ export const RepositorySettingsPage = () => {
                   <Button variant='destructive'>Delete repository</Button>
                 }
                 onDelete={handleDelete}
+                disabled={canDelete !== true}
               />
             </div>
             <div>Move this repository to another product</div>
-            <MoveRepository repoUrl={repository.url} />
+            <MoveRepository
+              repoUrl={repository.url}
+              disabled={canDelete !== true}
+            />
           </div>
         </CardContent>
       </Card>
@@ -212,5 +223,5 @@ export const RepositorySettingsPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/'
 )({
-  component: RepositorySettingsPage,
+  component: withRepositoryPermission('WRITE', RepositorySettingsPage),
 });

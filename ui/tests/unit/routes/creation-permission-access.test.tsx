@@ -24,6 +24,7 @@ import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { UserInfo } from '@/api';
+import { Route as CreateOrganizationRoute } from '@/routes/create-organization/index';
 import { Route as CreateProductRoute } from '@/routes/organizations/$orgId/create-product/index';
 import { Route as CreateRepositoryRoute } from '@/routes/organizations/$orgId/products/$productId/create-repository/index';
 import { Route as CreateRunRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/index';
@@ -31,6 +32,7 @@ import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 import type { TestRouteDefinition } from '../fixtures/router-harness';
 
 const mocks = vi.hoisted(() => ({
+  getSuperuser: vi.fn(),
   getUserInfo: vi.fn(),
   getAvailableRepositorySecrets: vi.fn(),
   getOrganization: vi.fn(),
@@ -191,6 +193,31 @@ describe('creation permission access', () => {
 
       expect(await screen.findByLabelText(page.heading)).toBeInTheDocument();
       expect(screen.queryByText('Forbidden')).not.toBeInTheDocument();
+    }
+  );
+
+  it.each([false, true])(
+    'opens the create organization page only for superusers: %s',
+    async (isSuperuser) => {
+      mocks.getSuperuser.mockResolvedValue({ data: isSuperuser });
+      renderInteractiveWithRouter(null, {
+        path: '/create-organization',
+        routes: [
+          {
+            path: '/create-organization/',
+            component: CreateOrganizationRoute.options.component,
+          },
+          { path: '/403', component: Forbidden },
+        ],
+        withQueryClient: true,
+      });
+
+      if (isSuperuser) {
+        expect(await screen.findByLabelText('Name')).toBeInTheDocument();
+      } else {
+        expect(await screen.findByText('Forbidden')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Name')).not.toBeInTheDocument();
+      }
     }
   );
 });
