@@ -32,6 +32,7 @@ group = "org.eclipse.apoapsis.ortserver"
 
 dependencies {
     api(projects.components.authorization.authorizationBackend)
+    api(projects.components.projections.projectionsBackend)
     api(projects.config.configSpi)
     api(projects.services.ortRunService)
 

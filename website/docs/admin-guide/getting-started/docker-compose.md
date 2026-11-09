@@ -119,7 +119,7 @@ TASKS=delete-orphaned-entities docker compose run --rm tasks
 To run several tasks, separate their names with commas and no spaces, for example `TASKS=delete-old-ort-runs,delete-orphaned-entities`.
 The `tasks` service has no default task, so every run has to name the tasks to run.
 
-The tasks `sync-keycloak-users`, `delete-old-ort-runs` and `delete-orphaned-entities` work in Docker Compose.
+The tasks `sync-keycloak-users`, `delete-old-ort-runs`, `delete-orphaned-entities` and `delete-unused-projections` work in Docker Compose.
 The tasks whose names start with `kubernetes-` require Kubernetes and fail in Docker Compose.
 
 When using [local images](#run-with-local-images), set the image prefix and tag in the same way as for `docker compose up`:
