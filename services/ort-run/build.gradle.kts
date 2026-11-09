@@ -27,6 +27,7 @@ group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
     api(projects.api.v1.apiV1Model)
+    api(projects.components.projections.projectionsBackend)
     api(projects.components.reportStorage.reportStorageBackend)
     api(projects.components.resolutions.resolutionsBackend)
     api(projects.model)
