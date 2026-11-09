@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.options
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -242,6 +243,33 @@ class HTTPTest : WordSpec({
 
                 response.status shouldBe HttpStatusCode.OK
                 response.headers[HttpHeaders.ContentEncoding] shouldBe "gzip"
+            }
+        }
+
+        "allow cross-origin requests that prefer an asynchronous response" {
+            testApplication {
+                configureHttpTestApplication(allowedHosts = "ui.example")
+
+                val response = client.options("/json") {
+                    header(HttpHeaders.Origin, "https://ui.example")
+                    header(HttpHeaders.AccessControlRequestMethod, "GET")
+                    header(HttpHeaders.AccessControlRequestHeaders, "authorization,prefer")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+            }
+        }
+
+        "expose the Retry-After header to cross-origin requests" {
+            testApplication {
+                configureHttpTestApplication(allowedHosts = "ui.example")
+
+                val response = client.get("/json") {
+                    header(HttpHeaders.Origin, "https://ui.example")
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                response.headers[HttpHeaders.AccessControlExposeHeaders] shouldBe HttpHeaders.RetryAfter
             }
         }
 

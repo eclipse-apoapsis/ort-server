@@ -46,9 +46,11 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
@@ -1644,6 +1646,55 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     pkgJackson.purl,
                     pkgLog4j.purl
                 )
+            }
+        }
+
+        "respond with Accepted while the vulnerabilities are being prepared if async responses are preferred" {
+            // Do not wait for the build, so that the request is answered before the build has finished.
+            integrationTestApplication(mapOf("projections.asyncRequestWaitMillis" to "0")) {
+                val ortRun = dbExtension.fixtures.createOrtRun(repositoryId = repositoryId)
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.createAdvisorRun(advisorJob.id, generateAdvisorResult())
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities") {
+                    header(HttpHeaders.Prefer, "respond-async")
+                }
+
+                response shouldHaveStatus HttpStatusCode.Accepted
+                response.headers[HttpHeaders.RetryAfter] shouldBe "1"
+                response.headers[HttpHeaders.PreferenceApplied] shouldBe "respond-async"
+
+                val readyResponse = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
+
+                readyResponse shouldHaveStatus HttpStatusCode.OK
+                readyResponse.body<PagedResponse<VulnerabilityWithDetails>>().data shouldHaveSize 2
+            }
+        }
+
+        "respond with Service Unavailable if the vulnerabilities are not prepared in time" {
+            // Do not wait for the build, so that the request is answered before the build has finished.
+            integrationTestApplication(mapOf("projections.syncRequestWaitMillis" to "0")) {
+                val ortRun = dbExtension.fixtures.createOrtRun(repositoryId = repositoryId)
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+                dbExtension.fixtures.createAdvisorRun(advisorJob.id, generateAdvisorResult())
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
+
+                response shouldHaveStatus HttpStatusCode.ServiceUnavailable
+                response.headers[HttpHeaders.RetryAfter] shouldBe "1"
+                response.headers[HttpHeaders.PreferenceApplied] shouldBe null
+            }
+        }
+
+        "respond with no vulnerabilities as long as the advisor has not stored its results" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(repositoryId = repositoryId)
+                dbExtension.fixtures.createAdvisorJob(ortRunId = ortRun.id)
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response.body<PagedResponse<VulnerabilityWithDetails>>().data should beEmpty()
             }
         }
 

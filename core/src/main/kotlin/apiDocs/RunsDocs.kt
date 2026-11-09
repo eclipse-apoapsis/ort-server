@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.core.apiDocs
 
 import io.github.smiley4.ktoropenapi.config.RouteConfig
 
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 
 import kotlin.time.Duration.Companion.minutes
@@ -62,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedIssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.AppliedVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.Identifier
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolution
 import org.eclipse.apoapsis.ortserver.shared.apimodel.IssueResolutionReason
@@ -315,12 +317,25 @@ val getRunIssues: RouteConfig.() -> Unit = {
 val getRunVulnerabilities: RouteConfig.() -> Unit = {
     operationId = "getRunVulnerabilities"
     summary = "Get the vulnerabilities found in an ORT run"
-    description = "Supported sort fields are 'rating', 'externalId', 'identifier', and 'purl'."
+    description = """
+        Supported sort fields are 'rating', 'externalId', 'identifier', and 'purl'.
+
+        The vulnerabilities are prepared for querying when they are requested for the first time. Usually, the request
+        waits until they are prepared. If that takes too long, the response has the status 'Service Unavailable' and a
+        'Retry-After' header with the number of seconds after which the request should be repeated. Clients that send
+        the header 'Prefer: respond-async' receive the status 'Accepted' instead, after a shorter time.
+    """.trimIndent()
     tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
             description = "The ID of the ORT run."
+        }
+
+        headerParameter<String>(HttpHeaders.Prefer) {
+            description = "Set to 'respond-async' to receive the status 'Accepted' while the vulnerabilities are " +
+                    "being prepared."
+            required = false
         }
 
         standardListQueryParameters()
@@ -426,6 +441,30 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.Accepted to {
+            description = "The vulnerabilities are being prepared and the client prefers an asynchronous response. " +
+                    "Repeat the request after the time given in the 'Retry-After' header."
+            header<Int>(HttpHeaders.RetryAfter) {
+                description = "The number of seconds after which the request should be repeated."
+            }
+            header<String>(HttpHeaders.PreferenceApplied) {
+                description = "Set to 'respond-async' if the preference for an asynchronous response was applied."
+            }
+        }
+
+        HttpStatusCode.ServiceUnavailable to {
+            description = "The vulnerabilities are still being prepared. Repeat the request after the time given in " +
+                    "the 'Retry-After' header."
+            header<Int>(HttpHeaders.RetryAfter) {
+                description = "The number of seconds after which the request should be repeated."
+            }
+        }
+
+        HttpStatusCode.InternalServerError to {
+            description = "Preparing the vulnerabilities failed. They are prepared again on a later request."
+            jsonBody<ErrorResponse> {}
         }
 
         HttpStatusCode.NotFound to {

@@ -123,10 +123,13 @@ abstract class AbstractIntegrationTest(
         body()
     }
 
-    suspend fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
+    suspend fun integrationTestApplication(
+        configs: Map<String, Any> = emptyMap(),
+        block: suspend ApplicationTestBuilder.() -> Unit
+    ) {
         authorizationService = setUpAuthorizationService()
 
-        ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig, block)
+        ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig + configs, block)
     }
 
     suspend fun requestShouldRequireRole(
