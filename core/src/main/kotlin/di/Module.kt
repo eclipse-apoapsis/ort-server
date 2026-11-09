@@ -45,6 +45,9 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.projections.ProjectionConfig
+import org.eclipse.apoapsis.ortserver.components.projections.ProjectionRegistry
+import org.eclipse.apoapsis.ortserver.components.projections.ProjectionService
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionEventStore
 import org.eclipse.apoapsis.ortserver.components.resolutions.issues.IssueResolutionService
@@ -236,6 +239,9 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::PluginService)
     singleOf(::PluginTemplateEventStore)
     singleOf(::PluginTemplateService)
+
+    singleOf(::ProjectionRegistry)
+    single { ProjectionService(get(), get(), getAll(), ProjectionConfig.create(get<ConfigManager>())) }
 
     single { RolesToDbMigration(get(), get(), getKeycloakGroupPrefix(config), get()) }
 }
