@@ -88,6 +88,7 @@ dependencies {
             requireCapability("$group:routes:$version")
         }
     }
+    implementation(projects.components.projections.projectionsBackend)
     implementation(projects.components.reportStorage.reportStorageBackend)
     implementation(projects.components.resolutions.resolutionsBackend)
     implementation(projects.components.resolutions.resolutionsBackend) {
