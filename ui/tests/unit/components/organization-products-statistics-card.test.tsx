@@ -82,5 +82,7 @@ describe('OrganizationProductsStatisticsCard', () => {
     const markup = await renderCard();
 
     expect(markup).toContain('aria-disabled="true"');
+    // Without a target, the link cannot be followed by mouse or keyboard.
+    expect(markup).not.toContain('href="/organizations/42/create-product"');
   });
 });

@@ -30,6 +30,7 @@ import {
   postRepositoryRunMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { getAvailableRepositorySecrets, getRepositoryRun } from '@/api/sdk.gen';
+import { withRepositoryPermission } from '@/components/authorization';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   createRunDefaultPluginsOptions,
@@ -240,6 +241,6 @@ export const Route = createFileRoute(
 
     return { ortRun, secrets };
   },
-  component: CreateRunPage,
+  component: withRepositoryPermission('TRIGGER_ORT_RUN', CreateRunPage),
   validateSearch: rerunIndexSchema,
 });

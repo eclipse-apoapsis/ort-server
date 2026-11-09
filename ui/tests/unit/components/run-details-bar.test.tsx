@@ -152,9 +152,10 @@ describe('RunDetailsBar', () => {
 
     renderBar(3, '');
 
-    expect(await screen.findByRole('link', { name: 'Rerun' })).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    );
+    const rerun = await screen.findByRole('link', { name: 'Rerun' });
+
+    expect(rerun).toHaveAttribute('aria-disabled', 'true');
+    // Without a target, the link cannot be followed by mouse or keyboard.
+    expect(rerun).not.toHaveAttribute('href');
   });
 });

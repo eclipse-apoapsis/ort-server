@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postProductMutation } from '@/api/@tanstack/react-query.gen';
+import { withOrganizationPermission } from '@/components/authorization';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { Button } from '@/components/ui/button';
@@ -153,5 +154,5 @@ const CreateProductPage = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/create-product/')({
-  component: CreateProductPage,
+  component: withOrganizationPermission('CREATE_PRODUCT', CreateProductPage),
 });

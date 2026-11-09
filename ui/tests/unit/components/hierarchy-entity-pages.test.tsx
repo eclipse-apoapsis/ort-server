@@ -56,6 +56,7 @@ const mocks = vi.hoisted(() => ({
   getRepository: vi.fn(),
   patchRepository: vi.fn(),
   getSuperuser: vi.fn(),
+  getUserInfo: vi.fn(),
 }));
 
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
@@ -245,6 +246,10 @@ describe('hierarchy entity pages', () => {
     // The layout loaders read the permissions of the user, which a superuser has without asking
     // for them.
     mocks.getSuperuser.mockResolvedValue({ data: true });
+    // The create product page asks for the permissions of the user, which a superuser has all of.
+    mocks.getUserInfo.mockResolvedValue({
+      data: { fullName: 'Admin', username: 'admin', isSuperuser: true },
+    });
 
     // A renamed entity is what the server answers with from then on.
     for (const [patch, get] of [

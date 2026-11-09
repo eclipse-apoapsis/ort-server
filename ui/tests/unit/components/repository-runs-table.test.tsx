@@ -60,9 +60,13 @@ vi.mock('@/config', async (importOriginal) => {
   return { config: { ...original.config, pollInterval: 50 } };
 });
 
+// Whether the user may start runs; all other permissions are granted.
+const permissions = vi.hoisted(() => ({ canTriggerRun: true }));
+
 vi.mock('@/hooks/use-authorization', () => ({
-  useRepositoryPermission: () => ({
-    isAllowed: true,
+  useRepositoryPermission: (_repositoryId: number, permission: string) => ({
+    isAllowed:
+      permission === 'TRIGGER_ORT_RUN' ? permissions.canTriggerRun : true,
     isPending: false,
     error: null,
   }),
@@ -160,6 +164,7 @@ const findToggle = async (runIndex: number) => {
 describe('RepositoryRunsTable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    permissions.canTriggerRun = true;
     mocks.organization.mockResolvedValue({ data: { id: 1, name: 'org' } });
     mocks.product.mockResolvedValue({
       data: { id: 2, organizationId: 1, name: 'product' },
@@ -262,4 +267,34 @@ describe('RepositoryRunsTable', () => {
     expect(await findToggle(2)).toHaveAttribute('aria-pressed', 'true');
     expect(await findToggle(3)).toHaveAccessibleName(selectComparedLabel);
   });
+
+  it.each([true, false])(
+    'lets each run be rerun only with permission to start runs: %s',
+    async (allowed) => {
+      permissions.canTriggerRun = allowed;
+      renderTable();
+
+      const row = (await screen.findByRole('link', { name: '2' })).closest(
+        'tr'
+      )!;
+      const rerunLinks = Array.from(
+        row.querySelectorAll<HTMLElement>('a, [role="link"]')
+      ).filter(
+        (link) =>
+          link.getAttribute('href')?.includes('create-run') ||
+          link.getAttribute('aria-disabled') === 'true'
+      );
+
+      expect(rerunLinks).toHaveLength(1);
+      if (allowed) {
+        expect(rerunLinks[0]).toHaveAttribute(
+          'href',
+          expect.stringContaining('rerunIndex=2')
+        );
+      } else {
+        expect(rerunLinks[0]).toHaveAttribute('aria-disabled', 'true');
+        expect(rerunLinks[0]).not.toHaveAttribute('href');
+      }
+    }
+  );
 });

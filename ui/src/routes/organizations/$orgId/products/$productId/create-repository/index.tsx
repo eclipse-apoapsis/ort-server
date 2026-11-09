@@ -25,6 +25,7 @@ import type { ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { zRepositoryType } from '@/api/zod.gen';
+import { withProductPermission } from '@/components/authorization';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { PasswordInput } from '@/components/form/password-input';
 import { Button } from '@/components/ui/button';
@@ -275,5 +276,5 @@ export const CreateRepositoryPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/create-repository/'
 )({
-  component: CreateRepositoryPage,
+  component: withProductPermission('CREATE_REPOSITORY', CreateRepositoryPage),
 });
