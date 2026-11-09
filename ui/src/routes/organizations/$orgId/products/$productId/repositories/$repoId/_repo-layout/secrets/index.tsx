@@ -38,6 +38,7 @@ import {
   getRepositorySecretsOptions,
   getRepositorySecretsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -388,7 +389,9 @@ const RepositorySecrets = () => {
           </CardDescription>
           <div className='py-2'>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <ActionTooltipTrigger
+                disabled={canManageProductSecrets === false}
+              >
                 <Button
                   asChild
                   size='sm'
@@ -405,7 +408,7 @@ const RepositorySecrets = () => {
                     Manage product secrets
                   </Link>
                 </Button>
-              </TooltipTrigger>
+              </ActionTooltipTrigger>
               {canManageProductSecrets === false && (
                 <TooltipContent>Insufficient permissions.</TooltipContent>
               )}
@@ -438,7 +441,7 @@ const RepositorySecrets = () => {
           </CardDescription>
           <div className='py-2'>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <ActionTooltipTrigger disabled={canManageOrgSecrets === false}>
                 <Button
                   asChild
                   size='sm'
@@ -454,7 +457,7 @@ const RepositorySecrets = () => {
                     Manage organization secrets
                   </Link>
                 </Button>
-              </TooltipTrigger>
+              </ActionTooltipTrigger>
               {canManageOrgSecrets === false && (
                 <TooltipContent>Insufficient permissions.</TooltipContent>
               )}

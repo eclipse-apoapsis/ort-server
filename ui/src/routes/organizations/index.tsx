@@ -24,6 +24,7 @@ import z from 'zod';
 
 import { Organization } from '@/api';
 import { getOrganizationsOptions } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { DataTable } from '@/components/data-table/data-table';
 import { OrganizationFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -35,11 +36,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import {
   createAppColumnHelper,
   selectNoTableState,
@@ -175,7 +172,7 @@ export const OrganizationsPage = () => {
         </CardDescription>
         <div className='py-2'>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <ActionTooltipTrigger disabled={isSuperuser === false}>
               <Button
                 asChild
                 size='sm'
@@ -187,7 +184,7 @@ export const OrganizationsPage = () => {
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>
-            </TooltipTrigger>
+            </ActionTooltipTrigger>
             <TooltipContent>
               {isSuperuser !== false
                 ? 'Add an organization for managing products'

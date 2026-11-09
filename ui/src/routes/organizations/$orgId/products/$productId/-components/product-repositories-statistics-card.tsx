@@ -22,13 +22,10 @@ import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
 import { getProductRepositoriesOptions } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { useProductPermission } from '@/hooks/use-authorization';
 
 type ProductRepositoriesStatisticsCardProps = {
@@ -70,7 +67,10 @@ export const ProductRepositoriesStatisticsCard = ({
         <div className='flex'>
           <div className='text-2xl font-bold'>{repositoriesTotal}</div>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <ActionTooltipTrigger
+              disabled={canCreateRepository === false}
+              className='ml-auto'
+            >
               <Button
                 asChild
                 size='sm'
@@ -88,7 +88,7 @@ export const ProductRepositoriesStatisticsCard = ({
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>
-            </TooltipTrigger>
+            </ActionTooltipTrigger>
             <TooltipContent>
               {canCreateRepository !== false
                 ? 'Add a repository for managing compliance runs'
