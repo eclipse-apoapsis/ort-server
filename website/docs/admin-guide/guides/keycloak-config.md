@@ -24,7 +24,7 @@ This allows the ORT Server to authenticate with Keycloak without the need for a 
 - _Default client ID:_ `ort-server-backend`
 - _Client authentication:_ Enabled
 - _Authentication flow:_ Service account roles
-- _Client scopes:_ Default
+- _Client scopes:_ Default, plus `kc-admin-api` (required since Keycloak 26.8.2 to access the Admin REST API)
 - _Service account roles:_ `default-roles-<realm-name>`, `admin`
 
 Required configuration for the `core` application:
