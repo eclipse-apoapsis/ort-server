@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postRepositorySecretMutation } from '@/api/@tanstack/react-query.gen';
+import { withRepositoryPermission } from '@/components/authorization';
 import { PasswordInput } from '@/components/form/password-input';
 import { Button } from '@/components/ui/button';
 import {
@@ -163,5 +164,9 @@ const CreateRepositorySecretPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret/'
 )({
-  component: CreateRepositorySecretPage,
+  // Creating a secret needs write permission, while the secrets list needs only read permission.
+  component: withRepositoryPermission(
+    'WRITE_SECRETS',
+    CreateRepositorySecretPage
+  ),
 });

@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postOrganizationSecretMutation } from '@/api/@tanstack/react-query.gen';
+import { withOrganizationPermission } from '@/components/authorization';
 import { PasswordInput } from '@/components/form/password-input.tsx';
 import { Button } from '@/components/ui/button';
 import {
@@ -161,5 +162,9 @@ const CreateOrganizationSecretPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/secrets/create-secret/'
 )({
-  component: CreateOrganizationSecretPage,
+  // Creating a secret needs write permission, while the secrets list needs only read permission.
+  component: withOrganizationPermission(
+    'WRITE_SECRETS',
+    CreateOrganizationSecretPage
+  ),
 });

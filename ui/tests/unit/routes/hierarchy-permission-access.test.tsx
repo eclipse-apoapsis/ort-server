@@ -29,11 +29,20 @@ import type {
   UserInfo,
 } from '@/api';
 import { Route as RepositoryLayoutRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/route';
+import { Route as RepositorySecretEditRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/$secretName/edit/index';
+import { Route as RepositorySecretCreateRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret/index';
+import { Route as RepositorySecretsRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/route';
 import { Route as RepositoryUsersRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/route';
 import { Route as RepositoryRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/route';
 import { Route as ProductRoute } from '@/routes/organizations/$orgId/products/$productId/route';
+import { Route as ProductSecretEditRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/$secretName/edit/index';
+import { Route as ProductSecretCreateRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/create-secret/index';
+import { Route as ProductSecretsRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/route';
 import { Route as ProductUsersRoute } from '@/routes/organizations/$orgId/products/$productId/users/route';
 import { Route as OrganizationRoute } from '@/routes/organizations/$orgId/route';
+import { Route as OrganizationSecretEditRoute } from '@/routes/organizations/$orgId/secrets/$secretName/edit/index';
+import { Route as OrganizationSecretCreateRoute } from '@/routes/organizations/$orgId/secrets/create-secret/index';
+import { Route as OrganizationSecretsRoute } from '@/routes/organizations/$orgId/secrets/route';
 import { Route as OrganizationUsersRoute } from '@/routes/organizations/$orgId/users/route';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 import type { TestRouteDefinition } from '../fixtures/router-harness';
@@ -49,6 +58,9 @@ const mocks = vi.hoisted(() => ({
   getRepository: vi.fn(),
   getSuperuser: vi.fn(),
   getUserInfo: vi.fn(),
+  getOrganizationSecret: vi.fn(),
+  getProductSecret: vi.fn(),
+  getRepositorySecret: vi.fn(),
 }));
 
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
@@ -61,58 +73,91 @@ vi.mock('@/lib/toast', () => ({
   toastError: vi.fn(),
 }));
 
-// The page under a guarded route, which the tests only need to recognize.
-const UsersList = () => <div>Users list</div>;
+// The pages under the guarded routes, which the tests only need to recognize.
+const ListPage = () => <div>List page</div>;
 const OtherPage = () => <div>Other page</div>;
 const Forbidden = () => <div>Forbidden</div>;
 
-// The guarded users route with a page under it, without the loader that fetches the users, and
-// another page under the same layout, which shows its menu without passing the guard.
-const usersRoute = (
-  path: string,
-  route: typeof OrganizationUsersRoute | typeof ProductUsersRoute
-): TestRouteDefinition => ({
-  path,
-  component: route.options.component,
-  children: [{ path: '/', component: UsersList }],
-});
+type GuardRoute = { options: { component?: TestRouteDefinition['component'] } };
 
-const otherRoute: TestRouteDefinition = { path: 'other', component: OtherPage };
+// The pages under the layout of a level: the users and secrets lists behind their guards, without
+// the loaders that fetch the lists, the secret create and edit pages, and another page, which
+// shows the menu of the layout without passing a guard.
+const subpages = (routes: {
+  users: GuardRoute;
+  secrets: GuardRoute;
+  createSecret: GuardRoute;
+  editSecret: GuardRoute;
+}): TestRouteDefinition[] => [
+  {
+    path: 'users',
+    component: routes.users.options.component,
+    children: [{ path: '/', component: ListPage }],
+  },
+  {
+    path: 'secrets',
+    component: routes.secrets.options.component,
+    children: [
+      { path: '/', component: ListPage },
+      {
+        path: 'create-secret/',
+        component: routes.createSecret.options.component,
+      },
+      {
+        path: '$secretName/edit/',
+        component: routes.editSecret.options.component,
+      },
+    ],
+  },
+  { path: 'other', component: OtherPage },
+];
 
 const levels = [
   {
     level: 'organization',
-    path: '/organizations/1/users',
+    path: '/organizations/1',
     routes: [
       {
         path: '/organizations/$orgId',
         loader: OrganizationRoute.options.loader,
         component: OrganizationRoute.options.component,
-        children: [usersRoute('users', OrganizationUsersRoute), otherRoute],
+        children: subpages({
+          users: OrganizationUsersRoute,
+          secrets: OrganizationSecretsRoute,
+          createSecret: OrganizationSecretCreateRoute,
+          editSecret: OrganizationSecretEditRoute,
+        }),
       },
     ],
+    getSecret: mocks.getOrganizationSecret,
     permissionsOf: (permissions: LevelPermission[]) => ({
       organizationPermissions: permissions,
     }),
   },
   {
     level: 'product',
-    path: '/organizations/1/products/2/users',
+    path: '/organizations/1/products/2',
     routes: [
       {
         path: '/organizations/$orgId/products/$productId',
         loader: ProductRoute.options.loader,
         component: ProductRoute.options.component,
-        children: [usersRoute('users', ProductUsersRoute), otherRoute],
+        children: subpages({
+          users: ProductUsersRoute,
+          secrets: ProductSecretsRoute,
+          createSecret: ProductSecretCreateRoute,
+          editSecret: ProductSecretEditRoute,
+        }),
       },
     ],
+    getSecret: mocks.getProductSecret,
     permissionsOf: (permissions: LevelPermission[]) => ({
       productPermissions: permissions,
     }),
   },
   {
     level: 'repository',
-    path: '/organizations/1/products/2/repositories/3/users',
+    path: '/organizations/1/products/2/repositories/3',
     routes: [
       {
         path: '/organizations/$orgId/products/$productId/repositories/$repoId',
@@ -122,28 +167,36 @@ const levels = [
           {
             id: '_repo-layout',
             component: RepositoryLayoutRoute.options.component,
-            children: [
-              {
-                path: 'users',
-                component: RepositoryUsersRoute.options.component,
-                children: [{ path: '/', component: UsersList }],
-              },
-              otherRoute,
-            ],
+            children: subpages({
+              users: RepositoryUsersRoute,
+              secrets: RepositorySecretsRoute,
+              createSecret: RepositorySecretCreateRoute,
+              editSecret: RepositorySecretEditRoute,
+            }),
           },
         ],
       },
     ],
+    getSecret: mocks.getRepositorySecret,
     permissionsOf: (permissions: LevelPermission[]) => ({
       repositoryPermissions: permissions,
     }),
   },
 ] as const;
 
+const lists = [
+  { menuEntry: 'Users', subpage: 'users' },
+  { menuEntry: 'Secrets', subpage: 'secrets' },
+] as const;
+
+const levelsAndLists = levels.flatMap((level) =>
+  lists.map((list) => ({ ...level, ...list }))
+);
+
 const renderLevel = (
   level: (typeof levels)[number],
   permissions: LevelPermission[],
-  page = 'users'
+  subpage: string
 ) => {
   const userInfo: UserInfo = {
     fullName: 'Me',
@@ -154,7 +207,7 @@ const renderLevel = (
   mocks.getUserInfo.mockResolvedValue({ data: userInfo });
 
   return renderInteractiveWithRouter(null, {
-    path: level.path.replace(/users$/, page),
+    path: `${level.path}/${subpage}`,
     routes: [...level.routes, { path: '/403', component: Forbidden }],
     withQueryClient: true,
     context: { breadcrumbs: {}, permissions: {} },
@@ -173,32 +226,40 @@ describe('hierarchy permission access', () => {
       data: { id: 3, organizationId: 1, productId: 2, name: 'Repository' },
     });
     mocks.getSuperuser.mockResolvedValue({ data: false });
+
+    for (const level of levels) {
+      level.getSecret.mockResolvedValue({
+        data: { name: 'token', description: 'A token' },
+      });
+    }
   });
 
-  it.each(levels)(
-    'shows the users of the $level level to users with read permission',
+  it.each(levelsAndLists)(
+    'shows the $subpage of the $level level to users with read permission',
     async (level) => {
-      renderLevel(level, ['READ']);
+      renderLevel(level, ['READ'], level.subpage);
 
-      expect(await screen.findByText('Users list')).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Users' })).toBeInTheDocument();
+      expect(await screen.findByText('List page')).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: level.menuEntry })
+      ).toBeInTheDocument();
     }
   );
 
-  it.each(levels)(
-    'denies the users of the $level level to users without read permission',
+  it.each(levelsAndLists)(
+    'denies the $subpage of the $level level to users without read permission',
     async (level) => {
-      renderLevel(level, []);
+      renderLevel(level, [], level.subpage);
 
       expect(await screen.findByText('Forbidden')).toBeInTheDocument();
       await waitFor(() =>
-        expect(screen.queryByText('Users list')).not.toBeInTheDocument()
+        expect(screen.queryByText('List page')).not.toBeInTheDocument()
       );
     }
   );
 
-  it.each(levels)(
-    'shows no users menu entry on the $level level without read permission',
+  it.each(levelsAndLists)(
+    'shows no $subpage menu entry on the $level level without read permission',
     async (level) => {
       renderLevel(level, [], 'other');
 
@@ -207,8 +268,31 @@ describe('hierarchy permission access', () => {
         screen.getByRole('link', { name: 'Packages' })
       ).toBeInTheDocument();
       expect(
-        screen.queryByRole('link', { name: 'Users' })
+        screen.queryByRole('link', { name: level.menuEntry })
       ).not.toBeInTheDocument();
     }
   );
+
+  describe.each([
+    { page: 'create', subpage: 'secrets/create-secret' },
+    { page: 'edit', subpage: 'secrets/token/edit' },
+  ])('the secret $page page', ({ subpage }) => {
+    it.each(levels)(
+      'is denied on the $level level to users who may only read secrets',
+      async (level) => {
+        renderLevel(level, ['READ'], subpage);
+
+        expect(await screen.findByText('Forbidden')).toBeInTheDocument();
+      }
+    );
+
+    it.each(levels)(
+      'opens on the $level level for users who may write secrets',
+      async (level) => {
+        renderLevel(level, ['READ', 'WRITE_SECRETS'], subpage);
+
+        expect(await screen.findByLabelText('Value')).toBeInTheDocument();
+      }
+    );
+  });
 });

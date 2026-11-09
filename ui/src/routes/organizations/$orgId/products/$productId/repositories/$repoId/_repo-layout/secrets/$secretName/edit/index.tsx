@@ -28,6 +28,7 @@ import {
   getRepositorySecretOptions,
   patchRepositorySecretMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { withRepositoryPermission } from '@/components/authorization';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button';
@@ -212,6 +213,10 @@ export const Route = createFileRoute(
       }),
     });
   },
-  component: EditRepositorySecretPage,
+  // Editing a secret needs write permission, while the secrets list needs only read permission.
+  component: withRepositoryPermission(
+    'WRITE_SECRETS',
+    EditRepositorySecretPage
+  ),
   pendingComponent: LoadingIndicator,
 });

@@ -44,6 +44,7 @@ const mocks = vi.hoisted(() => ({
 const permissions = vi.hoisted(() => ({
   useOrganizationPermission: vi.fn(),
   useProductPermission: vi.fn(),
+  useRepositoryPermission: vi.fn(),
 }));
 
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
@@ -76,23 +77,29 @@ const serveSecrets = (
     pageOf(createSecrets(prefix, Math.min(count, 2)), { totalCount: count })
   );
 
-const allowWritingSecrets = ({
-  organization = true,
-  product = true,
+type Permission = 'READ' | 'WRITE_SECRETS';
+
+// Grants the given permissions on each level, which the permission hooks then answer with.
+const grant = ({
+  organization = ['READ', 'WRITE_SECRETS'],
+  product = ['READ', 'WRITE_SECRETS'],
+  repository = ['READ', 'WRITE_SECRETS'],
 }: {
-  organization?: boolean;
-  product?: boolean;
+  organization?: Permission[];
+  product?: Permission[];
+  repository?: Permission[];
 }) => {
-  permissions.useOrganizationPermission.mockReturnValue({
-    isAllowed: organization,
-    isPending: false,
-    error: null,
-  });
-  permissions.useProductPermission.mockReturnValue({
-    isAllowed: product,
-    isPending: false,
-    error: null,
-  });
+  for (const [hook, granted] of [
+    [permissions.useOrganizationPermission, organization],
+    [permissions.useProductPermission, product],
+    [permissions.useRepositoryPermission, repository],
+  ] as const) {
+    hook.mockImplementation((_id: number, permission: Permission) => ({
+      isAllowed: granted.includes(permission),
+      isPending: false,
+      error: null,
+    }));
+  }
 };
 
 const renderSecrets = (
@@ -147,14 +154,30 @@ const expectNoActions = (card: Card) => {
   ).not.toBeInTheDocument();
 };
 
-// The router link renders `aria-disabled` only when it is disabled.
-const expectManageLink = (card: Card, name: string, allowed: boolean) => {
-  const link = card.getByText(name).closest('a')!;
-
-  if (allowed) {
+// The router link renders `aria-disabled` and no target only when it is disabled.
+const expectLinkEnabled = (link: HTMLElement, enabled: boolean) => {
+  if (enabled) {
     expect(link).not.toHaveAttribute('aria-disabled');
+    expect(link).toHaveAttribute('href');
   } else {
     expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).not.toHaveAttribute('href');
+  }
+};
+
+const expectManageLink = (card: Card, name: string, allowed: boolean) =>
+  expectLinkEnabled(card.getByText(name).closest('a')!, allowed);
+
+// The actions on the secrets of the level itself, which need permission to write secrets.
+const expectOwnActions = (card: Card, enabled: boolean) => {
+  expectLinkEnabled(card.getByText('Add secret').closest('a')!, enabled);
+
+  for (const edit of card.getAllByText('Edit')) {
+    expectLinkEnabled(edit.closest('a')!, enabled);
+  }
+  for (const remove of card.getAllByRole('button', { name: 'Delete' })) {
+    if (enabled) expect(remove).toBeEnabled();
+    else expect(remove).toBeDisabled();
   }
 };
 
@@ -183,7 +206,7 @@ describe('secrets pages', () => {
     mocks.deleteOrganizationSecret.mockResolvedValue({ data: undefined });
     mocks.deleteProductSecret.mockResolvedValue({ data: undefined });
     mocks.deleteRepositorySecret.mockResolvedValue({ data: undefined });
-    allowWritingSecrets({});
+    grant({});
   });
 
   describe('organization', () => {
@@ -259,7 +282,7 @@ describe('secrets pages', () => {
     it.each([true, false])(
       'offers to manage the organization secrets if allowed to write them: %s',
       async (allowed) => {
-        allowWritingSecrets({ organization: allowed });
+        grant({ organization: allowed ? ['READ', 'WRITE_SECRETS'] : ['READ'] });
         renderSecrets(level);
 
         const card = await findCard('Organization Secrets');
@@ -332,7 +355,12 @@ describe('secrets pages', () => {
     ])(
       'offers to manage the inherited secrets of each level it may write: $product for the product, $organization for the organization',
       async (allowed) => {
-        allowWritingSecrets(allowed);
+        grant({
+          product: allowed.product ? ['READ', 'WRITE_SECRETS'] : ['READ'],
+          organization: allowed.organization
+            ? ['READ', 'WRITE_SECRETS']
+            : ['READ'],
+        });
         renderSecrets(level);
 
         const productCard = await findCard('Product Secrets');
@@ -350,5 +378,28 @@ describe('secrets pages', () => {
         );
       }
     );
+  });
+
+  describe.each([
+    { ...levels.organization, title: 'Secrets' },
+    { ...levels.product, title: 'Product Secrets' },
+    { ...levels.repository, title: 'Repository Secrets' },
+  ])('$level', (level) => {
+    it('shows the secrets to readers with the actions disabled', async () => {
+      grant({ [level.level]: ['READ'] });
+      renderSecrets(level);
+
+      const card = await findCard(level.title);
+
+      expect(card.getByText(`${level.level}-1`)).toBeVisible();
+      expect(card.getByText(`Secret 1 of the ${level.level}`)).toBeVisible();
+      expectOwnActions(card, false);
+    });
+
+    it('enables the actions for users who may write secrets', async () => {
+      renderSecrets(level);
+
+      expectOwnActions(await findCard(level.title), true);
+    });
   });
 });
