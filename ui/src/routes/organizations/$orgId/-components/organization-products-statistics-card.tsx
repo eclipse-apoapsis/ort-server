@@ -22,13 +22,10 @@ import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
 import { getOrganizationProductsOptions } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { useOrganizationPermission } from '@/hooks/use-authorization';
 
 type OrganizationProductsStatisticsCardProps = {
@@ -68,7 +65,10 @@ export const OrganizationProductsStatisticsCard = ({
         <div className='flex'>
           <div className='text-2xl font-bold'>{total}</div>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <ActionTooltipTrigger
+              disabled={canCreateProduct === false}
+              className='ml-auto'
+            >
               <Button
                 asChild
                 size='sm'
@@ -85,7 +85,7 @@ export const OrganizationProductsStatisticsCard = ({
                   <PlusIcon className='h-4 w-4' />
                 </Link>
               </Button>
-            </TooltipTrigger>
+            </ActionTooltipTrigger>
             <TooltipContent>
               {canCreateProduct !== false
                 ? 'Add a product to this organization'

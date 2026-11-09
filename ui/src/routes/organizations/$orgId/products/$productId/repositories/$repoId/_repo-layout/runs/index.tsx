@@ -25,6 +25,7 @@ import {
   getRepositoryOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { JobDurations } from '@/components/charts/job-durations';
 import { RepositoryFavoriteButton } from '@/components/favorite-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -36,11 +37,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { toastError } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
@@ -130,7 +127,7 @@ const RepositoryRunsComponent = () => {
           <CardTitle>Runs</CardTitle>
           <div className='py-2'>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <ActionTooltipTrigger disabled={canTriggerRun === false}>
                 <Button
                   asChild
                   size='sm'
@@ -149,7 +146,7 @@ const RepositoryRunsComponent = () => {
                     <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
-              </TooltipTrigger>
+              </ActionTooltipTrigger>
               {canTriggerRun === false && (
                 <TooltipContent>Insufficient permissions.</TooltipContent>
               )}

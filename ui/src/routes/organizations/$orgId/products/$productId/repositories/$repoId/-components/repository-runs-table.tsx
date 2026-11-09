@@ -36,6 +36,7 @@ import {
   getRepositoryRunOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -400,7 +401,7 @@ const createColumns = (
               <TooltipContent>View the details of this run</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <ActionTooltipTrigger disabled={canTriggerRun === false}>
                 <Button
                   variant='outline'
                   asChild
@@ -422,7 +423,7 @@ const createColumns = (
                     <Repeat className='h-4 w-4' />
                   </Link>
                 </Button>
-              </TooltipTrigger>
+              </ActionTooltipTrigger>
               <TooltipContent>
                 {canTriggerRun !== false
                   ? 'Create a new run based on this run'

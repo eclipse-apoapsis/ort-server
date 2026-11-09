@@ -25,6 +25,7 @@ import {
   getRepositoryRunOptions,
   getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { RunFavoriteButton } from '@/components/favorite-button';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
@@ -173,7 +174,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
         </div>
         <div className='flex items-start gap-2'>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <ActionTooltipTrigger disabled={canTriggerRun === false}>
               <Button
                 variant='outline'
                 asChild
@@ -195,7 +196,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
                   Rerun
                 </Link>
               </Button>
-            </TooltipTrigger>
+            </ActionTooltipTrigger>
             {canTriggerRun === false && (
               <TooltipContent>Insufficient permissions.</TooltipContent>
             )}
