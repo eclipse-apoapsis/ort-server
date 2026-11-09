@@ -32,6 +32,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.components.projections.ProjectionRegistry
 import org.eclipse.apoapsis.ortserver.components.reportstorage.reportStorageModule
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -75,6 +76,7 @@ import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteUnusedProjectionsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.SyncKeycloakUsersTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.FailedJobNotifier
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler
@@ -131,6 +133,7 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  * - `delete-old-ort-runs`: Deletes old ORT runs according to the configured data retention policy.
  * - `delete-orphaned-entities`: Deletes entities from the database that are shared between ORT runs, but are no longer
  *   referenced by any run.
+ * - `delete-unused-projections`: Deletes projections that have not been accessed for the configured number of days.
  * - `kubernetes-reaper`: Cleans up completed Kubernetes jobs and also notifies the Orchestrator about failed jobs.
  *   This task is part of the Kubernetes Job Monitor.
  * - `kubernetes-lost-jobs-finder`: Checks for jobs that are active, according to the database, but for which no
@@ -242,6 +245,7 @@ private fun tasksModule(): Module =
         single { TimeHelper() }
 
         singleOf(::OrphanRemovalService)
+        singleOf(::ProjectionRegistry)
         singleOf(::OrtRunService)
 
         singleOf(DeleteOldOrtRunsTask::create) {
@@ -250,6 +254,10 @@ private fun tasksModule(): Module =
         }
         singleOf(DeleteOrphanedEntitiesTask::create) {
             named("delete-orphaned-entities")
+            bind<Task>()
+        }
+        singleOf(DeleteUnusedProjectionsTask::create) {
+            named("delete-unused-projections")
             bind<Task>()
         }
         singleOf(::LongRunningJobsFinderTask) {

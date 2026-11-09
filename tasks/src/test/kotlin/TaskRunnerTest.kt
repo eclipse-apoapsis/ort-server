@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.unmockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteUnusedProjectionsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
@@ -114,6 +115,13 @@ class TaskRunnerTest : KoinTest, WordSpec() {
                 checkMain { koin ->
                     val task = koin.get<Task>(named("delete-orphaned-entities"))
                     task should beInstanceOf<DeleteOrphanedEntitiesTask>()
+                }
+            }
+
+            "include a task to delete unused projections" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("delete-unused-projections"))
+                    task should beInstanceOf<DeleteUnusedProjectionsTask>()
                 }
             }
 
