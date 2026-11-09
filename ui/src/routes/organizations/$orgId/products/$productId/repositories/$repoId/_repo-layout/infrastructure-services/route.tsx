@@ -24,5 +24,5 @@ import { withRepositoryPermission } from '@/components/authorization';
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services'
 )({
-  component: withRepositoryPermission('WRITE'),
+  component: withRepositoryPermission('READ'),
 });

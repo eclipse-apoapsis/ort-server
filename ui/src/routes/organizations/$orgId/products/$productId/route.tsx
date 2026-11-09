@@ -92,7 +92,7 @@ const Layout = () => {
           title: 'Infrastructure Services',
           to: '/organizations/$orgId/products/$productId/infrastructure-services',
           icon: () => <ServerCog className='h-4 w-4' />,
-          visible: productPermissions?.includes('WRITE'),
+          visible: productPermissions?.includes('READ'),
         },
         {
           title: 'Users',

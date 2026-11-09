@@ -28,6 +28,7 @@ import {
   getOrganizationInfrastructureServiceOptions,
   patchOrganizationInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { withOrganizationPermission } from '@/components/authorization';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { SecretSelect } from '@/components/secret-select';
@@ -309,6 +310,8 @@ export const Route = createFileRoute(
       }),
     });
   },
-  component: EditInfrastructureServicePage,
+  // Editing an infrastructure service needs write permission, while the list needs only read
+  // permission.
+  component: withOrganizationPermission('WRITE', EditInfrastructureServicePage),
   pendingComponent: LoadingIndicator,
 });

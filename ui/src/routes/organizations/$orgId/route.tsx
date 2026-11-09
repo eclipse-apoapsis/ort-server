@@ -94,7 +94,7 @@ const Layout = () => {
           title: 'Infrastructure Services',
           to: '/organizations/$orgId/infrastructure-services',
           icon: () => <ServerCog className='h-4 w-4' />,
-          visible: organizationPermissions?.includes('WRITE'),
+          visible: organizationPermissions?.includes('READ'),
         },
         {
           title: 'Users',

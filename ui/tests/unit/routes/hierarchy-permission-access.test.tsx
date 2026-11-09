@@ -28,6 +28,15 @@ import type {
   RepositoryPermission,
   UserInfo,
 } from '@/api';
+import { Route as OrganizationServiceEditRoute } from '@/routes/organizations/$orgId/infrastructure-services/$serviceName/edit/index';
+import { Route as OrganizationServiceCreateRoute } from '@/routes/organizations/$orgId/infrastructure-services/create/index';
+import { Route as OrganizationServicesRoute } from '@/routes/organizations/$orgId/infrastructure-services/route';
+import { Route as ProductServiceEditRoute } from '@/routes/organizations/$orgId/products/$productId/infrastructure-services/$serviceName/edit/index';
+import { Route as ProductServiceCreateRoute } from '@/routes/organizations/$orgId/products/$productId/infrastructure-services/create/index';
+import { Route as ProductServicesRoute } from '@/routes/organizations/$orgId/products/$productId/infrastructure-services/route';
+import { Route as RepositoryServiceEditRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services/$serviceName/edit/index';
+import { Route as RepositoryServiceCreateRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services/create/index';
+import { Route as RepositoryServicesRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services/route';
 import { Route as RepositoryLayoutRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/route';
 import { Route as RepositorySecretEditRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/$secretName/edit/index';
 import { Route as RepositorySecretCreateRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret/index';
@@ -61,6 +70,12 @@ const mocks = vi.hoisted(() => ({
   getOrganizationSecret: vi.fn(),
   getProductSecret: vi.fn(),
   getRepositorySecret: vi.fn(),
+  getOrganizationInfrastructureService: vi.fn(),
+  getProductInfrastructureService: vi.fn(),
+  getRepositoryInfrastructureService: vi.fn(),
+  getOrganizationSecrets: vi.fn(),
+  getProductSecrets: vi.fn(),
+  getRepositorySecrets: vi.fn(),
 }));
 
 vi.mock('@/api/sdk.gen', async (importOriginal) => ({
@@ -88,6 +103,9 @@ const subpages = (routes: {
   secrets: GuardRoute;
   createSecret: GuardRoute;
   editSecret: GuardRoute;
+  services: GuardRoute;
+  createService: GuardRoute;
+  editService: GuardRoute;
 }): TestRouteDefinition[] => [
   {
     path: 'users',
@@ -109,6 +127,18 @@ const subpages = (routes: {
       },
     ],
   },
+  {
+    path: 'infrastructure-services',
+    component: routes.services.options.component,
+    children: [
+      { path: '/', component: ListPage },
+      { path: 'create/', component: routes.createService.options.component },
+      {
+        path: '$serviceName/edit/',
+        component: routes.editService.options.component,
+      },
+    ],
+  },
   { path: 'other', component: OtherPage },
 ];
 
@@ -126,10 +156,14 @@ const levels = [
           secrets: OrganizationSecretsRoute,
           createSecret: OrganizationSecretCreateRoute,
           editSecret: OrganizationSecretEditRoute,
+          services: OrganizationServicesRoute,
+          createService: OrganizationServiceCreateRoute,
+          editService: OrganizationServiceEditRoute,
         }),
       },
     ],
     getSecret: mocks.getOrganizationSecret,
+    getService: mocks.getOrganizationInfrastructureService,
     permissionsOf: (permissions: LevelPermission[]) => ({
       organizationPermissions: permissions,
     }),
@@ -147,10 +181,14 @@ const levels = [
           secrets: ProductSecretsRoute,
           createSecret: ProductSecretCreateRoute,
           editSecret: ProductSecretEditRoute,
+          services: ProductServicesRoute,
+          createService: ProductServiceCreateRoute,
+          editService: ProductServiceEditRoute,
         }),
       },
     ],
     getSecret: mocks.getProductSecret,
+    getService: mocks.getProductInfrastructureService,
     permissionsOf: (permissions: LevelPermission[]) => ({
       productPermissions: permissions,
     }),
@@ -172,12 +210,16 @@ const levels = [
               secrets: RepositorySecretsRoute,
               createSecret: RepositorySecretCreateRoute,
               editSecret: RepositorySecretEditRoute,
+              services: RepositoryServicesRoute,
+              createService: RepositoryServiceCreateRoute,
+              editService: RepositoryServiceEditRoute,
             }),
           },
         ],
       },
     ],
     getSecret: mocks.getRepositorySecret,
+    getService: mocks.getRepositoryInfrastructureService,
     permissionsOf: (permissions: LevelPermission[]) => ({
       repositoryPermissions: permissions,
     }),
@@ -187,6 +229,7 @@ const levels = [
 const lists = [
   { menuEntry: 'Users', subpage: 'users' },
   { menuEntry: 'Secrets', subpage: 'secrets' },
+  { menuEntry: 'Infrastructure Services', subpage: 'infrastructure-services' },
 ] as const;
 
 const levelsAndLists = levels.flatMap((level) =>
@@ -230,6 +273,24 @@ describe('hierarchy permission access', () => {
     for (const level of levels) {
       level.getSecret.mockResolvedValue({
         data: { name: 'token', description: 'A token' },
+      });
+      level.getService.mockResolvedValue({
+        data: {
+          name: 'repo',
+          url: 'https://repo.example.com',
+          usernameSecretRef: 'user',
+          passwordSecretRef: 'password',
+        },
+      });
+    }
+    // The service forms offer the secrets of the hierarchy to choose from.
+    for (const secrets of [
+      mocks.getOrganizationSecrets,
+      mocks.getProductSecrets,
+      mocks.getRepositorySecrets,
+    ]) {
+      secrets.mockResolvedValue({
+        data: { data: [], pagination: { limit: 10, offset: 0, totalCount: 0 } },
       });
     }
   });
@@ -292,6 +353,29 @@ describe('hierarchy permission access', () => {
         renderLevel(level, ['READ', 'WRITE_SECRETS'], subpage);
 
         expect(await screen.findByLabelText('Value')).toBeInTheDocument();
+      }
+    );
+  });
+
+  describe.each([
+    { page: 'create', subpage: 'infrastructure-services/create' },
+    { page: 'edit', subpage: 'infrastructure-services/repo/edit' },
+  ])('the infrastructure service $page page', ({ subpage }) => {
+    it.each(levels)(
+      'is denied on the $level level to users who may only read and write secrets',
+      async (level) => {
+        renderLevel(level, ['READ', 'WRITE_SECRETS'], subpage);
+
+        expect(await screen.findByText('Forbidden')).toBeInTheDocument();
+      }
+    );
+
+    it.each(levels)(
+      'opens on the $level level for users who may write',
+      async (level) => {
+        renderLevel(level, ['READ', 'WRITE'], subpage);
+
+        expect(await screen.findByLabelText('URL Prefix')).toBeInTheDocument();
       }
     );
   });

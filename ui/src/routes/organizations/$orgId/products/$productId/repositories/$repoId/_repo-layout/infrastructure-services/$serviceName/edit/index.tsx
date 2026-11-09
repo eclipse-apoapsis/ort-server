@@ -28,6 +28,7 @@ import {
   getRepositoryInfrastructureServiceOptions,
   patchRepositoryInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { withRepositoryPermission } from '@/components/authorization';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { SecretSelect } from '@/components/secret-select';
@@ -321,6 +322,8 @@ export const Route = createFileRoute(
       }),
     });
   },
-  component: EditInfrastructureServicePage,
+  // Editing an infrastructure service needs write permission, while the list needs only read
+  // permission.
+  component: withRepositoryPermission('WRITE', EditInfrastructureServicePage),
   pendingComponent: LoadingIndicator,
 });
