@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ExpandedState } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -25,10 +25,17 @@ import { PackageURL } from 'packageurl-js';
 import { useState } from 'react';
 import z from 'zod';
 
-import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
+import {
+  getRunVulnerabilities,
+  GetRunVulnerabilitiesData,
+  Options,
+  PagedResponseVulnerabilityWithDetails,
+  VulnerabilityRating,
+  VulnerabilityWithDetails,
+} from '@/api';
 import {
   getRepositoryRunOptions,
-  getRunVulnerabilitiesOptions,
+  getRunVulnerabilitiesQueryKey,
   getRunVulnerabilityAdvisorsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
@@ -90,6 +97,10 @@ import {
 import type { AppRow } from '@/hooks/use-app-table';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { ACTION_COLUMN_SIZE } from '@/lib/constants';
+import {
+  preparedDataRetryOptions,
+  requestPreparedData,
+} from '@/lib/prepared-data';
 import { toastError } from '@/lib/toast';
 import {
   advisorSearchParameterSchema,
@@ -109,6 +120,33 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 import { RunPackageLink } from '../-components/run-package-link';
 
 const defaultPageSize = 10;
+
+/**
+ * Query options for the vulnerabilities of a run. The server prepares the vulnerabilities when they are requested for
+ * the first time. With the `Prefer: respond-async` header, it answers with `202 Accepted` until they are ready instead
+ * of keeping the request open for a long time, so the request is repeated until then.
+ */
+const getPreparedRunVulnerabilitiesOptions = (
+  options: Options<GetRunVulnerabilitiesData>
+) =>
+  queryOptions({
+    queryKey: getRunVulnerabilitiesQueryKey(options),
+    queryFn: async ({ queryKey, signal }) => {
+      const response = await requestPreparedData(
+        () =>
+          getRunVulnerabilities({
+            ...options,
+            ...queryKey[0],
+            headers: { Prefer: 'respond-async' },
+            signal,
+            throwOnError: true,
+          }),
+        signal
+      );
+      return response.data as PagedResponseVulnerabilityWithDetails;
+    },
+    ...preparedDataRetryOptions,
+  });
 const supportedSortColumns = new Set([
   'identifier',
   'purl',
@@ -404,7 +442,7 @@ const VulnerabilitiesComponent = () => {
     isError: totalIsError,
     error: totalError,
   } = useSuspenseQuery({
-    ...getRunVulnerabilitiesOptions({
+    ...getPreparedRunVulnerabilitiesOptions({
       path: { runId: ortRun.id },
       query: { limit: 1 },
     }),
@@ -415,7 +453,7 @@ const VulnerabilitiesComponent = () => {
     isError,
     error,
   } = useSuspenseQuery({
-    ...getRunVulnerabilitiesOptions({
+    ...getPreparedRunVulnerabilitiesOptions({
       path: { runId: ortRun.id },
       query: {
         limit: pageSize,
