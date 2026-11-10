@@ -112,13 +112,28 @@ class DefaultKeycloakClient(
             }
     }
 
-    override suspend fun getUsers(): Set<User> =
+    override suspend fun getUsers(pageSize: Int): Set<User> {
+        // A user renamed while the pages are loaded can show up on two pages with different usernames, so keep only
+        // the user from the later page.
+        val usersById = mutableMapOf<UserId, User>()
+        var first = 0
+
+        do {
+            val page = getUserPage(first, pageSize)
+            page.associateByTo(usersById) { it.id }
+            first += pageSize
+        } while (page.size == pageSize)
+
+        return usersById.values.toSet()
+    }
+
+    /** Return the page of at most [pageSize] users that starts at the given [first] position. */
+    private suspend fun getUserPage(first: Int, pageSize: Int): List<User> =
         runCatching {
             httpClient.get("$apiUrl/users") {
                 url {
-                    // The Keycloak API returns by default only 100 users. By using the query parameter max with the
-                    // value -1, the API returns directly all users.
-                    parameters.append("max", "-1")
+                    parameters.append("first", first.toString())
+                    parameters.append("max", pageSize.toString())
                 }
             }
         }.getOrElse {

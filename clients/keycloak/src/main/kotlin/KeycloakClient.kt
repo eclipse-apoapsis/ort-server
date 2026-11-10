@@ -25,8 +25,11 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
  */
 @Suppress("TooManyFunctions")
 interface KeycloakClient {
-    /** Return a set of all [users][User], which currently exist in the Keycloak realm. */
-    suspend fun getUsers(): Set<User>
+    /**
+     * Return a set of all [users][User], which currently exist in the Keycloak realm. The users are requested from
+     * Keycloak in pages of [pageSize] users.
+     */
+    suspend fun getUsers(pageSize: Int = KeycloakClientConfiguration.DEFAULT_DATA_GET_CHUNK_SIZE): Set<User>
 
     /** Return the [user][User] with the given [username]. */
     suspend fun getUser(username: UserName): User
