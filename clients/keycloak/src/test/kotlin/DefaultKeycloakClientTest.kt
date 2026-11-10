@@ -139,6 +139,9 @@ class DefaultKeycloakClientTest : WordSpec() {
                     }
                 } finally {
                     server.stop()
+
+                    // Do not let the short timeout leak into clients that later tests create.
+                    ConfigFactory.invalidateCaches()
                 }
             }
         }
