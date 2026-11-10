@@ -104,6 +104,30 @@ The following services are exposed by Docker Compose:
 | Graphite       | http://localhost:8888                       | root:root                                                                            |
 | Grafana        | http://localhost:3200                       | admin:1234                                                                           |
 
+## Run Maintenance Tasks
+
+The ORT Server provides maintenance tasks, for example to delete data that no ORT run refers to anymore.
+In Kubernetes, the Helm chart runs them on a schedule.
+In Docker Compose, the `tasks` service runs them on demand; `docker compose up` does not start it.
+
+To run a task, set its name in the `TASKS` environment variable, for example:
+
+```shell
+TASKS=delete-orphaned-entities docker compose run --rm tasks
+```
+
+To run several tasks, separate their names with commas and no spaces, for example `TASKS=delete-old-ort-runs,delete-orphaned-entities`.
+The `tasks` service has no default task, so every run has to name the tasks to run.
+
+The tasks `delete-old-ort-runs` and `delete-orphaned-entities` work in Docker Compose.
+The tasks whose names start with `kubernetes-` require Kubernetes and fail in Docker Compose.
+
+When using [local images](#run-with-local-images), set the image prefix and tag in the same way as for `docker compose up`:
+
+```shell
+TASKS=delete-orphaned-entities ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest docker compose run --rm tasks
+```
+
 ## Development
 
 ### HTTP request collections

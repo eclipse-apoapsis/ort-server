@@ -572,6 +572,38 @@ services:
         gelf-address: "udp://127.0.0.1:12201"
         tag: "scanner-worker"
 
+  # Runs maintenance tasks by hand, for example `TASKS=delete-orphaned-entities docker compose run --rm tasks`.
+  # It is not started by `docker compose up`.
+  tasks:
+    image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-maintenance-tasks:${ORT_SERVER_IMAGE_TAG:-main}
+    profiles:
+      - tasks
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      keycloak-config:
+        condition: service_completed_successfully
+    environment:
+      TASKS: # Taken from the shell, so that every run names the tasks to run explicitly.
+      ALLOW_SECRETS_FROM_CONFIG: false
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ort_server
+      DB_SCHEMA: ort_server
+      DB_SSL_MODE: disable
+      KEYCLOAK_API_USER: "" # Set to empty to overwrite default value and force use of client credentials flow.
+      KEYCLOAK_CLIENT_ID: ort-server-backend
+      KEYCLOAK_REALM: ort-server
+      TASKS_SECRET_PROVIDER: secret-file
+      TASKS_SECRET_FILES: /mnt/secrets.properties
+    volumes:
+      - type: bind
+        source: ./scripts/compose/secrets.properties
+        target: /mnt/secrets.properties
+    restart: "no"
+
   ui:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-ui:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
