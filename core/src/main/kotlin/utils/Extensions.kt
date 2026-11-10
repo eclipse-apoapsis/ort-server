@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.config.tryGetString
 
 import kotlin.enums.enumEntries
 
@@ -30,29 +29,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-
-fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfiguration {
-    val baseUrl = getString("keycloak.baseUrl")
-    val realm = getString("keycloak.realm")
-
-    val defaultApiUrl = "$baseUrl/admin/realms/$realm"
-    val defaultAccessTokenUrl = "$baseUrl/realms/$realm/protocol/openid-connect/token"
-
-    return KeycloakClientConfiguration(
-        baseUrl = baseUrl,
-        realm = realm,
-        apiUrl = tryGetString("keycloak.apiUrl") ?: defaultApiUrl,
-        clientId = getString("keycloak.clientId"),
-        accessTokenUrl = tryGetString("keycloak.accessTokenUrl") ?: defaultAccessTokenUrl,
-        apiUser = getString("keycloak.apiUser"),
-        apiSecret = getSecret(Path("keycloak.apiSecret"))
-    )
-}
 
 private val emptyPluginConfig = PluginConfig(options = emptyMap(), secrets = emptyMap())
 
