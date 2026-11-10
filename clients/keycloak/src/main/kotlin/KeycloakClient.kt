@@ -31,8 +31,20 @@ interface KeycloakClient {
      */
     suspend fun getUsers(pageSize: Int = KeycloakClientConfiguration.DEFAULT_DATA_GET_CHUNK_SIZE): Set<User>
 
-    /** Return the [user][User] with the given [username]. */
+    /** Return the [user][User] with the given [username], or throw a [KeycloakClientException] if it does not exist. */
     suspend fun getUser(username: UserName): User
+
+    /**
+     * Return the [user][User] with the given [id], or null if Keycloak answers that it does not exist. Throw a
+     * [KeycloakClientException] if the request fails for any other reason.
+     */
+    suspend fun findUser(id: UserId): User?
+
+    /**
+     * Return the [user][User] with the given [username], or null if a successful search does not find it. Throw a
+     * [KeycloakClientException] if the search fails.
+     */
+    suspend fun findUser(username: UserName): User?
 
     /**
      * Create a new [user][User] in the Keycloak realm with the given [username], [firstName], [lastName], [email],

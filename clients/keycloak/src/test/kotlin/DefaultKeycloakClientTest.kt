@@ -39,6 +39,8 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
@@ -252,6 +254,64 @@ class DefaultKeycloakClientTest : WordSpec() {
             }
         }
 
+        "findUser by ID" should {
+            "return the user with the given ID" {
+                client.findUser(adminUser.id) shouldBe adminUser
+            }
+
+            "return null if Keycloak answers that the user does not exist" {
+                client.findUser(UserId("00000000-0000-0000-0000-000000000000")) should beNull()
+            }
+
+            "throw an exception if the request fails" {
+                withFailingKeycloak(status = 500) { failingClient ->
+                    shouldThrow<KeycloakClientException> {
+                        failingClient.findUser(UserId("u1"))
+                    }
+                }
+            }
+
+            "throw an exception if Keycloak cannot be reached" {
+                shouldThrow<KeycloakClientException> {
+                    createUnreachableClient().findUser(UserId("u1"))
+                }
+            }
+        }
+
+        "findUser by username" should {
+            "return the user with the given username" {
+                client.findUser(adminUser.username) shouldBe adminUser
+            }
+
+            "return null if the search does not find the user" {
+                client.findUser(UserName("unknown-user")) should beNull()
+            }
+
+            "throw an exception if the search fails" {
+                withFailingKeycloak(status = 500) { failingClient ->
+                    shouldThrow<KeycloakClientException> {
+                        failingClient.findUser(UserName("user1"))
+                    }
+                }
+            }
+
+            "throw an exception if the search answers with not found" {
+                // A search that finds no user answers with an empty list. "Not found" means that the realm or the URL
+                // is wrong, so the user must not be taken as missing.
+                withFailingKeycloak(status = 404) { failingClient ->
+                    shouldThrow<KeycloakClientException> {
+                        failingClient.findUser(UserName("user1"))
+                    }
+                }
+            }
+
+            "throw an exception if Keycloak cannot be reached" {
+                shouldThrow<KeycloakClientException> {
+                    createUnreachableClient().findUser(UserName("user1"))
+                }
+            }
+        }
+
         "createUser" should {
             "successfully add a new realm user without credentials" {
                 client.createUser(UserName("test_user"))
@@ -364,6 +424,43 @@ private fun WireMockServer.createConfiguration() =
         apiUser = "some-user",
         apiSecret = "some-secret"
     )
+
+/**
+ * Run the given [block] with a client for a Keycloak that issues access tokens but answers every other request with
+ * the given HTTP [status].
+ */
+private suspend fun withFailingKeycloak(status: Int, block: suspend (KeycloakClient) -> Unit) {
+    val json = createJson()
+    val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+    server.start()
+
+    try {
+        server.stubFor(
+            post(anyUrl())
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(json.encodeToString(TokenInfo("some-token")))
+                )
+        )
+
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(status)))
+
+        block(DefaultKeycloakClient.create(server.createConfiguration(), json))
+    } finally {
+        server.stop()
+    }
+}
+
+/** Create a client for a Keycloak that cannot be reached because its server is not running. */
+private fun createUnreachableClient(): KeycloakClient {
+    val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+    server.start()
+    val config = server.createConfiguration()
+    server.stop()
+
+    return DefaultKeycloakClient.create(config, createJson())
+}
 
 /** Create the [Json] instance required by the test client. */
 private fun createJson(): Json = Json {
