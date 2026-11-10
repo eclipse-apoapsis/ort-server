@@ -22,8 +22,11 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.anyUrl
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
 import com.typesafe.config.ConfigFactory
@@ -119,15 +122,7 @@ class DefaultKeycloakClientTest : WordSpec() {
                             )
                     )
 
-                    val config = KeycloakClientConfiguration(
-                        baseUrl = server.baseUrl(),
-                        realm = "some-realm",
-                        apiUrl = "${server.baseUrl()}/admin/realms/some-realm",
-                        clientId = "some-client",
-                        accessTokenUrl = "${server.baseUrl()}/realms/some-realm/protocol/openid-connect/token",
-                        apiUser = "some-user",
-                        apiSecret = "some-secret"
-                    )
+                    val config = server.createConfiguration()
 
                     val env = mapOf("KEYCLOAK_HTTP_CLIENT_REQUEST_TIMEOUT_MS" to "50")
                     withEnvironment(env) {
@@ -151,6 +146,100 @@ class DefaultKeycloakClientTest : WordSpec() {
                 val users = client.getUsers()
 
                 users shouldContainExactlyInAnyOrder setOf(testRealmAdmin, adminUser, visitorUser)
+            }
+
+            "return all users if they span several pages" {
+                val users = client.getUsers(pageSize = 2)
+
+                users shouldContainExactlyInAnyOrder setOf(testRealmAdmin, adminUser, visitorUser)
+            }
+
+            "return a user renamed between two pages only once, with the later username" {
+                val json = createJson()
+                val firstPage = listOf(User(UserId("u1"), UserName("user1")), User(UserId("u2"), UserName("user2")))
+                val secondPage = listOf(User(UserId("u2"), UserName("user3")))
+
+                val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+                server.start()
+                try {
+                    server.stubFor(
+                        post(anyUrl())
+                            .willReturn(
+                                aResponse()
+                                    .withHeader("Content-Type", "application/json")
+                                    .withBody(json.encodeToString(TokenInfo("some-token")))
+                            )
+                    )
+
+                    listOf("0" to firstPage, "2" to secondPage).forEach { (first, page) ->
+                        server.stubFor(
+                            get(urlPathEqualTo("/admin/realms/some-realm/users"))
+                                .withQueryParam("first", equalTo(first))
+                                .willReturn(
+                                    aResponse()
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody(json.encodeToString(page))
+                                )
+                        )
+                    }
+
+                    val client = DefaultKeycloakClient.create(server.createConfiguration(), json)
+
+                    client.getUsers(pageSize = 2) shouldContainExactlyInAnyOrder setOf(
+                        User(UserId("u1"), UserName("user1")),
+                        User(UserId("u2"), UserName("user3"))
+                    )
+                } finally {
+                    server.stop()
+                }
+            }
+
+            "throw an exception if a later page cannot be loaded" {
+                val json = createJson()
+                val firstPage = listOf(User(UserId("u1"), UserName("user1")), User(UserId("u2"), UserName("user2")))
+
+                val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+                server.start()
+                try {
+                    server.stubFor(
+                        post(anyUrl())
+                            .willReturn(
+                                aResponse()
+                                    .withHeader("Content-Type", "application/json")
+                                    .withBody(json.encodeToString(TokenInfo("some-token")))
+                            )
+                    )
+
+                    server.stubFor(
+                        get(urlPathEqualTo("/admin/realms/some-realm/users"))
+                            .withQueryParam("first", equalTo("0"))
+                            .willReturn(
+                                aResponse()
+                                    .withHeader("Content-Type", "application/json")
+                                    .withBody(json.encodeToString(firstPage))
+                            )
+                    )
+
+                    server.stubFor(
+                        get(urlPathEqualTo("/admin/realms/some-realm/users"))
+                            .withQueryParam("first", equalTo("2"))
+                            .willReturn(aResponse().withStatus(500))
+                    )
+
+                    val client = DefaultKeycloakClient.create(server.createConfiguration(), json)
+
+                    val exception = shouldThrow<KeycloakClientException> {
+                        client.getUsers(pageSize = 2)
+                    }
+
+                    exception.message shouldStartWith "Failed to load users"
+                    server.verify(
+                        getRequestedFor(urlPathEqualTo("/admin/realms/some-realm/users"))
+                            .withQueryParam("first", equalTo("2"))
+                    )
+                } finally {
+                    server.stop()
+                }
             }
         }
 
@@ -266,6 +355,18 @@ class DefaultKeycloakClientTest : WordSpec() {
 /** Create a test client instance that is configured to access the Keycloak instance managed by this container. */
 private fun KeycloakContainer.createTestClient(): KeycloakClient =
     DefaultKeycloakClient.create(createKeycloakClientConfigurationForTestRealm(), createJson())
+
+/** Create a [KeycloakClientConfiguration] for a realm on this [WireMockServer]. */
+private fun WireMockServer.createConfiguration() =
+    KeycloakClientConfiguration(
+        baseUrl = baseUrl(),
+        realm = "some-realm",
+        apiUrl = "${baseUrl()}/admin/realms/some-realm",
+        clientId = "some-client",
+        accessTokenUrl = "${baseUrl()}/realms/some-realm/protocol/openid-connect/token",
+        apiUser = "some-user",
+        apiSecret = "some-secret"
+    )
 
 /** Create the [Json] instance required by the test client. */
 private fun createJson(): Json = Json {
