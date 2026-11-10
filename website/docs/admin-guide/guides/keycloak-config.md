@@ -125,6 +125,77 @@ With this configuration, the CLI can auto-detect the necessary information to au
 If additional applications need to authenticate with Keycloak to access the ORT Server API, it is recommended to create separate clients for each application and include the `ort-server-api-access` client scope to ensure that the correct audience claim is included in the access tokens issued by Keycloak.
 For testing purposes, it is also possible to use the `ort-server-cli` client, as it uses the "Direct access grants" flow which allows authentication with a user account.
 
+## Synchronizing users
+
+Users can be deleted or renamed in Keycloak without the ORT Server being informed.
+The maintenance task `sync-keycloak-users` brings the users and role assignments stored by the ORT Server in line with Keycloak.
+Each run of the task:
+
+- Stores every user of the realm with their username and full name.
+  The full name is the first and last name joined by a space.
+- Marks stored users that no longer exist in Keycloak as deleted.
+  Their username and full name are kept, so that the runs they started still show who started them.
+- Removes all role assignments of usernames that no longer exist in Keycloak, including superuser roles.
+  A user who was renamed in Keycloak therefore loses the roles assigned under the old username, and needs them assigned again.
+- Records the time of the run, if it completed successfully.
+
+Users who are disabled in Keycloak are treated like all other users: they are stored and keep their roles.
+
+The task connects to Keycloak with the [ORT Server Backend](#ort-server-backend) client and uses the same `KEYCLOAK_*` environment variables as the `core` application.
+It needs no further permissions.
+It requests the users from Keycloak in pages of 5000 users; to change this number, set the `USER_SYNC_PAGE_SIZE` environment variable.
+
+### Scheduling
+
+Run the task regularly, for example once an hour.
+Two runs must not overlap.
+The Helm chart creates a Kubernetes cron job for each entry in `tasks.configs` and does not start a new run while the previous one is still running:
+
+```yaml
+tasks:
+  configs:
+    - name: sync-keycloak-users
+      schedule: '0 * * * *'
+      maxDeletedUsers: 5
+      maxDeletedShare: 0.1
+```
+
+To run the task in Docker Compose, see [Run Maintenance Tasks](../getting-started/docker-compose.md#run-maintenance-tasks).
+
+### Safety checks
+
+If Keycloak is misconfigured, it may return too few users, and the task would remove the roles of users who still exist.
+To prevent this, the task checks the list of users from Keycloak before it changes anything, and stops without changes if:
+
+1. Keycloak returns no users, but the ORT Server has stored users or role assignments.
+   This usually means that the task connects to the wrong realm.
+2. More stored users would be marked deleted than the limit allows.
+3. More usernames would lose their role assignments than the limit allows.
+   This check applies only after the task has completed successfully once.
+   The first run is expected to remove many role assignments, because older versions of the ORT Server did not remove the role assignments of deleted users.
+
+The limit is either `maxDeletedUsers` or the share `maxDeletedShare` of the stored users, whichever is larger.
+With the default values, the limit is 5 users for up to 50 stored users, and 20 users for 200 stored users.
+Check 3 computes the limit in the same way from the number of usernames with role assignments, counting each username once.
+
+| Environment variable          | Default | Description                                                                                                |
+| ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `USER_SYNC_MAX_DELETED_USERS` | `5`     | The number of users that a single run may remove in any case.                                              |
+| `USER_SYNC_MAX_DELETED_SHARE` | `0.1`   | The share of all stored users that a single run may remove, as a number between 0 and 1. `0.1` means 10 %. |
+
+Before the task marks a user as deleted or removes the roles of a username, it asks Keycloak about this user once more.
+Only users that Keycloak reports as not existing are marked as deleted or lose their roles.
+If Keycloak cannot be reached, or any of its answers is an error, the task stops without changes.
+
+When a check stops the task, the log of the task contains an error with the numbers that exceeded the limit.
+To make a bigger cleanup than the limits allow, raise the limits for a single run of the task.
+The task does not provide a setting to skip the checks.
+
+### Errors
+
+A run that fails or stops logs an error, but the job itself still ends successfully, as for all maintenance tasks.
+To detect failed runs, monitor the job status log: each run writes an entry with the status `success` or `failure`, and successful runs also include the number of stored users, new users, users marked as deleted, and removed role assignments.
+
 ## Token lifespan
 
 To configure the lifespan of access and refresh tokens, or how long an offline token is valid, see the following sections of the Keycloak documentation:
