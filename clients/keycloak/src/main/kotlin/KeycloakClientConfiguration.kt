@@ -19,6 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.clients.keycloak
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
+
 /**
  * A data class representing the configuration of the Keycloak client.
  *
@@ -39,5 +43,24 @@ data class KeycloakClientConfiguration(
     companion object {
         /** The default chunk size for fetching data from Keycloak. */
         const val DEFAULT_DATA_GET_CHUNK_SIZE = 5000
+
+        /** Create a [KeycloakClientConfiguration] from the `keycloak` section of the given [configManager]. */
+        fun create(configManager: ConfigManager): KeycloakClientConfiguration {
+            val baseUrl = configManager.getString("keycloak.baseUrl")
+            val realm = configManager.getString("keycloak.realm")
+
+            val defaultApiUrl = "$baseUrl/admin/realms/$realm"
+            val defaultAccessTokenUrl = "$baseUrl/realms/$realm/protocol/openid-connect/token"
+
+            return KeycloakClientConfiguration(
+                baseUrl = baseUrl,
+                realm = realm,
+                apiUrl = configManager.getStringOrNull("keycloak.apiUrl") ?: defaultApiUrl,
+                clientId = configManager.getString("keycloak.clientId"),
+                accessTokenUrl = configManager.getStringOrNull("keycloak.accessTokenUrl") ?: defaultAccessTokenUrl,
+                apiUser = configManager.getString("keycloak.apiUser"),
+                apiSecret = configManager.getSecret(Path("keycloak.apiSecret"))
+            )
+        }
     }
 }

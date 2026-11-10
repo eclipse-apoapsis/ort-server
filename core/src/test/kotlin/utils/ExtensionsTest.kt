@@ -19,13 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.core.utils
 
-import com.typesafe.config.ConfigFactory
-
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
@@ -38,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 class ExtensionsTest : WordSpec({
     "PostRepositoryRun.getPluginConfigs()" should {
@@ -294,30 +290,6 @@ class ExtensionsTest : WordSpec({
                     )
                 )
             )
-        }
-    }
-
-    "ConfigManager.createKeycloakClientConfiguration()" should {
-        "create a valid Keycloak client configuration" {
-            val config = mapOf(
-                "keycloak.baseUrl" to "http://localhost:8080",
-                "keycloak.realm" to "myrealm",
-                "keycloak.clientId" to "myclient",
-                "keycloak.apiUser" to "user",
-                "keycloak.apiSecret" to "secret"
-            )
-
-            val configManager = ConfigManager.create(ConfigFactory.parseMap(config))
-            val keycloakClientConfig = configManager.createKeycloakClientConfiguration()
-
-            keycloakClientConfig.baseUrl shouldBe "http://localhost:8080"
-            keycloakClientConfig.realm shouldBe "myrealm"
-            keycloakClientConfig.clientId shouldBe "myclient"
-            keycloakClientConfig.apiSecret shouldBe "secret"
-            keycloakClientConfig.apiUser shouldBe "user"
-            keycloakClientConfig.apiUrl shouldBe "http://localhost:8080/admin/realms/myrealm"
-            keycloakClientConfig.accessTokenUrl shouldBe
-                    "http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
         }
     }
 })

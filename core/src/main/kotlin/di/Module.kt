@@ -28,6 +28,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migration.RolesToDbMigration
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
@@ -57,7 +58,6 @@ import org.eclipse.apoapsis.ortserver.components.snippetfindings.SnippetFindingS
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
-import org.eclipse.apoapsis.ortserver.core.utils.createKeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.dao.DataSourceConfig
 import org.eclipse.apoapsis.ortserver.dao.connect
 import org.eclipse.apoapsis.ortserver.dao.createDataSource
@@ -145,7 +145,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     }
 
     single<KeycloakClient> {
-        DefaultKeycloakClient.create(get<ConfigManager>().createKeycloakClientConfiguration(), get())
+        DefaultKeycloakClient.create(KeycloakClientConfiguration.create(get()), get())
     }
 
     if (db != null) {
