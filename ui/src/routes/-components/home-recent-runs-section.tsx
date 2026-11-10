@@ -236,10 +236,10 @@ export const HomeRecentRunsSection = ({
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <PlayCircle className='text-foreground h-5 w-5 dark:text-white' />
-          Recently started runs
+          Runs created recently
         </CardTitle>
         <CardDescription>
-          Runs started recently (max. 10) are shown here.
+          The last 10 runs created by you are shown here.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -251,7 +251,7 @@ export const HomeRecentRunsSection = ({
           </ul>
         ) : (
           <HomeEmptyState>
-            Runs you start from the UI in this browser will appear here.
+            Runs created by you will be shown here.
           </HomeEmptyState>
         )}
       </CardContent>

@@ -83,11 +83,9 @@ it('links to the organizations page', async () => {
 it('renders the empty recent runs state', async () => {
   renderRecentRuns([]);
 
-  expect(await screen.findByText('Recently started runs')).toBeInTheDocument();
+  expect(await screen.findByText('Runs created recently')).toBeInTheDocument();
   expect(
-    screen.getByText(
-      'Runs you start from the UI in this browser will appear here.'
-    )
+    screen.getByText('Runs created by you will be shown here.')
   ).toBeInTheDocument();
   expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
 });
