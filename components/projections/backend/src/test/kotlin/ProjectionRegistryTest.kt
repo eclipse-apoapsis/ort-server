@@ -522,6 +522,22 @@ class ProjectionRegistryTest : WordSpec({
         }
     }
 
+    "countByTypeAndStatus" should {
+        "count the projections for each type and status" {
+            val otherKey = ProjectionKey(dbExtension.fixtures.createOrtRun().id, TYPE)
+            val otherTypeKey = ProjectionKey(key.ortRunId, "other")
+            registry.buildSuccessfully(key, 1)
+            registry.requestBuild(otherKey, 1)
+            registry.requestBuild(otherTypeKey, 1)
+
+            registry.countByTypeAndStatus() shouldBe mapOf(
+                (TYPE to ProjectionStatus.READY) to 1L,
+                (TYPE to ProjectionStatus.PENDING) to 1L,
+                ("other" to ProjectionStatus.PENDING) to 1L
+            )
+        }
+    }
+
     "DatabaseClock" should {
         "return the start time of the current transaction" {
             dbExtension.db.transaction {

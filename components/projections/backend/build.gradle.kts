@@ -29,6 +29,7 @@ dependencies {
     api(libs.exposed.core)
     api(libs.exposed.jdbc)
     api(libs.kotlinx.coroutines)
+    api(libs.micrometerCore)
     api(libs.typesafeConfig)
 
     implementation(projects.dao)

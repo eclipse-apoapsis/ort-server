@@ -73,7 +73,8 @@ sealed interface ProjectionResult {
  * [registry], and the build is started immediately in the background if this instance has capacity for it. Builds
  * that could not be started immediately, builds of crashed instances, and failed builds are picked up by a recovery
  * loop, which is started with [start]. Running builds are released when the service is [stopped][stop], so that
- * other instances can take them over.
+ * other instances can take them over. The service reports [metrics] for builds and requests, and the recovery loop
+ * also updates the number of projections in each status.
  */
 class ProjectionService(
     private val db: Database,
@@ -90,6 +91,9 @@ class ProjectionService(
 
     /** The schema versions of the builders by the type of their projections. */
     private val schemaVersions = buildersByType.mapValues { (_, builder) -> builder.schemaVersion }
+
+    /** The metrics of this service, which must be bound to a meter registry to be published. */
+    val metrics = ProjectionMetrics(buildersByType.keys)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Virtual)
 
@@ -108,7 +112,18 @@ class ProjectionService(
      */
     suspend fun request(key: ProjectionKey, respondAsync: Boolean = true): ProjectionResult {
         val builder = getBuilder(key.type)
+        val startTime = TimeSource.Monotonic.markNow()
 
+        return getOrBuild(key, builder, respondAsync).also { result ->
+            metrics.recordRequest(key.type, result, startTime.elapsedNow())
+        }
+    }
+
+    private suspend fun getOrBuild(
+        key: ProjectionKey,
+        builder: ProjectionBuilder,
+        respondAsync: Boolean
+    ): ProjectionResult {
         // Record the access before reading the state and no matter the status, so that the projection cannot be deleted
         // between checking that it is ready and querying its data, or while it is being rebuilt.
         registry.touch(key, ACCESS_UPDATE_INTERVAL)
@@ -166,10 +181,11 @@ class ProjectionService(
                 try {
                     registry.failAbandonedBuilds(config.maxAttempts)
                     claimPendingBuilds()
+                    metrics.updateStatusCounts(registry.countByTypeAndStatus())
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    logger.error("Failed to claim pending projection builds.", e)
+                    logger.error("Failed to claim pending projection builds or to update the metrics.", e)
                 }
 
                 delay(config.recoveryInterval)
@@ -268,13 +284,17 @@ class ProjectionService(
                 if (!registry.markReady(key, owner, builder.schemaVersion)) throw LeaseLostException(key)
             }
 
-            logger.info("Built projection $key in ${startTime.elapsedNow()}.")
+            val duration = startTime.elapsedNow()
+            logger.info("Built projection $key in $duration.")
+            metrics.recordBuild(key.type, BuildOutcome.READY, duration)
         } catch (e: LeaseLostException) {
             logger.warn(e.message)
+            metrics.recordBuild(key.type, BuildOutcome.LEASE_LOST, startTime.elapsedNow())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             logger.error("Failed to build projection $key.", e)
+            metrics.recordBuild(key.type, BuildOutcome.FAILED, startTime.elapsedNow())
 
             val error = e.message ?: e::class.simpleName.orEmpty()
             registry.markFailed(key, owner, error, config.retryDelay)

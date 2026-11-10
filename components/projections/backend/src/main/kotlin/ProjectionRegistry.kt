@@ -30,6 +30,7 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.compoundOr
+import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.less
@@ -288,6 +289,18 @@ class ProjectionRegistry internal constructor(
         ProjectionRegistryTable.deleteWhere {
             (lastAccessedAt less threshold) and ((status neq ProjectionStatus.BUILDING) or (leaseUntil less now))
         }
+    }
+
+    /** Return the number of projections for each combination of projection type and status. */
+    suspend fun countByTypeAndStatus(): Map<Pair<String, ProjectionStatus>, Long> = db.transaction {
+        val count = ProjectionRegistryTable.ortRunId.count()
+
+        ProjectionRegistryTable
+            .select(ProjectionRegistryTable.projectionType, ProjectionRegistryTable.status, count)
+            .groupBy(ProjectionRegistryTable.projectionType, ProjectionRegistryTable.status)
+            .associate { row ->
+                (row[ProjectionRegistryTable.projectionType] to row[ProjectionRegistryTable.status]) to row[count]
+            }
     }
 
     private fun ProjectionKey.matches(): Op<Boolean> =
