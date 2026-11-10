@@ -75,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.SyncKeycloakUsersTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.FailedJobNotifier
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinderTask
@@ -137,6 +138,7 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  *   the Kubernetes Job Monitor.
  * - `kubernetes-long-running-jobs-finder`: Checks for worker jobs in Kubernetes that are running longer than a
  *   configured timeout and terminates them. This task is part of the Kubernetes Job Monitor.
+ * - `sync-keycloak-users`: Syncs the stored users and the role assignments with the users in Keycloak.
  */
 suspend fun main() {
     runTasks(listOf(configModule(), databaseModule(), tasksModule()))
@@ -260,6 +262,10 @@ private fun tasksModule(): Module =
         }
         singleOf(::ReaperTask) {
             named("kubernetes-reaper")
+            bind<Task>()
+        }
+        singleOf(SyncKeycloakUsersTask::create) {
+            named("sync-keycloak-users")
             bind<Task>()
         }
     }
