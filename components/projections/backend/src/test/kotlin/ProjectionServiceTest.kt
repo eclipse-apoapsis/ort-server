@@ -30,6 +30,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.spyk
@@ -416,6 +418,66 @@ class ProjectionServiceTest : WordSpec({
         }
     }
 
+    "metrics" should {
+        "record successful builds and requests" {
+            val meterRegistry = SimpleMeterRegistry()
+            val service = createService(TestBuilder(), ProjectionConfig(asyncRequestWait = TIMEOUT))
+            service.metrics.bindTo(meterRegistry)
+
+            service.request(key) shouldBe ProjectionResult.Ready
+
+            eventually(TIMEOUT) {
+                meterRegistry.timerCount("projections.builds", "outcome", "ready") shouldBe 1
+            }
+
+            meterRegistry.timerCount("projections.requests", "result", "ready") shouldBe 1
+        }
+
+        "record failed builds and requests" {
+            val meterRegistry = SimpleMeterRegistry()
+            val service = createService(
+                TestBuilder { error("Something went wrong.") },
+                ProjectionConfig(asyncRequestWait = TIMEOUT)
+            )
+            service.metrics.bindTo(meterRegistry)
+
+            service.request(key) shouldBe ProjectionResult.Failed("Something went wrong.")
+
+            eventually(TIMEOUT) {
+                meterRegistry.timerCount("projections.builds", "outcome", "failed") shouldBe 1
+            }
+
+            meterRegistry.timerCount("projections.requests", "result", "failed") shouldBe 1
+        }
+
+        "record requests for projections that are still being built" {
+            val meterRegistry = SimpleMeterRegistry()
+            val buildCanFinish = CompletableDeferred<Unit>()
+            val service = createService(TestBuilder { buildCanFinish.await() })
+            service.metrics.bindTo(meterRegistry)
+
+            service.request(key) shouldBe ProjectionResult.Building
+            buildCanFinish.complete(Unit)
+
+            meterRegistry.timerCount("projections.requests", "result", "building") shouldBe 1
+        }
+
+        "update the number of projections in each status in the recovery loop" {
+            val meterRegistry = SimpleMeterRegistry()
+            val service = createService(TestBuilder())
+            service.metrics.bindTo(meterRegistry)
+            buildProjection(service)
+
+            service.start()
+
+            eventually(TIMEOUT) {
+                meterRegistry.statusCount(ProjectionStatus.READY) shouldBe 1.0
+            }
+
+            meterRegistry.statusCount(ProjectionStatus.PENDING) shouldBe 0.0
+        }
+    }
+
     "stop" should {
         "release running builds" {
             val buildStarted = CompletableDeferred<Unit>()
@@ -476,6 +538,14 @@ class ProjectionServiceTest : WordSpec({
         }
     }
 })
+
+/** Return the number of recordings of the timer with the given [name] for the [TYPE] and the given tag. */
+private fun SimpleMeterRegistry.timerCount(name: String, tagKey: String, tagValue: String): Long =
+    get(name).tags("type", TYPE, tagKey, tagValue).timer().count()
+
+/** Return the value of the gauge for the number of projections of the [TYPE] with the given [status]. */
+private fun SimpleMeterRegistry.statusCount(status: ProjectionStatus): Double =
+    get("projections.status").tags("type", TYPE, "status", status.name.lowercase()).gauge().value()
 
 private const val TYPE = "test"
 private val TIMEOUT = 10.seconds
