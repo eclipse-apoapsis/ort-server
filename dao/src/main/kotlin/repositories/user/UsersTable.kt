@@ -20,20 +20,29 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.user
 
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.User
 
 import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.case
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isDistinctFrom
 import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.statements.UpdateStatement
+import org.jetbrains.exposed.v1.core.statements.UpsertBuilder
 import org.jetbrains.exposed.v1.dao.Entity
 import org.jetbrains.exposed.v1.dao.EntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.batchUpsert
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 
 /**
@@ -78,18 +87,7 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
 
             val now = Clock.System.now()
 
-            UsersTable.upsert(UsersTable.id, onUpdate = { statement ->
-                val hasChanged = (UsersTable.username isDistinctFrom insertValue(UsersTable.username)) or
-                    (UsersTable.fullName isDistinctFrom insertValue(UsersTable.fullName)) or
-                    UsersTable.deletedAt.isNotNull()
-
-                statement[UsersTable.username] = insertValue(UsersTable.username)
-                statement[UsersTable.fullName] = insertValue(UsersTable.fullName)
-                statement[UsersTable.deletedAt] = null
-                statement[UsersTable.updatedAt] = case()
-                    .When(hasChanged, insertValue(UsersTable.updatedAt))
-                    .Else(UsersTable.updatedAt)
-            }) {
+            UsersTable.upsert(UsersTable.id, onUpdate = { statement -> updateExistingUser(statement) }) {
                 it[this.id] = userDisplayName.userId
                 it[this.username] = userDisplayName.username
                 it[this.fullName] = userDisplayName.fullName
@@ -99,6 +97,64 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
             }
 
             return UserDao[userDisplayName.userId]
+        }
+
+        /**
+         * Insert or update all given [users] in the same way as [insertOrUpdate], and set their synchronization time to
+         * [syncedAt]. Users marked deleted after [syncedAt] are left unchanged, as the given data is older than that.
+         */
+        fun insertOrUpdateAll(users: Collection<User>, syncedAt: Instant) {
+            val now = Clock.System.now()
+
+            UsersTable.batchUpsert(
+                users,
+                UsersTable.id,
+                onUpdate = { statement ->
+                    updateExistingUser(statement)
+                    statement[UsersTable.lastSyncedAt] = insertValue(UsersTable.lastSyncedAt)
+                },
+                where = { UsersTable.deletedAt.isNull() or (UsersTable.deletedAt less syncedAt) },
+                shouldReturnGeneratedValues = false
+            ) { user ->
+                this[UsersTable.id] = user.userId
+                this[UsersTable.username] = user.username
+                this[UsersTable.fullName] = user.fullName
+                this[UsersTable.createdAt] = now
+                this[UsersTable.updatedAt] = now
+                this[UsersTable.deletedAt] = null
+                this[UsersTable.lastSyncedAt] = syncedAt
+            }
+        }
+
+        /** Return the users that are not marked deleted and were created before the given [time]. */
+        fun findNotDeletedCreatedBefore(time: Instant): List<User> =
+            find { UsersTable.deletedAt.isNull() and (UsersTable.createdAt less time) }.map { it.mapToModel() }
+
+        /** Mark the users with the given [userIds] deleted at [time], unless they are already marked deleted. */
+        fun markDeleted(userIds: Collection<String>, time: Instant) {
+            if (userIds.isEmpty()) return
+
+            UsersTable.update({ (UsersTable.id inList userIds) and UsersTable.deletedAt.isNull() }) {
+                it[deletedAt] = time
+                it[updatedAt] = time
+            }
+        }
+
+        /**
+         * Update an existing user with the names that were to be inserted and clear their deletion time. The update
+         * time is set only if the names have changed or the deletion time is cleared.
+         */
+        private fun UpsertBuilder.updateExistingUser(statement: UpdateStatement) {
+            val hasChanged = (UsersTable.username isDistinctFrom insertValue(UsersTable.username)) or
+                (UsersTable.fullName isDistinctFrom insertValue(UsersTable.fullName)) or
+                UsersTable.deletedAt.isNotNull()
+
+            statement[UsersTable.username] = insertValue(UsersTable.username)
+            statement[UsersTable.fullName] = insertValue(UsersTable.fullName)
+            statement[UsersTable.deletedAt] = null
+            statement[UsersTable.updatedAt] = case()
+                .When(hasChanged, insertValue(UsersTable.updatedAt))
+                .Else(UsersTable.updatedAt)
         }
     }
 
