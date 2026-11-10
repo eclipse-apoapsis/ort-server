@@ -19,9 +19,10 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { InfoIcon } from 'lucide-react';
 
 import { getServerSettingByKeyOptions } from '@/api/@tanstack/react-query.gen';
-import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useUser } from '@/hooks/use-user';
 import { useHomeFavorites, useHomeRecentRuns } from '@/providers/home-data';
 import { HomeFavoritesSection } from './-components/home-favorites-section';
@@ -53,12 +54,14 @@ const HomePage = () => {
         </h1>
       </div>
       <HomeOrganizationsSection />
-      <Card>
-        <CardContent className='text-muted-foreground text-sm'>
-          Please note that the information displayed below is only persisted in
-          your current browser.
-        </CardContent>
-      </Card>
+      <Alert>
+        <InfoIcon />
+        <AlertTitle>Note</AlertTitle>
+        <AlertDescription>
+          The information displayed below is only persisted in your current
+          browser.
+        </AlertDescription>
+      </Alert>
       <div className='grid gap-4 xl:grid-cols-2'>
         <HomeFavoritesSection favorites={favorites} />
         <HomeRecentRunsSection recentRuns={recentRuns} />
