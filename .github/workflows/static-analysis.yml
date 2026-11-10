@@ -153,9 +153,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Validate Repository Renovate Config
-      # Pinned as later versions fail to install with npm, see
-      # https://github.com/eclipse-apoapsis/ort-server/issues/6124.
-      run: npx -y --package renovate@44.131.0 -- renovate-config-validator renovate.json
+      run: npx -y --package renovate@latest -- renovate-config-validator renovate.json
 
     - name: Upload npm debug logs
       if: failure()
