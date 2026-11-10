@@ -106,7 +106,7 @@ The following services are exposed by Docker Compose:
 
 ## Run Maintenance Tasks
 
-The ORT Server provides maintenance tasks, for example to delete data that no ORT run refers to anymore.
+The ORT Server provides maintenance tasks, for example to [synchronize users with Keycloak](../guides/keycloak-config.md#synchronizing-users) or to delete data that no ORT run refers to anymore.
 In Kubernetes, the Helm chart runs them on a schedule.
 In Docker Compose, the `tasks` service runs them on demand; `docker compose up` does not start it.
 
@@ -119,13 +119,46 @@ TASKS=delete-orphaned-entities docker compose run --rm tasks
 To run several tasks, separate their names with commas and no spaces, for example `TASKS=delete-old-ort-runs,delete-orphaned-entities`.
 The `tasks` service has no default task, so every run has to name the tasks to run.
 
-The tasks `delete-old-ort-runs` and `delete-orphaned-entities` work in Docker Compose.
+The tasks `sync-keycloak-users`, `delete-old-ort-runs` and `delete-orphaned-entities` work in Docker Compose.
 The tasks whose names start with `kubernetes-` require Kubernetes and fail in Docker Compose.
 
 When using [local images](#run-with-local-images), set the image prefix and tag in the same way as for `docker compose up`:
 
 ```shell
+TASKS=sync-keycloak-users ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest docker compose run --rm tasks
 TASKS=delete-orphaned-entities ORT_SERVER_IMAGE_PREFIX= ORT_SERVER_IMAGE_TAG=latest docker compose run --rm tasks
+```
+
+### Synchronize users with Keycloak
+
+To synchronize the users with Keycloak, run:
+
+```shell
+TASKS=sync-keycloak-users docker compose run --rm tasks
+```
+
+The user synchronization stops without changes if a single run would remove more users than its limit allows.
+The limit is the larger of two numbers, which can be set with environment variables:
+
+| Environment variable          | Default | Meaning                                                                                                    |
+| ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `USER_SYNC_MAX_DELETED_USERS` | `5`     | The number of users that a single run may remove in any case.                                              |
+| `USER_SYNC_MAX_DELETED_SHARE` | `0.1`   | The share of all stored users that a single run may remove, as a number between 0 and 1. `0.1` means 10 %. |
+
+With the defaults and 30 stored users, a run may remove 5 users; with 200 stored users, it may remove 20.
+For details, see [Safety checks](../guides/keycloak-config.md#safety-checks).
+
+To make a bigger cleanup, raise a limit for a single run.
+For example, to allow a run to remove up to 50 users:
+
+```shell
+TASKS=sync-keycloak-users docker compose run --rm -e USER_SYNC_MAX_DELETED_USERS=50 tasks
+```
+
+To allow a run to remove any number of users, set the share to `1`, which means 100 %:
+
+```shell
+TASKS=sync-keycloak-users docker compose run --rm -e USER_SYNC_MAX_DELETED_SHARE=1 tasks
 ```
 
 ## Development
