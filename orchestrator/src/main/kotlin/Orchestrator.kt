@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
@@ -86,6 +87,31 @@ class Orchestrator(
     private val publisher: MessagePublisher
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
+
+    /** Handle the given [message] by passing it to the handler function for the type of its payload. */
+    suspend fun handleMessage(message: Message<OrchestratorMessage>) {
+        val header = message.header
+
+        when (val payload = message.payload) {
+            is CreateOrtRun -> handleCreateOrtRun(header, payload)
+            is ConfigWorkerResult -> handleConfigWorkerResult(header, payload)
+            is ConfigWorkerError -> handleConfigWorkerError(payload)
+            is AnalyzerWorkerResult -> handleAnalyzerWorkerResult(header, payload)
+            is AnalyzerWorkerError -> handleAnalyzerWorkerError(header, payload)
+            is AdvisorWorkerResult -> handleAdvisorWorkerResult(header, payload)
+            is AdvisorWorkerError -> handleAdvisorWorkerError(header, payload)
+            is ScannerWorkerResult -> handleScannerWorkerResult(header, payload)
+            is ScannerWorkerError -> handleScannerWorkerError(header, payload)
+            is EvaluatorWorkerResult -> handleEvaluatorWorkerResult(header, payload)
+            is EvaluatorWorkerError -> handleEvaluatorWorkerError(header, payload)
+            is ReporterWorkerResult -> handleReporterWorkerResult(header, payload)
+            is ReporterWorkerError -> handleReporterWorkerError(header, payload)
+            is NotifierWorkerResult -> handleNotifierWorkerResult(header, payload)
+            is NotifierWorkerError -> handleNotifierWorkerError(header, payload)
+            is WorkerError -> handleWorkerError(header, payload)
+            is LostSchedule -> handleLostSchedule(header, payload)
+        }
+    }
 
     /** Handle messages of the type [CreateOrtRun]. */
     suspend fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
