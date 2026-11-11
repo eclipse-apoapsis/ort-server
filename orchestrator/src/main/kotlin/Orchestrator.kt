@@ -434,10 +434,14 @@ class Orchestrator(
     /**
      * Create a message based on the given [run], [header], and [payload] and publish it to the given [endpoint].
      * Make sure that the header contains the correct transport properties. These are obtained from the labels of the
-     * current ORT run.
+     * current ORT run. Also make sure that a trace ID is available.
      */
     private fun <T : Any> publish(endpoint: Endpoint<T>, run: OrtRun, header: MessageHeader, payload: T) {
-        val headerWithProperties = header.copy(transportProperties = run.labels.selectByPrefix("transport"))
+        val traceId = header.traceId.takeUnless { it.isEmpty() } ?: run.traceId.orEmpty()
+        val headerWithProperties = header.copy(
+            traceId = traceId,
+            transportProperties = run.labels.selectByPrefix("transport")
+        )
 
         publisher.publish(to = endpoint, message = Message(headerWithProperties, payload))
     }
