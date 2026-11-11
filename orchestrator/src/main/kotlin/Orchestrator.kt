@@ -28,7 +28,6 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
@@ -134,7 +133,7 @@ class Orchestrator(
         db.transactionCatching(transactionIsolation = isolationLevel) {
             val ortRun = getOrtRun(configWorkerResult.ortRunId)
 
-            nextJobsToSchedule(ConfigEndpoint, ortRun.id, header, jobs = emptyMap())
+            nextJobsToSchedule(ConfigEndpoint, ortRun.id, header)
         }.scheduleNextJobs {
             log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
         }
@@ -345,20 +344,18 @@ class Orchestrator(
 
     /**
      * Determine the next jobs that can be scheduled after a job for the given [endpoint] for the run with the given
-     * [ortRunId] has completed. Use the given [header] to send messages to the worker endpoints. Optionally,
-     * accept a map with the [jobs] that have been run. Return a list with the new jobs to schedule and the current
-     * [WorkerScheduleContext].
+     * [ortRunId] has completed. Use the given [header] to send messages to the worker endpoints. Return a list with
+     * the new jobs to schedule and the current [WorkerScheduleContext].
      */
     private suspend fun nextJobsToSchedule(
         endpoint: Endpoint<*>,
         ortRunId: Long,
-        header: MessageHeader,
-        jobs: Map<String, WorkerJob>? = null
+        header: MessageHeader
     ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
         log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
 
         val ortRun = getOrtRun(ortRunId)
-        val scheduleContext = createWorkerScheduleContext(ortRun, header, workerJobs = jobs)
+        val scheduleContext = createWorkerScheduleContext(ortRun, header)
 
         return fetchNextJobs(scheduleContext)
     }
@@ -379,16 +376,14 @@ class Orchestrator(
 
     /**
      * Create a [WorkerScheduleContext] for the given [ortRun] and message [header] with the given [failed] flag.
-     * The context is initialized with the status of all jobs for this run, either from the given [workerJobs]
-     * parameter or by loading the job status from the database.
+     * The context is initialized with the status of all jobs for this run loaded from the database.
      */
     private suspend fun createWorkerScheduleContext(
         ortRun: OrtRun,
         header: MessageHeader,
-        failed: Boolean = false,
-        workerJobs: Map<String, WorkerJob>? = null
+        failed: Boolean = false
     ): WorkerScheduleContext {
-        val jobs = workerJobs ?: workerJobRepositories.jobRepositories.mapNotNull { (endpoint, repository) ->
+        val jobs = workerJobRepositories.jobRepositories.mapNotNull { (endpoint, repository) ->
             repository.getForOrtRun(ortRun.id)?.let { endpoint to it }
         }.toMap()
 
