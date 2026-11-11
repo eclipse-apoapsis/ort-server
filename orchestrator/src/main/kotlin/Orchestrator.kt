@@ -238,15 +238,21 @@ class Orchestrator(
         log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
 
         db.transactionCatching(transactionIsolation = isolationLevel) {
-            workerJobRepositories[workerError.endpointName]?.let { repository ->
-                val job = requireNotNull(repository.getForOrtRun(ortRunId)) {
-                    "ORT run '$ortRunId' not found."
-                }
+            val repository = workerJobRepositories[workerError.endpointName]
+                ?: return@transactionCatching createWorkerScheduleContext(
+                    getCurrentOrtRun(ortRunId),
+                    header,
+                    failed = true
+                ) to emptyList()
 
-                repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
-                    nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
-                }
-            } ?: (createWorkerScheduleContext(getCurrentOrtRun(ortRunId), header, failed = true) to emptyList())
+            val job = requireNotNull(repository.getForOrtRun(ortRunId)) {
+                "ORT run '$ortRunId' not found."
+            }
+
+            // If the job was already completed, the error is outdated and must not change the state of the run.
+            repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
+                nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
+            }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'WorkerError' message.", it)
         }
@@ -359,14 +365,14 @@ class Orchestrator(
 
     /**
      * Convenience function to evaluate and process this [Result] with information about the next jobs to be scheduled.
-     * If the result is successful, actually trigger the jobs. Otherwise, call the given [onFailure] function with the
-     * exception that occurred.
+     * If the result is successful and not *null*, actually trigger the jobs. Otherwise, call the given [onFailure]
+     * function with the exception that occurred.
      */
-    private suspend fun Result<Pair<WorkerScheduleContext, List<JobScheduleFunc>>>.scheduleNextJobs(
+    private suspend fun Result<Pair<WorkerScheduleContext, List<JobScheduleFunc>>?>.scheduleNextJobs(
         onFailure: (Throwable) -> Unit
     ) {
-        onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
+        onSuccess { result ->
+            result?.let { (context, schedules) -> scheduleCreatedJobs(context, schedules) }
         }
         this@scheduleNextJobs.onFailure { onFailure(it) }
     }
