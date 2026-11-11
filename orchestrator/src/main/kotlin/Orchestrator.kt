@@ -78,7 +78,6 @@ private val log = LoggerFactory.getLogger(Orchestrator::class.java)
  * updated, the next jobs are determined via its [RunState] and created in the database, resulting in a
  * [SchedulingPlan]. After the transaction has been committed, the plan is executed by sending messages to the workers.
  */
-@Suppress("TooManyFunctions")
 class Orchestrator(
     private val db: Database,
     workerJobRepositories: WorkerJobRepositories,
@@ -100,18 +99,18 @@ class Orchestrator(
             is CreateOrtRun -> handleCreateOrtRun(header, payload)
             is ConfigWorkerResult -> handleConfigWorkerResult(header, payload)
             is ConfigWorkerError -> handleConfigWorkerError(payload)
-            is AnalyzerWorkerResult -> handleAnalyzerWorkerResult(header, payload)
-            is AnalyzerWorkerError -> handleAnalyzerWorkerError(header, payload)
-            is AdvisorWorkerResult -> handleAdvisorWorkerResult(header, payload)
-            is AdvisorWorkerError -> handleAdvisorWorkerError(header, payload)
-            is ScannerWorkerResult -> handleScannerWorkerResult(header, payload)
-            is ScannerWorkerError -> handleScannerWorkerError(header, payload)
-            is EvaluatorWorkerResult -> handleEvaluatorWorkerResult(header, payload)
-            is EvaluatorWorkerError -> handleEvaluatorWorkerError(header, payload)
-            is ReporterWorkerResult -> handleReporterWorkerResult(header, payload)
-            is ReporterWorkerError -> handleReporterWorkerError(header, payload)
-            is NotifierWorkerResult -> handleNotifierWorkerResult(header, payload)
-            is NotifierWorkerError -> handleNotifierWorkerError(header, payload)
+            is AnalyzerWorkerResult -> handleJobResult(AnalyzerEndpoint, header, payload, payload.hasIssues)
+            is AnalyzerWorkerError -> handleJobError(AnalyzerEndpoint, header, payload)
+            is AdvisorWorkerResult -> handleJobResult(AdvisorEndpoint, header, payload, payload.hasIssues)
+            is AdvisorWorkerError -> handleJobError(AdvisorEndpoint, header, payload)
+            is ScannerWorkerResult -> handleJobResult(ScannerEndpoint, header, payload, payload.hasIssues)
+            is ScannerWorkerError -> handleJobError(ScannerEndpoint, header, payload)
+            is EvaluatorWorkerResult -> handleJobResult(EvaluatorEndpoint, header, payload, payload.hasIssues)
+            is EvaluatorWorkerError -> handleJobError(EvaluatorEndpoint, header, payload)
+            is ReporterWorkerResult -> handleJobResult(ReporterEndpoint, header, payload, payload.hasIssues)
+            is ReporterWorkerError -> handleJobError(ReporterEndpoint, header, payload)
+            is NotifierWorkerResult -> handleJobResult(NotifierEndpoint, header, payload)
+            is NotifierWorkerError -> handleJobError(NotifierEndpoint, header, payload)
             is WorkerError -> handleWorkerError(header, payload)
             is LostSchedule -> handleLostSchedule(header, payload)
         }
@@ -144,83 +143,23 @@ class Orchestrator(
         }
     }
 
-    /** Handle messages of the type [AnalyzerWorkerResult]. */
-    suspend fun handleAnalyzerWorkerResult(header: MessageHeader, analyzerWorkerResult: AnalyzerWorkerResult) {
-        if (!analyzerWorkerResult.hasIssues) {
-            handleWorkerResult(AnalyzerEndpoint, header, analyzerWorkerResult)
-        } else {
-            handleWorkerResultWithIssues(AnalyzerEndpoint, header, analyzerWorkerResult)
-        }
+    /**
+     * Handle the given [result] message with the given [header] from a worker of the given [endpoint]. If
+     * [hasIssues] is *true*, the job finished, but with issues over the threshold.
+     */
+    suspend fun handleJobResult(
+        endpoint: Endpoint<*>,
+        header: MessageHeader,
+        result: WorkerMessage,
+        hasIssues: Boolean = false
+    ) {
+        val status = if (hasIssues) JobStatus.FINISHED_WITH_ISSUES else JobStatus.FINISHED
+        handleCompletedJob(endpoint, header, result, status)
     }
 
-    /** Handle messages of the type [AnalyzerWorkerError]. */
-    suspend fun handleAnalyzerWorkerError(header: MessageHeader, analyzerWorkerError: AnalyzerWorkerError) {
-        handleWorkerError(AnalyzerEndpoint, header, analyzerWorkerError)
-    }
-
-    /** Handle messages of the type [AdvisorWorkerResult]. */
-    suspend fun handleAdvisorWorkerResult(header: MessageHeader, advisorWorkerResult: AdvisorWorkerResult) {
-        if (!advisorWorkerResult.hasIssues) {
-            handleWorkerResult(AdvisorEndpoint, header, advisorWorkerResult)
-        } else {
-            handleWorkerResultWithIssues(AdvisorEndpoint, header, advisorWorkerResult)
-        }
-    }
-
-    /** Handle messages of the type [AnalyzerWorkerError]. */
-    suspend fun handleAdvisorWorkerError(header: MessageHeader, advisorWorkerError: AdvisorWorkerError) {
-        handleWorkerError(AdvisorEndpoint, header, advisorWorkerError)
-    }
-
-    /** Handle messages of the type [ScannerWorkerResult]. */
-    suspend fun handleScannerWorkerResult(header: MessageHeader, scannerWorkerResult: ScannerWorkerResult) {
-        if (!scannerWorkerResult.hasIssues) {
-            handleWorkerResult(ScannerEndpoint, header, scannerWorkerResult)
-        } else {
-            handleWorkerResultWithIssues(ScannerEndpoint, header, scannerWorkerResult)
-        }
-    }
-
-    /** Handle messages of the type [ScannerWorkerError]. */
-    suspend fun handleScannerWorkerError(header: MessageHeader, scannerWorkerError: ScannerWorkerError) {
-        handleWorkerError(ScannerEndpoint, header, scannerWorkerError)
-    }
-
-    /** Handle messages of the type [EvaluatorWorkerResult]. */
-    suspend fun handleEvaluatorWorkerResult(header: MessageHeader, evaluatorWorkerResult: EvaluatorWorkerResult) {
-        if (!evaluatorWorkerResult.hasIssues) {
-            handleWorkerResult(EvaluatorEndpoint, header, evaluatorWorkerResult)
-        } else {
-            handleWorkerResultWithIssues(EvaluatorEndpoint, header, evaluatorWorkerResult)
-        }
-    }
-
-    /** Handle messages of the type [EvaluatorWorkerError]. */
-    suspend fun handleEvaluatorWorkerError(header: MessageHeader, evaluatorWorkerError: EvaluatorWorkerError) {
-        handleWorkerError(EvaluatorEndpoint, header, evaluatorWorkerError)
-    }
-
-    /** Handle messages of the type [ReporterWorkerResult]. */
-    suspend fun handleReporterWorkerResult(header: MessageHeader, reporterWorkerResult: ReporterWorkerResult) {
-        if (!reporterWorkerResult.hasIssues) {
-            handleWorkerResult(ReporterEndpoint, header, reporterWorkerResult)
-        } else {
-            handleWorkerResultWithIssues(ReporterEndpoint, header, reporterWorkerResult)
-        }
-    }
-
-    /** Handle messages of the type [ReporterWorkerError]. */
-    suspend fun handleReporterWorkerError(header: MessageHeader, reporterWorkerError: ReporterWorkerError) {
-        handleWorkerError(ReporterEndpoint, header, reporterWorkerError)
-    }
-
-    /** Handle messages of the type [NotifierWorkerResult]. */
-    suspend fun handleNotifierWorkerResult(header: MessageHeader, notifierWorkerResult: NotifierWorkerResult) {
-        handleWorkerResult(NotifierEndpoint, header, notifierWorkerResult)
-    }
-
-    suspend fun handleNotifierWorkerError(header: MessageHeader, notifierWorkerError: NotifierWorkerError) {
-        handleWorkerError(NotifierEndpoint, header, notifierWorkerError)
+    /** Handle the given [error] message with the given [header] from a worker of the given [endpoint]. */
+    suspend fun handleJobError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
+        handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue(error)))
     }
 
     /** Handle messages of the type [WorkerError] with the given [header]. */
@@ -260,28 +199,6 @@ class Orchestrator(
                 SchedulingPlan(ortRun, header, dispatchConfigJob = true)
             }
         }
-    }
-
-    /** Handle the given [result] message with the given [header] from a worker of the given [endpoint]. */
-    private suspend fun handleWorkerResult(endpoint: Endpoint<*>, header: MessageHeader, result: WorkerMessage) {
-        handleCompletedJob(endpoint, header, result, JobStatus.FINISHED)
-    }
-
-    /**
-     * Handle the given [result] message with the given [header] from a worker of the given [endpoint]. The run finished
-     * on the worker, but with issues over the threshold.
-     */
-    private suspend fun handleWorkerResultWithIssues(
-        endpoint: Endpoint<*>,
-        header: MessageHeader,
-        result: WorkerMessage
-    ) {
-        handleCompletedJob(endpoint, header, result, JobStatus.FINISHED_WITH_ISSUES)
-    }
-
-    /** Handle the given [error] message with the given [header] from a worker of the given [endpoint]. */
-    private suspend fun handleWorkerError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
-        handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue(error)))
     }
 
     /**
