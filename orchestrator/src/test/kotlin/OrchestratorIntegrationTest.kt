@@ -134,6 +134,16 @@ class OrchestratorIntegrationTest : WordSpec({
             sentPayloads() should containExactlyInAnyOrder(AnalyzerRequest(analyzerJob.id))
         }
 
+        "not create another analyzer job if the message is received twice" {
+            val run = fixtures.createOrtRun()
+            val analyzerJob = fixtures.createJob(run, AnalyzerEndpoint, JobStatus.RUNNING)
+
+            orchestrator.handle(run, ConfigWorkerResult(run.id))
+
+            fixtures.analyzerJobRepository.getForOrtRun(run.id).shouldNotBeNull().id shouldBe analyzerJob.id
+            sentPayloads() should beEmpty()
+        }
+
         "be ignored if the run does not exist" {
             val run = fixtures.createOrtRun()
 
