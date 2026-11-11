@@ -376,6 +376,18 @@ class OrchestratorIntegrationTest : WordSpec({
             sentPayloads().shouldBeEmpty()
         }
 
+        "not change a completed job and the finished run if no other jobs are running" {
+            val run = fixtures.createOrtRun()
+            fixtures.createJobsUntil(run, NotifierEndpoint, JobStatus.FINISHED)
+            fixtures.ortRunRepository.update(run.id, status = OrtRunStatus.FINISHED.asPresent())
+
+            orchestrator.handle(run, WorkerError(ReporterEndpoint.configPrefix))
+
+            fixtures.jobStatus(run, ReporterEndpoint) shouldBe JobStatus.FINISHED
+            fixtures.runStatus(run) shouldBe OrtRunStatus.FINISHED
+            sentPayloads().shouldBeEmpty()
+        }
+
         "fail the run if the Config worker failed" {
             val run = fixtures.createOrtRun()
 
