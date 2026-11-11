@@ -72,6 +72,21 @@ class MessageSenderFactoryForTesting : MessageSenderFactory {
             queue.poll(delay.inWholeMilliseconds, TimeUnit.MILLISECONDS) should beNull()
         }
 
+        /**
+         * Remove and return all messages that have been sent so far by the created senders, independent of their
+         * endpoint. This allows checking that no other messages than the expected ones have been sent.
+         */
+        fun takeAllMessages(): List<Message<*>> =
+            messageQueues.values.flatMap { queue -> buildList { queue.drainTo(this) } }
+
+        /**
+         * Discard all messages that have been sent so far by the created senders. This should be called before each
+         * test that checks sent messages, so that it is not affected by messages sent by other tests.
+         */
+        fun reset() {
+            messageQueues.values.forEach { it.clear() }
+        }
+
         /** Make sure that a sender for the given [endpoint] has been created and return its queue of sent messages. */
         private fun <T : Any> queueFor(endpoint: Endpoint<T>) = messageQueues[endpoint].shouldNotBeNull()
     }
