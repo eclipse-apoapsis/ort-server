@@ -113,7 +113,7 @@ class Orchestrator internal constructor(
     }
 
     /** Handle messages of the type [CreateOrtRun]. */
-    suspend fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
+    private suspend fun handleCreateOrtRun(header: MessageHeader, createOrtRun: CreateOrtRun) {
         processMessage(createOrtRun) {
             val ortRun = createOrtRun.ortRun
 
@@ -125,14 +125,14 @@ class Orchestrator internal constructor(
     }
 
     /** Handle messages of the type [ConfigWorkerResult]. */
-    suspend fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
+    private suspend fun handleConfigWorkerResult(header: MessageHeader, configWorkerResult: ConfigWorkerResult) {
         processMessage(configWorkerResult) {
             planNextJobs(runStore.getOrtRun(configWorkerResult.ortRunId), header)
         }
     }
 
     /** Handle messages of the type [ConfigWorkerError]. */
-    suspend fun handleConfigWorkerError(configWorkerError: ConfigWorkerError) {
+    private suspend fun handleConfigWorkerError(configWorkerError: ConfigWorkerError) {
         processMessage(configWorkerError) {
             runStore.failRun(configWorkerError.ortRunId, ConfigEndpoint.createErrorIssue(configWorkerError))
             null
@@ -143,7 +143,7 @@ class Orchestrator internal constructor(
      * Handle the given [result] message with the given [header] from a worker of the given [endpoint]. If
      * [hasIssues] is *true*, the job finished, but with issues over the threshold.
      */
-    suspend fun handleJobResult(
+    private suspend fun handleJobResult(
         endpoint: Endpoint<*>,
         header: MessageHeader,
         result: WorkerMessage,
@@ -154,12 +154,12 @@ class Orchestrator internal constructor(
     }
 
     /** Handle the given [error] message with the given [header] from a worker of the given [endpoint]. */
-    suspend fun handleJobError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
+    private suspend fun handleJobError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
         handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue(error)))
     }
 
     /** Handle messages of the type [WorkerError] with the given [header]. */
-    suspend fun handleWorkerError(header: MessageHeader, workerError: WorkerError) {
+    private suspend fun handleWorkerError(header: MessageHeader, workerError: WorkerError) {
         val ortRunId = header.ortRunId
         log.info("Handling a worker error of type '{}' for ORT run {}.", workerError.endpointName, ortRunId)
 
@@ -182,7 +182,7 @@ class Orchestrator internal constructor(
      * Handle messages of the type [LostSchedule] with the given [header]. Determine the current status of worker jobs
      * for the affected ORT run and schedule the next jobs if possible.
      */
-    suspend fun handleLostSchedule(header: MessageHeader, lostSchedule: LostSchedule) {
+    private suspend fun handleLostSchedule(header: MessageHeader, lostSchedule: LostSchedule) {
         log.info("Handling a lost schedule for ORT run {}.", lostSchedule.ortRunId)
 
         processMessage(lostSchedule) {
