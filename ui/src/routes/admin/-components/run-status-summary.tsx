@@ -116,7 +116,7 @@ const StatusCount = ({ status }: { status: EndStatus }) => {
  * loaded, and the counts in the list below it carry the same numbers for reading and linking.
  */
 const RunStatusBar = () => {
-  const { data: runs } = useQuery(runsCountOptions);
+  const { data: runs } = useQuery(runsCountOptions());
   const counts = useQueries({
     queries: endStatuses.map(runStatusCountOptions),
   });

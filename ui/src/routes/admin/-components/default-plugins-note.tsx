@@ -27,7 +27,7 @@ import { defaultPluginsOptions } from './overview-queries';
  * on this server, once the defaults have loaded.
  */
 export const DefaultPluginsNote = () => {
-  const { data } = useQuery(defaultPluginsOptions);
+  const { data } = useQuery(defaultPluginsOptions());
 
   if (!data) return null;
 

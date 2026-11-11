@@ -33,27 +33,30 @@ import { config } from '@/config';
 
 // The queries of the admin overview, shared by the route loader, which starts them, and the
 // components, which read them.
+//
+// Each query is built by a function rather than a constant: the generated options put the client's
+// base URL into the query key, and a constant would be built when the module is imported, before
+// the app has set the base URL of the deployment.
 
-export const organizationsCountOptions = getOrganizationsOptions({
-  query: { limit: 1 },
-});
+export const organizationsCountOptions = () =>
+  getOrganizationsOptions({ query: { limit: 1 } });
 
-export const productsCountOptions = getProductsOptions({ query: { limit: 1 } });
+export const productsCountOptions = () =>
+  getProductsOptions({ query: { limit: 1 } });
 
-export const repositoriesCountOptions = getRepositoriesOptions({
-  query: { limit: 1 },
-});
+export const repositoriesCountOptions = () =>
+  getRepositoriesOptions({ query: { limit: 1 } });
 
-export const usersCountOptions = getUsersOptions({ query: { limit: 1 } });
+export const usersCountOptions = () => getUsersOptions({ query: { limit: 1 } });
 
-export const installedPluginsOptions = getInstalledPluginsOptions();
+export const installedPluginsOptions = () => getInstalledPluginsOptions();
 
-export const defaultPluginsOptions = getGlobalDefaultPluginsOptions();
+export const defaultPluginsOptions = () => getGlobalDefaultPluginsOptions();
 
-export const runsCountOptions = {
+export const runsCountOptions = () => ({
   ...getRunsOptions({ query: { limit: 1 } }),
   refetchInterval: config.pollInterval,
-};
+});
 
 // The run statuses, the end states first, as they make up most runs.
 export const runStatuses = [
@@ -80,13 +83,13 @@ export const runStatusCountOptions = (status: OrtRunStatus) => ({
  * Start all queries of the overview without waiting for them.
  */
 export const prefetchOverview = (queryClient: QueryClient) => {
-  void queryClient.prefetchQuery(organizationsCountOptions);
-  void queryClient.prefetchQuery(productsCountOptions);
-  void queryClient.prefetchQuery(repositoriesCountOptions);
-  void queryClient.prefetchQuery(usersCountOptions);
-  void queryClient.prefetchQuery(installedPluginsOptions);
-  void queryClient.prefetchQuery(defaultPluginsOptions);
-  void queryClient.prefetchQuery(runsCountOptions);
+  void queryClient.prefetchQuery(organizationsCountOptions());
+  void queryClient.prefetchQuery(productsCountOptions());
+  void queryClient.prefetchQuery(repositoriesCountOptions());
+  void queryClient.prefetchQuery(usersCountOptions());
+  void queryClient.prefetchQuery(installedPluginsOptions());
+  void queryClient.prefetchQuery(defaultPluginsOptions());
+  void queryClient.prefetchQuery(runsCountOptions());
   runStatuses.forEach(
     (status) => void queryClient.prefetchQuery(runStatusCountOptions(status))
   );
