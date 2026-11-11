@@ -56,10 +56,10 @@ const Step = () => (
  * The numbers of organizations, products and repositories, each level leading to the next one.
  */
 export const HierarchyFigures = () => {
-  const organizations = useQuery(organizationsCountOptions).data?.pagination
+  const organizations = useQuery(organizationsCountOptions()).data?.pagination
     .totalCount;
-  const products = useQuery(productsCountOptions).data?.pagination.totalCount;
-  const repositories = useQuery(repositoriesCountOptions).data?.pagination
+  const products = useQuery(productsCountOptions()).data?.pagination.totalCount;
+  const repositories = useQuery(repositoriesCountOptions()).data?.pagination
     .totalCount;
 
   return (
@@ -68,14 +68,19 @@ export const HierarchyFigures = () => {
         label='Organizations'
         link={linkOptions({ to: '/organizations' })}
         value={
-          <QueryCount options={organizationsCountOptions} count={totalCount} />
+          <QueryCount
+            options={organizationsCountOptions()}
+            count={totalCount}
+          />
         }
       />
       <Step />
       <OverviewFigure
         label='Products'
         link={linkOptions({ to: '/admin/products' })}
-        value={<QueryCount options={productsCountOptions} count={totalCount} />}
+        value={
+          <QueryCount options={productsCountOptions()} count={totalCount} />
+        }
         note={perParent(products, organizations, 'organization')}
       />
       <Step />
@@ -83,7 +88,7 @@ export const HierarchyFigures = () => {
         label='Repositories'
         link={linkOptions({ to: '/admin/repositories' })}
         value={
-          <QueryCount options={repositoriesCountOptions} count={totalCount} />
+          <QueryCount options={repositoriesCountOptions()} count={totalCount} />
         }
         note={perParent(repositories, products, 'product')}
       />

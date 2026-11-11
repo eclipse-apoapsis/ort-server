@@ -73,7 +73,7 @@ const OverviewContent = () => (
               label='Runs in total'
               link={linkOptions({ to: '/admin/runs' })}
               value={
-                <QueryCount options={runsCountOptions} count={totalCount} />
+                <QueryCount options={runsCountOptions()} count={totalCount} />
               }
             />
             <RunStatusSummary />
@@ -95,7 +95,7 @@ const OverviewContent = () => (
             label='Users'
             link={linkOptions({ to: '/admin/users' })}
             value={
-              <QueryCount options={usersCountOptions} count={totalCount} />
+              <QueryCount options={usersCountOptions()} count={totalCount} />
             }
           />
         }
@@ -112,7 +112,7 @@ const OverviewContent = () => (
               note={<InstalledPluginsNote />}
               value={
                 <QueryCount
-                  options={installedPluginsOptions}
+                  options={installedPluginsOptions()}
                   count={(plugins) => plugins.length}
                 />
               }
@@ -123,7 +123,7 @@ const OverviewContent = () => (
               note={<DefaultPluginsNote />}
               value={
                 <QueryCount
-                  options={defaultPluginsOptions}
+                  options={defaultPluginsOptions()}
                   count={defaultPluginsCount}
                 />
               }

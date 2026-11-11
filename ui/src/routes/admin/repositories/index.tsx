@@ -66,7 +66,8 @@ const repositoriesPageOptions = (
 };
 
 // Only the total count of this query is used.
-const allRepositoriesOptions = getRepositoriesOptions({ query: { limit: 1 } });
+const allRepositoriesOptions = () =>
+  getRepositoriesOptions({ query: { limit: 1 } });
 
 const columnHelper = createAppColumnHelper<Repository>();
 
@@ -159,7 +160,7 @@ const RepositoriesComponent = () => {
   const pageSize = search.pageSize ?? defaultPageSize;
   const urlFilter = search.filter || undefined;
 
-  const { data: allRepositories } = useSuspenseQuery(allRepositoriesOptions);
+  const { data: allRepositories } = useSuspenseQuery(allRepositoriesOptions());
   const { data } = useSuspenseQuery(
     repositoriesPageOptions(search.page, search.pageSize, urlFilter)
   );
@@ -246,7 +247,7 @@ export const Route = createFileRoute('/admin/repositories/')({
       queryClient.prefetchQuery(
         repositoriesPageOptions(page, pageSize, filter)
       ),
-      queryClient.prefetchQuery(allRepositoriesOptions),
+      queryClient.prefetchQuery(allRepositoriesOptions()),
     ]);
   },
   component: RepositoriesComponent,

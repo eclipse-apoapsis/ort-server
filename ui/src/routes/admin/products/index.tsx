@@ -64,7 +64,7 @@ const productsPageOptions = (
 };
 
 // Only the total count of this query is used.
-const allProductsOptions = getProductsOptions({ query: { limit: 1 } });
+const allProductsOptions = () => getProductsOptions({ query: { limit: 1 } });
 
 const columnHelper = createAppColumnHelper<Product>();
 
@@ -117,7 +117,7 @@ const ProductsComponent = () => {
   const pageSize = search.pageSize ?? defaultPageSize;
   const nameFilter = search.filter || undefined;
 
-  const { data: allProducts } = useSuspenseQuery(allProductsOptions);
+  const { data: allProducts } = useSuspenseQuery(allProductsOptions());
   const { data } = useSuspenseQuery(
     productsPageOptions(search.page, search.pageSize, nameFilter)
   );
@@ -201,7 +201,7 @@ export const Route = createFileRoute('/admin/products/')({
   }) => {
     await Promise.all([
       queryClient.prefetchQuery(productsPageOptions(page, pageSize, filter)),
-      queryClient.prefetchQuery(allProductsOptions),
+      queryClient.prefetchQuery(allProductsOptions()),
     ]);
   },
   component: ProductsComponent,

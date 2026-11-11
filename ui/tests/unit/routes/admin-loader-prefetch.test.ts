@@ -19,6 +19,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { client } from '@/api/client.gen';
 import { Route as AdminOverviewRoute } from '@/routes/admin/index';
 import { Route as AdminPluginTemplatesRoute } from '@/routes/admin/plugins/$pluginType/$pluginId/index';
 import { Route as AdminDefaultPluginsRoute } from '@/routes/admin/plugins/defaults/index';
@@ -97,6 +98,39 @@ describe('admin route loaders', () => {
       { _id: 'getRuns', query: { limit: 1, status: 'created' } },
     ]);
   });
+
+  it.each([
+    { name: 'overview', route: AdminOverviewRoute, queryCount: 12 },
+    { name: 'products', route: AdminProductsRoute, queryCount: 2 },
+    { name: 'repositories', route: AdminRepositoriesRoute, queryCount: 2 },
+  ])(
+    'requests the $name page from the base URL set after the module is loaded',
+    async ({ route, queryCount }) => {
+      const loader = route.options.loader as unknown as (
+        options: unknown
+      ) => unknown;
+      const queryFn = vi.fn().mockResolvedValue(undefined);
+      const { baseURL } = client.getConfig();
+      client.setConfig({ baseURL: 'https://ort.example.com' });
+
+      try {
+        await loader({
+          deps: { page: 1, pageSize: 10 },
+          params: {},
+          context: { queryClient: { prefetchQuery: queryFn } },
+        });
+      } finally {
+        client.setConfig({ baseURL });
+      }
+
+      expect(
+        queryFn.mock.calls.map(
+          ([options]) =>
+            (getQueryKeyRequest(options) as { baseURL?: string }).baseURL
+        )
+      ).toEqual(Array(queryCount).fill('https://ort.example.com'));
+    }
+  );
 
   it('awaits the runs and total count prefetches before resolving', async () => {
     const loader = AdminRunsRoute.options.loader as unknown as (

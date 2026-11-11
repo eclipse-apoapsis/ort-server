@@ -34,7 +34,7 @@ const availabilities: [PluginAvailability, string][] = [
  * loaded. An availability that no plugin has is left out.
  */
 export const InstalledPluginsNote = () => {
-  const { data } = useQuery(installedPluginsOptions);
+  const { data } = useQuery(installedPluginsOptions());
 
   if (!data) return null;
 
