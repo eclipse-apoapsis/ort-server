@@ -31,24 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepositor
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
-import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
-import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
-import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
@@ -87,25 +70,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
 
         val orchestrator by inject<Orchestrator>()
 
-        when (val payload = message.payload) {
-            is CreateOrtRun -> orchestrator.handleCreateOrtRun(message.header, payload)
-            is ConfigWorkerResult -> orchestrator.handleConfigWorkerResult(message.header, payload)
-            is ConfigWorkerError -> orchestrator.handleConfigWorkerError(payload)
-            is AnalyzerWorkerResult -> orchestrator.handleAnalyzerWorkerResult(message.header, payload)
-            is AnalyzerWorkerError -> orchestrator.handleAnalyzerWorkerError(message.header, payload)
-            is AdvisorWorkerResult -> orchestrator.handleAdvisorWorkerResult(message.header, payload)
-            is AdvisorWorkerError -> orchestrator.handleAdvisorWorkerError(message.header, payload)
-            is ScannerWorkerResult -> orchestrator.handleScannerWorkerResult(message.header, payload)
-            is ScannerWorkerError -> orchestrator.handleScannerWorkerError(message.header, payload)
-            is EvaluatorWorkerResult -> orchestrator.handleEvaluatorWorkerResult(message.header, payload)
-            is EvaluatorWorkerError -> orchestrator.handleEvaluatorWorkerError(message.header, payload)
-            is ReporterWorkerResult -> orchestrator.handleReporterWorkerResult(message.header, payload)
-            is ReporterWorkerError -> orchestrator.handleReporterWorkerError(message.header, payload)
-            is NotifierWorkerResult -> orchestrator.handleNotifierWorkerResult(message.header, payload)
-            is NotifierWorkerError -> orchestrator.handleNotifierWorkerError(message.header, payload)
-            is WorkerError -> orchestrator.handleWorkerError(message.header, payload)
-            is LostSchedule -> orchestrator.handleLostSchedule(message.header, payload)
-        }
+        orchestrator.handleMessage(message)
 
         EndpointHandlerResult.CONTINUE
     }
