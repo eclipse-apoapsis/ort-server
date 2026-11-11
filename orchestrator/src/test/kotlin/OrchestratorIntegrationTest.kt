@@ -479,6 +479,14 @@ class OrchestratorIntegrationTest : WordSpec({
             MessageSenderFactoryForTesting.takeAllMessages().map { it.header }.toSet()
                 .shouldContainExactlyInAnyOrder(expectedHeader)
         }
+
+        "use the trace ID of the run for the Config worker if the received message has none" {
+            val run = fixtures.createOrtRun()
+
+            orchestrator.handleMessage(Message(MessageHeader(traceId = "", ortRunId = run.id), LostSchedule(run.id)))
+
+            MessageSenderFactoryForTesting.expectMessage(ConfigEndpoint).header.traceId shouldBe run.traceId
+        }
     }
 })
 
