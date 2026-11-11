@@ -48,8 +48,6 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerErrorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
-import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
@@ -58,7 +56,6 @@ import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
-import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
@@ -78,18 +75,17 @@ private val log = LoggerFactory.getLogger(Orchestrator::class.java)
  * updated, the next jobs are determined via its [RunState] and created in the database, resulting in a
  * [SchedulingPlan]. After the transaction has been committed, the plan is executed by sending messages to the workers.
  */
-class Orchestrator(
+class Orchestrator internal constructor(
+    /** The database in which the state of ORT runs is updated. */
     private val db: Database,
-    workerJobRepositories: WorkerJobRepositories,
-    repositoryRepository: RepositoryRepository,
-    ortRunRepository: OrtRunRepository,
-    publisher: MessagePublisher
+
+    /** The object to access the state of ORT runs and their jobs. */
+    private val runStore: RunStore,
+
+    /** The object to send messages to the workers. */
+    private val jobDispatcher: JobDispatcher
 ) {
     private val isolationLevel = Connection.TRANSACTION_SERIALIZABLE
-
-    private val runStore = RunStore(workerJobRepositories, repositoryRepository, ortRunRepository)
-
-    private val jobDispatcher = JobDispatcher(publisher)
 
     /** Handle the given [message] by passing it to the handler function for the type of its payload. */
     suspend fun handleMessage(message: Message<OrchestratorMessage>) {

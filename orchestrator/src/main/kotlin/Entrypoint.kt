@@ -91,6 +91,8 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
 
         singleOf(::WorkerJobRepositories)
+        singleOf(::RunStore)
+        singleOf(::JobDispatcher)
 
         singleOf(::Orchestrator)
     }

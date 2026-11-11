@@ -519,17 +519,19 @@ private fun createOrchestrator(dbExtension: DatabaseTestExtension, fixtures: Fix
 
     return Orchestrator(
         db = dbExtension.db,
-        workerJobRepositories = WorkerJobRepositories(
-            fixtures.analyzerJobRepository,
-            fixtures.advisorJobRepository,
-            fixtures.scannerJobRepository,
-            fixtures.evaluatorJobRepository,
-            fixtures.reporterJobRepository,
-            fixtures.notifierJobRepository
+        runStore = RunStore(
+            WorkerJobRepositories(
+                fixtures.analyzerJobRepository,
+                fixtures.advisorJobRepository,
+                fixtures.scannerJobRepository,
+                fixtures.evaluatorJobRepository,
+                fixtures.reporterJobRepository,
+                fixtures.notifierJobRepository
+            ),
+            fixtures.repositoryRepository,
+            fixtures.ortRunRepository
         ),
-        repositoryRepository = fixtures.repositoryRepository,
-        ortRunRepository = fixtures.ortRunRepository,
-        publisher = MessagePublisher(ConfigManager.create(ConfigFactory.parseMap(senderConfig)))
+        jobDispatcher = JobDispatcher(MessagePublisher(ConfigManager.create(ConfigFactory.parseMap(senderConfig))))
     )
 }
 
