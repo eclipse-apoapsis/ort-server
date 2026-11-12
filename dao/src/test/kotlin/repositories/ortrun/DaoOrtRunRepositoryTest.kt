@@ -41,6 +41,10 @@ import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+
 import org.eclipse.apoapsis.ortserver.dao.repositories.user.UserDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
@@ -255,6 +259,31 @@ class DaoOrtRunRepositoryTest : WordSpec({
                 traceId = null,
                 null
             ).index shouldBe 2
+        }
+
+        "create sequential indexes for concurrent requests for the same repository" {
+            val runCount = 20
+            val user = User("user-id", "john.doe", "John Doe")
+
+            val runs = coroutineScope {
+                (1..runCount).map { idx ->
+                    async {
+                        ortRunRepository.create(
+                            repositoryId,
+                            "revision-$idx",
+                            null,
+                            jobConfigurations,
+                            null,
+                            mapOf("new-label" to "value-$idx", "shared-label" to "value"),
+                            traceId = null,
+                            null,
+                            user
+                        )
+                    }
+                }.awaitAll()
+            }
+
+            runs.map { it.index } shouldContainExactlyInAnyOrder (1L..runCount).toList()
         }
 
         "create runs for different users with the same username" {

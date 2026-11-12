@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
+import java.sql.Connection
+
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -102,15 +104,12 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         userDisplayName: User?,
         resolvedJobConfigContext: String?,
         includesExcludes: RunIncludesExcludes?
-    ): OrtRun = db.transaction {
-        val maxIndex = OrtRunsTable.index.max()
-        val lastIndex = OrtRunsTable
-            .select(maxIndex)
-            .where { OrtRunsTable.repositoryId eq repositoryId }
-            .singleOrNull()
-            ?.get(maxIndex)
-
-        val nextIndex = (lastIndex ?: 0) + 1
+    ): OrtRun = db.transaction(transactionIsolation = Connection.TRANSACTION_READ_COMMITTED) {
+        // The index allocation locks the row of the repository in the indexes table until the end of the transaction.
+        // This requires the "read committed" isolation level, as with stricter isolation levels concurrent transactions
+        // would fail with serialization errors instead of waiting for the lock. Note that if this function is called
+        // within an existing transaction, the isolation level of that transaction is used.
+        val nextIndex = OrtRunIndexesTable.nextIndex(repositoryId)
 
         OrtRunDao.new {
             this.index = nextIndex
