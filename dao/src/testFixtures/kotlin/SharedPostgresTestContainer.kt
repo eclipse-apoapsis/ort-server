@@ -34,7 +34,8 @@ internal const val TEST_DB_SCHEMA = "ort_server_test"
 /**
  * A Postgres test container that is shared by all tests running in the same JVM. The container is started and the
  * schema is migrated on first access, and the container is stopped when the JVM exits. Data inserted by migrations
- * is removed, so that every test starts with an empty database.
+ * is removed, so that every test starts with an empty database. The data directory of the database is stored in
+ * memory.
  *
  * Tests must not change the schema, and must remove their data after running by calling [truncateTables].
  */
@@ -42,6 +43,11 @@ internal object SharedPostgresTestContainer {
     val postgres: PostgreSQLContainer by lazy {
         PostgreSQLContainer(Images.POSTGRES).apply {
             startupAttempts = 1
+
+            // Keep the data in memory, as it does not need to be persisted. This speeds up writes, especially when
+            // truncating tables.
+            withTmpFs(mapOf("/var/lib/postgresql" to "rw"))
+
             start()
         }
     }
