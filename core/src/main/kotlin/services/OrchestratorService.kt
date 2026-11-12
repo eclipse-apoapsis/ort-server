@@ -19,10 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.services
 
-import java.sql.Connection
-
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.User
@@ -34,13 +31,10 @@ import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
-import org.jetbrains.exposed.v1.jdbc.Database
-
 import org.slf4j.MDC
 
 /** A service responsible for the communication with the Orchestrator. */
 class OrchestratorService(
-    private val db: Database,
     private val ortRunRepository: OrtRunRepository,
     configManager: ConfigManager
 ) {
@@ -66,22 +60,19 @@ class OrchestratorService(
     ): OrtRun {
         val traceId = MDC.get("traceId")
 
-        val ortRun = db.transaction(transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
-            maxAttempts = 25
-            ortRunRepository.create(
-                repositoryId,
-                revision,
-                path,
-                jobConfig,
-                jobConfigContext,
-                labels.orEmpty(),
-                traceId = traceId,
-                environmentConfigPath = environmentConfigPath,
-                userDisplayName = userDisplayName,
-                resolvedJobConfigContext = resolvedJobConfigContext,
-                includesExcludes = includesExcludes
-            )
-        }
+        val ortRun = ortRunRepository.create(
+            repositoryId,
+            revision,
+            path,
+            jobConfig,
+            jobConfigContext,
+            labels.orEmpty(),
+            traceId = traceId,
+            environmentConfigPath = environmentConfigPath,
+            userDisplayName = userDisplayName,
+            resolvedJobConfigContext = resolvedJobConfigContext,
+            includesExcludes = includesExcludes
+        )
 
         orchestratorSender.send(
             Message(
