@@ -30,6 +30,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
@@ -336,6 +337,15 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 checkPermissions(effectiveRole)
             }
+
+            "not report a superuser whose assignment is stored with another user ID" {
+                createAssignment(organizationRole = OrganizationRole.ADMIN, userSub = OTHER_USER_SUB)
+                val service = createService()
+
+                val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId(), USER_SUB)
+
+                checkPermissions(effectiveRole)
+            }
         }
 
         "checkPermissions" should {
@@ -454,6 +464,59 @@ class DbAuthorizationServiceTest : WordSpec() {
                 exception.hierarchyId shouldBe invalidId
                 exception.message shouldContain "Could not resolve hierarchy ID"
             }
+
+            "ignore an assignment stored with another user ID" {
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    organizationRole = OrganizationRole.READER,
+                    userSub = OTHER_USER_SUB
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId(),
+                    HierarchyPermissions.permissions(RepositoryPermission.READ),
+                    USER_SUB
+                )
+
+                effectiveRole should beNull()
+            }
+
+            "grant an assignment stored with the same user ID" {
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    organizationRole = OrganizationRole.READER,
+                    userSub = USER_SUB
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId(),
+                    HierarchyPermissions.permissions(RepositoryPermission.READ),
+                    USER_SUB
+                )
+
+                effectiveRole shouldNot beNull()
+            }
+
+            "grant an assignment stored without a user ID" {
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    organizationRole = OrganizationRole.READER
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId(),
+                    HierarchyPermissions.permissions(RepositoryPermission.READ),
+                    USER_SUB
+                )
+
+                effectiveRole shouldNot beNull()
+            }
         }
 
         "assignRole" should {
@@ -543,6 +606,29 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
                 checkPermissions(effectiveRole, RepositoryRole.READER)
+            }
+
+            "store the ID of the user" {
+                val service = createService()
+
+                service.assignRole(USER_ID, RepositoryRole.READER, repositoryCompoundId(), USER_SUB)
+
+                queryUserSubsAndRepositoryRoles() should containExactly(USER_SUB to RepositoryRole.READER.name)
+            }
+
+            "replace an assignment of the username stored with another user ID" {
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = dbExtension.fixtures.repository.id,
+                    repositoryRole = RepositoryRole.ADMIN,
+                    userSub = OTHER_USER_SUB
+                )
+                val service = createService()
+
+                service.assignRole(USER_ID, RepositoryRole.READER, repositoryCompoundId(), USER_SUB)
+
+                queryUserSubsAndRepositoryRoles() should containExactly(USER_SUB to RepositoryRole.READER.name)
             }
         }
 
@@ -933,6 +1019,41 @@ class DbAuthorizationServiceTest : WordSpec() {
         }
 
         "filterHierarchyIds" should {
+            "leave out elements whose assignment is stored with another user ID" {
+                val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
+                val otherRepoId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(otherRepo.id)
+                )
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = dbExtension.fixtures.repository.id,
+                    repositoryRole = RepositoryRole.READER,
+                    userSub = OTHER_USER_SUB
+                )
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = otherRepo.id,
+                    repositoryRole = RepositoryRole.READER,
+                    userSub = USER_SUB
+                )
+                val service = createService()
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    userSub = USER_SUB
+                )
+
+                filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe HierarchyLevel.REPOSITORY
+                    value should containExactly(otherRepoId)
+                }
+            }
+
             "return a filter that includes the IDs of repositories a user has access to" {
                 val repositoryCompoundId = repositoryCompoundId()
                 val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
@@ -1378,7 +1499,8 @@ class DbAuthorizationServiceTest : WordSpec() {
         repositoryId: Long? = null,
         organizationRole: OrganizationRole? = null,
         productRole: ProductRole? = null,
-        repositoryRole: RepositoryRole? = null
+        repositoryRole: RepositoryRole? = null,
+        userSub: String? = null
     ) {
         createAssignmentForRoleNames(
             userId,
@@ -1387,7 +1509,8 @@ class DbAuthorizationServiceTest : WordSpec() {
             repositoryId,
             organizationRole?.name,
             productRole?.name,
-            repositoryRole?.name
+            repositoryRole?.name,
+            userSub
         )
     }
 
@@ -1402,11 +1525,13 @@ class DbAuthorizationServiceTest : WordSpec() {
         repositoryId: Long? = null,
         organizationRoleName: String? = null,
         productRoleName: String? = null,
-        repositoryRoleName: String? = null
+        repositoryRoleName: String? = null,
+        userSub: String? = null
     ) {
         dbExtension.db.transaction {
             RoleAssignmentsTable.insert {
                 it[RoleAssignmentsTable.userId] = userId
+                it[RoleAssignmentsTable.userSub] = userSub
                 it[RoleAssignmentsTable.organizationId] = organizationId
                 it[RoleAssignmentsTable.productId] = productId
                 it[RoleAssignmentsTable.repositoryId] = repositoryId
@@ -1440,6 +1565,13 @@ class DbAuthorizationServiceTest : WordSpec() {
         queryRoleAssignmentsCount() shouldBe expectedCount
     }
 
+    /** Query the user IDs and repository roles of all role assignments in the database. */
+    private suspend fun queryUserSubsAndRepositoryRoles(): List<Pair<String?, String?>> = dbExtension.db.transaction {
+        RoleAssignmentsTable.select(RoleAssignmentsTable.userSub, RoleAssignmentsTable.repositoryRole).map {
+            it[RoleAssignmentsTable.userSub] to it[RoleAssignmentsTable.repositoryRole]
+        }
+    }
+
     /** Query the number of role assignments in the database. */
     private suspend fun queryRoleAssignmentsCount(): Long = dbExtension.db.transaction {
         RoleAssignmentsTable.select(RoleAssignmentsTable.id).count()
@@ -1448,6 +1580,12 @@ class DbAuthorizationServiceTest : WordSpec() {
 
 /** The ID of a test user. */
 private const val USER_ID = "test-user"
+
+/** The ID in Keycloak of the test user. */
+private const val USER_SUB = "test-user-sub"
+
+/** The ID in Keycloak of another user who had the username of the test user before. */
+private const val OTHER_USER_SUB = "other-user-sub"
 
 /**
  * Check that the given [effectiveRole] contains exactly the specified [expectedOrganizationPermissions],

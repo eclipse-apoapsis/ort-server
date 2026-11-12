@@ -61,4 +61,10 @@ interface UserService {
 
     /** Return a flag whether a user with the given [id] exists. */
     suspend fun userExists(id: String): Boolean
+
+    /**
+     * Return the ID in Keycloak of the user with the given [username], or *null* if there is no such user. Throw an
+     * exception if Keycloak cannot be asked.
+     */
+    suspend fun findUserId(username: String): String?
 }

@@ -34,6 +34,11 @@ import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
  * A service interface providing functionality to query and manage roles and permissions for users on entities in the
  * hierarchy.
  *
+ * Users are identified by their username, called `userId` in this interface. Functions that look up the roles of a
+ * user also take the optional `userSub`, the ID of the user in Keycloak. If it is given, role assignments stored with
+ * another ID are ignored, so that a user created again with the username of a deleted user does not get the deleted
+ * user's roles. Assignments stored without an ID count for every user with the username.
+ *
  * Many functions in this interface come in two variants: one taking a [CompoundHierarchyId] and one taking a
  * [HierarchyId]. The former is an optimized version for cases where the IDs of all affected hierarchy elements are
  * already known. However, there is a caveat that the [CompoundHierarchyId] is not checked for consistency, which means
@@ -53,7 +58,8 @@ interface AuthorizationService {
     suspend fun checkPermissions(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId,
-        checker: PermissionChecker
+        checker: PermissionChecker,
+        userSub: String? = null
     ): EffectiveRole?
 
     /**
@@ -65,14 +71,19 @@ interface AuthorizationService {
     suspend fun checkPermissions(
         userId: String,
         hierarchyId: HierarchyId,
-        checker: PermissionChecker
+        checker: PermissionChecker,
+        userSub: String? = null
     ): EffectiveRole?
 
     /**
      * Return an [EffectiveRole] object for the specified [userId] that contains all permissions for this user on the
      * element identified by [compoundHierarchyId].
      */
-    suspend fun getEffectiveRole(userId: String, compoundHierarchyId: CompoundHierarchyId): EffectiveRole
+    suspend fun getEffectiveRole(
+        userId: String,
+        compoundHierarchyId: CompoundHierarchyId,
+        userSub: String? = null
+    ): EffectiveRole
 
     /**
      * Return an [EffectiveRole] object for the specified [userId] that contains all permissions for this user on the
@@ -80,13 +91,19 @@ interface AuthorizationService {
      * [hierarchyId]. If such a [CompoundHierarchyId] is already known, using the overloaded function is more
      * efficient.
      */
-    suspend fun getEffectiveRole(userId: String, hierarchyId: HierarchyId): EffectiveRole
+    suspend fun getEffectiveRole(userId: String, hierarchyId: HierarchyId, userSub: String? = null): EffectiveRole
 
     /**
-     * Assign the given [role] to the user identified by [userId] on the hierarchy element identified by the given
-     * [compoundHierarchyId]. An already existing role assignment on this hierarchy level is overridden.
+     * Assign the given [role] to the user with the username [userId] and the Keycloak ID [userSub] on the hierarchy
+     * element identified by the given [compoundHierarchyId]. An already existing role assignment of this username on
+     * this hierarchy level is overridden, even if it was stored with another ID.
      */
-    suspend fun assignRole(userId: String, role: Role, compoundHierarchyId: CompoundHierarchyId)
+    suspend fun assignRole(
+        userId: String,
+        role: Role,
+        compoundHierarchyId: CompoundHierarchyId,
+        userSub: String? = null
+    )
 
     /**
      * Remove any role assignment for the given [userId] on the hierarchy element identified by the given
@@ -140,7 +157,8 @@ interface AuthorizationService {
         organizationPermissions: Set<OrganizationPermission> = emptySet(),
         productPermissions: Set<ProductPermission> = emptySet(),
         repositoryPermissions: Set<RepositoryPermission> = emptySet(),
-        containedIn: HierarchyId? = null
+        containedIn: HierarchyId? = null,
+        userSub: String? = null
     ): HierarchyFilter
 
     /**
@@ -154,13 +172,15 @@ interface AuthorizationService {
     suspend fun filterHierarchyIds(
         userId: String,
         requiredRole: Role,
-        containedIn: HierarchyId? = null
+        containedIn: HierarchyId? = null,
+        userSub: String? = null
     ): HierarchyFilter =
         filterHierarchyIds(
             userId = userId,
             organizationPermissions = requiredRole.organizationPermissions,
             productPermissions = requiredRole.productPermissions,
             repositoryPermissions = requiredRole.repositoryPermissions,
-            containedIn = containedIn
+            containedIn = containedIn,
+            userSub = userSub
         )
 }

@@ -104,6 +104,9 @@ class KeycloakUserService(
 
     override suspend fun userExists(id: String): Boolean =
         runCatching { getUserById(id) }.isSuccess
+
+    override suspend fun findUserId(username: String): String? =
+        keycloakClient.findUser(UserName(username))?.id?.value
 }
 
 private fun User.contains(search: String): Boolean =

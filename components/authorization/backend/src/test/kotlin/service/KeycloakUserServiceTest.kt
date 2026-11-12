@@ -23,6 +23,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -403,6 +405,38 @@ class KeycloakUserServiceTest : WordSpec({
 
             val service = KeycloakUserService(client, mockk(), mockk())
             service.userExists(username) shouldBe false
+        }
+    }
+
+    "findUserId" should {
+        "return the Keycloak ID of an existing user" {
+            val user = createKeycloakUser(1)
+            val client = mockk<KeycloakClient> {
+                coEvery { findUser(user.username) } returns user
+            }
+
+            val service = KeycloakUserService(client, mockk(), mockk())
+            service.findUserId(user.username.value) shouldBe "id-1"
+        }
+
+        "return null for an unknown username" {
+            val client = mockk<KeycloakClient> {
+                coEvery { findUser(UserName("unknown-user")) } returns null
+            }
+
+            val service = KeycloakUserService(client, mockk(), mockk())
+            service.findUserId("unknown-user") should beNull()
+        }
+
+        "throw an exception if Keycloak cannot be asked" {
+            val client = mockk<KeycloakClient> {
+                coEvery { findUser(UserName("some-user")) } throws KeycloakClientException("Keycloak is down")
+            }
+
+            val service = KeycloakUserService(client, mockk(), mockk())
+            shouldThrow<KeycloakClientException> {
+                service.findUserId("some-user")
+            }
         }
     }
 })

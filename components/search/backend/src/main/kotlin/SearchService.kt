@@ -83,12 +83,14 @@ class SearchService(
      * @param userId The user ID performing the search.
      * @param scope Optional scope to limit the search. Can be an [OrganizationId], [ProductId], or [RepositoryId].
      *              If null, performs a global search (requires superuser permission).
+     * @param userSub The ID in Keycloak of the user performing the search.
      */
     suspend fun findOrtRunsByPackage(
         identifier: String?,
         purl: String?,
         userId: String,
-        scope: HierarchyId? = null
+        scope: HierarchyId? = null,
+        userSub: String? = null
     ): List<RunWithPackage> {
         require((identifier == null) != (purl == null)) {
             "Exactly one of 'identifier' or 'purl' must be provided."
@@ -97,7 +99,8 @@ class SearchService(
         val hierarchyFilter = authorizationService.filterHierarchyIds(
             userId = userId,
             repositoryPermissions = setOf(RepositoryPermission.READ),
-            containedIn = scope
+            containedIn = scope,
+            userSub = userSub
         )
 
         return db.transaction {
@@ -125,17 +128,20 @@ class SearchService(
      * @param userId The user ID performing the search.
      * @param scope Optional scope to limit the search. Can be an [OrganizationId], [ProductId], or [RepositoryId].
      *              If null, performs a global search (requires superuser permission).
+     * @param userSub The ID in Keycloak of the user performing the search.
      */
     suspend fun findOrtRunsByVulnerability(
         externalId: String,
         userId: String,
         scope: HierarchyId? = null,
-        returnPurl: Boolean = false
+        returnPurl: Boolean = false,
+        userSub: String? = null
     ): List<RunWithVulnerability> {
         val hierarchyFilter = authorizationService.filterHierarchyIds(
             userId = userId,
             repositoryPermissions = setOf(RepositoryPermission.READ),
-            containedIn = scope
+            containedIn = scope,
+            userSub = userSub
         )
 
         return db.transaction {

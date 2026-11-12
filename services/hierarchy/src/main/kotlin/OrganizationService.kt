@@ -56,12 +56,16 @@ class OrganizationService(
         organizationRepository.create(name, description)
     }
 
-    /** Create a product inside an [organization][organizationId]. */
+    /**
+     * Create a product inside an [organization][organizationId]. If [creatorId] is given, assign the ADMIN role on the
+     * product to the user with this username and the Keycloak ID [creatorSub].
+     */
     suspend fun createProduct(
         name: String,
         description: String?,
         organizationId: Long,
-        creatorId: String? = null
+        creatorId: String? = null,
+        creatorSub: String? = null
     ): Product {
         val product = db.transaction {
             productRepository.create(name, description, organizationId)
@@ -72,7 +76,8 @@ class OrganizationService(
             authorizationService.assignRole(
                 creatorId,
                 ProductRole.ADMIN,
-                CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(product.id))
+                CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(product.id)),
+                creatorSub
             )
         }
 
@@ -104,14 +109,16 @@ class OrganizationService(
     }
 
     /**
-     * List all organizations that are visible to the given [userId] according to the given [parameters] and [filter].
+     * List all organizations that are visible to the given [userId] with the Keycloak ID [userSub] according to the
+     * given [parameters] and [filter].
      */
     suspend fun listOrganizationsForUser(
         userId: String,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        filter: FilterParameter? = null
+        filter: FilterParameter? = null,
+        userSub: String? = null
     ): ListQueryResult<Organization> {
-        val orgFilter = authorizationService.filterHierarchyIds(userId, OrganizationRole.READER)
+        val orgFilter = authorizationService.filterHierarchyIds(userId, OrganizationRole.READER, userSub = userSub)
 
         return organizationRepository.list(
             parameters = parameters,
@@ -130,19 +137,21 @@ class OrganizationService(
     }
 
     /**
-     * List all products for an [organization][organizationId] that are visible to the user with the given [userId],
-     * applying the given [parameters] and optional [nameFilter].
+     * List all products for an [organization][organizationId] that are visible to the user with the given [userId]
+     * and the Keycloak ID [userSub], applying the given [parameters] and optional [nameFilter].
      */
     suspend fun listProductsForOrganizationAndUser(
         organizationId: Long,
         userId: String,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        nameFilter: FilterParameter? = null
+        nameFilter: FilterParameter? = null,
+        userSub: String? = null
     ): ListQueryResult<Product> {
         val productFilter = authorizationService.filterHierarchyIds(
             userId,
             ProductRole.READER,
-            OrganizationId(organizationId)
+            OrganizationId(organizationId),
+            userSub
         )
 
         return productRepository.list(parameters, nameFilter, productFilter)
@@ -157,12 +166,20 @@ class OrganizationService(
         organizationRepository.update(organizationId, name, description)
     }
 
-    /** Return the IDs of repositories in the organization that are readable by the given user. */
-    suspend fun getRepositoryIdsForOrganizationAndUser(organizationId: Long, userId: String): List<Long> {
+    /**
+     * Return the IDs of repositories in the organization that are readable by the user with the given [userId] and
+     * the Keycloak ID [userSub].
+     */
+    suspend fun getRepositoryIdsForOrganizationAndUser(
+        organizationId: Long,
+        userId: String,
+        userSub: String? = null
+    ): List<Long> {
         val hierarchyFilter = authorizationService.filterHierarchyIds(
             userId,
             RepositoryRole.READER,
-            OrganizationId(organizationId)
+            OrganizationId(organizationId),
+            userSub
         )
 
         return withContext(Dispatchers.Virtual) {
