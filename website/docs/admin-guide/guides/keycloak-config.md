@@ -137,6 +137,10 @@ Each run of the task:
   Their username and full name are kept, so that the runs they started still show who started them.
 - Removes all role assignments of usernames that no longer exist in Keycloak, including superuser roles.
   A user who was renamed in Keycloak therefore loses the roles assigned under the old username, and needs them assigned again.
+- Fills in the Keycloak ID of the user in role assignments that have none.
+  Role assignments made before the ORT Server stored user IDs have none.
+- Removes role assignments stored with the ID of another user than the one who has the username now.
+  This happens if a user with roles is deleted in Keycloak and another user is later created with the same username: the new user does not get the roles of the deleted user.
 - Records the time of the run, if it completed successfully.
 
 Users who are disabled in Keycloak are treated like all other users: they are stored and keep their roles.
@@ -171,6 +175,7 @@ To prevent this, the task checks the list of users from Keycloak before it chang
    This usually means that the task connects to the wrong realm.
 2. More stored users would be marked deleted than the limit allows.
 3. More usernames would lose their role assignments than the limit allows.
+   This counts the usernames that no longer exist in Keycloak and the usernames with role assignments of another user.
    This check applies only after the task has completed successfully once.
    The first run is expected to remove many role assignments, because older versions of the ORT Server did not remove the role assignments of deleted users.
 
@@ -183,8 +188,10 @@ Check 3 computes the limit in the same way from the number of usernames with rol
 | `USER_SYNC_MAX_DELETED_USERS` | `5`     | The number of users that a single run may remove in any case.                                              |
 | `USER_SYNC_MAX_DELETED_SHARE` | `0.1`   | The share of all stored users that a single run may remove, as a number between 0 and 1. `0.1` means 10 %. |
 
-Before the task marks a user as deleted or removes the roles of a username, it asks Keycloak about this user once more.
-Only users that Keycloak reports as not existing are marked as deleted or lose their roles.
+Before the task marks a user as deleted or changes the role assignments of a username, it asks Keycloak about this user once more.
+Only users that Keycloak reports as not existing are marked as deleted or lose all their roles.
+The user ID that the task fills in, or compares role assignments with, always comes from this answer, and not from the list of all users.
+After these answers, the task applies check 3 again.
 If Keycloak cannot be reached, or any of its answers is an error, the task stops without changes.
 
 When a check stops the task, the log of the task contains an error with the numbers that exceeded the limit.
@@ -194,7 +201,12 @@ The task does not provide a setting to skip the checks.
 ### Errors
 
 A run that fails or stops logs an error, but the job itself still ends successfully, as for all maintenance tasks.
-To detect failed runs, monitor the job status log: each run writes an entry with the status `success` or `failure`, and successful runs also include the number of stored users, new users, users marked as deleted, and removed role assignments.
+To detect failed runs, monitor the job status log: each run writes an entry with the status `success` or `failure`, and successful runs also include the number of stored users, new users, users marked as deleted, removed role assignments, and role assignments that got a user ID filled in.
+
+### Upgrading
+
+A later release of the ORT Server will look up roles by user ID and will not start while any role assignment has no user ID.
+Run the task right after upgrading to a release that stores user IDs in role assignments, and make sure that it completes successfully at least once before upgrading to the release that looks up roles by user ID.
 
 ## Token lifespan
 
