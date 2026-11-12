@@ -26,6 +26,10 @@ import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.User
 
 import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
+import org.jetbrains.exposed.v1.core.IColumnType
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryBuilder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.case
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
@@ -42,6 +46,7 @@ import org.jetbrains.exposed.v1.dao.Entity
 import org.jetbrains.exposed.v1.dao.EntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.batchUpsert
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 
@@ -76,8 +81,10 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, UserDao>(UsersTable) {
         /**
          * Insert a new entry, if it does not already exist, else update the entry. The creation time of an existing
-         * entry is kept. As the user exists, a deletion time stored for them is cleared. The update time is set only if
-         * the names have changed or the deletion time is cleared.
+         * entry is kept. As the user exists, a deletion time stored for them is cleared. An existing entry is only
+         * updated if the names have changed or the deletion time is cleared. This avoids writing a new row version on
+         * each call, which would cause serialization failures in concurrent transactions with an isolation level
+         * stricter than "read committed".
          */
         fun insertOrUpdate(userDisplayName: User?): UserDao? {
             // Tests may pass `null` as `userDisplayName`
@@ -87,7 +94,11 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
 
             val now = Clock.System.now()
 
-            UsersTable.upsert(UsersTable.id, onUpdate = { statement -> updateExistingUser(statement) }) {
+            UsersTable.upsert(
+                UsersTable.id,
+                onUpdate = { statement -> updateExistingUser(statement) },
+                where = { hasChanged() }
+            ) {
                 it[this.id] = userDisplayName.userId
                 it[this.username] = userDisplayName.username
                 it[this.fullName] = userDisplayName.fullName
@@ -145,17 +156,22 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
          * time is set only if the names have changed or the deletion time is cleared.
          */
         private fun UpsertBuilder.updateExistingUser(statement: UpdateStatement) {
-            val hasChanged = (UsersTable.username isDistinctFrom insertValue(UsersTable.username)) or
-                (UsersTable.fullName isDistinctFrom insertValue(UsersTable.fullName)) or
-                UsersTable.deletedAt.isNotNull()
-
             statement[UsersTable.username] = insertValue(UsersTable.username)
             statement[UsersTable.fullName] = insertValue(UsersTable.fullName)
             statement[UsersTable.deletedAt] = null
             statement[UsersTable.updatedAt] = case()
-                .When(hasChanged, insertValue(UsersTable.updatedAt))
+                .When(hasChanged(), insertValue(UsersTable.updatedAt))
                 .Else(UsersTable.updatedAt)
         }
+
+        /**
+         * Return a condition for an upsert statement that is true if the names that were to be inserted differ from
+         * the names of the existing user, or if the existing user is marked deleted.
+         */
+        private fun hasChanged(): Op<Boolean> =
+            (UsersTable.username isDistinctFrom Excluded(UsersTable.username)) or
+                (UsersTable.fullName isDistinctFrom Excluded(UsersTable.fullName)) or
+                UsersTable.deletedAt.isNotNull()
     }
 
     var username by UsersTable.username
@@ -172,4 +188,17 @@ class UserDao(id: EntityID<String>) : Entity<String>(id) {
         deletedAt = deletedAt,
         lastSyncedAt = lastSyncedAt
     )
+}
+
+/**
+ * An expression referencing the value that was to be inserted into the given [column] in an upsert statement, rendered
+ * as `EXCLUDED.<column>` in PostgreSQL. In contrast to [UpsertBuilder.insertValue], it can also be used in the `where`
+ * condition of an upsert statement.
+ */
+private class Excluded<T>(private val column: Column<T>) : ExpressionWithColumnType<T>() {
+    override val columnType: IColumnType<T & Any> = column.columnType
+
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+        queryBuilder.append("EXCLUDED.").append(TransactionManager.current().identity(column))
+    }
 }
