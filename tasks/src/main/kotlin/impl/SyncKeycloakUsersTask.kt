@@ -63,6 +63,9 @@ class SyncKeycloakUsersTask(
         /** The key for the number of removed role assignments in the job status log. */
         const val REMOVED_ROLE_ASSIGNMENTS_KEY = "removedRoleAssignments"
 
+        /** The key for the number of role assignments that got a user ID filled in, in the job status log. */
+        const val FILLED_ROLE_ASSIGNMENTS_KEY = "filledRoleAssignments"
+
         /** Create a new instance of [SyncKeycloakUsersTask] with the configuration from [configManager] for [db]. */
         fun create(configManager: ConfigManager, db: Database): SyncKeycloakUsersTask {
             val keycloakClient = DefaultKeycloakClient.create(
@@ -92,6 +95,7 @@ class SyncKeycloakUsersTask(
             jsonBuilder.put(NEW_USERS_KEY, JsonPrimitive(result.newUsers))
             jsonBuilder.put(DELETED_USERS_KEY, JsonPrimitive(result.deletedUsers))
             jsonBuilder.put(REMOVED_ROLE_ASSIGNMENTS_KEY, JsonPrimitive(result.removedRoleAssignments))
+            jsonBuilder.put(FILLED_ROLE_ASSIGNMENTS_KEY, JsonPrimitive(result.filledRoleAssignments))
         }
     }
 }

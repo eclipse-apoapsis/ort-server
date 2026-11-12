@@ -36,12 +36,14 @@ import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.User
 
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 
 import org.slf4j.LoggerFactory
 
@@ -51,9 +53,11 @@ private val logger = LoggerFactory.getLogger(KeycloakUserSyncService::class.java
  * A service that brings the stored users and the role assignments in line with the users in Keycloak.
  *
  * A sync stores every Keycloak user, marks stored users that no longer exist in Keycloak as deleted, and removes the
- * role assignments of usernames that no longer exist in Keycloak. Before it removes anything, it checks that the
- * answer from Keycloak is believable, and it asks Keycloak once more about every single user that it is about to
- * mark deleted or remove role assignments of. If any of this fails, it changes nothing.
+ * role assignments of usernames that no longer exist in Keycloak. It also fills in the Keycloak ID of the user in
+ * role assignments that have none, and removes role assignments stored with the ID of another user than the one who
+ * has the username now. Before it removes anything, it checks that the answer from Keycloak is believable, and it asks
+ * Keycloak once more about every single user that it is about to mark deleted, and about every username whose role
+ * assignments it is about to change. If any of this fails, it changes nothing.
  */
 class KeycloakUserSyncService(
     /** The client to load the users from Keycloak. */
@@ -93,14 +97,27 @@ class KeycloakUserSyncService(
         val keycloakUsers = keycloakClient.getUsers(pageSize)
         val usersToStore = keycloakUsers.map { it.toStoredUser() }
         val keycloakUserIds = usersToStore.mapTo(mutableSetOf()) { it.userId }
-        val keycloakUsernames = usersToStore.mapTo(mutableSetOf()) { it.username }
+        val keycloakUserIdsByUsername = usersToStore.groupBy({ it.username }, { it.userId })
 
         val state = db.transaction { loadState(startTime) }
 
         val userCandidates = state.usersCreatedBeforeStart.filterNot { it.userId in keycloakUserIds }
-        val usernameCandidates = state.assignedUsernames - keycloakUsernames
 
-        checkSafety(keycloakUsers.isEmpty(), state, userCandidates.size, usernameCandidates.size)
+        // A username is looked up directly if the list does not show exactly one user for it whose ID all its role
+        // assignments already have. Users renamed while the pages are loaded can be missing from the list or appear
+        // in it twice, so the ID of a user is only ever taken from a direct lookup.
+        val usernameCandidates = state.assignmentsByUsername.filter { (username, assignments) ->
+            val listedIds = keycloakUserIdsByUsername[username].orEmpty()
+            listedIds.size != 1 || assignments.any { it.userSub != listedIds.single() }
+        }.keys
+
+        val usernamesLosingRolesByList = state.assignmentsByUsername.count { (username, assignments) ->
+            val listedIds = keycloakUserIdsByUsername[username].orEmpty()
+            listedIds.isEmpty() || assignments.any { it.userSub != null && it.userSub !in listedIds }
+        }
+
+        checkSafety(keycloakUsers.isEmpty(), state, userCandidates.size)
+        checkRemovedUsernames(state, usernamesLosingRolesByList)
 
         // Users can be added, renamed or deleted while the pages are loaded, which can move other users between pages,
         // so that they are missing from the list. Only remove users of which Keycloak says that they do not exist, and
@@ -112,26 +129,23 @@ class KeycloakUserSyncService(
             user == null
         }
 
-        val usernamesToRemove = usernameCandidates.filter { username ->
-            val user = keycloakClient.findUser(UserName(username))
-            user?.let { foundUsers += it.toStoredUser() }
-            user == null
-        }
+        val assignmentChanges = lookUpAssignedUsernames(usernameCandidates, state)
+        foundUsers += assignmentChanges.foundUsers
+
+        // A lookup can find that a username in the list does not exist anymore, so check the limit again.
+        checkRemovedUsernames(state, assignmentChanges.usernamesLosingRoles)
 
         // A user found by a lookup is newer than the same user in the list, so it replaces that one.
         val allUsersToStore = (usersToStore + foundUsers).associateBy { it.userId }.values
 
-        // Only remove the role assignments that existed when the sync started. A username can be created again in
-        // Keycloak and get new roles while the sync runs, and these new roles must stay.
-        val assignmentIdsToRemove = usernamesToRemove.flatMap { state.assignmentIdsByUsername.getValue(it) }
-
-        val removedRoleAssignments = db.transaction {
+        val (filledRoleAssignments, removedRoleAssignments) = db.transaction {
             UserDao.insertOrUpdateAll(allUsersToStore, startTime)
             UserDao.markDeleted(usersToDelete.map { it.userId }, startTime)
-            val removed = removeRoleAssignments(assignmentIdsToRemove)
+            val filled = fillUserSubs(assignmentChanges.assignmentIdsToFillByUserSub)
+            val removed = removeRoleAssignments(assignmentChanges.assignmentIdsToRemove)
             UserSyncStatusTable.recordSuccess(clock.now())
 
-            removed
+            filled to removed
         }
 
         usersToDelete.forEach { logger.info("Marked user '{}' ({}) deleted.", it.username, it.userId) }
@@ -140,8 +154,45 @@ class KeycloakUserSyncService(
             storedUsers = allUsersToStore.size,
             newUsers = allUsersToStore.count { it.userId !in state.storedUserIds },
             deletedUsers = usersToDelete.size,
-            removedRoleAssignments = removedRoleAssignments
+            removedRoleAssignments = removedRoleAssignments,
+            filledRoleAssignments = filledRoleAssignments
         ).also { logger.info("Synced the users with Keycloak: {}.", it) }
+    }
+
+    /**
+     * Ask Keycloak about each of the given [usernames] and decide from its answer how to change their role assignments
+     * in the [state]. If there is no user with the username, all its role assignments are removed. Otherwise, role
+     * assignments without an ID get the ID of the user, and those with the ID of another user are removed. Only the
+     * role assignments that existed when the sync started are changed, because a username can be created again in
+     * Keycloak and get new roles while the sync runs, and these new roles must stay.
+     */
+    private suspend fun lookUpAssignedUsernames(usernames: Set<String>, state: StoredState): AssignmentChanges {
+        val foundUsers = mutableListOf<User>()
+        val assignmentIdsToFillByUserSub = mutableMapOf<String, MutableList<Long>>()
+        val assignmentIdsToRemove = mutableListOf<Long>()
+        var usernamesLosingRoles = 0
+
+        usernames.forEach { username ->
+            val assignments = state.assignmentsByUsername.getValue(username)
+            val user = keycloakClient.findUser(UserName(username))
+            user?.let { foundUsers += it.toStoredUser() }
+            val userSub = user?.id?.value
+
+            val assignmentsToRemove = assignments.filter {
+                userSub == null || (it.userSub != null && it.userSub != userSub)
+            }
+
+            if (assignmentsToRemove.isNotEmpty()) usernamesLosingRoles++
+            assignmentIdsToRemove += assignmentsToRemove.map { it.id }
+
+            val assignmentIdsWithoutSub = assignments.filter { it.userSub == null }.map { it.id }
+            // A user renamed between two lookups can be found under two usernames, so keep the IDs of both.
+            if (userSub != null && assignmentIdsWithoutSub.isNotEmpty()) {
+                assignmentIdsToFillByUserSub.getOrPut(userSub) { mutableListOf() } += assignmentIdsWithoutSub
+            }
+        }
+
+        return AssignmentChanges(foundUsers, assignmentIdsToFillByUserSub, assignmentIdsToRemove, usernamesLosingRoles)
     }
 
     /** Load the stored data that the sync compares with Keycloak, using [startTime] to find candidates for deletion. */
@@ -150,18 +201,21 @@ class KeycloakUserSyncService(
             storedUserIds = UsersTable.select(UsersTable.id).mapTo(mutableSetOf()) { it[UsersTable.id].value },
             notDeletedUserCount = UsersTable.selectAll().where { UsersTable.deletedAt.isNull() }.count(),
             usersCreatedBeforeStart = UserDao.findNotDeletedCreatedBefore(startTime),
-            assignmentIdsByUsername = RoleAssignmentsTable.select(RoleAssignmentsTable.id, RoleAssignmentsTable.userId)
-                .groupBy({ it[RoleAssignmentsTable.userId] }, { it[RoleAssignmentsTable.id].value }),
+            assignmentsByUsername = RoleAssignmentsTable
+                .select(RoleAssignmentsTable.id, RoleAssignmentsTable.userId, RoleAssignmentsTable.userSub)
+                .groupBy(
+                    { it[RoleAssignmentsTable.userId] },
+                    { StoredAssignment(it[RoleAssignmentsTable.id].value, it[RoleAssignmentsTable.userSub]) }
+                ),
             hasSucceededBefore = UserSyncStatusTable.lastSuccess() != null
         )
 
     /**
      * Throw a [UserSyncException] if the answer from Keycloak is not believable: if it is [empty][keycloakIsEmpty] but
-     * there are stored users or role assignments, if more than the allowed number of the [stored users][state] would
-     * be marked deleted, or, after an earlier successful sync, if more than the allowed number of usernames with
-     * role assignments would lose them.
+     * there are stored users or role assignments, or if more than the allowed number of the [stored users][state]
+     * would be marked deleted.
      */
-    private fun checkSafety(keycloakIsEmpty: Boolean, state: StoredState, deletedUsers: Int, removedUsernames: Int) {
+    private fun checkSafety(keycloakIsEmpty: Boolean, state: StoredState, deletedUsers: Int) {
         if (keycloakIsEmpty && (state.notDeletedUserCount > 0 || state.assignedUsernames.isNotEmpty())) {
             throw UserSyncException(
                 "Keycloak returned no users, but there are ${state.notDeletedUserCount} stored users and " +
@@ -176,7 +230,14 @@ class KeycloakUserSyncService(
                     "or 'maxDeletedShare' ($maxDeletedShare) and run the sync again."
             )
         }
+    }
 
+    /**
+     * Throw a [UserSyncException] if, after an earlier successful sync, more than the allowed number of the usernames
+     * with role assignments in the [state] would lose any of them. [removedUsernames] counts each username once, no
+     * matter how many role assignments it loses.
+     */
+    private fun checkRemovedUsernames(state: StoredState, removedUsernames: Int) {
         // The first sync is expected to remove many role assignments left behind by users deleted earlier.
         if (state.hasSucceededBefore && exceedsLimit(removedUsernames, state.assignedUsernames.size)) {
             throw UserSyncException(
@@ -190,14 +251,28 @@ class KeycloakUserSyncService(
     /** Return whether [count] of [total] is more than both [maxDeletedUsers] and the [maxDeletedShare] of [total]. */
     private fun exceedsLimit(count: Int, total: Int) = count > maxDeletedUsers && count > total * maxDeletedShare
 
+    /**
+     * Fill in the Keycloak ID of the user in the role assignments given for each ID in [assignmentIdsByUserSub], but
+     * only where the ID is still missing. Return how many role assignments got an ID.
+     */
+    private fun fillUserSubs(assignmentIdsByUserSub: Map<String, List<Long>>): Int =
+        assignmentIdsByUserSub.entries.sumOf { (userSub, ids) ->
+            RoleAssignmentsTable.update({
+                (RoleAssignmentsTable.id inList ids) and RoleAssignmentsTable.userSub.isNull()
+            }) {
+                it[RoleAssignmentsTable.userSub] = userSub
+            }
+        }
+
     /** Remove the role assignments with the given [ids], log each of them, and return how many were removed. */
     private fun removeRoleAssignments(ids: Collection<Long>): Int {
         if (ids.isEmpty()) return 0
 
         RoleAssignmentsTable.selectAll().where { RoleAssignmentsTable.id inList ids }.forEach {
             logger.info(
-                "Removing the role assignment of '{}' on organization {}, product {}, repository {}.",
+                "Removing the role assignment of '{}' ({}) on organization {}, product {}, repository {}.",
                 it[RoleAssignmentsTable.userId],
+                it[RoleAssignmentsTable.userSub],
                 it[RoleAssignmentsTable.organizationId]?.value,
                 it[RoleAssignmentsTable.productId]?.value,
                 it[RoleAssignmentsTable.repositoryId]?.value
@@ -222,15 +297,39 @@ private class StoredState(
     /** The stored users that are not marked deleted and were created before the sync started. */
     val usersCreatedBeforeStart: List<User>,
 
-    /** The IDs of the role assignments of each username that has role assignments. */
-    val assignmentIdsByUsername: Map<String, List<Long>>,
+    /** The role assignments of each username that has role assignments. */
+    val assignmentsByUsername: Map<String, List<StoredAssignment>>,
 
     /** Whether a sync has succeeded before. */
     val hasSucceededBefore: Boolean
 ) {
     /** The distinct usernames that have role assignments. */
-    val assignedUsernames: Set<String> get() = assignmentIdsByUsername.keys
+    val assignedUsernames: Set<String> get() = assignmentsByUsername.keys
 }
+
+/** The changes to role assignments that a sync decided on after asking Keycloak about usernames. */
+private class AssignmentChanges(
+    /** The users that Keycloak found by their username. */
+    val foundUsers: List<User>,
+
+    /** The IDs of the role assignments without a user ID to fill in, for each Keycloak ID of a user. */
+    val assignmentIdsToFillByUserSub: Map<String, List<Long>>,
+
+    /** The IDs of the role assignments to remove. */
+    val assignmentIdsToRemove: List<Long>,
+
+    /** The number of usernames that lose any role assignment. */
+    val usernamesLosingRoles: Int
+)
+
+/** A role assignment as the sync read it when it started. */
+private class StoredAssignment(
+    /** The ID of the role assignment. */
+    val id: Long,
+
+    /** The Keycloak ID of the user stored with the role assignment, or *null* if there is none. */
+    val userSub: String?
+)
 
 /**
  * Convert this Keycloak user to a stored user. The full name joins the first and last name with a space, as Keycloak

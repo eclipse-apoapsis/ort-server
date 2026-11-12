@@ -72,7 +72,8 @@ class SyncKeycloakUsersTaskTest : StringSpec({
                 storedUsers = 20,
                 newUsers = 3,
                 deletedUsers = 2,
-                removedRoleAssignments = 7
+                removedRoleAssignments = 7,
+                filledRoleAssignments = 11
             )
         }
 
@@ -84,5 +85,6 @@ class SyncKeycloakUsersTaskTest : StringSpec({
         status[SyncKeycloakUsersTask.NEW_USERS_KEY]?.jsonPrimitive?.int shouldBe 3
         status[SyncKeycloakUsersTask.DELETED_USERS_KEY]?.jsonPrimitive?.int shouldBe 2
         status[SyncKeycloakUsersTask.REMOVED_ROLE_ASSIGNMENTS_KEY]?.jsonPrimitive?.int shouldBe 7
+        status[SyncKeycloakUsersTask.FILLED_ROLE_ASSIGNMENTS_KEY]?.jsonPrimitive?.int shouldBe 11
     }
 })
