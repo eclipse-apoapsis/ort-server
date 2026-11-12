@@ -59,6 +59,7 @@ logback = "1.6.6"
 micrometer = "1.17.2"
 mockk = "1.14.12"
 mordant = "3.1.1"
+netty = "4.2.20.Final"
 okio = "3.18.2"
 postgres = "42.7.14"
 springSecurityCrypto = "7.1.2"
@@ -137,6 +138,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mordantCoroutines = { module =  "com.github.ajalt.mordant:mordant-coroutines", version.ref = "mordant" }
+netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 spring-security-crypto = { module = "org.springframework.security:spring-security-crypto", version.ref = "springSecurityCrypto" }
