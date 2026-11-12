@@ -68,13 +68,12 @@ dependencies {
     testFixturesApi(projects.model)
 
     testFixturesImplementation(projects.config.configSpi)
-    testFixturesImplementation(projects.shared.coroutines)
     testFixturesImplementation(projects.utils.test)
 
     testFixturesImplementation(libs.hikari)
     testFixturesImplementation(libs.koin.test)
-    testFixturesImplementation(libs.kotest.extensions.testcontainers)
     testFixturesImplementation(libs.kotest.runner.junit5)
+    testFixturesImplementation(libs.kotlinx.coroutines)
     testFixturesImplementation(libs.mockk)
     testFixturesImplementation(libs.testContainers)
     testFixturesImplementation(libs.testContainers.postgresql)
