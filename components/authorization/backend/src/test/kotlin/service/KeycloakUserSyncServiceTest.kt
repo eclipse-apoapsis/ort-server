@@ -30,6 +30,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 
 import kotlin.time.Clock
@@ -44,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.dao.repositories.user.UserDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.user.UserSyncStatusTable
@@ -84,15 +86,27 @@ class KeycloakUserSyncServiceTest : WordSpec({
         }
     }
 
-    suspend fun assignOrganizationRole(username: String) =
+    suspend fun assignOrganizationRole(username: String, userSub: String? = null) =
         authorizationService.assignRole(
             username,
             OrganizationRole.READER,
-            CompoundHierarchyId.forOrganization(OrganizationId(dbExtension.fixtures.organization.id))
+            CompoundHierarchyId.forOrganization(OrganizationId(dbExtension.fixtures.organization.id)),
+            userSub
         )
 
-    suspend fun assignSuperuser(username: String) =
-        authorizationService.assignRole(username, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD)
+    suspend fun assignProductRole(username: String, userSub: String? = null) =
+        authorizationService.assignRole(
+            username,
+            ProductRole.READER,
+            CompoundHierarchyId.forProduct(
+                OrganizationId(dbExtension.fixtures.organization.id),
+                ProductId(dbExtension.fixtures.product.id)
+            ),
+            userSub
+        )
+
+    suspend fun assignSuperuser(username: String, userSub: String? = null) =
+        authorizationService.assignRole(username, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD, userSub)
 
     suspend fun recordEarlierSuccess() =
         dbExtension.db.transaction { UserSyncStatusTable.recordSuccess(Clock.System.now() - 1.hours) }
@@ -101,6 +115,11 @@ class KeycloakUserSyncServiceTest : WordSpec({
 
     suspend fun assignedUsernames() = dbExtension.db.transaction {
         RoleAssignmentsTable.selectAll().map { it[RoleAssignmentsTable.userId] }
+    }
+
+    /** Return the username and the user ID of each role assignment. */
+    suspend fun assignedUsers() = dbExtension.db.transaction {
+        RoleAssignmentsTable.selectAll().map { it[RoleAssignmentsTable.userId] to it[RoleAssignmentsTable.userSub] }
     }
 
     suspend fun lastSuccess() = dbExtension.db.transaction { UserSyncStatusTable.lastSuccess() }
@@ -125,7 +144,13 @@ class KeycloakUserSyncServiceTest : WordSpec({
             val result = createService(clockOf(startTime, startTime + 1.minutes)).sync()
 
             storedUser("id-1") shouldBe User("id-1", "john.doe", "John Doe", lastSyncedAt = startTime)
-            result shouldBe UserSyncResult(storedUsers = 1, newUsers = 1, deletedUsers = 0, removedRoleAssignments = 0)
+            result shouldBe UserSyncResult(
+                storedUsers = 1,
+                newUsers = 1,
+                deletedUsers = 0,
+                removedRoleAssignments = 0,
+                filledRoleAssignments = 0
+            )
         }
 
         "mark a user deleted in Keycloak deleted and remove all their role assignments" {
@@ -249,6 +274,129 @@ class KeycloakUserSyncServiceTest : WordSpec({
 
             lastSuccess() shouldBe endTime
             storedUser("id-1")?.lastSyncedAt shouldBe startTime
+        }
+    }
+
+    "the user IDs of role assignments" should {
+        "be filled in for every existing username" {
+            keycloakHas(keycloakUser("id-1", "john.doe"), keycloakUser("id-2", "jane.doe"))
+            assignOrganizationRole("john.doe")
+            assignSuperuser("john.doe")
+            assignOrganizationRole("jane.doe")
+
+            val result = createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder(
+                "john.doe" to "id-1",
+                "john.doe" to "id-1",
+                "jane.doe" to "id-2"
+            )
+            result.filledRoleAssignments shouldBe 3
+        }
+
+        "be taken from the direct lookup, not from the list" {
+            keycloakHas(keycloakUser("listed-id", "john.doe"))
+            coEvery { keycloakClient.findUser(UserName("john.doe")) } returns keycloakUser("found-id", "john.doe")
+            assignOrganizationRole("john.doe")
+
+            createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder("john.doe" to "found-id")
+        }
+
+        "be filled in for a username that only the direct lookup finds" {
+            keycloakHas(keycloakUser("id-1", "john.doe"))
+            coEvery { keycloakClient.findUser(UserName("jane.doe")) } returns keycloakUser("id-2", "jane.doe")
+            assignOrganizationRole("jane.doe")
+
+            createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder("jane.doe" to "id-2")
+        }
+
+        "be filled in for two usernames whose direct lookups find the same user" {
+            keycloakHas(keycloakUser("id-1", "john.doe"), keycloakUser("id-2", "jane.doe"))
+            // The user with the first username is renamed to the second one between the two lookups.
+            coEvery { keycloakClient.findUser(UserName("john.doe")) } returns keycloakUser("id-1", "john.doe")
+            coEvery { keycloakClient.findUser(UserName("jane.doe")) } returns keycloakUser("id-1", "jane.doe")
+            assignOrganizationRole("john.doe")
+            assignOrganizationRole("jane.doe")
+
+            val result = createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder("john.doe" to "id-1", "jane.doe" to "id-1")
+            result.filledRoleAssignments shouldBe 2
+        }
+
+        "remove role assignments with the ID of another user and keep those with the ID of the user" {
+            keycloakHas(keycloakUser("id-1", "john.doe"))
+            assignOrganizationRole("john.doe", "other-id")
+            assignSuperuser("john.doe", "id-1")
+
+            val result = createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder("john.doe" to "id-1")
+            result.removedRoleAssignments shouldBe 1
+        }
+
+        "remove the role assignments of a renamed user whose username another user has now" {
+            keycloakHas(keycloakUser("id-1", "john.smith"), keycloakUser("id-2", "john.doe"))
+            assignOrganizationRole("john.doe", "id-1")
+
+            createService().sync()
+
+            assignedUsers() should beEmpty()
+        }
+
+        "keep role assignments whose ID the direct lookup confirms although the list has another one" {
+            keycloakHas(keycloakUser("listed-id", "john.doe"))
+            coEvery { keycloakClient.findUser(UserName("john.doe")) } returns keycloakUser("id-1", "john.doe")
+            assignOrganizationRole("john.doe", "id-1")
+
+            createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder("john.doe" to "id-1")
+        }
+
+        "remove all role assignments of a username in the list twice that the direct lookup does not find" {
+            keycloakHas(keycloakUser("id-1", "john.doe"), keycloakUser("id-2", "john.doe"))
+            coEvery { keycloakClient.findUser(UserName("john.doe")) } returns null
+            assignOrganizationRole("john.doe")
+            assignSuperuser("john.doe", "id-1")
+
+            createService().sync()
+
+            assignedUsers() should beEmpty()
+        }
+
+        "not require a direct lookup if all role assignments of a username have the ID in the list" {
+            keycloakHas(keycloakUser("id-1", "john.doe"))
+            assignOrganizationRole("john.doe", "id-1")
+
+            createService().sync()
+
+            coVerify(exactly = 0) { keycloakClient.findUser(UserName("john.doe")) }
+        }
+
+        "not change role assignments made while the sync runs" {
+            keycloakHas(keycloakUser("id-1", "john.doe"))
+            assignSuperuser("john.doe")
+            coEvery { keycloakClient.findUser(UserName("john.doe")) } coAnswers {
+                // Roles are assigned to the username after the sync loaded the stored data.
+                assignOrganizationRole("john.doe")
+                assignProductRole("john.doe", "other-id")
+                keycloakUser("id-1", "john.doe")
+            }
+
+            val result = createService().sync()
+
+            assignedUsers() should containExactlyInAnyOrder(
+                "john.doe" to "id-1",
+                "john.doe" to null,
+                "john.doe" to "other-id"
+            )
+            result.filledRoleAssignments shouldBe 1
+            result.removedRoleAssignments shouldBe 0
         }
     }
 
@@ -377,6 +525,21 @@ class KeycloakUserSyncServiceTest : WordSpec({
             keycloakHas(*users.drop(1).toTypedArray())
 
             createService().sync().removedRoleAssignments shouldBe 10
+        }
+
+        "stop removing role assignments with the ID of another user of 6 of 20 usernames and fill in no ID" {
+            val users = (1..20).map { keycloakUser("id-$it", "user-$it") }
+            users.forEachIndexed { index, user ->
+                assignOrganizationRole(user.username.value, if (index < 6) "other-id-$index" else null)
+            }
+
+            recordEarlierSuccess()
+            keycloakHas(*users.toTypedArray())
+
+            shouldThrow<UserSyncException> { createService().sync() }
+
+            assignedUsers().count { it.second == null } shouldBe 14
+            assignedUsers().size shouldBe 20
         }
     }
 })

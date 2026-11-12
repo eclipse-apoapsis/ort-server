@@ -31,5 +31,8 @@ data class UserSyncResult(
     val deletedUsers: Int,
 
     /** The number of role assignments that were removed. */
-    val removedRoleAssignments: Int
+    val removedRoleAssignments: Int,
+
+    /** The number of role assignments that got the Keycloak ID of their user filled in. */
+    val filledRoleAssignments: Int
 )
